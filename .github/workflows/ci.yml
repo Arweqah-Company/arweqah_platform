@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# Test-only values; production secrets live in the server .env, never in GitHub.
+env:
+  NODE_ENV: test
+  APP_URL: http://localhost:4173
+  API_URL: http://localhost:4173
+  CORS_ORIGINS: http://localhost:4173
+  DB_HOST: 127.0.0.1
+  DB_PORT: 5432
+  DB_NAME: arweqah_platform_test
+  DB_USER: arweqah
+  DB_PASSWORD: ci_password
+  BETTER_AUTH_SECRET: ci_better_auth_secret_value_at_least_32_chars
+  FIELD_ENCRYPTION_KEY: Y2ktZmllbGQtZW5jcnlwdGlvbi1rZXktMzItYnl0ZXM=
+  MESSAGE_BUS: memory
+  SEED_ADMIN_EMAIL: admin@example.com
+  SEED_ADMIN_PASSWORD: Admin-Passw0rd-Dev
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ github.sha }}
+          restore-keys: turbo-
+      - run: npm ci
+      - run: npx turbo run lint typecheck build test --cache-dir=.turbo
+      - run: npm run dup
+
+  e2e-api:
+    needs: quality
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env: { POSTGRES_DB: arweqah_platform_test, POSTGRES_USER: arweqah, POSTGRES_PASSWORD: ci_password }
+        ports: ["5432:5432"]
+        options: --health-cmd="pg_isready -U arweqah" --health-interval=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run test:e2e:api
+
+  e2e-web:
+    needs: quality
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env: { POSTGRES_DB: arweqah_platform_test, POSTGRES_USER: arweqah, POSTGRES_PASSWORD: ci_password }
+        ports: ["5432:5432"]
+        options: --health-cmd="pg_isready -U arweqah" --health-interval=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+        working-directory: e2e
+      - run: npm run test:e2e:web
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report
+          retention-days: 7
+
+  security:
+    uses: ./.github/workflows/security.yml
+    with:
+      start_command: >-
+        npm run build &&
+        npm run db:migrate &&
+        (node apps/api/dist/main.js &) &&
+        (npm run preview -w @arweqah-platform/web &)
+      target_url: http://localhost:4173
+      openapi_url: http://localhost:3000/api/docs/openapi.json

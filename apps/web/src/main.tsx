@@ -1,0 +1,20 @@
+import '@fontsource/cairo/700.css';
+import '@fontsource/tajawal/400.css';
+import '@fontsource/tajawal/500.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/600.css';
+import './core/theme.css';
+import './core/i18n';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { RouterProvider } from 'react-router/dom';
+import { Providers } from './app/providers';
+import { router } from './app/router';
+
+createRoot(document.getElementById('root') as HTMLElement).render(
+  <StrictMode>
+    <Providers>
+      <RouterProvider router={router} />
+    </Providers>
+  </StrictMode>,
+);

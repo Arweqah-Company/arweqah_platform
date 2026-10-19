@@ -1,0 +1,18 @@
+{
+  "title": "Organization",
+  "description": "Branches, departments and teams. Permission scopes are worked out from them.",
+  "addBranch": "New branch",
+  "addDepartment": "New department",
+  "addTeam": "New team",
+  "nameAr": "Arabic name",
+  "nameEn": "English name",
+  "code": "Branch code",
+  "codeHint": "Capital letters and digits, e.g. RUH",
+  "city": "City",
+  "parent": "Parent department",
+  "none": "None",
+  "empty": "Start with your first branch, then add its departments and teams.",
+  "confirmDelete": "Delete “{{name}}”?",
+  "saved": "Saved.",
+  "deleted": "Deleted."
+}

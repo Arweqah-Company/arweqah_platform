@@ -1,0 +1,17 @@
+{
+  "title": "Sign in",
+  "subtitle": "Use the work account HR created for you.",
+  "email": "Email",
+  "password": "Password",
+  "submit": "Sign in",
+  "microsoft": "Sign in with Microsoft",
+  "or": "or",
+  "invalid": "Email or password is incorrect.",
+  "tooMany": "Too many attempts. Wait a minute and try again.",
+  "twoFactorTitle": "Two-step verification",
+  "twoFactorHint": "Enter the 6-digit code from your authenticator app.",
+  "code": "Verification code",
+  "verify": "Verify",
+  "invalidCode": "The code is incorrect or expired.",
+  "trustDevice": "Remember this device for 30 days"
+}

@@ -1,0 +1,16 @@
+# gitleaks configuration: default rules plus documented allowlist entries.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Test-only fixtures; each entry is a value that never reaches any real environment"
+paths = [
+  # Fake passwords used by test factories and Playwright specs.
+  '''apps/api/test/.*''',
+  '''e2e/tests/.*''',
+]
+regexes = [
+  # CI-only secrets for the ephemeral test database and auth in GitHub Actions.
+  '''ci_better_auth_secret_value_at_least_32_chars''',
+  '''Y2ktZmllbGQtZW5jcnlwdGlvbi1rZXktMzItYnl0ZXM=''',
+]

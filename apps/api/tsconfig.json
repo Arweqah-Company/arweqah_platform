@@ -1,0 +1,5 @@
+{
+  "extends": "@arweqah-platform/tsconfig/nest.json",
+  "compilerOptions": { "outDir": "dist", "rootDir": ".", "baseUrl": "." },
+  "include": ["src", "test", "vitest.config.mts", "vitest.e2e.config.mts"]
+}

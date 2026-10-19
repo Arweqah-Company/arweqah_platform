@@ -1,0 +1,18 @@
+{
+  "title": "Roles & permissions",
+  "description": "Each role is a set of permissions, and each permission has a scope that decides which records it covers.",
+  "new": "New role",
+  "edit": "Edit role",
+  "nameAr": "Arabic name",
+  "nameEn": "English name",
+  "roleDescription": "Description",
+  "permissions": "Permissions",
+  "scope": "Scope",
+  "users_one": "1 user",
+  "users_other": "{{count}} users",
+  "system": "Built-in",
+  "confirmDelete": "Delete the role “{{name}}”? Its holders lose these permissions immediately.",
+  "saved": "Role saved.",
+  "deleted": "Role deleted.",
+  "module": { "access": "Roles", "audit": "Audit", "org": "Organization", "users": "Users" }
+}

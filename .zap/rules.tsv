@@ -1,0 +1,2 @@
+# Every IGNORE needs a reason. Default: anything not listed uses ZAP's default level.
+10096	IGNORE	Timestamp disclosure — build hashes in asset names, not sensitive

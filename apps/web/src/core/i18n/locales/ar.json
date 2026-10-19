@@ -1,0 +1,21 @@
+{
+  "appName": "منصة أروقة",
+  "nav": { "home": "الرئيسية", "users": "المستخدمون", "roles": "الأدوار والصلاحيات", "org": "الهيكل التنظيمي", "audit": "سجل التدقيق", "notifications": "الإشعارات", "security": "الأمان" },
+  "actions": { "save": "حفظ", "cancel": "إلغاء", "delete": "حذف", "edit": "تعديل", "create": "إضافة", "signOut": "تسجيل الخروج", "retry": "إعادة المحاولة", "close": "إغلاق", "confirm": "تأكيد" },
+  "language": { "switchTo": "English" },
+  "table": { "empty": "لا توجد بيانات بعد.", "previous": "السابق", "next": "التالي", "page": "صفحة {{page}} من {{pages}}", "search": "بحث" },
+  "errors": {
+    "generic": "تعذّر إكمال الطلب. حاول مرة أخرى.",
+    "forbidden": "ليست لديك صلاحية لهذا الإجراء.",
+    "notFound": "لم نجد ما تبحث عنه.",
+    "VALIDATION": "بعض الحقول غير صحيحة. راجعها ثم أعد الإرسال.",
+    "CONFLICT": "يوجد سجل بنفس البيانات.",
+    "BRANCH_CODE_TAKEN": "رمز الفرع مستخدم لفرع آخر.",
+    "ORG_UNIT_IN_USE": "انقل الوحدات الفرعية والأعضاء أولًا ثم احذف.",
+    "INVALID_ORG_HIERARCHY": "الموقع المختار غير متسق مع الهيكل التنظيمي.",
+    "SCOPE_NOT_ALLOWED": "النطاق المختار غير متاح لهذه الصلاحية.",
+    "FILE_TYPE_NOT_ALLOWED": "نوع الملف غير مسموح. المسموح: PDF و PNG و JPEG."
+  },
+  "scope": { "own": "سجلاته فقط", "team": "فريقه", "department": "قسمه", "branch": "فرعه", "company": "الشركة كاملة" },
+  "status": { "active": "نشط", "inactive": "معطّل" }
+}

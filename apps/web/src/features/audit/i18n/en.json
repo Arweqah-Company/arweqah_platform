@@ -1,0 +1,1 @@
+{ "title": "Audit log", "description": "Every sign-in and change to permissions, users and the organization: who did it and when.", "when": "When", "actor": "By", "action": "Action", "target": "Record", "system": "System", "filterAction": "Filter by action" }

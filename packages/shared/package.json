@@ -1,0 +1,15 @@
+{
+  "name": "@arweqah-platform/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src"
+  },
+  "dependencies": { "zod": "4.6.5" },
+  "devDependencies": { "@arweqah-platform/tsconfig": "*", "@arweqah-platform/eslint-config": "*" }
+}

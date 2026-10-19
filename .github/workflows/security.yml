@@ -1,0 +1,137 @@
+# -I: warnings don't fail the job; FAIL-level rules (set in .zap/rules.tsv) do.
+# Security scanning — called by ci.yml (workflow_call), weekly on schedule, or manually.
+name: Security
+
+on:
+  workflow_call:
+    inputs:
+      start_command:
+        description: Command that builds and starts the app in the background (for DAST)
+        type: string
+        required: true
+      target_url:
+        description: URL to scan, e.g. http://localhost:3001
+        type: string
+        required: true
+      openapi_url:
+        description: OpenAPI JSON URL for the ZAP API scan (Tracks B/D), empty to skip
+        type: string
+        default: ""
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+    inputs:
+      staging_url:
+        description: Staging URL for a FULL active ZAP scan (only a host you own)
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  dependencies:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
+
+  secrets:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - run: docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.18.4 detect --source=/repo --redact -v
+
+  sast:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: >
+          docker run --rm -v "$PWD:/src" -w /src semgrep/semgrep:1.95.0
+          semgrep scan --config p/owasp-top-ten --config p/nodejs
+          --config p/typescript --config p/secrets --error --metrics=off
+
+  filesystem-and-config:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scanners: vuln,misconfig,secret
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+
+  dast:
+    # Inputs exist only when called from CI; schedule/manual runs skip DAST here
+    if: inputs.start_command != ''
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      APP_URL: http://localhost:4173
+      API_URL: http://localhost:4173
+      CORS_ORIGINS: http://localhost:4173
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_NAME: arweqah_platform_test
+      DB_USER: arweqah
+      DB_PASSWORD: ci_password
+      BETTER_AUTH_SECRET: ci_better_auth_secret_value_at_least_32_chars
+      FIELD_ENCRYPTION_KEY: Y2ktZmllbGQtZW5jcnlwdGlvbi1rZXktMzItYnl0ZXM=
+      MESSAGE_BUS: memory
+      SWAGGER_ENABLED: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - name: Start PostgreSQL
+        run: |
+          docker run -d --name db -p 5432:5432 -e POSTGRES_DB=arweqah_platform_test -e POSTGRES_USER=arweqah \
+            -e POSTGRES_PASSWORD=ci_password postgres:16-alpine
+          for i in $(seq 1 30); do docker exec db pg_isready -U arweqah && break; sleep 2; done
+      - name: Build and start app
+        run: |
+          npm ci
+          ${{ inputs.start_command }}
+          for i in $(seq 1 60); do curl -fsS "${{ inputs.target_url }}" >/dev/null && break; sleep 3; done
+      - name: ZAP baseline (passive)
+        run: |
+          chmod a+w .
+          docker run --rm --network host -v "$PWD:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -I -t "${{ inputs.target_url }}" -c .zap/rules.tsv -r zap-baseline.html
+      - name: ZAP API scan
+        if: inputs.openapi_url != ''
+        run: |
+          docker run --rm --network host -v "$PWD:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
+            zap-api-scan.py -I -t "${{ inputs.openapi_url }}" -f openapi -c .zap/rules.tsv -r zap-api.html
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-reports
+          path: "*.html"
+          retention-days: 14
+
+  full-active-scan:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ZAP full scan (staging only)
+        continue-on-error: true
+        run: |
+          chmod a+w .
+          docker run --rm -v "$PWD:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
+            zap-full-scan.py -t "${{ inputs.staging_url }}" -c .zap/rules.tsv -r zap-full.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zap-full-report
+          path: zap-full.html

@@ -1,0 +1,21 @@
+{
+  "appName": "Arweqah Platform",
+  "nav": { "home": "Home", "users": "Users", "roles": "Roles & permissions", "org": "Organization", "audit": "Audit log", "notifications": "Notifications", "security": "Security" },
+  "actions": { "save": "Save", "cancel": "Cancel", "delete": "Delete", "edit": "Edit", "create": "Add", "signOut": "Sign out", "retry": "Try again", "close": "Close", "confirm": "Confirm" },
+  "language": { "switchTo": "العربية" },
+  "table": { "empty": "Nothing here yet.", "previous": "Previous", "next": "Next", "page": "Page {{page}} of {{pages}}", "search": "Search" },
+  "errors": {
+    "generic": "The request could not be completed. Try again.",
+    "forbidden": "You don't have permission for this action.",
+    "notFound": "We couldn't find that.",
+    "VALIDATION": "Some fields are invalid. Check them and submit again.",
+    "CONFLICT": "A record with the same details already exists.",
+    "BRANCH_CODE_TAKEN": "This branch code is used by another branch.",
+    "ORG_UNIT_IN_USE": "Move its sub-units and members first, then delete.",
+    "INVALID_ORG_HIERARCHY": "The selected placement doesn't match the organization structure.",
+    "SCOPE_NOT_ALLOWED": "That scope isn't available for this permission.",
+    "FILE_TYPE_NOT_ALLOWED": "File type not allowed. Use PDF, PNG or JPEG."
+  },
+  "scope": { "own": "Own records", "team": "Their team", "department": "Their department", "branch": "Their branch", "company": "Whole company" },
+  "status": { "active": "Active", "inactive": "Disabled" }
+}
