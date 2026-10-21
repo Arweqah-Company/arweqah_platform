@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, IsNull, Repository } from 'typeorm';
+import { ILike, In, IsNull, Not, Repository } from 'typeorm';
 import type { NotificationsQuery, Paginated } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../common/application/transaction-runner';
+import { likeContains } from '../../../common/infrastructure/sql-like';
+import { dayRange } from '../../../common/infrastructure/date-range';
 import { managerOf } from '../../../common/infrastructure/typeorm-transaction-runner';
 import { Notification } from '../domain/notification.entity';
 import { NotificationRepository, RecipientDirectory, type Recipient } from '../domain/notification.repository';
@@ -19,12 +21,15 @@ export class TypeOrmNotificationRepository extends NotificationRepository {
   }
 
   async listFor(userId: string, query: NotificationsQuery): Promise<Paginated<Notification>> {
-    const [items, total] = await this.repo.findAndCount({
-      where: { userId, ...(query.unreadOnly ? { readAt: IsNull() } : {}) },
-      order: { createdAt: 'DESC' },
-      skip: (query.page - 1) * query.pageSize,
-      take: query.pageSize,
-    });
+    const base = {
+      userId,
+      ...(query.unreadOnly ? { readAt: IsNull() } : {}),
+      ...(query.readOnly ? { readAt: Not(IsNull()) } : {}),
+      ...(dayRange(query.from, query.until) && { createdAt: dayRange(query.from, query.until) }),
+    };
+    const term = query.search ? likeContains(query.search) : null;
+    const where = term ? (['titleAr', 'titleEn', 'bodyAr', 'bodyEn'] as const).map((column) => ({ ...base, [column]: ILike(term) })) : base;
+    const [items, total] = await this.repo.findAndCount({ where, order: { createdAt: 'DESC' }, skip: (query.page - 1) * query.pageSize, take: query.pageSize });
     return { items, total, page: query.page, pageSize: query.pageSize };
   }
 

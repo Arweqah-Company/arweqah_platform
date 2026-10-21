@@ -1,28 +1,31 @@
 import { expect, test } from '@playwright/test';
 import { LoginPage } from '../pages/login.page';
-import { accounts } from '../support/fixtures';
+import { ADMIN_EMAIL, adminTotpUri } from '../support/fixtures';
 
-test.describe('Sign-in and language (FR-01, FR-02, FR-12)', () => {
+test.describe('Sign-in and language (FR-01, FR-12, FR-23)', () => {
   test('redirects to sign-in when not signed in, and the page is right-to-left', async ({ page }) => {
-    await page.goto('/users');
+    await page.goto('/employees');
     await expect(page).toHaveURL(/\/login$/);
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+    await expect(page.getByRole('button', { name: 'الدخول بواسطة Microsoft' })).toBeVisible();
     await new LoginPage(page).expectNoSeriousA11yIssues();
   });
 
-  test('shows a clear error for a wrong password', async ({ page }) => {
+  test('asks for the e-mail first, then shows the six code boxes; a wrong code gives one generic error', async ({ page }) => {
     const login = new LoginPage(page);
     await login.goto();
-    await login.signIn(accounts().viewer.email, 'Wrong-Password-9');
-    await expect(login.errorAlert()).toHaveText('البريد أو كلمة المرور غير صحيحة.');
+    await expect(page.getByRole('group', { name: 'رمز تطبيق المصادقة' })).toBeHidden();
+    await login.enterEmail(ADMIN_EMAIL);
+    await login.enterCode('000000');
+    await expect(login.errorAlert()).toHaveText('البريد أو الرمز غير صحيح.');
+    await expect(page.getByLabel('رمز تطبيق المصادقة 1')).toHaveValue('');
+    await login.expectNoSeriousA11yIssues();
   });
 
-  test('admin signs in with two-step verification, then signs out', async ({ page }) => {
-    const { admin } = accounts();
+  test('admin signs in with the e-mail and the authenticator code, then signs out', async ({ page }) => {
     const login = new LoginPage(page);
     await login.goto();
-    await login.signIn(admin.email, admin.password);
-    await login.verifyTwoFactor(admin.totpUri);
+    await login.signIn(ADMIN_EMAIL, adminTotpUri);
     await login.expectNoSeriousA11yIssues();
     await login.signOut();
     await page.goto('/');

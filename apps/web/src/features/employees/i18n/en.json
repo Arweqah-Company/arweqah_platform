@@ -1,0 +1,182 @@
+{
+  "title": "Employees",
+  "description": "Employee records and their sign-in accounts, within your permissions.",
+  "add": "Add employee",
+  "newTitle": "Add employee",
+  "editTitle": "Edit employee",
+  "formIntro": "Fill in the six sections. On save, a sign-in account is created and the employee receives an invitation to link the authenticator app.",
+  "searchLabel": "Search employees",
+  "searchPlaceholder": "Search by name, number or email",
+  "allCompanies": "All companies",
+  "allStatuses": "All statuses",
+  "statusLabel": "Status",
+  "status": {
+    "active": "Active",
+    "inactive": "Deactivated",
+    "needs-placement": "Needs a unit"
+  },
+  "empty": "No employees yet.",
+  "emptyHint": "Start by adding the first employee. Build the company structure (levels, units and job titles) first.",
+  "noMatches": "No results match the search.",
+  "loading": "Loading…",
+  "choose": "Choose…",
+  "yes": "Yes",
+  "no": "No",
+  "sectionsNav": "Form sections",
+  "saveAndInvite": "Save and send invitation",
+  "saved": "Changes saved.",
+  "sections": {
+    "work": "Work",
+    "contact": "Contact",
+    "personal": "Personal",
+    "contract": "Contract",
+    "salary": "Salary and cost",
+    "notes": "Notes",
+    "account": "Account and roles"
+  },
+  "fields": {
+    "companyId": "Company",
+    "relationTypeId": "Relation type",
+    "orgNodeId": "Unit",
+    "jobTitleId": "Job title",
+    "managerId": "Direct manager",
+    "workLocation": "Work location",
+    "workCountryId": "Work country",
+    "workMode": "Work mode",
+    "workEmail": "Work email",
+    "personalEmail": "Personal email",
+    "workPhone": "Work phone",
+    "personalPhone": "Personal phone",
+    "employeeNumber": "Employee number",
+    "fullName": "Full name",
+    "fullNameEn": "Name in English",
+    "gender": "Gender",
+    "birthDate": "Date of birth",
+    "nationalityId": "Nationality",
+    "maritalStatusId": "Marital status",
+    "residencyStatusId": "Residency status",
+    "idTypeId": "ID type",
+    "idNumber": "ID number",
+    "idExpiryDate": "ID expiry date",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "contractTypeId": "Contract type",
+    "contractTypeOther": "Describe the contract type",
+    "contractCompanyId": "Company on the contract",
+    "isGosiRegistered": "Registered in GOSI",
+    "gosiCompanyId": "Company registered in GOSI",
+    "gosiRegistrationDate": "GOSI registration date",
+    "gosiSystemId": "GOSI system",
+    "profession": "Profession",
+    "isQiwaContract": "Qiwa contract",
+    "hasMedicalInsurance": "Medical insurance",
+    "healthInsuranceCompanyId": "Company registered for health insurance",
+    "terminationReasonId": "Termination reason",
+    "terminationReasonOther": "State the reason",
+    "monthlyGrossSalary": "Monthly gross salary",
+    "salaryCurrencyCountryId": "Currency",
+    "iban": "IBAN",
+    "notes": "Notes"
+  },
+  "gender": {
+    "male": "Male",
+    "female": "Female"
+  },
+  "workMode": {
+    "onsite": "On-site",
+    "hybrid": "Hybrid",
+    "remote": "Remote"
+  },
+  "hints": {
+    "pickCompanyFirst": "Choose the company first.",
+    "pickUnitFirst": "Choose the unit first.",
+    "managerDefault": "The unit's manager is proposed automatically; you can change it.",
+    "workEmail": "It is the sign-in email and the Microsoft account, and cannot be changed later.",
+    "emailLocked": "The work email is the sign-in identity and cannot be changed.",
+    "phone": "International format, e.g. +966501234567",
+    "age": "Age from 18 to 70.",
+    "idNumber": "Checked by ID type (and nationality for some types).",
+    "currency": "The work country's currency is proposed.",
+    "iban": "Saudi IBAN: SA followed by 22 digits.",
+    "terminationReason": "Shown once an end date is set.",
+    "roles": "Optional. Roles can be changed later from the employee page."
+  },
+  "validation": {
+    "required": "This field is required.",
+    "invalid": "The value is not valid.",
+    "workEmail": "The work email must end with @arweqah.sa.",
+    "personalEmail": "Not a valid email, or the same as the work email.",
+    "workPhone": "Use the international format, e.g. +966501234567.",
+    "personalPhone": "Use the international format, e.g. +966501234567.",
+    "fullNameEn": "English letters and spaces only.",
+    "birthDate": "Date of birth not accepted (age 18 to 70).",
+    "idNumber": "An ID number is required together with its type.",
+    "idTypeId": "An ID type is required together with its number.",
+    "idExpiryDate": "Must be after the date of birth.",
+    "startDate": "Invalid date, or before the employee turned 18.",
+    "endDate": "Must be after the start date.",
+    "gosiRegistrationDate": "Required, and not before the start date.",
+    "gosiSystemId": "Required when registered in GOSI.",
+    "monthlyGrossSalary": "Enter a number that is zero or more.",
+    "salaryCurrencyCountryId": "Choose the currency when a salary is entered.",
+    "iban": "Not a valid Saudi IBAN.",
+    "terminationReasonId": "Choose the reason.",
+    "companyId": "Choose the company.",
+    "orgNodeId": "Choose the unit.",
+    "jobTitleId": "Choose the job title.",
+    "employeeNumber": "The employee number is required.",
+    "fullName": "The name is required.",
+    "roleIds": "Invalid roles."
+  },
+  "flags": {
+    "needsPlacement": "Needs a unit",
+    "idExpiring": "ID expiring soon",
+    "contractEnding": "Contract ending soon",
+    "appLinked": "Authenticator app linked",
+    "appNotLinked": "App not linked yet"
+  },
+  "actions": {
+    "roles": "Roles",
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "terminate": "End contract",
+    "resendInvite": "Resend invitation",
+    "resetAuthenticator": "Reset authenticator app"
+  },
+  "activated": "Account activated.",
+  "deactivated": "Account deactivated and its sessions ended.",
+  "terminated": "End of contract recorded.",
+  "rolesSaved": "Roles saved.",
+  "resetDone": "The app was reset and a new invitation was sent.",
+  "deactivateDialog": {
+    "title": "Deactivate the account?",
+    "description": "The employee can no longer sign in and their sessions end at once. You can activate it again later."
+  },
+  "resetDialog": {
+    "title": "Reset the authenticator app?",
+    "description": "The employee's sessions end now, and a new invitation reaches them to link the app on their phone."
+  },
+  "terminate": {
+    "title": "End of contract",
+    "description": "Record the end date and the reason. Sign-in stops the day after the end date.",
+    "confirm": "Confirm end of contract"
+  },
+  "rolesDialog": {
+    "title": "Employee roles",
+    "description": "Choose the roles. You cannot grant permissions wider than your own."
+  },
+  "invitation": {
+    "sent": "An activation invitation was sent to {{email}}.",
+    "failed": "The employee was saved but the email could not be sent. Use “Resend invitation”.",
+    "devLink": "Activation link (to try outside production):"
+  },
+  "allTitle": "All employees",
+  "filters": {
+    "startFrom": "Contract starts from",
+    "startTo": "Contract starts until"
+  },
+  "import": {
+    "managerNumber": "Direct manager employee number"
+  },
+  "flagsColumn": "Needs attention"
+}

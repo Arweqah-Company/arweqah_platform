@@ -18,9 +18,9 @@ describe('RoleEditor', () => {
     renderPage(<RoleEditor role={null} open onOpenChange={() => undefined} />);
     fireEvent.change(screen.getByLabelText('الاسم بالعربية'), { target: { value: 'مشرف قسم' } });
     fireEvent.change(screen.getByLabelText('الاسم بالإنجليزية'), { target: { value: 'Department lead' } });
-    fireEvent.click(await screen.findByLabelText('عرض المستخدمين'));
-    fireEvent.change(screen.getByLabelText('النطاق: عرض المستخدمين'), { target: { value: 'department' } });
+    fireEvent.click(await screen.findByLabelText('عرض الموظفين'));
+    fireEvent.change(screen.getByLabelText('النطاق: عرض الموظفين'), { target: { value: 'subtree' } });
     fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
-    await waitFor(() => expect(sent?.permissions).toEqual([{ key: 'users.view', scope: 'department' }]));
+    await waitFor(() => expect(sent?.permissions).toEqual([{ key: 'employees.view', scope: 'subtree' }]));
   });
 });

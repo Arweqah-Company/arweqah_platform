@@ -1,12 +1,7 @@
-import type { NotificationDto, Paginated } from '@arweqah-platform/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/core/api/api-client';
 
 const KEY = ['notifications'];
-
-export function useNotifications(page: number) {
-  return useQuery({ queryKey: [...KEY, page], queryFn: () => apiClient.get<Paginated<NotificationDto>>('/notifications', { page }) });
-}
 
 export function useUnreadCount() {
   return useQuery({

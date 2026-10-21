@@ -1,11 +1,15 @@
 import type { LucideIcon } from 'lucide-react';
 import type { RouteObject } from 'react-router';
 
+export type NavGroupId = 'people' | 'administration' | 'account';
+
 export interface NavItem {
   to: string;
   /** Translation key in the common namespace, e.g. "nav.users". */
   labelKey: string;
   icon: LucideIcon;
+  /** Puts the link under a collapsible menu in the sidebar; no group = a top-level link. */
+  group?: NavGroupId;
   /** Hidden from users without it (the API enforces it regardless). */
   permission?: string;
 }

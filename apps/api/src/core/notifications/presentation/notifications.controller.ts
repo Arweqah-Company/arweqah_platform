@@ -10,7 +10,7 @@ import { NotificationsService } from '../application/notifications.service';
 class NotificationsQueryDto extends createZodDto(notificationsQuerySchema) {}
 class MarkReadDto extends createZodDto(z.strictObject({ ids: z.array(z.uuid()).min(1).max(100) })) {}
 
-/** Every user reads only their own notifications, so no permission key is needed. */
+/** security: self-scoped. Every user reads only their own notifications, so no permission key is needed. */
 @ApiTags('notifications')
 @Controller('notifications')
 export class NotificationsController {

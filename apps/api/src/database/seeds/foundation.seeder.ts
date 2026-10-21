@@ -3,14 +3,19 @@ import { DataSource } from 'typeorm';
 import { AppConfig } from '../../config/app-config.service';
 import { PermissionCatalog } from '../../core/access/application/permission-catalog';
 import { Role } from '../../core/access/domain/role.entity';
-import { UserPlacement } from '../../core/access/domain/user-placement.entity';
 import { UserRole } from '../../core/access/domain/user-role.entity';
+import { AuthenticatorService } from '../../core/auth/application/authenticator.service';
 import { IdentityProvider } from '../../core/auth/application/identity-provider';
-import { Branch } from '../../modules/org/domain/org.entities';
-import { User } from '../../modules/users/domain/user.entity';
+import { User } from '../../core/auth/domain/user.entity';
+import { Employee } from '../../modules/employees/domain/entities/employee.entity';
+import { CompaniesSeeder } from './companies.seeder';
+import { DEFAULT_COMPANY_CODE } from './data/lookups.data';
+import { LookupsSeeder } from './lookups.seeder';
+import { OrgDemoSeeder } from './org-demo.seeder';
 
 export const SYSTEM_ADMIN_ROLE = 'System Admin';
 export const EMPLOYEE_ROLE = 'Employee';
+const SYSTEM_EMPLOYEE_NUMBER = 'SYS-0001';
 
 /** Idempotent: safe to run on every deploy. */
 @Injectable()
@@ -21,25 +26,30 @@ export class FoundationSeeder {
     private readonly db: DataSource,
     private readonly catalog: PermissionCatalog,
     private readonly identity: IdentityProvider,
+    private readonly authenticator: AuthenticatorService,
     private readonly config: AppConfig,
+    private readonly lookups: LookupsSeeder,
+    private readonly companies: CompaniesSeeder,
+    private readonly demo: OrgDemoSeeder,
   ) {}
 
   async run(): Promise<void> {
     const admin = await this.upsertRole(SYSTEM_ADMIN_ROLE, 'مدير النظام', true);
     await this.upsertRole(EMPLOYEE_ROLE, 'موظف', false);
-    const hq = await this.headOffice();
-    await this.firstAdmin(admin, hq);
+    await this.lookups.run();
+    await this.companies.run();
+    await this.demo.run();
+    await this.firstAdmin(admin);
   }
 
-  /** System Admin always holds every permission in the catalog at company scope. */
+  /** System Admin always holds every permission in the catalog at the widest scope. */
   private async upsertRole(nameEn: string, nameAr: string, isAdmin: boolean): Promise<Role> {
     const repo = this.db.getRepository(Role);
     const role = (await repo.findOne({ where: { nameEn, isSystem: true } })) ??
       Object.assign(new Role(), { nameEn, nameAr, description: null, isSystem: true, permissions: [] });
-    role.requiresTwoFactor = isAdmin;
     const saved = await repo.save(role);
     if (isAdmin) {
-      saved.replacePermissions(this.catalog.all().map((p) => ({ key: p.key, scope: 'company' as const })));
+      saved.replacePermissions(this.catalog.all().map((p) => ({ key: p.key, scope: 'all' as const })));
       await this.db.transaction(async (m) => {
         await m.delete('role_permissions', { roleId: saved.id });
         await m.save(Role, saved);
@@ -48,23 +58,40 @@ export class FoundationSeeder {
     return saved;
   }
 
-  private async headOffice(): Promise<Branch> {
-    const repo = this.db.getRepository(Branch);
-    return (await repo.findOne({ where: { code: 'HQ' } })) ??
-      repo.save(Object.assign(new Branch(), { code: 'HQ', nameAr: 'المقر الرئيسي', nameEn: 'Head Office', city: null }));
-  }
-
-  private async firstAdmin(role: Role, hq: Branch): Promise<void> {
-    const email = this.config.get('SEED_ADMIN_EMAIL');
-    const password = this.config.get('SEED_ADMIN_PASSWORD');
-    if (!email || !password) {
-      this.logger.warn('SEED_ADMIN_EMAIL/SEED_ADMIN_PASSWORD not set: skipping first admin');
+  /**
+   * The startup administrator: a company employee with no password. They sign in with Microsoft
+   * (the account is linked by e-mail on first sign-in) and enroll an authenticator app.
+   */
+  private async firstAdmin(role: Role): Promise<void> {
+    const email = this.config.get('SEED_ADMIN_EMAIL')?.toLowerCase();
+    if (!email) {
+      this.logger.warn('SEED_ADMIN_EMAIL not set: skipping first admin');
       return;
     }
-    if (await this.db.getRepository(User).exists({ where: { email: email.toLowerCase() } })) return;
-    const id = await this.identity.createUser({ name: this.config.get('SEED_ADMIN_NAME'), email: email.toLowerCase(), locale: 'ar', password });
-    await this.db.getRepository(UserRole).insert({ userId: id, roleId: role.id });
-    await this.db.getRepository(UserPlacement).insert({ userId: id, branchId: hq.id, departmentId: null, teamId: null, managerId: null });
-    this.logger.log(`First admin created: ${email} (must enable two-factor authentication on first sign-in)`);
+    const existing = await this.db.getRepository(User).findOne({ where: { email } });
+    if (existing) return this.linkDevelopmentApp(existing.id);
+    const company = await this.db.query<{ id: string }[]>(`SELECT id FROM companies WHERE code = $1 AND deleted_at IS NULL`, [DEFAULT_COMPANY_CODE]);
+    const name = this.config.get('SEED_ADMIN_NAME');
+    const userId = await this.identity.createUser({ name, email, locale: 'ar' });
+    await this.db.getRepository(UserRole).insert({ userId, roleId: role.id });
+    await this.db.getRepository(Employee).insert({
+      userId,
+      companyId: company[0]?.id as string,
+      employeeNumber: SYSTEM_EMPLOYEE_NUMBER,
+      fullName: name,
+      workEmail: email,
+      startDate: new Date().toISOString().slice(0, 10),
+      isSystemAccount: true,
+    });
+    this.logger.log(`First admin created: ${email} (signs in with Microsoft, then links an authenticator app)`);
+    await this.linkDevelopmentApp(userId);
+  }
+
+  /** Local development only: with SEED_ADMIN_TOTP_SECRET the admin can sign in by e-mail and code right away. */
+  private async linkDevelopmentApp(userId: string): Promise<void> {
+    const secret = this.config.get('SEED_ADMIN_TOTP_SECRET');
+    if (!secret || (await this.authenticator.isEnabled(userId))) return;
+    await this.authenticator.enableWithSecret(userId, secret);
+    this.logger.warn('Authenticator app linked to the first admin from SEED_ADMIN_TOTP_SECRET (development only)');
   }
 }

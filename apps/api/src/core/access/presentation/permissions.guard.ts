@@ -3,12 +3,13 @@ import { Reflector } from '@nestjs/core';
 import { ForbiddenError } from '../../../common/domain/domain-error';
 import type { AuthenticatedRequest } from '../../../common/presentation/request-context';
 import { AccessContextService } from '../application/access-context.service';
-import { AccountDisabledError, TwoFactorRequiredError } from '../domain/errors';
-import { REQUIRED_PERMISSION, SKIP_TWO_FACTOR_CHECK, type RequestWithAccess } from './require-permission.decorator';
+import { AccountDisabledError, MfaRequiredError } from '../domain/errors';
+import { ALLOW_BEFORE_MFA, REQUIRED_PERMISSION, type RequestWithAccess } from './require-permission.decorator';
 
 /**
  * Runs after the Better Auth guard. Attaches the AccessContext and enforces:
- * active account, 2FA for roles that require it, and @RequirePermission.
+ * active account, the one-time code of the authenticator app (every session, every sign-in method),
+ * and @RequirePermission.
  */
 @Injectable()
 export class PermissionsGuard implements CanActivate {
@@ -25,9 +26,8 @@ export class PermissionsGuard implements CanActivate {
     if (!ctx || !ctx.isActive) throw new AccountDisabledError();
     request.access = ctx;
 
-    if (ctx.requiresTwoFactor && !request.user.twoFactorEnabled && !this.flag(SKIP_TWO_FACTOR_CHECK, context)) {
-      throw new TwoFactorRequiredError();
-    }
+    const codeVerified = !!request.session?.session.mfaVerifiedAt;
+    if (!codeVerified && !this.flag(ALLOW_BEFORE_MFA, context)) throw new MfaRequiredError();
     const required = this.reflector.getAllAndOverride<string | undefined>(REQUIRED_PERMISSION, [
       context.getHandler(),
       context.getClass(),

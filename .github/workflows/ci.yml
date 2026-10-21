@@ -25,9 +25,10 @@ env:
   DB_PASSWORD: ci_password
   BETTER_AUTH_SECRET: ci_better_auth_secret_value_at_least_32_chars
   FIELD_ENCRYPTION_KEY: Y2ktZmllbGQtZW5jcnlwdGlvbi1rZXktMzItYnl0ZXM=
+  BLIND_INDEX_KEY: ci_blind_index_key_value_at_least_32_chars
   MESSAGE_BUS: memory
-  SEED_ADMIN_EMAIL: admin@example.com
-  SEED_ADMIN_PASSWORD: Admin-Passw0rd-Dev
+  SEED_ADMIN_EMAIL: admin@arweqah.sa
+  SEED_ADMIN_TOTP_SECRET: JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP
 
 jobs:
   quality:
@@ -35,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: npm }
+        with: { node-version: 24, cache: npm }
       - uses: actions/cache@v4
         with:
           path: .turbo
@@ -57,7 +58,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: npm }
+        with: { node-version: 24, cache: npm }
       - run: npm ci
       - run: npm run test:e2e:api
 
@@ -73,7 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: npm }
+        with: { node-version: 24, cache: npm }
       - run: npm ci
       - run: npx playwright install --with-deps chromium
         working-directory: e2e

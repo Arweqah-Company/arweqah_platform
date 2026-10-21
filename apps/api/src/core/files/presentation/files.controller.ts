@@ -8,6 +8,7 @@ import type { SessionUser } from '../../../common/presentation/request-context';
 import { IdParam } from '../../../common/presentation/zod-query';
 import { FilesService, toFileDto } from '../application/files.service';
 
+/** security: self-scoped. Any signed-in user, but every read goes through getOwned(id, user.id): only the owner's files. */
 @ApiTags('files')
 @Controller('files')
 export class FilesController {

@@ -1,15 +1,18 @@
 import { Role, RolePermission } from '../core/access/domain/role.entity';
-import { UserPlacement } from '../core/access/domain/user-placement.entity';
 import { UserRole } from '../core/access/domain/user-role.entity';
 import { AuditLog } from '../core/audit/domain/audit-log.entity';
+import { Authenticator, AuthenticatorBackupCode, EnrollmentInvite } from '../core/auth/domain/authenticator.entities';
+import { User } from '../core/auth/domain/user.entity';
 import { StoredFile } from '../core/files/domain/stored-file.entity';
 import { OutboxMessage } from '../core/messaging/domain/outbox-message.entity';
 import { ProcessedMessage } from '../core/messaging/domain/processed-message.entity';
 import { ScheduledJob } from '../core/messaging/domain/scheduled-job.entity';
+import { EmailLog } from '../core/notifications/domain/email-log.entity';
 import { Notification } from '../core/notifications/domain/notification.entity';
 import { WorkflowInstance, WorkflowTransition } from '../core/workflow/domain/workflow-instance.entity';
-import { Branch, Department, Team } from '../modules/org/domain/org.entities';
-import { User } from '../modules/users/domain/user.entity';
+import { Employee } from '../modules/employees/domain/entities/employee.entity';
+import { LOOKUP_ENTITIES } from '../modules/lookups/domain/entities/lookup.entities';
+import { ORG_ENTITIES } from '../modules/org/domain/entities/org.entities';
 
 /**
  * Every TypeORM entity, listed explicitly (no file globs) so the app, the CLI and
@@ -17,19 +20,22 @@ import { User } from '../modules/users/domain/user.entity';
  */
 export const ENTITIES = [
   User,
+  Authenticator,
+  AuthenticatorBackupCode,
+  EnrollmentInvite,
   Role,
   RolePermission,
   UserRole,
-  UserPlacement,
   AuditLog,
   StoredFile,
   OutboxMessage,
   ProcessedMessage,
   ScheduledJob,
   Notification,
+  EmailLog,
   WorkflowInstance,
   WorkflowTransition,
-  Branch,
-  Department,
-  Team,
+  ...LOOKUP_ENTITIES,
+  ...ORG_ENTITIES,
+  Employee,
 ];

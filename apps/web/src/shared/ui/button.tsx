@@ -4,16 +4,18 @@ import type { ButtonHTMLAttributes } from 'react';
 import { cn } from '../lib/cn';
 
 const button = cva(
-  'inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] font-medium transition-colors disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] font-medium transition-[background-color,box-shadow,transform] duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        primary: 'bg-navy-900 text-white hover:bg-navy-800',
-        secondary: 'border border-line bg-white text-ink hover:bg-navy-50',
-        danger: 'bg-danger-700 text-white hover:bg-danger-700/90',
-        ghost: 'text-ink hover:bg-navy-50',
+        primary: 'bg-ink text-cream shadow-sm shadow-ink/20 hover:bg-ink-800 hover:shadow-md',
+        secondary: 'border border-petrol-800 bg-white text-petrol-800 hover:bg-petrol-50',
+        danger: 'bg-danger-700 text-cream shadow-sm shadow-ink/20 hover:bg-danger-700/90 hover:shadow-md',
+        ghost: 'text-petrol-800 hover:bg-petrol-50',
+        soft: 'bg-neutral-50 text-ink hover:bg-neutral-200/60',
+        tint: 'bg-petrol-50 text-petrol-800 font-bold',
       },
-      size: { md: 'h-10 px-4 text-sm', sm: 'h-8 px-3 text-sm', icon: 'size-9' },
+      size: { md: 'h-11 px-5 text-sm', sm: 'h-9 px-3.5 text-sm', icon: 'size-11 sm:size-10' },
     },
     defaultVariants: { variant: 'primary', size: 'md' },
   },

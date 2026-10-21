@@ -1,1 +1,22 @@
-{ "title": "Audit log", "description": "Every sign-in and change to permissions, users and the organization: who did it and when.", "when": "When", "actor": "By", "action": "Action", "target": "Record", "system": "System", "filterAction": "Filter by action" }
+{
+  "title": "Audit log",
+  "description": "Every sign-in and change to permissions, users and the organization: who did it and when.",
+  "when": "When",
+  "actor": "By",
+  "action": "Action",
+  "target": "Record",
+  "system": "System",
+  "filterAction": "Filter by action",
+  "allTitle": "All entries",
+  "searchLabel": "Search the log",
+  "searchPlaceholder": "Search by action, record type or record id",
+  "filters": {
+    "action": "Action (exact)",
+    "entityType": "Record type",
+    "actor": "Actor (name or e-mail)",
+    "from": "From date",
+    "to": "To date"
+  },
+  "entityId": "Record id",
+  "ip": "IP address"
+}

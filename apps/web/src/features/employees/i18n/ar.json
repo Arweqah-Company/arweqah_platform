@@ -1,0 +1,182 @@
+{
+  "title": "الموظفون",
+  "description": "سجلات الموظفين وحسابات دخولهم، ضمن نطاق صلاحياتك.",
+  "add": "إضافة موظف",
+  "newTitle": "إضافة موظف",
+  "editTitle": "تعديل بيانات الموظف",
+  "formIntro": "أدخل البيانات في الأقسام الستة. عند الحفظ يُنشأ حساب دخول للموظف وتصله دعوة لربط تطبيق المصادقة.",
+  "searchLabel": "بحث في الموظفين",
+  "searchPlaceholder": "ابحث بالاسم أو الرقم الوظيفي أو البريد",
+  "allCompanies": "كل الشركات",
+  "allStatuses": "كل الحالات",
+  "statusLabel": "الحالة",
+  "status": {
+    "active": "نشط",
+    "inactive": "معطّل",
+    "needs-placement": "بحاجة لتعيين وحدة"
+  },
+  "empty": "لا يوجد موظفون بعد.",
+  "emptyHint": "ابدأ بإضافة أول موظف. تأكد أولًا من بناء هيكل الشركة (التقسيمات والوحدات والمسميات).",
+  "noMatches": "لا نتائج مطابقة للبحث.",
+  "loading": "جارٍ التحميل…",
+  "choose": "اختر…",
+  "yes": "نعم",
+  "no": "لا",
+  "sectionsNav": "أقسام النموذج",
+  "saveAndInvite": "حفظ وإرسال الدعوة",
+  "saved": "تم حفظ التعديلات.",
+  "sections": {
+    "work": "بيانات العمل",
+    "contact": "التواصل",
+    "personal": "البيانات الشخصية",
+    "contract": "التعاقد",
+    "salary": "الراتب والتكلفة",
+    "notes": "السجل",
+    "account": "الحساب والأدوار"
+  },
+  "fields": {
+    "companyId": "الشركة",
+    "relationTypeId": "نوع العلاقة",
+    "orgNodeId": "الوحدة",
+    "jobTitleId": "المسمى الوظيفي",
+    "managerId": "المدير المباشر",
+    "workLocation": "مقر العمل",
+    "workCountryId": "بلد العمل",
+    "workMode": "نمط العمل",
+    "workEmail": "بريد العمل",
+    "personalEmail": "البريد الشخصي",
+    "workPhone": "جوال العمل",
+    "personalPhone": "الجوال الشخصي",
+    "employeeNumber": "الرقم الوظيفي",
+    "fullName": "الاسم الكامل",
+    "fullNameEn": "الاسم بالإنجليزي",
+    "gender": "الجنس",
+    "birthDate": "تاريخ الميلاد",
+    "nationalityId": "الجنسية",
+    "maritalStatusId": "الحالة الاجتماعية",
+    "residencyStatusId": "الصفة",
+    "idTypeId": "نوع الهوية",
+    "idNumber": "رقم الهوية",
+    "idExpiryDate": "تاريخ انتهاء الهوية",
+    "startDate": "تاريخ البداية",
+    "endDate": "تاريخ النهاية",
+    "contractTypeId": "نوع العقد",
+    "contractTypeOther": "اذكر نوع العقد",
+    "contractCompanyId": "الشركة المسجلة في العقد",
+    "isGosiRegistered": "مسجل في التأمينات",
+    "gosiCompanyId": "الشركة المسجلة في التأمينات",
+    "gosiRegistrationDate": "تاريخ التسجيل بالتأمينات",
+    "gosiSystemId": "نظام التأمينات",
+    "profession": "المهنة",
+    "isQiwaContract": "عقد قوى",
+    "hasMedicalInsurance": "التأمين الطبي",
+    "healthInsuranceCompanyId": "الشركة المسجلة في التأمين الصحي",
+    "terminationReasonId": "سبب انتهاء العلاقة",
+    "terminationReasonOther": "اذكر السبب",
+    "monthlyGrossSalary": "إجمالي الراتب الشهري",
+    "salaryCurrencyCountryId": "العملة",
+    "iban": "الآيبان",
+    "notes": "ملاحظات"
+  },
+  "gender": {
+    "male": "ذكر",
+    "female": "أنثى"
+  },
+  "workMode": {
+    "onsite": "حضوري",
+    "hybrid": "هجين",
+    "remote": "عن بعد"
+  },
+  "hints": {
+    "pickCompanyFirst": "اختر الشركة أولًا.",
+    "pickUnitFirst": "اختر الوحدة أولًا.",
+    "managerDefault": "يُقترح مدير الوحدة تلقائيًا، ويمكنك تغييره.",
+    "workEmail": "هو بريد الدخول إلى المنصة وحساب Microsoft، ولا يمكن تغييره لاحقًا.",
+    "emailLocked": "بريد العمل هو هوية الدخول ولا يمكن تغييره.",
+    "phone": "بصيغة دولية، مثل ‎+966501234567",
+    "age": "العمر من 18 إلى 70 سنة.",
+    "idNumber": "يُتحقق منه حسب نوع الهوية (والجنسية لبعض الأنواع).",
+    "currency": "تُقترح عملة بلد العمل.",
+    "iban": "آيبان سعودي: SA ثم 22 رقمًا.",
+    "terminationReason": "يظهر عند تحديد تاريخ نهاية.",
+    "roles": "اختياري. يمكن تعديل الأدوار لاحقًا من صفحة الموظف."
+  },
+  "validation": {
+    "required": "هذا الحقل مطلوب.",
+    "invalid": "القيمة غير صحيحة.",
+    "workEmail": "بريد العمل يجب أن ينتهي بـ ‎@arweqah.sa.",
+    "personalEmail": "بريد غير صحيح أو مطابق لبريد العمل.",
+    "workPhone": "استخدم الصيغة الدولية، مثل ‎+966501234567.",
+    "personalPhone": "استخدم الصيغة الدولية، مثل ‎+966501234567.",
+    "fullNameEn": "حروف إنجليزية ومسافات فقط.",
+    "birthDate": "تاريخ ميلاد غير مقبول (العمر من 18 إلى 70 سنة).",
+    "idNumber": "رقم الهوية مطلوب مع نوعها.",
+    "idTypeId": "نوع الهوية مطلوب مع رقمها.",
+    "idExpiryDate": "يجب أن يكون بعد تاريخ الميلاد.",
+    "startDate": "تاريخ غير صالح أو قبل بلوغ 18 سنة.",
+    "endDate": "يجب أن يكون بعد تاريخ البداية.",
+    "gosiRegistrationDate": "مطلوب، وليس قبل تاريخ البداية.",
+    "gosiSystemId": "مطلوب عند التسجيل في التأمينات.",
+    "monthlyGrossSalary": "أدخل رقمًا لا يقل عن صفر.",
+    "salaryCurrencyCountryId": "اختر العملة عند إدخال الراتب.",
+    "iban": "آيبان سعودي غير صحيح.",
+    "terminationReasonId": "اختر السبب.",
+    "companyId": "اختر الشركة.",
+    "orgNodeId": "اختر الوحدة.",
+    "jobTitleId": "اختر المسمى الوظيفي.",
+    "employeeNumber": "الرقم الوظيفي مطلوب.",
+    "fullName": "الاسم مطلوب.",
+    "roleIds": "أدوار غير صالحة."
+  },
+  "flags": {
+    "needsPlacement": "بحاجة لتعيين وحدة",
+    "idExpiring": "هوية تنتهي قريبًا",
+    "contractEnding": "عقد ينتهي قريبًا",
+    "appLinked": "تطبيق المصادقة مربوط",
+    "appNotLinked": "لم يربط التطبيق بعد"
+  },
+  "actions": {
+    "roles": "الأدوار",
+    "deactivate": "تعطيل",
+    "activate": "تفعيل",
+    "terminate": "إنهاء العلاقة",
+    "resendInvite": "إعادة إرسال الدعوة",
+    "resetAuthenticator": "إعادة تعيين تطبيق المصادقة"
+  },
+  "activated": "تم تفعيل الحساب.",
+  "deactivated": "تم تعطيل الحساب وإنهاء جلساته.",
+  "terminated": "سُجّلت نهاية العلاقة.",
+  "rolesSaved": "تم حفظ الأدوار.",
+  "resetDone": "أُعيد تعيين التطبيق وأُرسلت دعوة جديدة.",
+  "deactivateDialog": {
+    "title": "تعطيل الحساب؟",
+    "description": "لن يستطيع الموظف الدخول وتنتهي جلساته فورًا. يمكنك تفعيله لاحقًا."
+  },
+  "resetDialog": {
+    "title": "إعادة تعيين تطبيق المصادقة؟",
+    "description": "تنتهي جلسات الموظف الآن، وتصله دعوة جديدة لربط التطبيق على هاتفه."
+  },
+  "terminate": {
+    "title": "إنهاء العلاقة",
+    "description": "سجّل تاريخ النهاية والسبب. يتوقف الدخول في اليوم التالي لتاريخ النهاية.",
+    "confirm": "تأكيد إنهاء العلاقة"
+  },
+  "rolesDialog": {
+    "title": "أدوار الموظف",
+    "description": "اختر الأدوار. لا يمكنك منح صلاحيات أوسع مما تملكه."
+  },
+  "invitation": {
+    "sent": "أُرسلت دعوة تفعيل إلى {{email}}.",
+    "failed": "تم حفظ الموظف لكن تعذّر إرسال البريد. استخدم «إعادة إرسال الدعوة».",
+    "devLink": "رابط التفعيل (للتجربة خارج الإنتاج):"
+  },
+  "allTitle": "جميع الموظفين",
+  "filters": {
+    "startFrom": "بداية العقد من",
+    "startTo": "بداية العقد حتى"
+  },
+  "import": {
+    "managerNumber": "الرقم الوظيفي للمدير المباشر"
+  },
+  "flagsColumn": "علامات تحتاج انتباهًا"
+}

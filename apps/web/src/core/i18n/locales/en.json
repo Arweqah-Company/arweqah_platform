@@ -1,21 +1,201 @@
 {
   "appName": "Arweqah Platform",
-  "nav": { "home": "Home", "users": "Users", "roles": "Roles & permissions", "org": "Organization", "audit": "Audit log", "notifications": "Notifications", "security": "Security" },
-  "actions": { "save": "Save", "cancel": "Cancel", "delete": "Delete", "edit": "Edit", "create": "Add", "signOut": "Sign out", "retry": "Try again", "close": "Close", "confirm": "Confirm" },
-  "language": { "switchTo": "العربية" },
-  "table": { "empty": "Nothing here yet.", "previous": "Previous", "next": "Next", "page": "Page {{page}} of {{pages}}", "search": "Search" },
+  "nav": {
+    "home": "Home",
+    "security": "Security",
+    "employees": "Employees",
+    "org": "Organization",
+    "companies": "Companies",
+    "roles": "Roles & permissions",
+    "audit": "Audit log",
+    "emailLog": "E-mail log",
+    "notifications": "Notifications",
+    "sections": "Main sections",
+    "collapse": "Collapse menu",
+    "expand": "Expand menu",
+    "menu": "Menu",
+    "breadcrumb": "Breadcrumb",
+    "groups": {
+      "people": "People",
+      "administration": "System administration",
+      "account": "My account"
+    }
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Add",
+    "signOut": "Sign out",
+    "retry": "Try again",
+    "close": "Close",
+    "confirm": "Confirm"
+  },
+  "language": {
+    "switchTo": "العربية"
+  },
+  "table": {
+    "empty": "Nothing here yet.",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{page}} of {{pages}}",
+    "search": "Search",
+    "range": "{{from}} to {{to}} of {{total}} results",
+    "show": "Show",
+    "rows": "Rows per page",
+    "pageN": "Page {{page}}"
+  },
   "errors": {
     "generic": "The request could not be completed. Try again.",
     "forbidden": "You don't have permission for this action.",
     "notFound": "We couldn't find that.",
     "VALIDATION": "Some fields are invalid. Check them and submit again.",
     "CONFLICT": "A record with the same details already exists.",
-    "BRANCH_CODE_TAKEN": "This branch code is used by another branch.",
-    "ORG_UNIT_IN_USE": "Move its sub-units and members first, then delete.",
     "INVALID_ORG_HIERARCHY": "The selected placement doesn't match the organization structure.",
     "SCOPE_NOT_ALLOWED": "That scope isn't available for this permission.",
-    "FILE_TYPE_NOT_ALLOWED": "File type not allowed. Use PDF, PNG or JPEG."
+    "FILE_TYPE_NOT_ALLOWED": "File type not allowed. Use PDF, PNG or JPEG.",
+    "INVALID_CODE": "The code is not valid.",
+    "AUTHENTICATOR_LOCKED": "Too many attempts. Try again in a moment.",
+    "ALREADY_ENROLLED": "An authenticator app is already linked.",
+    "MFA_REQUIRED": "Enter the code from your authenticator app to continue.",
+    "FIELD_RULE": "A value in the form does not meet the required rule.",
+    "EMPLOYEE_EMAIL_TAKEN": "This work email belongs to another employee.",
+    "EMPLOYEE_NUMBER_TAKEN": "This employee number belongs to another employee.",
+    "ID_DOCUMENT_TAKEN": "This ID number is registered for another employee.",
+    "INVALID_REFERENCE": "One of the selected options does not exist.",
+    "SELF_ACTION": "You cannot do this to your own account.",
+    "INVALID_PLACEMENT": "The unit and job title do not fit the selected company.",
+    "COMPANY_CODE_TAKEN": "This company code belongs to another company.",
+    "COMPANY_IN_USE": "Move the company's employees and units first, then delete it.",
+    "ORG_NODE_IN_USE": "Move its sub-units and employees first, then delete.",
+    "LAST_JOB_TITLE": "A unit that accepts employees needs at least one job title.",
+    "JOB_TITLE_IN_USE": "Move the employees with this job title first.",
+    "ORG_IMPACT_CHANGED": "The affected data changed. Review the new impact and confirm again.",
+    "EMPLOYEES_DECISION_REQUIRED": "Choose what happens to the affected employees: transfer or delete them.",
+    "INVALID_EMPLOYEES_DECISION": "The employees decision is not valid. Check the target unit and job titles, or the employee count.",
+    "ORG_LEVELS_NOT_EMPTY": "The company has units. Change its levels from the levels form.",
+    "UNKNOWN_PERMISSION": "Unknown permission.",
+    "NO_ENROLLMENT_IN_PROGRESS": "Start linking the app first.",
+    "MANAGER_NOT_FOUND": "The direct manager's employee number was not found."
   },
-  "scope": { "own": "Own records", "team": "Their team", "department": "Their department", "branch": "Their branch", "company": "Whole company" },
-  "status": { "active": "Active", "inactive": "Disabled" }
+  "scope": {
+    "own": "Own record only",
+    "unit": "Their unit",
+    "subtree": "Their unit and below",
+    "company": "Their whole company",
+    "all": "All companies"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Disabled"
+  },
+  "brand": {
+    "logoAlt": "Arweqah Alreyadah"
+  },
+  "combobox": {
+    "choose": "Choose…",
+    "clear": "Clear selection",
+    "search": "Search…",
+    "empty": "No results."
+  },
+  "footer": {
+    "rights": "© {{year}} Arweqah Alreyadah. All rights reserved."
+  },
+  "filters": {
+    "title": "Filter",
+    "all": "All",
+    "clear": "Clear filters",
+    "active": "Applied filters",
+    "remove": "Remove filter: {{name}}",
+    "yes": "Yes",
+    "search": "Search"
+  },
+  "view": {
+    "label": "View",
+    "table": "Table",
+    "cards": "Cards"
+  },
+  "dataExchange": {
+    "export": "Export",
+    "import": "Import",
+    "close": "Close",
+    "exportTitle": "Export data",
+    "exportDescription": "Choose what to export: the scope, the columns and the file type.",
+    "scope": "Scope",
+    "scopePage": "The rows shown on this page ({{count}})",
+    "scopeAll": "All results of the current search and filters ({{count}})",
+    "columns": "Columns",
+    "columnsCount": "{{selected}} of {{total}} columns",
+    "selectAll": "Select all",
+    "selectNone": "Clear selection",
+    "format": "File type",
+    "xlsx": "Excel (.xlsx)",
+    "csv": "CSV (.csv)",
+    "exportNow": "Export",
+    "exporting": "Exporting…",
+    "exportFailed": "Could not export. Try again.",
+    "exportCap": "Up to {{max}} rows are exported at a time.",
+    "exportNoColumns": "Choose at least one column.",
+    "exportNoRows": "There are no rows to export.",
+    "importTitle": "Import data",
+    "importDescription": "Download the template, fill it in, then upload it. Every drop-down in it holds the options available in the system.",
+    "template": "Download template",
+    "templateHint": "An Excel file with the columns you need (required ones starred), drop-downs and a “Lists” sheet with every option.",
+    "chooseFile": "Choose an Excel or CSV file",
+    "fileHint": "Up to {{rows}} rows and {{mb}} MB.",
+    "sheetTemplate": "Template",
+    "sheetLists": "Lists",
+    "checking": "Checking the file…",
+    "summary": "{{valid}} valid rows and {{invalid}} with errors out of {{total}}.",
+    "onlyValid": "Only the valid rows will be imported.",
+    "errorsTitle": "Rows with errors",
+    "rowLabel": "Row {{row}}",
+    "startImport": "Import {{count}} rows",
+    "importing": "Importing… {{done}} of {{total}}",
+    "result": "Imported {{ok}} rows, {{failed}} failed.",
+    "resultFailed": "Rows that failed",
+    "downloadErrors": "Download the error report",
+    "another": "Import another file",
+    "done": "Done",
+    "errorReport": "Import error report",
+    "errorColumn": "Error",
+    "rowColumn": "Row",
+    "file": {
+      "tooLarge": "The file is larger than allowed.",
+      "tooManyRows": "The file has more than {{detail}} rows.",
+      "unreadable": "The file could not be read. Use the template as Excel or CSV.",
+      "empty": "The file has no data below the header row.",
+      "missingColumns": "Required columns are missing: {{detail}}."
+    },
+    "cell": {
+      "required": "“{{column}}” is required.",
+      "unknownOption": "“{{column}}”: “{{value}}” is not one of the options.",
+      "badDate": "“{{column}}”: the date must be year-month-day.",
+      "badNumber": "“{{column}}”: not a valid number.",
+      "badYesNo": "“{{column}}”: write yes or no.",
+      "duplicate": "Duplicate in the file: “{{column}}” = “{{value}}”.",
+      "badFormat": "“{{column}}”: the format is not valid."
+    },
+    "yes": "Yes",
+    "no": "No",
+    "yesWords": "yes, y, true, 1",
+    "noWords": "no, n, false, 0"
+  },
+  "errorPage": {
+    "401": {
+      "title": "Your session ended or you are not signed in",
+      "description": "Sign in again to continue where you left off."
+    },
+    "403": {
+      "title": "You do not have permission to open this page",
+      "description": "If you need this permission, contact the system administrator, or go back to the previous page with the button below."
+    },
+    "404": {
+      "title": "Sorry, this page does not exist",
+      "description": "To keep browsing, you can go back to the previous page with the button below."
+    },
+    "back": "Back",
+    "signIn": "Sign in"
+  }
 }

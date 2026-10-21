@@ -1,30 +1,45 @@
 import { Injectable } from '@nestjs/common';
 import { createMongoAbility, subject, type MongoAbility, type RawRuleOf } from '@casl/ability';
+import type { PermissionScope } from '@arweqah-platform/shared';
 import type { AccessContext, ScopedResource } from '../domain/access-context';
 import { ForbiddenError } from '../../../common/domain/domain-error';
 
 type AppAbility = MongoAbility;
+type Rule = RawRuleOf<AppAbility>;
 
 /**
  * Turns scoped grants into CASL rules so single records are checked the same
- * way everywhere: `ability.assertCan(ctx, 'leaves.approve', leave)`.
+ * way everywhere: `ability.assertCan(ctx, 'employees.update', employee)`.
  */
 @Injectable()
 export class AbilityFactory {
   build(ctx: AccessContext): AppAbility {
-    const rules: RawRuleOf<AppAbility>[] = [];
-    const p = ctx.placement;
-    const unitByScope = { team: { teamId: p.teamId }, department: { departmentId: p.departmentId }, branch: { branchId: p.branchId } };
+    const rules: Rule[] = [];
     for (const { key, scope } of ctx.grants()) {
-      if (scope === 'company') rules.push({ action: key, subject: 'Record' });
-      if (scope !== 'company' && scope !== 'own') {
-        const condition = unitByScope[scope];
-        // No placement means no unit-wide access, only the user's own records.
-        if (Object.values(condition)[0]) rules.push({ action: key, subject: 'Record', conditions: condition });
-      }
+      const rule = this.ruleFor(ctx, key, scope);
+      if (rule) rules.push(rule);
+      // Every grant includes the user's own records.
       rules.push({ action: key, subject: 'Record', conditions: { ownerId: ctx.userId } });
     }
     return createMongoAbility(rules);
+  }
+
+  /** A unit-based scope without a placement means no unit-wide access, only the user's own records. */
+  private ruleFor(ctx: AccessContext, key: string, scope: PermissionScope): Rule | null {
+    const { companyId, orgNodeId } = ctx.placement;
+    const base = { action: key, subject: 'Record' };
+    switch (scope) {
+      case 'all':
+        return base;
+      case 'company':
+        return companyId ? { ...base, conditions: { companyId } } : null;
+      case 'subtree':
+        return ctx.subtreeNodeIds.length ? { ...base, conditions: { orgNodeId: { $in: [...ctx.subtreeNodeIds] } } } : null;
+      case 'unit':
+        return orgNodeId ? { ...base, conditions: { orgNodeId } } : null;
+      default:
+        return null;
+    }
   }
 
   can(ctx: AccessContext, key: string, resource: ScopedResource): boolean {

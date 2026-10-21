@@ -14,5 +14,21 @@
   "confirmDelete": "حذف الدور «{{name}}»؟ سيفقد أصحابه صلاحياته فورًا.",
   "saved": "تم حفظ الدور.",
   "deleted": "تم حذف الدور.",
-  "module": { "access": "الأدوار", "audit": "التدقيق", "org": "الهيكل التنظيمي", "users": "المستخدمون" }
+  "module": {
+    "access": "الأدوار",
+    "audit": "التدقيق",
+    "org": "الهيكل التنظيمي",
+    "employees": "الموظفون",
+    "lookups": "خيارات النماذج"
+  },
+  "holders": "المستخدمون",
+  "searchLabel": "بحث في الأدوار",
+  "searchPlaceholder": "ابحث باسم الدور أو وصفه",
+  "filters": {
+    "type": "النوع",
+    "custom": "مخصص",
+    "withHolders": "له مستخدمون",
+    "withoutHolders": "بلا مستخدمين"
+  },
+  "descriptionColumn": "الوصف"
 }

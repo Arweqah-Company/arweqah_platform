@@ -4,9 +4,8 @@ import type { ScopeFilter } from '../domain/access-context';
 /** Qualified column names that place a row in the organization. */
 export interface ScopeColumns {
   owner: string;
-  team?: string;
-  department?: string;
-  branch?: string;
+  company?: string;
+  orgNode?: string;
 }
 
 /**
@@ -19,13 +18,24 @@ export function applyScope<T extends ObjectLiteral>(
   filter: ScopeFilter,
   columns: ScopeColumns,
 ): SelectQueryBuilder<T> {
-  if (filter.scope === 'company') return qb;
-  const unitColumn = filter.scope === 'own' ? undefined : columns[filter.scope as 'team' | 'department' | 'branch'];
-  if (!unitColumn || !filter.unitId) {
-    return qb.andWhere(`${columns.owner} = :scopeOwner`, { scopeOwner: filter.userId });
+  if (filter.scope === 'all') return qb;
+  const own = `${columns.owner} = :scopeOwner`;
+  const params = { scopeOwner: filter.userId, scopeCompany: filter.companyId, scopeNode: filter.orgNodeId };
+  const wide = widerCondition(filter, columns);
+  return qb.andWhere(wide ? `(${wide} OR ${own})` : own, params);
+}
+
+function widerCondition(filter: ScopeFilter, columns: ScopeColumns): string | null {
+  switch (filter.scope) {
+    case 'company':
+      return filter.companyId && columns.company ? `${columns.company} = :scopeCompany` : null;
+    case 'subtree':
+      return filter.orgNodeId && columns.orgNode
+        ? `${columns.orgNode} IN (SELECT descendant_id FROM org_node_closure WHERE ancestor_id = :scopeNode)`
+        : null;
+    case 'unit':
+      return filter.orgNodeId && columns.orgNode ? `${columns.orgNode} = :scopeNode` : null;
+    default:
+      return null;
   }
-  return qb.andWhere(`(${unitColumn} = :scopeUnit OR ${columns.owner} = :scopeOwner)`, {
-    scopeUnit: filter.unitId,
-    scopeOwner: filter.userId,
-  });
 }

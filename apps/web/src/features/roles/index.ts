@@ -9,6 +9,6 @@ export { useRoles } from './api';
 export const rolesFeature: FeatureModule = {
   id: 'roles',
   routes: [{ path: '/roles', lazy: () => import('./roles-page').then((m) => ({ Component: m.RolesPage })) }],
-  nav: [{ to: '/roles', labelKey: 'nav.roles', icon: KeyRound, permission: CorePermission.RolesView }],
+  nav: [{ to: '/roles', labelKey: 'nav.roles', icon: KeyRound, group: 'administration', permission: CorePermission.RolesView }],
   i18n: { ar, en },
 };

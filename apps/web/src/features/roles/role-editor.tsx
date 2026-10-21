@@ -48,7 +48,7 @@ export function RoleEditor({ role, open, onOpenChange }: Props) {
           {catalog.data?.map((group) => (
             <div key={group.module}>
               <h3 className="mb-1 text-xs font-bold text-muted">{t(`module.${group.module}`, { defaultValue: group.module })}</h3>
-              <ul className="divide-y divide-line rounded-[var(--radius-control)] border border-line">
+              <ul className="divide-y divide-neutral-200 rounded-[var(--radius-control)] border border-neutral-200">
                 {group.permissions.map((perm) => {
                   const scope = scopeOf(perm.key);
                   const label = i18n.language === 'ar' ? perm.labelAr : perm.labelEn;

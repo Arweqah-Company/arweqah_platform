@@ -9,6 +9,6 @@ export { useUnreadCount } from './api/notifications.api';
 export const notificationsFeature: FeatureModule = {
   id: 'notifications',
   routes: [{ path: '/notifications', lazy: () => import('./notifications-page').then((m) => ({ Component: m.NotificationsPage })) }],
-  nav: [{ to: '/notifications', labelKey: 'nav.notifications', icon: Bell }],
+  nav: [{ to: '/notifications', labelKey: 'nav.notifications', icon: Bell, group: 'account' }],
   i18n: { ar, en },
 };

@@ -1,1 +1,20 @@
-{ "title": "Notifications", "description": "Updates on your requests and tasks.", "markAll": "Mark all as read", "open": "Open", "empty": "No notifications. Updates on your requests and tasks will arrive here.", "bell": "Notifications, {{count}} unread" }
+{
+  "title": "Notifications",
+  "description": "Updates on your requests and tasks.",
+  "markAll": "Mark all as read",
+  "open": "Open",
+  "empty": "No notifications. Updates on your requests and tasks will arrive here.",
+  "bell": "Notifications, {{count}} unread",
+  "searchLabel": "Search notifications",
+  "searchPlaceholder": "Search the title or text",
+  "filters": {
+    "state": "State",
+    "unread": "Unread",
+    "read": "Read",
+    "from": "From date",
+    "until": "To date"
+  },
+  "titleColumn": "Title",
+  "textColumn": "Text",
+  "whenColumn": "Time"
+}

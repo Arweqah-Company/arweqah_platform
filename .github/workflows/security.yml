@@ -36,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 22 }
+        with: { node-version: 24 }
       - run: npm ci
       - run: npm audit --omit=dev --audit-level=high
 
@@ -87,12 +87,13 @@ jobs:
       DB_PASSWORD: ci_password
       BETTER_AUTH_SECRET: ci_better_auth_secret_value_at_least_32_chars
       FIELD_ENCRYPTION_KEY: Y2ktZmllbGQtZW5jcnlwdGlvbi1rZXktMzItYnl0ZXM=
+      BLIND_INDEX_KEY: ci_blind_index_key_value_at_least_32_chars
       MESSAGE_BUS: memory
       SWAGGER_ENABLED: "true"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: npm }
+        with: { node-version: 24, cache: npm }
       - name: Start PostgreSQL
         run: |
           docker run -d --name db -p 5432:5432 -e POSTGRES_DB=arweqah_platform_test -e POSTGRES_USER=arweqah \

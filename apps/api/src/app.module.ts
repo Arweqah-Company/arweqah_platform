@@ -19,10 +19,14 @@ import { FilesModule } from './core/files/files.module';
 import { MessagingModule } from './core/messaging/messaging.module';
 import { NotificationsModule } from './core/notifications/notifications.module';
 import { WorkflowModule } from './core/workflow/workflow.module';
+import { OrgDemoSeeder } from './database/seeds/org-demo.seeder';
+import { CompaniesSeeder } from './database/seeds/companies.seeder';
 import { FoundationSeeder } from './database/seeds/foundation.seeder';
+import { LookupsSeeder } from './database/seeds/lookups.seeder';
 import { HealthModule } from './health/health.module';
+import { EmployeesModule } from './modules/employees/employees.module';
+import { LookupsModule } from './modules/lookups/lookups.module';
 import { OrgModule } from './modules/org/org.module';
-import { UsersModule } from './modules/users/users.module';
 
 const JSON_LIMIT = '1mb';
 
@@ -54,7 +58,8 @@ const JSON_LIMIT = '1mb';
     FilesModule,
     // Feature modules
     OrgModule,
-    UsersModule,
+    LookupsModule,
+    EmployeesModule,
     HealthModule,
   ],
   providers: [
@@ -63,6 +68,9 @@ const JSON_LIMIT = '1mb';
     { provide: APP_GUARD, useExisting: PermissionsGuard },
     { provide: APP_FILTER, useClass: DomainExceptionFilter },
     FoundationSeeder,
+    LookupsSeeder,
+    CompaniesSeeder,
+    OrgDemoSeeder,
   ],
 })
 export class AppModule {}

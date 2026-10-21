@@ -23,7 +23,7 @@ export class AccessContextService {
       record.placement,
       record.grants,
       record.isActive,
-      record.requiresTwoFactor,
+      record.subtreeNodeIds,
     );
     this.cache.set(userId, { context, expiresAt: Date.now() + CACHE_TTL_MS });
     return context;

@@ -14,5 +14,21 @@
   "confirmDelete": "Delete the role “{{name}}”? Its holders lose these permissions immediately.",
   "saved": "Role saved.",
   "deleted": "Role deleted.",
-  "module": { "access": "Roles", "audit": "Audit", "org": "Organization", "users": "Users" }
+  "module": {
+    "access": "Roles",
+    "audit": "Audit",
+    "org": "Organization",
+    "employees": "Employees",
+    "lookups": "Form options"
+  },
+  "holders": "Users",
+  "searchLabel": "Search roles",
+  "searchPlaceholder": "Search by role name or description",
+  "filters": {
+    "type": "Type",
+    "custom": "Custom",
+    "withHolders": "Has holders",
+    "withoutHolders": "No holders"
+  },
+  "descriptionColumn": "Description"
 }

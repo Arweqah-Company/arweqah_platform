@@ -6,8 +6,9 @@ import type { Placement } from './access-context';
 export interface UserAccessRecord {
   isActive: boolean;
   grants: PermissionGrant[];
-  requiresTwoFactor: boolean;
   placement: Placement;
+  /** The user's org unit and every unit below it (empty when unplaced). */
+  subtreeNodeIds: string[];
 }
 
 export abstract class RoleRepository {
@@ -23,5 +24,4 @@ export abstract class UserAccessRepository {
   abstract rolesOf(userIds: string[]): Promise<Map<string, Role[]>>;
   abstract replaceRoles(userId: string, roleIds: string[], tx?: TransactionContext): Promise<void>;
   abstract placementsOf(userIds: string[]): Promise<Map<string, Placement>>;
-  abstract savePlacement(userId: string, placement: Placement, tx?: TransactionContext): Promise<void>;
 }

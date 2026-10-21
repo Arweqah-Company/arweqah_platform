@@ -4,23 +4,27 @@ import { In, Repository } from 'typeorm';
 import type { PermissionGrant, PermissionScope } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../common/application/transaction-runner';
 import { managerOf } from '../../../common/infrastructure/typeorm-transaction-runner';
-import type { Placement } from '../domain/access-context';
+import { NO_PLACEMENT, type Placement } from '../domain/access-context';
 import { UserAccessRepository, type UserAccessRecord } from '../domain/access.repository';
 import { Role } from '../domain/role.entity';
-import { UserPlacement } from '../domain/user-placement.entity';
 import { UserRole } from '../domain/user-role.entity';
 
 interface GrantRow {
   key: string | null;
   scope: PermissionScope | null;
-  requiresTwoFactor: boolean | null;
+}
+
+interface PlacementRow {
+  userId: string;
+  companyId: string;
+  orgNodeId: string | null;
+  managerUserId: string | null;
 }
 
 @Injectable()
 export class TypeOrmUserAccessRepository extends UserAccessRepository {
   constructor(
     @InjectRepository(UserRole) private readonly userRoles: Repository<UserRole>,
-    @InjectRepository(UserPlacement) private readonly placements: Repository<UserPlacement>,
     @InjectRepository(Role) private readonly roles: Repository<Role>,
   ) {
     super();
@@ -38,13 +42,22 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
     const grants: PermissionGrant[] = rows
       .filter((r): r is GrantRow & { key: string; scope: PermissionScope } => !!r.key && !!r.scope)
       .map((r) => ({ key: r.key, scope: r.scope }));
-    const placement = (await this.placementsOf([userId])).get(userId) ?? emptyPlacement();
+    const placement = (await this.placementsOf([userId])).get(userId) ?? NO_PLACEMENT;
     return {
       isActive: user.isActive,
       grants,
-      requiresTwoFactor: rows.some((r) => r.requiresTwoFactor),
       placement,
+      subtreeNodeIds: await this.subtreeOf(placement.orgNodeId),
     };
+  }
+
+  private async subtreeOf(orgNodeId: string | null): Promise<string[]> {
+    if (!orgNodeId) return [];
+    const rows: { id: string }[] = await this.userRoles.manager.query(
+      'SELECT descendant_id AS id FROM org_node_closure WHERE ancestor_id = $1',
+      [orgNodeId],
+    );
+    return rows.map((r) => r.id);
   }
 
   private grantRows(userId: string): Promise<GrantRow[]> {
@@ -54,7 +67,6 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
       .leftJoin('role_permissions', 'rp', 'rp.role_id = r.id')
       .select('rp.permission_key', 'key')
       .addSelect('rp.scope', 'scope')
-      .addSelect('r.requires_two_factor', 'requiresTwoFactor')
       .where('ur.user_id = :userId', { userId })
       .getRawMany<GrantRow>();
   }
@@ -78,21 +90,20 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
     if (roleIds.length) await m.insert(UserRole, roleIds.map((roleId) => ({ userId, roleId })));
   }
 
+  /** Placement is read from the employee record (the HR source of truth); the manager is that employee's user id. */
   async placementsOf(userIds: string[]): Promise<Map<string, Placement>> {
     if (!userIds.length) return new Map();
-    const rows = await this.placements.find({ where: { userId: In(userIds) } });
-    return new Map(rows.map((p) => [p.userId, toPlacement(p)]));
+    const rows: PlacementRow[] = await this.userRoles.manager
+      .createQueryBuilder()
+      .select('e.user_id', 'userId')
+      .addSelect('e.company_id', 'companyId')
+      .addSelect('e.org_node_id', 'orgNodeId')
+      .addSelect('m.user_id', 'managerUserId')
+      .from('employees', 'e')
+      .leftJoin('employees', 'm', 'm.id = e.manager_id AND m.deleted_at IS NULL')
+      .where('e.user_id IN (:...userIds)', { userIds })
+      .andWhere('e.deleted_at IS NULL')
+      .getRawMany<PlacementRow>();
+    return new Map(rows.map((r) => [r.userId, { companyId: r.companyId, orgNodeId: r.orgNodeId, managerId: r.managerUserId }]));
   }
-
-  async savePlacement(userId: string, placement: Placement, tx?: TransactionContext): Promise<void> {
-    await managerOf(tx, this.placements.manager).upsert(UserPlacement, { userId, ...placement }, ['userId']);
-  }
-}
-
-function toPlacement(p: UserPlacement): Placement {
-  return { branchId: p.branchId, departmentId: p.departmentId, teamId: p.teamId, managerId: p.managerId };
-}
-
-export function emptyPlacement(): Placement {
-  return { branchId: null, departmentId: null, teamId: null, managerId: null };
 }

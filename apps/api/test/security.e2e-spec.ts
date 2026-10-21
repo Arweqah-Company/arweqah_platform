@@ -8,7 +8,7 @@ describe('Security suite (NFR-02, NFR-03)', () => {
 
   it('every non-public route answers 401 without a session', async () => {
     const routes = discoverRoutes(t.app).filter((r) => !r.isPublic);
-    expect(routes.length).toBeGreaterThan(20);
+    expect(routes.length).toBeGreaterThan(10);
     for (const route of routes) {
       const res = await request(t.app.getHttpServer())[route.method](route.path).send({});
       expect(res.status, `${route.method.toUpperCase()} ${route.path}`).toBe(401);

@@ -1,26 +1,27 @@
 import { type PermissionGrant, type PermissionScope, widestScope } from '@arweqah-platform/shared';
 
+/** Where an employee sits: company, org unit and direct manager. Null before the employee is placed. */
 export interface Placement {
-  branchId: string | null;
-  departmentId: string | null;
-  teamId: string | null;
+  companyId: string | null;
+  orgNodeId: string | null;
   managerId: string | null;
 }
+
+export const NO_PLACEMENT: Placement = { companyId: null, orgNodeId: null, managerId: null };
 
 /** The organizational coordinates of a record, used to check a scoped grant. */
 export interface ScopedResource {
   ownerId?: string | null;
-  teamId?: string | null;
-  departmentId?: string | null;
-  branchId?: string | null;
+  companyId?: string | null;
+  orgNodeId?: string | null;
 }
 
 /** Filter a list query must apply for a permission at the user's widest scope. */
 export interface ScopeFilter {
   scope: PermissionScope;
   userId: string;
-  /** The placement id matching the scope (branch / department / team), null for own and company. */
-  unitId: string | null;
+  companyId: string | null;
+  orgNodeId: string | null;
 }
 
 /** Immutable snapshot of what a user may do, built once per request. */
@@ -32,7 +33,8 @@ export class AccessContext {
     readonly placement: Placement,
     grants: PermissionGrant[],
     readonly isActive: boolean,
-    readonly requiresTwoFactor: boolean,
+    /** The user's org unit and every unit below it, for subtree-scoped record checks. */
+    readonly subtreeNodeIds: readonly string[] = [],
   ) {
     const byKey = new Map<string, PermissionScope[]>();
     for (const g of grants) byKey.set(g.key, [...(byKey.get(g.key) ?? []), g.scope]);
@@ -57,13 +59,6 @@ export class AccessContext {
   filterFor(key: string): ScopeFilter | null {
     const scope = this.scopeOf(key);
     if (!scope) return null;
-    const unitByScope: Record<PermissionScope, string | null | undefined> = {
-      own: null,
-      team: this.placement.teamId,
-      department: this.placement.departmentId,
-      branch: this.placement.branchId,
-      company: null,
-    };
-    return { scope, userId: this.userId, unitId: unitByScope[scope] ?? null };
+    return { scope, userId: this.userId, companyId: this.placement.companyId, orgNodeId: this.placement.orgNodeId };
   }
 }

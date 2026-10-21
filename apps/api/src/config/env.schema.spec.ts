@@ -12,6 +12,7 @@ const base = {
   DB_PASSWORD: 'x',
   BETTER_AUTH_SECRET: 'a'.repeat(40),
   FIELD_ENCRYPTION_KEY: randomBytes(32).toString('base64'),
+  BLIND_INDEX_KEY: randomBytes(32).toString('base64'),
 };
 const microsoft = { MICROSOFT_CLIENT_ID: 'id', MICROSOFT_CLIENT_SECRET: 'secret' };
 
@@ -28,5 +29,11 @@ describe('environment validation (FR-03)', () => {
   it('rejects short auth secrets and wrong-size encryption keys', () => {
     expect(() => validateEnv({ ...base, BETTER_AUTH_SECRET: 'short' })).toThrow(/BETTER_AUTH_SECRET/);
     expect(() => validateEnv({ ...base, FIELD_ENCRYPTION_KEY: randomBytes(16).toString('base64') })).toThrow(/FIELD_ENCRYPTION_KEY/);
+  });
+
+  it('keeps the sign-in limit at 5 per minute by default and refuses a loose limit in production', () => {
+    expect(validateEnv({ ...base }).SIGN_IN_RATE_LIMIT).toBe(5);
+    expect(validateEnv({ ...base, NODE_ENV: 'development', SIGN_IN_RATE_LIMIT: '1000' }).SIGN_IN_RATE_LIMIT).toBe(1000);
+    expect(() => validateEnv({ ...base, NODE_ENV: 'production', SIGN_IN_RATE_LIMIT: '1000' })).toThrow(/SIGN_IN_RATE_LIMIT/);
   });
 });

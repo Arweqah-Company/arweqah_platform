@@ -8,17 +8,17 @@ Internal ERP for Arweqah Alreyadah: one place for people, organization, requests
 
 **Problem.** Employee data, approvals, projects and tickets live in separate tools (Airtable, Google Sheets, email). Nobody has one view, approvals are slow to chase, and sensitive data (national IDs, salaries) is spread across files.
 
-**Solution.** A bilingual (Arabic RTL / English) web platform where every employee signs in once (Microsoft 365 or password + two-step verification), sees only what their role and position in the organization allow, and where every sensitive action is recorded.
+**Solution.** A bilingual (Arabic RTL / English) web platform where every employee signs in with Microsoft 365 or a work e-mail, always confirmed by a code from an authenticator app (no passwords), sees only what their role and position in the organization allow, and where every sensitive action is recorded.
 
 **Main journeys in the foundation**
 
-1. An employee signs in with Microsoft or email + password, completes two-step verification when their role requires it, and lands on their home page.
-2. HR creates an employee account, places it in a branch / department / team and assigns roles.
-3. An administrator builds roles from the permission catalog and chooses how far each permission reaches (own records → team → department → branch → company).
-4. An administrator maintains the organization structure.
-5. A user receives notifications in the app (and by email), and an auditor reviews the audit log.
+1. The startup administrator (`s.magdy@arweqah.sa`, created by the seeder) signs in with Microsoft, scans the QR code once to link an authenticator app, and from then on enters the 6-digit code at every sign-in.
+2. An administrator builds each company's structure with forms: levels (sector / department / section / unit by default), units under any level, and job titles (mandatory on units that accept employees). Changing levels that hold data shows the impact and needs confirmation.
+3. HR creates an employee from the 40-field form; the system creates a sign-in account and e-mails an activation link. The employee also gets the link on their first sign-in attempt (the e-mail step recognizes a first time and sends the QR link), scans the QR code and enters the code.
+4. An administrator builds roles from the permission catalog and chooses how far each permission reaches (own → unit → subtree → company → all).
+5. A user receives notifications in the app (and by e-mail); an auditor reviews the audit log; an administrator follows every e-mail the platform sent (sent / failed and why).
 
-**In scope now:** authentication, users, organization structure, dynamic roles and scoped permissions, audit log, notifications (in-app, email, SMS adapter), file storage, workflow engine, messaging (outbox + RabbitMQ + durable scheduled jobs), bilingual UI shell.
+**In scope now:** passwordless authentication (Microsoft + authenticator app), companies, dynamic organization structure, employees, dynamic roles and scoped permissions, audit log, notifications (in-app, email, SMS adapter), file storage, workflow engine, messaging (outbox + RabbitMQ + durable scheduled jobs), sent-e-mail log, bilingual UI shell with grouped navigation.
 
 **Out of scope now (planned modules):** attendance, leaves, requests, projects and tasks, tickets with SLA, expenses / advances / invoices tracking, payroll records, dashboards, two-way Airtable / Google Sheets sync. Out of scope for version 1 entirely: double-entry accounting, e-invoicing (ZATCA), GOSI / Mudad / WPS integrations.
 
@@ -34,18 +34,36 @@ Bring employee, project and request management into one secure platform that spe
 
 | ID | Requirement | Actor | Priority | Covered by |
 |---|---|---|---|---|
-| FR-01 | Sign in with email + password; sign out; no self sign-up; sign-in rate limit; deactivated accounts refused | All users | Must | `apps/api/test/auth.e2e-spec.ts`, `e2e/tests/auth.spec.ts` |
-| FR-02 | Two-step verification (TOTP) required for roles that demand it (System Admin by default) | All users | Must | `apps/api/test/access.e2e-spec.ts` (Two-step verification), `e2e/tests/auth.spec.ts` |
-| FR-03 | Sign in with Microsoft Entra ID, restricted to the company tenant; only pre-provisioned employees | All users | Must | `apps/api/src/config/env.schema.spec.ts` (manual check against the real tenant before go-live) |
-| FR-04 | Create users with roles and placement; change roles and placement; deactivate (ends all sessions) and reactivate | HR / admin | Must | `apps/api/test/users.e2e-spec.ts`, `e2e/tests/users.spec.ts` |
-| FR-05 | Dynamic roles built from a permission catalog in the admin panel; system roles cannot be deleted | Admin | Must | `apps/api/test/access.e2e-spec.ts`, `apps/web/src/features/roles/role-editor.test.tsx` |
-| FR-06 | Every permission is scoped (own / team / department / branch / company); lists and records outside the scope are hidden (404) | All | Must | `apps/api/src/core/access/application/access.spec.ts`, `apps/api/test/users.e2e-spec.ts`, `apps/api/test/security.e2e-spec.ts` |
-| FR-07 | Maintain branches, departments (nested) and teams; refuse cycles, cross-branch parents, deleting units in use | Admin | Must | `apps/api/test/users.e2e-spec.ts` (Organization structure) |
+| FR-01 | Sign in with the work e-mail and the 6-digit code of an authenticator app; no passwords, no self sign-up; one generic error; 5/min rate limit; lock after 5 wrong codes; a code cannot be reused; deactivated accounts refused | All users | Must | `apps/api/test/auth.e2e-spec.ts`, `apps/web/src/features/auth/pages/login-page.test.tsx` |
+| FR-02 | The authenticator app is mandatory for everyone: no protected route works before it is linked and the session is code-verified | All users | Must | `apps/api/test/mfa.e2e-spec.ts`, `apps/api/test/access.e2e-spec.ts` |
+| FR-03 | Sign in with Microsoft Entra ID, company tenant only, pre-provisioned employees only; the code is still required after Microsoft | All users | Must | `apps/api/src/config/env.schema.spec.ts`, `apps/api/test/mfa.e2e-spec.ts` (manual check against the real tenant before go-live) |
+| FR-04 | Employees: create (also creates the sign-in account), update, activate / deactivate (ends sessions), terminate, assign roles, resend the activation link, reset the authenticator | HR / admin | Must | `apps/api/test/employees.e2e-spec.ts` |
+| FR-05 | Dynamic roles built from a permission catalog; system roles cannot be deleted | Admin | Must | `apps/api/test/access.e2e-spec.ts`, `apps/web/src/features/roles/role-editor.test.tsx` |
+| FR-06 | Every permission is scoped (own / unit / subtree / company / all); lists and records outside the scope are hidden (404) | All | Must | `apps/api/src/core/access/application/access.spec.ts`, `apps/api/test/security.e2e-spec.ts` |
+| FR-07 | Replaced by FR-13 and FR-24 (companies, levels, units, job titles) | Admin | — | see FR-13, FR-24 |
 | FR-08 | In-app notifications with unread count; email (and SMS) delivered in the background through the outbox | All | Must | `apps/api/test/platform.e2e-spec.ts` (Notifications) |
 | FR-09 | Upload files (PDF, PNG, JPEG ≤ 10 MB) checked by content; only the owner can read them | All | Should | `apps/api/test/platform.e2e-spec.ts` (Files) |
 | FR-10 | Workflow engine: persisted state machines with history, optimistic locking and durable timeouts (escalations) | Feature modules | Must | `apps/api/test/platform.e2e-spec.ts` (Workflow engine) |
 | FR-11 | Audit log of sign-ins and sensitive changes, secrets redacted, readable by auditors only | Auditor | Must | `apps/api/test/platform.e2e-spec.ts` (Audit log), `apps/api/src/core/audit/application/audit.service.spec.ts` |
-| FR-12 | Arabic (RTL) and English interface, switchable at any time | All | Must | `apps/web/src/core/i18n/i18n.test.ts`, `e2e/tests/auth.spec.ts` |
+| FR-12 | Arabic (RTL) and English interface, switchable at any time | All | Must | `apps/web/src/core/i18n/i18n.test.ts` |
+| FR-13 | The code is required in every session, also after Microsoft (the session is blocked until it is verified) | All users | Must | `apps/api/test/mfa.e2e-spec.ts`, `apps/web/src/features/auth/pages/verify-page.test.tsx`, `apps/web/src/features/org/org-page.test.tsx` |
+| FR-14 | The startup administrator is created by the seeder (no password) and belongs to «أروقة الريادة» | System | Must | `apps/api/test/seeds.e2e-spec.ts` |
+| FR-15 | No self sign-up and no password routes exist | All | Must | `apps/api/test/auth.e2e-spec.ts` |
+| FR-16 | Activation link (QR code, first code, backup codes), one use, 72 h; the e-mail step recognizes a first sign-in and e-mails the link (one per minute per address) | Employee | Must | `apps/api/test/mfa.e2e-spec.ts`, `apps/web/src/features/auth/pages/login-page.test.tsx` |
+| FR-17 | Employee form with 40 fields in 6 sections and conditional rules | HR | Must | `apps/api/test/employees.e2e-spec.ts`, `apps/web/src/features/employees/employee-form-page.test.tsx` |
+| FR-18 | ID validation by type and nationality; unique type + number (searchable through an HMAC blind index) | HR | Must | `apps/api/test/employees.e2e-spec.ts` |
+| FR-19 | Companies (10 seeded), levels, units, job titles with deletion and move rules | Admin | Must | `apps/api/test/org.e2e-spec.ts` |
+| FR-20 | Scopes own / unit / subtree / company / all with 404 outside the scope | All | Must | `apps/api/test/employees.e2e-spec.ts` |
+| FR-21 | ID number, IBAN and salary are encrypted and masked without `employees.view_sensitive` | HR | Must | `apps/api/test/employees.e2e-spec.ts` |
+| FR-22 | Arabic / English for every lookup (`Accept-Language`) | All | Must | `apps/api/test/lookups.e2e-spec.ts` |
+| FR-23 | Two-step sign-in page: work e-mail, then the code boxes (with a first-time notice) | All users | Must | `apps/web/src/features/auth/pages/login-page.test.tsx`, `apps/api/test/auth.e2e-spec.ts` |
+| FR-24 | Dynamic organization built by forms; impact warning and confirmation when levels that hold data change (transfer employees with job-title mapping, or delete by typing the count) | Admin | Must | `apps/api/test/org.e2e-spec.ts` |
+| FR-25 | Idempotent seeders: lookups, countries, 10 companies with the default levels (+ optional sample units in development) | System | Must | `apps/api/test/seeds.e2e-spec.ts` |
+| FR-26 | Sent-e-mail log: every e-mail with status (pending / sent / failed), reason and server reply, never the body; filters; permission `notifications.email_log` | Admin | Should | `apps/api/test/email-log.e2e-spec.ts`, `apps/web/src/features/email-log/email-log-page.test.tsx` |
+| FR-27 | Every list offers search, filters on every attribute that can be filtered (applied filters shown as removable chips), and a choice between a table and cards (remembered per list; phones start with cards). Employees: company, status, relation type, unit, job title, contract type, nationality, gender, work mode, marital and residency status, contract start range, ID / contract needing attention. Audit log: search, action, record type, actor, date range. E-mail log: search, status, type, address, date range. Notifications: search, read / unread, date range. Companies and roles: search plus status, type or holders | All | Must | `apps/api/test/employees.e2e-spec.ts`, `apps/api/test/platform.e2e-spec.ts`, `apps/api/test/email-log.e2e-spec.ts`, `apps/web/src/shared/ui/list-toolbar.test.tsx` |
+| FR-28 | Export from every list: choose the scope (rows on the page, or all results of the current search and filters), the columns, and the file type (Excel or CSV); formulas are neutralized | All | Must | `apps/web/src/shared/data-exchange/data-exchange.test.ts`, `apps/web/src/shared/data-exchange/dialogs.test.tsx` |
+| FR-29 | Import employees and companies from Excel or CSV: download a template whose drop-downs carry the system's lists (companies, units and job titles, countries, statuses, contract types…), preview the rows with their errors, import the valid ones, download an error report; every row goes through the same validation and API as the form | HR / admin | Must | `apps/web/src/shared/data-exchange/*.test.ts(x)`, `apps/web/src/features/employees/employees-import-rows.test.ts`, `apps/web/src/features/companies/companies-import.test.ts`, `apps/api/test/lookups.e2e-spec.ts` (org reference) |
+| FR-30 | The 401, 403 and 404 pages share one design (picture, what happened, what to do, one button): 404 for an unknown address, 403 when a route needs a permission the person lacks (route guard from the navigation item's permission), 401 when the session ends while working (a visitor without a session goes straight to sign-in) | All | Must | `apps/web/src/app/error-pages.test.tsx`, `e2e/tests/navigation.spec.ts` |
 
 Every test suite names the requirement IDs it covers in its `describe(...)` title.
 
@@ -55,7 +73,7 @@ Every test suite names the requirement IDs it covers in its `describe(...)` titl
 |---|---|---|---|
 | NFR-01 | Performance | p95 < 300 ms for read endpoints at 5,000 users; morning check-in peak of 5,000 requests in 30 min | Load test (k6) to be added with the attendance module; indexes on every filter/foreign key |
 | NFR-02 | Security | OWASP Top 10 controls; every non-public route 401 without session and 403 without permission | `apps/api/test/security.e2e-spec.ts` (routes discovered automatically), CI `security` workflow |
-| NFR-03 | Input hardening | Unknown fields 400, bodies > 1 MB 413, no stack traces/SQL in errors, literal search | `apps/api/test/security.e2e-spec.ts`, `users.e2e-spec.ts` |
+| NFR-03 | Input hardening | Unknown fields 400, bodies > 1 MB 413, no stack traces/SQL in errors, literal search | `apps/api/test/security.e2e-spec.ts` |
 | NFR-04 | Availability | 99.5 % monthly | `/api/health` checks, `restart: unless-stopped`, deploy smoke test; CloudWatch alarm (to configure) |
 | NFR-05 | Accessibility | WCAG 2.1 AA, no serious/critical axe violations | `@axe-core/playwright` in `e2e/` |
 | NFR-06 | Localization | Full RTL Arabic and LTR English | `i18n.test.ts`, Playwright RTL checks |
@@ -66,7 +84,7 @@ Every test suite names the requirement IDs it covers in its `describe(...)` titl
 
 ## 6. ERD
 
-Tables from the migrations in `apps/api/src/database/migrations`. Messaging tables (`outbox_messages`, `scheduled_jobs`, `processed_messages`) have no foreign keys and are omitted from the diagram.
+Tables from the migrations in `apps/api/src/database/migrations`. Translated names live in `*_translations` tables (`lang` = `ar` | `en`; one per entity and per lookup) and the lookup tables (countries, marital / residency statuses, id types and rules, contract types, GOSI systems, termination reasons, relation types) are omitted from the diagram for readability. Messaging tables (`outbox_messages`, `scheduled_jobs`, `processed_messages`) have no foreign keys and are omitted too.
 
 ```mermaid
 erDiagram
@@ -75,35 +93,47 @@ erDiagram
     varchar name
     varchar email UK
     varchar locale
-    varchar phone
     bool is_active
-    bool two_factor_enabled
   }
   auth_accounts {
     uuid id PK
     uuid user_id FK
     text provider_id
     text account_id
-    text password
   }
   auth_sessions {
     uuid id PK
     uuid user_id FK
     text token UK
     timestamptz expires_at
+    timestamptz mfa_verified_at
   }
-  auth_two_factors {
+  authenticators {
+    uuid user_id PK
+    text secret_enc
+    timestamptz enabled_at
+    bigint last_used_step
+    int failed_count
+    timestamptz locked_until
+  }
+  authenticator_backup_codes {
     uuid id PK
     uuid user_id FK
-    text secret
-    text backup_codes
+    varchar code_hash
+    timestamptz used_at
+  }
+  enrollment_invites {
+    uuid id PK
+    uuid user_id FK
+    varchar token_hash
+    timestamptz expires_at
+    timestamptz used_at
   }
   roles {
     uuid id PK
     varchar name_ar
     varchar name_en
     bool is_system
-    bool requires_two_factor
   }
   role_permissions {
     uuid role_id PK
@@ -114,29 +144,55 @@ erDiagram
     uuid user_id PK
     uuid role_id PK
   }
-  branches {
+  companies {
     uuid id PK
     varchar code UK
-    varchar name_ar
-    varchar name_en
+    bool is_active
   }
-  departments {
+  org_levels {
     uuid id PK
-    uuid branch_id FK
+    uuid company_id FK
+    int sort_order
+    bool is_assignable
+  }
+  org_nodes {
+    uuid id PK
+    uuid company_id FK
+    uuid org_level_id FK
     uuid parent_id FK
-    uuid head_user_id
-  }
-  teams {
-    uuid id PK
-    uuid department_id FK
-    uuid lead_user_id
-  }
-  user_placements {
-    uuid user_id PK
-    uuid branch_id FK
-    uuid department_id FK
-    uuid team_id FK
     uuid manager_id FK
+  }
+  org_node_closure {
+    uuid ancestor_id PK
+    uuid descendant_id PK
+    int depth
+  }
+  job_titles {
+    uuid id PK
+    uuid org_node_id FK
+    bool is_active
+  }
+  employees {
+    uuid id PK
+    uuid user_id FK
+    uuid company_id FK
+    uuid org_node_id FK
+    uuid job_title_id FK
+    uuid manager_id FK
+    varchar employee_number UK
+    varchar work_email UK
+    text id_number_enc
+    varchar id_number_hash
+    text iban_enc
+    text monthly_gross_salary_enc
+  }
+  email_logs {
+    uuid id PK
+    varchar to_email
+    varchar subject
+    varchar purpose
+    varchar status
+    text error
   }
   notifications {
     uuid id PK
@@ -162,32 +218,35 @@ erDiagram
   workflow_instances {
     uuid id PK
     varchar definition_key
-    varchar entity_type
     uuid entity_id
     varchar state
-    jsonb snapshot
     int revision
   }
   workflow_transitions {
     uuid id PK
     uuid instance_id FK
     varchar event
-    varchar from_state
     varchar to_state
   }
   users ||--o{ auth_accounts : "signs in with"
   users ||--o{ auth_sessions : has
-  users ||--o| auth_two_factors : has
+  users ||--o| authenticators : "links one app"
+  users ||--o{ authenticator_backup_codes : holds
+  users ||--o{ enrollment_invites : "invited by link"
   users ||--o{ user_roles : holds
   roles ||--o{ user_roles : "granted via"
   roles ||--o{ role_permissions : contains
-  users ||--o| user_placements : "placed by"
-  branches ||--o{ departments : contains
-  departments ||--o{ departments : "parent of"
-  departments ||--o{ teams : contains
-  branches ||--o{ user_placements : ""
-  departments ||--o{ user_placements : ""
-  teams ||--o{ user_placements : ""
+  companies ||--o{ org_levels : defines
+  companies ||--o{ org_nodes : owns
+  org_levels ||--o{ org_nodes : "level of"
+  org_nodes ||--o{ org_nodes : "parent of"
+  org_nodes ||--o{ org_node_closure : "ancestor of"
+  org_nodes ||--o{ job_titles : offers
+  users ||--o| employees : "is"
+  companies ||--o{ employees : employs
+  org_nodes ||--o{ employees : "placed in"
+  job_titles ||--o{ employees : "holds title"
+  employees ||--o{ employees : "manages"
   users ||--o{ notifications : receives
   users ||--o{ files : owns
   workflow_instances ||--o{ workflow_transitions : records
@@ -195,40 +254,68 @@ erDiagram
 
 ## 7. Flowcharts
 
-**Sign-in**
+**Sign-in (two steps, no password)**
 
 ```mermaid
 flowchart TD
-  start([Open the app]) --> session{Valid session?}
-  session -- yes --> me[GET /api/me]
+  start([Open the app]) --> session{Valid, code-verified session?}
+  session -- yes --> home([Home])
   session -- no --> login[/Login page/]
   login --> method{Method}
-  method -- Microsoft --> ms[Entra ID, company tenant only] --> known{Account pre-provisioned?}
+  method -- Microsoft --> ms[Entra ID, company tenant only] --> known{Account pre-provisioned and active?}
   known -- no --> refused[Refused]
-  known -- yes --> active
-  method -- Email + password --> creds{Correct? under rate limit?}
-  creds -- no --> err[Generic error or 429]
-  creds -- yes --> active{Account active?}
-  active -- no --> refused
-  active -- yes --> tfa{2FA enabled?}
-  tfa -- yes --> verify[/Enter TOTP code/] --> me
-  tfa -- no --> me
-  me --> req{Role requires 2FA and not enabled?}
-  req -- yes --> setup[/Security page: enable 2FA/] --> home
-  req -- no --> home([Home])
+  known -- yes --> linked{Authenticator linked?}
+  method -- Work e-mail --> ident[POST /api/mfa/identify]
+  ident --> first{Active account without an authenticator?}
+  first -- yes --> mail[E-mail the QR link, show the first-time notice] --> codeBoxes
+  first -- no --> codeBoxes[/Six code boxes/]
+  codeBoxes --> check{E-mail and code valid? under rate limit and lock?}
+  check -- no --> err[One generic error or 429]
+  check -- yes --> home
+  linked -- no --> enroll[/Scan QR once, confirm first code, keep backup codes/] --> home
+  linked -- yes --> verify[/Enter the code/] --> home
 ```
 
-**Create a user (HR)**
+**Create an employee (HR)**
 
 ```mermaid
 flowchart TD
-  open[/Users page/] --> form[/New user: name, email, password optional, placement, roles/]
-  form --> post[POST /api/users]
-  post --> perm{users.manage at a scope covering the placement?}
-  perm -- no --> e403[403]
-  perm -- yes --> valid{Placement consistent? Email unused?}
-  valid -- no --> e4xx[422 / 409]
-  valid -- yes --> create[Create account via Better Auth] --> place[Save placement and roles] --> audit[Audit: user.created] --> done([User can sign in])
+  open[/Employees page/] --> form[/Employee form: 40 fields in 6 sections/]
+  form --> post[POST /api/employees]
+  post --> perm{employees.create at a scope covering the unit?}
+  perm -- no --> e404[404 outside the scope / 403 without the permission]
+  perm -- yes --> valid{Fields valid? E-mail, number and ID unique? Unit and title consistent?}
+  valid -- no --> e4xx[400 / 409 / 422]
+  valid -- yes --> create[Create sign-in account and employee in one transaction] --> invite[E-mail the activation link, log it in email_logs] --> audit[Audit: employee.created] --> done([Employee can activate their authenticator])
+```
+
+**Change the levels of a company that holds data**
+
+```mermaid
+flowchart TD
+  levels[/Levels form/] --> preview[POST /api/org/levels/preview]
+  preview --> impact{Units, titles or employees affected?}
+  impact -- no --> save[POST /api/org/levels] --> done([Saved])
+  impact -- yes --> warn[/Impact dialog with counts/] --> choose{Employees}
+  choose -- transfer --> map[/Target unit + title mapping/] --> confirm
+  choose -- delete --> count[/Type the count/] --> confirm
+  confirm[POST /api/org/levels with impactToken] --> same{Impact unchanged?}
+  same -- no --> e409[409 and a new warning]
+  same -- yes --> tx[Soft-delete or move in one transaction] --> done
+```
+
+**Import from a file (employees, companies)**
+
+```mermaid
+flowchart TD
+  open[/Import button/] --> tpl[Download the template: headers, drop-downs, Lists sheet from the system's lists]
+  tpl --> fill[Fill it in Excel] --> up[/Upload xlsx or csv/]
+  up --> read{Readable, ≤ 1,000 rows, ≤ 5 MB, required columns present?}
+  read -- no --> msg[Say what is wrong with the file]
+  read -- yes --> check[Check every row: options matched by name or code, dates, numbers, shared zod schema, duplicates in the file]
+  check --> preview[/Preview: valid rows and rows with errors/]
+  preview --> run[Import the valid rows 3 at a time through the normal API: POST /employees or POST /companies]
+  run --> result[/Result and downloadable error report/]
 ```
 
 **Build a role**
@@ -244,7 +331,7 @@ flowchart LR
 
 ## 8. Sequence diagrams
 
-**Email sign-in and an authorized request**
+**E-mail + code sign-in and an authorized request**
 
 ```mermaid
 sequenceDiagram
@@ -254,20 +341,46 @@ sequenceDiagram
   participant BA as Better Auth (in API)
   participant G as PermissionsGuard
   participant DB as PostgreSQL
-  U->>W: email + password
-  W->>N: POST /api/auth/sign-in/email
+  U->>W: work e-mail
+  W->>N: POST /api/mfa/identify
+  N-->>W: {firstTime} (e-mails the QR link when true)
+  U->>W: 6-digit code
+  W->>N: POST /api/auth/totp/sign-in
   N->>BA: X-Forwarded-For = client IP
   BA->>BA: rate limit per IP and path
-  BA->>DB: verify password hash, is_active (session hook)
-  BA-->>W: Set-Cookie session (HttpOnly, Secure, SameSite=Lax)
-  W->>N: GET /api/users (cookie)
+  BA->>DB: user active? authenticator enabled? code valid, not reused, not locked?
+  BA-->>W: Set-Cookie session (HttpOnly, SameSite=Lax), mfa_verified_at set
+  W->>N: GET /api/employees (cookie)
   N->>BA: AuthGuard: getSession
-  BA->>DB: session + user
   BA->>G: request.user
   G->>DB: roles, grants, placement (cached 30 s)
-  G-->>W: 403 if no users.view
+  G-->>W: 403 if no employees.view, 403 MFA_REQUIRED if the session is not code-verified
   G->>DB: list filtered by the user's scope
-  DB-->>W: 200 page of users
+  DB-->>W: 200 page of employees
+```
+
+**First sign-in: activation link and QR code**
+
+```mermaid
+sequenceDiagram
+  actor U as Employee
+  participant W as Web
+  participant A as API
+  participant DB as PostgreSQL
+  participant M as SMTP (Office 365)
+  U->>W: types the work e-mail
+  W->>A: POST /api/mfa/identify
+  A->>DB: active user without an enabled authenticator?
+  A->>DB: new one-time invite (hash only, 72 h), older ones stop working
+  A->>M: send the link (logged in email_logs: pending, then sent or failed)
+  A-->>W: {firstTime: true}
+  U->>W: opens /enroll/{token} from the e-mail
+  W->>A: GET /api/mfa/enrollment/{token}
+  A-->>W: secret and otpauth URI (QR shown once)
+  U->>W: first code from the app
+  W->>A: POST /api/mfa/enrollment/{token}/confirm
+  A->>DB: enable authenticator, store backup-code hashes, consume the invite
+  A-->>W: backup codes (shown once)
 ```
 
 **Workflow transition with a durable timeout**
@@ -308,7 +421,7 @@ sequenceDiagram
   N->>M: send in the recipient's language
 ```
 
-**Microsoft sign-in (Entra ID)**
+**Microsoft sign-in (Entra ID), then the code**
 
 ```mermaid
 sequenceDiagram
@@ -322,7 +435,9 @@ sequenceDiagram
   U->>MS: authenticate (company MFA policies apply)
   MS-->>BA: GET /api/auth/callback/microsoft
   BA->>BA: sign-up disabled: link only to an existing employee
-  BA-->>W: session cookie, redirect to the app
+  BA-->>W: session cookie (not code-verified), redirect to the app
+  W->>BA: POST /api/mfa/verify (or /api/mfa/enroll the first time)
+  BA-->>W: session marked mfa_verified_at
 ```
 
 ## 9. Stack
@@ -333,11 +448,12 @@ sequenceDiagram
 | API | NestJS 11.2 + TypeScript 5.9 | NestJS 12 is out but `nestjs-zod` supports up to 11; TypeScript 6/7 not yet supported by `ts-jest`/`typescript-eslint` |
 | Database | PostgreSQL 16 + TypeORM 1.1 | Chosen by the team; migrations only |
 | Validation | zod 4 schemas in `packages/shared`, `nestjs-zod` | One rule for API and web |
-| Auth | Better Auth 1.7 (+ `@thallesp/nestjs-better-auth`), Microsoft Entra ID, TOTP 2FA | Replaces the team's hand-written JWT; HttpOnly session cookie |
+| Auth | Better Auth 1.7 (+ `@thallesp/nestjs-better-auth`), Microsoft Entra ID, custom TOTP sign-in plugin (authenticator app mandatory, no passwords) | Replaces the team's hand-written JWT; HttpOnly session cookie |
 | Authorization | Dynamic roles + scoped permissions, CASL 7 for record checks | Requested: roles managed from the admin panel |
 | Workflow | XState 5 with state in PostgreSQL | Requested; timeouts stored as jobs (XState timers are not durable) |
 | Messaging | RabbitMQ 4 via `amqp-connection-manager`, transactional outbox, scheduled jobs table | Requested RabbitMQ instead of BullMQ/Redis; Redis not used |
-| Email / SMS | SMTP adapter (Mailpit locally, Amazon SES in production); SMS adapter placeholder | Saudi SMS provider to be chosen |
+| Excel / CSV | `write-excel-file` 4.1.1 + `@onparallel/write-excel-file-data-validation` 1.0.0 (drop-downs in templates), `read-excel-file` 9.3.10; CSV by our own small parser; all in the browser, loaded only when someone exports or imports | `exceljs` was rejected (moderate `uuid` advisory); versions pinned to releases older than 14 days |
+| Email / SMS | SMTP adapter (Office 365 `smtp.office365.com:587` STARTTLS; Mailpit available locally) with a sent-e-mail log; SMS adapter placeholder | Saudi SMS provider to be chosen |
 | Files | S3 (private bucket, SSE, signed URLs) / local folder in development | |
 | Web | React 19 + Vite 8 + React Router 8 + TanStack Query 5 + Tailwind 4 + Radix primitives | Requested React SPA instead of Next.js |
 | i18n | i18next + react-i18next, Arabic RTL default | |
@@ -348,7 +464,7 @@ sequenceDiagram
 
 ### Local
 
-Requirements: Node 22.12+, Docker (Docker Desktop on Windows/macOS). On Windows run the commands in WSL 2 or Git Bash.
+Requirements: Node 24+, Docker (Docker Desktop on Windows/macOS). On Windows run the commands in WSL 2 or Git Bash.
 
 **Quick start:** `./scripts/setup.sh` (creates `.env` with fresh secrets, installs, starts Docker services, migrates, seeds), then `npm run dev`.
 
@@ -359,15 +475,17 @@ npm ci                                   # .npmrc sets legacy-peer-deps (see doc
 cp .env.example .env                     # then fill BETTER_AUTH_SECRET, FIELD_ENCRYPTION_KEY, passwords
 docker compose up -d                     # PostgreSQL (+ test DB), RabbitMQ, Mailpit
 npm run db:migrate
-npm run db:seed                          # System Admin + Employee roles, HQ branch, first admin from SEED_ADMIN_*
+npm run db:seed                          # roles, lookups and countries, 10 companies with levels, the first admin from SEED_ADMIN_*,
+                                         # and (development only, SEED_DEMO_ORG=true) a sample structure per company
 npm run dev                              # API :3000, web :5173 (proxies /api)
+npm run verify                           # end-of-task check: architecture, design, testing, security
 ```
 
 | URL | What |
 |---|---|
-| http://localhost:5173 | Web app (sign in with `SEED_ADMIN_EMAIL`; you will be asked to enable 2FA) |
+| http://localhost:5173 | Web app: sign in with Microsoft, or type `SEED_ADMIN_EMAIL` (the first time you get an e-mail with the QR link, then the code boxes) |
 | http://localhost:3000/api/docs | Swagger (disabled in production) |
-| http://localhost:8025 | Mailpit (emails sent locally) |
+| http://localhost:8025 | Mailpit (only when `SMTP_HOST` points at it; with Office 365 mail goes out for real and is tracked in the platform's «E-mail log» page) |
 | http://localhost:15672 | RabbitMQ management (guest/guest locally) |
 
 ### Deploy
@@ -375,7 +493,7 @@ npm run dev                              # API :3000, web :5173 (proxies /api)
 - **Trigger:** every push to `main` after CI (quality, API e2e, Playwright, security) passes; or manually (`workflow_dispatch`).
 - **Steps:** build `api` and `web` images → Trivy scan → push to GHCR → SSH to EC2 → `migration:run:prod` → `seed:prod` (idempotent) → `docker compose up -d` → smoke test `GET {APP_URL}/api/health`.
 - **GitHub secrets:** `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`. **Variables:** `APP_URL`, `MICROSOFT_ENABLED`.
-- **Server `.env`** (in `/opt/arweqah-platform`, created by hand, never in GitHub): everything in `.env.example` with production values, plus `RABBITMQ_USER`, `RABBITMQ_PASSWORD`, `REGISTRY`, `IMAGE_PREFIX`. Set `FILE_STORAGE=s3`, `SMTP_*` to the SES SMTP endpoint, `DB_SSL=true`, `APP_URL=API_URL=CORS_ORIGINS=https://app.<domain>`.
+- **Server `.env`** (in `/opt/arweqah-platform`, created by hand, never in GitHub): everything in `.env.example` with production values, plus `RABBITMQ_USER`, `RABBITMQ_PASSWORD`, `REGISTRY`, `IMAGE_PREFIX`. Set `FILE_STORAGE=s3`, `SMTP_*` to the production SMTP service (Office 365 or SES), `DB_SSL=true`, `APP_URL=API_URL=CORS_ORIGINS=https://app.<domain>`.
 
 **First-time server setup**
 
@@ -393,11 +511,12 @@ npm run dev                              # API :3000, web :5173 (proxies /api)
 
 | Type | Command | Covers |
 |---|---|---|
-| API unit | `npm test -w @arweqah-platform/api` | Scopes and CASL rules, permission catalog, env validation, field encryption, error mapping, redaction (32 tests) |
-| API e2e (real PostgreSQL) | `npm run test:e2e:api` | All FR-01…FR-11 endpoints, 2FA with real TOTP, IDOR, mass assignment, SQL injection, workflow concurrency (37 tests) |
+| API unit | `npm test -w @arweqah-platform/api` | Scopes and CASL rules, permission catalog, env validation, field encryption, error mapping, redaction |
+| API e2e (real PostgreSQL) | `npm run test:e2e:api` | Sign-in and authenticator flows with real TOTP, organization, employees (every filter), lookups, seeders, e-mail log, notifications, audit, IDOR, mass assignment, SQL injection, workflow concurrency |
 | Security suite | part of API e2e (`test/security.e2e-spec.ts`) | 401 on every route, 403 on every permission route (discovered from Nest metadata), headers, CORS, 413, forged cookies |
-| Web components | `npm test -w @arweqah-platform/web` | DataTable, permission-filtered navigation, role editor payload, RTL switching (MSW) |
-| Full-stack e2e | `npm run test:e2e:web` | Sign-in with 2FA, admin adds a user who then signs in, XSS rendered as text, limited user blocked, no tokens in storage, no secret values in the bundle, axe on each page, desktop + mobile |
+| Web components | `npm test -w @arweqah-platform/web` | DataTable, list toolbar (search, filters, table / cards), export and import dialogs and file readers, employee and company import rules, error pages and the 403 route guard, sign-in steps, org page, role editor (MSW) |
+| Full-stack e2e | `npm run test:e2e:web` | Own API on port 3100 against the test database (never a development server), sidebar menus, e-mail + code sign-in and sign-out, 404 / 403 / 401 pages, search, filters, table / cards memory, export to CSV, import template download, company import from a file, no tokens in storage, no secret values in the bundle, axe on each page, desktop + phone (30 tests) |
+| Everything, as one gate | `npm run verify` | Architecture, design, testing and security checks, one line each |
 | Static and supply chain | CI `security` workflow | npm audit (high), gitleaks, Semgrep (OWASP, Node, TypeScript, secrets), Trivy (fs + images), ZAP baseline + API scan |
 
 Requirement traceability: each `describe` title lists the FR/NFR IDs it covers, and section 4 lists the suites for each requirement.
@@ -406,15 +525,16 @@ Requirement traceability: each `describe` title lists the FR/NFR IDs it covers, 
 
 | Actor | Can | Cannot |
 |---|---|---|
-| Employee (role "Employee") | Sign in, see own profile and notifications, upload own files, enable 2FA | See other users, roles, organization admin or audit log unless a role grants it |
-| Line manager / HR (custom roles) | What their roles grant, limited to their team / department / branch | Act outside their scope (gets 404), change their own roles, deactivate themselves |
-| System Admin (system role) | Every permission at company scope | Use protected pages before enabling 2FA; delete system roles |
+| Employee (role "Employee") | Sign in with e-mail or Microsoft plus the authenticator code, see own profile and notifications, upload own files | See other employees, roles, organization admin, audit or e-mail log unless a role grants it |
+| HR (custom role) | Create and update employees, place them in units, assign the roles they hold, resend activation links | Act outside their scope (gets 404), see salary / ID / IBAN without `employees.view_sensitive`, assign more than they hold, change their own roles |
+| Line manager (custom role) | What the role grants, limited to their unit or subtree | Act outside their scope |
+| System Admin (system role) | Every permission at the widest scope: companies, levels, units, job titles, roles, audit log, e-mail log | Delete system roles; use anything before linking the authenticator |
 | Auditor (custom role with `audit.view`) | Read the audit log | See secrets (redacted) |
 | Microsoft Entra ID | Authenticate company accounts | Create accounts (sign-up disabled) |
-| Amazon SES / SMS provider | Deliver messages | Read any data beyond the message |
+| Office 365 SMTP / SMS provider | Deliver messages | Read any data beyond the message |
 | GitHub Actions | Build, test, deploy | Read production secrets (they live on the server) |
 
-Permission catalog (foundation): `users.view`, `users.manage`, `roles.view`, `roles.manage`, `org.view`, `org.manage`, `audit.view`. Each feature module adds its own keys.
+Permission catalog: `roles.view`, `roles.manage`, `audit.view`, `notifications.email_log`, `lookups.view`, `companies.view`, `companies.manage`, `org.view`, `org.manage`, `employees.view`, `employees.create`, `employees.update`, `employees.deactivate`, `employees.view_sensitive`, `employees.assign_roles`. Each feature module adds its own keys.
 
 ## 13. Constraints
 
@@ -422,7 +542,7 @@ Permission catalog (foundation): `users.view`, `users.manage`, `roles.view`, `ro
 - **Hosting:** existing AWS account; AWS Saudi region expected December 2026.
 - **Scale:** 1,000–5,000 employees.
 - **Budget (estimate):** about USD 350–400 per month (EC2 t3.xlarge, RDS, staging, S3, CloudWatch), around 35 % less with Savings Plans.
-- **Technical:** Better Auth is ESM-only (Vitest, Node ≥ 22.12); `nestjs-zod` pins NestJS 11.
+- **Technical:** Better Auth is ESM-only (Vitest, Node ≥ 24); `nestjs-zod` pins NestJS 11.
 - **Organizational:** each business module starts from a written description by the product owner.
 
 ## 14. Assumptions
@@ -442,7 +562,7 @@ Permission catalog (foundation): `users.view`, `users.manage`, `roles.view`, `ro
 | Service | Purpose | Direction / trigger | Env vars | Docs |
 |---|---|---|---|---|
 | Microsoft Entra ID | Employee sign-in | User-initiated OAuth | `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET`, `MICROSOFT_TENANT_ID` | https://www.better-auth.com/docs/authentication/microsoft |
-| Amazon SES (SMTP) | Notification email | Outbound, from the outbox | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_SECURE`, `MAIL_FROM` | https://docs.aws.amazon.com/ses/latest/dg/send-email-smtp.html |
+| Office 365 SMTP (or Amazon SES) | Activation links and notification e-mail | Outbound, from the outbox; every message is recorded in `email_logs` | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_SECURE`, `MAIL_FROM` (SMTP AUTH must be enabled on the mailbox) | https://learn.microsoft.com/exchange/mail-flow-best-practices/how-to-set-up-a-multifunction-device-or-application-to-send-email-using-microsoft-365-or-office-365 |
 | Amazon S3 | File storage | Outbound; signed download URLs (5 min) | `FILE_STORAGE`, `S3_BUCKET`, `S3_REGION` (credentials from the instance role) | https://docs.aws.amazon.com/s3/ |
 | Amazon RDS PostgreSQL | Database | — | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SSL` | https://docs.aws.amazon.com/rds/ |
 | RabbitMQ | Messaging between modules and workers | Internal | `MESSAGE_BUS`, `RABBITMQ_URL` | https://www.rabbitmq.com/docs |
@@ -460,20 +580,23 @@ apps/
     common/        base entity, domain errors, unit of work, field cipher, error filter
     config/        env validation (zod), typed AppConfig, TypeORM options
     core/          infrastructure every feature uses
-      auth/        Better Auth adapter (IdentityProvider)
+      auth/        Better Auth adapter, authenticator app (TOTP), activation links
       access/      roles, permission catalog, scopes, CASL, PermissionsGuard
       audit/       audit log
       messaging/   outbox, RabbitMQ / in-memory bus, scheduled jobs, idempotency
       workflow/    XState engine, registry, history
-      notifications/ in-app + channels (email, SMS)
+      notifications/ in-app + channels (email, SMS), sent-e-mail log
       files/       storage strategies, content inspection
-    modules/       business modules: org, users (and future features)
+    modules/       org (companies, levels, units, job titles), employees, lookups; more are added one at a time
     database/      entities list, migrations, seeds
   web/src/
     app/           composition root: features list, router, layout, providers
     core/          API client, auth/session, permissions, i18n, theme, feature contract
-    shared/ui/     DataTable, Dialog, FormField, Button…
-    features/      auth, home, notifications, users, roles, org, audit, security
+    shared/ui/     DataTable, ListToolbar, Dialog, FormField, Button…
+    shared/lib/    list hooks (useListPage, useServerList, useFilters, useViewMode), fetchAllPages, matchesText
+    shared/data-exchange/  export, import and template (xlsx / csv) used by every list
+    features/      auth, home, employees, org, companies, roles, audit, email-log, notifications, security
+                   (sidebar menus come from each feature's `nav` + `group`)
 packages/shared    zod schemas, DTO types, permission scopes (used by api and web)
 e2e/               Playwright specs + page objects
 docker/            nginx (web + edge), postgres init
@@ -481,7 +604,7 @@ docker/            nginx (web + edge), postgres init
 
 ### Architecture and patterns
 
-Every API module has `domain / application / infrastructure / presentation`; imports only point inward, enforced by `eslint-plugin-boundaries`. Patterns in use, each where its trigger exists: Repository (every aggregate), Adapter (Better Auth, S3, SMTP, RabbitMQ), Strategy (file storage, notification channels, message bus), Registry (permission catalog, workflow definitions, web features), Observer (in-process audit events), Outbox (cross-process events), Unit of Work (`TransactionRunner`), Specification (`applyScope` for list queries), State machine (XState). On the web, pages import features only through their `index.ts`; components use hooks, hooks use the single `apiClient`.
+Every API module has `domain / application / infrastructure / presentation`, each split into one folder per kind of file (entities, types, errors, contracts, rules, permissions; services, policies, transformers, messages; repositories, adapters, jobs; controllers, dtos), as described in `.claude/skills/module-architecture`; imports only point inward, enforced by `eslint-plugin-boundaries`. Patterns in use, each where its trigger exists: Repository (every aggregate), Adapter (Better Auth, S3, SMTP, RabbitMQ), Strategy (file storage, notification channels, message bus), Registry (permission catalog, workflow definitions, web features), Observer (in-process audit events), Outbox (cross-process events), Unit of Work (`TransactionRunner`), Specification (`applyScope` for list queries), State machine (XState). On the web, pages import features only through their `index.ts`; components use hooks, hooks use the single `apiClient`.
 
 ### Adding a feature
 
@@ -493,15 +616,22 @@ Every API module has `domain / application / infrastructure / presentation`; imp
 
 ### Brand
 
-| Token | Value | Use |
-|---|---|---|
-| `navy-900` | `#0F1E3A` | Primary, sidebar, text |
-| `gold-500` | `#C9A84C` | Active marks, focus ring, badges with navy text (never text on white: 2.6:1) |
-| `surface` | `#F5F6F8` | Page background |
-| `line` | `#DDE2EA` | Borders |
-| Fonts | Cairo 700 (headings), Tajawal 400/500 (Arabic body), Inter (Latin) | Self-hosted via `@fontsource` |
+Official palette: primary 60 % (cream, green, ink) and secondary 35 % (orange, beige, petrol, yellow); yellow never above 5 % of a design. The dashboard itself uses derived cool neutrals for surfaces (approved screens): page `neutral-50`, panels white, borders `neutral-200`; brand `cream` and `beige` stay for the sign-in, e-mails and printed material. Full roles, derived accessible shades and measured contrast are in `.claude/skills/arweqah-design-system/SKILL.md`.
 
-Contrast: white on navy 16.6:1, navy on gold 6.3:1, navy on surface 15.8:1. The one decorative element is the arcade (أروقة) pattern on the sign-in page; the gold rule on the active navigation item echoes it.
+| Token | Value | Share | Use |
+|---|---|---|---|
+| `cream` (Clarity) | `#FFFCEE` | Primary | Text on dark, e-mails, printed material |
+| `green-400` (Growth) | `#85BA95` | Primary | Positive states, accents (never text on light) |
+| `ink` (Strength) | `#0C2028` | Primary | Text, sidebar, primary buttons, sign-in screen |
+| `orange-500` (Ambition) | `#C16426` | Secondary | Highlights, large text only |
+| `beige-300` (Balance) | `#D7D2CB` | Secondary | Branded dividers (the dashboard uses `neutral-200`) |
+| `petrol-800` (Trust) | `#00415B` | Secondary | Links, selected items, focus ring, avatar |
+| `yellow-300` (Light) | `#FBD564` | Secondary, ≤ 5 % | Notification dot only; never text |
+| `neutral-50 / 200 / 500 / 700`, `white` | `#F4F5F7` / `#E4E7EB` / `#8B939C` / `#5F6770`, `#FFFFFF` | Derived | Dashboard page, borders, hover borders, muted icons, panels |
+
+Typeface: Tajawal only (Arabic and Latin; delivered files in `docs/brand/fonts/`, Regular/Medium/Bold self-hosted from `apps/web/src/assets/fonts/`).
+
+Logo: the delivered set (`PNG.zip` and 8 originals) is in `docs/brand/`; web copies are in `apps/web/public/brand/` (color, color-on-dark, ink and white variants, horizontal and vertical, plus the mark alone and favicons) and are used only through the `BrandLogo` component (the sidebar uses the white variant). Usage rules (which variant on which background, clear space, minimum sizes) are in the design-system skill.
 
 ### Hosting
 

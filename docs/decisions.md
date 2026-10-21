@@ -2,6 +2,32 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-10-21 — Phase 1: sign-in, organization, employees, interface
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 19 | No passwords: sign in with Microsoft or the work e-mail, always with a 6-digit code from an authenticator app; the app is mandatory for everyone and the code is required in every session, also after Microsoft | Owner's rule; removes password storage, resets and phishing of passwords | Passkeys are wanted |
+| 20 | Custom TOTP sign-in plugin (RFC 6238) on Better Auth; secrets encrypted with `FieldCipher`, backup codes and invite tokens stored hashed, 5 failures lock 15 min, replay blocked by `last_used_step`, identical errors | Better Auth has no e-mail + TOTP-only sign-in | Better Auth ships it |
+| 21 | The e-mail step answers whether it is a first sign-in and e-mails the QR link (one per minute per address) | Owner wants the system to recognize a first time; reveals only "active account without an app", and only the mailbox owner receives anything | Enumeration becomes a concern |
+| 22 | Organization is dynamic per company: levels, units (closure table), job titles; changing levels that hold data needs an impact preview + token + confirmation; soft deletes | Owner's rule: never delete employees silently | — |
+| 23 | Employee ID number, IBAN and salary are encrypted; ID is searchable and unique through an HMAC blind index (`BLIND_INDEX_KEY`); masked without `employees.view_sensitive` | Sensitive data, PDPL | Key rotation procedure is needed |
+| 24 | `EmployeePlacementPort` (org contract) implemented by employees | Avoids a circular module dependency | — |
+| 25 | Every e-mail is logged in `email_logs` (status, error, server reply), never the body; `LoggedMailSender` wraps SMTP | Delivery must be traceable; bodies hold one-time links | — |
+| 26 | E-mail through Office 365 SMTP (`smtp.office365.com:587`, STARTTLS) with the shared mailbox | Owner's mailbox; SMTP AUTH must be enabled on it | Moving to SES in production |
+| 27 | API modules are split by kind of file (entities, types, errors, contracts, rules, permissions; services, policies, transformers, messages; repositories, adapters, jobs; controllers, dtos); audit action names are constants in `application/messages` | Owner's code-architecture rule, enforced through the `module-architecture` skill | — |
+| 28 | Dashboard surfaces use derived cool neutrals and white (page `neutral-50`, panels white, borders `neutral-200`); brand cream and beige stay for sign-in, e-mails and print; primary buttons are `ink` | Owner supplied reference screens | Brand owner objects |
+| 29 | Input borders follow the reference (light `neutral-200`, 1.3:1), below the 3:1 of WCAG 1.4.11; labels, placeholders and the focus border carry the affordance | Owner's decision; documented trade-off | An accessibility audit asks for 3:1 (`neutral-500` is ready) |
+| 30 | Sidebar: menus with sub-menus (People, System administration, My account), flush to the end edge and sticky; icons only when collapsed; lists become cards under 640 px | Owner's navigation and mobile rules | — |
+| 32 | Every list page uses one toolbar (`ListToolbar`): search, a filter panel with removable chips, and a table / cards switch remembered per list in `localStorage`; large lists filter on the server (employees, audit log, e-mail log, notifications), small ones in the browser (companies, roles) | Owner's rule for all tables; one pattern to reuse for every future module | A list needs saved filters or export |
+| 37 | Error pages: one `ErrorPage` for 401, 403 and 404, with a brand-colored SVG picture (three digits, the middle one an icon badge); 403 comes from a route guard fed by each navigation item's permission, 401 only when a signed-in person's session ends (`/401`), a visitor goes to sign-in | Owner's reference design for all three pages | A module needs a different guard than its navigation item |
+| 38 | Browser e2e uses its own API on port 3100 against the test database, with the sign-in limit raised (`SIGN_IN_RATE_LIMIT`, refused above 10 in production), e-mail pointed at a closed port, and a signed-in browser state saved once by global setup | The old setup reused whatever listened on port 3000 (a development server on the development database) and hit the 5/min sign-in limit | — |
+| 33 | Export and import run in the browser: export builds the file from what the list API returns (page or all results, up to 10,000 rows), import reads the file, checks each row with the shared zod schema and saves valid rows through the normal create endpoints (3 at a time), so permissions, scopes, uniqueness and audit stay in the API | One implementation for every list; no second write path to secure | Imports above 1,000 rows or background processing are needed |
+| 34 | Excel with `write-excel-file` + data-validation plugin and `read-excel-file`; CSV by our own parser | `exceljs` carries a moderate `uuid` advisory; the plugin is pinned to 1.0.0 because 1.0.2 is younger than 14 days | The plugin ages past 14 days (1.0.2) |
+| 35 | Import is offered for employees and companies only; audit log, e-mail log and notifications are system records (export only); roles are permission-sensitive (export only) | Importing records the system writes itself, or permissions, would bypass its rules | A module asks for it |
+| 36 | `npm run verify` is the end-of-task gate (architecture, design, testing, security) and a `UserPromptSubmit` hook reminds Claude on every prompt; shared code lives in `common/`, `core/`, `shared/` and is never copied (jscpd < 3 %) | Owner asked for these checks after every task and for no duplicated code | — |
+| 30b | The sidebar is a floating panel rounded on all corners again (24 px), sticky; all panels, tables, dialogs and inputs keep rounded edges | Owner's visual rule | — |
+| 31 | `SEED_DEMO_ORG` (development only, refused in production) fills each company with a sample structure | Empty structure made the screens look broken during development | — |
+
 ## 2026-10-19 — Foundation
 
 | # | Decision | Why | Revisit when |

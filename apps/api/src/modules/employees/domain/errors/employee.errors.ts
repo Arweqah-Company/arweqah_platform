@@ -1,0 +1,41 @@
+import { BusinessRuleError, ConflictError } from '../../../../common/domain/domain-error';
+
+/** A rule on one field of the form; `details.path` lets the UI show the message under that field. */
+export class FieldRuleError extends BusinessRuleError {
+  override readonly code = 'FIELD_RULE';
+  constructor(path: string, message: string, messages?: { ar: string; en: string }) {
+    super(message, { path, ...(messages ? { messageAr: messages.ar, messageEn: messages.en } : {}) });
+  }
+}
+
+export class EmployeeEmailTakenError extends ConflictError {
+  override readonly code = 'EMPLOYEE_EMAIL_TAKEN';
+  constructor() {
+    super('An employee with this work email already exists', { path: 'workEmail' });
+  }
+}
+
+export class EmployeeNumberTakenError extends ConflictError {
+  override readonly code = 'EMPLOYEE_NUMBER_TAKEN';
+  constructor() {
+    super('An employee with this number already exists', { path: 'employeeNumber' });
+  }
+}
+
+export class IdDocumentTakenError extends ConflictError {
+  override readonly code = 'ID_DOCUMENT_TAKEN';
+  constructor() {
+    super('This ID number is already registered for this ID type', { path: 'idNumber' });
+  }
+}
+
+export class InvalidReferenceError extends BusinessRuleError {
+  override readonly code = 'INVALID_REFERENCE';
+  constructor() {
+    super('One of the selected options does not exist');
+  }
+}
+
+export class SelfActionError extends BusinessRuleError {
+  override readonly code = 'SELF_ACTION';
+}

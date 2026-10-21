@@ -1,11 +1,9 @@
 import { betterAuth } from 'better-auth';
-import { twoFactor } from 'better-auth/plugins';
 import type { Pool } from 'pg';
-import { PASSWORD_MIN_LENGTH } from '@arweqah-platform/shared';
 import type { AppConfig } from '../../../config/app-config.service';
 import type { AuthLifecycle } from '../application/identity-provider';
+import { totpSignIn, type TotpSignInDeps } from './totp-sign-in.plugin';
 
-const SIGN_IN_LIMIT = { window: 60, max: 5 };
 const TWELVE_HOURS = 60 * 60 * 12;
 
 /** Snake_case table/column mapping so auth tables match the rest of the schema. */
@@ -13,8 +11,9 @@ const timestamps = { createdAt: 'created_at', updatedAt: 'updated_at' } as const
 
 // Declarative library configuration: one object by design, so the length limit is waived here.
 // eslint-disable-next-line max-lines-per-function
-export function createBetterAuth(config: AppConfig, pool: Pool, lifecycle: AuthLifecycle) {
+export function createBetterAuth(config: AppConfig, pool: Pool, lifecycle: AuthLifecycle, totp: TotpSignInDeps) {
   const microsoft = config.microsoft;
+  const signInLimit = { window: 60, max: config.get('SIGN_IN_RATE_LIMIT') };
   return betterAuth({
     appName: 'Arweqah Platform',
     baseURL: config.get('API_URL'),
@@ -22,13 +21,8 @@ export function createBetterAuth(config: AppConfig, pool: Pool, lifecycle: AuthL
     secret: config.get('BETTER_AUTH_SECRET'),
     database: pool,
     trustedOrigins: config.get('CORS_ORIGINS'),
-    emailAndPassword: {
-      enabled: true,
-      // Accounts are created by HR/admins only, never by self sign-up.
-      disableSignUp: true,
-      minPasswordLength: PASSWORD_MIN_LENGTH,
-      maxPasswordLength: 128,
-    },
+    // No passwords anywhere: Microsoft, or e-mail + authenticator code (the totp-sign-in plugin). No self sign-up.
+    emailAndPassword: { enabled: false },
     socialProviders: microsoft
       ? {
           microsoft: {
@@ -67,33 +61,17 @@ export function createBetterAuth(config: AppConfig, pool: Pool, lifecycle: AuthL
       expiresIn: TWELVE_HOURS,
       updateAge: 60 * 60,
       fields: { ...timestamps, expiresAt: 'expires_at', ipAddress: 'ip_address', userAgent: 'user_agent', userId: 'user_id' },
+      // Set when the code of the authenticator app was entered. Every route is blocked until it is set.
+      additionalFields: { mfaVerifiedAt: { type: 'date', required: false, input: false, fieldName: 'mfa_verified_at' } },
     },
     verification: { modelName: 'auth_verifications', fields: { ...timestamps, expiresAt: 'expires_at' } },
-    plugins: [
-      twoFactor({
-        issuer: 'Arweqah Platform',
-        schema: {
-          user: { fields: { twoFactorEnabled: 'two_factor_enabled' } },
-          twoFactor: {
-            modelName: 'auth_two_factors',
-            fields: {
-              backupCodes: 'backup_codes',
-              userId: 'user_id',
-              failedVerificationCount: 'failed_verification_count',
-              lockedUntil: 'locked_until',
-            },
-          },
-        },
-      }),
-    ],
+    plugins: [totpSignIn(totp, signInLimit.max)],
     rateLimit: {
       enabled: true,
       storage: 'memory',
       customRules: {
-        '/sign-in/email': SIGN_IN_LIMIT,
-        '/sign-in/social': SIGN_IN_LIMIT,
-        '/two-factor/verify-totp': SIGN_IN_LIMIT,
-        '/two-factor/verify-backup-code': SIGN_IN_LIMIT,
+        '/sign-in/social': signInLimit,
+        '/totp/sign-in': signInLimit,
       },
     },
     databaseHooks: {

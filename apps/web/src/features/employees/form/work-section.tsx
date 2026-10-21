@@ -1,0 +1,60 @@
+import { useEffect, useMemo, useState } from 'react';
+import { useFormContext } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { SectionCard } from '@/shared/ui';
+import { useJobTitleOptions, useManagerSearch, useOrgNodeOptions } from '../api';
+import { ComboField, SelectField, TextField } from './fields';
+import type { FormState } from './form-state';
+import type { EmployeeOptions } from './use-options';
+
+interface Props {
+  options: EmployeeOptions;
+  /** The current manager of an employee being edited, so the picker can show their name before any search. */
+  currentManager?: { id: string; fullName: string } | null;
+  employeeId?: string;
+}
+
+/** Company → unit → job title → direct manager: each choice narrows the next, and the manager defaults from the unit. */
+export function WorkSection({ options, currentManager, employeeId }: Props) {
+  const { t, i18n } = useTranslation('employees');
+  const { watch, setValue, getValues, formState } = useFormContext<FormState>();
+  const [search, setSearch] = useState('');
+  const companyId = watch('companyId');
+  const orgNodeId = watch('orgNodeId');
+  const nodes = useOrgNodeOptions(companyId || undefined);
+  const titles = useJobTitleOptions(orgNodeId || undefined);
+  const managers = useManagerSearch(search, employeeId);
+
+  const nodeOptions = useMemo(() => (nodes.data ?? []).map((n) => ({ value: n.id, label: i18n.language === 'en' ? n.pathEn : n.pathAr })), [nodes.data, i18n.language]);
+  const titleOptions = (titles.data ?? []).map((x) => ({ value: x.id, label: i18n.language === 'en' ? x.nameEn : x.nameAr }));
+  const managerOptions = useMemo(() => {
+    const found = (managers.data ?? []).map((m) => ({ value: m.id, label: m.fullName, hint: m.employeeNumber }));
+    return currentManager && !found.some((m) => m.value === currentManager.id) ? [{ value: currentManager.id, label: currentManager.fullName }, ...found] : found;
+  }, [managers.data, currentManager]);
+
+  // A chosen unit proposes its manager, unless the person already picked one by hand.
+  useEffect(() => {
+    const node = nodes.data?.find((n) => n.id === orgNodeId);
+    if (node && !formState.dirtyFields.managerId && !getValues('managerId') && node.defaultManagerId) setValue('managerId', node.defaultManagerId);
+  }, [orgNodeId, nodes.data, formState.dirtyFields.managerId, getValues, setValue]);
+
+  const onCompany = (value: string | null) => {
+    setValue('orgNodeId', '');
+    setValue('jobTitleId', '');
+    if (!formState.dirtyFields.managerId) setValue('managerId', '');
+    if (value && !getValues('contractCompanyId')) setValue('contractCompanyId', value);
+  };
+
+  return (
+    <SectionCard id="work" title={t('sections.work')}>
+      <ComboField name="companyId" label={t('fields.companyId')} options={options.companies} required onPick={onCompany} />
+      <SelectField name="relationTypeId" label={t('fields.relationTypeId')} options={options.relationTypes} />
+      <ComboField name="orgNodeId" label={t('fields.orgNodeId')} options={nodeOptions} required disabled={!companyId} hint={companyId ? undefined : t('hints.pickCompanyFirst')} onPick={() => setValue('jobTitleId', '')} />
+      <SelectField name="jobTitleId" label={t('fields.jobTitleId')} options={titleOptions} required hint={orgNodeId ? undefined : t('hints.pickUnitFirst')} />
+      <ComboField name="managerId" label={t('fields.managerId')} options={managerOptions} onSearch={setSearch} clearable hint={t('hints.managerDefault')} />
+      <TextField name="workLocation" label={t('fields.workLocation')} />
+      <ComboField name="workCountryId" label={t('fields.workCountryId')} options={options.countries} clearable onPick={(v) => v && !getValues('salaryCurrencyCountryId') && setValue('salaryCurrencyCountryId', v)} />
+      <SelectField name="workMode" label={t('fields.workMode')} options={options.workModes} />
+    </SectionCard>
+  );
+}

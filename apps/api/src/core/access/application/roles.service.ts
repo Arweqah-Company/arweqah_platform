@@ -30,7 +30,6 @@ export class RolesService {
       nameEn: input.nameEn,
       description: input.description ?? null,
       isSystem: false,
-      requiresTwoFactor: false,
       permissions: [],
     });
     role.replacePermissions(input.permissions);

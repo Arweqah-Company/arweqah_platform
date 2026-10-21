@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { me, server } from '../../test/msw';
@@ -6,12 +6,14 @@ import { renderRoute } from '../../test/render';
 import { AppLayout } from './app-layout';
 
 describe('AppLayout navigation', () => {
-  it('shows only the sections the user has permission for', async () => {
-    server.use(http.get('*/api/me', () => HttpResponse.json(me([{ key: 'users.view', scope: 'department' }]))));
+  it('shows the foundation sections and the signed-in user', async () => {
+    server.use(http.get('*/api/me', () => HttpResponse.json(me([]))));
     renderRoute([{ path: '/', element: <AppLayout />, children: [{ index: true, element: <p>home</p> }] }]);
-    expect(await screen.findByRole('link', { name: 'المستخدمون' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'الأدوار والصلاحيات' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'سجل التدقيق' })).not.toBeInTheDocument();
-    expect(await screen.findByRole('link', { name: 'الإشعارات، 3 غير مقروءة' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'الرئيسية' })).toBeInTheDocument();
+    const account = screen.getByRole('button', { name: 'حسابي' });
+    expect(account).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('link', { name: 'الأمان' })).not.toBeInTheDocument();
+    fireEvent.click(account);
+    expect(screen.getByRole('link', { name: 'الأمان' })).toBeInTheDocument();
   });
 });

@@ -1,54 +1,33 @@
 import { execSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { dirname } from 'node:path';
-import { ACCOUNTS_FILE, type E2eAccounts } from './support/fixtures';
+import { ADMIN_EMAIL, ADMIN_STATE, ADMIN_TOTP_SECRET, AUTH_DIRECTORY, adminTotpUri } from './support/fixtures';
 import { totpFromUri } from './support/totp';
 
-const API = 'http://localhost:3000/api';
-const ADMIN = { email: 'admin@example.com', password: process.env.SEED_ADMIN_PASSWORD ?? 'Admin-Passw0rd-Dev' };
-const VIEWER = { email: 'viewer@e2e.local', password: 'Viewer-Passw0rd-1' };
+const API = 'http://localhost:3100/api';
+const WEB = 'http://localhost:4173';
 
 /**
- * Resets the test database to the seed, then prepares accounts through the real API:
- * the seeded admin enables 2FA (its role requires it) and creates a limited user.
+ * Resets the test database to the seed (the administrator gets a known authenticator secret and every company
+ * gets a sample structure), then signs the administrator in once through the real API and saves the browser state.
  */
 export default async function globalSetup(): Promise<void> {
-  execSync('npm run db:reset:test -w @arweqah-platform/api', { stdio: 'inherit', cwd: '..' });
-  const admin = new ApiSession();
-  await admin.signIn(ADMIN.email, ADMIN.password);
-  const { totpURI } = await admin.call<{ totpURI: string }>('POST', '/auth/two-factor/enable', { password: ADMIN.password });
-  await admin.call('POST', '/auth/two-factor/verify-totp', { code: totpFromUri(totpURI) });
-  const role = await admin.call<{ id: string }>('POST', '/roles', {
-    nameAr: 'مشاهد', nameEn: 'Viewer', permissions: [{ key: 'users.view', scope: 'company' }],
+  execSync('npm run db:reset:test -w @arweqah-platform/api', {
+    stdio: 'inherit',
+    cwd: '..',
+    env: { ...process.env, SEED_ADMIN_EMAIL: ADMIN_EMAIL, SEED_ADMIN_TOTP_SECRET: ADMIN_TOTP_SECRET, SEED_DEMO_ORG: 'true' },
   });
-  await admin.call('POST', '/users', { name: 'مستخدم محدود', email: VIEWER.email, password: VIEWER.password, roleIds: [role.id] });
-  const data: E2eAccounts = { admin: { ...ADMIN, totpUri: totpURI }, viewer: VIEWER };
-  mkdirSync(dirname(ACCOUNTS_FILE), { recursive: true });
-  writeFileSync(ACCOUNTS_FILE, JSON.stringify(data));
-}
-
-class ApiSession {
-  private cookie = '';
-
-  async signIn(email: string, password: string): Promise<void> {
-    const res = await fetch(`${API}/auth/sign-in/email`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', origin: 'http://localhost:4173' },
-      body: JSON.stringify({ email, password }),
-    });
-    if (!res.ok) throw new Error(`sign-in failed: ${res.status}`);
-    this.cookie = res.headers.getSetCookie().map((c) => c.split(';')[0]).join('; ');
-  }
-
-  async call<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
-    const res = await fetch(`${API}${path}`, {
-      method,
-      headers: { 'content-type': 'application/json', cookie: this.cookie, origin: 'http://localhost:4173' },
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
-    if (!res.ok) throw new Error(`${method} ${path} failed: ${res.status} ${await res.text()}`);
-    const setCookie = res.headers.getSetCookie();
-    if (setCookie.length) this.cookie = setCookie.map((c) => c.split(';')[0]).join('; ');
-    return (res.status === 204 ? undefined : await res.json()) as T;
-  }
+  const res = await fetch(`${API}/auth/totp/sign-in`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', origin: WEB },
+    body: JSON.stringify({ email: ADMIN_EMAIL, code: totpFromUri(adminTotpUri) }),
+  });
+  if (!res.ok) throw new Error(`administrator sign-in failed: ${res.status} ${await res.text()}`);
+  const cookies = res.headers.getSetCookie().map((line) => {
+    const [pair = '', ...attributes] = line.split(';').map((s) => s.trim());
+    const [name = '', ...value] = pair.split('=');
+    const maxAge = Number(attributes.find((a) => /^max-age=/i.test(a))?.split('=')[1] ?? 3600);
+    return { name, value: value.join('='), domain: 'localhost', path: '/', httpOnly: true, secure: false, sameSite: 'Lax' as const, expires: Math.floor(Date.now() / 1000) + maxAge };
+  });
+  mkdirSync(AUTH_DIRECTORY, { recursive: true });
+  writeFileSync(ADMIN_STATE, JSON.stringify({ cookies, origins: [] }));
 }

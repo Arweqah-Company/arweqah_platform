@@ -1,51 +1,95 @@
 @import 'tailwindcss';
 
 /*
- * Arweqah brand tokens. Components use token classes only (bg-navy-900, text-gold-600…);
- * hex values never appear in components.
- * Contrast: white on navy-900 16.6:1, navy-900 on gold-500 6.3:1, navy-900 on surface 15.8:1.
- * Gold on white fails AA (2.6:1): gold is for marks, rules and fills behind navy text, never text on white.
+ * Arweqah brand tokens (official palette). Components use token classes only (bg-petrol-800, text-ink…);
+ * hex values never appear in components. Tailwind's default palette is reset so only brand colors exist.
+ * Proportion: primary 60 % (cream, green, ink), secondary 35 % (orange, beige, petrol, yellow);
+ * yellow never above 5 % of a screen. Contrast table and roles: .claude/skills/arweqah-design-system.
+ *
+ * Text rules (WCAG AA): never green-400 or yellow-300 as text on cream; orange-500 only for large text
+ * (use orange-700 for normal size). Derived shades (marked below) keep the brand hues but pass contrast.
  */
-@theme {
-  --color-navy-950: #0a1529;
-  --color-navy-900: #0f1e3a;
-  --color-navy-800: #1b2d50;
-  --color-navy-700: #2a3f66;
-  --color-navy-100: #e3e8f1;
-  --color-navy-50: #f1f4f9;
-
-  --color-gold-600: #a8892f;
-  --color-gold-500: #c9a84c;
-  --color-gold-200: #ecdfb8;
-  --color-gold-50: #faf6ea;
-
-  --color-surface: #f5f6f8;
-  --color-ink: #0f1e3a;
-  --color-muted: #4b5873;
-  --color-line: #dde2ea;
-
-  --color-success-700: #1d6b46;
-  --color-success-50: #e8f5ee;
-  --color-danger-700: #b42318;
-  --color-danger-50: #fdecea;
-  --color-warning-700: #93600b;
-  --color-warning-50: #fdf3e1;
-
-  --font-sans: 'Tajawal', 'Inter', system-ui, 'Segoe UI', Tahoma, sans-serif;
-  --font-heading: 'Cairo', 'Inter', system-ui, sans-serif;
-  --font-latin: 'Inter', system-ui, sans-serif;
-
-  --radius-control: 8px;
-  --radius-panel: 12px;
+/* Brand typeface: Tajawal (Arabic and Latin), self-hosted from the delivered brand files. */
+@font-face {
+  font-family: 'Tajawal';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('../assets/fonts/Tajawal-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Tajawal';
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url('../assets/fonts/Tajawal-Medium.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Tajawal';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url('../assets/fonts/Tajawal-Bold.ttf') format('truetype');
 }
 
-html:lang(en) {
-  --font-sans: 'Inter', 'Tajawal', system-ui, sans-serif;
-  --font-heading: 'Inter', 'Cairo', system-ui, sans-serif;
+@theme {
+  --color-*: initial;
+
+  /* Primary 60 % */
+  --color-cream: #fffcee; /* Clarity */
+  --color-white: #ffffff; /* neutral surface for panels, cards and dialogs (derived) */
+  --color-green-400: #85ba95; /* Growth */
+  --color-ink: #0c2028; /* Strength */
+
+  /* Secondary 35 % */
+  --color-orange-500: #c16426; /* Ambition */
+  --color-beige-300: #d7d2cb; /* Balance */
+  --color-petrol-800: #00415b; /* Trust */
+  --color-yellow-300: #fbd564; /* Light, at most 5 % */
+
+  /* Derived shades: same hues, accessible text and states (pending design-owner approval) */
+  --color-ink-800: #16303b; /* sidebar hover and active */
+  --color-muted: #5b6671; /* secondary text: 5.9:1 on white, 5.4:1 on neutral-50 */
+  --color-orange-700: #9c4a18;
+  --color-orange-50: #fbebdd;
+  --color-green-800: #245a39;
+  --color-green-50: #e6f2ea;
+  --color-beige-700: #7a746a; /* brand-hue muted, 4.5:1 on cream */
+
+  /* Dashboard neutrals (cool grays, derived): page, borders, control borders, hover borders */
+  --color-neutral-50: #f4f5f7; /* page background, soft fills, table header */
+  --color-neutral-200: #e4e7eb; /* panel and divider borders */
+  --color-neutral-500: #8b939c; /* input borders: 3.1:1 on white (WCAG 1.4.11) */
+  --color-neutral-700: #5f6770; /* hover border, muted icons: 5.7:1 on white */
+  --color-beige-100: #f1eee9; /* brand-hue tint, kept for printed and branded material */
+  --color-petrol-50: #e0ebf0;
+  --color-yellow-50: #fef4d4;
+  --color-danger-700: #b3261e; /* no red in the brand palette */
+  --color-danger-50: #fbe7e5;
+
+  --font-sans: 'Tajawal', system-ui, 'Segoe UI', Tahoma, sans-serif;
+  --font-heading: 'Tajawal', system-ui, 'Segoe UI', Tahoma, sans-serif;
+  --font-latin: 'Tajawal', system-ui, sans-serif;
+
+  --animate-fade-in: fade-in 0.2s ease-out;
+
+  --radius-control: 12px;
+  --radius-panel: 14px;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 body {
-  @apply bg-surface text-ink font-sans antialiased;
+  @apply bg-cream text-ink font-sans antialiased;
 }
 
 h1,
@@ -55,8 +99,13 @@ h3 {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-gold-500);
+  outline: 2px solid var(--color-petrol-800);
   outline-offset: 2px;
+}
+
+/* Dark surfaces (sidebar): petrol would vanish on ink, so the ring turns yellow. */
+.on-dark :focus-visible {
+  outline-color: var(--color-yellow-300);
 }
 
 @media (prefers-reduced-motion: reduce) {

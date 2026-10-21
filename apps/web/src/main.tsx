@@ -1,8 +1,3 @@
-import '@fontsource/cairo/700.css';
-import '@fontsource/tajawal/400.css';
-import '@fontsource/tajawal/500.css';
-import '@fontsource/inter/400.css';
-import '@fontsource/inter/600.css';
 import './core/theme.css';
 import './core/i18n';
 import { StrictMode } from 'react';

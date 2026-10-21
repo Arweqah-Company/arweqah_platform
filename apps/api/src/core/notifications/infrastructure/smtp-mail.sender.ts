@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createTransport, type Transporter } from 'nodemailer';
 import { ExternalServiceError } from '../../../common/domain/domain-error';
 import { AppConfig } from '../../../config/app-config.service';
-import { MailSender } from '../application/notification-channel';
+import { MailSender, type MailReceipt, type OutgoingMail } from '../application/notification-channel';
 
 /** SMTP adapter: Mailpit locally, Amazon SES SMTP endpoint in production. */
 @Injectable()
@@ -21,9 +21,10 @@ export class SmtpMailSender extends MailSender {
     });
   }
 
-  async send(mail: { to: string; subject: string; text: string }): Promise<void> {
+  async send({ purpose: _purpose, ...mail }: OutgoingMail): Promise<MailReceipt> {
     try {
-      await this.transport.sendMail({ from: this.config.get('MAIL_FROM'), ...mail });
+      const info = await this.transport.sendMail({ from: this.config.get('MAIL_FROM'), ...mail });
+      return { messageId: info.messageId ?? null, response: info.response ?? null };
     } catch (error) {
       throw new ExternalServiceError('Email delivery failed', { cause: (error as Error).message });
     }

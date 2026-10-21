@@ -1,17 +1,12 @@
 {
   "title": "Security",
-  "description": "Protect your account with two-step verification using an authenticator app such as Microsoft Authenticator.",
-  "required": "Your role requires two-step verification. Turn it on to continue to the rest of the app.",
-  "enabled": "Two-step verification is on for your account.",
-  "step1": "Enter your password to start",
-  "password": "Password",
-  "start": "Continue",
-  "step2": "Scan the code with your authenticator app, then enter the code it shows",
-  "qrAlt": "QR code to add this account to an authenticator app",
-  "backupCodes": "Keep these recovery codes somewhere safe. Each works once if you lose your phone.",
-  "code": "Code from the app",
-  "finish": "Turn on",
-  "done": "Two-step verification is on.",
-  "wrongPassword": "The password is incorrect.",
-  "wrongCode": "The code is incorrect. Check your phone's clock and try again."
+  "description": "How your sign-in to the platform is protected.",
+  "enabled": "An authenticator app is linked to your account.",
+  "notEnabled": "No authenticator app is linked yet.",
+  "howTitle": "How sign-in works",
+  "howCode": "There is no password. You sign in with your work email and the code from your authenticator app (Microsoft Authenticator or Google Authenticator), or with the Microsoft button.",
+  "howMicrosoft": "Even when you sign in with Microsoft, the app code is asked every time.",
+  "howSessions": "A session ends after 12 hours, and immediately if your account is deactivated.",
+  "lostTitle": "Lost your phone?",
+  "lostBody": "Use one of the backup codes you saved when you linked the app, or ask HR to reset the app so a new invitation reaches you."
 }

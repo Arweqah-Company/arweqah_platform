@@ -42,6 +42,30 @@ describe('Notifications (FR-08)', () => {
   });
 });
 
+describe('Notification filters (FR-08)', () => {
+  const t = useTestApp();
+
+  it('searches the title or text and filters read / unread and date range, only inside the own notifications', async () => {
+    const alice = await t.factories.user();
+    const bob = await t.factories.user();
+    const notify = (userIds: string[], titleEn: string) => t.app.get(NotificationsService).notify({ userIds, titleAr: 'تنبيه', titleEn, bodyAr: 'نص', bodyEn: 'Body text', channels: [] });
+    await notify([alice.id], 'Leave approved');
+    await notify([alice.id], 'Invoice paid');
+    await notify([bob.id], 'Leave rejected');
+    const agent = await t.factories.signIn(alice);
+    const list = async (query: Record<string, unknown>) => (await agent.get('/api/notifications').query(query).expect(200)).body as { total: number; items: { id: string; titleEn: string }[] };
+    expect((await list({ search: 'leave' })).items.map((n) => n.titleEn)).toEqual(['Leave approved']);
+    expect((await list({ search: 'body text' })).total).toBe(2);
+    const first = (await list({})).items[0] as { id: string };
+    await agent.post('/api/notifications/read').send({ ids: [first.id] }).expect(200);
+    expect((await list({ readOnly: true })).total).toBe(1);
+    expect((await list({ unreadOnly: true })).total).toBe(1);
+    const today = new Date().toISOString().slice(0, 10);
+    expect((await list({ from: today, until: today })).total).toBe(2);
+    expect((await list({ from: '2000-01-01', until: '2000-01-02' })).total).toBe(0);
+  });
+});
+
 describe('Files (FR-09)', () => {
   const t = useTestApp();
 
@@ -131,20 +155,38 @@ describe('Audit log (FR-11)', () => {
     const auditor = await t.factories.user({
       grants: [
         { key: 'audit.view', scope: 'company' },
-        { key: 'users.view', scope: 'company' },
-        { key: 'users.manage', scope: 'company' },
+        { key: 'roles.manage', scope: 'company' },
       ],
     });
     const agent = await t.factories.signIn(auditor);
-    await agent.post('/api/users').send({ name: 'Auditee', email: 'auditee@test.local', password: 'Secret-Passw0rd-1' }).expect(201);
+    await agent.post('/api/roles').send({ nameAr: 'دور', nameEn: 'Audited role', permissions: [] }).expect(201);
     await new Promise((r) => setTimeout(r, 200)); // audit is written asynchronously
     const res = await agent.get('/api/audit-logs').expect(200);
     const actions = res.body.items.map((i: { action: string }) => i.action);
-    expect(actions).toEqual(expect.arrayContaining(['auth.sign_in', 'user.created']));
-    const created = res.body.items.find((i: { action: string }) => i.action === 'user.created');
+    expect(actions).toEqual(expect.arrayContaining(['auth.sign_in', 'role.created']));
+    const created = res.body.items.find((i: { action: string }) => i.action === 'role.created');
     expect(created.actorName).toContain(auditor.email);
-    expect(JSON.stringify(res.body)).not.toContain('Secret-Passw0rd-1');
     const other = await t.factories.signIn(await t.factories.user());
     await other.get('/api/audit-logs').expect(403);
+  });
+});
+
+describe('Audit log filters (FR-11)', () => {
+  const t = useTestApp();
+
+  it('searches by action or record, by actor and by date range', async () => {
+    const auditor = await t.factories.user({ grants: [{ key: 'audit.view', scope: 'company' }, { key: 'roles.manage', scope: 'company' }] });
+    const agent = await t.factories.signIn(auditor);
+    await agent.post('/api/roles').send({ nameAr: 'دور', nameEn: 'Filter role', permissions: [] }).expect(201);
+    await new Promise((r) => setTimeout(r, 200));
+    const items = async (query: Record<string, unknown>) => (await agent.get('/api/audit-logs').query(query).expect(200)).body.items as { action: string }[];
+    expect((await items({ search: 'role.cre' })).map((i) => i.action)).toContain('role.created');
+    expect((await items({ search: 'no-such-thing' }))).toEqual([]);
+    expect((await items({ actor: auditor.email })).length).toBeGreaterThan(0);
+    expect(await items({ actor: 'nobody-at-all' })).toEqual([]);
+    const today = new Date().toISOString().slice(0, 10);
+    expect((await items({ from: today, to: today })).length).toBeGreaterThan(0);
+    expect(await items({ from: '2000-01-01', to: '2000-01-02' })).toEqual([]);
+    await agent.get('/api/audit-logs').query({ from: 'yesterday' }).expect(400);
   });
 });

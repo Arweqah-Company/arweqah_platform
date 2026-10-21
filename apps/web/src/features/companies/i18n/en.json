@@ -1,0 +1,25 @@
+{
+  "title": "Companies",
+  "description": "The group's companies. Each company has its own structure.",
+  "new": "Add company",
+  "newHint": "A new company starts with the default levels (sector, department, section, unit).",
+  "edit": "Edit company",
+  "code": "Code",
+  "codeHint": "English letters, digits and hyphen, 2 to 20.",
+  "name": "Name",
+  "nameAr": "Arabic name",
+  "nameEn": "English name",
+  "employees": "Employees",
+  "status": "Status",
+  "active": "Active company",
+  "saved": "Company saved.",
+  "deleted": "Company deleted.",
+  "deleteTitle": "Delete the company?",
+  "deleteBody": "“{{name}}” will be deleted. A company with employees or units cannot be deleted.",
+  "searchLabel": "Search companies",
+  "searchPlaceholder": "Search by code or name",
+  "filters": {
+    "withEmployees": "Has employees",
+    "withoutEmployees": "No employees"
+  }
+}

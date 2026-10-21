@@ -1,11 +1,19 @@
-/** Permission keys of the foundation modules. Feature modules add their own files. */
+/** Permission keys of the core (foundation) and identity modules. Feature modules add their own files. */
 export const CorePermission = {
-  UsersView: 'users.view',
-  UsersManage: 'users.manage',
   RolesView: 'roles.view',
   RolesManage: 'roles.manage',
+  AuditView: 'audit.view',
+  EmailLogView: 'notifications.email_log',
+  LookupsView: 'lookups.view',
+  CompaniesView: 'companies.view',
+  CompaniesManage: 'companies.manage',
   OrgView: 'org.view',
   OrgManage: 'org.manage',
-  AuditView: 'audit.view',
+  EmployeesView: 'employees.view',
+  EmployeesCreate: 'employees.create',
+  EmployeesUpdate: 'employees.update',
+  EmployeesDeactivate: 'employees.deactivate',
+  EmployeesViewSensitive: 'employees.view_sensitive',
+  EmployeesAssignRoles: 'employees.assign_roles',
 } as const;
 export type CorePermissionKey = (typeof CorePermission)[keyof typeof CorePermission];

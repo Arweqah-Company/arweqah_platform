@@ -9,7 +9,10 @@ import { validateEnv } from '../config/env.schema';
 // Used by the TypeORM CLI (migrations) and the seed script.
 for (const path of envFilePaths()) loadEnv({ path, quiet: true });
 
+// Escape glob syntax so checkouts in folders like "app (1)" still find their migrations.
+const migrationsDir = join(__dirname, 'migrations').replace(/[()[\]{}!*?]/g, '\\$&');
+
 export default new DataSource({
   ...typeOrmOptions(validateEnv(process.env)),
-  migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
+  migrations: [`${migrationsDir}/*.{ts,js}`],
 });

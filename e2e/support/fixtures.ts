@@ -1,14 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-/** Accounts prepared by global-setup.ts for the UI specs. */
-export interface E2eAccounts {
-  admin: { email: string; password: string; totpUri: string };
-  viewer: { email: string; password: string };
-}
+/** The startup administrator of the test database: signs in by e-mail and the code of this (test-only) secret. */
+export const ADMIN_EMAIL = 's.magdy@arweqah.sa';
+export const ADMIN_TOTP_SECRET = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
+export const adminTotpUri = `otpauth://totp/Arweqah:${ADMIN_EMAIL}?secret=${ADMIN_TOTP_SECRET}&issuer=Arweqah`;
 
-export const ACCOUNTS_FILE = join(import.meta.dirname, '..', '.auth', 'accounts.json');
+const AUTH_DIR = join(import.meta.dirname, '..', '.auth');
+/** A signed-in browser state saved by global-setup, so only the sign-in specs go through the sign-in page. */
+export const ADMIN_STATE = join(AUTH_DIR, 'admin.json');
+export const AUTH_DIRECTORY = AUTH_DIR;
 
-export function accounts(): E2eAccounts {
-  return JSON.parse(readFileSync(ACCOUNTS_FILE, 'utf8')) as E2eAccounts;
-}
+export const adminCookies = (): { cookies: unknown[] } => JSON.parse(readFileSync(ADMIN_STATE, 'utf8')) as { cookies: unknown[] };

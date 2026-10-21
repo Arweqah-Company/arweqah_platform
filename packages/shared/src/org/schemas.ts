@@ -1,51 +1,141 @@
 import { z } from 'zod';
 import { localizedNameSchema } from '../common/localized';
 
-export const upsertBranchSchema = z.strictObject({
-  ...localizedNameSchema,
-  code: z.string().trim().regex(/^[A-Z0-9-]{2,20}$/),
-  city: z.string().trim().max(80).optional(),
-});
-export type UpsertBranchInput = z.infer<typeof upsertBranchSchema>;
+export const MAX_ORG_LEVELS = 12;
 
-export const upsertDepartmentSchema = z.strictObject({
+/** One division of a company's structure (sector, department, section, unit…). */
+export const orgLevelInputSchema = z.strictObject({
+  /** Present when editing an existing level, absent for a new one. */
+  id: z.uuid().optional(),
   ...localizedNameSchema,
-  branchId: z.uuid(),
-  parentId: z.uuid().nullable().optional(),
-  headUserId: z.uuid().nullable().optional(),
+  /** Job titles and employees attach only to assignable levels. */
+  isAssignable: z.boolean(),
 });
-export type UpsertDepartmentInput = z.infer<typeof upsertDepartmentSchema>;
+export type OrgLevelInput = z.infer<typeof orgLevelInputSchema>;
 
-export const upsertTeamSchema = z.strictObject({
+/** What happens to employees of units that are about to be removed. */
+export const employeesDecisionSchema = z.discriminatedUnion('action', [
+  z.strictObject({
+    action: z.literal('transfer'),
+    unitId: z.uuid(),
+    /** Old job title id → job title id of the target unit. */
+    titleMap: z.record(z.uuid(), z.uuid()),
+  }),
+  z.strictObject({ action: z.literal('delete'), confirmCount: z.number().int().min(1) }),
+]);
+export type EmployeesDecision = z.infer<typeof employeesDecisionSchema>;
+
+export const saveOrgLevelsSchema = z
+  .strictObject({
+    companyId: z.uuid(),
+    levels: z.array(orgLevelInputSchema).min(1).max(MAX_ORG_LEVELS),
+    /** Required when the change affects existing data (see OrgImpactDto). */
+    confirm: z
+      .strictObject({ impactToken: z.string().min(16).max(200), employees: employeesDecisionSchema.optional() })
+      .optional(),
+  })
+  .refine((v) => v.levels.at(-1)?.isAssignable === true, {
+    path: ['levels'],
+    message: 'The last level must accept job titles and employees',
+  });
+export type SaveOrgLevelsInput = z.infer<typeof saveOrgLevelsSchema>;
+
+export const previewOrgLevelsSchema = z.strictObject({
+  companyId: z.uuid(),
+  levels: z.array(orgLevelInputSchema).min(1).max(MAX_ORG_LEVELS),
+});
+export type PreviewOrgLevelsInput = z.infer<typeof previewOrgLevelsSchema>;
+
+export const copyOrgLevelsSchema = z.strictObject({ fromCompanyId: z.uuid(), toCompanyId: z.uuid() });
+export type CopyOrgLevelsInput = z.infer<typeof copyOrgLevelsSchema>;
+
+export const jobTitleInputSchema = z.strictObject({ ...localizedNameSchema });
+export type JobTitleInput = z.infer<typeof jobTitleInputSchema>;
+
+export const createOrgNodeSchema = z.strictObject({
+  levelId: z.uuid(),
+  /** Null only for units of the first level. */
+  parentId: z.uuid().nullable(),
   ...localizedNameSchema,
-  departmentId: z.uuid(),
-  leadUserId: z.uuid().nullable().optional(),
+  managerId: z.uuid().nullable().optional(),
+  /** At least one title is required when the level accepts titles; none otherwise. */
+  jobTitles: z.array(jobTitleInputSchema).max(50).default([]),
 });
-export type UpsertTeamInput = z.infer<typeof upsertTeamSchema>;
+export type CreateOrgNodeInput = z.infer<typeof createOrgNodeSchema>;
 
-export interface BranchDto {
+export const updateOrgNodeSchema = z.strictObject({
+  ...localizedNameSchema,
+  managerId: z.uuid().nullable().optional(),
+  isActive: z.boolean().default(true),
+});
+export type UpdateOrgNodeInput = z.infer<typeof updateOrgNodeSchema>;
+
+export const moveOrgNodeSchema = z.strictObject({ parentId: z.uuid().nullable() });
+export type MoveOrgNodeInput = z.infer<typeof moveOrgNodeSchema>;
+
+export const addJobTitlesSchema = z.strictObject({
+  jobTitles: z.array(jobTitleInputSchema).min(1).max(50),
+});
+export type AddJobTitlesInput = z.infer<typeof addJobTitlesSchema>;
+
+export const updateJobTitleSchema = z.strictObject({ ...localizedNameSchema, isActive: z.boolean().default(true) });
+export type UpdateJobTitleInput = z.infer<typeof updateJobTitleSchema>;
+
+export interface OrgLevelDto {
   id: string;
+  companyId: string;
+  sortOrder: number;
   nameAr: string;
   nameEn: string;
-  code: string;
-  city: string | null;
+  isAssignable: boolean;
+  unitsCount: number;
 }
-export interface DepartmentDto {
+
+export interface JobTitleDto {
   id: string;
+  orgNodeId: string;
   nameAr: string;
   nameEn: string;
-  branchId: string;
+  isActive: boolean;
+  employeesCount: number;
+}
+
+export interface OrgNodeDto {
+  id: string;
+  companyId: string;
+  levelId: string;
   parentId: string | null;
-  headUserId: string | null;
-}
-export interface TeamDto {
-  id: string;
   nameAr: string;
   nameEn: string;
-  departmentId: string;
-  leadUserId: string | null;
+  pathAr: string;
+  pathEn: string;
+  managerId: string | null;
+  managerName: string | null;
+  isActive: boolean;
+  employeesCount: number;
+  jobTitles: JobTitleDto[];
 }
 
 export interface OrgTreeDto {
-  branches: (BranchDto & { departments: (DepartmentDto & { teams: TeamDto[] })[] })[];
+  companyId: string;
+  levels: OrgLevelDto[];
+  nodes: OrgNodeDto[];
+}
+
+/** Data a level change would remove or detach; shown to the user before they confirm. */
+export interface OrgImpactDto {
+  unitsCount: number;
+  jobTitlesCount: number;
+  employeesCount: number;
+  /** Job titles that currently have employees, so they can be mapped when transferring. */
+  titlesWithEmployees: { id: string; nameAr: string; nameEn: string; employeesCount: number }[];
+  /** Units that will be removed (up to 50, for display). */
+  units: { id: string; pathAr: string; pathEn: string }[];
+  /** Opaque value bound to this exact impact; sent back on confirmation. */
+  impactToken: string;
+}
+
+export interface OrgLevelsPreviewDto {
+  requiresConfirmation: boolean;
+  impact: OrgImpactDto | null;
 }

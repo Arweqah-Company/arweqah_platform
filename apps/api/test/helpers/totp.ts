@@ -23,3 +23,8 @@ export function totpFromUri(uri: string, now = Date.now()): string {
   const code = (hmac.readUInt32BE(offset) & 0x7fffffff) % 10 ** digits;
   return code.toString().padStart(digits, '0');
 }
+
+/** The code an authenticator app shows for a base32 secret at a given moment. */
+export function codeFor(secret: string, now = Date.now()): string {
+  return totpFromUri(`otpauth://totp/test?secret=${secret}`, now);
+}

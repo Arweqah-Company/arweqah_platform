@@ -35,10 +35,6 @@ export class Role extends BaseEntity {
   @Column({ name: 'is_system', type: 'boolean', default: false })
   isSystem: boolean;
 
-  /** Holders must enable two-factor authentication before using protected routes. */
-  @Column({ name: 'requires_two_factor', type: 'boolean', default: false })
-  requiresTwoFactor: boolean;
-
   @OneToMany(() => RolePermission, (p) => p.role, { cascade: true, eager: true })
   permissions: RolePermission[];
 

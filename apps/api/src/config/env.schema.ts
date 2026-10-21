@@ -30,6 +30,9 @@ export const envSchema = z
       message: 'must decode to 32 bytes',
     }),
 
+    /** Key for the keyed hash (HMAC-SHA256) that makes encrypted ID numbers searchable and unique. */
+    BLIND_INDEX_KEY: secret,
+
     MESSAGE_BUS: z.enum(['rabbitmq', 'memory']).default('rabbitmq'),
     RABBITMQ_URL: z.string().default('amqp://localhost:5672'),
 
@@ -46,7 +49,12 @@ export const envSchema = z
     S3_REGION: z.string().default('me-south-1'),
 
     SEED_ADMIN_EMAIL: z.email().optional(),
-    SEED_ADMIN_PASSWORD: z.string().min(10).optional(),
+    /** Local development only: links an authenticator app to the first admin so sign-in works before Microsoft is set up. */
+    SEED_ADMIN_TOTP_SECRET: z.string().regex(/^[A-Z2-7]{16,64}$/, 'must be a base32 secret').optional(),
+    /** Development only: fills every company with a small sample structure (units and job titles). */
+    /** Sign-in attempts per minute and IP (e-mail + code, Microsoft). Raised only for automated browser tests. */
+    SIGN_IN_RATE_LIMIT: z.coerce.number().int().min(1).max(10_000).default(5),
+    SEED_DEMO_ORG: z.stringbool().default(false),
     SEED_ADMIN_NAME: z.string().default('System Admin'),
   })
   .superRefine((env, ctx) => {
@@ -57,12 +65,21 @@ export const envSchema = z
         message: 'must be the company tenant GUID (common/organizations/consumers are not allowed)',
       });
     }
+    if (env.NODE_ENV === 'production') forbidDevelopmentSettings(env, ctx);
     if (env.FILE_STORAGE === 's3' && !env.S3_BUCKET) {
       ctx.addIssue({ code: 'custom', path: ['S3_BUCKET'], message: 'required when FILE_STORAGE=s3' });
     }
   });
 
 export type Env = z.infer<typeof envSchema>;
+
+/** Settings that only make sense while developing or testing are refused in production. */
+function forbidDevelopmentSettings(env: Pick<Env, 'SIGN_IN_RATE_LIMIT' | 'SEED_DEMO_ORG' | 'SEED_ADMIN_TOTP_SECRET'>, ctx: z.RefinementCtx): void {
+  const refuse = (path: string, message: string) => ctx.addIssue({ code: 'custom', path: [path], message });
+  if (env.SIGN_IN_RATE_LIMIT > 10) refuse('SIGN_IN_RATE_LIMIT', 'must be 10 or less in production');
+  if (env.SEED_DEMO_ORG) refuse('SEED_DEMO_ORG', 'must not be set in production');
+  if (env.SEED_ADMIN_TOTP_SECRET) refuse('SEED_ADMIN_TOTP_SECRET', 'must not be set in production');
+}
 
 const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function isSpecificTenant(tenant: string | undefined): boolean {

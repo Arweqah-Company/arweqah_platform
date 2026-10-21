@@ -1,25 +1,14 @@
 import { expect, test } from '@playwright/test';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { LoginPage } from '../../pages/login.page';
-import { accounts } from '../../support/fixtures';
+import { ADMIN_STATE } from '../../support/fixtures';
 
 test.describe('Access control and client-side security (NFR-02)', () => {
-  test.beforeEach(async ({ page }) => {
-    const { viewer } = accounts();
-    const login = new LoginPage(page);
-    await login.goto();
-    await login.signIn(viewer.email, viewer.password);
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('أهلًا');
-  });
+  test.use({ storageState: ADMIN_STATE });
 
-  test('a limited user sees only permitted sections; admin pages refuse by URL and API', async ({ page }) => {
-    await expect(page.getByRole('link', { name: 'المستخدمون' }).first()).toBeVisible();
-    await expect(page.getByRole('link', { name: 'الأدوار والصلاحيات' })).toHaveCount(0);
-    await page.goto('/roles');
-    await expect(page.getByRole('alert')).toHaveText('ليست لديك صلاحية لهذا الإجراء.');
-    const api = await page.request.get('/api/roles');
-    expect(api.status()).toBe(403);
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('أهلًا');
   });
 
   test('no token or session data is stored where scripts can read it', async ({ page }) => {

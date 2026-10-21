@@ -1,16 +1,37 @@
 import type { NotificationDto } from '@arweqah-platform/shared';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import { Button, DataTable, PageHeader } from '@/shared/ui';
-import { useMarkRead, useNotifications } from './api/notifications.api';
+import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
+import type { ExportColumn } from '@/shared/data-exchange/types';
+import { useListPage } from '@/shared/lib/use-list-page';
+import { useServerList } from '@/shared/lib/use-server-list';
+import { Button, DataTable, ListToolbar, PageHeader, type FilterField } from '@/shared/ui';
+import { useMarkRead } from './api/notifications.api';
 
 export function NotificationsPage() {
   const { t, i18n } = useTranslation('notifications');
-  const [page, setPage] = useState(1);
-  const list = useNotifications(page);
+  const list = useListPage('notifications');
+  const state = list.filters.values.state;
+  const fields: FilterField[] = [
+    { id: 'state', label: t('filters.state'), type: 'select', options: [{ value: 'unread', label: t('filters.unread') }, { value: 'read', label: t('filters.read') }] },
+    { id: 'from', label: t('filters.from'), type: 'date' },
+    { id: 'until', label: t('filters.until'), type: 'date' },
+  ];
+  const { query, loadAll, table } = useServerList<NotificationDto>('notifications', '/notifications', list, {
+    search: list.term || undefined,
+    unreadOnly: state === 'unread' || undefined,
+    readOnly: state === 'read' || undefined,
+    from: list.filters.get('from'),
+    until: list.filters.get('until'),
+  });
   const markRead = useMarkRead();
   const ar = i18n.language === 'ar';
+  const exportColumns: ExportColumn<NotificationDto>[] = [
+    { id: 'title', header: t('titleColumn'), value: (n) => (ar ? n.titleAr : n.titleEn) },
+    { id: 'text', header: t('textColumn'), value: (n) => (ar ? n.bodyAr : n.bodyEn) },
+    { id: 'when', header: t('whenColumn'), value: (n) => new Date(n.createdAt).toLocaleString(i18n.language) },
+    { id: 'state', header: t('filters.state'), value: (n) => (n.readAt ? t('filters.read') : t('filters.unread')) },
+  ];
   return (
     <>
       <PageHeader
@@ -19,12 +40,9 @@ export function NotificationsPage() {
         actions={<Button variant="secondary" onClick={() => markRead.mutate('all')}>{t('markAll')}</Button>}
       />
       <DataTable<NotificationDto>
+        {...table}
         caption={t('title')}
-        rows={list.data?.items}
-        page={list.data}
-        onPageChange={setPage}
-        isLoading={list.isPending}
-        error={list.error}
+        toolbar={<ListToolbar {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<ExchangeButtons exporting={{ columns: exportColumns, filename: 'notifications', pageRows: query.data?.items ?? [], total: query.data?.total ?? 0, loadAll }} />} />}
         rowKey={(n) => n.id}
         empty={t('empty')}
         columns={[
@@ -46,7 +64,7 @@ export function NotificationsPage() {
             className: 'w-24',
             cell: (n) =>
               n.link?.startsWith('/') ? (
-                <Link className="text-sm text-navy-700 underline-offset-4 hover:underline" to={n.link} onClick={() => markRead.mutate([n.id])}>
+                <Link className="text-sm text-petrol-800 underline-offset-4 hover:underline" to={n.link} onClick={() => markRead.mutate([n.id])}>
                   {t('open')}
                 </Link>
               ) : null,

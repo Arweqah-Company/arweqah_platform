@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import type { AuditLogDto, AuditQuery, Paginated } from '@arweqah-platform/shared';
 import { AuditLog } from '../domain/audit-log.entity';
 import { AuditLogRepository } from '../domain/audit-log.repository';
+import { escapeLike } from '../../../common/infrastructure/sql-like';
+
 
 interface AuditRow extends AuditLog {
   actorName: string | null;
@@ -30,6 +32,10 @@ export class TypeOrmAuditLogRepository extends AuditLogRepository {
     if (query.action) qb.andWhere('a.action = :action', { action: query.action });
     if (query.actorId) qb.andWhere('a.actor_id = :actorId', { actorId: query.actorId });
     if (query.entityType) qb.andWhere('a.entity_type = :entityType', { entityType: query.entityType });
+    if (query.search) qb.andWhere("(a.action ILIKE :term OR a.entity_type ILIKE :term OR a.entity_id ILIKE :term)", { term: `%${escapeLike(query.search)}%` });
+    if (query.actor) qb.andWhere('(u.name ILIKE :actor OR u.email ILIKE :actor)', { actor: `%${escapeLike(query.actor)}%` });
+    if (query.from) qb.andWhere('a.created_at >= :from', { from: `${query.from}T00:00:00.000Z` });
+    if (query.to) qb.andWhere("a.created_at < (:to::date + 1)", { to: query.to });
     const [{ entities, raw }, total] = await Promise.all([qb.getRawAndEntities(), qb.getCount()]);
     const names = new Map(raw.map((r: { a_id: string; a_actorName: string | null }) => [r.a_id, r.a_actorName]));
     const items = entities.map((e) => toDto({ ...e, actorName: names.get(e.id) ?? null }));

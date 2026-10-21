@@ -6,6 +6,10 @@ export type NotificationChannel = (typeof NOTIFICATION_CHANNELS)[number];
 
 export const notificationsQuerySchema = paginationQuerySchema.extend({
   unreadOnly: z.stringbool().optional(),
+  /** Only already-read ones (the bell uses unreadOnly). */
+  readOnly: z.stringbool().optional(),
+  from: z.iso.date().optional(),
+  until: z.iso.date().optional(),
 });
 export type NotificationsQuery = z.infer<typeof notificationsQuerySchema>;
 

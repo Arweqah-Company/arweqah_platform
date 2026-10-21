@@ -1,10 +1,11 @@
-import { MailSender } from '../../src/core/notifications/application/notification-channel';
+import { MailSender, type MailReceipt, type OutgoingMail } from '../../src/core/notifications/application/notification-channel';
 
 /** Captures emails instead of sending them; CI never talks to a real mail server. */
 export class FakeMailSender extends MailSender {
-  readonly sent: { to: string; subject: string; text: string }[] = [];
+  readonly sent: OutgoingMail[] = [];
 
-  async send(mail: { to: string; subject: string; text: string }): Promise<void> {
+  async send(mail: OutgoingMail): Promise<MailReceipt> {
     this.sent.push(mail);
+    return { messageId: null, response: null };
   }
 }

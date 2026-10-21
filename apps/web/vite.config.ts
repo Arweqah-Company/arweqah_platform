@@ -17,6 +17,7 @@ export default defineConfig({
     // Same origin in dev, like nginx in production: cookies stay first-party.
     proxy: { '/api': { target: 'http://localhost:3000', changeOrigin: false } },
   },
-  preview: { port: 4173, proxy: { '/api': { target: 'http://localhost:3000', changeOrigin: false } } },
+  // The browser tests run their own API (test database) on another port and point the preview at it.
+  preview: { port: 4173, proxy: { '/api': { target: process.env.API_PROXY_TARGET ?? 'http://localhost:3000', changeOrigin: false } } },
   test: { environment: 'jsdom', setupFiles: ['./test/setup.ts'], include: ['src/**/*.test.tsx', 'src/**/*.test.ts'], testTimeout: 20_000 },
 });

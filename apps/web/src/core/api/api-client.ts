@@ -19,7 +19,7 @@ export interface RequestOptions {
   query?: Query;
 }
 
-/** Listeners for session-level failures (401 → sign-in, 2FA required → setup). */
+/** Listeners for session-level failures (401 → sign-in, code not verified → the code step). */
 type FailureListener = (error: ApiError) => void;
 
 /**
@@ -73,7 +73,7 @@ class ApiClient {
 
   private fail(status: number, body: Partial<ApiErrorBody> | null): ApiError {
     const error = new ApiError(status, body?.code ?? 'ERROR', body?.message ?? 'Request failed', body?.details);
-    if (status === 401 || error.code === 'TWO_FACTOR_REQUIRED') this.listeners.forEach((l) => l(error));
+    if (status === 401 || error.code === 'MFA_REQUIRED') this.listeners.forEach((l) => l(error));
     return error;
   }
 }

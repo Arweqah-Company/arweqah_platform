@@ -1,0 +1,153 @@
+---
+name: arweqah-design-system
+description: Arweqah Alreyadah design system for the web dashboard (brand tokens, typography, RTL-first layout, shared components, page patterns, accessibility). Use when designing or building any screen, component, form or page in apps/web, or when reviewing UI for brand consistency.
+---
+
+# Arweqah design system
+
+Source of truth in code: `apps/web/src/core/theme.css` (brand tokens; Tailwind default palette is reset so only brand colors exist) and `apps/web/src/shared/ui/` (components). Reuse before creating; extend `shared/ui` instead of one-off markup.
+
+## Principles
+1. **Quiet and trustworthy:** an internal ERP. Dense but calm, generous space, no decoration beyond the logo.
+2. **Arabic first, RTL default;** English (LTR) is a full peer. Design in RTL, then check LTR.
+3. **Every state designed:** loading (skeleton), empty (message + action), error (alert + retry), no permission.
+4. **Accessible by default:** WCAG 2.1 AA, keyboard, screen readers, axe clean.
+
+## Palette (official Arweqah brand colors)
+Seven brand colors, used in proportion: **primary 60 %**, **secondary 35 %**, and **yellow never more than 5 % of any screen**.
+
+| Share | Name (meaning) | Token | HEX | Typical use |
+|---|---|---|---|---|
+| Primary 60 % | Clarity — light beige | `cream` | `#FFFCEE` | Page and panel background, text on dark |
+| Primary 60 % | Growth — green | `green-400` | `#85BA95` | Positive states, progress, accents on dark, icons |
+| Primary 60 % | Strength — very dark navy | `ink` | `#0C2028` | Text, sidebar, top-level headings, dark panels |
+| Secondary 35 % | Ambition — orange | `orange-500` | `#C16426` | Highlights, key calls to action, warnings, large text |
+| Secondary 35 % | Balance — beige gray | `beige-300` | `#D7D2CB` | Borders, dividers, table headers, disabled fills |
+| Secondary 35 % | Trust — petrol blue | `petrol-800` | `#00415B` | Primary buttons, links, selected items, focus ring on light |
+| Secondary 35 % | Light — yellow | `yellow-300` | `#FBD564` | Tiny emphasis only: active-nav rule, notification dot, focus ring on dark. **≤ 5 %** |
+
+### Derived shades (needed for accessible text and states)
+The brand colors alone fail contrast in some roles (green or orange as text on cream, no red for errors). These shades are derived from the brand hues; they are **proposed and need the design owner's approval**:
+
+| Token | HEX | Use | Contrast on cream |
+|---|---|---|---|
+| `orange-700` | `#9C4A18` | Orange text and filled-button text background | 6.0 |
+| `green-800` | `#245A39` | Success text | 7.9 |
+| `neutral-50` | `#F4F5F7` | Dashboard page background, soft fills (soft button, badges, table header) | — |
+| `neutral-200` | `#E4E7EB` | Panel and divider borders | — |
+| `neutral-500` | `#8B939C` | Hover border of inputs, control borders where 3:1 is required (3.1:1 on white) | — |
+| `neutral-700` | `#5F6770` | Hover border, muted icons (5.7:1 on white) | — |
+| `muted` | `#5B6671` | Secondary text (5.9:1 on white, 5.4:1 on `neutral-50`) | — |
+| `white` | `#FFFFFF` | Panel, card, dialog and top-bar surface on the `beige-100` page (neutral, derived) | — |
+| `danger-700` | `#B3261E` | Errors, destructive actions (**no red exists in the brand palette**) | 6.4 |
+| Tints `*-50` | green `#E6F2EA`, orange `#FBEBDD`, petrol `#E0EBF0`, yellow `#FEF4D4`, danger `#FBE7E5`, beige `#F1EEE9` | Status backgrounds, hover rows | ink on them ≥ 13.8 |
+
+### Contrast (measured, WCAG)
+| Text on background | Ratio | OK for |
+|---|---|---|
+| `ink` on `cream` | 16.3 | All text |
+| `petrol-800` on `cream` | 10.7 | All text, links |
+| `cream` on `ink` / `petrol-800` | 16.3 / 10.7 | Text on dark panels and buttons |
+| `ink` on `green-400` | 7.5 | Text on green fills |
+| `ink` / `petrol-800` on `yellow-300` | 11.8 / 7.8 | Text on yellow |
+| `orange-500` on `cream` | 4.0 | **Large text (≥ 24 px, or ≥ 18.66 px bold) and graphics only** |
+| `cream` or `ink` on `orange-500` | 4.0 / 4.1 | Large text only; use `orange-700` for normal-size button text |
+| `green-400` on `cream` | 2.2 | **Never as text.** Fills, icons next to text, charts only |
+| `yellow-300` on `cream` | 1.4 | **Never as text or as the only boundary.** Decoration only |
+| `beige-300` on `cream` / `white` | 1.5 | Decorative dividers only; never a control border (3:1 needed) |
+| `neutral-500` on `white` | 3.1 | Input and select borders |
+| `muted` on `white` / `neutral-50` | 5.9 / 5.4 | Secondary text, placeholders, table header |
+| `cream/85` and `beige-300/80` on `ink` | 12.0 / 7.5 | Sidebar links and section label |
+
+### Role mapping
+- **Dashboard surfaces (cool neutrals, matching the approved screens):** page `neutral-50`, `ink` text; panels, cards, dialogs and the top bar `white` with `neutral-200` border; table header `neutral-50`; inputs white with a light `neutral-200` border (as in the approved screens), `petrol-800` border and halo on focus (focus and label carry the affordance). Brand `cream` and `beige` stay for the sign-in card tone, emails and printed material.
+- **Shell:** page `neutral-50`. Sidebar: `ink`, floating panel inset 16 px from the screen edges, **rounded on all four corners (24 px)**, sticky and full height; white logo (`BrandLogo tone="white"`) followed by a round collapse button; section label; top-level links (Home) and **menus with sub-menus** (People: employees, organization, companies; System administration: roles, audit log, e-mail log; My account: notifications, security). A menu is a button with a chevron (`aria-expanded`); the menu holding the current page opens by itself; sub-links are indented under a thin rule. Active link = white pill with `ink` text; hover `cream/10`. Collapsed (desktop): icons only, menus flattened, arrow centered. Phone: drawer with sign-out at the bottom. Features declare `nav: [{ …, group: 'people' | 'administration' | 'account' }]`; no group = top-level link. Top bar: floating rounded white bar with avatar initial, name, role, notifications, language button and sign-out.
+- **Buttons:** primary = `ink` bg + `cream` text (hover `ink-800`); secondary = cream bg, `petrol-800` border and text; danger = `danger-700` bg + cream text; ghost = `petrol-800` text. Orange fills are reserved for a single highlight action and need `orange-700` for normal-size text.
+- **Status:** success = `green-50` bg + `green-800` text + `green-400` icon; warning = `orange-50` bg + `orange-700` text; error = `danger-50` bg + `danger-700` text; info = `petrol-50` bg + `petrol-800` text. Always add an icon or text, never color alone.
+- **Focus ring:** 2 px `petrol-800` on light surfaces, `yellow-300` on dark surfaces, offset 2 px.
+- **Charts:** petrol, green, orange, beige in that order; yellow only for one highlighted value.
+- **Sign-in:** full `ink` screen with a centered `cream` card holding the horizontal color logo, language button on top, copyright at the bottom, and quiet petrol/green decoration (no yellow).
+- **Proportion check:** most of the screen is cream, ink and green/petrol; orange appears in a few places; yellow is a thin accent. If yellow is visible in more than ~5 % of the viewport, remove it.
+
+## Logo
+Delivered set (8 PNGs + the zip) is in `docs/brand/` (`PNG.zip`, `originals/`). Web copies, with clean names, are in `apps/web/public/brand/` and served at `/brand/<file>`. **Always use the `BrandLogo` component** (`shared/ui`: `tone`, `layout`, `width`, `decorative`); never a raw `<img>` or a hard-coded path.
+
+| `tone` | `layout` | File (`/brand/…`) | Delivered as | Use on |
+|---|---|---|---|---|
+| `color` | `horizontal` | `logo-color-horizontal.png` | main dark-horizontal | Light backgrounds (cream, beige, white): top bar on mobile, sign-in form on mobile, emails, documents |
+| `color` | `vertical` | `logo-color-vertical.png` | main dark-vertical | Light backgrounds, stacked spaces: empty states, cover pages |
+| `on-dark` | `horizontal` | `logo-color-on-dark-horizontal.png` | main light-horizontal | **`ink` only**: sidebar header |
+| `on-dark` | `vertical` | `logo-color-on-dark-vertical.png` | main light-vertical | **`ink` only**: sign-in side panel |
+| `ink` | `horizontal` / `vertical` | `logo-ink-*.png` | dark blue-* | One-color uses on light backgrounds: print, PDF payslips, stamps, watermarks |
+| `white` | `horizontal` / `vertical` | `logo-white-*.png` | waite-* (sic) | Dark or saturated backgrounds where full color is not allowed: `petrol-800`, `ink` in one-color contexts |
+| any | `mark` | `mark-color.png`, `mark-ink.png`, `mark-white.png` | cropped by us from the horizontal files | Below the minimum logo width, avatars, loading, favicon sources |
+
+Also in `/brand/`: `favicon-32.png`, `favicon-192.png`, `favicon-512.png` (transparent, color mark) and `apple-touch-icon.png` (180 px on cream), wired in `index.html`.
+
+Rules (checked on real renders):
+- **Never place a full-color logo (`on-dark`) on `petrol-800`, green, orange or yellow.** On petrol the petrol quarter of the mark disappears and the logo looks broken. Use `white` there.
+- Never place `color` or `ink` logos on `ink`, `petrol-800` or any saturated color. Light backgrounds only.
+- Do not recolor, stretch, rotate, outline, add shadows, or redraw the mark in CSS/SVG.
+- Clear space: at least 25 % of the mark's width on every side. Minimum width: horizontal 120 px, vertical 72 px; below that use `mark`.
+- The logo already contains all four secondary colors; keep the surroundings calm (no extra decoration next to it, no arch pattern).
+- The logo image is not translated; its `alt` is (`brand.logoAlt`). Use `decorative` when the brand name is already visible or the area is `aria-hidden`.
+- Currently in use: sign-in side panel (`on-dark` vertical, decorative), sign-in form on mobile (`color` horizontal), sidebar (`on-dark` horizontal, decorative), top bar on mobile (`color` horizontal).
+
+## Typography
+- **One brand typeface: Tajawal**, for Arabic and Latin, headings and body. Delivered files are in `docs/brand/fonts/` (Light, Regular, Medium, Bold, ExtraBold, Black) and `fonts.zip`; the app self-hosts Regular 400, Medium 500 and Bold 700 from `apps/web/src/assets/fonts/` through `@font-face` in `theme.css`. Do not add another family or load fonts from a CDN. If a design needs Light (300) or ExtraBold (800), add that `@font-face` from the delivered file.
+- Headings `font-heading` (Bold 700); labels and emphasis Medium 500; body Regular 400.
+- Page title `text-3xl font-bold`; section title `text-lg font-bold`; body `text-base`; helper `text-sm text-muted`. Body line length ≤ 65ch.
+- Numbers, emails, IDs and codes display LTR inside RTL text (`dir="ltr"`, `font-latin`).
+
+## Layout and RTL
+- Use logical properties only: `ms-/me-/ps-/pe-/start-/end-`, `text-start`, never `ml/mr/left/right`.
+- Directional icons (arrows, chevrons) flip in RTL (`rtl:-scale-x-100`); symbols (check, plus, search) do not.
+- Shell: floating rounded sidebar on the inline-start side (right in Arabic) and floating rounded top bar, see Role mapping. Content max width 1280 px, 16 px gutter on mobile, 32 px from `sm`.
+- Radius: **every edge is rounded, none square**: controls 12 px (`--radius-control`, inputs `rounded-xl`), panels, tables, dialogs and the sidebar 24 px (`rounded-3xl`), cards 16 px, chips and pills fully round. Panels never touch the screen edge: keep a margin around them. Borders `neutral-200`, soft shadows only.
+- Mobile (< `sm`): sidebar becomes a drawer with its own sign-out; the top bar keeps menu, logo, icon-only language button, bell and avatar; `DataTable` renders one card per row (label + value, actions at the bottom); filters stack full width; tap targets ≥ 44 px; forms are a single column.
+
+## Components (`shared/ui`)
+`Button` (primary/secondary/danger/ghost/soft/tint; sizes md/sm/icon) · `Alert` · `Badge` · `DataTable` (always pass `error`) · `Dialog` (Radix) · `FormField` (label, hint, error) · `PageHeader` · `SearchInput` · `ListToolbar` (+ `FilterField`) · `ExchangeButtons` / `ExportDialog` / `ImportDialog` (`shared/data-exchange`). Planned for the employees phase: `Combobox` (select with search), `TreeView`, `DateField`, `PhoneField`, `SectionCard`, `StatTile`, `EmptyState`, `ConfirmDialog`.
+- One primary button per view. Destructive actions use `danger` and a `ConfirmDialog`; irreversible bulk actions require typing the count.
+- Forms: label above field, `*` for required plus `aria-required`, error text under the field (not color only), hint under the label, sections in `SectionCard`, sticky save bar. Hidden conditional fields are cleared.
+- Selects with more than ~8 options use `Combobox` with search.
+
+## Error pages (401, 403, 404)
+One `ErrorPage` (`shared/ui`) for all three: white panel, the heading (what happened), one line of what to do, then the buttons, with the picture on the end side (`ErrorIllustration`: the digits of the code in `petrol-800`, the middle digit an `ink` badge with a magnifier, padlock or key, soft `neutral` gears and two `green-400` dots; brand colors only, no raster file). 404 and 403 offer «Back» (primary) and «Home»; 401 offers «Sign in». 404 and 403 render inside the app shell; 401 is a full-screen route (`/401`). Texts are in `errorPage.*`.
+
+## Data exchange (export and import)
+- **Export** is on every list (`ExchangeButtons` in the toolbar, after the filter button): a dialog with the scope (the rows on this page, or all results of the current search and filters), the columns (checkboxes with select all / none and a count), and the file type (Excel `.xlsx` or CSV with a byte-order mark). Files are built in the browser; texts that look like formulas are stored as plain text; at most 10,000 rows.
+- **Import** is on lists whose data can be filled from a file (employees, companies): the dialog offers the **template** (Excel with the headers, required ones starred, a drop-down on every column that has options, and a «Lists» sheet that holds every option of the system), then the upload (xlsx or csv, ≤ 1,000 rows, ≤ 5 MB), a preview (valid rows and the rows with errors, each with its row number and message), the import with progress, and a result with a downloadable error report. Cells match options by Arabic name, English name or code.
+- Add export columns beside the table columns (`ExportColumn`: header + text value); add import by writing `columns` (`ImportColumn`) and `prepare(rows)` that returns checked rows; never copy the dialogs.
+
+## Page patterns
+- **Sign-in (`AuthShell`):** centered `cream` card on the `ink` screen; Microsoft button first, then the work e-mail, then the 6-box code step. Generic error text. Language button on top.
+- **Home:** greeting, stat tiles (permission-scoped), recent activity, shortcuts.
+- **List (every table page):** `PageHeader` (breadcrumb + title + primary action) → one rounded `DataTable` panel whose top bar is `ListToolbar`: `SearchInput`, the **filter panel** (a `FilterField` per attribute: `select`, `text`, `date`, `toggle`; the button shows the count; applied filters appear as removable chips) and the **table / cards switch** (`useViewMode(key)`, remembered per list, phones start with cards) → rows → footer with rows-per-page, numbered pages and the result range. A list is not done until every filterable attribute has a filter. Server-side lists send the values as query params (`useFilters`), small lists filter in the browser (`matchesText`).
+- **Form page:** section navigation on the side, sections as cards, sticky bar `[Cancel] [Save]`.
+- **Tree + detail:** tree on the start side, details panel on the end side.
+
+## Accessibility checklist
+- Visible focus (2 px `petrol-800` ring on light, `yellow-300` on dark, offset 2 px). Never remove it.
+- Targets ≥ 40 px (≥ 44 px on touch). Icon-only buttons have `aria-label`.
+- Headings in order, one `h1` per page, landmarks (`header`, `nav`, `main`). Skip link first.
+- Dialogs trap focus and restore it. Toasts (`sonner`) use `role="status"`; errors that need action stay inline.
+- Respect `prefers-reduced-motion`; motion ≤ 150 ms.
+- Run axe (Playwright) for each new page; `e2e/pages/base.page.ts` has `expectNoSeriousA11yIssues()`.
+
+## Verification after every step (mandatory)
+Every step that touches the web app ends with this review, and the result goes in the step report:
+1. `npm run design:check` — no hex/rgb, no inline styles, no non-brand color classes, no physical `ml/mr/left/right` classes, no raw logo `<img>`, no extra font, palette reset and brand tokens present.
+2. `npm run i18n:check` — all text translated and both languages complete.
+3. Look at the real result: run the app and screenshot each new or changed screen in Arabic (RTL) and English (LTR), at desktop and phone width. Compare with this document (palette roles, yellow ≤ 5 %, logo rules, spacing, states).
+4. Accessibility: axe (WCAG 2A/AA) on each new screen, keyboard path, focus ring visible, labels and error text present.
+5. Reuse: no one-off markup where a `shared/ui` component exists; new reusable pieces were added to `shared/ui`.
+Report what was checked and any deviation; fix deviations before calling the step done.
+
+## Review checklist
+- [ ] `npm run design:check` passes. Only token classes; no hex, no inline styles; green, orange (normal size) and yellow never as text on cream; yellow ≤ 5 % of the screen.
+- [ ] Logical properties only; checked in Arabic and English.
+- [ ] Loading, empty, error and no-permission states exist.
+- [ ] All text through i18n (`npm run i18n:check`).
+- [ ] Reuses `shared/ui`; new reusable pieces added there.
+- [ ] Keyboard and screen-reader pass; axe clean; works at phone width.

@@ -2,10 +2,15 @@ import { Global, Module, OnModuleDestroy, Inject } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Pool } from 'pg';
 import { AppConfig } from '../../config/app-config.service';
+import { AuthenticatorService } from './application/authenticator.service';
 import { IdentityProvider } from './application/identity-provider';
+import { InvitationService } from './application/invitation.service';
+import { AuthenticatorRepository } from './domain/authenticator.repository';
 import { PgAuthLifecycle } from './infrastructure/auth-lifecycle';
 import { createBetterAuth } from './infrastructure/better-auth.factory';
 import { BetterAuthIdentityProvider } from './infrastructure/better-auth.identity-provider';
+import { TypeOrmAuthenticatorRepository } from './infrastructure/typeorm-authenticator.repository';
+import { MfaController } from './presentation/mfa.controller';
 import { AUTH_DB_POOL, BETTER_AUTH } from './infrastructure/tokens';
 
 /** Builds the Better Auth instance once; AuthModule (the Nest integration) consumes it. */
@@ -26,15 +31,19 @@ import { AUTH_DB_POOL, BETTER_AUTH } from './infrastructure/tokens';
           max: 10,
         }),
     },
+    { provide: AuthenticatorRepository, useClass: TypeOrmAuthenticatorRepository },
+    AuthenticatorService,
+    InvitationService,
     {
       provide: BETTER_AUTH,
-      inject: [AppConfig, AUTH_DB_POOL, EventEmitter2],
-      useFactory: (c: AppConfig, pool: Pool, events: EventEmitter2) =>
-        createBetterAuth(c, pool, new PgAuthLifecycle(pool, events)),
+      inject: [AppConfig, AUTH_DB_POOL, EventEmitter2, AuthenticatorService],
+      useFactory: (c: AppConfig, pool: Pool, events: EventEmitter2, authenticator: AuthenticatorService) =>
+        createBetterAuth(c, pool, new PgAuthLifecycle(pool, events), { verifySignIn: (email, code) => authenticator.verifySignIn(email, code) }),
     },
     { provide: IdentityProvider, useClass: BetterAuthIdentityProvider },
   ],
-  exports: [BETTER_AUTH, IdentityProvider],
+  controllers: [MfaController],
+  exports: [BETTER_AUTH, IdentityProvider, AuthenticatorService, InvitationService],
 })
 export class AuthCoreModule implements OnModuleDestroy {
   constructor(@Inject(AUTH_DB_POOL) private readonly pool: Pool) {}

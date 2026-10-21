@@ -5,10 +5,9 @@ export interface SessionUser {
   id: string;
   name: string;
   email: string;
-  twoFactorEnabled?: boolean | null;
 }
 
 export interface AuthenticatedRequest extends Request {
   user?: SessionUser;
-  session?: { session: { id: string }; user: SessionUser };
+  session?: { session: { id: string; mfaVerifiedAt?: Date | string | null }; user: SessionUser };
 }

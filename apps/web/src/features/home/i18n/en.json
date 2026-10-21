@@ -1,10 +1,15 @@
 {
   "greeting": "Hello {{name}}",
-  "intro": "Everything your permissions allow starts here. Work modules will appear here as they are added.",
-  "unread_one": "You have 1 unread notification",
-  "unread_other": "You have {{count}} unread notifications",
-  "noUnread": "No new notifications",
+  "intro": "From here you reach whatever your permissions allow.",
+  "stats": "Employee indicators",
   "shortcuts": "Shortcuts",
-  "placement": "Your place in the organization",
-  "noPlacement": "Your department isn't set yet. Contact HR."
+  "recent": "Recent activity",
+  "tiles": {
+    "total": "Employees",
+    "active": "Active",
+    "idExpiring": "IDs expired or expiring",
+    "contractEnding": "Contracts ending soon",
+    "needsPlacement": "Need a unit",
+    "soonHint": "Within 30 days"
+  }
 }

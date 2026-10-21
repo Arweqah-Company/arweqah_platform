@@ -2,21 +2,32 @@
   "name": "arweqah-platform",
   "private": true,
   "packageManager": "npm@10.9.7",
-  "engines": { "node": ">=22.12" },
-  "workspaces": ["apps/*", "packages/*", "e2e"],
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "e2e"
+  ],
   "scripts": {
     "dev": "turbo run dev --parallel",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
+    "i18n:check": "node scripts/i18n-check.mjs",
+    "design:check": "node scripts/design-check.mjs",
+    "security:check": "node scripts/security-check.mjs",
     "dup": "jscpd",
     "format": "prettier --write .",
     "db:migrate": "npm run migration:run -w @arweqah-platform/api",
     "db:migration:generate": "npm run migration:generate -w @arweqah-platform/api",
     "db:seed": "npm run seed -w @arweqah-platform/api",
     "test:e2e:api": "turbo run build --filter=@arweqah-platform/shared && npm run test:e2e -w @arweqah-platform/api",
-    "test:e2e:web": "turbo run build --filter=@arweqah-platform/api --filter=@arweqah-platform/web && npm run e2e -w @arweqah-platform/e2e"
+    "test:e2e:web": "turbo run build --filter=@arweqah-platform/api --filter=@arweqah-platform/web && npm run e2e -w @arweqah-platform/e2e",
+    "architecture:check": "node scripts/architecture-check.mjs",
+    "verify": "bash scripts/verify.sh"
   },
   "devDependencies": {
     "jscpd": "5.4.0",

@@ -1,18 +1,26 @@
 import { Module, OnModuleInit } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { PermissionCatalog } from '../../core/access/application/permission-catalog';
-import { OrgService } from './application/org.service';
-import { Branch, Department, Team } from './domain/org.entities';
-import { ORG_PERMISSIONS } from './domain/org.permissions';
-import { OrgRepository } from './domain/org.repository';
-import { TypeOrmOrgRepository } from './infrastructure/typeorm-org.repository';
-import { OrgController } from './presentation/org.controller';
+import { CompaniesService } from './application/services/companies.service';
+import { OrgDirectoryService } from './application/services/org-directory.service';
+import { OrgLevelsService } from './application/services/org-levels.service';
+import { OrgNodesService } from './application/services/org-nodes.service';
+import { ORG_PERMISSIONS } from './domain/permissions/org.permissions';
+import { OrgRepository } from './domain/contracts/org.repository';
+import { TypeOrmOrgRepository } from './infrastructure/repositories/typeorm-org.repository';
+import { CompaniesController } from './presentation/controllers/companies.controller';
+import { OrgController } from './presentation/controllers/org.controller';
 
+/** Companies and their dynamic structure: levels, units, job titles. Employees are placed through EmployeePlacementPort. */
 @Module({
-  imports: [TypeOrmModule.forFeature([Branch, Department, Team])],
-  controllers: [OrgController],
-  providers: [OrgService, { provide: OrgRepository, useClass: TypeOrmOrgRepository }],
-  exports: [OrgService],
+  controllers: [CompaniesController, OrgController],
+  providers: [
+    CompaniesService,
+    OrgLevelsService,
+    OrgNodesService,
+    OrgDirectoryService,
+    { provide: OrgRepository, useClass: TypeOrmOrgRepository },
+  ],
+  exports: [OrgDirectoryService, CompaniesService, OrgLevelsService, OrgNodesService],
 })
 export class OrgModule implements OnModuleInit {
   constructor(private readonly catalog: PermissionCatalog) {}

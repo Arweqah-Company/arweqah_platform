@@ -1,0 +1,58 @@
+import type {
+  CreateEmployeeInput,
+  CreateEmployeeResultDto,
+  EmployeeDto,
+  EmployeesSummaryDto,
+  InviteResultDto,
+  JobTitleOptionDto,
+  LookupsDto,
+  ManagerOptionDto,
+  OrgNodeOptionDto,
+  OrgReferenceDto,
+  TerminateEmployeeInput,
+  UpdateEmployeeInput,
+} from '@arweqah-platform/shared';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { apiClient } from '@/core/api/api-client';
+export { useCompanyOptions } from '@/core/api/lookups';
+
+const lang = (i18nLanguage: string) => (i18nLanguage === 'en' ? 'en' : 'ar');
+const STATIC = { staleTime: 5 * 60_000 };
+
+export const useEmployee = (id: string | undefined) =>
+  useQuery({ queryKey: ['employees', 'one', id], enabled: !!id, queryFn: () => apiClient.get<EmployeeDto>(`/employees/${id}`) });
+
+export const useEmployeesSummary = (enabled: boolean) =>
+  useQuery({ queryKey: ['employees', 'summary'], enabled, queryFn: () => apiClient.get<EmployeesSummaryDto>('/employees/summary') });
+
+/** Seeded option lists with flags and ID rules; the form is built from this, not from fixed lists. */
+export function useLookups() {
+  const { i18n } = useTranslation();
+  return useQuery({ queryKey: ['lookups', lang(i18n.language)], queryFn: () => apiClient.get<LookupsDto>('/lookups'), ...STATIC });
+}
+
+export const useOrgNodeOptions = (companyId: string | undefined) =>
+  useQuery({ queryKey: ['lookups', 'org-nodes', companyId], enabled: !!companyId, queryFn: () => apiClient.get<OrgNodeOptionDto[]>('/lookups/org-nodes', { companyId }) });
+
+/** Every company's units and job titles in one call (import template drop-downs and mapping). */
+export const useOrgReference = (enabled: boolean) => useQuery({ queryKey: ['lookups', 'org-reference'], enabled, queryFn: () => apiClient.get<OrgReferenceDto[]>('/lookups/org-reference'), staleTime: 60_000 });
+
+export const useJobTitleOptions = (orgNodeId: string | undefined) =>
+  useQuery({ queryKey: ['lookups', 'job-titles', orgNodeId], enabled: !!orgNodeId, queryFn: () => apiClient.get<JobTitleOptionDto[]>('/lookups/job-titles', { orgNodeId }) });
+
+export const useManagerSearch = (search: string, excludeId?: string) =>
+  useQuery({ queryKey: ['employees', 'managers', search, excludeId], queryFn: () => apiClient.get<ManagerOptionDto[]>('/employees/managers', { search, excludeId }), placeholderData: keepPreviousData });
+
+function useEmployeeMutation<TIn, TOut>(fn: (input: TIn) => Promise<TOut>) {
+  const client = useQueryClient();
+  return useMutation({ mutationFn: fn, onSuccess: () => client.invalidateQueries({ queryKey: ['employees'] }) });
+}
+
+export const useCreateEmployee = () => useEmployeeMutation((input: CreateEmployeeInput) => apiClient.post<CreateEmployeeResultDto>('/employees', input));
+export const useUpdateEmployee = (id: string) => useEmployeeMutation((input: UpdateEmployeeInput) => apiClient.put<EmployeeDto>(`/employees/${id}`, input));
+export const useSetActive = (id: string) => useEmployeeMutation((active: boolean) => apiClient.post<EmployeeDto>(`/employees/${id}/${active ? 'activate' : 'deactivate'}`));
+export const useTerminate = (id: string) => useEmployeeMutation((input: TerminateEmployeeInput) => apiClient.post<EmployeeDto>(`/employees/${id}/terminate`, input));
+export const useAssignRoles = (id: string) => useEmployeeMutation((roleIds: string[]) => apiClient.put<EmployeeDto>(`/employees/${id}/roles`, { roleIds }));
+export const useResendInvite = (id: string) => useEmployeeMutation(() => apiClient.post<InviteResultDto>(`/employees/${id}/resend-invite`));
+export const useResetAuthenticator = (id: string) => useEmployeeMutation(() => apiClient.post<InviteResultDto>(`/employees/${id}/reset-authenticator`));

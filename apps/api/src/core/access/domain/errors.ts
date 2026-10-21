@@ -14,10 +14,11 @@ export class ScopeNotAllowedError extends BusinessRuleError {
   }
 }
 
-export class TwoFactorRequiredError extends ForbiddenError {
-  override readonly code = 'TWO_FACTOR_REQUIRED';
+/** The session exists but the one-time code of the authenticator app was not entered yet. */
+export class MfaRequiredError extends ForbiddenError {
+  override readonly code = 'MFA_REQUIRED';
   constructor() {
-    super('Enable two-factor authentication to continue');
+    super('Enter the code from your authenticator app to continue');
   }
 }
 
