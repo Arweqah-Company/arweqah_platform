@@ -30,9 +30,9 @@
     "verify": "bash scripts/verify.sh"
   },
   "devDependencies": {
-    "jscpd": "5.4.0",
-    "prettier": "3.9.9",
-    "turbo": "2.11.7",
+    "jscpd": "5.4.1",
+    "prettier": "3.9.10",
+    "turbo": "2.11.9",
     "typescript": "5.9.3"
   }
 }
