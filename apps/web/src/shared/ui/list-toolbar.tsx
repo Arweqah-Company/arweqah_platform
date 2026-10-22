@@ -1,9 +1,8 @@
 import * as Popover from '@radix-ui/react-popover';
-import { LayoutGrid, SlidersHorizontal, Table2, X } from 'lucide-react';
+import { LayoutGrid, SlidersHorizontal, Table2, X, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { FilterValues } from '../lib/use-filters';
-import type { ViewMode } from '../lib/use-view-mode';
 import { cn } from '../lib/cn';
 import { Button } from './button';
 import { FormField, Input, Select } from './form-field';
@@ -17,20 +16,27 @@ export interface FilterOption {
 /** One thing a list can be filtered by. `toggle` is a yes/no filter (value "true"). */
 export type FilterField = { id: string; label: string } & ({ type: 'select'; options: FilterOption[] } | { type: 'text'; placeholder?: string } | { type: 'date' } | { type: 'toggle' });
 
-function ViewToggle({ value, onChange }: { value: ViewMode; onChange: (mode: ViewMode) => void }) {
+export interface ViewChoice<M extends string = string> {
+  id: M;
+  /** Shown as the tooltip and the accessible name. */
+  label: string;
+  icon: LucideIcon;
+}
+
+/** A segmented switch between the views of a list. */
+export function ViewSwitch<M extends string>({ value, onChange, choices }: { value: M; onChange: (mode: M) => void; choices: ViewChoice<M>[] }) {
   const { t } = useTranslation();
-  const items: { mode: ViewMode; icon: typeof Table2 }[] = [{ mode: 'table', icon: Table2 }, { mode: 'cards', icon: LayoutGrid }];
   return (
     <div role="group" aria-label={t('view.label')} className="flex rounded-xl border border-neutral-200 bg-neutral-50 p-1">
-      {items.map(({ mode, icon: Icon }) => (
+      {choices.map(({ id, label, icon: Icon }) => (
         <button
-          key={mode}
+          key={id}
           type="button"
-          aria-pressed={value === mode}
-          aria-label={t(`view.${mode}`)}
-          title={t(`view.${mode}`)}
-          onClick={() => onChange(mode)}
-          className={cn('grid size-9 place-items-center rounded-lg transition-colors duration-150', value === mode ? 'bg-white text-petrol-800 shadow-sm' : 'text-muted hover:text-ink')}
+          aria-pressed={value === id}
+          aria-label={label}
+          title={label}
+          onClick={() => onChange(id)}
+          className={cn('grid size-9 place-items-center rounded-lg transition-colors duration-150', value === id ? 'bg-white text-link shadow-sm' : 'text-muted hover:text-fg')}
         >
           <Icon className="size-4" aria-hidden />
         </button>
@@ -71,7 +77,7 @@ function FilterPanel({ fields, values, onChange }: { fields: FilterField[]; valu
   return (
     <Popover.Root>
       <Popover.Trigger asChild>
-        <Button variant="secondary" className="gap-2 border-neutral-200 text-ink">
+        <Button variant="secondary" className="gap-2 border-neutral-200 text-fg">
           <SlidersHorizontal className="size-4" aria-hidden />
           {t('filters.title')}
           {count > 0 && <span className="grid min-w-5 place-items-center rounded-full bg-petrol-800 px-1.5 text-xs font-bold text-cream">{count}</span>}
@@ -104,7 +110,7 @@ function ActiveFilters({ fields, values, onChange }: { fields: FilterField[]; va
       {active.map((f) => {
         const text = f.type === 'toggle' ? f.label : `${f.label}: ${valueLabel(f, values[f.id] as string, t('filters.yes'))}`;
         return (
-          <li key={f.id} className="inline-flex items-center gap-1 rounded-full bg-petrol-50 py-1 ps-3 pe-1 text-xs font-medium text-petrol-800">
+          <li key={f.id} className="inline-flex items-center gap-1 rounded-full bg-petrol-50 py-1 ps-3 pe-1 text-xs font-medium text-link">
             {text}
             <button type="button" aria-label={t('filters.remove', { name: f.label })} className="grid size-5 place-items-center rounded-full transition-colors hover:bg-petrol-800/10" onClick={() => onChange({ ...values, [f.id]: '' })}>
               <X className="size-3" aria-hidden />
@@ -119,9 +125,16 @@ function ActiveFilters({ fields, values, onChange }: { fields: FilterField[]; va
 interface ListToolbarProps {
   search: { value: string; onChange: (value: string) => void; label: string; placeholder?: string; dir?: 'ltr' };
   filters?: { fields: FilterField[]; values: FilterValues; onChange: (values: FilterValues) => void };
-  view?: { value: ViewMode; onChange: (mode: ViewMode) => void };
+  view?: { value: string; onChange: (mode: never) => void; choices?: ViewChoice[] };
   /** Extra buttons after the view switch, e.g. import and export. */
   actions?: ReactNode;
+}
+
+/** The default switch (table / cards), or the list's own choices. */
+function TableOrCards({ value, onChange, choices }: NonNullable<ListToolbarProps['view']>) {
+  const { t } = useTranslation();
+  const own = choices ?? [{ id: 'table', label: t('view.table'), icon: Table2 }, { id: 'cards', label: t('view.cards'), icon: LayoutGrid }];
+  return <ViewSwitch value={value} onChange={onChange as (mode: string) => void} choices={own} />;
 }
 
 /** Search, the filter panel with its applied-filter chips, and the table / cards switch: the same on every list. */
@@ -131,7 +144,7 @@ export function ListToolbar({ search, filters, view, actions }: ListToolbarProps
       <SearchInput dir={search.dir} aria-label={search.label} placeholder={search.placeholder} value={search.value} onChange={(e) => search.onChange(e.target.value)} />
       {filters && <FilterPanel {...filters} />}
       {actions}
-      {view && <ViewToggle {...view} />}
+      {view && <TableOrCards {...view} />}
       {filters && <ActiveFilters {...filters} />}
     </>
   );

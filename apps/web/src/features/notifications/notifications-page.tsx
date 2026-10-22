@@ -64,7 +64,7 @@ export function NotificationsPage() {
             className: 'w-24',
             cell: (n) =>
               n.link?.startsWith('/') ? (
-                <Link className="text-sm text-petrol-800 underline-offset-4 hover:underline" to={n.link} onClick={() => markRead.mutate([n.id])}>
+                <Link className="text-sm text-link underline-offset-4 hover:underline" to={n.link} onClick={() => markRead.mutate([n.id])}>
                   {t('open')}
                 </Link>
               ) : null,

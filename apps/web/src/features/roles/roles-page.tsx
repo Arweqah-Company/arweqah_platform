@@ -77,7 +77,7 @@ export function RolesPage() {
             cell: (r) => (
               <Can permission={CorePermission.RolesManage}>
                 <Button size="sm" variant="ghost" onClick={() => setEditing({ role: r })}>{tc('actions.edit')}</Button>
-                {!r.isSystem && <Button size="sm" variant="ghost" className="text-danger-700" onClick={() => void onDelete(r)}>{tc('actions.delete')}</Button>}
+                {!r.isSystem && <Button size="sm" variant="ghost" className="text-danger-text" onClick={() => void onDelete(r)}>{tc('actions.delete')}</Button>}
               </Can>
             ),
           },

@@ -40,3 +40,11 @@ Single source of terms. Extend it when a feature adds a concept.
 | تعطيل / تفعيل | Deactivate / Activate | accounts and records, not "delete" |
 | حذف | Delete | soft delete in the data, say "delete" to users |
 | دعوة | Invitation | |
+| مخطط | Chart | the organization chart; «جدول» Table, «بطاقات» Cards |
+| تصفية | Filter | the filter button and panel; «مسح التصفية» Clear filters |
+| تصدير / استيراد | Export / Import | files: Excel or CSV |
+| قالب | Template | the import template file |
+| قوائم | Lists | the sheet of options inside the template |
+| سجل البريد | E-mail log | sent e-mails and their status |
+| رجوع | Back | error pages and dialogs |
+| فتح الكل / طي الكل | Open all / Close all | chart nodes |

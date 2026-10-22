@@ -19,7 +19,8 @@
       "people": "الموارد البشرية",
       "administration": "إدارة النظام",
       "account": "حسابي"
-    }
+    },
+    "profile": "الملف الشخصي"
   },
   "actions": {
     "save": "حفظ",
@@ -33,7 +34,9 @@
     "confirm": "تأكيد"
   },
   "language": {
-    "switchTo": "English"
+    "switchTo": "English",
+    "ar": "العربية",
+    "en": "English"
   },
   "table": {
     "empty": "لا توجد بيانات بعد.",
@@ -114,7 +117,8 @@
   "view": {
     "label": "طريقة العرض",
     "table": "جدول",
-    "cards": "بطاقات"
+    "cards": "بطاقات",
+    "chart": "مخطط"
   },
   "dataExchange": {
     "export": "تصدير",
@@ -197,5 +201,23 @@
     },
     "back": "رجوع",
     "signIn": "تسجيل الدخول"
+  },
+  "chart": {
+    "fit": "ملاءمة الشاشة",
+    "zoomIn": "تكبير",
+    "zoomOut": "تصغير",
+    "expand": "فتح «{{title}}» ({{count}} تحته)",
+    "collapse": "طي «{{title}}»",
+    "openAll": "فتح الكل",
+    "closeAll": "طي الكل"
+  },
+  "theme": {
+    "switchTo": {
+      "light": "التبديل إلى الوضع الفاتح",
+      "dark": "التبديل إلى الوضع الداكن"
+    },
+    "light": "فاتح",
+    "dark": "داكن",
+    "system": "حسب الجهاز"
   }
 }

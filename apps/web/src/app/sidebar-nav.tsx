@@ -16,7 +16,7 @@ interface Props {
 const linkClass = (isActive: boolean, extra?: string) =>
   cn(
     'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-[background-color,color] duration-150',
-    isActive ? 'bg-white text-ink shadow-sm' : 'text-cream/85 hover:bg-cream/10 hover:text-cream',
+    isActive ? 'bg-cream text-ink shadow-sm' : 'text-cream/85 hover:bg-cream/10 hover:text-cream',
     extra,
   );
 

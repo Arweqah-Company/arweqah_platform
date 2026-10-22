@@ -19,7 +19,8 @@
       "people": "People",
       "administration": "System administration",
       "account": "My account"
-    }
+    },
+    "profile": "Profile"
   },
   "actions": {
     "save": "Save",
@@ -33,7 +34,9 @@
     "confirm": "Confirm"
   },
   "language": {
-    "switchTo": "العربية"
+    "switchTo": "العربية",
+    "ar": "العربية",
+    "en": "English"
   },
   "table": {
     "empty": "Nothing here yet.",
@@ -114,7 +117,8 @@
   "view": {
     "label": "View",
     "table": "Table",
-    "cards": "Cards"
+    "cards": "Cards",
+    "chart": "Chart"
   },
   "dataExchange": {
     "export": "Export",
@@ -197,5 +201,23 @@
     },
     "back": "Back",
     "signIn": "Sign in"
+  },
+  "chart": {
+    "fit": "Fit to screen",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "expand": "Open “{{title}}” ({{count}} below)",
+    "collapse": "Close “{{title}}”",
+    "openAll": "Open all",
+    "closeAll": "Close all"
+  },
+  "theme": {
+    "switchTo": {
+      "light": "Switch to the light theme",
+      "dark": "Switch to the dark theme"
+    },
+    "light": "Light",
+    "dark": "Dark",
+    "system": "Follow the device"
   }
 }

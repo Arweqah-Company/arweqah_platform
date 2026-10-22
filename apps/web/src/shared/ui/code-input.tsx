@@ -76,8 +76,8 @@ export function CodeInput({ value, onChange, onComplete, label, length = 6, disa
           onPaste={onPaste}
           onFocus={(e) => e.target.select()}
           className={cn(
-            'h-12 w-11 rounded-[var(--radius-control)] border border-neutral-200 bg-white text-center text-xl font-medium text-ink',
-            'focus:border-petrol-800 aria-[invalid=true]:border-danger-700 disabled:opacity-50',
+            'h-12 w-11 rounded-[var(--radius-control)] border border-neutral-200 bg-white text-center text-xl font-medium text-fg',
+            'focus:border-link aria-[invalid=true]:border-danger-700 disabled:opacity-50',
           )}
         />
       ))}

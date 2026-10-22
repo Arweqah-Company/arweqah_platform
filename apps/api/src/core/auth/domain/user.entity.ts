@@ -3,7 +3,7 @@ import { BusinessRuleError } from '../../../common/domain/domain-error';
 
 /**
  * The `users` table is shared with Better Auth, which writes the identity columns.
- * This module owns the business columns (is_active, phone, locale).
+ * This module owns the business columns (is_active, phone, locale, theme).
  */
 @Entity('users')
 export class User {
@@ -18,6 +18,10 @@ export class User {
 
   @Column({ type: 'varchar', length: 2, default: 'ar' })
   locale: 'ar' | 'en';
+
+  /** Interface theme: light, dark, or follow the device. */
+  @Column({ type: 'varchar', length: 10, default: 'system' })
+  theme: 'light' | 'dark' | 'system';
 
   @Column({ type: 'varchar', length: 20, nullable: true })
   phone: string | null;

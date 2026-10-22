@@ -8,12 +8,12 @@ const button = cva(
   {
     variants: {
       variant: {
-        primary: 'bg-ink text-cream shadow-sm shadow-ink/20 hover:bg-ink-800 hover:shadow-md',
-        secondary: 'border border-petrol-800 bg-white text-petrol-800 hover:bg-petrol-50',
+        primary: 'bg-primary text-on-primary shadow-sm shadow-ink/20 hover:bg-primary-hover hover:shadow-md',
+        secondary: 'border border-link bg-white text-link hover:bg-petrol-50',
         danger: 'bg-danger-700 text-cream shadow-sm shadow-ink/20 hover:bg-danger-700/90 hover:shadow-md',
-        ghost: 'text-petrol-800 hover:bg-petrol-50',
-        soft: 'bg-neutral-50 text-ink hover:bg-neutral-200/60',
-        tint: 'bg-petrol-50 text-petrol-800 font-bold',
+        ghost: 'text-link hover:bg-petrol-50',
+        soft: 'bg-neutral-50 text-fg hover:bg-neutral-200/60',
+        tint: 'bg-petrol-50 text-link font-bold',
       },
       size: { md: 'h-11 px-5 text-sm', sm: 'h-9 px-3.5 text-sm', icon: 'size-11 sm:size-10' },
     },

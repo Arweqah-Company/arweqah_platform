@@ -34,8 +34,8 @@ function Shortcuts() {
       <ul className="mt-4">
         {items.map(({ to, labelKey, icon: Icon }) => (
           <li key={to}>
-            <Link to={to} className="group flex items-center gap-3 rounded-[var(--radius-control)] border-b border-neutral-200 px-2 py-3 transition-colors duration-150 hover:bg-petrol-50 hover:text-petrol-800">
-              <Icon className="size-4 text-petrol-800 transition-transform duration-150 group-hover:scale-110" aria-hidden />
+            <Link to={to} className="group flex items-center gap-3 rounded-[var(--radius-control)] border-b border-neutral-200 px-2 py-3 transition-colors duration-150 hover:bg-petrol-50 hover:text-link">
+              <Icon className="size-4 text-link transition-transform duration-150 group-hover:scale-110" aria-hidden />
               {tc(labelKey)}
             </Link>
           </li>

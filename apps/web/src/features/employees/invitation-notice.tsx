@@ -12,7 +12,7 @@ export function InvitationNotice({ invitation }: { invitation: InvitationState }
       <Alert tone={invitation.sent ? 'success' : 'warning'}>{invitation.sent ? t('invitation.sent', { email: invitation.sentTo }) : t('invitation.failed')}</Alert>
       {invitation.enrollmentUrl && (
         <p className="text-xs text-muted">
-          {t('invitation.devLink')} <a dir="ltr" className="break-all text-petrol-800 underline" href={invitation.enrollmentUrl}>{invitation.enrollmentUrl}</a>
+          {t('invitation.devLink')} <a dir="ltr" className="break-all text-link underline" href={invitation.enrollmentUrl}>{invitation.enrollmentUrl}</a>
         </p>
       )}
     </div>

@@ -16,7 +16,8 @@ Internal ERP for Arweqah Alreyadah: one place for people, organization, requests
 2. An administrator builds each company's structure with forms: levels (sector / department / section / unit by default), units under any level, and job titles (mandatory on units that accept employees). Changing levels that hold data shows the impact and needs confirmation.
 3. HR creates an employee from the 40-field form; the system creates a sign-in account and e-mails an activation link. The employee also gets the link on their first sign-in attempt (the e-mail step recognizes a first time and sends the QR link), scans the QR code and enters the code.
 4. An administrator builds roles from the permission catalog and chooses how far each permission reaches (own → unit → subtree → company → all).
-5. A user receives notifications in the app (and by e-mail); an auditor reviews the audit log; an administrator follows every e-mail the platform sent (sent / failed and why).
+5. Every person has a profile page: they pick the light or dark theme and the language, and edit their personal phone, personal e-mail and English name; the rest of their record is HR's.
+6. A user receives notifications in the app (and by e-mail); an auditor reviews the audit log; an administrator follows every e-mail the platform sent (sent / failed and why).
 
 **In scope now:** passwordless authentication (Microsoft + authenticator app), companies, dynamic organization structure, employees, dynamic roles and scoped permissions, audit log, notifications (in-app, email, SMS adapter), file storage, workflow engine, messaging (outbox + RabbitMQ + durable scheduled jobs), sent-e-mail log, bilingual UI shell with grouped navigation.
 
@@ -64,6 +65,9 @@ Bring employee, project and request management into one secure platform that spe
 | FR-28 | Export from every list: choose the scope (rows on the page, or all results of the current search and filters), the columns, and the file type (Excel or CSV); formulas are neutralized | All | Must | `apps/web/src/shared/data-exchange/data-exchange.test.ts`, `apps/web/src/shared/data-exchange/dialogs.test.tsx` |
 | FR-29 | Import employees and companies from Excel or CSV: download a template whose drop-downs carry the system's lists (companies, units and job titles, countries, statuses, contract types…), preview the rows with their errors, import the valid ones, download an error report; every row goes through the same validation and API as the form | HR / admin | Must | `apps/web/src/shared/data-exchange/*.test.ts(x)`, `apps/web/src/features/employees/employees-import-rows.test.ts`, `apps/web/src/features/companies/companies-import.test.ts`, `apps/api/test/lookups.e2e-spec.ts` (org reference) |
 | FR-30 | The 401, 403 and 404 pages share one design (picture, what happened, what to do, one button): 404 for an unknown address, 403 when a route needs a permission the person lacks (route guard from the navigation item's permission), 401 when the session ends while working (a visitor without a session goes straight to sign-in) | All | Must | `apps/web/src/app/error-pages.test.tsx`, `e2e/tests/navigation.spec.ts` |
+| FR-31 | Organization page: choose the company, then see its structure as a chart (company card, one brand color per level with a legend, open / close nodes, open all, search, zoom, fit to screen, drag) or as a table (search, filters on level, status, employees and manager, export); selecting a unit shows its details beside it; the choice of chart or table is remembered | Admin / HR | Must | `apps/web/src/features/org/org-page.test.tsx`, `e2e/tests/org.spec.ts` |
+| FR-32 | Messages are colored by meaning, with an icon and a start rule: success green, information yellow, warning orange, error red | All | Must | `apps/web/src/shared/ui/alert.test.tsx` |
+| FR-33 | Light and dark theme (or follow the device): a toggle in the header and a choice on the profile page, saved in the browser and on the account; and an own profile page where a person changes the language, the theme and three contact details (personal phone, personal e-mail, English name) while the job details stay read-only; everything else belongs to HR | All users | Must | `apps/api/test/profile.e2e-spec.ts`, `apps/web/src/core/theme/theme.test.tsx`, `apps/web/src/features/profile/profile-page.test.tsx`, `e2e/tests/profile.spec.ts` |
 
 Every test suite names the requirement IDs it covers in its `describe(...)` title.
 
@@ -93,6 +97,7 @@ erDiagram
     varchar name
     varchar email UK
     varchar locale
+    varchar theme
     bool is_active
   }
   auth_accounts {
@@ -491,19 +496,19 @@ npm run verify                           # end-of-task check: architecture, desi
 ### Deploy
 
 - **Trigger:** every push to `main` after CI (quality, API e2e, Playwright, security) passes; or manually (`workflow_dispatch`).
-- **Steps:** build `api` and `web` images → Trivy scan → push to GHCR → SSH to EC2 → `migration:run:prod` → `seed:prod` (idempotent) → `docker compose up -d` → smoke test `GET {APP_URL}/api/health`.
-- **GitHub secrets:** `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`. **Variables:** `APP_URL`, `MICROSOFT_ENABLED`.
-- **Server `.env`** (in `/opt/arweqah-platform`, created by hand, never in GitHub): everything in `.env.example` with production values, plus `RABBITMQ_USER`, `RABBITMQ_PASSWORD`, `REGISTRY`, `IMAGE_PREFIX`. Set `FILE_STORAGE=s3`, `SMTP_*` to the production SMTP service (Office 365 or SES), `DB_SSL=true`, `APP_URL=API_URL=CORS_ORIGINS=https://app.<domain>`.
+- **Steps:** build `api` and `web` images → Trivy scan → push to GHCR → copy `docker-compose.prod.yml`, `docker/nginx/edge.conf` and `scripts/server/*.sh` to the server → SSH: log in to GHCR with the job's own token (no registry password is stored on the server) → `scripts/server/deploy.sh <sha>` (pull → `migration:run:prod` → `seed:prod`, idempotent → `docker compose up -d`) → smoke test `GET {APP_URL}/api/health`.
+- **GitHub secrets:** `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY` (printed by the bootstrap script). **Variables:** `APP_URL`, `MICROSOFT_ENABLED`. **Environment:** `production`.
+- **Server layout** (`/opt/arweqah-platform`): `.env` (created by `bootstrap.sh` with generated secrets, never in GitHub), `secrets/microsoft.key` (certificate private key), `backups/`. Everything runs in Docker on one host: nginx (HTTPS, one Let's Encrypt certificate for both domains: the web domain proxies `/api` to the API so the browser stays on one origin and cookies stay first-party; the API domain reaches the same API directly for integrations), web, api, PostgreSQL 16, RabbitMQ; data in the volumes `pg_data`, `api_storage` (uploaded files, `FILE_STORAGE=local`) and `rabbitmq_data`.
+- **Backups:** `scripts/server/backup.sh` runs daily at 02:30 (cron): database dump and files archive, kept 14 days in `backups/`. Copy that folder off the server too.
 
-**First-time server setup**
+**First-time server setup** (Ubuntu 24.04 EC2, security group: 22 from the team, 80 and 443 open, Elastic IP, DNS `A` records of the web domain and the API domain, e.g. `stg-portal.arweqah.sa` and `stg-api-portal.arweqah.sa`, pointing to it)
 
-1. EC2 Ubuntu 24.04 (t3.xlarge) in `me-south-1` with an instance role allowing S3 on the uploads bucket; security group: 22 from the team's IPs, 80/443 open.
-2. RDS PostgreSQL 16 in the same VPC, not public, automated backups 7 days, encryption at rest.
-3. Install Docker Engine + compose plugin; `mkdir /opt/arweqah-platform`; copy `docker-compose.prod.yml` and `docker/nginx/edge.conf` (replace `__DOMAIN__`); create `.env`.
-4. `docker login ghcr.io` with a read-only package token.
-5. DNS `app.<domain>` → Elastic IP; certbot certificate; renewal timer that reloads nginx.
-6. Microsoft Entra app registration: redirect URI `https://app.<domain>/api/auth/callback/microsoft`; put the tenant GUID in `MICROSOFT_TENANT_ID`.
-7. Push to `main`.
+1. Copy the script and run it: `scp scripts/server/bootstrap.sh ubuntu@<ip>:~` then `ssh ubuntu@<ip> "sudo bash bootstrap.sh"`. It asks for the two domains, certificate e-mail, GitHub owner, first admin e-mail, Microsoft IDs and SMTP; installs Docker and a firewall; writes `.env`; gets the HTTPS certificate (renewed automatically); schedules the backup; and prints the GitHub secrets, including a fresh deploy SSH key.
+2. Add the secrets and variables in GitHub and create the `production` environment (the script prints the exact values).
+3. Copy the Microsoft certificate key to `secrets/microsoft.key` and register `https://<web domain>/api/auth/callback/microsoft` under **Web** in Entra ([docs/microsoft-sign-in.md](docs/microsoft-sign-in.md)).
+4. Push to `main`. The first deploy creates the database tables and the first admin.
+
+To use Amazon RDS or S3 later: set `DB_HOST`/`DB_SSL` or `FILE_STORAGE=s3` + `S3_BUCKET` in the server `.env` (and drop the `postgres` service for RDS).
 
 **Rollback:** `export TAG=<previous sha> && docker compose -f docker-compose.prod.yml up -d api web`. Migrations are written backward compatible (add first, remove later); revert one with `docker compose run --rm api npm run migration:revert`.
 
@@ -515,7 +520,7 @@ npm run verify                           # end-of-task check: architecture, desi
 | API e2e (real PostgreSQL) | `npm run test:e2e:api` | Sign-in and authenticator flows with real TOTP, organization, employees (every filter), lookups, seeders, e-mail log, notifications, audit, IDOR, mass assignment, SQL injection, workflow concurrency |
 | Security suite | part of API e2e (`test/security.e2e-spec.ts`) | 401 on every route, 403 on every permission route (discovered from Nest metadata), headers, CORS, 413, forged cookies |
 | Web components | `npm test -w @arweqah-platform/web` | DataTable, list toolbar (search, filters, table / cards), export and import dialogs and file readers, employee and company import rules, error pages and the 403 route guard, sign-in steps, org page, role editor (MSW) |
-| Full-stack e2e | `npm run test:e2e:web` | Own API on port 3100 against the test database (never a development server), sidebar menus, e-mail + code sign-in and sign-out, 404 / 403 / 401 pages, search, filters, table / cards memory, export to CSV, import template download, company import from a file, no tokens in storage, no secret values in the bundle, axe on each page, desktop + phone (30 tests) |
+| Full-stack e2e | `npm run test:e2e:web` | Own API on port 3100 against the test database (never a development server), sidebar menus, e-mail + code sign-in and sign-out, 404 / 403 / 401 pages, search, filters, table / cards memory, export to CSV, import template download, company import from a file, no tokens in storage, no secret values in the bundle, axe on each page, desktop + phone (46 tests) |
 | Everything, as one gate | `npm run verify` | Architecture, design, testing and security checks, one line each |
 | Static and supply chain | CI `security` workflow | npm audit (high), gitleaks, Semgrep (OWASP, Node, TypeScript, secrets), Trivy (fs + images), ZAP baseline + API scan |
 
@@ -525,12 +530,12 @@ Requirement traceability: each `describe` title lists the FR/NFR IDs it covers, 
 
 | Actor | Can | Cannot |
 |---|---|---|
-| Employee (role "Employee") | Sign in with e-mail or Microsoft plus the authenticator code, see own profile and notifications, upload own files | See other employees, roles, organization admin, audit or e-mail log unless a role grants it |
+| Employee (role "Employee") | Sign in with e-mail or Microsoft plus the authenticator code, see and edit own profile (theme, language, personal phone and e-mail, English name), see own notifications, upload own files | See other employees, roles, organization admin, audit or e-mail log unless a role grants it |
 | HR (custom role) | Create and update employees, place them in units, assign the roles they hold, resend activation links | Act outside their scope (gets 404), see salary / ID / IBAN without `employees.view_sensitive`, assign more than they hold, change their own roles |
 | Line manager (custom role) | What the role grants, limited to their unit or subtree | Act outside their scope |
 | System Admin (system role) | Every permission at the widest scope: companies, levels, units, job titles, roles, audit log, e-mail log | Delete system roles; use anything before linking the authenticator |
 | Auditor (custom role with `audit.view`) | Read the audit log | See secrets (redacted) |
-| Microsoft Entra ID | Authenticate company accounts | Create accounts (sign-up disabled) |
+| Microsoft Entra ID | Authenticate company accounts (setup: `docs/microsoft-sign-in.md`, check: `npm run microsoft:check`) | Create accounts (sign-up disabled) |
 | Office 365 SMTP / SMS provider | Deliver messages | Read any data beyond the message |
 | GitHub Actions | Build, test, deploy | Read production secrets (they live on the server) |
 
@@ -561,7 +566,7 @@ Permission catalog: `roles.view`, `roles.manage`, `audit.view`, `notifications.e
 
 | Service | Purpose | Direction / trigger | Env vars | Docs |
 |---|---|---|---|---|
-| Microsoft Entra ID | Employee sign-in | User-initiated OAuth | `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET`, `MICROSOFT_TENANT_ID` | https://www.better-auth.com/docs/authentication/microsoft |
+| Microsoft Entra ID | Employee sign-in | User-initiated OAuth | `MICROSOFT_CLIENT_ID`, `MICROSOFT_TENANT_ID`, and `MICROSOFT_CLIENT_SECRET` or a certificate (`MICROSOFT_CERT_THUMBPRINT` + `MICROSOFT_CERT_PRIVATE_KEY_FILE`) | https://www.better-auth.com/docs/authentication/microsoft |
 | Office 365 SMTP (or Amazon SES) | Activation links and notification e-mail | Outbound, from the outbox; every message is recorded in `email_logs` | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_SECURE`, `MAIL_FROM` (SMTP AUTH must be enabled on the mailbox) | https://learn.microsoft.com/exchange/mail-flow-best-practices/how-to-set-up-a-multifunction-device-or-application-to-send-email-using-microsoft-365-or-office-365 |
 | Amazon S3 | File storage | Outbound; signed download URLs (5 min) | `FILE_STORAGE`, `S3_BUCKET`, `S3_REGION` (credentials from the instance role) | https://docs.aws.amazon.com/s3/ |
 | Amazon RDS PostgreSQL | Database | — | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SSL` | https://docs.aws.amazon.com/rds/ |
@@ -591,11 +596,11 @@ apps/
     database/      entities list, migrations, seeds
   web/src/
     app/           composition root: features list, router, layout, providers
-    core/          API client, auth/session, permissions, i18n, theme, feature contract
+    core/          API client, auth/session, permissions, i18n, theme (light / dark provider), feature contract
     shared/ui/     DataTable, ListToolbar, Dialog, FormField, Button…
     shared/lib/    list hooks (useListPage, useServerList, useFilters, useViewMode), fetchAllPages, matchesText
     shared/data-exchange/  export, import and template (xlsx / csv) used by every list
-    features/      auth, home, employees, org, companies, roles, audit, email-log, notifications, security
+    features/      auth, home, employees, org, companies, roles, audit, email-log, notifications, profile, security
                    (sidebar menus come from each feature's `nav` + `group`)
 packages/shared    zod schemas, DTO types, permission scopes (used by api and web)
 e2e/               Playwright specs + page objects
@@ -620,7 +625,7 @@ Official palette: primary 60 % (cream, green, ink) and secondary 35 % (orange, b
 
 | Token | Value | Share | Use |
 |---|---|---|---|
-| `cream` (Clarity) | `#FFFCEE` | Primary | Text on dark, e-mails, printed material |
+| `cream` (Clarity) | `#FFFCEE` | Primary | Text on dark, e-mails, printed material, the primary button in the dark theme |
 | `green-400` (Growth) | `#85BA95` | Primary | Positive states, accents (never text on light) |
 | `ink` (Strength) | `#0C2028` | Primary | Text, sidebar, primary buttons, sign-in screen |
 | `orange-500` (Ambition) | `#C16426` | Secondary | Highlights, large text only |
@@ -628,6 +633,8 @@ Official palette: primary 60 % (cream, green, ink) and secondary 35 % (orange, b
 | `petrol-800` (Trust) | `#00415B` | Secondary | Links, selected items, focus ring, avatar |
 | `yellow-300` (Light) | `#FBD564` | Secondary, ≤ 5 % | Notification dot only; never text |
 | `neutral-50 / 200 / 500 / 700`, `white` | `#F4F5F7` / `#E4E7EB` / `#8B939C` / `#5F6770`, `#FFFFFF` | Derived | Dashboard page, borders, hover borders, muted icons, panels |
+
+**Light and dark theme:** the dashboard has both. Components use semantic colors (`fg` text, `link`, `primary` / `on-primary`, `success`, `warning`, `danger-text`) and the surface tokens (`white`, `neutral-*`, the `*-50` tints, `muted`), which `theme.css` re-points under `html[data-theme=dark]`; the sidebar and the sign-in screen stay `ink`. Measured in dark: text 14.9:1, muted 7.8:1, links 8.9:1, control borders 4.0:1 on the surface. The choice is kept in the browser (`localStorage.theme`, applied before first paint by `public/theme-init.js`) and on the account (`users.theme`).
 
 Typeface: Tajawal only (Arabic and Latin; delivered files in `docs/brand/fonts/`, Regular/Medium/Bold self-hosted from `apps/web/src/assets/fonts/`).
 

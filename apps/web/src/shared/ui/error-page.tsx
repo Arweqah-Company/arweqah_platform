@@ -21,7 +21,7 @@ export function ErrorPage({ code, fullScreen = false }: ErrorPageProps) {
     <main className={cn('grid place-items-center bg-white px-6 py-12', fullScreen ? 'min-h-screen' : 'min-h-[70vh] rounded-3xl border border-neutral-200')}>
       <div className="grid w-full max-w-5xl items-center gap-10 md:grid-cols-2">
         <div>
-          <h1 className="text-3xl font-bold leading-snug text-ink">{t(`errorPage.${code}.title`)}</h1>
+          <h1 className="text-3xl font-bold leading-snug text-fg">{t(`errorPage.${code}.title`)}</h1>
           <p className="mt-4 max-w-[48ch] text-lg text-muted">{t(`errorPage.${code}.description`)}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             {code === 401 ? (

@@ -22,7 +22,7 @@ interface ExportDialogProps<T> {
 
 function Choice({ name, checked, onChange, children }: { name: string; checked: boolean; onChange: () => void; children: string }) {
   return (
-    <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-neutral-200 px-4 text-sm has-[:checked]:border-petrol-800 has-[:checked]:bg-petrol-50">
+    <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-neutral-200 px-4 text-sm has-[:checked]:border-link has-[:checked]:bg-petrol-50">
       <input type="radio" name={name} className="size-4 accent-petrol-800" checked={checked} onChange={onChange} />
       {children}
     </label>

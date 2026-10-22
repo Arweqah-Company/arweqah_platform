@@ -36,4 +36,15 @@ describe('environment validation (FR-03)', () => {
     expect(validateEnv({ ...base, NODE_ENV: 'development', SIGN_IN_RATE_LIMIT: '1000' }).SIGN_IN_RATE_LIMIT).toBe(1000);
     expect(() => validateEnv({ ...base, NODE_ENV: 'production', SIGN_IN_RATE_LIMIT: '1000' })).toThrow(/SIGN_IN_RATE_LIMIT/);
   });
+
+  it('Microsoft needs a client secret or a certificate (thumbprint + private key), never both', () => {
+    const tenant = { MICROSOFT_CLIENT_ID: 'id', MICROSOFT_TENANT_ID: '0f1e3a00-c9a8-4c00-8a00-000000000001' };
+    const thumbprint = 'a1b2c3d4e5f60718293a4b5c6d7e8f9012345678';
+    expect(() => validateEnv({ ...base, ...tenant })).toThrow(/MICROSOFT_CLIENT_SECRET/);
+    expect(() => validateEnv({ ...base, ...tenant, MICROSOFT_CERT_THUMBPRINT: thumbprint })).toThrow(/MICROSOFT_CLIENT_SECRET/);
+    expect(validateEnv({ ...base, ...tenant, MICROSOFT_CLIENT_SECRET: 'secret' }).MICROSOFT_CLIENT_ID).toBe('id');
+    expect(validateEnv({ ...base, ...tenant, MICROSOFT_CERT_THUMBPRINT: thumbprint, MICROSOFT_CERT_PRIVATE_KEY_FILE: '/keys/ms.key' }).MICROSOFT_CERT_THUMBPRINT).toBe(thumbprint);
+    expect(() => validateEnv({ ...base, ...tenant, MICROSOFT_CLIENT_SECRET: 'secret', MICROSOFT_CERT_THUMBPRINT: thumbprint, MICROSOFT_CERT_PRIVATE_KEY: 'k' })).toThrow(/not both/);
+    expect(() => validateEnv({ ...base, ...tenant, MICROSOFT_CERT_THUMBPRINT: 'abc', MICROSOFT_CERT_PRIVATE_KEY: 'k' })).toThrow(/thumbprint/i);
+  });
 });

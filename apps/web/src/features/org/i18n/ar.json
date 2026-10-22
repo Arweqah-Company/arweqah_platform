@@ -89,5 +89,27 @@
     "deleteTitleTitle": "حذف المسمى؟",
     "deleteTitleBody": "لا يمكن حذف مسمى عليه موظفون أو آخر مسمى في الوحدة.",
     "titleDeleted": "تم حذف المسمى."
+  },
+  "chart": {
+    "company": "الشركة",
+    "counts": "{{units}} وحدة · {{employees}} موظف",
+    "nodeCounts": "{{employees}} موظف · {{units}} وحدة",
+    "searchLabel": "بحث في المخطط",
+    "searchPlaceholder": "ابحث عن وحدة في المخطط",
+    "openAll": "فتح الكل",
+    "closeAll": "طي الكل",
+    "label": "مخطط الهيكل التنظيمي لـ {{company}}",
+    "legend": "ألوان مستويات الهيكل"
+  },
+  "table": {
+    "title": "الوحدات ({{count}})",
+    "name": "الوحدة",
+    "path": "المسار",
+    "searchLabel": "بحث في الوحدات",
+    "searchPlaceholder": "ابحث بالاسم أو المسار أو المدير",
+    "withEmployees": "فيها موظفون",
+    "withoutEmployees": "بلا موظفين",
+    "withManager": "لها مدير",
+    "withoutManager": "بلا مدير"
   }
 }

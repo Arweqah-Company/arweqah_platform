@@ -13,8 +13,8 @@ export function ExchangeButtons<T>({ exporting, importing }: { exporting: Omit<C
   const [open, setOpen] = useState<'export' | 'import' | null>(null);
   return (
     <>
-      {importing && <Button variant="secondary" className="gap-2 border-neutral-200 text-ink" onClick={() => setOpen('import')}><Upload className="size-4" aria-hidden />{t('dataExchange.import')}</Button>}
-      <Button variant="secondary" className="gap-2 border-neutral-200 text-ink" onClick={() => setOpen('export')}><Download className="size-4" aria-hidden />{t('dataExchange.export')}</Button>
+      {importing && <Button variant="secondary" className="gap-2 border-neutral-200 text-fg" onClick={() => setOpen('import')}><Upload className="size-4" aria-hidden />{t('dataExchange.import')}</Button>}
+      <Button variant="secondary" className="gap-2 border-neutral-200 text-fg" onClick={() => setOpen('export')}><Download className="size-4" aria-hidden />{t('dataExchange.export')}</Button>
       {open === 'export' && <ExportDialog {...exporting} open onOpenChange={(o) => !o && setOpen(null)} />}
       {importing && open === 'import' && <ImportDialog {...importing} open onOpenChange={(o) => !o && setOpen(null)} />}
     </>

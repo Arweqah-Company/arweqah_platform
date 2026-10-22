@@ -1,0 +1,39 @@
+{
+  "title": "Profile",
+  "description": "How the platform looks and your contact details.",
+  "security": "Security and authenticator app",
+  "saved": "Changes saved.",
+  "noEmployee": "No employee record is linked to your account, so only the appearance settings are shown.",
+  "appearance": {
+    "title": "Appearance",
+    "description": "Applied at once and saved on your account for every device.",
+    "theme": "Theme",
+    "language": "Language"
+  },
+  "contact": {
+    "title": "Contact details",
+    "description": "You can change these yourself. HR updates the rest of the employee record.",
+    "personalPhone": "Personal phone",
+    "phoneHint": "International format, e.g. +966501234567.",
+    "personalEmail": "Personal e-mail",
+    "fullNameEn": "Full name in English",
+    "nameHint": "English letters and spaces only.",
+    "save": "Save changes"
+  },
+  "work": {
+    "title_section": "Work details",
+    "description": "Kept by HR and shown to you read-only.",
+    "number": "Employee number",
+    "company": "Company",
+    "unit": "Unit",
+    "title": "Job title",
+    "manager": "Direct manager",
+    "workEmail": "Work e-mail",
+    "startDate": "Start date"
+  },
+  "errors": {
+    "personalPhone": "Enter the phone in international format, e.g. +966501234567.",
+    "personalEmail": "Enter a valid e-mail address.",
+    "fullNameEn": "English letters and spaces only."
+  }
+}

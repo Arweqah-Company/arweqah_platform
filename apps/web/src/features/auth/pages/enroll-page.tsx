@@ -47,7 +47,7 @@ function EnrollmentFlow({ queryKey, start, confirm, onDone, doneLabelKey }: Flow
             {qr.data && <img src={qr.data} alt={t('enroll.qrAlt')} width={224} height={224} className="rounded-[var(--radius-control)] border border-neutral-200" />}
             <details className="text-xs text-muted">
               <summary className="cursor-pointer">{t('enroll.manual')}</summary>
-              <code dir="ltr" className="mt-1 block select-all break-all rounded bg-neutral-50 px-2 py-1 text-ink">{setup.data.secret}</code>
+              <code dir="ltr" className="mt-1 block select-all break-all rounded bg-neutral-50 px-2 py-1 text-fg">{setup.data.secret}</code>
             </details>
           </div>
         </li>

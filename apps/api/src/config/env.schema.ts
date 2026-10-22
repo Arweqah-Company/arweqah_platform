@@ -24,6 +24,10 @@ export const envSchema = z
     MICROSOFT_CLIENT_ID: z.string().optional(),
     MICROSOFT_CLIENT_SECRET: z.string().optional(),
     MICROSOFT_TENANT_ID: z.string().optional(),
+    /** Alternative to MICROSOFT_CLIENT_SECRET for tenants that block secrets: a certificate (thumbprint + private key). */
+    MICROSOFT_CERT_THUMBPRINT: z.string().regex(/^[0-9a-fA-F]{40}$/, 'must be the 40-character SHA-1 thumbprint').optional(),
+    MICROSOFT_CERT_PRIVATE_KEY: z.string().optional(),
+    MICROSOFT_CERT_PRIVATE_KEY_FILE: z.string().optional(),
 
     /** AES-256-GCM key (base64, 32 bytes) for sensitive columns such as national IDs. */
     FIELD_ENCRYPTION_KEY: z.base64().refine((v) => Buffer.from(v, 'base64').length === 32, {
@@ -65,6 +69,7 @@ export const envSchema = z
         message: 'must be the company tenant GUID (common/organizations/consumers are not allowed)',
       });
     }
+    if (env.MICROSOFT_CLIENT_ID) checkMicrosoftCredential(env, ctx);
     if (env.NODE_ENV === 'production') forbidDevelopmentSettings(env, ctx);
     if (env.FILE_STORAGE === 's3' && !env.S3_BUCKET) {
       ctx.addIssue({ code: 'custom', path: ['S3_BUCKET'], message: 'required when FILE_STORAGE=s3' });
@@ -72,6 +77,17 @@ export const envSchema = z
   });
 
 export type Env = z.infer<typeof envSchema>;
+
+/** Microsoft needs exactly one way to prove the app's identity: a client secret, or a certificate. */
+function checkMicrosoftCredential(env: Pick<Env, 'MICROSOFT_CLIENT_SECRET' | 'MICROSOFT_CERT_THUMBPRINT' | 'MICROSOFT_CERT_PRIVATE_KEY' | 'MICROSOFT_CERT_PRIVATE_KEY_FILE'>, ctx: z.RefinementCtx): void {
+  const certificate = !!env.MICROSOFT_CERT_THUMBPRINT && !!(env.MICROSOFT_CERT_PRIVATE_KEY || env.MICROSOFT_CERT_PRIVATE_KEY_FILE);
+  if (env.MICROSOFT_CLIENT_SECRET && (env.MICROSOFT_CERT_THUMBPRINT || env.MICROSOFT_CERT_PRIVATE_KEY || env.MICROSOFT_CERT_PRIVATE_KEY_FILE)) {
+    ctx.addIssue({ code: 'custom', path: ['MICROSOFT_CLIENT_SECRET'], message: 'use either a client secret or a certificate, not both' });
+  }
+  if (!env.MICROSOFT_CLIENT_SECRET && !certificate) {
+    ctx.addIssue({ code: 'custom', path: ['MICROSOFT_CLIENT_SECRET'], message: 'set MICROSOFT_CLIENT_SECRET, or MICROSOFT_CERT_THUMBPRINT with MICROSOFT_CERT_PRIVATE_KEY(_FILE)' });
+  }
+}
 
 /** Settings that only make sense while developing or testing are refused in production. */
 function forbidDevelopmentSettings(env: Pick<Env, 'SIGN_IN_RATE_LIMIT' | 'SEED_DEMO_ORG' | 'SEED_ADMIN_TOTP_SECRET'>, ctx: z.RefinementCtx): void {

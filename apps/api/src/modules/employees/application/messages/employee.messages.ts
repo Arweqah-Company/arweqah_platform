@@ -7,5 +7,6 @@ export const EMPLOYEE_AUDIT = {
   terminated: 'employee.terminated',
   rolesChanged: 'employee.roles.changed',
   invited: 'employee.invited',
+  profileUpdated: 'profile.updated',
   deactivatedContractEnded: 'employee.deactivated.contract_ended',
 } as const;

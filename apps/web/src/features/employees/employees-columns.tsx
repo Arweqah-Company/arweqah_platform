@@ -16,7 +16,7 @@ export function useEmployeeColumns() {
 
   const columns: Column<EmployeeListItemDto>[] = [
     { id: 'number', header: t('fields.employeeNumber'), cell: (e) => <span dir="ltr">{e.employeeNumber}</span> },
-    { id: 'name', header: t('fields.fullName'), cell: (e) => <Link className="font-medium text-petrol-800 underline-offset-4 hover:underline" to={`/employees/${e.id}`}>{e.fullName}</Link> },
+    { id: 'name', header: t('fields.fullName'), cell: (e) => <Link className="font-medium text-link underline-offset-4 hover:underline" to={`/employees/${e.id}`}>{e.fullName}</Link> },
     { id: 'company', header: t('fields.companyId'), cell: (e) => (ar ? e.company.nameAr : e.company.nameEn) },
     { id: 'unit', header: t('fields.orgNodeId'), cell: (e) => unit(e) ?? dash },
     { id: 'title', header: t('fields.jobTitleId'), cell: (e) => title(e) ?? dash },

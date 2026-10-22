@@ -27,7 +27,8 @@
     "test:e2e:api": "turbo run build --filter=@arweqah-platform/shared && npm run test:e2e -w @arweqah-platform/api",
     "test:e2e:web": "turbo run build --filter=@arweqah-platform/api --filter=@arweqah-platform/web && npm run e2e -w @arweqah-platform/e2e",
     "architecture:check": "node scripts/architecture-check.mjs",
-    "verify": "bash scripts/verify.sh"
+    "verify": "bash scripts/verify.sh",
+    "microsoft:check": "node scripts/check-microsoft.mjs"
   },
   "devDependencies": {
     "jscpd": "5.4.0",

@@ -24,6 +24,8 @@ COPY --from=builder --chown=node:node /repo/packages ./packages
 COPY --from=builder --chown=node:node /repo/apps/api/package.json ./apps/api/
 COPY --from=builder --chown=node:node /repo/apps/api/dist ./apps/api/dist
 WORKDIR /repo/apps/api
+# Uploaded files (FILE_STORAGE=local) live in a volume mounted here; created first so the volume is writable by `node`.
+RUN mkdir -p /data/storage && chown node:node /data/storage
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \

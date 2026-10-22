@@ -43,7 +43,7 @@ function TitlesList({ node, onAdd, onDelete }: { node: OrgNodeDto; onAdd: () => 
         {node.jobTitles.map((j) => (
           <li key={j.id} className="flex items-center justify-between gap-2 text-sm">
             <span>{ar ? j.nameAr : j.nameEn} <span className="text-xs text-muted" dir="ltr">({j.employeesCount})</span></span>
-            <Can permission={CorePermission.OrgManage}><Button size="sm" variant="ghost" className="text-danger-700" onClick={() => onDelete(j.id)}>{tc('actions.delete')}</Button></Can>
+            <Can permission={CorePermission.OrgManage}><Button size="sm" variant="ghost" className="text-danger-text" onClick={() => onDelete(j.id)}>{tc('actions.delete')}</Button></Can>
           </li>
         ))}
       </ul>

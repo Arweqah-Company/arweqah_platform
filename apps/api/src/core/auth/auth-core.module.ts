@@ -2,13 +2,16 @@ import { Global, Module, OnModuleDestroy, Inject } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Pool } from 'pg';
 import { AppConfig } from '../../config/app-config.service';
+import { AccountPreferencesService } from './application/account-preferences.service';
 import { AuthenticatorService } from './application/authenticator.service';
 import { IdentityProvider } from './application/identity-provider';
 import { InvitationService } from './application/invitation.service';
+import { AccountPreferencesRepository } from './domain/account-preferences.repository';
 import { AuthenticatorRepository } from './domain/authenticator.repository';
 import { PgAuthLifecycle } from './infrastructure/auth-lifecycle';
 import { createBetterAuth } from './infrastructure/better-auth.factory';
 import { BetterAuthIdentityProvider } from './infrastructure/better-auth.identity-provider';
+import { TypeOrmAccountPreferencesRepository } from './infrastructure/typeorm-account-preferences.repository';
 import { TypeOrmAuthenticatorRepository } from './infrastructure/typeorm-authenticator.repository';
 import { MfaController } from './presentation/mfa.controller';
 import { AUTH_DB_POOL, BETTER_AUTH } from './infrastructure/tokens';
@@ -32,6 +35,8 @@ import { AUTH_DB_POOL, BETTER_AUTH } from './infrastructure/tokens';
         }),
     },
     { provide: AuthenticatorRepository, useClass: TypeOrmAuthenticatorRepository },
+    { provide: AccountPreferencesRepository, useClass: TypeOrmAccountPreferencesRepository },
+    AccountPreferencesService,
     AuthenticatorService,
     InvitationService,
     {
@@ -43,7 +48,7 @@ import { AUTH_DB_POOL, BETTER_AUTH } from './infrastructure/tokens';
     { provide: IdentityProvider, useClass: BetterAuthIdentityProvider },
   ],
   controllers: [MfaController],
-  exports: [BETTER_AUTH, IdentityProvider, AuthenticatorService, InvitationService],
+  exports: [BETTER_AUTH, IdentityProvider, AuthenticatorService, InvitationService, AccountPreferencesService],
 })
 export class AuthCoreModule implements OnModuleDestroy {
   constructor(@Inject(AUTH_DB_POOL) private readonly pool: Pool) {}

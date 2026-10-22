@@ -109,7 +109,7 @@ function CodeStep({ email, firstTime, error, code, busy, onCode, onSubmit, onBac
       {firstTime && <Alert tone="info">{t('firstTimeSent')}</Alert>}
       {error && <Alert>{error}</Alert>}
       <div className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-ink" id="code-label">{t('code')}</span>
+        <span className="text-sm font-medium text-fg" id="code-label">{t('code')}</span>
         <CodeInput label={t('code')} value={code} onChange={onCode} onComplete={(full) => onSubmit(undefined, full)} invalid={!!error} disabled={busy} />
         <p className="text-xs text-muted">{t('codeHint')}</p>
       </div>

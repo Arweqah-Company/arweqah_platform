@@ -89,5 +89,27 @@
     "deleteTitleTitle": "Delete the job title?",
     "deleteTitleBody": "A title with employees, or the last title of a unit, cannot be deleted.",
     "titleDeleted": "Job title deleted."
+  },
+  "chart": {
+    "company": "Company",
+    "counts": "{{units}} units · {{employees}} employees",
+    "nodeCounts": "{{employees}} employees · {{units}} units",
+    "searchLabel": "Search the chart",
+    "searchPlaceholder": "Find a unit in the chart",
+    "openAll": "Open all",
+    "closeAll": "Close all",
+    "label": "Organization chart of {{company}}",
+    "legend": "Colors of the structure levels"
+  },
+  "table": {
+    "title": "Units ({{count}})",
+    "name": "Unit",
+    "path": "Path",
+    "searchLabel": "Search units",
+    "searchPlaceholder": "Search by name, path or manager",
+    "withEmployees": "Has employees",
+    "withoutEmployees": "No employees",
+    "withManager": "Has a manager",
+    "withoutManager": "No manager"
   }
 }

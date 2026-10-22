@@ -67,6 +67,19 @@
   --color-danger-700: #b3261e; /* no red in the brand palette */
   --color-danger-50: #fbe7e5;
 
+  /*
+   * Semantic colors: what changes between the light and the dark theme. Components use these for text, links and the
+   * primary action; surfaces keep their names (white, neutral-*, *-50) and are re-pointed below for the dark theme.
+   */
+  --color-fg: #0c2028; /* body text: 16.3:1 on white */
+  --color-link: #00415b; /* links, selected items, secondary buttons */
+  --color-primary: #0c2028; /* the primary button */
+  --color-on-primary: #fffcee;
+  --color-primary-hover: #16303b;
+  --color-success: #245a39; /* text on green tints */
+  --color-warning: #9c4a18; /* text on orange tints */
+  --color-danger-text: #b3261e; /* text on red tints and surfaces */
+
   --font-sans: 'Tajawal', system-ui, 'Segoe UI', Tahoma, sans-serif;
   --font-heading: 'Tajawal', system-ui, 'Segoe UI', Tahoma, sans-serif;
   --font-latin: 'Tajawal', system-ui, sans-serif;
@@ -89,7 +102,7 @@
 }
 
 body {
-  @apply bg-cream text-ink font-sans antialiased;
+  @apply bg-neutral-50 text-fg font-sans antialiased;
 }
 
 h1,
@@ -99,7 +112,7 @@ h3 {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-petrol-800);
+  outline: 2px solid var(--color-link);
   outline-offset: 2px;
 }
 
@@ -115,4 +128,102 @@ h3 {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
   }
+}
+
+/*
+ * Org chart connectors (shared/ui/tree-chart.tsx): one box per node, lines drawn with borders so the chart
+ * needs no canvas. The chart is laid out left to right; the component reverses the order for Arabic.
+ */
+.org-chart {
+  --org-line: var(--color-neutral-500);
+  --org-gap: 28px;
+}
+.org-chart ul {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--org-gap);
+  position: relative;
+}
+.org-chart li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--org-gap) 8px 0;
+}
+.org-chart li::before,
+.org-chart li::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 50%;
+  width: 50%;
+  height: var(--org-gap);
+  border-top: 2px solid var(--org-line);
+}
+.org-chart li::after {
+  right: auto;
+  left: 50%;
+  border-left: 2px solid var(--org-line);
+}
+.org-chart li:only-child::before,
+.org-chart li:only-child::after {
+  display: none;
+}
+.org-chart li:only-child {
+  padding-top: 0;
+}
+.org-chart li:first-child::before,
+.org-chart li:last-child::after {
+  border: 0;
+}
+.org-chart li:last-child::before {
+  border-right: 2px solid var(--org-line);
+  border-radius: 0 10px 0 0;
+}
+.org-chart li:first-child::after {
+  border-radius: 10px 0 0 0;
+}
+.org-chart ul ul::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: var(--org-gap);
+  border-left: 2px solid var(--org-line);
+}
+.org-chart > ul {
+  padding-top: 0;
+}
+
+/*
+ * Dark theme (data-theme="dark" on <html>, set by core/theme). Same brand hues on dark surfaces: surfaces and text swap,
+ * the primary button inverts, tints become deep versions of their hue. Contrast measured: text 14.9:1, muted 7.8:1,
+ * links 8.9:1, control borders 4.0:1 on the surface.
+ */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-white: #111f27; /* panels, cards, dialogs */
+  --color-neutral-50: #0a151b; /* page and soft fills */
+  --color-neutral-200: #243742;
+  --color-neutral-500: #6b7f8b;
+  --color-neutral-700: #a1b1ba;
+  --color-muted: #a4b3bb;
+  --color-beige-100: #1a2830;
+  --color-petrol-50: #123140;
+  --color-green-50: #12301f;
+  --color-yellow-50: #3b3112;
+  --color-danger-50: #3d1b19;
+  --color-orange-50: #3b2615;
+  --color-fg: #f4f1e6;
+  --color-link: #8cc4df;
+  --color-primary: #fffcee;
+  --color-on-primary: #0c2028;
+  --color-primary-hover: #e9e4d2;
+  --color-success: #8fd3a8;
+  --color-warning: #ffb784;
+  --color-danger-text: #ff9a92;
+}
+:root[data-theme='dark'] :focus-visible {
+  outline-color: var(--color-yellow-300);
 }

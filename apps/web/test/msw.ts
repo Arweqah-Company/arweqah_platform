@@ -7,6 +7,7 @@ export const me = (permissions: MeDto['permissions'] = []): MeDto => ({
   name: 'سارة أحمد',
   email: 'sara@arweqah.sa',
   locale: 'ar',
+  theme: 'system',
   isActive: true,
   authenticatorEnabled: true,
   mfaVerified: true,

@@ -31,6 +31,10 @@ export class TypeOrmEmployeeRepository extends EmployeeRepository {
     return this.repo.findOne({ where: { id } });
   }
 
+  findByUserId(userId: string): Promise<Employee | null> {
+    return this.repo.findOne({ where: { userId } });
+  }
+
   async list(query: EmployeesQuery, scope: ScopeFilter): Promise<{ items: Employee[]; total: number }> {
     const qb = this.repo.createQueryBuilder('e').orderBy('e.full_name', 'ASC').addOrderBy('e.id', 'ASC').skip((query.page - 1) * query.pageSize).take(query.pageSize);
     applyScope(qb, scope, { owner: 'e.user_id', company: 'e.company_id', orgNode: 'e.org_node_id' });

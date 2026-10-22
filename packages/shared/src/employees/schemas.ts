@@ -158,6 +158,21 @@ export const terminateEmployeeSchema = z
   });
 export type TerminateEmployeeInput = z.infer<typeof terminateEmployeeSchema>;
 
+/**
+ * What a person may change about themselves: the interface language and theme, and three contact details. Everything
+ * else (name, number, placement, contract, salary, documents) belongs to HR. Every field is optional; only those sent change.
+ */
+export const ownProfileSchema = z
+  .strictObject({
+    locale: z.enum(['ar', 'en']),
+    theme: z.enum(['light', 'dark', 'system']),
+    personalPhone: employeeShape.personalPhone,
+    personalEmail: employeeShape.personalEmail,
+    fullNameEn: employeeShape.fullNameEn,
+  })
+  .partial();
+export type OwnProfileInput = z.infer<typeof ownProfileSchema>;
+
 export const EMPLOYEE_STATUSES = ['active', 'inactive', 'needs-placement'] as const;
 export const employeesQuerySchema = paginationQuerySchema.extend({
   companyId: z.uuid().optional(),
@@ -262,6 +277,12 @@ export interface EmployeeListItemDto {
 }
 
 export type EmployeesPage = Paginated<EmployeeListItemDto>;
+
+/** The signed-in person's own page: their preferences and, when they have one, their employee record (sensitive fields always hidden). */
+export interface OwnProfileDto {
+  preferences: { locale: 'ar' | 'en'; theme: 'light' | 'dark' | 'system' };
+  employee: EmployeeDto | null;
+}
 
 /** Counts for the home dashboard, limited to the employees the viewer may see. */
 export interface EmployeesSummaryDto {

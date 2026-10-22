@@ -23,7 +23,7 @@ export function Dialog({ open, onOpenChange, title, description, children }: Dia
               <RadixDialog.Title className="font-heading text-lg font-bold">{title}</RadixDialog.Title>
               {description && <RadixDialog.Description className="mt-1 text-sm text-muted">{description}</RadixDialog.Description>}
             </div>
-            <RadixDialog.Close className="grid size-9 shrink-0 place-items-center rounded-[var(--radius-control)] border border-neutral-200 text-ink transition-colors hover:bg-neutral-50" aria-label={t('actions.close')}>
+            <RadixDialog.Close className="grid size-9 shrink-0 place-items-center rounded-[var(--radius-control)] border border-neutral-200 text-fg transition-colors hover:bg-neutral-50" aria-label={t('actions.close')}>
               <X className="size-4" />
             </RadixDialog.Close>
           </div>

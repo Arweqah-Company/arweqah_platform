@@ -8,7 +8,7 @@ import { BrandLogo } from '@/shared/ui';
 function Backdrop() {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-      <svg className="absolute start-10 top-24 hidden h-56 w-16 text-petrol-800 sm:block" viewBox="0 0 64 224" fill="currentColor">
+      <svg className="absolute start-10 top-24 hidden h-56 w-16 text-link sm:block" viewBox="0 0 64 224" fill="currentColor">
         {[0, 1, 2, 3, 4, 5].map((row) => (
           <g key={row}>
             <rect x="0" y={row * 38} width="10" height="26" rx="2" />
@@ -45,7 +45,7 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
         </button>
       </header>
       <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-8">
-        <div className="animate-fade-in w-full max-w-md rounded-3xl bg-white p-8 text-ink shadow-2xl shadow-black/30 sm:p-10">
+        <div className="animate-fade-in w-full max-w-md rounded-3xl bg-white p-8 text-fg shadow-2xl shadow-black/30 sm:p-10">
           <BrandLogo layout="horizontal" width={176} className="mb-8" />
           <h1 className="text-2xl font-bold">{title}</h1>
           <p className="mt-1.5 text-sm text-muted">{subtitle}</p>

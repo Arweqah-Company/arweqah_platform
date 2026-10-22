@@ -6,6 +6,7 @@ import type { EmployeeValues } from '../types/employee.types';
 
 export abstract class EmployeeRepository {
   abstract findById(id: string): Promise<Employee | null>;
+  abstract findByUserId(userId: string): Promise<Employee | null>;
   abstract list(query: EmployeesQuery, scope: ScopeFilter): Promise<{ items: Employee[]; total: number }>;
   /** Whether each account may sign in, by user id. */
   abstract activeStates(userIds: string[]): Promise<Map<string, boolean>>;

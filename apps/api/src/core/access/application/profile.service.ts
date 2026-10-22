@@ -24,6 +24,7 @@ export class ProfileService {
       name: user.name,
       email: user.email,
       locale: user.locale,
+      theme: user.theme,
       isActive: user.isActive,
       authenticatorEnabled: await this.authenticator.isEnabled(user.id),
       mfaVerified: session.mfaVerified,

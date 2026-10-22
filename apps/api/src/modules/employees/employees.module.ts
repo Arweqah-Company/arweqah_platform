@@ -7,6 +7,7 @@ import { OrgModule } from '../org/org.module';
 import { EmployeeTransformer } from './application/transformers/employee.transformer';
 import { EmployeeLifecycleJob } from './infrastructure/jobs/employee-lifecycle.job';
 import { EmployeeValidationService } from './application/services/employee-validation.service';
+import { EmployeeProfileService } from './application/services/employee-profile.service';
 import { EmployeesService } from './application/services/employees.service';
 import { Employee } from './domain/entities/employee.entity';
 import { EMPLOYEE_PERMISSIONS } from './domain/permissions/employee.permissions';
@@ -14,6 +15,7 @@ import { EmployeeRepository } from './domain/contracts/employee.repository';
 import { EmployeePlacementAdapter } from './infrastructure/adapters/employee-placement.adapter';
 import { TypeOrmEmployeeRepository } from './infrastructure/repositories/typeorm-employee.repository';
 import { EmployeesController } from './presentation/controllers/employees.controller';
+import { ProfileController } from './presentation/controllers/profile.controller';
 
 /**
  * Global so the org module can use EmployeePlacementPort without importing this module
@@ -22,9 +24,10 @@ import { EmployeesController } from './presentation/controllers/employees.contro
 @Global()
 @Module({
   imports: [TypeOrmModule.forFeature([Employee]), OrgModule, LookupsModule],
-  controllers: [EmployeesController],
+  controllers: [EmployeesController, ProfileController],
   providers: [
     EmployeesService,
+    EmployeeProfileService,
     EmployeeValidationService,
     EmployeeTransformer,
     EmployeeLifecycleJob,

@@ -9,7 +9,7 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const SRC = join(ROOT, 'apps/web/src');
 const THEME = join(SRC, 'core/theme.css');
 
-const BRAND = ['cream', 'white', 'green', 'ink', 'orange', 'beige', 'neutral', 'petrol', 'yellow', 'danger', 'muted'];
+const BRAND = ['cream', 'white', 'fg', 'link', 'primary', 'success', 'warning', 'green', 'ink', 'orange', 'beige', 'neutral', 'petrol', 'yellow', 'danger', 'muted'];
 const COLOR_UTILITY = /\b(?:bg|text|border|ring|outline|fill|stroke|from|via|to|divide|placeholder|accent|caret|decoration|shadow)-([a-z]+)(?:-\d{2,3})?(?:\/\d+)?\b/g;
 const NON_COLOR_WORDS = new Set([
   'xs', 'sm', 'md', 'lg', 'xl', 'base', 'left', 'right', 'center', 'start', 'end', 'top', 'bottom', 'none', 'auto', 'clip', 'ellipsis',

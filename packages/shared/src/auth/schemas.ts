@@ -31,12 +31,17 @@ export interface BackupCodesDto {
   backupCodes: string[];
 }
 
+export const THEMES = ['light', 'dark', 'system'] as const;
+export type Theme = (typeof THEMES)[number];
+
 /** The signed-in user as returned by GET /api/me. */
 export interface UserDto {
   id: string;
   name: string;
   email: string;
   locale: 'ar' | 'en';
+  /** The interface theme the person chose; "system" follows the device. */
+  theme: Theme;
   isActive: boolean;
   /** An authenticator app is linked to this account. */
   authenticatorEnabled: boolean;

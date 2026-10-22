@@ -32,7 +32,7 @@ export function AppSidebar({ items, open, collapsed, onToggleCollapsed, onNaviga
         <BrandLogo tone="white" layout="horizontal" width={150} decorative className={cn(collapsed && 'lg:hidden')} />
         <button
           type="button"
-          className={cn('hidden size-9 shrink-0 place-items-center rounded-full bg-white text-ink transition-transform duration-150 hover:scale-105 lg:grid', !collapsed && 'ms-auto')}
+          className={cn('hidden size-9 shrink-0 place-items-center rounded-full bg-cream text-ink transition-transform duration-150 hover:scale-105 lg:grid', !collapsed && 'ms-auto')}
           aria-label={t(collapsed ? 'nav.expand' : 'nav.collapse')}
           aria-expanded={!collapsed}
           onClick={onToggleCollapsed}
@@ -41,7 +41,7 @@ export function AppSidebar({ items, open, collapsed, onToggleCollapsed, onNaviga
         </button>
       </div>
       <nav aria-label={t('appName')} className="flex-1 px-3 py-5">
-        <p className={cn('mb-3 px-3 text-xs text-neutral-200/80', collapsed && 'lg:sr-only')}>{t('nav.sections')}</p>
+        <p className={cn('mb-3 px-3 text-xs text-cream/70', collapsed && 'lg:sr-only')}>{t('nav.sections')}</p>
         <SidebarNav items={items} collapsed={collapsed} onNavigate={onNavigate} />
       </nav>
       <div className="border-t border-cream/10 p-3 lg:hidden">

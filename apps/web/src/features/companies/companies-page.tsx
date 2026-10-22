@@ -77,7 +77,7 @@ export function CompaniesPage() {
             cell: (c) => (
               <Can permission={CorePermission.CompaniesManage}>
                 <Button size="sm" variant="ghost" onClick={() => setEditing({ company: c })}>{tc('actions.edit')}</Button>
-                <Button size="sm" variant="ghost" className="text-danger-700" onClick={() => setDeleting(c)}>{tc('actions.delete')}</Button>
+                <Button size="sm" variant="ghost" className="text-danger-text" onClick={() => setDeleting(c)}>{tc('actions.delete')}</Button>
               </Can>
             ),
           },

@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth';
 import type { Pool } from 'pg';
 import type { AppConfig } from '../../../config/app-config.service';
 import type { AuthLifecycle } from '../application/identity-provider';
+import { createMicrosoftCertificateAssertion } from './microsoft-certificate-assertion';
 import { totpSignIn, type TotpSignInDeps } from './totp-sign-in.plugin';
 
 const TWELVE_HOURS = 60 * 60 * 12;
@@ -27,7 +28,9 @@ export function createBetterAuth(config: AppConfig, pool: Pool, lifecycle: AuthL
       ? {
           microsoft: {
             clientId: microsoft.clientId,
-            clientSecret: microsoft.clientSecret,
+            ...(microsoft.credential.kind === 'secret'
+              ? { clientSecret: microsoft.credential.secret }
+              : { clientAssertion: createMicrosoftCertificateAssertion(microsoft.credential) }),
             // Company tenant only (validated at boot); unknown accounts are refused.
             tenantId: microsoft.tenantId,
             disableSignUp: true,

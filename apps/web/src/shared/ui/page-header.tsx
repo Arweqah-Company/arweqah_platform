@@ -10,7 +10,7 @@ function Breadcrumb({ current }: { current: string }) {
     <nav aria-label={t('nav.breadcrumb')} className="mb-2">
       <ol className="flex items-center gap-2 text-sm text-muted">
         <li>
-          <Link to="/" className="grid size-6 place-items-center rounded-md text-petrol-800 transition-colors hover:bg-petrol-50" aria-label={t('nav.home')}>
+          <Link to="/" className="grid size-6 place-items-center rounded-md text-link transition-colors hover:bg-petrol-50" aria-label={t('nav.home')}>
             <Home className="size-4" aria-hidden />
           </Link>
         </li>
@@ -27,7 +27,7 @@ export function PageHeader({ title, description, actions }: { title: string; des
       <Breadcrumb current={title} />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-ink">{title}</h1>
+          <h1 className="text-2xl font-bold text-fg">{title}</h1>
           {description && <p className="mt-1 max-w-[70ch] text-sm text-muted">{description}</p>}
         </div>
         {actions && <div className="flex gap-2">{actions}</div>}

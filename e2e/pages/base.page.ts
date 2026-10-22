@@ -13,6 +13,8 @@ export abstract class BasePage {
 
   /** On a phone the sidebar is a drawer behind the menu button. */
   async openDrawerIfPhone(): Promise<void> {
+    // The shell appears after the session loads; only then can we tell a phone (menu button) from a computer.
+    await this.page.locator('#main').waitFor();
     const menu = this.page.getByRole('button', { name: 'القائمة', exact: true });
     if (await menu.isVisible()) await menu.click();
   }

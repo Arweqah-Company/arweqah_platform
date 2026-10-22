@@ -44,7 +44,7 @@ export function PickStep({ columns, checking, error, onTemplate, onFile }: PickP
         <p className="text-xs text-muted">{columns.filter((c) => c.required).map((c) => c.header).join(' · ')} *</p>
       </div>
       <label className="flex min-h-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-neutral-500 text-sm hover:bg-neutral-50">
-        <FileSpreadsheet className="size-6 text-petrol-800" aria-hidden />
+        <FileSpreadsheet className="size-6 text-link" aria-hidden />
         {checking ? t('dataExchange.checking') : t('dataExchange.chooseFile')}
         <span className="text-xs text-muted">{t('dataExchange.fileHint', { rows: MAX_IMPORT_ROWS, mb: MAX_IMPORT_BYTES / 1024 / 1024 })}</span>
         <input type="file" className="sr-only" accept=".xlsx,.csv" disabled={checking} onChange={(e) => { const file = e.target.files?.[0]; if (file) onFile(file); e.target.value = ''; }} />

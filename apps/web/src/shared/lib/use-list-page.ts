@@ -30,10 +30,11 @@ export function useListPage(id: string) {
     filters,
     /** True when the list is narrowed by a search or a filter. */
     narrowed: term !== '' || Object.keys(filters.values).length > 0,
-    toolbar: (search_: { label: string; placeholder?: string; dir?: 'ltr' }, fields: FilterField[]) => ({
+    /** `withView: false` leaves out the table / cards switch (a list that has its own views). */
+    toolbar: (search_: { label: string; placeholder?: string; dir?: 'ltr' }, fields: FilterField[], withView = true) => ({
       search: { value: search, onChange: setSearch, ...search_ },
       filters: { fields, values: filters.values, onChange: filters.set },
-      view: { value: view, onChange: setView },
+      view: withView ? { value: view, onChange: setView } : undefined,
     }),
   };
 }

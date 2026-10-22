@@ -56,7 +56,7 @@ function VerifyForm() {
       )}
       <Button type="submit" disabled={step.busy || step.code.length < 6}>{t('verify.submit')}</Button>
       <div className="flex items-center justify-between text-sm">
-        <button type="button" className="text-petrol-800 underline underline-offset-4" onClick={toggle}>{useBackup ? t('verify.useApp') : t('verify.useBackup')}</button>
+        <button type="button" className="text-link underline underline-offset-4" onClick={toggle}>{useBackup ? t('verify.useApp') : t('verify.useBackup')}</button>
         <button type="button" className="text-muted underline underline-offset-4" onClick={() => void signOut()}>{t('verify.signOut')}</button>
       </div>
     </form>

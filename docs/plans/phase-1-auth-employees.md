@@ -1,6 +1,6 @@
 # خطة المرحلة 1 — الهوية والمصادقة والموظفون والهيكل التنظيمي
 
-> الحالة: **مسودة (نسخة 5) تنتظر موافقتك**. لم يُكتب أي كود منها. أي تعديل تطلبه على هذا الملف أطبّقه قبل البدء.
+> الحالة: **نُفِّذت المرحلة (2026-10-21 → 2026-10-22)** وهذا الملف يعكس ما بُني فعلًا. الأقسام 1–11 محدّثة لتطابق الكود، وما قبل التنفيذ من تغييرات النسخ 2–5 أدناه تاريخ للقرارات. التفاصيل اليومية في «12. سجل التنفيذ». **المتبقي:** تسجيل تطبيق Entra لتجربة Microsoft فعليًا (الدليل والفحص جاهزان، والتنفيذ خطوة المالك/IT)، اختيار مزوّد SMS، اختبار مكوّن لحوار أثر الهيكل، واعتماد مالك الهوية للظلال المشتقة (سؤال 15).
 > تغييرات النسخة 2: (1) الدخول **بدون كلمة مرور** نهائيًا: بريد + رمز تطبيق المصادقة، أو زر Microsoft. (2) الهيكل التنظيمي يُبنى بفورمات: فورم تقسيمات الهيكل أولًا ثم فورم إضافة وحدة تحت أي تقسيم.
 > تغييرات النسخة 3 (بناءً على ردك): (3) **تفعيل تطبيق المصادقة إلزامي لكل مستخدم** بلا استثناء ولا خيار حسب الدور. (4) كل موظف يُنشأ له حساب دخول. (5) التقسيمات ديناميكية بالكامل، والترتيب الافتراضي من seeder: قطاع ← إدارة ← قسم ← وحدة، وقابل للتغيير. (6) **المسميات الوظيفية تحت الوحدات إلزامية**.
 > تغييرات النسخة 4: (7) **الرمز مطلوب في كل عملية دخول** حتى بعد Microsoft. (8) تغيير التقسيمات مع وجود وحدات مسموح، **بعد تحذير يعرض البيانات المتأثرة وتأكيد المستخدم**. (9) قالب تقسيمات **واحد** لكل الشركات حاليًا. (10) **10 شركات افتراضية** من الـ seeder.
@@ -22,12 +22,19 @@
 | 3 | الموظفون | الأدمن يضيف ويعدل الموظفين من الداشبورد بفورم الـ 40 حقل. |
 | 4 | الشركات والهيكل | شركات متعددة. التقسيمات **ديناميكية** وتُبنى بفورمات: **فورم تقسيمات الهيكل** (الافتراضي من seeder: قطاع ← إدارة ← قسم ← وحدة، وقابل للتغيير)، ثم **فورم إضافة وحدة** تحت أي تقسيم. **المسميات الوظيفية تحت الوحدات إلزامية**. |
 | 5 | جداول الاختيارات (lookups) | 13 جدول مترجم عربي/إنجليزي، 8 منها بـ seeder و5 لها شاشات إدارة. |
-| 6 | الأدوار والصلاحيات | شاشة بناء الأدوار (حُذفت من الواجهة في التنظيف الأخير وستعود هنا)، وربط الأدوار بالموظفين. |
+| 6 | الأدوار والصلاحيات | شاشة بناء الأدوار وربط الأدوار بالموظفين ✅. |
 | 7 | الأمان | تفعيل تطبيق المصادقة (دعوة)، رموز احتياطية، حماية من التخمين (قفل مؤقت)، إنهاء الجلسات عند التعطيل، سجل التدقيق. لا توجد كلمات مرور في النظام. |
-| 8 | واجهة الداشبورد | صفحة الدخول، الرئيسية، الموظفون، الهيكل، الشركات، الأدوار، التدقيق، الملف الشخصي. |
+| 8 | واجهة الداشبورد | صفحة الدخول (خطوتان)، الرئيسية، الموظفون، الهيكل (مخطط أو جدول)، الشركات، الأدوار، التدقيق، سجل البريد، الإشعارات، الأمان، وصفحات 401/403/404 ✅. |
+| 9 | القوائم الموحدة | كل جدول فيه بحث، فلاتر على كل خاصية قابلة للتصفية، ومفتاح جدول/بطاقات (FR-27) ✅. |
+| 10 | التصدير والاستيراد | تصدير من كل قائمة (نطاق، أعمدة، نوع ملف)، واستيراد الموظفين والشركات بقالب فيه قوائم النظام المنسدلة (FR-28، FR-29) ✅. |
+| 11 | سجل البريد المرسل | كل بريد أرسله النظام بحالته وسبب فشله، بلا نصه (FR-26) ✅. |
+| 12 | الهيكل كمخطط | مخطط بألوان المستويات، فتح/طي، بحث، تكبير، ملاءمة الشاشة (FR-31) ✅. |
+| 13 | الثيم الفاتح والداكن | زر في الشريط العلوي واختيار في الملف الشخصي (فاتح/داكن/حسب الجهاز)، يُحفظ في المتصفح وعلى الحساب، وكل الشاشات بالوضعين (FR-33) ✅. |
+| 14 | الملف الشخصي | صفحة `/profile`: يعدّل المستخدم اللغة والثيم وثلاث بيانات تواصل (الجوال الشخصي، البريد الشخصي، الاسم بالإنجليزية)، وبيانات العمل للقراءة فقط (FR-33) ✅. |
+| 15 | دخول Microsoft | الكود جاهز؛ يبقى تسجيل التطبيق في Entra: دليل `docs/microsoft-sign-in.md` وفحص `npm run microsoft:check` ⏳ (خطوة المالك/IT). |
 
 ### خارج النطاق (مراحل لاحقة)
-الحضور، الإجازات، الطلبات، المشاريع، التذاكر، المصروفات، الرواتب (نحتفظ بحقول الراتب في السجل فقط)، المزامنة مع Airtable/Sheets، استيراد الموظفين من Excel (اقتراح مرحلة لاحقة).
+الحضور، الإجازات، الطلبات، المشاريع، التذاكر، المصروفات، الرواتب (نحتفظ بحقول الراتب في السجل فقط)، المزامنة مع Airtable/Sheets. (استيراد الموظفين من Excel كان مؤجَّلًا وأُنجز في هذه المرحلة.)
 
 ---
 
@@ -72,7 +79,7 @@
 
 | الطريقة | السلوك |
 |---|---|
-| **(أ) بريد العمل + رمز تطبيق المصادقة** | الموظف يكتب بريده (`@arweqah.sa`) ورمز الـ 6 أرقام من Google/Microsoft Authenticator في نفس الصفحة، فيدخل. لا كلمة مرور ولا بريد تحقق. |
+| **(أ) بريد العمل + رمز تطبيق المصادقة** | الموظف يكتب بريده (`@arweqah.sa`) ثم رمز الـ 6 أرقام من Google/Microsoft Authenticator، فيدخل. **كما بُني: خطوتان** (البريد ثم مربعات الرمز؛ عند «متابعة» يرد `POST /mfa/identify` بأن هذا أول دخول ويرسل رابط الـ QR على البريد، وتظهر رسالة توضح الخطوات ثم مربعات الرمز). لا كلمة مرور ولا بريد تحقق. |
 | **(ب) زر «الدخول بواسطة Microsoft»** | tenant الشركة فقط، `disableSignUp`، يُربط بالموظف عبر `work_email`. غير المسجل يُرفض برسالة عامة. **بعد نجاح Microsoft يُطلب رمز التطبيق دائمًا في كل دخول** (صفحة «أدخل الرمز»)، ولا يرى المستخدم أي صفحة قبل إدخاله. إن لم يكن التطبيق مفعّلًا يُحوَّل لصفحة التفعيل أولًا. |
 | **كل دخول يطلب الرمز** | لا يوجد «تذكرني» ولا تخطي للرمز بأي طريقة. كل جلسة جديدة (بأي وسيلة) لا تعمل إلا بعد التحقق من الرمز. |
 | **تفعيل التطبيق إلزامي لكل مستخدم** | بلا استثناء ولا حسب الدور: الحارس (`PermissionsGuard`) يحجب كل المسارات (ما عدا `/me` وصفحات التفعيل والخروج) حتى يُفعَّل التطبيق. يُحذف عمود `roles.requires_two_factor` لأنه لم يعد خيارًا. |
@@ -80,14 +87,14 @@
 | تسجيل جديد | **ملغي** (لا route ولا صفحة). |
 | موظف جديد | **كل موظف يُنشأ له حساب دخول تلقائيًا** عند إضافته. يصله **بريد دعوة** برابط تفعيل صالح 72 ساعة لمرة واحدة: يمسح QR بتطبيق المصادقة ويؤكد برمز، فيصبح الدخول بالبريد + الرمز ممكنًا. أو يدخل بـ Microsoft فيُحوَّل لصفحة التفعيل الإجبارية. |
 
-**ملاحظة تقنية مهمة:** Better Auth لا يدعم «بريد + TOTP فقط» جاهزًا (إضافة `twoFactor` تتطلب خطوة أولى بكلمة مرور). الحل: **Better Auth plugin** صغير داخل المشروع (`totp-sign-in`) يتحقق من الرمز بنفس أسرار `auth_two_factors` وينشئ الجلسة عبر الـ `internalAdapter` الرسمي (نفس الكوكي HttpOnly ونفس جدول الجلسات). هذا أكثر جزء حساسية في المرحلة، وله اختبارات أمان خاصة (7 نقاط أدناه).
+**ملاحظة تقنية مهمة:** Better Auth لا يدعم «بريد + TOTP فقط» جاهزًا (إضافة `twoFactor` تتطلب خطوة أولى بكلمة مرور). الحل: **Better Auth plugin** صغير داخل المشروع (`totp-sign-in`) يتحقق من الرمز بأسرار جدول `authenticators` (مشفّرة) وينشئ الجلسة عبر الـ `internalAdapter` الرسمي (نفس الكوكي HttpOnly ونفس جدول الجلسات). هذا أكثر جزء حساسية في المرحلة، وله اختبارات أمان خاصة (7 نقاط أدناه).
 
 **كيف يُطلب الرمز بعد Microsoft:** عند نجاح Microsoft تُنشأ الجلسة لكن بعلامة «غير مُتحقَّق منها» (`auth_sessions.mfa_verified_at = NULL`). الحارس يحجب كل المسارات (عدا `/me` وإدخال الرمز وتفعيل التطبيق والخروج) حتى يُدخل المستخدم الرمز الصحيح فتُضبط العلامة. أما الدخول بالبريد + الرمز فيُنشئ الجلسة متحقَّقًا منها مباشرة. بذلك لا تكفي جلسة Microsoft وحدها أبدًا.
 
 **حماية الدخول بالرمز (لأنه 6 أرقام فقط):**
 1. رد **عام ومتطابق** سواء كان البريد غير موجود أو بدون تطبيق مصادقة أو الرمز خاطئ (لا كشف عن وجود الحساب)، وبزمن استجابة متقارب.
 2. Rate limit لكل IP ولكل بريد (5 محاولات/دقيقة).
-3. **قفل الحساب** 15 دقيقة بعد 5 محاولات فاشلة متتالية (أعمدة `failed_verification_count` و`locked_until` موجودة أصلًا في `auth_two_factors`).
+3. **قفل الحساب** 15 دقيقة بعد 5 محاولات فاشلة متتالية (أعمدة `failed_count` و`locked_until` في جدول `authenticators`).
 4. **منع إعادة استخدام** نفس الرمز في نافذته (حفظ `last_used_step`).
 5. نافذة سماح ±1 خطوة (30 ثانية) فقط.
 6. الحساب المعطل لا يدخل بأي طريقة، وتُنهى جلساته فورًا.
@@ -211,7 +218,8 @@
 
 ### 3.7 التدقيق والإشعارات
 - كل إنشاء/تعديل/تعطيل/تغيير دور/تغيير هيكل يُسجَّل بـ `AUDIT_EVENT`، مع حجب الحقول الحساسة بالاسم.
-- إشعار للموظف الجديد (بريد الدعوة)، وإشعار للمدير المباشر عند ضم موظف جديد تحته (اقتراح).
+- إشعار للموظف الجديد (بريد الدعوة). **سجل البريد:** كل رسالة (دعوة أو إشعار) تُسجَّل في `email_logs` بالمستلم والموضوع والنوع والحالة (قيد الإرسال/تم/فشل) وسبب الفشل ورد الخادم، **دون نص الرسالة** (فيها روابط تفعيل)؛ يغلّف `LoggedMailSender` الـ SMTP، وصفحة «سجل البريد» بصلاحية `notifications.email_log` (FR-26).
+- (إشعار المدير المباشر عند ضم موظف تحته بقي اقتراحًا لمرحلة لاحقة.)
 
 ---
 
@@ -224,6 +232,9 @@ erDiagram
   users ||--o| employees : "هوية الدخول"
   users ||--o{ auth_accounts : has
   users ||--o{ auth_sessions : has
+  users ||--o| authenticators : "تطبيق واحد"
+  users ||--o{ authenticator_backup_codes : holds
+  users ||--o{ enrollment_invites : "رابط تفعيل"
   users ||--o{ user_roles : holds
   roles ||--o{ user_roles : ""
   roles ||--o{ role_permissions : contains
@@ -255,7 +266,7 @@ erDiagram
 ```
 
 ### 4.2 جداول تبقى كما هي
-`users`, `auth_accounts` (لا حسابات credential بعد الآن؛ تبقى لحسابات Microsoft), `auth_sessions`, `auth_verifications`, `auth_two_factors` (+ عمود `last_used_step` الجديد)، `roles`, `role_permissions`, `user_roles`, `audit_logs`, `files`, `notifications`, `outbox_messages`, `scheduled_jobs`, `processed_messages`, `workflow_instances`, `workflow_transitions`.
+`users`, `auth_accounts` (لا حسابات credential بعد الآن؛ تبقى لحسابات Microsoft), `auth_sessions`, `auth_verifications`, `authenticators` (بدل `auth_two_factors`: السر مشفّر + `last_used_step` والقفل) و`authenticator_backup_codes` و`enrollment_invites`، `roles`, `role_permissions`, `user_roles`, `audit_logs`, `files`, `notifications`, `outbox_messages`, `scheduled_jobs`, `processed_messages`, `workflow_instances`, `workflow_transitions`.
 
 ### 4.3 جداول تُحذف
 `branches`, `departments`, `teams`, `user_placements` (يعوضها الهيكل الجديد).
@@ -286,6 +297,10 @@ erDiagram
 | `gosi_systems` | `conditions` jsonb | seeder: القديم، الجديد |
 | `termination_reasons` | `is_other` | seeder: استقالة، إنهاء، نقل، تقاعد، وفاة، أخرى |
 
+| `authenticators` · `authenticator_backup_codes` · `enrollment_invites` | سر التطبيق مشفّر، رموز احتياطية (hash)، روابط التفعيل (hash، 72 ساعة، مرة واحدة) | نتاج الدخول بلا كلمة مرور |
+| `users.theme` | `light` / `dark` / `system` (الافتراضي) | تفضيل الثيم على الحساب |
+| `email_logs` | `to_email`, `subject`, `purpose` (activation/notification/other), `status` (pending/sent/failed), `error`, `message_id`, `provider_response`, `sent_at` | سجل كل بريد مرسل (بلا النص) |
+
 > الجداول الـ 5 الديناميكية لها شاشات إدارة: `companies`, `org_levels`, `org_nodes`, `job_titles` (والموظفون). الباقي read-only في الواجهة، يتغير بـ migration/seeder.
 
 ### 4.5 جدول `employees`
@@ -311,24 +326,22 @@ erDiagram
 **Unique (جزئية `WHERE deleted_at IS NULL`):** `work_email`, `employee_number`, `(id_type_id, id_number_hash)`.
 **Indexes:** `company_id`, `org_node_id`, `manager_id`, `job_title_id`, `user_id`, `full_name` (trgm للبحث، اقتراح)، `end_date`، `id_expiry_date`.
 
-### 4.6 الـ Migrations (بالترتيب)
-1. `DropLegacyOrg` — حذف branches/departments/teams/user_placements والمفاتيح الأجنبية الراجعة لها.
-2. `LookupTables` — الجداول الـ 8 المبذورة + ترجماتها + `id_type_rules`.
-3. `CompaniesAndOrg` — companies, org_levels, org_nodes, closure, job_titles + ترجماتها.
-4. `Employees` — employees + القيود والـ indexes.
-5. `ScopesV2` — تحديث قيم `role_permissions.scope` (team→unit، department→subtree، branch→company…) ليتوافق مع النطاقات الجديدة.
-6. `PasswordlessAuth` — إضافة `auth_two_factors.last_used_step`، وإزالة أي بيانات credential متبقية (`auth_accounts` حيث `provider_id = 'credential'`)، وحذف `roles.requires_two_factor` (التفعيل إلزامي للجميع)، وإضافة `auth_sessions.mfa_verified_at` (الرمز مطلوب في كل دخول).
+### 4.6 الـ Migrations (ما نُفِّذ فعلًا، بالترتيب)
+1. `Foundation` و`AuthTables` — الأساس (المستخدمون، الجلسات، الأدوار، التدقيق، الملفات، الرسائل، سير العمل).
+2. `OrgCompaniesEmployees` — الـ lookups المترجمة وقواعد الهويات، الشركات والتقسيمات والوحدات (closure) والمسميات، `employees` بالقيود والـ indexes، وحذف جداول الفروع القديمة، وتحديث قيم نطاقات الصلاحيات.
+3. `PasswordlessAuth` — `authenticators` و`authenticator_backup_codes` و`enrollment_invites` و`auth_sessions.mfa_verified_at`، وإزالة بيانات كلمات المرور.
+4. `EmailLogs` — جدول `email_logs`.
+5. `UserTheme` — عمود `users.theme` (فاتح/داكن/حسب الجهاز، الافتراضي `system`).
 
-كل migration يُراجع SQL-ه يدويًا بعد التوليد.
+كل migration يُراجع SQL-ه يدويًا بعد التوليد، و`migration:generate` بعد أي تعديل entity يجب أن يقول «No changes» (يتحقق منه الفحص بعد إعادة هيكلة الكيانات).
 
-### 4.7 الـ Seeders
+### 4.7 الـ Seeders (كما نُفِّذت، كلها آمنة للتكرار)
 | Seeder | المحتوى | ملاحظة |
 |---|---|---|
-| `companies.seeder` | **10 شركات افتراضية** (الجدول أسفله) | upsert بالـ `code` |
-| `org-template.seeder` | قالب واحد لكل الشركات: قطاع ← إدارة ← قسم ← وحدة (`is_assignable` على «وحدة») + إنشاء تقسيمات كل شركة منه | upsert بالـ `code`؛ تُنشأ منه تقسيمات كل شركة جديدة أيضًا |
-| `lookups.seeder` | الجداول الـ 8 بالعربي والإنجليزي + قواعد الهويات | upsert بالـ `code` (آمن للتكرار) |
-| `countries.seeder` | كل الدول مع عملتها من ملف JSON ثابت داخل الريبو | لا نضيف مكتبة، الملف يُولَّد مرة واحدة |
-| `foundation.seeder` | أدوار النظام (System Admin، Employee)، الأدمن `s.magdy@arweqah.sa` في «أروقة الريادة» (بدون كلمة مرور) | يُعدَّل للهيكل الجديد؛ `SEED_ADMIN_TOTP_SECRET` للتطوير فقط |
+| `foundation.seeder` | أدوار النظام (System Admin بكل الصلاحيات، Employee)، الأدمن `s.magdy@arweqah.sa` في «أروقة الريادة» بلا كلمة مرور | `SEED_ADMIN_TOTP_SECRET` للتطوير فقط (يربط تطبيقًا بصمت فلا يظهر QR، ومرفوض في الإنتاج) |
+| `lookups.seeder` | الجداول الـ 8 بالعربي والإنجليزي + قواعد الهويات + كل الدول وعملاتها (`data/countries.data.ts` يولّده `scripts/generate-countries.mjs`) + قالب التقسيمات | upsert بالـ `code` |
+| `companies.seeder` | **10 شركات افتراضية** (الجدول أسفله) بتقسيماتها الأربعة من القالب | لا يمس شركة موجودة |
+| `org-demo.seeder` | **للتطوير فقط** (`SEED_DEMO_ORG=true`، مرفوض في الإنتاج): قطاع ← إدارتان ← قسم ← وحدة بمسميين لكل شركة بلا وحدات (70 وحدة و40 مسمى) | أسماء تجريبية عامة ومعلّمة كذلك |
 
 **الشركات الافتراضية (من وصفك).** الأسماء العربية صُحّح إملاؤها فقط (الهمزات والتاء المربوطة، مثل «أروقة» و«استدامة» و«الأثر» و«أثلاث»). **الأسماء الإنجليزية والرموز اقتراح مني (مراجعة لغوية فقط، لم تُعتمد رسميًا بعد):** بحثت عن كتابات رسمية فلم أجد مصدرًا موثوقًا للأسماء، سوى أن «Ladun» تطابق كتابة شركة سعودية مدرجة بنفس الاسم، و«Arweqah Alreyadah» من ملف README الخاص بالمشروع. تُعتمد الأسماء بموافقتك أو بإرسال الكتابة الرسمية من شعاراتكم/سجلاتكم (سؤال 13):
 
@@ -373,99 +386,87 @@ erDiagram
 
 ---
 
-## 5. الـ API
+## 5. الـ API (كما نُفِّذ)
 
-كل المسارات تحت `/api`، والرد 404 للسجل خارج النطاق، والمدخلات `z.strictObject`.
+كل المسارات تحت `/api`، والرد 404 للسجل خارج النطاق، والمدخلات `z.strictObject`، وكل ما سوى المسارات العامة 401 بلا جلسة و403 بلا صلاحية (يُكتشف تلقائيًا في اختبار الأمان).
 
 | المجموعة | المسار | الصلاحية |
 |---|---|---|
 | الدخول | `POST /auth/totp/sign-in` (بريد + رمز، plugin مخصص) · `POST /auth/sign-in/social` (Microsoft) · `POST /auth/sign-out` | عام / جلسة |
-| تفعيل تطبيق المصادقة | `GET /auth/totp/enrollment/:token` · `POST /auth/totp/enrollment/:token/confirm` · `POST /auth/totp/backup-codes` | رابط الدعوة / جلسة |
-| الملف الشخصي | `GET /me` | أي مستخدم |
-| الموظفون | `GET /employees` · `GET /employees/:id` · `POST /employees` · `PUT /employees/:id` · `POST /employees/:id/deactivate` · `POST /employees/:id/activate` · `POST /employees/:id/terminate` · `PUT /employees/:id/roles` · `POST /employees/:id/resend-invite` · `POST /employees/:id/reset-authenticator` | `employees.*` |
-| الشركات | `GET/POST/PUT /companies`, `DELETE /companies/:id` | `companies.*` |
-| الهيكل (فورمات) | `GET /org/companies/:id/tree` · `POST /org/levels/batch` (فورم 1؛ بـ `dryRun` ثم `confirmDelete` + `impactToken` عند وجود بيانات متأثرة) · `PUT/DELETE /org/levels/:id` · `POST /org/levels/copy` · `POST /org/nodes` (فورم 2، ومعه `jobTitles[]` إلزامي لو التقسيم قابل للتعيين) · `PUT/DELETE /org/nodes/:id` · `POST /org/nodes/:id/move` · `POST/PUT/DELETE /org/job-titles` (فورم 3) | `org.*` |
-| الـ lookups | `GET /lookups` (كل المبذور + الـ flags والقواعد في رد واحد) · `GET /lookups/org-nodes?companyId=` · `GET /lookups/job-titles?orgNodeId=` | `lookups.view` |
-| الأدوار | `GET/POST/PUT/DELETE /roles` · `GET /permissions/catalog` | `roles.*` (موجود) |
-| التدقيق | `GET /audit-logs` | `audit.view` (موجود) |
-| الإشعارات | موجود | — |
+| خطوة البريد | `POST /mfa/identify` — يرد `firstTime` ويرسل رابط الـ QR لأول مرة (مرة كل دقيقة للبريد) | عام |
+| تفعيل التطبيق | `GET /mfa/enrollment/:token` · `POST /mfa/enrollment/:token/confirm` (من الرابط) · `POST /mfa/enroll` · `POST /mfa/enroll/confirm` · `POST /mfa/verify` (جلسة Microsoft أو أي جلسة غير متحقَّق منها) | رابط الدعوة / جلسة |
+| الملف الشخصي | `GET /me` (يشمل `theme`) · `GET /me/profile` · `PUT /me/profile` (اللغة، الثيم، الجوال الشخصي، البريد الشخصي، الاسم بالإنجليزية فقط؛ أي حقل آخر 400) | أي مستخدم، لنفسه فقط |
+| الموظفون | `GET /employees` (بحث + 15 فلترًا: الشركة، الحالة، العلاقة، الوحدة، المسمى، العقد، الجنسية، الحالة الاجتماعية، الصفة، الجنس، نمط العمل، مدى بداية العقد، هوية/عقد ينتهي) · `GET /employees/:id` · `GET /employees/summary` · `GET /employees/managers` · `POST /employees` · `PUT /employees/:id` · `POST /employees/:id/{deactivate,activate,terminate,resend-invite,reset-authenticator}` · `PUT /employees/:id/roles` | `employees.*` |
+| الشركات | `GET/POST /companies` · `PUT/DELETE /companies/:id` | `companies.*` |
+| الهيكل | `GET /org/companies/:id/tree` · `POST /org/levels/preview` ثم `POST /org/levels` (بـ `impactToken` وقرار الموظفين) · `POST /org/levels/copy` · `POST /org/nodes` · `PUT/DELETE /org/nodes/:id` · `POST /org/nodes/:id/move` · `POST /org/nodes/:id/job-titles` · `PUT/DELETE /org/job-titles/:id` | `org.*` |
+| الـ lookups | `GET /lookups` · `/lookups/companies` · `/lookups/org-nodes?companyId=` · `/lookups/job-titles?orgNodeId=` · `/lookups/org-reference` (كل الوحدات والمسميات لقوالب الاستيراد) | `lookups.view` |
+| الأدوار | `GET/POST /roles` · `PUT/DELETE /roles/:id` · `GET /permissions/catalog` | `roles.*` |
+| التدقيق | `GET /audit-logs` (بحث، إجراء، نوع السجل، المنفّذ، تاريخ) | `audit.view` |
+| سجل البريد | `GET /email-logs` (بحث، حالة، نوع، عنوان، تاريخ) | `notifications.email_log` |
+| الإشعارات | `GET /notifications` (بحث، مقروء/غير مقروء، تاريخ) · `GET /notifications/unread-count` · `POST /notifications/read` · `POST /notifications/read-all` | المستخدم نفسه |
+| الملفات والصحة | `POST /files` · `GET /files/:id[/content]` · `GET /health` | — |
+
+كل القوائم تقبل `page` و`pageSize` (≤ 100) و`search`، وتتحقق من الفلاتر بـ zod (400 لقيمة غير صالحة).
 
 ---
 
-## 6. الملفات والـ Packages
+## 6. الملفات والـ Packages (كما بُنيت)
 
 ### 6.1 الـ API (`apps/api/src`)
+كل module بأربع طبقات، وكل طبقة مقسّمة بنوع الملف (skill `module-architecture` ويفحصها `npm run architecture:check`):
 ```
-core/
-  auth/                        (يبقى) — بدون كلمات مرور
-    application/invitation.service.ts          دعوة تفعيل تطبيق المصادقة (رابط 72 ساعة)
-    application/totp-enrollment.service.ts     QR + تأكيد + رموز احتياطية
-    infrastructure/totp-sign-in.plugin.ts      Better Auth plugin: بريد + رمز → جلسة متحقَّق منها
-    infrastructure/mfa-step-up.ts              جلسة Microsoft بعلامة mfa_verified_at + POST /auth/totp/verify
-    infrastructure/better-auth.factory.ts      emailAndPassword: off، plugin، Microsoft
-  access/
-    domain/scope.ts                            النطاقات الجديدة
-    infrastructure/scope-query.ts              + subtree عبر org_node_closure
-    application/profile.service.ts             /me (موجود)
-modules/
-  companies/{domain,application,infrastructure,presentation}
-  org/                         levels, nodes, job-titles, tree, move
-  lookups/                     قراءة المبذور + ترجمة Accept-Language
-  employees/
-    domain/employee.entity.ts, employee.permissions.ts, employee.repository.ts
-    application/employees.service.ts, employee-validator.ts, employee-sanitizer.ts
-    infrastructure/typeorm-employee.repository.ts
-    presentation/employees.controller.ts
-common/
-  domain/base-lookup.entity.ts, base-translation.entity.ts
-  infrastructure/hmac.ts                       id_number_hash
-database/
-  migrations/ (5 ملفات 4.6)  ·  seeds/lookups.seeder.ts, countries.seeder.ts, data/countries.json
+modules/<feature>/
+  domain/          entities · types · errors · contracts · rules · permissions
+  application/     services · policies · transformers · messages   (ثوابت الـ audit)
+  infrastructure/  repositories · adapters · jobs
+  presentation/    controllers · dtos
+  <feature>.module.ts
+modules/org/        companies, levels, units, job titles, tree, impact, move
+modules/employees/  الموظفون + EmployeePlacementPort (adapter) + مهمة إنهاء العقود اليومية
+modules/lookups/    الـ lookups + org-reference
+core/auth/          Better Auth، TOTP (RFC 6238)، plugin totp-sign-in، الدعوات، mfa.controller
+core/access/        النطاقات (subtree بـ org_node_closure)، CASL، PermissionsGuard، /me
+core/audit/ · core/notifications/ (قنوات + سجل البريد LoggedMailSender) · core/messaging/ · core/workflow/ · core/files/
+common/             base entities، أخطاء، FieldCipher وBlindIndex، sql-like، date-range، insert-row
+database/           entities.ts · migrations/ (4.6) · seeds/ (4.7) · run-seeder.ts
 ```
-*(الاستيراد للداخل فقط، وكل وحدة تستخدم application services للوحدة الأخرى وليس repositories.)*
+*(الاستيراد للداخل فقط، وكل module يستخدم application services للآخر وليس repositories.)*
 
 ### 6.2 الـ shared (`packages/shared/src`)
 ```
-employees/schemas.ts      createEmployeeSchema, updateEmployeeSchema (superRefine للشرطي), DTOs
-employees/validators.ts   isValidIban (mod-97), ageFrom, normalizeEmployee
-companies/schemas.ts · org/schemas.ts · lookups/schemas.ts
-auth/schemas.ts           (موجود: MeDto…)
-permissions/keys.ts       المفاتيح الجديدة + scope.ts النطاقات الجديدة
+employees/{schemas,validators}.ts   createEmployeeSchema (superRefine للشرطي)، employeesQuerySchema بالفلاتر، DTOs، isValidIban، ageFrom
+companies/ · org/ · lookups/ (OrgReferenceDto) · roles/ · audit/ · notifications/ (email-log.ts) · auth/ · files/
+permissions/{keys,scope,types}.ts   المفاتيح (منها notifications.email_log) والنطاقات الخمسة
+common/pagination.ts                page/pageSize/search، Paginated<T>
 ```
 
 ### 6.3 الويب (`apps/web/src`)
 ```
-features/
-  auth/            login-page (بريد + رمز + زر Microsoft), enroll-authenticator (من الدعوة)
-  home/            داشبورد (4.5 تصميم)
-  employees/       employees-page, employee-form (6 sections), employee-details, hooks, api, i18n
-  companies/       companies-page
-  org/             org-page (شجرة عرض)، levels-form (فورم 1)، node-form (فورم 2)، job-title-form (فورم 3)
-  roles/           roles-page, role-editor (تعود)
-  audit/           audit-page (تعود)
-  security/        security-page (تطبيق المصادقة + الرموز الاحتياطية + الجلسات)
-  notifications/   bell + page (تعود)
-shared/ui/
-  combobox.tsx (select + بحث) · tree-view.tsx · date-field.tsx · phone-field.tsx
-  section-card.tsx · stat-tile.tsx · empty-state.tsx · confirm-dialog.tsx
+app/             features.ts · router.tsx (حارس الصلاحية للمسارات) · app-layout/sidebar/header · sidebar-nav (قوائم فرعية) · route-outlet (403) · not-found / session-ended
+core/            api-client، auth/session، permissions، i18n، theme/ (ThemeProvider الفاتح/الداكن)، theme.css (tokens + الوضع الداكن + موصلات المخطط)، feature + navigation
+features/        auth · home · employees · org · companies · roles · audit · email-log · notifications · profile · security   (كل feature: index.ts + i18n/ar,en.json)
+shared/ui/       DataTable · ListToolbar (+ViewSwitch، FilterField) · SearchInput · Dialog · FormField (Input/Select/Textarea) · Combobox · Button · Alert · Badge · TreeChart · ErrorPage · EmptyState · SectionCard · StatTile · CodeInput · BrandLogo · ConfirmDialog
+shared/lib/      useListPage · useServerList · useFilters · useViewMode · usePageSize · useIsPhone · fetchAllPages · matchesText · errorMessage
+shared/data-exchange/   export-file · template · read-sheet · csv · mapping · export-dialog · import-dialog · exchange-buttons (xlsx / csv، بالمتصفح)
 ```
-تُضاف سطرًا واحدًا لكل feature في `app/features.ts`، وكل feature له `i18n/{ar,en}.json`.
 
-### 6.4 الـ Packages الجديدة
-قاعدة المشروع: آخر إصدار مستقر عمره 14 يومًا على الأقل، بنسخة مثبتة بالضبط (يُتأكد وقت التنفيذ).
+### 6.4 الـ Packages المضافة فعلًا
+قاعدة المشروع: آخر إصدار مستقر عمره 14 يومًا على الأقل، بنسخة مثبتة بالضبط.
 
 | Package | أين | لماذا |
 |---|---|---|
-| `libphonenumber-js` | shared | تحقق E.164 من الجوال (لو أكدت الصيغة الدولية، سؤال 7) |
-| `@radix-ui/react-popover` + `cmdk` | web | combobox بحث (الوحدة، المدير، الدولة) — Radix لا يوفر combobox جاهزًا |
-| `@radix-ui/react-tabs` | web | تنقل الأقسام/تبويبات التفاصيل (اختياري، إن لم نستخدم scroll-spy) |
-| `qrcode.react` | web | رسم QR لتفعيل تطبيق المصادقة (يوجد حاليًا في صفحة الأمان؟ يُتحقق، وإلا يُضاف) |
+| `@radix-ui/react-popover` + `cmdk` | web | combobox بحث (الوحدة، المدير، الدولة) ولوحة التصفية |
+| `qrcode` | web | رسم QR تفعيل تطبيق المصادقة |
+| `write-excel-file` 4.1.1 + `@onparallel/write-excel-file-data-validation` 1.0.0 | web | ملفات Excel للتصدير والقالب بقوائم منسدلة (الإضافة 1.0.0 لأن 1.0.2 أحدث من 14 يومًا) |
+| `read-excel-file` 9.3.10 | web | قراءة ملفات الاستيراد |
 
-**لا نضيف:** مكتبة آيبان (دالة mod-97 صغيرة)، ولا مكتبة دول (ملف JSON)، ولا مكتبة tree (TypeORM closure-table مدمج)، ولا مكتبة جداول (لدينا `DataTable`)، ولا react-hook-form/resolvers/zod (موجودة).
+**لم نضف:** مكتبة آيبان (دالة mod-97)، مكتبة دول (ملف مولَّد)، مكتبة tree (closure table)، مكتبة جداول (`DataTable`)، مكتبة رسم المخطط (HTML وCSS)، `exceljs` (advisory على `uuid`)، `libphonenumber-js` (تحقق الجوال بدالة صغيرة).
 
 ---
 
 ## 7. تصميم الواجهة (حسب هوية أروقة)
+
+> **تحديث بعد التنفيذ:** المرجع الحي للتصميم هو skill `arweqah-design-system` وقسم Brand في README. أهم ما تغيّر عن الرسومات أدناه: (1) سطح الداشبورد صار رماديات باردة وأبيض (الصفحة `neutral-50`، اللوحات بيضاء بحدود `neutral-200`، الزر الأساسي `ink`)، وتبقى الكريمي والبيج للدخول والبريد والطباعة؛ (2) الشريط الجانبي عائم بحواف مدورة 24px بقوائم وقوائم فرعية؛ (3) كل الحواف مدورة؛ (4) حدود الحقول فاتحة بقرار المالك (قرار 29)؛ (5) صفحة الدخول بطاقة على خلفية `ink` بخطوتين. الأقسام 7.2–7.8 أدناه تحتفظ بالتخطيط الأصلي، وتفاصيل ما بُني في 7.10–7.16.
 
 ### 7.1 مبادئ التصميم
 - **ألوان هوية أروقة الرسمية (من وصفك)، بنسبة 60% أساسية و35% ثانوية، والأصفر لا يتجاوز 5% من أي شاشة:**
@@ -529,7 +530,7 @@ shared/ui/
 │   في بريدك أو ادخل بـ Microsoft           │                          │
 └───────────────────────────────────────────┴──────────────────────────┘
 ```
-- الحقلان في نفس الصفحة (خطوة واحدة) حتى لا يكشف النظام هل البريد موجود.
+- **كما بُني: خطوتان** (بريد ثم الرمز) بدل خطوة واحدة، بطلب المالك: النظام يتعرف على أول دخول من البريد ويرسل رابط الـ QR. الكشف الوحيد «حساب نشط بلا تطبيق» وبلا إرسال لغير صاحب البريد (قرار 21).
 - **بعد زر Microsoft تظهر صفحة «أدخل الرمز» في كل مرة**، ولا يُرى أي شيء قبل إدخاله:
 ```
             التحقق من الهوية
@@ -685,9 +686,32 @@ shared/ui/
 ### 7.9 حالات الواجهة المشتركة
 فارغ (رسالة + زر إجراء)، تحميل (skeleton)، خطأ (alert + إعادة المحاولة)، لا صلاحية (404 وليس 403 للسجلات، ورسالة للصفحات)، تأكيد قبل أي إجراء مدمّر.
 
+### 7.10 القوائم الموحدة (FR-27) — كما بُنيت
+كل صفحة جدول: `PageHeader` (مسار تنقل + عنوان + الزر الأساسي) ثم لوحة `DataTable` واحدة شريطها العلوي `ListToolbar`: عنوان القائمة، **البحث**، زر **التصفية** (لوحة بحقل لكل خاصية قابلة للتصفية: قائمة، نص، تاريخ، مفتاح؛ وعدّاد؛ وشرائح للفلاتر المطبّقة تُزال فرديًا)، **الاستيراد/التصدير**، و**مفتاح جدول/بطاقات** (يُحفظ لكل قائمة، والجوال يبدأ ببطاقات). التذييل: «عرض N» (15/30/50)، أرقام الصفحات، ونطاق النتائج. القوائم الكبيرة (الموظفون، التدقيق، البريد، الإشعارات) تصفّي في الـ API، والصغيرة (الشركات، الأدوار) في المتصفح. حالة الصفحة مشتركة في `useListPage` و`useServerList`.
+
+### 7.11 التصدير والاستيراد (FR-28، FR-29) — كما بُنيا
+- **التصدير:** حوار: النطاق (صفوف الصفحة أو كل النتائج حسب البحث والتصفية الحاليين)، الأعمدة (تحديد الكل/لا شيء وعدّاد)، نوع الملف (Excel أو CSV بـ BOM للعربية). يُبنى الملف في المتصفح، حتى 10,000 صف، والنصوص التي تشبه المعادلات تُخزَّن نصًا.
+- **الاستيراد (الموظفون والشركات):** تنزيل **القالب** (ورقة «القالب» بالعناوين والمطلوب بنجمة وقوائم منسدلة، وورقة «القوائم» بكل خيارات النظام: الشركات، الوحدات بمساراتها، المسميات، الدول، الحالات، العقود…)، ثم رفع الملف (xlsx/csv، ≤1000 صف، ≤5MB)، **معاينة** بالصفوف السليمة والخاطئة (رقم الصف ورسالته)، **استيراد** ثلاثة صفوف معًا بشريط تقدم عبر نفس API النموذج (فتبقى الصلاحيات والتفرد والتدقيق في الـ API)، ثم **نتيجة** وتقرير أخطاء CSV. الخلايا تُطابق الخيار باسمه العربي أو الإنجليزي أو رمزه، والوحدة تُطابق داخل شركة الصف، والمسمى داخل الوحدة، والمدير برقمه الوظيفي. أعمدة الهوية والراتب والآيبان في القالب لمن يملك `employees.view_sensitive` فقط. سجلات النظام (التدقيق، البريد، الإشعارات) والأدوار تُصدَّر فقط.
+
+### 7.12 الهيكل التنظيمي: مخطط وجدول (FR-31) — كما بُني
+اختيار الشركة + مفتاح «مخطط/جدول» (يُحفظ، والجوال يبدأ بالجدول) وتفاصيل الوحدة المحددة بجانبه. **المخطط:** بطاقة الشركة (ink) في الجذر وتحتها الوحدات، **لون من الهوية لكل مستوى**: قطاع petrol، إدارة أخضر، قسم برتقالي، وحدة أبيض بشارة ink، وتتكرر الألوان بعد الرابع، مع شارة نصية باسم المستوى ووسيلة إيضاح (فاللون ليس الإشارة الوحيدة)؛ فتح/طي كل عقدة، **فتح الكل وطي الكل يعيدان ملاءمة المخطط للشاشة**، بحث يفتح الآباء ويظلّل النتيجة، تكبير وتصغير، سحب. موصلاته بالـ CSS فقط. **الجدول:** نفس الوحدات بالترتيب الشجري مع بحث وفلاتر (التقسيم، الحالة، الموظفون، المدير) وتصدير.
+
+### 7.13 صفحات الأخطاء (FR-30) — كما بُنيت
+مكوّن `ErrorPage` واحد لـ401 و403 و404: العنوان، سطر يشرح ما يُفعل، الأزرار، والرسم على جهة النهاية (SVG بألوان الهوية: ثلاث خانات وسطها شارة بأيقونة عدسة/قفل/مفتاح). **404** لعنوان غير موجود، **403** عند غياب صلاحية المسار (حارس يقرأ صلاحية عنصر القائمة)، **401** (`/401`) عند انتهاء جلسة مستخدم كان مسجلًا وزرّه «تسجيل الدخول»؛ الزائر بلا جلسة يذهب مباشرة للدخول.
+
+### 7.14 الرسائل والألوان (FR-32)
+`Alert` بلون المعنى مع أيقونة وخط جانبي 4px ونص داكن: **نجاح أخضر، معلومة صفراء، تحذير برتقالي، خطأ أحمر** (الخطأ `role=alert` والباقي `status`)؛ الأصفر خلفية وخط فقط وليس لون نص.
+
+### 7.15 الثيم الفاتح والداكن (FR-33) — كما بُني
+الوضعان على كل شاشات الداشبورد. المكوّنات تستخدم ألوانًا دلالية (`text-fg` للنص، `text-link` للروابط والعنصر المحدد، `bg-primary text-on-primary` للزر الأساسي، `text-success/warning/danger-text` لنص الحالات) وتوكنات الأسطح (`white` للوحات، `neutral-50` للصفحة، `neutral-200` للحدود، `neutral-500` لحدود الحقول، وتدرجات `*-50`)، و`theme.css` يعيد توجيهها تحت `html[data-theme=dark]`. الشريط الجانبي وشاشة الدخول `ink` في الوضعين. **قيم الداكن المقاسة:** السطح `#111F27`، الصفحة `#0A151B`، النص `#F4F1E6` (14.9:1)، الثانوي `#A4B3BB` (7.8:1)، الرابط `#8CC4DF` (8.9:1)، حدود الحقول `#6B7F8B` (4.0:1)، والزر الأساسي يعكس (كريمي بنص ink)، وحلقة التركيز صفراء. الاختيار: أيقونة شمس/قمر في الشريط العلوي، وفاتح/داكن/حسب الجهاز في الملف الشخصي؛ يُحفظ في `localStorage.theme` (يُطبَّق قبل أول رسم بـ `public/theme-init.js` دون وميض) وعلى الحساب (`users.theme`)، فيُطبَّق على جهاز جديد. اختُبر axe على 11 صفحة بالوضعين وPlaywright للتبديل والحفظ.
+
+### 7.16 الملف الشخصي (FR-33) — كما بُني
+صفحة `/profile` (من أيقونة المستخدم في الشريط العلوي أو من «حسابي»): **المظهر** (بطاقات الثيم الثلاث + اللغة، تُطبَّق فورًا وتُحفظ)، **بيانات التواصل** (الجوال الشخصي بصيغة دولية، البريد الشخصي، الاسم بالإنجليزية؛ تحقق بنفس schema مع رسائل تحت الحقل)، **بيانات العمل** للقراءة فقط (الرقم الوظيفي، الشركة، الوحدة، المسمى، المدير، بريد العمل، تاريخ البداية)، ورابط لصفحة الأمان. **قرار:** المالك لم يحدد الحقول القابلة للتعديل، فاخترت أصغر مجموعة آمنة (بلا قاعدة عمل)؛ الاسم والرقم والتعيين والعقد والهوية والآيبان والراتب لقسم الموارد البشرية ويُرفض أي إرسال لها بـ 400، والحقول الحساسة لا تُعاد أبدًا، والـ audit يسجل أسماء الحقول بلا قيمها. حساب بلا سجل موظف يرى المظهر فقط.
+
+
 ---
 
-## 8. خطوات التنفيذ المقترحة (بالترتيب)
+## 8. خطوات التنفيذ (نُفِّذت كلها)
 
 كل خطوة مستقلة وتنتهي بـ `lint typecheck build test` أخضر. **لا commit ولا push حتى توافق** (حسب طلبك).
 
@@ -706,22 +730,28 @@ shared/ui/
 | 9 | اختبارات e2e للـ API (FR-13…) + component + Playwright + axe | تغطية كاملة |
 | 10 | تحديث README (§4، 6، 7، 8، 12) و`docs/decisions.md` و`.env.example` | توثيق |
 
-### الاختبارات (تسمية بأرقام FR جديدة تبدأ من FR-13)
-| FR | المتطلب |
-|---|---|
-| FR-13 | دخول Microsoft للشركة فقط، ربط بالموظف المسبق، رفض غير المسجل، و**طلب الرمز في كل دخول بعد Microsoft** (الجلسة محجوبة قبله) |
-| FR-14 | الحساب الأول يُنشأ بالـ seeder ويدخل بـ Microsoft |
-| FR-15 | لا يوجد تسجيل ذاتي (route غير موجود + 404) |
-| FR-16 | دعوة الموظف وتفعيل تطبيق المصادقة (QR + تأكيد + رموز احتياطية + انتهاء الرابط واستخدامه مرة واحدة)، **وحجب كل المسارات لأي مستخدم لم يفعّل التطبيق** (بالبريد أو Microsoft) |
-| FR-17 | إنشاء موظف بالـ 40 حقل مع كل القواعد الشرطية |
-| FR-18 | تحقق الهوية بقواعد النوع والجنسية، وتفرّد النوع+الرقم |
-| FR-19 | الشركات والمستويات والوحدات والمسميات وقيود الحذف والنقل |
-| FR-20 | نطاقات الصلاحيات (own/unit/subtree/company/all) و404 خارج النطاق |
-| FR-21 | إخفاء الحقول الحساسة بدون `employees.view_sensitive` |
-| FR-22 | الترجمة عربي/إنجليزي لكل الـ lookups و`Accept-Language` |
-| FR-25 | الـ seeders: 10 شركات افتراضية بتقسيماتها من القالب الواحد، idempotent عند التكرار |
-| FR-23 | الدخول بالبريد + رمز التطبيق: نجاح، رد عام موحد للأخطاء، rate limit، قفل بعد 5 فشل، منع إعادة استخدام الرمز، رفض المعطل، لا وجود لأي route كلمة مرور |
-| FR-24 | الهيكل الديناميكي بالفورمات: القالب الافتراضي من seeder (قطاع/إدارة/قسم/وحدة)، تعديل التقسيمات وقيودها، وحدة تحت أي تقسيم (أب من المستوى السابق)، **مسمى وظيفي إلزامي لكل وحدة قابلة للتعيين**، وموظف بلا وحدة/مسمى يُرفض، و**تحذير الأثر ثم التأكيد عند تغيير التقسيمات** (dryRun، impactToken، 409 لو تغير الأثر، حذف ناعم، نقل الموظفين بمقابلة المسميات، أو مسحهم بتأكيد العدد، ورفض التأكيد بلا اختيار) |
+> الخطوات 1–10 أعلاه ✅ (الويب: الدخول، الرئيسية، الموظفون، الهيكل، الشركات، الأدوار، التدقيق، الأمان، الإشعارات). وأُضيف عليها بطلب المالك: إعادة هيكلة الـ API بالأنواع، سجل البريد، قوائم موحدة، تصدير/استيراد، مخطط الهيكل، صفحات الأخطاء، وبوابة `npm run verify`.
+
+### الاختبارات (أرقام FR التي نُفِّذت فعلًا)
+| FR | المتطلب | أين اختُبر |
+|---|---|---|
+| FR-13 | الرمز مطلوب في كل جلسة، بما فيه بعد Microsoft | `mfa.e2e-spec` · `verify-page.test` |
+| FR-14 | الأدمن الأول بالـ seeder | `seeds.e2e-spec` |
+| FR-15 | لا تسجيل ذاتي ولا مسارات كلمة مرور | `auth.e2e-spec` |
+| FR-16 | رابط التفعيل (QR، رموز احتياطية، مرة واحدة، 72 ساعة) وخطوة البريد `identify` | `mfa.e2e-spec` · `login-page.test` |
+| FR-17 / 18 | فورم الـ 40 حقلًا، قواعد الهوية والتفرد | `employees.e2e-spec` · `employee-form-page.test` |
+| FR-19 / 24 | الشركات والهيكل الديناميكي وتحذير الأثر | `org.e2e-spec` |
+| FR-20 / 21 | النطاقات والـ 404 والحقول الحساسة | `employees.e2e-spec` |
+| FR-22 | الترجمة وAccept-Language | `lookups.e2e-spec` |
+| FR-23 | الدخول بخطوتين: رد عام، rate limit، قفل، منع إعادة الاستخدام | `auth.e2e-spec` · `login-page.test` · `e2e/tests/auth.spec` |
+| FR-25 | الـ seeders (والبيانات التجريبية) | `seeds.e2e-spec` |
+| FR-26 | سجل البريد | `email-log.e2e-spec` · `email-log-page.test` |
+| FR-27 | البحث والفلاتر وجدول/بطاقات | `employees/platform/email-log e2e` · `list-toolbar.test` · `e2e/tests/lists.spec` |
+| FR-28 / 29 | التصدير والاستيراد والقالب | `data-exchange.test` · `dialogs.test` · `employees-import-rows.test` · `companies-import.test` · `e2e/tests/lists.spec` |
+| FR-30 | صفحات 401/403/404 وقوائم الشريط | `error-pages.test` · `e2e/tests/navigation.spec` |
+| FR-31 | مخطط وجدول الهيكل | `org-page.test` · `e2e/tests/org.spec` |
+| FR-32 | ألوان الرسائل | `alert.test` |
+| FR-33 | الثيم الفاتح والداكن والملف الشخصي | `profile.e2e-spec` · `theme.test` · `profile-page.test` · `e2e/tests/profile.spec` |
 
 لكل FR: المسار الناجح، التحقق (400/422)، 403 لكل دور، 404 خارج النطاق، والتزامن (تكرار البريد/الرقم في طلبين متزامنين). مع اختبار أمان: لا تسريب لقيم مشفرة في الـ logs/audit/bundle.
 
@@ -730,7 +760,7 @@ shared/ui/
 ## 9. المخاطر والاعتماديات الخارجية
 | الخطر | التأثير | التخفيف |
 |---|---|---|
-| تسجيل تطبيق Entra غير جاهز | لا يمكن تجربة Microsoft فعليًا | كلمة مرور للتطوير المحلي، وتجهيز IT للتسجيل بالتوازي |
+| تسجيل تطبيق Entra غير جاهز | لا يمكن تجربة Microsoft فعليًا | **ما زال معلّقًا:** الدخول بالبريد + رمز التطبيق يعمل محليًا (و`SEED_ADMIN_TOTP_SECRET` للتطوير)، وزر Microsoft يعرض رسالة «غير مُعدّ» إلى أن تُضاف `MICROSOFT_*`؛ تجهيز IT للتسجيل بالتوازي |
 | plugin الدخول بالرمز مخصص (Better Auth لا يوفره) | ثغرة أمنية أو كسر عند ترقية Better Auth | اختبارات أمان مخصصة (FR-23)، تثبيت نسخة Better Auth، عزل الـ plugin في ملف واحد، مراجعة أمنية قبل الإطلاق |
 | فقدان هاتف الموظف | لا يستطيع الدخول بالبريد | رموز احتياطية + Microsoft + إعادة تعيين من الأدمن |
 | تخمين رمز 6 أرقام | اختراق حساب | قفل بعد 5 محاولات، rate limit، رد موحد، منع إعادة الاستخدام |
@@ -740,6 +770,10 @@ shared/ui/
 | تشفير الحقول يمنع البحث | صعوبة على HR | بحث بالمطابقة الكاملة عبر الـ hash، والباقي بالاسم/الرقم الوظيفي |
 | بريد الدعوة (SES/SMTP) | الموظف لا يستلم رابط التفعيل | زر «نسخ رابط الدعوة» + إعادة إرسال، أو الدخول بـ Microsoft |
 | حدود وثيقة الفورم ما زالت "اقتراح" | إعادة عمل لو تغيرت | تُحفظ كثوابت في `shared/validators` قابلة للتعديل في مكان واحد |
+| بريد حقيقي من Office 365 أثناء الاختبار | رسائل تفعيل لعناوين وهمية | اختبارات المتصفح تشير لمنفذ SMTP مغلق، وسجل البريد يُظهر كل فشل بسببه |
+| استيراد خاطئ بالجملة | موظفون كثر بحسابات ورسائل تفعيل | معاينة بالأخطاء قبل أي حفظ، حد 1000 صف، صفوف سليمة فقط، ويمر كل صف بنفس تحقق الـ API |
+| اختبارات المتصفح تضرب خادم التطوير | تلويث بيانات التطوير | API خاص بالاختبار على المنفذ 3100 وقاعدة الاختبار فقط ولا يعيد استخدام خادم قائم |
+| ملفات Excel وCSV ببيانات حساسة | تسريب من ملف مصدَّر | التصدير يتبع صلاحيات وأقنعة الـ API، والتصدير للمستخدم نفسه فقط |
 
 ---
 
@@ -774,14 +808,20 @@ shared/ui/
 
 ---
 
+**حالة الأسئلة بعد التنفيذ:** المحسومة أعلاه (2، 2ب، 3، 3ب، 3ج، 3هـ، 13، 14، 16) كما هي. الأسئلة 1 و3أ و3د و4–12 **نُفِّذت بالقيم الافتراضية المقترحة** وتبقى قابلة للتعديل في مكان واحد (`shared`). السؤال 15 (الظلال المشتقة): **طُبّقت** (`orange-700`، `green-800`، `danger-700`، تدرجات `*-50`، ورماديات الداشبورد `neutral-*`) وتنتظر **اعتماد مالك الهوية**. قراران من المالك أثناء التنفيذ: رماديات باردة لسطح الداشبورد (قرار 28)، وحدود حقول فاتحة تحت 3:1 (قرار 29، و`neutral-500` جاهز للرجوع). مفتوح الآن: تسجيل Entra، مزوّد SMS، الصيغ الرسمية للهويات (9).
+
+---
+
 ## 11. تعريف الإنجاز لهذه المرحلة
-- صفوف FR-13…FR-22 في README §4، وتحديث §6/7/8/12.
-- API + migrations + permissions + seeders + schemas مشتركة.
-- واجهة ar + en كاملة، RTL، حالات (فارغ/تحميل/خطأ)، جوال.
-- اختبارات e2e للـ API، component، Playwright + axe، ومسار دخول حقيقي بالأدمن.
-- `turbo run lint typecheck build test` + e2e API + e2e web كلها خضراء، و`npm run dup` < 3%.
-- لا أسرار ولا قيم حساسة في الـ logs أو الـ audit أو الـ bundle.
-- لا commit قبل مراجعتك وموافقتك.
+- ✅ صفوف FR-13…FR-32 في README §4، وتحديث §6/7/8/12 والهوية والأوامر.
+- ✅ API + migrations + permissions + seeders + schemas مشتركة.
+- ✅ واجهة ar + en كاملة، RTL، حالات (فارغ/تحميل/خطأ/لا صلاحية)، جوال.
+- ✅ اختبارات e2e للـ API (90)، وحدة للـ API (46)، component (76)، Playwright + axe (46، سطح مكتب وجوال، بالثيمين)، ومسار دخول حقيقي بالأدمن.
+- ✅ `npm run verify` (معمارية، تصميم، اختبارات، أمان) أخضر، و`npm run dup` < 3% (0.5%).
+- ✅ لا أسرار ولا قيم حساسة في الـ logs أو الـ audit أو الـ bundle (فحصها `security:check` واختبار الـ bundle).
+- ✅ الرفع على GitHub (`Arweqah-Company/arweqah_platform`، فرع `main`) بطلب المالك؛ آخر تعديلات لم تُرفع بعد.
+- ✅ دليل تشغيل Microsoft (`docs/microsoft-sign-in.md`) وفحص `npm run microsoft:check` (يتحقق من القيم وأن Microsoft تقبل المعرّف والسر والـ tenant).
+- ⏳ المتبقي: تنفيذ تسجيل Entra لـ Microsoft (خطوة المالك/IT)، مزوّد SMS، اختبار مكوّن لحوار أثر الهيكل، اعتماد الظلال المشتقة، وCI أخضر على GitHub لأول مرة.
 
 ---
 
@@ -927,3 +967,36 @@ shared/ui/
 - **Playwright:** أُعيد كتابته للتدفق الجديد: خطوتا الدخول (بريد ثم مربعات الرمز) بأدمن الـ seeder وسرّ TOTP معروف للاختبار، حالة متصفح مسجّل تُحفظ مرة في global-setup، قوائم الشريط الجانبي، صفحات 404/403/401، البحث والفلاتر وتذكّر جدول/بطاقات، التصدير CSV، تنزيل قالب الاستيراد، واستيراد شركات من ملف، وaxe على كل شاشة، سطح مكتب وجوال: **30 اختبارًا ناجحًا**.
 - **عزل الاختبارات:** الـ API الخاص بالاختبار على المنفذ 3100 وقاعدة الاختبار فقط (كان يعيد استخدام خادم التطوير على 3000)، `SIGN_IN_RATE_LIMIT` (يُرفض فوق 10 في الإنتاج)، والبريد موجّه لمنفذ مغلق.
 - حُدّثت README (FR-30 وقسم الاختبارات) وقرارا 37 و38 وskill التصميم.
+
+### 2026-10-22 — مخطط وجدول الهيكل التنظيمي، ألوان المستويات، وألوان الرسائل (FR-31، FR-32)
+- **الصفحة:** اختيار الشركة ثم مفتاح «مخطط / جدول» (يُحفظ الاختيار، والجوال يبدأ بجدول)، وتفاصيل الوحدة المختارة بجانبه مع زر إغلاق.
+- **المخطط (`TreeChart` مشترك):** بطاقة الشركة في الجذر (ink)، وكل مستوى بلون من الهوية بالترتيب: قطاع petrol، إدارة أخضر، قسم برتقالي، وحدة أبيض بشارة ink، مع شارة نصية باسم المستوى ووسيلة إيضاح للألوان؛ فتح/طي العقد وفتح الكل وطي الكل (**يعيدان ملاءمة المخطط للشاشة**) والبحث (يفتح الآباء ويظلّل النتيجة) والتكبير والتصغير وملاءمة الشاشة والسحب. خطوط الربط بالـ CSS فقط.
+- **الجدول:** نفس الوحدات بالترتيب الشجري مع بحث وفلاتر (التقسيم، الحالة، الموظفون، المدير) وتصدير.
+- **الرسائل (`Alert`):** نجاح أخضر، معلومة صفراء، تحذير برتقالي، خطأ أحمر، بأيقونة وخط جانبي ونص داكن.
+- **Playwright:** `org.spec.ts` (مخطط، جدول، شركة أخرى) وإصلاح سباق في فتح القائمة الجانبية على الجوال: **36 اختبارًا ناجحًا**. حُذف `TreeView` القديم.
+- حُدّثت README (FR-31/32) وقرارا 39 و40 وskill التصميم.
+
+### 2026-10-22 — مراجعة شاملة لملف الخطة والوثائق
+- **ملف الخطة:** أُعيد تحديث الأقسام 1–11 لتطابق ما بُني (كان ما زال «مسودة تنتظر الموافقة»): الحالة والمتبقي، نطاق المرحلة (البنود 9–12)، سجل البريد في 3.7، الجداول والمهاجرات الأربع الفعلية و`email_logs` والـ seeders (4.4/4.6/4.7)، جدول الـ API الفعلي بالفلاتر (5)، هيكل الملفات والمكتبات المضافة (6)، تحديث تصميم الواجهة والأقسام 7.10–7.14 (قوائم، تصدير/استيراد، مخطط الهيكل، صفحات الأخطاء، الرسائل)، جدول FR-13…FR-32 بأماكن اختبارها، المخاطر الجديدة، حالة الأسئلة المفتوحة، وتعريف الإنجاز مع ✅ والمتبقي. وصُحّح 2.6 و7.2 لخطوتي الدخول وأسماء جداول التطبيق.
+- **وثائق أخرى:** `SECURITY.md` (دخول بلا كلمات مرور، خطوة `identify`، روابط التفعيل، حقن المعادلات في الملفات، سجل البريد، عزل اختبارات المتصفح، `npm run verify`)، مسرد المصطلحات (مخطط، تصفية، تصدير/استيراد، قالب…)، `.env.example` (Office 365 و`SIGN_IN_RATE_LIMIT`)، README وdecisions وCLAUDE.md وskill التصميم كلها محدّثة سابقًا.
+- **الأعداد:** e2e الـ API 84، وحدة الـ API 46، component الويب 66، Playwright 36.
+
+### 2026-10-22 — الثيم الفاتح والداكن، الملف الشخصي، وإغلاق دخول Microsoft (FR-33)
+- **الثيم:** ألوان دلالية (`fg`، `link`، `primary`/`on-primary`، `success`/`warning`/`danger-text`) بدل الألوان الثابتة في 60+ موضعًا، و`theme.css` يعيد توجيه توكنات الأسطح تحت `data-theme=dark`؛ `ThemeProvider` يتبع الجهاز لخيار «حسب الجهاز»، و`public/theme-init.js` يمنع الوميض، وأيقونة شمس/قمر في الشريط العلوي، ويُحفظ في المتصفح وعلى الحساب (`users.theme`، migration `UserTheme`). تباين الداكن مقاس: النص 14.9:1، الرابط 8.9:1، حدود الحقول 4.0:1. **axe نظيف على 11 صفحة بالوضعين.**
+- **الملف الشخصي:** `GET/PUT /api/me/profile` (لنفسه فقط، بلا مفتاح صلاحية): اللغة والثيم وثلاث بيانات تواصل فقط، وأي حقل لـ HR يُرفض بـ 400، والحقول الحساسة لا تُعاد، والـ audit بأسماء الحقول فقط. صفحة `/profile` (مظهر، تواصل، بيانات العمل للقراءة فقط). خدمة `AccountPreferencesService` في `core/auth` و`EmployeeProfileService` في `modules/employees`.
+- **دخول Microsoft:** دليل `docs/microsoft-sign-in.md` (تسجيل التطبيق، الـ redirect URI، القيم، قائمة تجربة، وجدول أعطال) وأمر `npm run microsoft:check` الذي يتحقق من القيم ويسأل Microsoft هل تقبل المعرّف والسر والـ tenant (جُرّب فعليًا على Microsoft). **ما يبقى لإغلاق المرحلة خطوة المالك/IT فقط:** تسجيل التطبيق ثم تنفيذ قائمة التجربة.
+- **التحقق:** `npm run verify` أخضر؛ e2e API 90، component 76، Playwright 46 (منها 10 للثيم والملف الشخصي). حُدّثت README (FR-33، الألوان، ERD) وقرارات 41–43 وskill التصميم وCLAUDE.md وSECURITY.md و`.env.example`.
+
+### 2026-10-22 — دخول Microsoft بشهادة بدل السر (التينانت يمنع الأسرار)
+- **السبب:** سياسة التينانت تمنع client secrets، فأضيف بديل معتمد: شهادة (private_key_jwt) عبر `clientAssertion` في Better Auth. القرار 44.
+- **الكود:** `core/auth/infrastructure/microsoft-certificate-assertion.ts` (توقيع RS256 مع `x5t`)، التحقق في `env.schema.ts` (سر أو شهادة، لا الاثنان)، `AppConfig.microsoft.credential`، وربطها في `better-auth.factory.ts`.
+- **الأدوات:** `scripts/generate-microsoft-certificate.sh` (المفتاح في `~/.arweqah/microsoft` خارج المستودع)، و`npm run microsoft:check` يدعم الشهادة.
+- **التحقق:** اختبارات الوحدة للتوقيع والإعدادات خضراء؛ الفحص الحي يصل لـ Microsoft ويعيد AADSTS700027 لأن ملف `.crt` لم يُرفع في Azure بعد.
+- **المتبقي:** رفع `.crt` في Azure، إضافة redirect URIs، `npm run microsoft:check` ثم تجربة الدخول.
+
+### 2026-10-22 — النشر على EC2 و CI/CD
+- **الخادم:** سكربت لمرة واحدة `scripts/server/bootstrap.sh` (Ubuntu 24.04): Docker، جدار ناري، `.env` بأسرار مولّدة، شهادة HTTPS من Let's Encrypt بتجديد تلقائي، نسخ احتياطي يومي (`backup.sh`)، ومفتاح SSH للنشر يُطبع مرة واحدة.
+- **التشغيل:** `docker-compose.prod.yml` صار فيه PostgreSQL محلي وأحجام للبيانات والمرفقات ومجلد `secrets` لمفتاح شهادة Microsoft؛ nginx يقرأ النطاق من `APP_HOST`. القرار 45.
+- **CI/CD:** `deploy.yml` بعد نجاح CI على main: بناء الصور وفحص Trivy ودفعها لـ GHCR، نسخ ملفات التشغيل للخادم، ثم `scripts/server/deploy.sh` (تهجير قاعدة البيانات ثم تشغيل)، واختبار `/api/health`. الدخول إلى GHCR بتوكن الـ job نفسه دون كلمة سر مخزنة.
+- **التحقق:** صياغة السكربتات وملفات YAML وصحة `docker compose config`؛ التشغيل الحي على الخادم يتم عند أول تشغيل للسكربت.
+- **نطاقان للتجريب (القرار 46):** `stg-portal.arweqah.sa` للواجهة و`stg-api-portal.arweqah.sa` للـ API على نفس الخادم وشهادة واحدة؛ المتصفح يستدعي `/api` على نطاق الواجهة (كوكي من الطرف الأول بلا CORS)، ونطاق الـ API متاح مباشرة للتكاملات. `edge.conf` و`bootstrap.sh` و`docker-compose.prod.yml` تعرف `APP_HOST` و`API_HOST`.

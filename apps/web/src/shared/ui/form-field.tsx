@@ -4,7 +4,7 @@ import { cn } from '../lib/cn';
 
 /** Soft controls: gentle hover, a calm focus halo (the border still turns petrol, so focus never relies on the halo alone). */
 const controlBase =
-  'w-full rounded-xl border border-neutral-200 bg-white px-4 text-sm text-ink outline-none transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-muted hover:border-neutral-500 focus:border-petrol-800 focus:ring-4 focus:ring-petrol-800/15 disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-muted aria-[invalid=true]:border-danger-700 aria-[invalid=true]:focus:ring-danger-700/15';
+  'w-full rounded-xl border border-neutral-200 bg-white px-4 text-sm text-fg outline-none transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-muted hover:border-neutral-500 focus:border-link focus:ring-4 focus:ring-link/15 disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-muted aria-[invalid=true]:border-danger-700 aria-[invalid=true]:focus:ring-danger-700/15';
 export const control = `h-12 ${controlBase}`;
 
 interface FieldProps {
@@ -20,7 +20,7 @@ export function FormField({ label, error, hint, children }: FieldProps) {
   const describedBy = error ? `${id}-error` : hint ? `${id}-hint` : undefined;
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-ink">
+      <label htmlFor={id} className="text-sm font-medium text-fg">
         {label}
       </label>
       {children({ id, 'aria-invalid': !!error, 'aria-describedby': describedBy })}
@@ -30,7 +30,7 @@ export function FormField({ label, error, hint, children }: FieldProps) {
         </p>
       )}
       {error && (
-        <p id={`${id}-error`} className="text-xs text-danger-700">
+        <p id={`${id}-error`} className="text-xs text-danger-text">
           {error}
         </p>
       )}
@@ -50,7 +50,7 @@ export function Select({ className, ...props }: SelectHTMLAttributes<HTMLSelectE
   return (
     <span className={cn('relative block h-12 w-full', className)}>
       <select className={cn(controlBase, 'h-full cursor-pointer appearance-none pe-10')} {...props} />
-      <ChevronDown aria-hidden className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-petrol-800" />
+      <ChevronDown aria-hidden className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-link" />
     </span>
   );
 }

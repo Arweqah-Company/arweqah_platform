@@ -54,7 +54,7 @@ export function Combobox({ label, id, value, onChange, options, placeholder, dis
             className={cn(control, 'flex cursor-pointer items-center justify-between gap-2 text-start')}
           >
             <span className={cn('truncate', !selected && 'text-muted')}>{selected?.label ?? placeholder ?? t('combobox.choose')}</span>
-            <ChevronDown className={cn('size-4 shrink-0 text-petrol-800 transition-transform duration-150', open && 'rotate-180')} aria-hidden />
+            <ChevronDown className={cn('size-4 shrink-0 text-link transition-transform duration-150', open && 'rotate-180')} aria-hidden />
           </button>
         </Popover.Trigger>
         {clearable && selected && !disabled && (
@@ -79,7 +79,7 @@ export function Combobox({ label, id, value, onChange, options, placeholder, dis
                   <span className="truncate">{o.label}</span>
                   <span className="flex items-center gap-2">
                     {o.hint && <span dir="ltr" className="text-xs text-muted">{o.hint}</span>}
-                    {o.value === value && <Check className="size-4 text-petrol-800" aria-hidden />}
+                    {o.value === value && <Check className="size-4 text-link" aria-hidden />}
                   </span>
                 </Command.Item>
               ))}
