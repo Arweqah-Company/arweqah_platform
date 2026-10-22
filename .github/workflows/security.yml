@@ -34,8 +34,8 @@ jobs:
     if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: 24 }
       - run: npm ci
       - run: npm audit --omit=dev --audit-level=high
@@ -44,7 +44,7 @@ jobs:
     if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: { fetch-depth: 0 }
       - run: docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.18.4 detect --source=/repo --redact -v
 
@@ -52,7 +52,7 @@ jobs:
     if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - run: >
           docker run --rm -v "$PWD:/src" -w /src semgrep/semgrep:1.95.0
           semgrep scan --config p/owasp-top-ten --config p/nodejs
@@ -62,8 +62,8 @@ jobs:
     if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: aquasecurity/trivy-action@0.28.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # v0.28.0
         with:
           scan-type: fs
           scanners: vuln,misconfig,secret
@@ -91,8 +91,8 @@ jobs:
       MESSAGE_BUS: memory
       SWAGGER_ENABLED: "true"
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: 24, cache: npm }
       - name: Start PostgreSQL
         run: |
@@ -100,22 +100,29 @@ jobs:
             -e POSTGRES_PASSWORD=ci_password postgres:16-alpine
           for i in $(seq 1 30); do docker exec db pg_isready -U arweqah && break; sleep 2; done
       - name: Build and start app
+        env:
+          START_COMMAND: ${{ inputs.start_command }}
+          TARGET_URL: ${{ inputs.target_url }}
         run: |
           npm ci
-          ${{ inputs.start_command }}
-          for i in $(seq 1 60); do curl -fsS "${{ inputs.target_url }}" >/dev/null && break; sleep 3; done
+          eval "$START_COMMAND"
+          for i in $(seq 1 60); do curl -fsS "$TARGET_URL" >/dev/null && break; sleep 3; done
       - name: ZAP baseline (passive)
+        env:
+          TARGET_URL: ${{ inputs.target_url }}
         run: |
           chmod a+w .
           docker run --rm --network host -v "$PWD:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py -I -t "${{ inputs.target_url }}" -c .zap/rules.tsv -r zap-baseline.html
+            zap-baseline.py -I -t "$TARGET_URL" -c .zap/rules.tsv -r zap-baseline.html
       - name: ZAP API scan
         if: inputs.openapi_url != ''
+        env:
+          OPENAPI_URL: ${{ inputs.openapi_url }}
         run: |
           docker run --rm --network host -v "$PWD:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
-            zap-api-scan.py -I -t "${{ inputs.openapi_url }}" -f openapi -c .zap/rules.tsv -r zap-api.html
+            zap-api-scan.py -I -t "$OPENAPI_URL" -f openapi -c .zap/rules.tsv -r zap-api.html
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: zap-reports
           path: "*.html"
@@ -125,14 +132,16 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: ZAP full scan (staging only)
         continue-on-error: true
+        env:
+          STAGING_URL: ${{ inputs.staging_url }}
         run: |
           chmod a+w .
           docker run --rm -v "$PWD:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
-            zap-full-scan.py -t "${{ inputs.staging_url }}" -c .zap/rules.tsv -r zap-full.html
-      - uses: actions/upload-artifact@v4
+            zap-full-scan.py -t "$STAGING_URL" -c .zap/rules.tsv -r zap-full.html
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: zap-full-report
           path: zap-full.html

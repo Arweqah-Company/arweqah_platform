@@ -21,7 +21,7 @@ export class FieldCipher {
 
   decrypt(stored: string): string {
     const raw = Buffer.from(stored, 'base64');
-    const decipher = createDecipheriv('aes-256-gcm', this.key, raw.subarray(0, 12));
+    const decipher = createDecipheriv('aes-256-gcm', this.key, raw.subarray(0, 12), { authTagLength: 16 });
     decipher.setAuthTag(raw.subarray(12, 28));
     return Buffer.concat([decipher.update(raw.subarray(28)), decipher.final()]).toString('utf8');
   }
