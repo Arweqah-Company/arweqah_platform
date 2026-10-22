@@ -107,6 +107,8 @@ ENV
   echo ".env created with generated secrets (back it up somewhere safe: losing FIELD_ENCRYPTION_KEY makes encrypted data unreadable)"
 fi
 # The API container runs as uid 1000 and reads the Microsoft key from here.
+# The deploy workflow (as $DEPLOY_USER) copies the compose file and scripts into this folder.
+chown "$DEPLOY_USER":"$DEPLOY_USER" "$APP_DIR"
 chmod 750 "$APP_DIR/secrets"; chown 1000:"$DEPLOY_USER" "$APP_DIR/secrets"
 chown -R "$DEPLOY_USER":"$DEPLOY_USER" "$APP_DIR/backups" "$APP_DIR/docker" "$APP_DIR/scripts"
 
