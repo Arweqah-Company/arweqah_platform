@@ -161,7 +161,7 @@ cat <<DONE
                 EC2_SSH_KEY = the private key printed below (all lines, including BEGIN/END)
      Variables: APP_URL = https://$APP_HOST   (the API is also reachable at https://$API_HOST/api)
                 MICROSOFT_ENABLED = true   (only after the Microsoft step is done)
-   GitHub -> Settings -> Environments: create an environment named "production".
+   GitHub -> Settings -> Environments: create an environment named "staging".
 3. Push to main. CI runs, then the deploy job builds the images, copies the compose files here and starts everything.
 4. Log out and in again (docker group) before using docker by hand on this server.
 
