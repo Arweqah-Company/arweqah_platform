@@ -81,7 +81,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           source: docker-compose.prod.yml,docker/nginx/edge.conf,scripts/server/deploy.sh,scripts/server/backup.sh
           target: /opt/arweqah-platform
-      - uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
+      - uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         env:
           TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
           GHCR_USER: ${{ github.actor }}
