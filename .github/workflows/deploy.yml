@@ -99,9 +99,15 @@ jobs:
             bash scripts/server/deploy.sh "$TAG"
             docker logout ghcr.io
       - name: Smoke test
+        env:
+          APP_URL: ${{ vars.APP_URL }}
         run: |
+          if [ -z "$APP_URL" ]; then
+            echo "The APP_URL variable is empty. Add it under Settings > Environments > staging > Environment variables (a variable, not a secret), e.g. https://stg-portal.arweqah.sa" >&2
+            exit 1
+          fi
           for i in $(seq 1 12); do
-            curl -fsS "${{ vars.APP_URL }}/api/health" && exit 0
+            curl -fsS "$APP_URL/api/health" && exit 0
             sleep 10
           done
           exit 1
