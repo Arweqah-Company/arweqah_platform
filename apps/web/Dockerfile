@@ -21,5 +21,7 @@ RUN turbo run build --filter=@arweqah-platform/web
 FROM nginxinc/nginx-unprivileged:1.29-alpine AS runner
 COPY docker/nginx/web.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /repo/apps/web/dist /usr/share/nginx/html
+# The unprivileged base already runs as this user; stated explicitly so scanners and readers see it.
+USER nginx
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s CMD wget -qO- http://127.0.0.1:8080/healthz || exit 1
