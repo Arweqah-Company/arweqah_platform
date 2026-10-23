@@ -19,12 +19,14 @@ export function RolesPage() {
   const list = useListPage('roles');
   const fields: FilterField[] = [
     { id: 'type', label: t('filters.type'), type: 'select', options: [{ value: 'system', label: t('system') }, { value: 'custom', label: t('filters.custom') }] },
+    { id: 'assignment', label: t('assignment.label'), type: 'select', options: [{ value: 'auto', label: t('assignment.auto') }, { value: 'manual', label: t('assignment.manual') }] },
     { id: 'holders', label: t('holders'), type: 'select', options: [{ value: 'with', label: t('filters.withHolders') }, { value: 'without', label: t('filters.withoutHolders') }] },
   ];
   const exportColumns: ExportColumn<RoleDto>[] = [
     { id: 'nameAr', header: t('nameAr'), value: (r) => r.nameAr },
     { id: 'nameEn', header: t('nameEn'), value: (r) => r.nameEn },
     { id: 'description', header: t('descriptionColumn'), value: (r) => r.description },
+    { id: 'assignment', header: t('assignment.label'), value: (r) => t(`assignment.${r.assignment}`) },
     { id: 'type', header: t('filters.type'), value: (r) => (r.isSystem ? t('system') : t('filters.custom')) },
     { id: 'permissions', header: t('permissions'), value: (r) => r.permissions.length },
     { id: 'holders', header: t('holders'), value: (r) => r.usersCount },
@@ -33,6 +35,7 @@ export function RolesPage() {
     (r) =>
       matchesText([r.nameAr, r.nameEn, r.description], list.term) &&
       (!list.filters.values.type || r.isSystem === (list.filters.values.type === 'system')) &&
+      (!list.filters.values.assignment || r.assignment === list.filters.values.assignment) &&
       (!list.filters.values.holders || (r.usersCount > 0) === (list.filters.values.holders === 'with')),
   );
   const remove = useDeleteRole();
@@ -57,9 +60,10 @@ export function RolesPage() {
         actions={<Can permission={CorePermission.RolesManage}><Button onClick={() => setEditing({ role: null })}>{t('new')}</Button></Can>}
       />
       <DataTable<RoleDto>
+        listKey="roles"
         caption={t('title')}
         view={list.view}
-        toolbar={<ListToolbar {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<ExchangeButtons exporting={{ columns: exportColumns, filename: 'roles', pageRows: rows ?? [], total: rows?.length ?? 0, loadAll: async () => rows ?? [] }} />} />}
+        toolbar={<ListToolbar listKey="roles" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<ExchangeButtons exporting={{ columns: exportColumns, filename: 'roles', pageRows: rows ?? [], total: rows?.length ?? 0, loadAll: async () => rows ?? [] }} />} />}
         rows={rows}
         isLoading={roles.isPending}
         error={roles.error}
@@ -68,6 +72,7 @@ export function RolesPage() {
           { id: 'name', header: t('nameAr'), cell: (r) => <span className="font-medium">{name(r)}</span> },
           { id: 'permissions', header: t('permissions'), cell: (r) => r.permissions.length },
           { id: 'users', header: t('holders'), cell: (r) => <span className="text-muted">{t('users', { count: r.usersCount })}</span> },
+          { id: 'assignment', header: t('assignment.label'), cell: (r) => <Badge tone={r.assignment === 'auto' ? 'success' : 'neutral'}>{t(`assignment.${r.assignment}`)}</Badge> },
           { id: 'type', header: t('system'), hideHeader: true, cell: (r) => (r.isSystem ? <Badge tone="highlight">{t('system')}</Badge> : null) },
           {
             id: 'actions',

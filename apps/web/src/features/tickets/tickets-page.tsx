@@ -61,9 +61,10 @@ export function TicketsPage() {
       <PageHeader title={t('title')} description={t('description')} actions={<Button onClick={() => setCreating(true)}><Plus className="size-4" aria-hidden />{t('newTicket')}</Button>} />
       <TabBar tab={tab} hasInbox={options.data?.hasInbox ?? false} onChange={switchTab} />
       <DataTable<TicketListItemDto>
+        listKey="tickets"
         {...table}
         caption={t(`tabs.${tab}`)}
-        toolbar={<ListToolbar {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<GroupSelect value={groupBy} onChange={setGroupBy} />} />}
+        toolbar={<ListToolbar listKey="tickets" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<GroupSelect value={groupBy} onChange={setGroupBy} />} />}
         rowKey={(x) => x.id}
         groupOf={groupBy ? (x) => groupLabel(x, groupBy, t, i18n.language === 'ar') : undefined}
         empty={<EmptyState icon={LifeBuoy} title={list.narrowed ? t('noMatches') : t(`empty.${tab}`)} description={list.narrowed ? undefined : t(`emptyHint.${tab}`)} />}

@@ -30,6 +30,8 @@ export class RolesService {
       nameEn: input.nameEn,
       description: input.description ?? null,
       isSystem: false,
+      assignment: input.assignment ?? 'manual',
+      autoRule: null,
       permissions: [],
     });
     role.replacePermissions(input.permissions);
@@ -41,7 +43,8 @@ export class RolesService {
   async update(id: string, input: UpsertRoleInput, actorId: string): Promise<RoleDto> {
     this.catalog.assertValid(input.permissions);
     const role = await this.getOrThrow(id);
-    Object.assign(role, { nameAr: input.nameAr, nameEn: input.nameEn, description: input.description ?? null });
+    role.assertAssignment(input.assignment);
+    Object.assign(role, { nameAr: input.nameAr, nameEn: input.nameEn, description: input.description ?? null, assignment: input.assignment ?? role.assignment });
     role.replacePermissions(input.permissions);
     const saved = await this.roles.save(role);
     this.events.emit(ACCESS_CHANGED, {});
@@ -76,6 +79,8 @@ export function toRoleDto(role: Role, usersCount: number): RoleDto {
     nameEn: role.nameEn,
     description: role.description,
     isSystem: role.isSystem,
+    assignment: role.assignment,
+    autoRule: role.autoRule,
     permissions: (role.permissions ?? []).map((p) => ({ key: p.key, scope: p.scope })),
     usersCount,
   };

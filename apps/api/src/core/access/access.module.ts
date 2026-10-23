@@ -1,6 +1,7 @@
 import { Global, Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AbilityFactory } from './application/ability.factory';
+import { AutoRolesService } from './application/auto-roles.service';
 import { AdminModeEligibility } from './application/admin-mode-eligibility';
 import { AdminModeService } from './application/admin-mode.service';
 import { AccessContextService } from './application/access-context.service';
@@ -43,6 +44,7 @@ import { RolesController } from './presentation/roles.controller';
     AdminModeService,
     AdminModeEligibility,
     PageVisibilityService,
+    AutoRolesService,
     PermissionsGuard,
     { provide: AdminModeRepository, useClass: TypeOrmAdminModeRepository },
     { provide: RoleRepository, useClass: TypeOrmRoleRepository },
@@ -50,7 +52,7 @@ import { RolesController } from './presentation/roles.controller';
     { provide: ProfileRepository, useClass: TypeOrmProfileRepository },
     { provide: UserAccessRepository, useClass: TypeOrmUserAccessRepository },
   ],
-  exports: [PermissionCatalog, AccessContextService, AbilityFactory, PermissionsGuard, UserAccessService, AdminModeService, AdminModeEligibility],
+  exports: [PermissionCatalog, AutoRolesService, AccessContextService, AbilityFactory, PermissionsGuard, UserAccessService, AdminModeService, AdminModeEligibility],
 })
 export class AccessModule implements OnModuleInit {
   constructor(private readonly catalog: PermissionCatalog) {}

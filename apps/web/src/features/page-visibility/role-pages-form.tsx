@@ -1,8 +1,8 @@
 import type { HideablePage, PageVisibilityRoleDto } from '@arweqah-platform/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
+import { saveWithToast } from '@/shared/lib/use-save-toast';
 import { Alert, Button, SectionCard } from '@/shared/ui';
 import { useSaveRolePages } from './api';
 
@@ -19,17 +19,10 @@ export function RolePagesForm({ role, pages }: Props) {
   const [hidden, setHidden] = useState<HideablePage[]>(role.hiddenPages);
   const toggle = (page: HideablePage) => setHidden((now) => (now.includes(page) ? now.filter((p) => p !== page) : [...now, page]));
   const changed = hidden.length !== role.hiddenPages.length || hidden.some((p) => !role.hiddenPages.includes(p));
-  const submit = async () => {
-    try {
-      await save.mutateAsync({ hiddenPages: hidden });
-      toast.success(t('saved'));
-    } catch {
-      /* shown below */
-    }
-  };
+  const submit = saveWithToast(save.mutateAsync, t('saved'));
   return (
     <SectionCard id="pages" title={t('pagesTitle')} description={t('pagesIntro')}>
-      <form className="flex flex-col gap-4 sm:col-span-2" onSubmit={(e) => { e.preventDefault(); void submit(); }} noValidate>
+      <form className="flex flex-col gap-4 sm:col-span-2" onSubmit={(e) => { e.preventDefault(); void submit({ hiddenPages: hidden }); }} noValidate>
         {role.locked && <Alert tone="info">{t('locked')}</Alert>}
         {save.isError && <Alert>{errorMessage(tc, save.error)}</Alert>}
         <ul className="grid gap-2 sm:grid-cols-2">

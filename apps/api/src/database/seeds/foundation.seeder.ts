@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AppConfig } from '../../config/app-config.service';
 import { PermissionCatalog } from '../../core/access/application/permission-catalog';
+import { AutoRolesService } from '../../core/access/application/auto-roles.service';
 import { Role } from '../../core/access/domain/role.entity';
 import { UserRole } from '../../core/access/domain/user-role.entity';
 import { AuthenticatorService } from '../../core/auth/application/authenticator.service';
@@ -11,6 +12,8 @@ import { Employee } from '../../modules/employees/domain/entities/employee.entit
 import { CompaniesSeeder } from './companies.seeder';
 import { DEFAULT_COMPANY_CODE } from './data/lookups.data';
 import { LookupsSeeder } from './lookups.seeder';
+import { EMPLOYEE_ROLE_SEED } from './data/roles.data';
+import { RolesCatalogSeeder } from './roles-catalog.seeder';
 import { OrgDemoSeeder } from './org-demo.seeder';
 import { TicketsDemoSeeder } from './tickets-demo.seeder';
 
@@ -33,16 +36,20 @@ export class FoundationSeeder {
     private readonly companies: CompaniesSeeder,
     private readonly demo: OrgDemoSeeder,
     private readonly ticketsDemo: TicketsDemoSeeder,
+    private readonly rolesCatalog: RolesCatalogSeeder,
+    private readonly autoRoles: AutoRolesService,
   ) {}
 
   async run(): Promise<void> {
     const admin = await this.upsertRole(SYSTEM_ADMIN_ROLE, 'مدير النظام', true);
     await this.upsertRole(EMPLOYEE_ROLE, 'موظف', false);
+    await this.rolesCatalog.run();
     await this.lookups.run();
     await this.companies.run();
     await this.demo.run();
     await this.firstAdmin(admin);
     await this.ticketsDemo.run(await this.adminUserId());
+    await this.autoRoles.sync();
   }
 
   private async adminUserId(): Promise<string | null> {
@@ -56,6 +63,7 @@ export class FoundationSeeder {
     const repo = this.db.getRepository(Role);
     const role = (await repo.findOne({ where: { nameEn, isSystem: true } })) ??
       Object.assign(new Role(), { nameEn, nameAr, description: null, isSystem: true, permissions: [] });
+    if (!isAdmin) Object.assign(role, { assignment: EMPLOYEE_ROLE_SEED.assignment, autoRule: EMPLOYEE_ROLE_SEED.autoRule, description: role.description ?? EMPLOYEE_ROLE_SEED.note });
     const saved = await repo.save(role);
     if (isAdmin) {
       saved.replacePermissions(this.catalog.all().map((p) => ({ key: p.key, scope: 'all' as const })));

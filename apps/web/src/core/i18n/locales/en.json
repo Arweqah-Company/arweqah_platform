@@ -24,6 +24,7 @@
     "profile": "Profile",
     "tickets": "Tickets",
     "ticketSetup": "Ticket setup",
+    "listSettings": "List management",
     "pageVisibility": "Page visibility",
     "ticketFigures": "Ticket performance"
   },
@@ -79,6 +80,7 @@
     "ORG_NODE_IN_USE": "Move its sub-units and employees first, then delete.",
     "ORG_NODE_HAS_TICKETS": "A department whose ticket desk receives tickets, or that has open tickets, cannot be moved or deleted.",
     "PAGE_HIDDEN": "This page is not available to your role.",
+    "LIST_SETTING_INVALID": "This column or filter is not part of the list, and the first column cannot be hidden.",
     "ROLE_PAGES_LOCKED": "Pages cannot be hidden from a role that manages page visibility.",
     "LAST_JOB_TITLE": "A unit that accepts employees needs at least one job title.",
     "JOB_TITLE_IN_USE": "Move the employees with this job title first.",

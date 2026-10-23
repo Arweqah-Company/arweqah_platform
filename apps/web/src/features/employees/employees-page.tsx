@@ -25,10 +25,11 @@ export function EmployeesPage() {
     <>
       <PageHeader title={t('title')} description={t('description')} actions={<Can permission={CorePermission.EmployeesCreate}><Button asChild><Link to="/employees/new">{t('add')}</Link></Button></Can>} />
       <DataTable<EmployeeListItemDto>
+        listKey="employees"
         {...table}
         caption={t('title')}
         title={t('allTitle')}
-        toolbar={<ListToolbar {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={exchange} />}
+        toolbar={<ListToolbar listKey="employees" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={exchange} />}
         rowKey={(e) => e.id}
         empty={<EmptyState icon={Users} title={list.narrowed ? t('noMatches') : t('empty')} description={list.narrowed ? undefined : t('emptyHint')} />}
         columns={columns}

@@ -77,6 +77,8 @@ Bring employee, project and request management into one secure platform that spe
 | FR-40 | Figures page (admin mode, with a department filter on top): per desk, last 30 days, counts only (open, closed, overdue, average completion in working days); personal tickets enter the totals but never a list | Platform manager, desk manager | Should | `apps/api/test/tickets.e2e-spec.ts`, `e2e/tests/tickets.spec.ts` |
 | FR-41 | Time-driven steps: a close request not answered within the desk's days closes the ticket by itself (durable `scheduled_jobs`, idempotent consumer), and a daily job (Asia/Riyadh) marks tickets with no activity as stale | System | Must | `apps/api/test/tickets.e2e-spec.ts` |
 | FR-42 | The name in the header opens a **My account** menu (profile, notifications, security, sign-out) instead of a sidebar group; and a **Page visibility** admin page (permission `pages.manage`, platform admin mode) where an administrator picks, per **role**, the pages that role does not see (employees, organization, companies, roles, audit log, e-mail log, tickets, ticket setup, ticket figures): a hidden page leaves the menu, shows the 403 page and its API answers 403 `PAGE_HIDDEN`; a person loses a page only when **every** role of theirs hides it, a role that manages page visibility cannot have pages hidden (`ROLE_PAGES_LOCKED`) and its members always see everything; home, profile, security and notifications cannot be hidden; every change is audited (`role.pages_updated`, page names only) | Platform manager | Must | `apps/api/test/page-visibility.e2e-spec.ts`, `apps/web/src/features/page-visibility/page-visibility-page.test.tsx`, `apps/web/src/app/app-layout.test.tsx`, `e2e/tests/page-visibility.spec.ts`, `e2e/tests/profile.spec.ts` |
+| FR-43 | Roles carry **how they are assigned** (`assignment`: automatic or manual) and a note (the description); the owner's list of 28 roles is created once (the two seeded roles are kept, the other 27 start with no permissions that an administrator sets from the roles page, which also edits the note and the assignment). Two roles are kept up to date by the system (`auto_rule`): **Employee** goes to everyone with an employee record (never taken away) and **Direct manager** goes exactly to people someone reports to; this runs after every employee change and every night; a role with a rule cannot become manual and is not offered in the employee role pickers | System Admin | Must | `apps/api/test/auto-roles.e2e-spec.ts`, `apps/api/test/seeds.e2e-spec.ts`, `e2e/tests/list-settings.spec.ts` |
+| FR-44 | **List management** admin page (permission `lists.manage`, platform admin mode): for every table of the platform (employees, organization, companies, roles, audit log, e-mail log, tickets, notifications) an administrator chooses which **columns** appear and which **filters** are offered; one setting for everyone, carried by `GET /api/me` (`listSettings`); the first column of a list always stays, only the list's own columns and filters can be hidden (`LIST_SETTING_INVALID`); exports keep all columns; every change is audited (`list.settings_updated`, names only) | Platform manager | Must | `apps/api/test/list-settings.e2e-spec.ts`, `apps/web/src/features/list-settings/list-settings-page.test.tsx`, `apps/web/src/shared/ui/data-table-list-settings.test.tsx`, `e2e/tests/list-settings.spec.ts` |
 
 Every test suite names the requirement IDs it covers in its `describe(...)` title.
 
@@ -150,6 +152,8 @@ erDiagram
     varchar name_ar
     varchar name_en
     bool is_system
+    varchar assignment
+    varchar auto_rule
   }
   role_permissions {
     uuid role_id PK
@@ -232,6 +236,11 @@ erDiagram
     varchar action
     varchar entity_type
     jsonb changes
+  }
+  list_settings {
+    varchar list_key PK
+    jsonb hidden_columns
+    jsonb hidden_filters
   }
   page_visibility_rules {
     uuid role_id PK
@@ -610,14 +619,14 @@ Requirement traceability: each `describe` title lists the FR/NFR IDs it covers, 
 | Employee (role "Employee") | Sign in with e-mail or Microsoft plus the authenticator code, see and edit own profile (theme, language, personal phone and e-mail, English name), see own notifications, upload own files | See other employees, roles, organization admin, audit or e-mail log unless a role grants it |
 | HR (custom role) | Create and update employees, place them in units, assign the roles they hold, resend activation links | Act outside their scope (gets 404), see salary / ID / IBAN without `employees.view_sensitive`, assign more than they hold, change their own roles |
 | Line manager (custom role) | What the role grants, limited to their unit or subtree | Act outside their scope |
-| System Admin (system role) | Every permission at the widest scope: companies, levels, units, job titles, roles, page visibility per role, audit log, e-mail log, and may switch **platform admin mode** on (`admin_mode.use`) | Delete system roles; use anything before linking the authenticator |
+| System Admin (system role) | Every permission at the widest scope: companies, levels, units, job titles, roles (with how each is assigned), page visibility per role, list management, audit log, e-mail log, and may switch **platform admin mode** on (`admin_mode.use`) | Delete system roles; use anything before linking the authenticator |
 | Desk manager (named in a desk's setup) | Switch admin mode on, set up the desk, see its tickets (not personal ones), answer, reassign, read its figures | See personal tickets, act on other desks |
 | Auditor (custom role with `audit.view`) | Read the audit log | See secrets (redacted) |
 | Microsoft Entra ID | Authenticate company accounts (setup: `docs/microsoft-sign-in.md`, check: `npm run microsoft:check`) | Create accounts (sign-up disabled) |
 | Office 365 SMTP / SMS provider | Deliver messages | Read any data beyond the message |
 | GitHub Actions | Build, test, deploy | Read production secrets (they live on the server) |
 
-Permission catalog: `roles.view`, `roles.manage`, `admin_mode.use`, `pages.manage`, `tickets.administer`, `audit.view`, `notifications.email_log`, `lookups.view`, `companies.view`, `companies.manage`, `org.view`, `org.manage`, `employees.view`, `employees.create`, `employees.update`, `employees.deactivate`, `employees.view_sensitive`, `employees.assign_roles`. Each feature module adds its own keys.
+Permission catalog: `roles.view`, `roles.manage`, `admin_mode.use`, `pages.manage`, `lists.manage`, `tickets.administer`, `audit.view`, `notifications.email_log`, `lookups.view`, `companies.view`, `companies.manage`, `org.view`, `org.manage`, `employees.view`, `employees.create`, `employees.update`, `employees.deactivate`, `employees.view_sensitive`, `employees.assign_roles`. Each feature module adds its own keys.
 
 ## 13. Constraints
 

@@ -57,9 +57,10 @@ export function CompaniesPage() {
     <>
       <PageHeader title={t('title')} description={t('description')} actions={<Can permission={CorePermission.CompaniesManage}><Button onClick={() => setEditing({ company: null })}>{t('new')}</Button></Can>} />
       <DataTable<CompanyDto>
+        listKey="companies"
         caption={t('title')}
         view={list.view}
-        toolbar={<ListToolbar {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<ExchangeButtons exporting={{ columns: exportColumns, filename: 'companies', pageRows: rows ?? [], total: rows?.length ?? 0, loadAll: async () => rows ?? [] }} importing={canManage ? importing : undefined} />} />}
+        toolbar={<ListToolbar listKey="companies" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<ExchangeButtons exporting={{ columns: exportColumns, filename: 'companies', pageRows: rows ?? [], total: rows?.length ?? 0, loadAll: async () => rows ?? [] }} importing={canManage ? importing : undefined} />} />}
         rows={rows}
         isLoading={companies.isPending}
         error={companies.error}

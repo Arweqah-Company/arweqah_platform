@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useMe, useSignOut } from '@/core/auth/session';
+import { ListSettingsProvider } from '@/shared/lib/list-settings';
 import { NavContext } from '@/core/navigation';
 import { usePermissions } from '@/core/permissions/can';
 import { AppHeader } from './app-header';
@@ -20,6 +21,7 @@ export function AppLayout() {
   const accountItems = nav.filter((n) => n.group === 'account');
 
   return (
+    <ListSettingsProvider value={me?.listSettings ?? {}}>
     <NavContext.Provider value={nav}>
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:start-2 focus:top-2 focus:z-50 focus:bg-cream focus:p-2">
         Skip to content
@@ -37,5 +39,6 @@ export function AppLayout() {
         </div>
       </div>
     </NavContext.Provider>
+    </ListSettingsProvider>
   );
 }

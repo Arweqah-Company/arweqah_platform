@@ -1,0 +1,149 @@
+{
+  "title": "List management",
+  "description": "Choose, for each list of the platform, the columns it shows and the filters it offers. One setting for everyone.",
+  "list": {
+    "employees": {
+      "name": "Employees",
+      "columns": {
+        "number": "Employee number",
+        "name": "Name",
+        "company": "Company",
+        "unit": "Unit",
+        "title": "Job title",
+        "status": "Status"
+      },
+      "filters": {
+        "companyId": "Company",
+        "status": "Status",
+        "relationTypeId": "Relation type",
+        "orgNodeId": "Unit",
+        "jobTitleId": "Job title",
+        "contractTypeId": "Contract type",
+        "nationalityId": "Nationality",
+        "gender": "Gender",
+        "workMode": "Work mode",
+        "maritalStatusId": "Marital status",
+        "residencyStatusId": "Residency status",
+        "startFrom": "Start date from",
+        "startTo": "Start date to",
+        "idExpiring": "ID expiring soon",
+        "contractEnding": "Contract ending soon"
+      }
+    },
+    "org": {
+      "name": "Organization structure",
+      "columns": {
+        "name": "Name",
+        "level": "Level",
+        "manager": "Manager",
+        "employees": "Employees",
+        "titles": "Job titles",
+        "status": "Status"
+      },
+      "filters": {
+        "level": "Level",
+        "status": "Status",
+        "employees": "Has employees",
+        "manager": "Has a manager"
+      }
+    },
+    "companies": {
+      "name": "Companies",
+      "columns": {
+        "code": "Code",
+        "name": "Name",
+        "employees": "Employees",
+        "status": "Status"
+      },
+      "filters": {
+        "status": "Status",
+        "employees": "Has employees"
+      }
+    },
+    "roles": {
+      "name": "Roles and permissions",
+      "columns": {
+        "name": "Name",
+        "permissions": "Permissions",
+        "users": "Users",
+        "assignment": "Assignment",
+        "type": "System role"
+      },
+      "filters": {
+        "type": "Type",
+        "assignment": "Assignment",
+        "holders": "Users"
+      }
+    },
+    "audit": {
+      "name": "Audit log",
+      "columns": {
+        "when": "When",
+        "actor": "Actor",
+        "action": "Action",
+        "target": "Target"
+      },
+      "filters": {
+        "action": "Action",
+        "entityType": "Record type",
+        "actor": "Actor",
+        "from": "From",
+        "to": "To"
+      }
+    },
+    "email-log": {
+      "name": "E-mail log",
+      "columns": {
+        "when": "When",
+        "to": "Recipient",
+        "subject": "Subject",
+        "purpose": "Purpose",
+        "status": "Status",
+        "details": "Details"
+      },
+      "filters": {
+        "status": "Status",
+        "purpose": "Purpose",
+        "to": "Recipient",
+        "from": "From",
+        "until": "Until"
+      }
+    },
+    "tickets": {
+      "name": "Tickets",
+      "columns": {
+        "number": "Number",
+        "title": "Title",
+        "desk": "Department",
+        "type": "Type",
+        "sender": "Sender",
+        "assignee": "Assignee",
+        "status": "Status",
+        "neededBy": "Needed by",
+        "activity": "Last activity"
+      },
+      "filters": {
+        "deskId": "Department",
+        "typeId": "Type",
+        "assigneeId": "Assignee",
+        "status": "Status"
+      }
+    },
+    "notifications": {
+      "name": "Notifications",
+      "columns": {},
+      "filters": {
+        "state": "State",
+        "from": "From",
+        "until": "Until"
+      }
+    }
+  },
+  "listHint": "The first column (the name) always stays.",
+  "columnsTitle": "Columns",
+  "columnsHint": "Tick the columns the table shows and clear the ones you want to hide.",
+  "filtersTitle": "Filters",
+  "filtersHint": "Tick the filters offered in the filter panel.",
+  "saved": "List settings saved.",
+  "listLabel": "List"
+}

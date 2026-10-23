@@ -32,10 +32,11 @@ export function EmailLogPage() {
     <>
       <PageHeader title={t('title')} description={t('description')} />
       <DataTable<EmailLogDto>
+        listKey="email-log"
         {...table}
         caption={t('title')}
         title={t('allTitle')}
-        toolbar={<ListToolbar {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<ExchangeButtons exporting={{ columns: exportColumns, filename: 'email-log', pageRows: query.data?.items ?? [], total: query.data?.total ?? 0, loadAll }} />} />}
+        toolbar={<ListToolbar listKey="email-log" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<ExchangeButtons exporting={{ columns: exportColumns, filename: 'email-log', pageRows: query.data?.items ?? [], total: query.data?.total ?? 0, loadAll }} />} />}
         rowKey={(l) => l.id}
         columns={[
           { id: 'when', header: t('when'), className: 'whitespace-nowrap text-muted', cell: when },

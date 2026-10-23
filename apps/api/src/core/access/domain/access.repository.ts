@@ -24,4 +24,6 @@ export abstract class UserAccessRepository {
   abstract rolesOf(userIds: string[]): Promise<Map<string, Role[]>>;
   abstract replaceRoles(userId: string, roleIds: string[], tx?: TransactionContext): Promise<void>;
   abstract placementsOf(userIds: string[]): Promise<Map<string, Placement>>;
+  /** Brings the members of the roles that have an auto rule up to date; returns how many memberships changed. */
+  abstract syncAutoRoles(): Promise<number>;
 }

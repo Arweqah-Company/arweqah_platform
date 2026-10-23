@@ -59,9 +59,10 @@ export function OrgTableView({ tree, selectedId, onSelect }: Props) {
 
   return (
     <DataTable<{ node: OrgNodeDto; depth: number }>
+      listKey="org"
       caption={t('title')}
       title={t('table.title', { count: rows.length })}
-      toolbar={<ListToolbar {...list.toolbar({ label: t('table.searchLabel'), placeholder: t('table.searchPlaceholder') }, fields, false)} actions={<ExchangeButtons exporting={{ columns: exportColumns, filename: 'org-units', pageRows: rows, total: rows.length, loadAll: async () => rows }} />} />}
+      toolbar={<ListToolbar listKey="org" {...list.toolbar({ label: t('table.searchLabel'), placeholder: t('table.searchPlaceholder') }, fields, false)} actions={<ExchangeButtons exporting={{ columns: exportColumns, filename: 'org-units', pageRows: rows, total: rows.length, loadAll: async () => rows }} />} />}
       rows={rows}
       rowKey={({ node }) => node.id}
       columns={[

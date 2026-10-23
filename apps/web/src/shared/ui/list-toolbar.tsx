@@ -1,7 +1,9 @@
+import type { ListKey } from '@arweqah-platform/shared';
 import * as Popover from '@radix-ui/react-popover';
 import { LayoutGrid, SlidersHorizontal, Table2, X, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useHiddenInList } from '../lib/list-settings';
 import type { FilterValues } from '../lib/use-filters';
 import { cn } from '../lib/cn';
 import { Button } from './button';
@@ -123,6 +125,8 @@ function ActiveFilters({ fields, values, onChange }: { fields: FilterField[]; va
 }
 
 interface ListToolbarProps {
+  /** The list's key in the list catalog: the filters an administrator hid for it are left out. */
+  listKey?: ListKey;
   search: { value: string; onChange: (value: string) => void; label: string; placeholder?: string; dir?: 'ltr' };
   filters?: { fields: FilterField[]; values: FilterValues; onChange: (values: FilterValues) => void };
   view?: { value: string; onChange: (mode: never) => void; choices?: ViewChoice[] };
@@ -138,11 +142,13 @@ function TableOrCards({ value, onChange, choices }: NonNullable<ListToolbarProps
 }
 
 /** Search, the filter panel with its applied-filter chips, and the table / cards switch: the same on every list. */
-export function ListToolbar({ search, filters, view, actions }: ListToolbarProps) {
+export function ListToolbar({ listKey, search, filters: allFilters, view, actions }: ListToolbarProps) {
+  const hidden = useHiddenInList(listKey);
+  const filters = allFilters && { ...allFilters, fields: allFilters.fields.filter((field) => !hidden.filters.has(field.id)) };
   return (
     <>
       <SearchInput dir={search.dir} aria-label={search.label} placeholder={search.placeholder} value={search.value} onChange={(e) => search.onChange(e.target.value)} />
-      {filters && <FilterPanel {...filters} />}
+      {filters && filters.fields.length > 0 && <FilterPanel {...filters} />}
       {actions}
       {view && <TableOrCards {...view} />}
       {filters && <ActiveFilters {...filters} />}

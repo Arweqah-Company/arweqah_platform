@@ -17,6 +17,7 @@ export const me = (permissions: MeDto['permissions'] = []): MeDto => ({
   createdAt: new Date(0).toISOString(),
   permissions,
   hiddenPages: [],
+  listSettings: {},
 });
 
 export const catalog: PermissionCatalogGroup[] = [
@@ -29,7 +30,7 @@ export const catalog: PermissionCatalogGroup[] = [
 ];
 
 export const roles: RoleDto[] = [
-  { id: 'r1', nameAr: 'مدير النظام', nameEn: 'System Admin', description: null, isSystem: true, permissions: [], usersCount: 1 },
+  { id: 'r1', nameAr: 'مدير النظام', nameEn: 'System Admin', description: null, isSystem: true, assignment: 'manual', autoRule: null, permissions: [], usersCount: 1 },
 ];
 
 const item = (code: string, nameAr: string, nameEn: string, sortOrder = 1) => ({ id: `id-${code}`, code, name: nameAr, nameAr, nameEn, sortOrder });

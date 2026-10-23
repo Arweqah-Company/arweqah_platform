@@ -18,3 +18,4 @@ export * from './employees/schemas';
 export * from './tickets/working-days';
 export * from './tickets/schemas';
 export * from './pages/schemas';
+export * from './lists/catalog';

@@ -1,8 +1,9 @@
-import type { Paginated } from '@arweqah-platform/shared';
+import type { ListKey, Paginated } from '@arweqah-platform/shared';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Fragment, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { errorMessage } from '../lib/error-message';
+import { useHiddenInList } from '../lib/list-settings';
 import { useIsPhone } from '../lib/use-is-phone';
 import { Alert } from './alert';
 import { Button } from './button';
@@ -20,6 +21,8 @@ export interface Column<T> {
 type PageInfo = Pick<Paginated<unknown>, 'page' | 'pageSize' | 'total'>;
 
 interface DataTableProps<T> {
+  /** The list's key in the list catalog: the columns an administrator hid for it are left out. */
+  listKey?: ListKey;
   caption: string;
   columns: Column<T>[];
   rows: T[] | undefined;
@@ -118,8 +121,10 @@ function RowCards<T>({ columns, rows, rowKey, groupOf }: RowsProps<T>) {
 }
 
 /** One table for every list: a rounded panel with a top bar, semantic markup, loading/empty states, pagination. */
-export function DataTable<T>({ caption, columns, rows, rowKey, isLoading, error, empty, page, onPageChange, onPageSizeChange, view, title, toolbar, groupOf }: DataTableProps<T>) {
+export function DataTable<T>({ listKey, caption, columns: allColumns, rows, rowKey, isLoading, error, empty, page, onPageChange, onPageSizeChange, view, title, toolbar, groupOf }: DataTableProps<T>) {
   const phone = useIsPhone();
+  const hidden = useHiddenInList(listKey);
+  const columns = allColumns.filter((column) => !column.id || !hidden.columns.has(column.id));
   const cards = (view ?? (phone ? 'cards' : 'table')) === 'cards';
   if (error) return <QueryError error={error} />;
   return (

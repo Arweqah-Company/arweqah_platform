@@ -5,6 +5,7 @@ import { NO_PLACEMENT, type AccessContext } from '../domain/access-context';
 import { ProfileRepository } from '../domain/profile.repository';
 import { AuthenticatorService } from '../../auth/application/authenticator.service';
 import { AdminModeService } from './admin-mode.service';
+import { ListSettingsService } from '../../lists/application/list-settings.service';
 import { PageVisibilityService } from './page-visibility.service';
 import { UserAccessService } from './user-access.service';
 
@@ -17,6 +18,7 @@ export class ProfileService {
     private readonly authenticator: AuthenticatorService,
     private readonly adminMode: AdminModeService,
     private readonly pages: PageVisibilityService,
+    private readonly lists: ListSettingsService,
   ) {}
 
   async me(ctx: AccessContext, session: { mfaVerified: boolean; sessionId: string }): Promise<MeDto> {
@@ -39,6 +41,7 @@ export class ProfileService {
       createdAt: user.createdAt.toISOString(),
       permissions: ctx.grants(),
       hiddenPages: await this.pages.hiddenFor(ctx),
+      listSettings: await this.lists.all(),
     };
   }
 }

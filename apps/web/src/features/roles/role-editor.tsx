@@ -29,18 +29,17 @@ function RoleNames({ form, onChange }: { form: UpsertRoleInput; onChange: (chang
   );
 }
 
+const NEW_ROLE: UpsertRoleInput = { nameAr: '', nameEn: '', assignment: 'manual', permissions: [] };
+const initialForm = (role: RoleDto | null): UpsertRoleInput =>
+  role ? { nameAr: role.nameAr, nameEn: role.nameEn, description: role.description ?? undefined, assignment: role.assignment, permissions: role.permissions } : NEW_ROLE;
+
 /** Permission matrix: tick a permission, then choose how far it reaches. */
 export function RoleEditor({ role, open, onOpenChange }: Props) {
   const { t, i18n } = useTranslation('roles');
   const { t: tc } = useTranslation();
   const catalog = usePermissionCatalog();
   const save = useSaveRole();
-  const [form, setForm] = useState<UpsertRoleInput>(() => ({
-    nameAr: role?.nameAr ?? '',
-    nameEn: role?.nameEn ?? '',
-    description: role?.description ?? undefined,
-    permissions: role?.permissions ?? [],
-  }));
+  const [form, setForm] = useState<UpsertRoleInput>(() => initialForm(role));
   const scopeOf = (key: string) => form.permissions.find((p) => p.key === key)?.scope;
   const setGrant = (key: string, scope: PermissionScope | null) =>
     setForm((f) => ({ ...f, permissions: [...f.permissions.filter((p) => p.key !== key), ...(scope ? [{ key, scope }] : [])] }));
@@ -57,6 +56,17 @@ export function RoleEditor({ role, open, onOpenChange }: Props) {
       <form className="flex flex-col gap-4" onSubmit={submit} noValidate>
         {save.isError && <Alert>{errorMessage(tc, save.error)}</Alert>}
         <RoleNames form={form} onChange={(change) => setForm((f) => ({ ...f, ...change }))} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField label={t('roleDescription')}>{(p) => <Input {...p} maxLength={500} value={form.description ?? ''} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />}</FormField>
+          <FormField label={t('assignment.label')} hint={role?.autoRule ? t('assignment.ruleHint') : t('assignment.hint')}>
+            {(p) => (
+              <Select {...p} disabled={!!role?.autoRule} value={form.assignment} onChange={(e) => setForm((f) => ({ ...f, assignment: e.target.value as 'auto' | 'manual' }))}>
+                <option value="manual">{t('assignment.manual')}</option>
+                <option value="auto">{t('assignment.auto')}</option>
+              </Select>
+            )}
+          </FormField>
+        </div>
         <fieldset className="flex flex-col gap-4">
           <legend className="mb-2 text-sm font-medium">{t('permissions')}</legend>
           {catalog.data?.map((group) => (

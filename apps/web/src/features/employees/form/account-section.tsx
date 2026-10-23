@@ -17,7 +17,7 @@ export function AccountSection() {
         render={({ field }) => (
           <fieldset className="flex flex-col gap-2 sm:col-span-2">
             <legend className="sr-only">{t('sections.account')}</legend>
-            {(roles.data ?? []).map((role) => (
+            {(roles.data ?? []).filter((r) => !r.autoRule).map((role) => (
               <label key={role.id} className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"

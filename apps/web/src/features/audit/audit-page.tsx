@@ -30,10 +30,11 @@ export function AuditPage() {
     <>
       <PageHeader title={t('title')} description={t('description')} />
       <DataTable<AuditLogDto>
+        listKey="audit"
         {...table}
         caption={t('title')}
         title={t('allTitle')}
-        toolbar={<ListToolbar {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder'), dir: 'ltr' }, fields)} actions={<ExchangeButtons exporting={{ columns: exportColumns, filename: 'audit-log', pageRows: query.data?.items ?? [], total: query.data?.total ?? 0, loadAll }} />} />}
+        toolbar={<ListToolbar listKey="audit" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder'), dir: 'ltr' }, fields)} actions={<ExchangeButtons exporting={{ columns: exportColumns, filename: 'audit-log', pageRows: query.data?.items ?? [], total: query.data?.total ?? 0, loadAll }} />} />}
         rowKey={(l) => l.id}
         columns={[
           { id: 'when', header: t('when'), className: 'whitespace-nowrap text-muted', cell: when },

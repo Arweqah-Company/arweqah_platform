@@ -3,11 +3,23 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import type { PermissionGrant, PermissionScope } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../common/application/transaction-runner';
+import { returnedRows } from '../../../common/infrastructure/query-result';
 import { managerOf } from '../../../common/infrastructure/typeorm-transaction-runner';
 import { NO_PLACEMENT, type Placement } from '../domain/access-context';
 import { UserAccessRepository, type UserAccessRecord } from '../domain/access.repository';
 import { Role } from '../domain/role.entity';
 import { UserRole } from '../domain/user-role.entity';
+
+const WITH_REPORTS = `EXISTS (SELECT 1 FROM employees s WHERE s.manager_id = m.id AND s.deleted_at IS NULL)`;
+/** "everyone": every person with an employee record; "has_reports": exactly the people some employee reports to. */
+const AUTO_ROLE_STATEMENTS = [
+  `INSERT INTO user_roles (user_id, role_id) SELECT m.user_id, r.id FROM employees m JOIN roles r ON r.auto_rule = 'everyone'
+     WHERE m.deleted_at IS NULL ON CONFLICT DO NOTHING RETURNING user_id`,
+  `INSERT INTO user_roles (user_id, role_id) SELECT m.user_id, r.id FROM employees m JOIN roles r ON r.auto_rule = 'has_reports'
+     WHERE m.deleted_at IS NULL AND ${WITH_REPORTS} ON CONFLICT DO NOTHING RETURNING user_id`,
+  `DELETE FROM user_roles ur USING roles r WHERE ur.role_id = r.id AND r.auto_rule = 'has_reports'
+     AND NOT EXISTS (SELECT 1 FROM employees m WHERE m.user_id = ur.user_id AND m.deleted_at IS NULL AND ${WITH_REPORTS}) RETURNING ur.user_id`,
+];
 
 interface GrantRow {
   key: string | null;
@@ -88,6 +100,12 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
     const m = managerOf(tx, this.userRoles.manager);
     await m.delete(UserRole, { userId });
     if (roleIds.length) await m.insert(UserRole, roleIds.map((roleId) => ({ userId, roleId })));
+  }
+
+  async syncAutoRoles(): Promise<number> {
+    let changed = 0;
+    for (const statement of AUTO_ROLE_STATEMENTS) changed += returnedRows<unknown>(await this.userRoles.manager.query(statement)).length;
+    return changed;
   }
 
   /** Placement is read from the employee record (the HR source of truth); the manager is that employee's user id. */

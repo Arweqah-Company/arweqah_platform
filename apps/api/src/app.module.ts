@@ -10,6 +10,7 @@ import { AppConfig } from './config/app-config.service';
 import { AppConfigModule } from './config/config.module';
 import { typeOrmOptions } from './config/typeorm.config';
 import { AccessModule } from './core/access/access.module';
+import { ListsModule } from './core/lists/lists.module';
 import { PermissionsGuard } from './core/access/presentation/permissions.guard';
 import { AuditModule } from './core/audit/audit.module';
 import { AuthCoreModule } from './core/auth/auth-core.module';
@@ -20,6 +21,7 @@ import { MessagingModule } from './core/messaging/messaging.module';
 import { NotificationsModule } from './core/notifications/notifications.module';
 import { WorkflowModule } from './core/workflow/workflow.module';
 import { OrgDemoSeeder } from './database/seeds/org-demo.seeder';
+import { RolesCatalogSeeder } from './database/seeds/roles-catalog.seeder';
 import { TicketsDemoSeeder } from './database/seeds/tickets-demo.seeder';
 import { CompaniesSeeder } from './database/seeds/companies.seeder';
 import { FoundationSeeder } from './database/seeds/foundation.seeder';
@@ -53,6 +55,7 @@ const JSON_LIMIT = '1mb';
     }),
     // Core (shared infrastructure for every feature)
     AccessModule,
+    ListsModule,
     AuditModule,
     MessagingModule,
     WorkflowModule,
@@ -75,6 +78,7 @@ const JSON_LIMIT = '1mb';
     CompaniesSeeder,
     OrgDemoSeeder,
     TicketsDemoSeeder,
+    RolesCatalogSeeder,
   ],
 })
 export class AppModule {}

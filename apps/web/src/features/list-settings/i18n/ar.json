@@ -1,0 +1,149 @@
+{
+  "title": "إدارة القوائم",
+  "description": "اختر لكل قائمة في المنصة الأعمدة التي تظهر والفلاتر المتاحة. الإعداد واحد لكل المستخدمين.",
+  "list": {
+    "employees": {
+      "name": "الموظفون",
+      "columns": {
+        "number": "رقم الموظف",
+        "name": "الاسم",
+        "company": "الشركة",
+        "unit": "الوحدة",
+        "title": "المسمى الوظيفي",
+        "status": "الحالة"
+      },
+      "filters": {
+        "companyId": "الشركة",
+        "status": "الحالة",
+        "relationTypeId": "نوع العلاقة",
+        "orgNodeId": "الوحدة",
+        "jobTitleId": "المسمى الوظيفي",
+        "contractTypeId": "نوع العقد",
+        "nationalityId": "الجنسية",
+        "gender": "الجنس",
+        "workMode": "نمط العمل",
+        "maritalStatusId": "الحالة الاجتماعية",
+        "residencyStatusId": "حالة الإقامة",
+        "startFrom": "بداية العمل من",
+        "startTo": "بداية العمل إلى",
+        "idExpiring": "هوية تنتهي قريبًا",
+        "contractEnding": "عقد ينتهي قريبًا"
+      }
+    },
+    "org": {
+      "name": "الهيكل التنظيمي",
+      "columns": {
+        "name": "الاسم",
+        "level": "المستوى",
+        "manager": "المسؤول",
+        "employees": "الموظفون",
+        "titles": "المسميات الوظيفية",
+        "status": "الحالة"
+      },
+      "filters": {
+        "level": "المستوى",
+        "status": "الحالة",
+        "employees": "له موظفون",
+        "manager": "له مسؤول"
+      }
+    },
+    "companies": {
+      "name": "الشركات",
+      "columns": {
+        "code": "الرمز",
+        "name": "الاسم",
+        "employees": "الموظفون",
+        "status": "الحالة"
+      },
+      "filters": {
+        "status": "الحالة",
+        "employees": "له موظفون"
+      }
+    },
+    "roles": {
+      "name": "الأدوار والصلاحيات",
+      "columns": {
+        "name": "الاسم",
+        "permissions": "الصلاحيات",
+        "users": "المستخدمون",
+        "assignment": "الإسناد",
+        "type": "دور أساسي"
+      },
+      "filters": {
+        "type": "النوع",
+        "assignment": "الإسناد",
+        "holders": "المستخدمون"
+      }
+    },
+    "audit": {
+      "name": "سجل التدقيق",
+      "columns": {
+        "when": "الوقت",
+        "actor": "المنفِّذ",
+        "action": "الإجراء",
+        "target": "الهدف"
+      },
+      "filters": {
+        "action": "الإجراء",
+        "entityType": "نوع السجل",
+        "actor": "المنفِّذ",
+        "from": "من تاريخ",
+        "to": "إلى تاريخ"
+      }
+    },
+    "email-log": {
+      "name": "سجل البريد",
+      "columns": {
+        "when": "الوقت",
+        "to": "المستلم",
+        "subject": "الموضوع",
+        "purpose": "الغرض",
+        "status": "الحالة",
+        "details": "التفاصيل"
+      },
+      "filters": {
+        "status": "الحالة",
+        "purpose": "الغرض",
+        "to": "المستلم",
+        "from": "من تاريخ",
+        "until": "إلى تاريخ"
+      }
+    },
+    "tickets": {
+      "name": "التذاكر",
+      "columns": {
+        "number": "الرقم",
+        "title": "العنوان",
+        "desk": "الإدارة",
+        "type": "النوع",
+        "sender": "المرسل",
+        "assignee": "المسؤول",
+        "status": "الحالة",
+        "neededBy": "المطلوب قبل",
+        "activity": "آخر نشاط"
+      },
+      "filters": {
+        "deskId": "الإدارة",
+        "typeId": "النوع",
+        "assigneeId": "المسؤول",
+        "status": "الحالة"
+      }
+    },
+    "notifications": {
+      "name": "الإشعارات",
+      "columns": {},
+      "filters": {
+        "state": "الحالة",
+        "from": "من تاريخ",
+        "until": "إلى تاريخ"
+      }
+    }
+  },
+  "listHint": "العمود الأول (الاسم) يبقى دائمًا.",
+  "columnsTitle": "الأعمدة",
+  "columnsHint": "علّم الأعمدة التي تظهر في الجدول وأزل العلامة عن التي تريد إخفاءها.",
+  "filtersTitle": "الفلاتر",
+  "filtersHint": "علّم الفلاتر التي تظهر في لوحة التصفية.",
+  "saved": "حُفظت إعدادات القائمة.",
+  "listLabel": "القائمة"
+}

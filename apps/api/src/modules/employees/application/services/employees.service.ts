@@ -19,7 +19,7 @@ import {
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
 import { ForbiddenError, NotFoundError } from '../../../../common/domain/domain-error';
 import { AbilityFactory } from '../../../../core/access/application/ability.factory';
-import { ACCESS_CHANGED } from '../../../../core/access/application/access.events';
+import { ACCESS_CHANGED, EMPLOYEES_CHANGED } from '../../../../core/access/application/access.events';
 import { UserAccessService } from '../../../../core/access/application/user-access.service';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
@@ -94,6 +94,7 @@ export class EmployeesService {
       await this.identity.deleteUser(userId);
       throw error;
     }
+    await this.events.emitAsync(EMPLOYEES_CHANGED);
     this.audit(actorId, EMPLOYEE_AUDIT.created, created.id, { companyId: created.companyId, roles: roleIds.length });
     return { employee: await this.dto(ctx, created), invitation: await this.invite(userId) };
   }
@@ -108,6 +109,7 @@ export class EmployeesService {
     const { values } = await this.validation.prepare(ctx, fields, existing);
     await this.tx.run((tx) => this.repo.update(id, values, tx));
     this.events.emit(ACCESS_CHANGED, { userId: existing.userId });
+    await this.events.emitAsync(EMPLOYEES_CHANGED);
     this.audit(actorId, EMPLOYEE_AUDIT.updated, id, { fields: changedFields(existing, values) });
     return this.dto(ctx, (await this.repo.findById(id)) as Employee);
   }
@@ -140,6 +142,7 @@ export class EmployeesService {
     if (employee.userId === ctx.userId) throw new SelfActionError('You cannot change your own roles');
     await this.assertCanAssignRoles(ctx, roleIds, { companyId: employee.companyId, orgNodeId: employee.orgNodeId, ownerId: employee.userId });
     await this.tx.run((tx) => this.access.replaceRoles(employee.userId, roleIds, tx));
+    await this.events.emitAsync(EMPLOYEES_CHANGED);
     this.audit(actorId, EMPLOYEE_AUDIT.rolesChanged, id, { roleIds });
     return this.dto(ctx, employee);
   }
