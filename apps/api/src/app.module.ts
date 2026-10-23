@@ -20,7 +20,7 @@ import { FilesModule } from './core/files/files.module';
 import { MessagingModule } from './core/messaging/messaging.module';
 import { NotificationsModule } from './core/notifications/notifications.module';
 import { WorkflowModule } from './core/workflow/workflow.module';
-import { OrgDemoSeeder } from './database/seeds/org-demo.seeder';
+import { OrgStructureSeeder } from './database/seeds/org-structure.seeder';
 import { RolesCatalogSeeder } from './database/seeds/roles-catalog.seeder';
 import { TicketsDemoSeeder } from './database/seeds/tickets-demo.seeder';
 import { CompaniesSeeder } from './database/seeds/companies.seeder';
@@ -76,7 +76,7 @@ const JSON_LIMIT = '1mb';
     FoundationSeeder,
     LookupsSeeder,
     CompaniesSeeder,
-    OrgDemoSeeder,
+    OrgStructureSeeder,
     TicketsDemoSeeder,
     RolesCatalogSeeder,
   ],

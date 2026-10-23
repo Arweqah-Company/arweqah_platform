@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { AppConfig } from '../src/config/app-config.service';
-import { OrgDemoSeeder } from '../src/database/seeds/org-demo.seeder';
-import { CompaniesService } from '../src/modules/org/application/services/companies.service';
-import { OrgLevelsService } from '../src/modules/org/application/services/org-levels.service';
-import { OrgNodesService } from '../src/modules/org/application/services/org-nodes.service';
 import { FoundationSeeder } from '../src/database/seeds/foundation.seeder';
 import { codeFor } from './helpers/totp';
 import { useTestApp } from './setup/test-app';
@@ -30,18 +26,16 @@ describe('Seeders (FR-14, FR-25)', () => {
     expect(roles.map((r: { name_en: string }) => r.name_en)).toEqual(['Employee', 'System Admin']);
   });
 
-  it('sample structure (development only): off by default, and when on gives Arweqah Alreyadah the structure of the owner sheet once, with a job title for each unit', async () => {
-    await t.app.get(FoundationSeeder).run();
-    const build = (on: boolean) =>
-      new OrgDemoSeeder({ get: () => on } as unknown as AppConfig, t.app.get(CompaniesService), t.app.get(OrgLevelsService), t.app.get(OrgNodesService));
-    const before = await count('SELECT count(*)::int AS n FROM org_nodes');
-    await build(false).run();
-    expect(await count('SELECT count(*)::int AS n FROM org_nodes')).toBe(before);
-    await build(true).run();
+  it('organization structure (every environment, the server included): gives Arweqah Alreyadah the owner sheet once, with a job title for each unit, and never again', async () => {
+    const seeder = t.app.get(FoundationSeeder);
+    await seeder.run();
     expect(await count('SELECT count(*)::int AS n FROM org_nodes')).toBe(68);
     expect(await count('SELECT count(*)::int AS n FROM job_titles')).toBe(32);
-    await build(true).run();
+    await seeder.run();
     expect(await count('SELECT count(*)::int AS n FROM org_nodes')).toBe(68);
+    await t.db.query(`UPDATE org_nodes SET deleted_at = now() WHERE id = (SELECT id FROM org_nodes ORDER BY created_at DESC LIMIT 1)`);
+    await seeder.run(); // a structure that someone changed is left alone
+    expect(await count('SELECT count(*)::int AS n FROM org_nodes WHERE deleted_at IS NULL')).toBe(67);
   });
 
   it('is safe to run again: nothing is duplicated', async () => {

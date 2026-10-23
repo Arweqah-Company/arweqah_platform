@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppConfig } from '../../config/app-config.service';
 import { ORG_ADMIN_PERMISSIONS } from '@arweqah-platform/shared';
 import { AccessContext, NO_PLACEMENT } from '../../core/access/domain/access-context';
 import { CompaniesService } from '../../modules/org/application/services/companies.service';
@@ -9,7 +8,7 @@ import { ORG_STRUCTURE, type OrgKind } from './data/org-structure.data';
 
 const SEEDER_ID = '00000000-0000-4000-8000-000000000002';
 
-/** Development only (SEED_DEMO_ORG): gives Arweqah Alreyadah its structure from the owner's sheet when it has no units yet. */
+/** Gives Arweqah Alreyadah its real structure, from the owner's sheet, in every environment (the server included), and only while the company has no units yet: it never touches a structure someone built or changed. */
 const COMPANY_CODE = 'ARW';
 /** The sheet has no dates, so every unit starts on the same day. */
 const DEMO_START_DATE = '2024-01-01';
@@ -18,21 +17,19 @@ const PLACEHOLDER_TITLE = { ar: 'موظف', en: 'Employee' };
 const KINDS: OrgKind[] = ['sector', 'department', 'section', 'unit'];
 
 @Injectable()
-export class OrgDemoSeeder {
+export class OrgStructureSeeder {
   private readonly logger = new Logger('Seed');
   private readonly ctx = new AccessContext(SEEDER_ID, NO_PLACEMENT, [
     ...ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const })),
   ], true);
 
   constructor(
-    private readonly config: AppConfig,
     private readonly companies: CompaniesService,
     private readonly levels: OrgLevelsService,
     private readonly nodes: OrgNodesService,
   ) {}
 
   async run(): Promise<void> {
-    if (!this.config.get('SEED_DEMO_ORG')) return;
     const company = (await this.companies.list()).find((c) => c.code === COMPANY_CODE);
     if (!company || (await this.nodes.tree(this.ctx, company.id)).nodes.length > 0) return;
     await this.seedCompany(company.id);

@@ -701,7 +701,7 @@ cp .env.example .env                     # then fill BETTER_AUTH_SECRET, FIELD_E
 docker compose up -d                     # PostgreSQL (+ test DB), RabbitMQ, Mailpit
 npm run db:migrate
 npm run db:seed                          # roles, lookups and countries, 10 companies with levels, the first admin from SEED_ADMIN_*,
-                                         # and (development only, SEED_DEMO_ORG=true) a sample structure per company
+                                         # and the organization structure of Arweqah Alreyadah from the owner's sheet (every environment, once, while the company has no units) and, development only (`SEED_DEMO_ORG=true`), demo ticket desks and sample tickets
 npm run dev                              # API :3000, web :5173 (proxies /api)
 npm run verify                           # end-of-task check: architecture, design, testing, security
 ```

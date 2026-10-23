@@ -55,9 +55,9 @@ export const envSchema = z
     SEED_ADMIN_EMAIL: z.email().optional(),
     /** Local development only: links an authenticator app to the first admin so sign-in works before Microsoft is set up. */
     SEED_ADMIN_TOTP_SECRET: z.string().regex(/^[A-Z2-7]{16,64}$/, 'must be a base32 secret').optional(),
-    /** Development only: fills every company with a small sample structure (units and job titles). */
     /** Sign-in attempts per minute and IP (e-mail + code, Microsoft). Raised only for automated browser tests. */
     SIGN_IN_RATE_LIMIT: z.coerce.number().int().min(1).max(10_000).default(5),
+    /** Development only: demo ticket desks and sample tickets (the real organization structure is seeded everywhere). */
     SEED_DEMO_ORG: z.stringbool().default(false),
     SEED_ADMIN_NAME: z.string().default('System Admin'),
   })

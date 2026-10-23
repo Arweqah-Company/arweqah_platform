@@ -15,7 +15,7 @@ import { DEFAULT_COMPANY_CODE } from './data/lookups.data';
 import { LookupsSeeder } from './lookups.seeder';
 import { EMPLOYEE_ROLE_SEED } from './data/roles.data';
 import { RolesCatalogSeeder } from './roles-catalog.seeder';
-import { OrgDemoSeeder } from './org-demo.seeder';
+import { OrgStructureSeeder } from './org-structure.seeder';
 import { TicketsDemoSeeder } from './tickets-demo.seeder';
 
 export const SYSTEM_ADMIN_ROLE = 'System Admin';
@@ -35,7 +35,7 @@ export class FoundationSeeder {
     private readonly config: AppConfig,
     private readonly lookups: LookupsSeeder,
     private readonly companies: CompaniesSeeder,
-    private readonly demo: OrgDemoSeeder,
+    private readonly demo: OrgStructureSeeder,
     private readonly ticketsDemo: TicketsDemoSeeder,
     private readonly rolesCatalog: RolesCatalogSeeder,
     private readonly autoRoles: AutoRolesService,
