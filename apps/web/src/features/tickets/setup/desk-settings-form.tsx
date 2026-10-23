@@ -47,7 +47,7 @@ function StatusField({ value, hasManager, onChange }: { value: ReceptionStatus; 
 
 const inRange = (f: Form) => DAY_FIELDS.every(({ id }) => Number.isInteger(f[id]) && f[id] >= DESK_LIMITS[id].min && f[id] <= DESK_LIMITS[id].max);
 
-/** Reception status, what the sender reads, personal requests, and the durations the manager decides. */
+/** Two sections saved together: reception (status, personal requests, what the sender reads) and the durations the manager decides. */
 export function DeskSettingsForm({ desk }: { desk: TicketDeskDto }) {
   const { t } = useTranslation('tickets');
   const { t: tc } = useTranslation();
@@ -64,16 +64,18 @@ export function DeskSettingsForm({ desk }: { desk: TicketDeskDto }) {
     }
   };
   return (
-    <SectionCard id="reception" title={t('setup.receptionTitle')} description={t('setup.receptionIntro')}>
-      <form className="grid gap-x-5 gap-y-4 sm:col-span-2 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); void submit(); }} noValidate>
-        {save.isError && <div className="sm:col-span-2"><Alert>{errorMessage(tc, save.error)}</Alert></div>}
+    <form className="flex flex-col gap-6" onSubmit={(e) => { e.preventDefault(); void submit(); }} noValidate>
+      {save.isError && <Alert>{errorMessage(tc, save.error)}</Alert>}
+      <SectionCard id="reception" title={t('setup.receptionTitle')} description={t('setup.receptionIntro')}>
         <StatusField value={form.receptionStatus} hasManager={!!desk.manager} onChange={(receptionStatus) => set({ receptionStatus })} />
         <label className="flex items-center gap-2 self-end pb-3 text-sm"><input type="checkbox" className="size-4 accent-petrol-800" checked={form.acceptsPersonal} onChange={(e) => set({ acceptsPersonal: e.target.checked })} />{t('setup.acceptsPersonal')}</label>
         <FormField label={t('setup.descriptionAr')} hint={t('setup.descriptionHint')}>{(p) => <Textarea {...p} rows={2} maxLength={500} value={form.descriptionAr} onChange={(e) => set({ descriptionAr: e.target.value })} />}</FormField>
         <FormField label={t('setup.descriptionEn')}>{(p) => <Textarea {...p} dir="ltr" rows={2} maxLength={500} value={form.descriptionEn} onChange={(e) => set({ descriptionEn: e.target.value })} />}</FormField>
+      </SectionCard>
+      <SectionCard id="durations" title={t('setup.durationsTitle')} description={t('setup.durationsIntro')}>
         {DAY_FIELDS.map(({ id, unit }) => <DaysField key={id} id={id} unit={unit} value={form[id]} onChange={(v) => set({ [id]: v } as Partial<Form>)} />)}
-        <div className="sm:col-span-2"><Button type="submit" disabled={save.isPending || !valid}>{tc('actions.save')}</Button></div>
-      </form>
-    </SectionCard>
+      </SectionCard>
+      <div><Button type="submit" disabled={save.isPending || !valid}>{tc('actions.save')}</Button></div>
+    </form>
   );
 }

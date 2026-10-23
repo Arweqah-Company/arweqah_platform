@@ -23,6 +23,14 @@ test.afterEach(async ({ page }) => {
 });
 
 test.describe('Platform admin mode (FR-34)', () => {
+  test('the admin pages (roles, companies, audit log, e-mail log) are hidden and say so until the mode is on', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByRole('link', { name: 'سجل البريد' })).toHaveCount(0);
+    await page.goto('/audit');
+    await expect(page.getByText('هذه الصفحة تعمل في وضع مدير المنصة.')).toBeVisible();
+    await expect(page.getByRole('table')).toHaveCount(0);
+  });
+
   test('is off by default, turns on with a fresh authenticator code, shows its state, and turns off', async ({ page }) => {
     test.setTimeout(120_000); // may wait for the next 30-second code
     await page.goto('/');

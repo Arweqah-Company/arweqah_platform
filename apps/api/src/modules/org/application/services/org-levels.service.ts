@@ -14,6 +14,7 @@ import { TransactionRunner } from '../../../../common/application/transaction-ru
 import type { TransactionContext } from '../../../../common/domain/transaction-context';
 import { NotFoundError } from '../../../../common/domain/domain-error';
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
+import { OrgNodeDependentsPort } from '../../domain/contracts/org-node-dependents.port';
 import { EmployeePlacementPort } from '../../domain/contracts/employee-placement.port';
 import {
   EmployeesDecisionRequiredError,
@@ -21,6 +22,7 @@ import {
   OrgImpactChangedError,
   OrgImpactConfirmationRequiredError,
   OrgLevelsNotEmptyError,
+  OrgNodeHasTicketsError,
 } from '../../domain/errors/org.errors';
 import { planLevels, type LevelsPlan } from '../../domain/rules/org-levels.rules';
 import type { TitleView } from '../../domain/types/org.types';
@@ -46,6 +48,7 @@ export class OrgLevelsService {
   constructor(
     private readonly repo: OrgRepository,
     private readonly employees: EmployeePlacementPort,
+    private readonly dependents: OrgNodeDependentsPort,
     private readonly tx: TransactionRunner,
     private readonly events: EventEmitter2,
   ) {}
@@ -139,6 +142,7 @@ export class OrgLevelsService {
   }
 
   private async applyImpact(a: Analysis, decision: EmployeesDecision | undefined, actorId: string, tx: TransactionContext): Promise<void> {
+    if ((await this.dependents.unitsInUse(a.removedNodeIds)).length > 0) throw new OrgNodeHasTicketsError();
     const fromNodeIds = [...a.removedNodeIds, ...a.unassignedNodeIds];
     if (a.employeesTotal > 0 && decision) await this.moveOrRemoveEmployees({ a, decision, fromNodeIds, actorId }, tx);
     await this.repo.softDeleteTitles(a.titles.map((t) => t.id), tx);

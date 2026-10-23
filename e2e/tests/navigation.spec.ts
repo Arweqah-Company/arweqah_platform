@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { BasePage } from '../pages/base.page';
+import { adminModeOffViaApi, adminModeOnViaApi } from '../support/admin-mode';
 import { ADMIN_STATE } from '../support/fixtures';
 
 class Page extends BasePage {}
@@ -10,9 +11,13 @@ const limitedMe = {
   placement: { companyId: null, orgNodeId: null, managerId: null }, permissions: [], createdAt: new Date().toISOString(),
 };
 
+test.afterEach(async ({ page }) => adminModeOffViaApi(page));
+
 test.describe('Sidebar menus and the 401, 403, 404 pages (FR-30)', () => {
   test('the sidebar groups links in menus; the menu of the current page is open', async ({ page }) => {
+    test.setTimeout(120_000); // may wait for the next 30-second code
     const nav = new Page(page);
+    await adminModeOnViaApi(page);
     await page.goto('/');
     await nav.openNav('الموظفون', 'الموارد البشرية');
     await expect(page.getByRole('heading', { level: 1, name: 'الموظفون' })).toBeVisible();
@@ -49,6 +54,8 @@ test.describe('Sidebar menus and the 401, 403, 404 pages (FR-30)', () => {
   });
 
   test('401: when the session ends while working, the session-ended page offers sign-in', async ({ page }) => {
+    test.setTimeout(120_000);
+    await adminModeOnViaApi(page);
     await page.route('**/api/companies', (route) => route.fulfill({ status: 401, json: { statusCode: 401, code: 'UNAUTHORIZED', message: 'Unauthorized' } }));
     await page.goto('/companies');
     await expect(page).toHaveURL(/\/401$/);

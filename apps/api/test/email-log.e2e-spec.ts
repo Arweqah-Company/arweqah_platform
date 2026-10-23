@@ -4,6 +4,7 @@ import { ExternalServiceError } from '../src/common/domain/domain-error';
 import { EmailLogRepository } from '../src/core/notifications/domain/email-log.repository';
 import { LoggedMailSender } from '../src/core/notifications/infrastructure/logged-mail.sender';
 import type { SmtpMailSender } from '../src/core/notifications/infrastructure/smtp-mail.sender';
+import { ADMIN_MODE_GRANT } from './factories/factories';
 import { useTestApp } from './setup/test-app';
 
 const okSmtp = { send: async () => ({ messageId: '<id-1@arweqah.sa>', response: '250 2.0.0 OK' }) } as unknown as SmtpMailSender;
@@ -15,7 +16,7 @@ describe('Sent e-mail log (FR-26)', () => {
   const mail = { to: 'a@arweqah.sa', subject: 'Activate', text: 'secret-link-body', purpose: 'activation' as const };
 
   async function viewer() {
-    return t.factories.signIn(await t.factories.user({ grants: [{ key: 'notifications.email_log', scope: 'all' }] }));
+    return t.factories.signInAdminMode(await t.factories.user({ grants: [ADMIN_MODE_GRANT, { key: 'notifications.email_log', scope: 'all' }] }));
   }
 
   it('records a sent e-mail with the server acknowledgement and never stores the body', async () => {

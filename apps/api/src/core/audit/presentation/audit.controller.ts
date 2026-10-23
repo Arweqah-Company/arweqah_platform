@@ -2,13 +2,14 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import { auditQuerySchema, CorePermission, type AuditLogDto, type Paginated } from '@arweqah-platform/shared';
-import { RequirePermission } from '../../access/presentation/require-permission.decorator';
+import { RequireAdminMode, RequirePermission } from '../../access/presentation/require-permission.decorator';
 import { AuditService } from '../application/audit.service';
 
 class AuditQueryDto extends createZodDto(auditQuerySchema) {}
 
 @ApiTags('audit')
 @Controller('audit-logs')
+@RequireAdminMode()
 export class AuditController {
   constructor(private readonly audit: AuditService) {}
 

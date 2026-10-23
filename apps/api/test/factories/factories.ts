@@ -56,6 +56,9 @@ let ipCounter = 1;
 export const nextIp = (): string => `10.1.${Math.floor(ipCounter / 250)}.${(ipCounter++ % 250) + 1}`;
 
 /** Builders for test data (never copy-pasted objects in specs). */
+/** Grant that lets a test user switch platform admin mode on. */
+export const ADMIN_MODE_GRANT: PermissionGrant = { key: CorePermission.AdminModeUse, scope: 'all' };
+
 export class Factories {
   private readonly db: DataSource;
   private readonly admin = new AccessContext('00000000-0000-4000-8000-000000000001', NO_PLACEMENT, [{ key: CorePermission.OrgManage, scope: 'all' }], true);
@@ -154,6 +157,13 @@ export class Factories {
     const agent = request.agent(this.app.getHttpServer());
     await this.freshStep(user);
     await agent.post('/api/auth/totp/sign-in').set('x-forwarded-for', nextIp()).send({ email: user.email, code: codeFor(user.secret) }).expect(200);
+    return agent;
+  }
+
+  /** Signs in and switches platform admin mode on (the person needs the `admin_mode.use` grant); it uses the next 30-second code. */
+  async signInAdminMode(user: TestUser): Promise<TestAgent> {
+    const agent = await this.signIn(user);
+    await agent.post('/api/admin-mode/activate').send({ code: codeFor(user.secret, Date.now() + 30_000) }).expect(200);
     return agent;
   }
 

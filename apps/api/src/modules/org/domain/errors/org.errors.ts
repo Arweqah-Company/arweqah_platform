@@ -22,6 +22,13 @@ export class CompanyInUseError extends BusinessRuleError {
   }
 }
 
+export class OrgNodeHasTicketsError extends BusinessRuleError {
+  override readonly code = 'ORG_NODE_HAS_TICKETS';
+  constructor() {
+    super('A department with a ticket desk that receives tickets, or with open tickets, cannot be moved or deleted');
+  }
+}
+
 export class OrgNodeInUseError extends BusinessRuleError {
   override readonly code = 'ORG_NODE_IN_USE';
   constructor() {

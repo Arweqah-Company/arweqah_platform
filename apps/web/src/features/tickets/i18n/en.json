@@ -234,7 +234,9 @@
       "removeBody": "The type is deleted if it has no tickets; otherwise it is deactivated and its tickets stay.",
       "days_one": "Time: 1 working day",
       "days_other": "Time: {{count}} working days"
-    }
+    },
+    "durationsTitle": "Durations",
+    "durationsIntro": "Set the durations in days: usual completion time, minimum lead, auto-close, reopen window and stale tickets."
   },
   "figures": {
     "title": "Ticket performance",
@@ -261,6 +263,8 @@
     "hours_one": "1 hour",
     "hours_other": "{{count}} hours",
     "personalCount_one": "1 of them personal",
-    "personalCount_other": "{{count}} of them personal"
+    "personalCount_other": "{{count}} of them personal",
+    "allDesks": "All departments",
+    "desk": "Department"
   }
 }

@@ -249,7 +249,9 @@
       "days_few": "المدة: {{count}} أيام عمل",
       "days_many": "المدة: {{count}} يوم عمل",
       "days_other": "المدة: {{count}} يوم عمل"
-    }
+    },
+    "durationsTitle": "المُهَل",
+    "durationsIntro": "حدّد المُهَل بالأيام: مدة الإنجاز وأقل مهلة للطلب وإغلاق التذكرة تلقائيًا وإعادة الفتح والتذاكر الراكدة."
   },
   "figures": {
     "title": "أداء التذاكر",
@@ -282,6 +284,8 @@
     "personalCount_two": "منها تذكرتان شخصيتان",
     "personalCount_few": "منها {{count}} تذاكر شخصية",
     "personalCount_many": "منها {{count}} تذكرة شخصية",
-    "personalCount_other": "منها {{count}} تذكرة شخصية"
+    "personalCount_other": "منها {{count}} تذكرة شخصية",
+    "allDesks": "كل الإدارات",
+    "desk": "الإدارة"
   }
 }

@@ -7,6 +7,6 @@ import en from './i18n/en.json';
 export const companiesFeature: FeatureModule = {
   id: 'companies',
   routes: [{ path: '/companies', lazy: () => import('./companies-page').then((m) => ({ Component: m.CompaniesPage })) }],
-  nav: [{ to: '/companies', labelKey: 'nav.companies', icon: Building2, group: 'people', permission: CorePermission.CompaniesView }],
+  nav: [{ to: '/companies', labelKey: 'nav.companies', icon: Building2, group: 'people', permission: CorePermission.CompaniesView, requiresAdminMode: true }],
   i18n: { ar, en },
 };

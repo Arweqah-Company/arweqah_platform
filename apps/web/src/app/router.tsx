@@ -14,11 +14,12 @@ function Root() {
   );
 }
 
-/** A route inherits the permission of the navigation item that points at it (the 403 page shows without it). */
-const permissionByPath = new Map(FEATURES.flatMap((f) => f.nav ?? []).filter((n) => n.permission).map((n) => [n.to, n.permission]));
+/** A route inherits the permission and the admin-mode need of the navigation item that points at it. */
+const navByPath = new Map(FEATURES.flatMap((f) => f.nav ?? []).map((n) => [n.to, n]));
 const withPermission = (route: RouteObject): RouteObject => {
-  const permission = route.path ? permissionByPath.get(`/${route.path.replace(/^\//, '')}`) : undefined;
-  return permission ? { ...route, handle: { permission } } : route;
+  const nav = route.path ? navByPath.get(`/${route.path.replace(/^\//, '')}`) : undefined;
+  const handle = { ...(nav?.permission && { permission: nav.permission }), ...(nav?.requiresAdminMode && { adminMode: true }) };
+  return Object.keys(handle).length ? { ...route, handle } : route;
 };
 
 export const router = createBrowserRouter([

@@ -5,13 +5,17 @@ import { AccessContext, NO_PLACEMENT } from '../../core/access/domain/access-con
 import { CompaniesService } from '../../modules/org/application/services/companies.service';
 import { OrgLevelsService } from '../../modules/org/application/services/org-levels.service';
 import { OrgNodesService } from '../../modules/org/application/services/org-nodes.service';
-import { DEMO_DEPARTMENTS, DEMO_SECTOR } from './data/demo-org.data';
+import { ORG_STRUCTURE, type OrgKind } from './data/org-structure.data';
 
 const SEEDER_ID = '00000000-0000-4000-8000-000000000002';
 
-/** Development only (SEED_DEMO_ORG): gives every company that has no units yet a small sample structure. */
-/** Sample units start on the same day (development only). */
+/** Development only (SEED_DEMO_ORG): gives Arweqah Alreyadah its structure from the owner's sheet when it has no units yet. */
+const COMPANY_CODE = 'ARW';
+/** The sheet has no dates, so every unit starts on the same day. */
 const DEMO_START_DATE = '2024-01-01';
+/** A unit needs at least one job title and the sheet has none, so each gets this neutral one until HR defines the real titles. */
+const PLACEHOLDER_TITLE = { ar: 'موظف', en: 'Employee' };
+const KINDS: OrgKind[] = ['sector', 'department', 'section', 'unit'];
 
 @Injectable()
 export class OrgDemoSeeder {
@@ -30,23 +34,20 @@ export class OrgDemoSeeder {
 
   async run(): Promise<void> {
     if (!this.config.get('SEED_DEMO_ORG')) return;
-    for (const company of await this.companies.list()) {
-      const tree = await this.nodes.tree(this.ctx, company.id);
-      if (tree.nodes.length > 0) continue;
-      await this.seedCompany(company.id);
-      this.logger.log(`Sample structure created for ${company.code}`);
-    }
+    const company = (await this.companies.list()).find((c) => c.code === COMPANY_CODE);
+    if (!company || (await this.nodes.tree(this.ctx, company.id)).nodes.length > 0) return;
+    await this.seedCompany(company.id);
+    this.logger.log(`Organization structure created for ${company.code}`);
   }
 
+  /** Rows come parents first; a parent is found by name among the nodes of the level above. */
   private async seedCompany(companyId: string): Promise<void> {
-    const [sectorLevel, departmentLevel, sectionLevel, unitLevel] = (await this.levels.list(companyId)).map((l) => l.id);
-    const sector = await this.create(sectorLevel, null, DEMO_SECTOR, []);
-    for (const { department, units } of DEMO_DEPARTMENTS) {
-      const departmentNode = await this.create(departmentLevel, sector, department, []);
-      for (const { section, unit, titles } of units) {
-        const sectionNode = await this.create(sectionLevel, departmentNode, section, []);
-        await this.create(unitLevel, sectionNode, unit, titles);
-      }
+    const levels = (await this.levels.list(companyId)).map((l) => l.id);
+    const created = new Map<string, string>();
+    for (const row of ORG_STRUCTURE) {
+      const level = KINDS.indexOf(row.kind);
+      const parentId = row.parent ? created.get(`${level - 1}:${row.parent}`) ?? null : null;
+      created.set(`${level}:${row.ar}`, await this.create(levels[level], parentId, { ar: row.ar, en: row.en }, row.kind === 'unit' ? [PLACEHOLDER_TITLE] : []));
     }
   }
 

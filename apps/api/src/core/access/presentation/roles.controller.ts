@@ -12,7 +12,7 @@ import type { SessionUser } from '../../../common/presentation/request-context';
 import { IdParam } from '../../../common/presentation/zod-query';
 import { PermissionCatalog } from '../application/permission-catalog';
 import { RolesService } from '../application/roles.service';
-import { RequirePermission } from './require-permission.decorator';
+import { RequireAdminMode, RequirePermission } from './require-permission.decorator';
 
 class UpsertRoleDto extends createZodDto(upsertRoleSchema) {}
 
@@ -25,6 +25,7 @@ export class RolesController {
   ) {}
 
   @Get('permissions/catalog')
+  @RequireAdminMode()
   @RequirePermission(CorePermission.RolesView)
   getCatalog(): PermissionCatalogGroup[] {
     return this.catalog.grouped();
@@ -37,18 +38,21 @@ export class RolesController {
   }
 
   @Post('roles')
+  @RequireAdminMode()
   @RequirePermission(CorePermission.RolesManage)
   create(@Body() body: UpsertRoleDto, @CurrentUser() user: SessionUser): Promise<RoleDto> {
     return this.roles.create(body, user.id);
   }
 
   @Put('roles/:id')
+  @RequireAdminMode()
   @RequirePermission(CorePermission.RolesManage)
   update(@Param() { id }: IdParam, @Body() body: UpsertRoleDto, @CurrentUser() user: SessionUser): Promise<RoleDto> {
     return this.roles.update(id, body, user.id);
   }
 
   @Delete('roles/:id')
+  @RequireAdminMode()
   @HttpCode(204)
   @RequirePermission(CorePermission.RolesManage)
   async remove(@Param() { id }: IdParam, @CurrentUser() user: SessionUser): Promise<void> {

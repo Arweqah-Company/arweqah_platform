@@ -30,7 +30,7 @@ describe('Seeders (FR-14, FR-25)', () => {
     expect(roles.map((r: { name_en: string }) => r.name_en)).toEqual(['Employee', 'System Admin']);
   });
 
-  it('sample structure (development only): off by default, and when on fills each empty company once with units that have job titles', async () => {
+  it('sample structure (development only): off by default, and when on gives Arweqah Alreyadah the structure of the owner sheet once, with a job title for each unit', async () => {
     await t.app.get(FoundationSeeder).run();
     const build = (on: boolean) =>
       new OrgDemoSeeder({ get: () => on } as unknown as AppConfig, t.app.get(CompaniesService), t.app.get(OrgLevelsService), t.app.get(OrgNodesService));
@@ -38,10 +38,10 @@ describe('Seeders (FR-14, FR-25)', () => {
     await build(false).run();
     expect(await count('SELECT count(*)::int AS n FROM org_nodes')).toBe(before);
     await build(true).run();
-    expect(await count('SELECT count(*)::int AS n FROM org_nodes')).toBe(10 * 7);
-    expect(await count('SELECT count(*)::int AS n FROM job_titles')).toBe(10 * 4);
+    expect(await count('SELECT count(*)::int AS n FROM org_nodes')).toBe(68);
+    expect(await count('SELECT count(*)::int AS n FROM job_titles')).toBe(32);
     await build(true).run();
-    expect(await count('SELECT count(*)::int AS n FROM org_nodes')).toBe(10 * 7);
+    expect(await count('SELECT count(*)::int AS n FROM org_nodes')).toBe(68);
   });
 
   it('is safe to run again: nothing is duplicated', async () => {

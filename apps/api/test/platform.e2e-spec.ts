@@ -7,6 +7,7 @@ import { ScheduledJobRelay } from '../src/core/messaging/infrastructure/typeorm-
 import type { InMemoryMessageBus } from '../src/core/messaging/infrastructure/in-memory-message-bus';
 import { WorkflowRegistry } from '../src/core/workflow/application/workflow-definition';
 import { WorkflowEngine } from '../src/core/workflow/application/workflow-engine';
+import { ADMIN_MODE_GRANT } from './factories/factories';
 import { useTestApp } from './setup/test-app';
 
 const PNG = Buffer.from('89504e470d0a1a0a0000000d4948445200000001000000010806000000', 'hex');
@@ -154,11 +155,12 @@ describe('Audit log (FR-11)', () => {
   it('records sign-ins and admin actions with the actor, and only auditors can read it', async () => {
     const auditor = await t.factories.user({
       grants: [
+        ADMIN_MODE_GRANT,
         { key: 'audit.view', scope: 'company' },
         { key: 'roles.manage', scope: 'company' },
       ],
     });
-    const agent = await t.factories.signIn(auditor);
+    const agent = await t.factories.signInAdminMode(auditor);
     await agent.post('/api/roles').send({ nameAr: 'دور', nameEn: 'Audited role', permissions: [] }).expect(201);
     await new Promise((r) => setTimeout(r, 200)); // audit is written asynchronously
     const res = await agent.get('/api/audit-logs').expect(200);
@@ -175,8 +177,8 @@ describe('Audit log filters (FR-11)', () => {
   const t = useTestApp();
 
   it('searches by action or record, by actor and by date range', async () => {
-    const auditor = await t.factories.user({ grants: [{ key: 'audit.view', scope: 'company' }, { key: 'roles.manage', scope: 'company' }] });
-    const agent = await t.factories.signIn(auditor);
+    const auditor = await t.factories.user({ grants: [ADMIN_MODE_GRANT, { key: 'audit.view', scope: 'company' }, { key: 'roles.manage', scope: 'company' }] });
+    const agent = await t.factories.signInAdminMode(auditor);
     await agent.post('/api/roles').send({ nameAr: 'دور', nameEn: 'Filter role', permissions: [] }).expect(201);
     await new Promise((r) => setTimeout(r, 200));
     const items = async (query: Record<string, unknown>) => (await agent.get('/api/audit-logs').query(query).expect(200)).body.items as { action: string }[];

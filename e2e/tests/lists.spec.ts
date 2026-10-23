@@ -1,9 +1,11 @@
 import { expect, test } from '@playwright/test';
 import { readFileSync, statSync } from 'node:fs';
 import { ListPage } from '../pages/list.page';
+import { adminModeOffViaApi, adminModeOnViaApi } from '../support/admin-mode';
 import { ADMIN_STATE } from '../support/fixtures';
 
 test.use({ storageState: ADMIN_STATE });
+test.afterEach(async ({ page }) => adminModeOffViaApi(page));
 
 test.describe('Lists: search, filters, table or cards, export and import (FR-27, FR-28, FR-29)', () => {
   test('search narrows the list and filters show as chips that can be removed', async ({ page }) => {
@@ -24,6 +26,8 @@ test.describe('Lists: search, filters, table or cards, export and import (FR-27,
   });
 
   test('the table / cards choice is remembered for the list', async ({ page }) => {
+    test.setTimeout(120_000); // may wait for the next 30-second code
+    await adminModeOnViaApi(page);
     const list = new ListPage(page);
     await page.goto('/companies');
     await list.switchView('بطاقات');
@@ -34,6 +38,8 @@ test.describe('Lists: search, filters, table or cards, export and import (FR-27,
   });
 
   test('exports the chosen columns of all results as CSV', async ({ page }) => {
+    test.setTimeout(120_000); // may wait for the next 30-second code
+    await adminModeOnViaApi(page);
     const list = new ListPage(page);
     await page.goto('/companies');
     await page.getByRole('button', { name: 'تصدير' }).click();
@@ -61,6 +67,8 @@ test.describe('Lists: search, filters, table or cards, export and import (FR-27,
   });
 
   test('imports companies from a file: checks the rows, imports the valid ones, shows the result', async ({ page }) => {
+    test.setTimeout(120_000); // may wait for the next 30-second code
+    await adminModeOnViaApi(page);
     await page.goto('/companies');
     await page.getByRole('button', { name: 'استيراد' }).click();
     // Both browser projects share one database, so each run imports its own company code.

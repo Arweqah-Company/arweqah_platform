@@ -13,7 +13,7 @@ interface DemoType {
 /** Each demo department takes these kinds of ticket (development only; real departments are set up by their managers). */
 const DEMO_DESKS: { departmentAr: string; acceptsPersonal: boolean; types: DemoType[] }[] = [
   {
-    departmentAr: 'إدارة تقنية المعلومات',
+    departmentAr: 'إدارة الخدمات المشتركة',
     acceptsPersonal: false,
     types: [
       { nameAr: 'مشكلة في المنصة', nameEn: 'Platform problem', descriptionAr: 'مشاكل أو أخطاء في منصة أروقة الريادة', descriptionEn: 'Problems or errors in the Arweqah platform' },
@@ -21,11 +21,11 @@ const DEMO_DESKS: { departmentAr: string; acceptsPersonal: boolean; types: DemoT
     ],
   },
   {
-    departmentAr: 'إدارة الموارد البشرية',
+    departmentAr: 'إدارة المشاريع',
     acceptsPersonal: true,
     types: [
-      { nameAr: 'تجديد إقامة', nameEn: 'Residence renewal', descriptionAr: 'تجديد الإقامة', descriptionEn: 'Renewing a residence permit' },
-      { nameAr: 'شكوى', nameEn: 'Complaint', descriptionAr: 'شكاوى الموظفين لإدارة الموارد البشرية', descriptionEn: 'Employee complaints to Human Resources', isPersonal: true },
+      { nameAr: 'طلب دعم مشروع', nameEn: 'Project support request', descriptionAr: 'طلب دعم أو متابعة لمشروع', descriptionEn: 'Asking for support or follow-up on a project' },
+      { nameAr: 'شكوى', nameEn: 'Complaint', descriptionAr: 'شكاوى الموظفين', descriptionEn: 'Employee complaints', isPersonal: true },
     ],
   },
 ];

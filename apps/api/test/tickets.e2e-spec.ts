@@ -117,6 +117,21 @@ describe('Tickets (FR-36 … FR-41)', () => {
       expect(audit).toContain('ticket.desk.updated');
       expect(audit).toContain('"adminMode":true');
     });
+    it('keeps a department whose desk takes tickets (or has open tickets) where it is, in the structure', async () => {
+      const w = await world();
+      const parentId = ((await t.db.query<{ parent_id: string }[]>('SELECT parent_id FROM org_nodes WHERE id = $1', [w.desk]))[0] as { parent_id: string }).parent_id;
+      const orgAdmin = await t.factories.signIn(await t.factories.user({ grants: [{ key: CorePermission.OrgView, scope: 'all' }, { key: CorePermission.OrgManage, scope: 'all' }] }));
+      await setupDesk(w.agents.manager, w.desk).expect(200);
+      const move = () => orgAdmin.post(`/api/org/nodes/${w.desk}/move`).send({ parentId });
+      expect((await move().expect(422)).body.code).toBe('ORG_NODE_HAS_TICKETS');
+      await setupDesk(w.agents.manager, w.desk, { receptionStatus: 'stopped' }).expect(200);
+      await move().expect(200);
+      const typeId = (await addType(w.agents.manager, w.desk).expect(201)).body.id;
+      await setupDesk(w.agents.manager, w.desk).expect(200);
+      await sendOne(w, typeId);
+      await setupDesk(w.agents.manager, w.desk, { receptionStatus: 'stopped' }).expect(200);
+      expect((await move().expect(422)).body.code).toBe('ORG_NODE_HAS_TICKETS');
+    });
   });
 
   describe('Sending a ticket (FR-37)', () => {

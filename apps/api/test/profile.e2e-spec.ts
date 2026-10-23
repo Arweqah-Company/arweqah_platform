@@ -1,5 +1,6 @@
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';
+import { ADMIN_MODE_GRANT } from './factories/factories';
 import { useTestApp } from './setup/test-app';
 
 describe('Own profile and theme (FR-33)', () => {
@@ -44,11 +45,11 @@ describe('Own profile and theme (FR-33)', () => {
   });
 
   it('writes the field names to the audit log, never the values', async () => {
-    const auditor = await t.factories.user({ grants: [{ key: 'audit.view', scope: 'all' }] });
+    const auditor = await t.factories.user({ grants: [ADMIN_MODE_GRANT, { key: 'audit.view', scope: 'all' }] });
     const { agent } = await signedIn();
     await agent.put('/api/me/profile').send({ personalPhone: '+966501234567', theme: 'dark' }).expect(200);
     await new Promise((r) => setTimeout(r, 200));
-    const log = (await (await t.factories.signIn(auditor)).get('/api/audit-logs').query({ action: 'profile.updated' }).expect(200)).body.items[0];
+    const log = (await (await t.factories.signInAdminMode(auditor)).get('/api/audit-logs').query({ action: 'profile.updated' }).expect(200)).body.items[0];
     expect(log.changes.fields).toEqual(expect.arrayContaining(['theme', 'personalPhone']));
     expect(JSON.stringify(log)).not.toContain('+966501234567');
   });

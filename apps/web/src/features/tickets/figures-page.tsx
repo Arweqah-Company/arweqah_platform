@@ -1,9 +1,10 @@
 import type { TicketFiguresDeskDto } from '@arweqah-platform/shared';
 import { BarChart3 } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAdminMode } from '@/core/admin-mode/use-admin-mode';
 import { errorMessage } from '@/shared/lib/error-message';
-import { Alert, DataTable, EmptyState, PageHeader, StatTile, type Column } from '@/shared/ui';
+import { Alert, DataTable, EmptyState, FormField, PageHeader, Select, StatTile, type Column } from '@/shared/ui';
 import { useFigures } from './api';
 import { useTicketColumns } from './tickets-columns';
 
@@ -69,18 +70,31 @@ export function FiguresPage() {
   const { t: tc } = useTranslation();
   const { active } = useAdminMode();
   const query = useFigures(active);
+  const [deskId, setDeskId] = useState('');
   if (!active) return <Alert tone="info">{t('setup.needAdminMode')}</Alert>;
   if (query.isError) return <Alert>{errorMessage(tc, query.error)}</Alert>;
   if (!query.data) return <p role="status" className="text-sm text-muted">{t('loading')}</p>;
   const desks = query.data.desks;
   if (desks.length === 0) return <EmptyState icon={BarChart3} title={t('figures.none')} description={t('figures.noneHint')} />;
+  const shown = desks.filter((d) => !deskId || d.deskId === deskId);
+  const name = (d: TicketFiguresDeskDto) => (i18n.language === 'ar' ? d.nameAr : d.nameEn);
   return (
     <>
       <PageHeader title={t('figures.title')} description={t('figures.description', { days: query.data.windowDays })} />
       <div className="flex flex-col gap-8">
-        {desks.map((desk) => (
-          <section key={desk.deskId} aria-label={i18n.language === 'ar' ? desk.nameAr : desk.nameEn} className="flex flex-col gap-5">
-            <h2 className="text-xl font-bold">{i18n.language === 'ar' ? desk.nameAr : desk.nameEn}</h2>
+        <div className="max-w-sm">
+          <FormField label={t('figures.desk')}>
+            {(p) => (
+              <Select {...p} value={deskId} onChange={(e) => setDeskId(e.target.value)}>
+                <option value="">{t('figures.allDesks')}</option>
+                {desks.map((d) => <option key={d.deskId} value={d.deskId}>{name(d)}</option>)}
+              </Select>
+            )}
+          </FormField>
+        </div>
+        {shown.map((desk) => (
+          <section key={desk.deskId} aria-label={name(desk)} className="flex flex-col gap-5">
+            <h2 className="text-xl font-bold">{name(desk)}</h2>
             <Attention desk={desk} />
             <Tiles desk={desk} />
             <Outcomes desk={desk} />

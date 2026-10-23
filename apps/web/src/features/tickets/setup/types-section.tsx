@@ -26,7 +26,7 @@ export function TypesSection({ desk }: { desk: TicketDeskDto }) {
     setRemoving(null);
   };
   return (
-    <SectionCard id="types" title={t('setup.typesTitle')} description={t('setup.typesIntro')}>
+    <SectionCard id="types" title={t('setup.typesTitle')} description={t('setup.typesIntro')} action={<Button onClick={() => setEditing('new')}><Plus className="size-4" aria-hidden />{t('setup.type.add')}</Button>}>
       <div className="flex flex-col gap-3 sm:col-span-2">
         {desk.types.length === 0 && <p className="text-sm text-muted">{t('setup.noTypes')}</p>}
         <ul className="flex flex-col gap-2">
@@ -43,7 +43,6 @@ export function TypesSection({ desk }: { desk: TicketDeskDto }) {
             </li>
           ))}
         </ul>
-        <Button variant="secondary" size="sm" className="self-start" onClick={() => setEditing('new')}><Plus className="size-4" aria-hidden />{t('setup.type.add')}</Button>
       </div>
       {editing && <TypeDialog deskId={desk.orgNodeId} type={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}
       <ConfirmDialog open={!!removing} onOpenChange={(open) => !open && setRemoving(null)} tone="danger" title={t('setup.type.removeTitle')} description={t('setup.type.removeBody')} confirmLabel={tc('actions.delete')} onConfirm={confirm} />

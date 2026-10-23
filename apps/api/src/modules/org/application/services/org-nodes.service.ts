@@ -14,8 +14,9 @@ import { TransactionRunner } from '../../../../common/application/transaction-ru
 import { NotFoundError } from '../../../../common/domain/domain-error';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
+import { OrgNodeDependentsPort } from '../../domain/contracts/org-node-dependents.port';
 import { EmployeePlacementPort } from '../../domain/contracts/employee-placement.port';
-import { InvalidOrgHierarchyError, JobTitleInUseError, LastJobTitleError, OrgNodeInUseError } from '../../domain/errors/org.errors';
+import { InvalidOrgHierarchyError, JobTitleInUseError, LastJobTitleError, OrgNodeHasTicketsError, OrgNodeInUseError } from '../../domain/errors/org.errors';
 import type { LevelView, NodeView, TitleView } from '../../domain/types/org.types';
 import { OrgRepository } from '../../domain/contracts/org.repository';
 import { assertCompanyAccess, ORG_MANAGE, ORG_VIEW } from '../policies/org-access.policy';
@@ -27,6 +28,7 @@ export class OrgNodesService {
   constructor(
     private readonly repo: OrgRepository,
     private readonly employees: EmployeePlacementPort,
+    private readonly dependents: OrgNodeDependentsPort,
     private readonly tx: TransactionRunner,
     private readonly events: EventEmitter2,
   ) {}
@@ -73,6 +75,7 @@ export class OrgNodesService {
     if (input.parentId && (await this.repo.descendantIds([id])).includes(input.parentId)) {
       throw new InvalidOrgHierarchyError('A unit cannot be moved inside itself');
     }
+    await this.assertNoTickets(id);
     await this.tx.run((tx) => this.repo.moveNode(id, input.parentId, tx));
     this.audit(actorId, ORG_AUDIT.unitMoved, id, { parentId: input.parentId });
     return this.nodeDto(id);
@@ -84,6 +87,7 @@ export class OrgNodesService {
     assertCompanyAccess(ctx, ORG_MANAGE, node.companyId);
     const employees = (await this.employees.countByNodes([id])).get(id) ?? 0;
     if (employees > 0 || (await this.repo.childrenCount(id)) > 0) throw new OrgNodeInUseError();
+    await this.assertNoTickets(id);
     const titles = await this.repo.titlesOfNodes([id]);
     await this.tx.run(async (tx) => {
       await this.repo.softDeleteTitles(titles.map((t) => t.id), tx);
@@ -121,6 +125,12 @@ export class OrgNodesService {
 
   // ------------------------------------------------------------------ helpers
   /** The first level has no parent; every other unit sits under a unit of the level right above its own. */
+  /** A department whose desk takes tickets, or that has open tickets, stays where it is (also when it sits below the unit). */
+  private async assertNoTickets(id: string): Promise<void> {
+    const ids = [id, ...(await this.repo.descendantIds([id]))];
+    if ((await this.dependents.unitsInUse(ids)).length > 0) throw new OrgNodeHasTicketsError();
+  }
+
   private async assertParent(level: LevelView, parentId: string | null): Promise<void> {
     const levels = await this.repo.levels(level.companyId);
     const index = levels.findIndex((l) => l.id === level.id);

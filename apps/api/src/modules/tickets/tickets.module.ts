@@ -1,6 +1,7 @@
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Global, Module, OnModuleInit } from '@nestjs/common';
 import { AdminModeEligibility } from '../../core/access/application/admin-mode-eligibility';
 import { PermissionCatalog } from '../../core/access/application/permission-catalog';
+import { OrgNodeDependentsPort } from '../org/domain/contracts/org-node-dependents.port';
 import { OrgModule } from '../org/org.module';
 import { TicketCatalogService } from './application/services/ticket-catalog.service';
 import { TicketFiguresService } from './application/services/ticket-figures.service';
@@ -15,6 +16,7 @@ import { TicketDirectory } from './domain/contracts/ticket-directory.port';
 import { TicketFiguresRepository } from './domain/contracts/ticket-figures.repository';
 import { TicketRepository } from './domain/contracts/ticket.repository';
 import { TICKET_PERMISSIONS } from './domain/permissions/tickets.permissions';
+import { TicketOrgNodeDependentsAdapter } from './infrastructure/adapters/org-node-dependents.adapter';
 import { TicketJobs } from './infrastructure/jobs/ticket-auto-close.job';
 import { TypeOrmTicketDeskRepository } from './infrastructure/repositories/typeorm-ticket-desk.repository';
 import { TypeOrmTicketDirectory } from './infrastructure/repositories/typeorm-ticket-directory';
@@ -24,7 +26,11 @@ import { TicketFiguresController } from './presentation/controllers/ticket-figur
 import { TicketSetupController } from './presentation/controllers/ticket-setup.controller';
 import { TicketsController } from './presentation/controllers/tickets.controller';
 
-/** Tickets: employees send requests to departments; the department's assignee and manager answer and close them. */
+/**
+ * Tickets: employees send requests to departments; the department's assignee and manager answer and close them.
+ * Global so the org module can ask OrgNodeDependentsPort which units are in use without importing this module.
+ */
+@Global()
 @Module({
   imports: [OrgModule],
   // The fixed paths (setup, figures) are registered before `tickets/:id`.
@@ -43,8 +49,9 @@ import { TicketsController } from './presentation/controllers/tickets.controller
     { provide: TicketDeskRepository, useClass: TypeOrmTicketDeskRepository },
     { provide: TicketFiguresRepository, useClass: TypeOrmTicketFiguresRepository },
     { provide: TicketDirectory, useClass: TypeOrmTicketDirectory },
+    { provide: OrgNodeDependentsPort, useClass: TicketOrgNodeDependentsAdapter },
   ],
-  exports: [TicketLifecycleService],
+  exports: [TicketLifecycleService, OrgNodeDependentsPort],
 })
 export class TicketsModule implements OnModuleInit {
   constructor(

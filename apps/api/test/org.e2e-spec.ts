@@ -1,10 +1,11 @@
 import { CorePermission } from '@arweqah-platform/shared';
 import { describe, expect, it } from 'vitest';
-import type { TestAgent, TestUser } from './factories/factories';
+import { ADMIN_MODE_GRANT, type TestAgent, type TestUser } from './factories/factories';
 import { useTestApp } from './setup/test-app';
 
 const ALL = 'all' as const;
 const orgAdminGrants = [
+  ADMIN_MODE_GRANT,
   { key: CorePermission.CompaniesView, scope: ALL },
   { key: CorePermission.CompaniesManage, scope: ALL },
   { key: CorePermission.OrgView, scope: ALL },
@@ -23,7 +24,7 @@ describe('Companies (FR-19, FR-25)', () => {
   const t = useTestApp();
 
   it('creates a company with the default levels, refuses a duplicate code, updates and deletes an empty one', async () => {
-    const agent = await t.factories.signIn(await t.factories.user({ grants: orgAdminGrants }));
+    const agent = await t.factories.signInAdminMode(await t.factories.user({ grants: orgAdminGrants }));
     const created = await agent.post('/api/companies').send({ code: 'xyz', nameAr: 'شركة تجريبية', nameEn: 'Test Co' }).expect(201);
     expect(created.body).toMatchObject({ code: 'XYZ', nameEn: 'Test Co', isActive: true, employeesCount: 0 });
     const tree = await agent.get(`/api/org/companies/${created.body.id}/tree`).expect(200);
@@ -37,7 +38,7 @@ describe('Companies (FR-19, FR-25)', () => {
 
   it('refuses to delete a company that has units or employees (422)', async () => {
     const org = await t.factories.org();
-    const agent = await t.factories.signIn(await t.factories.user({ grants: orgAdminGrants }));
+    const agent = await t.factories.signInAdminMode(await t.factories.user({ grants: orgAdminGrants }));
     const res = await agent.delete(`/api/companies/${org.companyId}`).expect(422);
     expect(res.body.code).toBe('COMPANY_IN_USE');
   });
@@ -46,7 +47,7 @@ describe('Companies (FR-19, FR-25)', () => {
     const plain = await t.factories.signIn(await t.factories.user());
     await plain.get('/api/companies').expect(403);
     await plain.post('/api/companies').send({ code: 'A1', nameAr: 'أ', nameEn: 'a' }).expect(403);
-    const agent = await t.factories.signIn(await t.factories.user({ grants: orgAdminGrants }));
+    const agent = await t.factories.signInAdminMode(await t.factories.user({ grants: orgAdminGrants }));
     await agent.post('/api/companies').send({ code: 'bad code!', nameAr: 'شركة', nameEn: 'Co' }).expect(400);
     await agent.post('/api/companies').send({ code: 'OK1', nameAr: 'شركة', nameEn: 'Co', extra: 1 }).expect(400);
   });

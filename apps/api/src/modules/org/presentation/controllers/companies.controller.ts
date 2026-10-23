@@ -4,13 +4,14 @@ import { CorePermission, type CompanyDto } from '@arweqah-platform/shared';
 import { CurrentUser } from '../../../../common/presentation/current-user.decorator';
 import type { SessionUser } from '../../../../common/presentation/request-context';
 import { IdParam } from '../../../../common/presentation/zod-query';
-import { RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
+import { RequireAdminMode, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
 import { CompaniesService } from '../../application/services/companies.service';
 import { CompanyBody } from '../dtos/company.dtos';
 
 
 @ApiTags('companies')
 @Controller('companies')
+@RequireAdminMode()
 export class CompaniesController {
   constructor(private readonly companies: CompaniesService) {}
 

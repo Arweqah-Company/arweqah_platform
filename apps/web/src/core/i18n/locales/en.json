@@ -76,6 +76,7 @@
     "COMPANY_CODE_TAKEN": "This company code belongs to another company.",
     "COMPANY_IN_USE": "Move the company's employees and units first, then delete it.",
     "ORG_NODE_IN_USE": "Move its sub-units and employees first, then delete.",
+    "ORG_NODE_HAS_TICKETS": "A department whose ticket desk receives tickets, or that has open tickets, cannot be moved or deleted.",
     "LAST_JOB_TITLE": "A unit that accepts employees needs at least one job title.",
     "JOB_TITLE_IN_USE": "Move the employees with this job title first.",
     "ORG_IMPACT_CHANGED": "The affected data changed. Review the new impact and confirm again.",
@@ -247,6 +248,7 @@
     "email": "Enter a valid e-mail address."
   },
   "adminMode": {
+    "needed": "This page works in platform admin mode. Turn it on at the top of the page.",
     "off": "Platform admin mode",
     "on": "Admin mode on",
     "turnOn": "Turn on platform admin mode",

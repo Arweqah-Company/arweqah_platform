@@ -82,7 +82,7 @@ test.describe('Tickets (FR-36 … FR-41)', () => {
     await page.goto('/tickets/setup');
     await expect(page.getByRole('heading', { level: 1, name: 'إعداد التذاكر' })).toBeVisible();
     const desk = page.getByLabel('الإدارة', { exact: true });
-    await desk.selectOption(await desk.locator('option', { hasText: 'أروقة الريادة' }).filter({ hasText: 'تقنية المعلومات' }).getAttribute('value'));
+    await desk.selectOption(await desk.locator('option', { hasText: 'أروقة الريادة' }).filter({ hasText: 'الخدمات المشتركة' }).getAttribute('value'));
     await page.getByLabel('حالة الاستقبال').selectOption({ label: 'متوقف مؤقتًا' });
     await page.getByRole('button', { name: 'حفظ', exact: true }).first().click();
     await expect(page.getByText('حُفظت الإعدادات.')).toBeVisible();
