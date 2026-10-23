@@ -1,3 +1,4 @@
+import { ORG_ADMIN_PERMISSIONS } from '@arweqah-platform/shared';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
@@ -10,7 +11,7 @@ const emptyTree = { companyId: 'c1', nodes: [], levels: [level('l1', 1, ['قطا
 
 const open = () => {
   server.use(
-    http.get('*/api/me', () => HttpResponse.json(me([{ key: 'org.view', scope: 'all' }, { key: 'org.manage', scope: 'all' }]))),
+    http.get('*/api/me', () => HttpResponse.json(me(ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const }))))),
     http.get('*/api/lookups/companies', () => HttpResponse.json([{ id: 'c1', code: 'ARW', nameAr: 'أروقة الريادة', nameEn: 'Arweqah Alreyadah' }])),
     http.get('*/api/org/companies/c1/tree', () => HttpResponse.json(emptyTree)),
   );
@@ -55,7 +56,7 @@ const filledTree = { ...emptyTree, nodes: [node(U.sector, { parentId: null, leve
 describe('Organization chart and table (FR-31)', () => {
   const openFilled = () => {
     server.use(
-      http.get('*/api/me', () => HttpResponse.json(me([{ key: 'org.view', scope: 'all' }, { key: 'org.manage', scope: 'all' }]))),
+      http.get('*/api/me', () => HttpResponse.json(me(ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const }))))),
       http.get('*/api/lookups/companies', () => HttpResponse.json([{ id: 'c1', code: 'ARW', nameAr: 'أروقة الريادة', nameEn: 'Arweqah Alreyadah' }])),
       http.get('*/api/org/companies/c1/tree', () => HttpResponse.json(filledTree)),
     );

@@ -157,7 +157,7 @@ describe('Audit log (FR-11)', () => {
       grants: [
         ADMIN_MODE_GRANT,
         { key: 'audit.view', scope: 'company' },
-        { key: 'roles.manage', scope: 'company' },
+        { key: 'roles.create', scope: 'company' },
       ],
     });
     const agent = await t.factories.signInAdminMode(auditor);
@@ -177,7 +177,7 @@ describe('Audit log filters (FR-11)', () => {
   const t = useTestApp();
 
   it('searches by action or record, by actor and by date range', async () => {
-    const auditor = await t.factories.user({ grants: [ADMIN_MODE_GRANT, { key: 'audit.view', scope: 'company' }, { key: 'roles.manage', scope: 'company' }] });
+    const auditor = await t.factories.user({ grants: [ADMIN_MODE_GRANT, { key: 'audit.view', scope: 'company' }, { key: 'roles.create', scope: 'company' }] });
     const agent = await t.factories.signInAdminMode(auditor);
     await agent.post('/api/roles').send({ nameAr: 'دور', nameEn: 'Filter role', permissions: [] }).expect(201);
     await new Promise((r) => setTimeout(r, 200));

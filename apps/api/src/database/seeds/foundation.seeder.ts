@@ -1,3 +1,4 @@
+import { EMPLOYEE_DEFAULT_PERMISSIONS } from '@arweqah-platform/shared';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AppConfig } from '../../config/app-config.service';
@@ -58,15 +59,17 @@ export class FoundationSeeder {
     return found?.id ?? null;
   }
 
-  /** System Admin always holds every permission in the catalog at the widest scope. */
+  /** System Admin always holds every permission in the catalog at the widest scope; Employee starts with the defaults. */
   private async upsertRole(nameEn: string, nameAr: string, isAdmin: boolean): Promise<Role> {
     const repo = this.db.getRepository(Role);
     const role = (await repo.findOne({ where: { nameEn, isSystem: true } })) ??
       Object.assign(new Role(), { nameEn, nameAr, description: null, isSystem: true, permissions: [] });
     if (!isAdmin) Object.assign(role, { assignment: EMPLOYEE_ROLE_SEED.assignment, autoRule: EMPLOYEE_ROLE_SEED.autoRule, description: role.description ?? EMPLOYEE_ROLE_SEED.note });
     const saved = await repo.save(role);
-    if (isAdmin) {
-      saved.replacePermissions(this.catalog.all().map((p) => ({ key: p.key, scope: 'all' as const })));
+    // The Employee role starts with the own-account and ticket keys, only while it has none (later changes are the administrator's).
+    const grants = isAdmin ? this.catalog.all().map((p) => p.key) : saved.permissions.length === 0 ? EMPLOYEE_DEFAULT_PERMISSIONS : null;
+    if (grants) {
+      saved.replacePermissions(grants.map((key) => ({ key, scope: 'all' as const })));
       await this.db.transaction(async (m) => {
         await m.delete('role_permissions', { roleId: saved.id });
         await m.save(Role, saved);

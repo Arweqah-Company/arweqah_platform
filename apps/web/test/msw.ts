@@ -1,6 +1,9 @@
-import type { LookupsDto, MeDto, PermissionCatalogGroup, RoleDto } from '@arweqah-platform/shared';
+import { EMPLOYEE_DEFAULT_PERMISSIONS, type LookupsDto, type MeDto, type PermissionCatalogGroup, type RoleDto } from '@arweqah-platform/shared';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
+
+/** A signed-in employee: the Employee role's own-account and ticket keys, plus what the test adds. */
+const EMPLOYEE_KEYS: MeDto['permissions'] = EMPLOYEE_DEFAULT_PERMISSIONS.map((key) => ({ key, scope: 'all' as const }));
 
 export const me = (permissions: MeDto['permissions'] = []): MeDto => ({
   id: 'u1',
@@ -15,7 +18,7 @@ export const me = (permissions: MeDto['permissions'] = []): MeDto => ({
   roles: [],
   placement: { companyId: null, orgNodeId: null, managerId: null },
   createdAt: new Date(0).toISOString(),
-  permissions,
+  permissions: [...EMPLOYEE_KEYS, ...permissions],
   hiddenPages: [],
   listSettings: {},
 });

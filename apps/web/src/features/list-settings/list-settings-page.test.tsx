@@ -9,7 +9,7 @@ describe('List management page (FR-44)', () => {
   it('shows what a list offers, locks its first column, and saves what was unchecked', async () => {
     const saved: unknown[] = [];
     server.use(
-      http.get('*/api/me', () => HttpResponse.json({ ...me(), adminMode: { available: true, active: true, expiresAt: null } })),
+      http.get('*/api/me', () => HttpResponse.json({ ...me([{ key: 'lists.view', scope: 'all' }, { key: 'lists.manage', scope: 'all' }]), adminMode: { available: true, active: true, expiresAt: null } })),
       http.put('*/api/list-settings/employees', async ({ request }) => {
         saved.push(await request.json());
         return HttpResponse.json({ hiddenColumns: ['company'], hiddenFilters: [] });

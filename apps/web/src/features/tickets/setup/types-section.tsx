@@ -1,8 +1,9 @@
-import type { TicketDeskDto, TicketTypeDto } from '@arweqah-platform/shared';
+import { CorePermission, type TicketDeskDto, type TicketTypeDto } from '@arweqah-platform/shared';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import { Can } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Badge, Button, ConfirmDialog, SectionCard } from '@/shared/ui';
 import { useRemoveType } from '../api';
@@ -26,7 +27,7 @@ export function TypesSection({ desk }: { desk: TicketDeskDto }) {
     setRemoving(null);
   };
   return (
-    <SectionCard id="types" title={t('setup.typesTitle')} description={t('setup.typesIntro')} action={<Button onClick={() => setEditing('new')}><Plus className="size-4" aria-hidden />{t('setup.type.add')}</Button>}>
+    <SectionCard id="types" title={t('setup.typesTitle')} description={t('setup.typesIntro')} action={<Can permission={CorePermission.TicketsTypeCreate}><Button onClick={() => setEditing('new')}><Plus className="size-4" aria-hidden />{t('setup.type.add')}</Button></Can>}>
       <div className="flex flex-col gap-3 sm:col-span-2">
         {desk.types.length === 0 && <p className="text-sm text-muted">{t('setup.noTypes')}</p>}
         <ul className="flex flex-col gap-2">
@@ -37,8 +38,8 @@ export function TypesSection({ desk }: { desk: TicketDeskDto }) {
                 <span className="text-xs text-muted">{x.defaultAssignee ? t('setup.type.handledBy', { name: x.defaultAssignee.name }) : t('setup.type.noAssignee')} · {t('setup.type.days', { count: x.dueDays ?? desk.settings.defaultDueDays })}</span>
               </span>
               <span className="flex gap-1">
-                <Button size="icon" variant="ghost" aria-label={t('setup.type.edit', { name: ar ? x.nameAr : x.nameEn })} onClick={() => setEditing(x)}><Pencil className="size-4" aria-hidden /></Button>
-                <Button size="icon" variant="ghost" className="text-danger-text" aria-label={t('setup.type.remove', { name: ar ? x.nameAr : x.nameEn })} onClick={() => setRemoving(x)}><Trash2 className="size-4" aria-hidden /></Button>
+                <Can permission={CorePermission.TicketsTypeUpdate}><Button size="icon" variant="ghost" aria-label={t('setup.type.edit', { name: ar ? x.nameAr : x.nameEn })} onClick={() => setEditing(x)}><Pencil className="size-4" aria-hidden /></Button></Can>
+                <Can permission={CorePermission.TicketsTypeDelete}><Button size="icon" variant="ghost" className="text-danger-text" aria-label={t('setup.type.remove', { name: ar ? x.nameAr : x.nameEn })} onClick={() => setRemoving(x)}><Trash2 className="size-4" aria-hidden /></Button></Can>
               </span>
             </li>
           ))}

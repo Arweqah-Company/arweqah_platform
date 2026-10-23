@@ -21,11 +21,11 @@ type OrgView = 'chart' | 'table';
 function Toolbar({ ready, onLevels, onAddUnit, onAddTitle }: { ready: boolean; onLevels: () => void; onAddUnit: () => void; onAddTitle: () => void }) {
   const { t } = useTranslation('org');
   return (
-    <Can permission={CorePermission.OrgManage}>
-      <Button variant="secondary" onClick={onLevels} disabled={!ready}>{t('actions.levels')}</Button>
-      <Button onClick={onAddUnit} disabled={!ready}>{t('actions.addUnit')}</Button>
-      <Button variant="secondary" onClick={onAddTitle} disabled={!ready}>{t('actions.addTitle')}</Button>
-    </Can>
+    <>
+      <Can permission={CorePermission.OrgLevelsManage}><Button variant="secondary" onClick={onLevels} disabled={!ready}>{t('actions.levels')}</Button></Can>
+      <Can permission={CorePermission.OrgUnitCreate}><Button onClick={onAddUnit} disabled={!ready}>{t('actions.addUnit')}</Button></Can>
+      <Can permission={CorePermission.OrgTitlesManage}><Button variant="secondary" onClick={onAddTitle} disabled={!ready}>{t('actions.addTitle')}</Button></Can>
+    </>
   );
 }
 
@@ -73,7 +73,7 @@ function OrgBody({ page, tree, companyName }: { page: Page; tree: OrgTreeDto; co
     <>
       {empty ? (
         <>
-          <EmptyState icon={Network} title={t('empty.title')} description={t('empty.description')} action={<Can permission={CorePermission.OrgManage}><Button onClick={() => page.openNode(null)}>{t('empty.action')}</Button></Can>} />
+          <EmptyState icon={Network} title={t('empty.title')} description={t('empty.description')} action={<Can permission={CorePermission.OrgUnitCreate}><Button onClick={() => page.openNode(null)}>{t('empty.action')}</Button></Can>} />
           <p className="mt-4 text-center text-sm text-muted">{t('empty.levels', { levels: tree.levels.map((l) => (ar ? l.nameAr : l.nameEn)).join(' › ') })}</p>
         </>
       ) : (

@@ -8,7 +8,7 @@ import request from 'supertest';
 
 const P = CorePermission;
 const grant = (key: string, scope: PermissionGrant['scope']): PermissionGrant => ({ key, scope });
-const hr = [P.EmployeesView, P.EmployeesCreate, P.EmployeesUpdate, P.EmployeesDeactivate, P.EmployeesViewSensitive, P.EmployeesAssignRoles, P.LookupsView].map((k) => grant(k, 'all'));
+const hr = [P.EmployeesView, P.EmployeesCreate, P.EmployeesUpdate, P.EmployeesDeactivate, P.EmployeesViewSensitive, P.EmployeesAssignRoles, P.EmployeesTerminate, P.EmployeesResendInvite, P.EmployeesResetAuthenticator, P.LookupsView].map((k) => grant(k, 'all'));
 
 let counter = 0;
 const unique = () => String(++counter).padStart(5, '0');
@@ -262,10 +262,10 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
 
   it('assigns roles only with the permission, never beyond the actor\'s own rights or to themselves', async () => {
     const { org, payload } = await setup();
-    const agent = await t.factories.signIn(await t.factories.user({ grants: [...hr, grant(P.AuditView, 'all'), grant(P.RolesManage, 'all')] }));
+    const agent = await t.factories.signIn(await t.factories.user({ grants: [...hr, grant(P.AuditView, 'all'), grant(P.RolesCreate, 'all')] }));
     const target = (await agent.post('/api/employees').send(payload(org.unitA)).expect(201)).body.employee;
     const small = await t.factories.role([grant(P.AuditView, 'all')]);
-    const big = await t.factories.role([grant(P.RolesManage, 'all')]);
+    const big = await t.factories.role([grant(P.RolesCreate, 'all')]);
     const assigned = await agent.put(`/api/employees/${target.id}/roles`).send({ roleIds: [small.id] }).expect(200);
     expect(assigned.body.roles).toHaveLength(1);
     const limited = await t.factories.user({ unit: org.unitB, grants: [grant(P.EmployeesView, 'all'), grant(P.EmployeesAssignRoles, 'all'), grant(P.AuditView, 'all')] });

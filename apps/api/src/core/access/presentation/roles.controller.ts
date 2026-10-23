@@ -41,7 +41,7 @@ export class RolesController {
   @Post('roles')
   @RequireAdminMode()
   @HiddenWithPage('roles')
-  @RequirePermission(CorePermission.RolesManage)
+  @RequirePermission(CorePermission.RolesCreate)
   create(@Body() body: UpsertRoleDto, @CurrentUser() user: SessionUser): Promise<RoleDto> {
     return this.roles.create(body, user.id);
   }
@@ -49,7 +49,7 @@ export class RolesController {
   @Put('roles/:id')
   @RequireAdminMode()
   @HiddenWithPage('roles')
-  @RequirePermission(CorePermission.RolesManage)
+  @RequirePermission(CorePermission.RolesUpdate)
   update(@Param() { id }: IdParam, @Body() body: UpsertRoleDto, @CurrentUser() user: SessionUser): Promise<RoleDto> {
     return this.roles.update(id, body, user.id);
   }
@@ -58,7 +58,7 @@ export class RolesController {
   @RequireAdminMode()
   @HiddenWithPage('roles')
   @HttpCode(204)
-  @RequirePermission(CorePermission.RolesManage)
+  @RequirePermission(CorePermission.RolesDelete)
   async remove(@Param() { id }: IdParam, @CurrentUser() user: SessionUser): Promise<void> {
     await this.roles.remove(id, user.id);
   }

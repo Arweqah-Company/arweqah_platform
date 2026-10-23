@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { BasePage } from '../pages/base.page';
 import { ADMIN_STATE, adminTotpUri } from '../support/fixtures';
+import { adminModeOnViaApi } from '../support/admin-mode';
 import { freshCode } from '../support/totp';
 
 class Screen extends BasePage {}
@@ -110,5 +111,24 @@ test.describe('Tickets (FR-36 … FR-41)', () => {
     await new Screen(page).expectNoSeriousA11yIssues();
     await page.getByRole('button', { name: TURN_OFF }).click();
     await expect(page.getByRole('button', { name: TURN_ON })).toBeVisible();
+  });
+
+  test('the figures add up every department, with a department column, and show one department alone without it', async ({ page }) => {
+    test.setTimeout(120_000); // may wait for the next 30-second code
+    await adminModeOnViaApi(page);
+    await page.goto('/tickets/figures');
+    await expect(page.getByRole('heading', { level: 1, name: 'أداء التذاكر' })).toBeVisible();
+    const byType = page.getByRole('table', { name: 'حسب نوع التذكرة' });
+    await expect(byType).toBeVisible();
+    await expect(byType.getByRole('columnheader', { name: 'الإدارة' })).toBeVisible(); // every department: say which one
+    await expect(page.getByText('مفتوحة الآن').first()).toBeVisible();
+    await new Screen(page).expectNoSeriousA11yIssues();
+
+    await page.getByLabel('الإدارة', { exact: true }).selectOption({ label: 'إدارة الخدمات المشتركة' });
+    await expect(byType.getByRole('columnheader', { name: 'النوع' })).toBeVisible();
+    await expect(byType.getByRole('columnheader', { name: 'الإدارة' })).toHaveCount(0); // one department: no column
+    await expect(page.getByText('مفتوحة الآن').first()).toBeVisible();
+    await settled(page);
+    await new Screen(page).expectNoSeriousA11yIssues();
   });
 });

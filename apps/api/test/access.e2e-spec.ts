@@ -7,7 +7,9 @@ import { DEMO_PERMISSION, useTestApp } from './setup/test-app';
 const rolesManager = [
   ADMIN_MODE_GRANT,
   { key: CorePermission.RolesView, scope: 'all' as const },
-  { key: CorePermission.RolesManage, scope: 'all' as const },
+  { key: CorePermission.RolesCreate, scope: 'all' as const },
+  { key: CorePermission.RolesUpdate, scope: 'all' as const },
+  { key: CorePermission.RolesDelete, scope: 'all' as const },
 ];
 
 describe('Roles and permissions (FR-05)', () => {
@@ -39,7 +41,7 @@ describe('Roles and permissions (FR-05)', () => {
     const unknown = await agent.post('/api/roles').send({ ...base, permissions: [{ key: 'payroll.steal', scope: 'company' }] });
     expect(unknown.status).toBe(422);
     expect(unknown.body.code).toBe('UNKNOWN_PERMISSION');
-    const badScope = await agent.post('/api/roles').send({ ...base, permissions: [{ key: 'roles.manage', scope: 'unit' }] });
+    const badScope = await agent.post('/api/roles').send({ ...base, permissions: [{ key: 'roles.create', scope: 'unit' }] });
     expect(badScope.status).toBe(422);
     expect(badScope.body.code).toBe('SCOPE_NOT_ALLOWED');
   });
@@ -51,7 +53,7 @@ describe('Roles and permissions (FR-05)', () => {
     expect(res.status).toBe(422);
   });
 
-  it('returns 403 to users without roles.manage', async () => {
+  it('returns 403 to users without roles.create', async () => {
     const agent = await t.factories.signIn(await t.factories.user({ grants: [{ key: CorePermission.RolesView, scope: 'all' }] }));
     await agent.get('/api/roles').expect(200);
     await agent.post('/api/roles').send({ nameAr: 'دور', nameEn: 'Role', permissions: [] }).expect(403);

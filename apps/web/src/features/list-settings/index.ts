@@ -7,6 +7,6 @@ import en from './i18n/en.json';
 export const listSettingsFeature: FeatureModule = {
   id: 'listSettings',
   routes: [{ path: '/list-settings', lazy: () => import('./list-settings-page').then((m) => ({ Component: m.ListSettingsPage })) }],
-  nav: [{ to: '/list-settings', labelKey: 'nav.listSettings', icon: Rows3, group: 'administration', permission: CorePermission.ListsManage, requiresAdminMode: true }],
+  nav: [{ to: '/list-settings', labelKey: 'nav.listSettings', icon: Rows3, group: 'administration', permission: CorePermission.ListsView, requiresAdminMode: true }],
   i18n: { ar, en },
 };

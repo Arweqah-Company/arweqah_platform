@@ -1,10 +1,11 @@
-import type { NotificationDto } from '@arweqah-platform/shared';
+import { CorePermission, type NotificationDto } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import type { ExportColumn } from '@/shared/data-exchange/types';
 import { useListPage } from '@/shared/lib/use-list-page';
 import { useServerList } from '@/shared/lib/use-server-list';
+import { Can } from '@/core/permissions/can';
 import { Button, DataTable, ListToolbar, PageHeader, type FilterField } from '@/shared/ui';
 import { useMarkRead } from './api/notifications.api';
 
@@ -37,12 +38,12 @@ export function NotificationsPage() {
       <PageHeader
         title={t('title')}
         description={t('description')}
-        actions={<Button variant="secondary" onClick={() => markRead.mutate('all')}>{t('markAll')}</Button>}
+        actions={<Can permission={CorePermission.NotificationsMarkRead}><Button variant="secondary" onClick={() => markRead.mutate('all')}>{t('markAll')}</Button></Can>}
       />
       <DataTable<NotificationDto>
         {...table}
         caption={t('title')}
-        toolbar={<ListToolbar listKey="notifications" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<ExchangeButtons exporting={{ columns: exportColumns, filename: 'notifications', pageRows: query.data?.items ?? [], total: query.data?.total ?? 0, loadAll }} />} />}
+        toolbar={<ListToolbar listKey="notifications" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<ExchangeButtons permissions={{ export: CorePermission.NotificationsExport }} exporting={{ columns: exportColumns, filename: 'notifications', pageRows: query.data?.items ?? [], total: query.data?.total ?? 0, loadAll }} />} />}
         rowKey={(n) => n.id}
         empty={t('empty')}
         columns={[

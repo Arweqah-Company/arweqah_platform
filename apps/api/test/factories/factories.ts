@@ -1,5 +1,5 @@
 import type { INestApplication } from '@nestjs/common';
-import { CorePermission, type PermissionGrant } from '@arweqah-platform/shared';
+import { CorePermission, EMPLOYEE_DEFAULT_PERMISSIONS, ORG_ADMIN_PERMISSIONS, type PermissionGrant } from '@arweqah-platform/shared';
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
@@ -56,12 +56,22 @@ let ipCounter = 1;
 export const nextIp = (): string => `10.1.${Math.floor(ipCounter / 250)}.${(ipCounter++ % 250) + 1}`;
 
 /** Builders for test data (never copy-pasted objects in specs). */
+/** What a desk manager is given to set up their department and read its figures (admin mode is entered with ADMIN_MODE_GRANT). */
+export const TICKET_DESK_ADMIN_GRANTS: PermissionGrant[] = [
+  CorePermission.TicketsSetupView,
+  CorePermission.TicketsSetupEdit,
+  CorePermission.TicketsTypeCreate,
+  CorePermission.TicketsTypeUpdate,
+  CorePermission.TicketsTypeDelete,
+  CorePermission.TicketsFiguresView,
+].map((key) => ({ key, scope: 'all' as const }));
+
 /** Grant that lets a test user switch platform admin mode on. */
 export const ADMIN_MODE_GRANT: PermissionGrant = { key: CorePermission.AdminModeUse, scope: 'all' };
 
 export class Factories {
   private readonly db: DataSource;
-  private readonly admin = new AccessContext('00000000-0000-4000-8000-000000000001', NO_PLACEMENT, [{ key: CorePermission.OrgManage, scope: 'all' }], true);
+  private readonly admin = new AccessContext('00000000-0000-4000-8000-000000000001', NO_PLACEMENT, ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const })), true);
 
   constructor(private readonly app: INestApplication) {
     this.db = app.get(DataSource);
@@ -122,7 +132,7 @@ export class Factories {
   }
 
   /** A person with a sign-in account, an enrolled authenticator app and an employee record placed in `unit`. */
-  async user(options: { grants?: PermissionGrant[]; unit?: TestUnit; enrolled?: boolean; active?: boolean } = {}): Promise<TestUser> {
+  async user(options: { grants?: PermissionGrant[]; unit?: TestUnit; enrolled?: boolean; active?: boolean; bare?: boolean } = {}): Promise<TestUser> {
     const email = `user-${randomUUID().slice(0, 8)}@arweqah.sa`;
     const id = await this.app.get(IdentityProvider).createUser({ name: `User ${email}`, email, locale: 'ar' });
     const secret = generateSecret();
@@ -131,10 +141,13 @@ export class Factories {
     return { id, email, secret, employeeId: employee.id };
   }
 
-  private async prepareAccount(id: string, options: { secret: string; grants?: PermissionGrant[]; enrolled?: boolean; active?: boolean }): Promise<void> {
+  private async prepareAccount(id: string, options: { secret: string; grants?: PermissionGrant[]; enrolled?: boolean; active?: boolean; bare?: boolean }): Promise<void> {
     if (options.enrolled !== false) await this.app.get(AuthenticatorService).enableWithSecret(id, options.secret);
     if (options.active === false) await this.db.query('UPDATE users SET is_active = false WHERE id = $1', [id]);
-    if (options.grants) await this.app.get(UserAccessService).replaceRoles(id, [(await this.role(options.grants)).id]);
+    // Like the real Employee role, everyone starts with the own-account and ticket keys; `grants` add to them; `bare` gives a person with no role at all.
+    if (options.bare) return;
+    const defaults = EMPLOYEE_DEFAULT_PERMISSIONS.map((key) => ({ key, scope: 'all' as const }));
+    await this.app.get(UserAccessService).replaceRoles(id, [(await this.role([...defaults, ...(options.grants ?? [])])).id]);
   }
 
   private async employeeFor(userId: string, email: string, unit?: TestUnit): Promise<Employee> {

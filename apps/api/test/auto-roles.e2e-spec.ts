@@ -5,7 +5,7 @@ import { UserAccessService } from '../src/core/access/application/user-access.se
 import { ADMIN_MODE_GRANT } from './factories/factories';
 import { useTestApp } from './setup/test-app';
 
-const MANAGER = [ADMIN_MODE_GRANT, { key: CorePermission.RolesView, scope: 'all' as const }, { key: CorePermission.RolesManage, scope: 'all' as const }];
+const MANAGER = [ADMIN_MODE_GRANT, { key: CorePermission.RolesView, scope: 'all' as const }, { key: CorePermission.RolesCreate, scope: 'all' as const }, { key: CorePermission.RolesUpdate, scope: 'all' as const }];
 
 describe('Roles: assignment and automatic roles (FR-43)', () => {
   const t = useTestApp();

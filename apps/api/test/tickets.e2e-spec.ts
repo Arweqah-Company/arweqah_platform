@@ -1,9 +1,9 @@
-import { CorePermission, addWorkingDays, riyadhToday, type TicketCatalogDto, type TicketDeskDto, type TicketDto } from '@arweqah-platform/shared';
+import { CorePermission, ORG_ADMIN_PERMISSIONS, addWorkingDays, riyadhToday, type TicketCatalogDto, type TicketDeskDto, type TicketDto } from '@arweqah-platform/shared';
 import { describe, expect, it } from 'vitest';
 import { ScheduledJobRelay } from '../src/core/messaging/infrastructure/typeorm-job-scheduler';
 import { OutboxRelay } from '../src/core/messaging/infrastructure/typeorm-outbox';
 import { TicketLifecycleService } from '../src/modules/tickets/application/services/ticket-lifecycle.service';
-import type { TestAgent, TestUser } from './factories/factories';
+import { TICKET_DESK_ADMIN_GRANTS, type TestAgent, type TestUser } from './factories/factories';
 import { codeFor } from './helpers/totp';
 import { useTestApp } from './setup/test-app';
 
@@ -19,7 +19,7 @@ describe('Tickets (FR-36 … FR-41)', () => {
   /** A department with a manager, an assignee, a sender, and a stranger; the manager has admin mode on. */
   async function world() {
     const org = await t.factories.org();
-    const manager = await t.factories.user({ unit: org.unitA });
+    const manager = await t.factories.user({ unit: org.unitA, grants: TICKET_DESK_ADMIN_GRANTS });
     const assignee = await t.factories.user({ unit: org.unitA });
     const sender = await t.factories.user({ unit: org.unitB });
     const stranger = await t.factories.user({ unit: org.unitC });
@@ -72,13 +72,13 @@ describe('Tickets (FR-36 … FR-41)', () => {
       const noMode = await t.factories.signIn(w.manager);
       expect((await noMode.get('/api/tickets/setup/desks').expect(403)).body.code).toBe('ADMIN_MODE_REQUIRED');
       expect((await w.agents.assignee.post('/api/admin-mode/activate').send({ code: codeFor(w.assignee.secret, Date.now() + 30_000) }).expect(403)).body.code).toBe('ADMIN_MODE_NOT_ALLOWED');
-      const otherManager = await t.factories.user({ unit: w.org.unitC });
+      const otherManager = await t.factories.user({ unit: w.org.unitC, grants: TICKET_DESK_ADMIN_GRANTS });
       await t.db.query('UPDATE org_nodes SET manager_id = $1 WHERE id = $2', [otherManager.employeeId, w.org.otherDepartment]);
       const otherAgent = await t.factories.signIn(otherManager);
       await adminModeOn(otherAgent, otherManager);
       await otherAgent.get(`/api/tickets/setup/desks/${w.desk}`).expect(404);
       await setupDesk(otherAgent, w.desk).expect(404);
-      const platform = await t.factories.user({ grants: [{ key: CorePermission.TicketsAdminister, scope: 'all' }, { key: CorePermission.AdminModeUse, scope: 'all' }] });
+      const platform = await t.factories.user({ grants: [...TICKET_DESK_ADMIN_GRANTS, { key: CorePermission.TicketsAdminister, scope: 'all' }, { key: CorePermission.AdminModeUse, scope: 'all' }] });
       const platformAgent = await t.factories.signIn(platform);
       await adminModeOn(platformAgent, platform);
       const all = (await platformAgent.get('/api/tickets/setup/desks').expect(200)).body as TicketDeskDto[];
@@ -89,7 +89,7 @@ describe('Tickets (FR-36 … FR-41)', () => {
     it('refuses to activate a department without a manager, and bad numbers or assignees', async () => {
       const w = await world();
       await t.db.query('UPDATE org_nodes SET manager_id = NULL WHERE id = $1', [w.desk]);
-      const platform = await t.factories.user({ grants: [{ key: CorePermission.TicketsAdminister, scope: 'all' }, { key: CorePermission.AdminModeUse, scope: 'all' }] });
+      const platform = await t.factories.user({ grants: [...TICKET_DESK_ADMIN_GRANTS, { key: CorePermission.TicketsAdminister, scope: 'all' }, { key: CorePermission.AdminModeUse, scope: 'all' }] });
       const agent = await t.factories.signIn(platform);
       await adminModeOn(agent, platform);
       expect((await setupDesk(agent, w.desk).expect(422)).body.code).toBe('DESK_NO_MANAGER');
@@ -120,7 +120,7 @@ describe('Tickets (FR-36 … FR-41)', () => {
     it('keeps a department whose desk takes tickets (or has open tickets) where it is, in the structure', async () => {
       const w = await world();
       const parentId = ((await t.db.query<{ parent_id: string }[]>('SELECT parent_id FROM org_nodes WHERE id = $1', [w.desk]))[0] as { parent_id: string }).parent_id;
-      const orgAdmin = await t.factories.signIn(await t.factories.user({ grants: [{ key: CorePermission.OrgView, scope: 'all' }, { key: CorePermission.OrgManage, scope: 'all' }] }));
+      const orgAdmin = await t.factories.signIn(await t.factories.user({ grants: ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const })) }));
       await setupDesk(w.agents.manager, w.desk).expect(200);
       const move = () => orgAdmin.post(`/api/org/nodes/${w.desk}/move`).send({ parentId });
       expect((await move().expect(422)).body.code).toBe('ORG_NODE_HAS_TICKETS');
@@ -252,7 +252,7 @@ describe('Tickets (FR-36 … FR-41)', () => {
       await w.agents.manager.post(`/api/tickets/${ticket.id}/replies`).send({ body: 'peek' }).expect(404);
       expect((await w.agents.assignee.get('/api/tickets?tab=inbox').expect(200)).body.items).toHaveLength(1);
       await w.agents.assignee.get(`/api/tickets/${ticket.id}`).expect(200);
-      const platform = await t.factories.user({ grants: [{ key: CorePermission.TicketsAdminister, scope: 'all' }, { key: CorePermission.AdminModeUse, scope: 'all' }] });
+      const platform = await t.factories.user({ grants: [...TICKET_DESK_ADMIN_GRANTS, { key: CorePermission.TicketsAdminister, scope: 'all' }, { key: CorePermission.AdminModeUse, scope: 'all' }] });
       const platformAgent = await t.factories.signIn(platform);
       await adminModeOn(platformAgent, platform);
       await platformAgent.get(`/api/tickets/${ticket.id}`).expect(404);
@@ -460,7 +460,7 @@ describe('Tickets (FR-36 … FR-41)', () => {
       expect(desk.needsAttention[0]).toHaveProperty('deskNameAr');
       expect(JSON.stringify(desk.needsAttention)).not.toContain('"isPersonal":true');
       // A platform manager chooses among every department of the structure, also those never set up for tickets; "all" adds them up.
-      const platform = await t.factories.user({ grants: [{ key: CorePermission.TicketsAdminister, scope: 'all' }, { key: CorePermission.AdminModeUse, scope: 'all' }] });
+      const platform = await t.factories.user({ grants: [...TICKET_DESK_ADMIN_GRANTS, { key: CorePermission.TicketsAdminister, scope: 'all' }, { key: CorePermission.AdminModeUse, scope: 'all' }] });
       const platformAgent = await t.factories.signIn(platform);
       await adminModeOn(platformAgent, platform);
       const everything = (await platformAgent.get('/api/tickets/figures').expect(200)).body;

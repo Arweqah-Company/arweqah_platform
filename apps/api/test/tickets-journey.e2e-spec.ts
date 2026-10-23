@@ -1,10 +1,10 @@
-import { CorePermission, type TicketDto } from '@arweqah-platform/shared';
+import { CorePermission, ORG_ADMIN_PERMISSIONS, type TicketDto } from '@arweqah-platform/shared';
 import { describe, expect, it } from 'vitest';
 import { ScheduledJobRelay } from '../src/core/messaging/infrastructure/typeorm-job-scheduler';
 import { OutboxRelay } from '../src/core/messaging/infrastructure/typeorm-outbox';
 import { TicketLifecycleService } from '../src/modules/tickets/application/services/ticket-lifecycle.service';
 import { UserAccessService } from '../src/core/access/application/user-access.service';
-import { ADMIN_MODE_GRANT } from './factories/factories';
+import { ADMIN_MODE_GRANT, TICKET_DESK_ADMIN_GRANTS } from './factories/factories';
 import { useTestApp } from './setup/test-app';
 
 const DAY = 86_400_000;
@@ -23,7 +23,7 @@ describe('Tickets: the whole cycle (FR-36 … FR-41)', () => {
   it('runs from setup to figures with real people', async () => {
     const org = await t.factories.org();
     const person = async (unit: typeof org.unitA) => {
-      const user = await t.factories.user({ unit });
+      const user = await t.factories.user({ unit, grants: TICKET_DESK_ADMIN_GRANTS });
       return { user, agent: await t.factories.signIn(user) };
     };
     const itManager = await person(org.unitA);
@@ -36,7 +36,7 @@ describe('Tickets: the whole cycle (FR-36 … FR-41)', () => {
     await t.db.query('UPDATE org_nodes SET manager_id = $1 WHERE id = $2', [hrManager.user.employeeId, org.otherDepartment]);
 
     // --- Setup by a platform manager (admin mode with a fresh code): two departments, three kinds and a personal one.
-    const platformUser = await t.factories.user({ grants: [ADMIN_MODE_GRANT, { key: CorePermission.TicketsAdminister, scope: 'all' }, { key: CorePermission.PagesManage, scope: 'all' }] });
+    const platformUser = await t.factories.user({ grants: [ADMIN_MODE_GRANT, ...TICKET_DESK_ADMIN_GRANTS, { key: CorePermission.TicketsAdminister, scope: 'all' }, { key: CorePermission.PagesManage, scope: 'all' }] });
     const platform = await t.factories.signInAdminMode(platformUser);
     await platform.put(`/api/tickets/setup/desks/${org.department}`).send(SETTINGS).expect(200);
     await platform.put(`/api/tickets/setup/desks/${org.otherDepartment}`).send({ ...SETTINGS, acceptsPersonal: true }).expect(200);
@@ -92,7 +92,8 @@ describe('Tickets: the whole cycle (FR-36 … FR-41)', () => {
     expect(all.figures.incoming).toBe(5);
     expect(all.figures.incoming).toBe(it.figures.incoming + hr.figures.incoming);
     expect(all.figures.openNow).toBe(it.figures.openNow + hr.figures.openNow);
-    expect(all.figures.outcomes).toEqual({ confirmed: 1, auto: 1, notExecuted: 1, reopened: 1 });
+    // The not-executed one was reopened, so it is open again and no longer counts as an ending.
+    expect(all.figures.outcomes).toEqual({ confirmed: 1, auto: 1, notExecuted: 0, reopened: 1 });
     expect(all.figures.personalCount).toBe(1);
     expect(hr.figures.personalCount).toBe(1);
     expect(JSON.stringify(all.figures.needsAttention)).not.toContain('"isPersonal":true');
@@ -106,7 +107,7 @@ describe('Tickets: the whole cycle (FR-36 … FR-41)', () => {
     expect((await alice.agent.get('/api/tickets?tab=mine').expect(403)).body.code).toBe('PAGE_HIDDEN');
     await platform.put(`/api/page-visibility/roles/${aliceRole.id}`).send({ hiddenPages: [] }).expect(200);
     await alice.agent.get('/api/tickets?tab=mine').expect(200);
-    const orgAdmin = await t.factories.signIn(await t.factories.user({ grants: [{ key: CorePermission.OrgView, scope: 'all' }, { key: CorePermission.OrgManage, scope: 'all' }] }));
+    const orgAdmin = await t.factories.signIn(await t.factories.user({ grants: ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const })) }));
     const parent = ((await t.db.query<{ parent_id: string }[]>('SELECT parent_id FROM org_nodes WHERE id = $1', [org.department]))[0] as { parent_id: string }).parent_id;
     expect((await orgAdmin.post(`/api/org/nodes/${org.department}/move`).send({ parentId: parent }).expect(422)).body.code).toBe('ORG_NODE_HAS_TICKETS');
   });

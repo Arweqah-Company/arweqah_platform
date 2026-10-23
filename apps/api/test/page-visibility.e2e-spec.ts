@@ -5,7 +5,7 @@ import { ADMIN_MODE_GRANT } from './factories/factories';
 import { useTestApp } from './setup/test-app';
 
 const EMPLOYEES_VIEW = { key: CorePermission.EmployeesView, scope: 'all' as const };
-const MANAGER = [ADMIN_MODE_GRANT, { key: CorePermission.PagesManage, scope: 'all' as const }, { key: CorePermission.RolesView, scope: 'all' as const }];
+const MANAGER = [ADMIN_MODE_GRANT, { key: CorePermission.PagesView, scope: 'all' as const }, { key: CorePermission.PagesManage, scope: 'all' as const }, { key: CorePermission.RolesView, scope: 'all' as const }];
 
 describe('Page visibility (FR-42)', () => {
   const t = useTestApp();

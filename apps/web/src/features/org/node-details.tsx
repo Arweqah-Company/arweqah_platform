@@ -44,11 +44,11 @@ function TitlesList({ node, onAdd, onDelete }: { node: OrgNodeDto; onAdd: () => 
         {node.jobTitles.map((j) => (
           <li key={j.id} className="flex items-center justify-between gap-2 text-sm">
             <span>{ar ? j.nameAr : j.nameEn} <span className="text-xs text-muted" dir="ltr">({j.employeesCount})</span></span>
-            <Can permission={CorePermission.OrgManage}><Button size="sm" variant="ghost" className="text-danger-text" onClick={() => onDelete(j.id)}>{tc('actions.delete')}</Button></Can>
+            <Can permission={CorePermission.OrgTitlesManage}><Button size="sm" variant="ghost" className="text-danger-text" onClick={() => onDelete(j.id)}>{tc('actions.delete')}</Button></Can>
           </li>
         ))}
       </ul>
-      <Can permission={CorePermission.OrgManage}><Button size="sm" variant="secondary" className="mt-2" onClick={onAdd}>{t('details.addTitle')}</Button></Can>
+      <Can permission={CorePermission.OrgTitlesManage}><Button size="sm" variant="secondary" className="mt-2" onClick={onAdd}>{t('details.addTitle')}</Button></Can>
     </section>
   );
 }
@@ -81,14 +81,12 @@ function Actions({ node, hasChildLevel, onOpen, onAddChild }: { node: OrgNodeDto
   const { t } = useTranslation('org');
   const { t: tc } = useTranslation();
   return (
-    <Can permission={CorePermission.OrgManage}>
-      <div className="mt-5 flex flex-wrap gap-2">
-        <Button size="sm" variant="secondary" onClick={() => onOpen('edit')}>{tc('actions.edit')}</Button>
-        {hasChildLevel && <Button size="sm" variant="secondary" onClick={onAddChild}>{t('details.addChild')}</Button>}
-        {node.parentId && <Button size="sm" variant="secondary" onClick={() => onOpen('move')}>{t('details.move')}</Button>}
-        <Button size="sm" variant="danger" onClick={() => onOpen('delete')}>{tc('actions.delete')}</Button>
-      </div>
-    </Can>
+    <div className="mt-5 flex flex-wrap gap-2">
+      <Can permission={CorePermission.OrgUnitUpdate}><Button size="sm" variant="secondary" onClick={() => onOpen('edit')}>{tc('actions.edit')}</Button></Can>
+      {hasChildLevel && <Can permission={CorePermission.OrgUnitCreate}><Button size="sm" variant="secondary" onClick={onAddChild}>{t('details.addChild')}</Button></Can>}
+      {node.parentId && <Can permission={CorePermission.OrgUnitMove}><Button size="sm" variant="secondary" onClick={() => onOpen('move')}>{t('details.move')}</Button></Can>}
+      <Can permission={CorePermission.OrgUnitDelete}><Button size="sm" variant="danger" onClick={() => onOpen('delete')}>{tc('actions.delete')}</Button></Can>
+    </div>
   );
 }
 

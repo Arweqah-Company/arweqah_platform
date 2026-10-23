@@ -1,4 +1,4 @@
-import { CorePermission } from '@arweqah-platform/shared';
+import { COMPANIES_ADMIN_PERMISSIONS, ORG_ADMIN_PERMISSIONS } from '@arweqah-platform/shared';
 import { describe, expect, it } from 'vitest';
 import { ADMIN_MODE_GRANT, type TestAgent, type TestUser } from './factories/factories';
 import { useTestApp } from './setup/test-app';
@@ -6,10 +6,8 @@ import { useTestApp } from './setup/test-app';
 const ALL = 'all' as const;
 const orgAdminGrants = [
   ADMIN_MODE_GRANT,
-  { key: CorePermission.CompaniesView, scope: ALL },
-  { key: CorePermission.CompaniesManage, scope: ALL },
-  { key: CorePermission.OrgView, scope: ALL },
-  { key: CorePermission.OrgManage, scope: ALL },
+  ...COMPANIES_ADMIN_PERMISSIONS.map((key) => ({ key, scope: ALL })),
+  ...ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: ALL })),
 ];
 
 interface Level {
@@ -163,7 +161,7 @@ describe('Org structure built by forms (FR-24)', () => {
 
   it('hides another company\'s structure from a user whose org permission reaches only their own company (404)', async () => {
     const org = await t.factories.org();
-    const user = await t.factories.user({ unit: org.unitA, grants: [{ key: CorePermission.OrgView, scope: 'company' }, { key: CorePermission.OrgManage, scope: 'company' }] });
+    const user = await t.factories.user({ unit: org.unitA, grants: ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'company' as const })) });
     const agent = await t.factories.signIn(user);
     await agent.get(`/api/org/companies/${org.companyId}/tree`).expect(200);
     await agent.get(`/api/org/companies/${org.otherCompanyId}/tree`).expect(404);

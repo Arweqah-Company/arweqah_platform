@@ -19,7 +19,10 @@
     "audit": "Audit",
     "org": "Organization",
     "employees": "Employees",
-    "lookups": "Form options"
+    "lookups": "Form options",
+    "notifications": "Notifications and e-mail",
+    "lists": "Lists",
+    "tickets": "Tickets"
   },
   "holders": "Users",
   "searchLabel": "Search roles",

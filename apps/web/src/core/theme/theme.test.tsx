@@ -17,7 +17,7 @@ function Probe() {
 
 function setup(saved?: 'light' | 'dark' | 'system') {
   const client = new QueryClient();
-  if (saved) client.setQueryData(ME_KEY, { ...me(), theme: saved });
+  client.setQueryData(ME_KEY, { ...me(), theme: saved ?? 'system' }); // the signed-in person (saving the choice needs the profile.update key)
   return render(
     <QueryClientProvider client={client}>
       <ThemeProvider><Probe /><ThemeToggle /></ThemeProvider>

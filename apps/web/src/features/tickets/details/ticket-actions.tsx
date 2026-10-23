@@ -1,12 +1,22 @@
-import type { TicketDto } from '@arweqah-platform/shared';
+import { CorePermission, type TicketDto } from '@arweqah-platform/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import { usePermissions } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Alert, Button, Dialog, FormField, Textarea } from '@/shared/ui';
 import { useTicketAction, type TicketAction } from '../api';
 
 const DANGER: TicketAction[] = ['close-without-execution'];
+
+/** The permission key behind each button. */
+const KEY: Record<TicketAction, string> = {
+  'request-close': CorePermission.TicketsRequestClose,
+  'confirm-close': CorePermission.TicketsConfirmClose,
+  'decline-close': CorePermission.TicketsDeclineClose,
+  reopen: CorePermission.TicketsReopen,
+  'close-without-execution': CorePermission.TicketsCloseWithoutExecution,
+};
 
 /** Asks for an optional message, then performs the action. The words come from the action's own texts. */
 function ActionDialog({ ticketId, action, onClose }: { ticketId: string; action: TicketAction; onClose: () => void }) {
@@ -41,6 +51,7 @@ function ActionDialog({ ticketId, action, onClose }: { ticketId: string; action:
 export function TicketActions({ ticket }: { ticket: TicketDto }) {
   const { t } = useTranslation('tickets');
   const [asking, setAsking] = useState<TicketAction | null>(null);
+  const { can } = usePermissions();
   const a = ticket.abilities;
   const buttons: { action: TicketAction; allowed: boolean; variant: 'primary' | 'secondary' | 'danger' }[] = [
     { action: 'request-close', allowed: a.requestClose, variant: 'primary' },
@@ -49,7 +60,7 @@ export function TicketActions({ ticket }: { ticket: TicketDto }) {
     { action: 'reopen', allowed: a.reopen, variant: 'secondary' },
     { action: 'close-without-execution', allowed: a.closeWithoutExecution, variant: 'danger' },
   ];
-  const shown = buttons.filter((b) => b.allowed);
+  const shown = buttons.filter((b) => b.allowed && can(KEY[b.action]));
   if (shown.length === 0) return null;
   return (
     <div className="flex flex-wrap items-center gap-2">

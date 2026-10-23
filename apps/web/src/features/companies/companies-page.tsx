@@ -23,7 +23,7 @@ export function CompaniesPage() {
     { id: 'status', label: t('status'), type: 'select', options: [{ value: 'active', label: tc('status.active') }, { value: 'inactive', label: tc('status.inactive') }] },
     { id: 'employees', label: t('employees'), type: 'select', options: [{ value: 'with', label: t('filters.withEmployees') }, { value: 'without', label: t('filters.withoutEmployees') }] },
   ];
-  const canManage = usePermissions().can(CorePermission.CompaniesManage);
+  const canImport = usePermissions().can(CorePermission.CompaniesImport);
   const exportColumns: ExportColumn<CompanyDto>[] = [
     { id: 'code', header: t('code'), value: (c) => c.code },
     { id: 'nameAr', header: t('nameAr'), value: (c) => c.nameAr },
@@ -55,12 +55,12 @@ export function CompaniesPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} description={t('description')} actions={<Can permission={CorePermission.CompaniesManage}><Button onClick={() => setEditing({ company: null })}>{t('new')}</Button></Can>} />
+      <PageHeader title={t('title')} description={t('description')} actions={<Can permission={CorePermission.CompaniesCreate}><Button onClick={() => setEditing({ company: null })}>{t('new')}</Button></Can>} />
       <DataTable<CompanyDto>
         listKey="companies"
         caption={t('title')}
         view={list.view}
-        toolbar={<ListToolbar listKey="companies" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<ExchangeButtons exporting={{ columns: exportColumns, filename: 'companies', pageRows: rows ?? [], total: rows?.length ?? 0, loadAll: async () => rows ?? [] }} importing={canManage ? importing : undefined} />} />}
+        toolbar={<ListToolbar listKey="companies" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<ExchangeButtons permissions={{ export: CorePermission.CompaniesExport, import: CorePermission.CompaniesImport }} exporting={{ columns: exportColumns, filename: 'companies', pageRows: rows ?? [], total: rows?.length ?? 0, loadAll: async () => rows ?? [] }} importing={canImport ? importing : undefined} />} />}
         rows={rows}
         isLoading={companies.isPending}
         error={companies.error}
@@ -76,10 +76,10 @@ export function CompaniesPage() {
             hideHeader: true,
             className: 'w-40 text-end',
             cell: (c) => (
-              <Can permission={CorePermission.CompaniesManage}>
-                <Button size="sm" variant="ghost" onClick={() => setEditing({ company: c })}>{tc('actions.edit')}</Button>
-                <Button size="sm" variant="ghost" className="text-danger-text" onClick={() => setDeleting(c)}>{tc('actions.delete')}</Button>
-              </Can>
+              <>
+                <Can permission={CorePermission.CompaniesUpdate}><Button size="sm" variant="ghost" onClick={() => setEditing({ company: c })}>{tc('actions.edit')}</Button></Can>
+                <Can permission={CorePermission.CompaniesDelete}><Button size="sm" variant="ghost" className="text-danger-text" onClick={() => setDeleting(c)}>{tc('actions.delete')}</Button></Can>
+              </>
             ),
           },
         ]}

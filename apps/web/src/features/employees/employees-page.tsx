@@ -19,7 +19,7 @@ export function EmployeesPage() {
   const importing = useEmployeesImport();
   const canCreate = usePermissions().can(CorePermission.EmployeesCreate);
   const { query, loadAll, table } = useServerList<EmployeeListItemDto>('employees', '/employees', list, { search: list.term || undefined, ...toEmployeesQuery(list.filters.values) });
-  const exchange = <ExchangeButtons exporting={{ columns: exportColumns, filename: 'employees', pageRows: query.data?.items ?? [], total: query.data?.total ?? 0, loadAll }} importing={canCreate ? importing : undefined} />;
+  const exchange = <ExchangeButtons permissions={{ export: CorePermission.EmployeesExport, import: CorePermission.EmployeesImport }} exporting={{ columns: exportColumns, filename: 'employees', pageRows: query.data?.items ?? [], total: query.data?.total ?? 0, loadAll }} importing={canCreate ? importing : undefined} />;
 
   return (
     <>

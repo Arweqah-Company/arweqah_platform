@@ -80,7 +80,7 @@ export class EmployeesController {
 
   @Post(':id/terminate')
   @HttpCode(200)
-  @RequirePermission(P.EmployeesDeactivate)
+  @RequirePermission(P.EmployeesTerminate)
   terminate(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: TerminateEmployeeDto, @CurrentUser() user: SessionUser): Promise<EmployeeDto> {
     return this.employees.terminate(ctx, id, body, user.id);
   }
@@ -93,14 +93,14 @@ export class EmployeesController {
 
   @Post(':id/resend-invite')
   @HttpCode(200)
-  @RequirePermission(P.EmployeesUpdate)
+  @RequirePermission(P.EmployeesResendInvite)
   resendInvite(@Access() ctx: AccessContext, @Param() { id }: IdParam, @CurrentUser() user: SessionUser): Promise<InviteResultDto> {
     return this.employees.resendInvite(ctx, id, user.id);
   }
 
   @Post(':id/reset-authenticator')
   @HttpCode(200)
-  @RequirePermission(P.EmployeesUpdate)
+  @RequirePermission(P.EmployeesResetAuthenticator)
   resetAuthenticator(@Access() ctx: AccessContext, @Param() { id }: IdParam, @CurrentUser() user: SessionUser): Promise<InviteResultDto> {
     return this.employees.resetAuthenticator(ctx, id, user.id);
   }

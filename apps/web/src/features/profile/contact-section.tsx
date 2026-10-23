@@ -1,9 +1,10 @@
-import { ownProfileSchema, type EmployeeDto } from '@arweqah-platform/shared';
+import { CorePermission, ownProfileSchema, type EmployeeDto } from '@arweqah-platform/shared';
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
 import { useLiveError } from '@/shared/lib/live-validation';
+import { usePermissions } from '@/core/permissions/can';
 import { useSavePreferences } from '@/core/theme/use-save-preferences';
 import { Alert, Button, FormField, Input, SectionCard } from '@/shared/ui';
 
@@ -17,6 +18,7 @@ export function ContactSection({ employee }: { employee: EmployeeDto }) {
   const { t } = useTranslation('profile');
   const { t: tc } = useTranslation();
   const save = useSavePreferences();
+  const canUpdate = usePermissions().can(CorePermission.ProfileUpdate);
   const [draft, setDraft] = useState<Draft>(() => draftOf(employee));
   const set = (key: keyof Draft) => (value: string) => setDraft((prev) => ({ ...prev, [key]: value }));
   const parsed = ownProfileSchema.safeParse(toInput(draft));
@@ -40,6 +42,7 @@ export function ContactSection({ employee }: { employee: EmployeeDto }) {
   return (
     <SectionCard id="contact" title={t('contact.title')} description={t('contact.description')}>
       <form className="grid gap-x-5 gap-y-4 sm:col-span-2 sm:grid-cols-2" onSubmit={(e) => void submit(e)} noValidate>
+        <fieldset disabled={!canUpdate} className="contents">
         <FormField label={t('contact.personalPhone')} hint={t('contact.phoneHint')} error={phone.error}>
           {(p) => <Input {...p} onBlur={phone.onBlur} type="tel" dir="ltr" autoComplete="tel" placeholder="+966501234567" value={draft.personalPhone} onChange={(e) => set('personalPhone')(e.target.value)} />}
         </FormField>
@@ -49,8 +52,9 @@ export function ContactSection({ employee }: { employee: EmployeeDto }) {
         <FormField label={t('contact.fullNameEn')} hint={t('contact.nameHint')} error={nameEn.error}>
           {(p) => <Input {...p} onBlur={nameEn.onBlur} dir="ltr" value={draft.fullNameEn} onChange={(e) => set('fullNameEn')(e.target.value)} />}
         </FormField>
+        </fieldset>
         {save.isError && <div className="sm:col-span-2"><Alert>{errorMessage(tc, save.error)}</Alert></div>}
-        <div className="sm:col-span-2"><Button type="submit" disabled={save.isPending || !parsed.success}>{t('contact.save')}</Button></div>
+        {canUpdate && <div className="sm:col-span-2"><Button type="submit" disabled={save.isPending || !parsed.success}>{t('contact.save')}</Button></div>}
       </form>
     </SectionCard>
   );

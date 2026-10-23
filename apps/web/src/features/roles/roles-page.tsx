@@ -57,13 +57,13 @@ export function RolesPage() {
       <PageHeader
         title={t('title')}
         description={t('description')}
-        actions={<Can permission={CorePermission.RolesManage}><Button onClick={() => setEditing({ role: null })}>{t('new')}</Button></Can>}
+        actions={<Can permission={CorePermission.RolesCreate}><Button onClick={() => setEditing({ role: null })}>{t('new')}</Button></Can>}
       />
       <DataTable<RoleDto>
         listKey="roles"
         caption={t('title')}
         view={list.view}
-        toolbar={<ListToolbar listKey="roles" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<ExchangeButtons exporting={{ columns: exportColumns, filename: 'roles', pageRows: rows ?? [], total: rows?.length ?? 0, loadAll: async () => rows ?? [] }} />} />}
+        toolbar={<ListToolbar listKey="roles" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<ExchangeButtons permissions={{ export: CorePermission.RolesExport }} exporting={{ columns: exportColumns, filename: 'roles', pageRows: rows ?? [], total: rows?.length ?? 0, loadAll: async () => rows ?? [] }} />} />}
         rows={rows}
         isLoading={roles.isPending}
         error={roles.error}
@@ -80,10 +80,10 @@ export function RolesPage() {
             hideHeader: true,
             className: 'w-40 text-end',
             cell: (r) => (
-              <Can permission={CorePermission.RolesManage}>
-                <Button size="sm" variant="ghost" onClick={() => setEditing({ role: r })}>{tc('actions.edit')}</Button>
-                {!r.isSystem && <Button size="sm" variant="ghost" className="text-danger-text" onClick={() => void onDelete(r)}>{tc('actions.delete')}</Button>}
-              </Can>
+              <>
+                <Can permission={CorePermission.RolesUpdate}><Button size="sm" variant="ghost" onClick={() => setEditing({ role: r })}>{tc('actions.edit')}</Button></Can>
+                {!r.isSystem && <Can permission={CorePermission.RolesDelete}><Button size="sm" variant="ghost" className="text-danger-text" onClick={() => void onDelete(r)}>{tc('actions.delete')}</Button></Can>}
+              </>
             ),
           },
         ]}

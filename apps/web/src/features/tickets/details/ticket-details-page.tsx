@@ -1,4 +1,5 @@
-import { formatTicketNumber, type TicketDto } from '@arweqah-platform/shared';
+import { Can } from '@/core/permissions/can';
+import { CorePermission, formatTicketNumber, type TicketDto } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 import { errorMessage } from '@/shared/lib/error-message';
@@ -44,7 +45,7 @@ export function TicketDetailsPage() {
         <Facts ticket={ticket} />
         <TicketActions ticket={ticket} />
         <TicketTimeline ticket={ticket} />
-        {ticket.abilities.reply ? <ReplyBox ticketId={ticket.id} /> : <Alert tone="info">{t('reply.closedNote')}</Alert>}
+        {ticket.abilities.reply ? <Can permission={CorePermission.TicketsReply}><ReplyBox ticketId={ticket.id} /></Can> : <Alert tone="info">{t('reply.closedNote')}</Alert>}
       </div>
     </>
   );

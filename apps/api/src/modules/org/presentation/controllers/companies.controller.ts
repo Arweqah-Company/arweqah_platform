@@ -23,20 +23,20 @@ export class CompaniesController {
   }
 
   @Post()
-  @RequirePermission(CorePermission.CompaniesManage)
+  @RequirePermission(CorePermission.CompaniesCreate)
   create(@Body() body: CompanyBody, @CurrentUser() user: SessionUser): Promise<CompanyDto> {
     return this.companies.create(body, user.id);
   }
 
   @Put(':id')
-  @RequirePermission(CorePermission.CompaniesManage)
+  @RequirePermission(CorePermission.CompaniesUpdate)
   update(@Param() { id }: IdParam, @Body() body: CompanyBody, @CurrentUser() user: SessionUser): Promise<CompanyDto> {
     return this.companies.update(id, body, user.id);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  @RequirePermission(CorePermission.CompaniesManage)
+  @RequirePermission(CorePermission.CompaniesDelete)
   async remove(@Param() { id }: IdParam, @CurrentUser() user: SessionUser): Promise<void> {
     await this.companies.remove(id, user.id);
   }

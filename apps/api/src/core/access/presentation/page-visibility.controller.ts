@@ -18,7 +18,7 @@ export class PageVisibilityController {
   constructor(private readonly pages: PageVisibilityService) {}
 
   @Get()
-  @RequirePermission(CorePermission.PagesManage)
+  @RequirePermission(CorePermission.PagesView)
   overview(): Promise<PageVisibilityDto> {
     return this.pages.overview();
   }

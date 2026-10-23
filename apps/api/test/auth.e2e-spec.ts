@@ -16,7 +16,7 @@ describe('Sign-in with e-mail and authenticator code (FR-01, FR-23)', () => {
     const agent = await t.factories.signIn(user);
     const me = await agent.get('/api/me').expect(200);
     expect(me.body).toMatchObject({ email: user.email, authenticatorEnabled: true, mfaVerified: true });
-    expect(me.body.permissions).toEqual([{ key: DEMO_PERMISSION, scope: 'company' }]);
+    expect(me.body.permissions).toEqual(expect.arrayContaining([{ key: DEMO_PERMISSION, scope: 'company' }]));
   });
 
   it('sets the session cookie as HttpOnly and SameSite=Lax', async () => {

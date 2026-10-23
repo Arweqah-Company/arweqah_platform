@@ -17,7 +17,7 @@ const overview: PageVisibilityDto = {
 function serve() {
   const saved: unknown[] = [];
   server.use(
-    http.get('*/api/me', () => HttpResponse.json({ ...me(), adminMode: { available: true, active: true, expiresAt: null } })),
+    http.get('*/api/me', () => HttpResponse.json({ ...me([{ key: 'pages.view', scope: 'all' }, { key: 'pages.manage', scope: 'all' }]), adminMode: { available: true, active: true, expiresAt: null } })),
     http.get('*/api/page-visibility', () => HttpResponse.json(overview)),
     http.put('*/api/page-visibility/roles/r1', async ({ request }) => {
       saved.push(await request.json());

@@ -19,7 +19,7 @@ import { EmployeePlacementPort } from '../../domain/contracts/employee-placement
 import { InvalidOrgHierarchyError, JobTitleInUseError, LastJobTitleError, OrgNodeHasTicketsError, OrgNodeInUseError } from '../../domain/errors/org.errors';
 import type { LevelView, NodeView, TitleView } from '../../domain/types/org.types';
 import { OrgRepository } from '../../domain/contracts/org.repository';
-import { assertCompanyAccess, ORG_MANAGE, ORG_VIEW } from '../policies/org-access.policy';
+import { assertCompanyAccess, ORG_TITLES, ORG_UNIT_CREATE, ORG_UNIT_DELETE, ORG_UNIT_MOVE, ORG_UNIT_UPDATE, ORG_VIEW } from '../policies/org-access.policy';
 import { toLevelDto, toNodeDto, toTitleDto } from '../transformers/org.transformer';
 import { ORG_AUDIT } from '../messages/org.messages';
 
@@ -46,7 +46,7 @@ export class OrgNodesService {
 
   async createNode(ctx: AccessContext, input: CreateOrgNodeInput, actorId: string): Promise<OrgNodeDto> {
     const level = await this.mustLevel(input.levelId);
-    assertCompanyAccess(ctx, ORG_MANAGE, level.companyId);
+    assertCompanyAccess(ctx, ORG_UNIT_CREATE, level.companyId);
     await this.assertParent(level, input.parentId);
     if (input.managerId) await this.assertManager(input.managerId);
     this.assertTitlesFor(level, input.jobTitles.length);
@@ -61,7 +61,7 @@ export class OrgNodesService {
 
   async updateNode(ctx: AccessContext, id: string, input: UpdateOrgNodeInput, actorId: string): Promise<OrgNodeDto> {
     const node = await this.mustNode(id);
-    assertCompanyAccess(ctx, ORG_MANAGE, node.companyId);
+    assertCompanyAccess(ctx, ORG_UNIT_UPDATE, node.companyId);
     if (input.managerId) await this.assertManager(input.managerId);
     await this.tx.run((tx) => this.repo.updateNode(id, { ...input, managerId: input.managerId ?? null }, tx));
     this.audit(actorId, ORG_AUDIT.unitUpdated, id, { isActive: input.isActive, startDate: input.startDate });
@@ -70,7 +70,7 @@ export class OrgNodesService {
 
   async moveNode(ctx: AccessContext, id: string, input: MoveOrgNodeInput, actorId: string): Promise<OrgNodeDto> {
     const node = await this.mustNode(id);
-    assertCompanyAccess(ctx, ORG_MANAGE, node.companyId);
+    assertCompanyAccess(ctx, ORG_UNIT_MOVE, node.companyId);
     await this.assertParent(await this.mustLevel(node.levelId), input.parentId);
     if (input.parentId && (await this.repo.descendantIds([id])).includes(input.parentId)) {
       throw new InvalidOrgHierarchyError('A unit cannot be moved inside itself');
@@ -84,7 +84,7 @@ export class OrgNodesService {
   /** A single unit can go only when empty; bulk removal happens through the levels change with confirmation. */
   async removeNode(ctx: AccessContext, id: string, actorId: string): Promise<void> {
     const node = await this.mustNode(id);
-    assertCompanyAccess(ctx, ORG_MANAGE, node.companyId);
+    assertCompanyAccess(ctx, ORG_UNIT_DELETE, node.companyId);
     const employees = (await this.employees.countByNodes([id])).get(id) ?? 0;
     if (employees > 0 || (await this.repo.childrenCount(id)) > 0) throw new OrgNodeInUseError();
     await this.assertNoTickets(id);
@@ -98,7 +98,7 @@ export class OrgNodesService {
 
   async addTitles(ctx: AccessContext, nodeId: string, input: AddJobTitlesInput, actorId: string): Promise<JobTitleDto[]> {
     const node = await this.mustNode(nodeId);
-    assertCompanyAccess(ctx, ORG_MANAGE, node.companyId);
+    assertCompanyAccess(ctx, ORG_TITLES, node.companyId);
     const level = await this.mustLevel(node.levelId);
     if (!level.isAssignable) throw new InvalidOrgHierarchyError('Job titles belong to units of an assignable level');
     const ids = await this.tx.run((tx) => this.repo.insertTitles(nodeId, input.jobTitles, tx));
@@ -169,7 +169,7 @@ export class OrgNodesService {
   private async mustTitle(ctx: AccessContext, id: string): Promise<TitleView> {
     const title = await this.repo.title(id);
     if (!title) throw new NotFoundError('Job title', id);
-    assertCompanyAccess(ctx, ORG_MANAGE, (await this.mustNode(title.orgNodeId)).companyId);
+    assertCompanyAccess(ctx, ORG_TITLES, (await this.mustNode(title.orgNodeId)).companyId);
     return title;
   }
 

@@ -1,4 +1,4 @@
-import { CorePermission, type LookupsDto } from '@arweqah-platform/shared';
+import { CorePermission, type LookupsDto, ORG_ADMIN_PERMISSIONS } from '@arweqah-platform/shared';
 import { describe, expect, it } from 'vitest';
 import { useTestApp } from './setup/test-app';
 
@@ -39,7 +39,7 @@ describe('Lookups and translations (FR-22)', () => {
 
   it('lists companies and the units that can take employees, with the default manager inherited from above', async () => {
     const org = await t.factories.org();
-    const admin = await t.factories.user({ unit: org.unitA, grants: [...viewer, { key: CorePermission.OrgManage, scope: 'all' }] });
+    const admin = await t.factories.user({ unit: org.unitA, grants: [...viewer, ...ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const }))] });
     const agent = await t.factories.signIn(admin);
     const companies = (await agent.get('/api/lookups/companies').set('Accept-Language', 'en').expect(200)).body;
     expect(companies.map((c: { id: string }) => c.id)).toEqual(expect.arrayContaining([org.companyId, org.otherCompanyId]));

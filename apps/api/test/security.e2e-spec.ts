@@ -16,7 +16,7 @@ describe('Security suite (NFR-02, NFR-03)', () => {
   });
 
   it('every permission-protected route answers 403 to a signed-in user without that permission', async () => {
-    const agent = await t.factories.signIn(await t.factories.user());
+    const agent = await t.factories.signIn(await t.factories.user({ bare: true }));
     const routes = discoverRoutes(t.app).filter((r) => r.permission);
     for (const route of routes) {
       const res = await agent[route.method](route.path).send({});

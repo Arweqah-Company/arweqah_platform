@@ -1,4 +1,5 @@
-import type { TicketGrouping, TicketListItemDto, TicketTab } from '@arweqah-platform/shared';
+import { Can } from '@/core/permissions/can';
+import { CorePermission, type TicketGrouping, TicketListItemDto, TicketTab } from '@arweqah-platform/shared';
 import { LifeBuoy, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -58,7 +59,7 @@ export function TicketsPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} description={t('description')} actions={<Button onClick={() => setCreating(true)}><Plus className="size-4" aria-hidden />{t('newTicket')}</Button>} />
+      <PageHeader title={t('title')} description={t('description')} actions={<Can permission={CorePermission.TicketsCreate}><Button onClick={() => setCreating(true)}><Plus className="size-4" aria-hidden />{t('newTicket')}</Button></Can>} />
       <TabBar tab={tab} hasInbox={options.data?.hasInbox ?? false} onChange={switchTab} />
       <DataTable<TicketListItemDto>
         listKey="tickets"

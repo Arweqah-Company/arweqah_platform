@@ -1,7 +1,8 @@
-import { LIST_CATALOG, type ListKey, type ListSettingDto } from '@arweqah-platform/shared';
+import { CorePermission, LIST_CATALOG, type ListKey, type ListSettingDto } from '@arweqah-platform/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/lib/error-message';
+import { Can } from '@/core/permissions/can';
 import { saveWithToast } from '@/shared/lib/use-save-toast';
 import { Alert, Button, SectionCard } from '@/shared/ui';
 import { useSaveListSetting } from './api';
@@ -60,7 +61,7 @@ export function ListSettingForm({ listKey, current }: { listKey: ListKey; curren
       {catalog.filters.length > 0 && (
         <Choices id="filters" title={t('filtersTitle')} hint={t('filtersHint')} names={catalog.filters} label={(id) => t(`list.${listKey}.filters.${id}`)} hidden={form.hiddenFilters} onToggle={toggle('hiddenFilters')} />
       )}
-      <div><Button type="submit" disabled={save.isPending || !changed}>{tc('actions.save')}</Button></div>
+      <Can permission={CorePermission.ListsManage}><div><Button type="submit" disabled={save.isPending || !changed}>{tc('actions.save')}</Button></div></Can>
     </form>
   );
 }

@@ -1,4 +1,4 @@
-import { EMAIL_PURPOSES, EMAIL_STATUSES, type EmailLogDto } from '@arweqah-platform/shared';
+import { CorePermission, EMAIL_PURPOSES, EMAIL_STATUSES, type EmailLogDto } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import type { ExportColumn } from '@/shared/data-exchange/types';
@@ -36,7 +36,7 @@ export function EmailLogPage() {
         {...table}
         caption={t('title')}
         title={t('allTitle')}
-        toolbar={<ListToolbar listKey="email-log" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<ExchangeButtons exporting={{ columns: exportColumns, filename: 'email-log', pageRows: query.data?.items ?? [], total: query.data?.total ?? 0, loadAll }} />} />}
+        toolbar={<ListToolbar listKey="email-log" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<ExchangeButtons permissions={{ export: CorePermission.EmailLogExport }} exporting={{ columns: exportColumns, filename: 'email-log', pageRows: query.data?.items ?? [], total: query.data?.total ?? 0, loadAll }} />} />}
         rowKey={(l) => l.id}
         columns={[
           { id: 'when', header: t('when'), className: 'whitespace-nowrap text-muted', cell: when },

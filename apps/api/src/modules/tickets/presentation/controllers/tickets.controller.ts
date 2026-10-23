@@ -1,3 +1,4 @@
+import { CorePermission } from '@arweqah-platform/shared';
 import { Body, Controller, Get, HttpCode, Param, Post, Query, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
@@ -5,14 +6,14 @@ import type { TicketCatalogDto, TicketDto, TicketFilterOptionsDto, TicketsPageDt
 import { CurrentUser } from '../../../../common/presentation/current-user.decorator';
 import type { SessionUser } from '../../../../common/presentation/request-context';
 import { IdParam } from '../../../../common/presentation/zod-query';
-import { HiddenWithPage } from '../../../../core/access/presentation/require-permission.decorator';
+import { HiddenWithPage, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
 import { TicketCatalogService } from '../../application/services/ticket-catalog.service';
 import { TicketLifecycleService, type PersonAction } from '../../application/services/ticket-lifecycle.service';
 import { TicketsService } from '../../application/services/tickets.service';
 import { AttachmentParam, CreateTicketBody, TicketActionBody, TicketReplyBody, TicketsQueryDto } from '../dtos/tickets.dtos';
 
 /**
- * security: self-scoped. Every employee may send tickets and follow their own; what else a person sees or does with a ticket
+ * Every action has its own key (the Employee role holds them); on top of that, what else a person sees or does with a ticket
  * follows their relation to it (sender, assignee, desk manager) inside the service, and anybody else gets "not found".
  */
 @ApiTags('tickets')
@@ -26,66 +27,78 @@ export class TicketsController {
   ) {}
 
   @Get()
+  @RequirePermission(CorePermission.TicketsView)
   list(@CurrentUser() user: SessionUser, @Query() query: TicketsQueryDto): Promise<TicketsPageDto> {
     return this.tickets.list(user.id, query);
   }
 
   @Get('options')
+  @RequirePermission(CorePermission.TicketsView)
   options(@CurrentUser() user: SessionUser): Promise<TicketFilterOptionsDto> {
     return this.tickets.options(user.id);
   }
 
   @Get('catalog')
+  @RequirePermission(CorePermission.TicketsCreate)
   catalogOf(): Promise<TicketCatalogDto> {
     return this.catalog.catalog();
   }
 
   @Post()
+  @RequirePermission(CorePermission.TicketsCreate)
   create(@CurrentUser() user: SessionUser, @Body() body: CreateTicketBody): Promise<TicketDto> {
     return this.tickets.create(user.id, body);
   }
 
   @Get(':id')
+  @RequirePermission(CorePermission.TicketsView)
   get(@CurrentUser() user: SessionUser, @Param() { id }: IdParam): Promise<TicketDto> {
     return this.tickets.get(user.id, id);
   }
 
   @Post(':id/replies')
+  @RequirePermission(CorePermission.TicketsReply)
   reply(@CurrentUser() user: SessionUser, @Param() { id }: IdParam, @Body() body: TicketReplyBody): Promise<TicketDto> {
     return this.tickets.reply(user.id, id, body);
   }
 
   @Post(':id/request-close')
   @HttpCode(200)
+  @RequirePermission(CorePermission.TicketsRequestClose)
   requestClose(@CurrentUser() user: SessionUser, @Param() { id }: IdParam, @Body() body: TicketActionBody): Promise<TicketDto> {
     return this.act(user, id, 'request_close', body);
   }
 
   @Post(':id/confirm-close')
   @HttpCode(200)
+  @RequirePermission(CorePermission.TicketsConfirmClose)
   confirmClose(@CurrentUser() user: SessionUser, @Param() { id }: IdParam, @Body() body: TicketActionBody): Promise<TicketDto> {
     return this.act(user, id, 'confirm_close', body);
   }
 
   @Post(':id/decline-close')
   @HttpCode(200)
+  @RequirePermission(CorePermission.TicketsDeclineClose)
   declineClose(@CurrentUser() user: SessionUser, @Param() { id }: IdParam, @Body() body: TicketActionBody): Promise<TicketDto> {
     return this.act(user, id, 'decline_close', body);
   }
 
   @Post(':id/close-without-execution')
   @HttpCode(200)
+  @RequirePermission(CorePermission.TicketsCloseWithoutExecution)
   closeWithoutExecution(@CurrentUser() user: SessionUser, @Param() { id }: IdParam, @Body() body: TicketActionBody): Promise<TicketDto> {
     return this.act(user, id, 'close_without_execution', body);
   }
 
   @Post(':id/reopen')
   @HttpCode(200)
+  @RequirePermission(CorePermission.TicketsReopen)
   reopen(@CurrentUser() user: SessionUser, @Param() { id }: IdParam, @Body() body: TicketActionBody): Promise<TicketDto> {
     return this.act(user, id, 'reopen', body);
   }
 
   @Get(':id/attachments/:fileId')
+  @RequirePermission(CorePermission.TicketsView)
   async attachment(@CurrentUser() user: SessionUser, @Param() { id, fileId }: AttachmentParam, @Res() res: Response): Promise<void> {
     const { file, opened } = await this.tickets.openAttachment(user.id, id, fileId);
     if ('url' in opened) return res.redirect(opened.url);

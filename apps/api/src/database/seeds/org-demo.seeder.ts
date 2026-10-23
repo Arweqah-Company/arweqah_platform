@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AppConfig } from '../../config/app-config.service';
-import { CorePermission } from '@arweqah-platform/shared';
+import { ORG_ADMIN_PERMISSIONS } from '@arweqah-platform/shared';
 import { AccessContext, NO_PLACEMENT } from '../../core/access/domain/access-context';
 import { CompaniesService } from '../../modules/org/application/services/companies.service';
 import { OrgLevelsService } from '../../modules/org/application/services/org-levels.service';
@@ -21,8 +21,7 @@ const KINDS: OrgKind[] = ['sector', 'department', 'section', 'unit'];
 export class OrgDemoSeeder {
   private readonly logger = new Logger('Seed');
   private readonly ctx = new AccessContext(SEEDER_ID, NO_PLACEMENT, [
-    { key: CorePermission.OrgView, scope: 'all' },
-    { key: CorePermission.OrgManage, scope: 'all' },
+    ...ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const })),
   ], true);
 
   constructor(

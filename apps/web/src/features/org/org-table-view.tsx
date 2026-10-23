@@ -1,4 +1,4 @@
-import type { OrgNodeDto, OrgTreeDto } from '@arweqah-platform/shared';
+import { CorePermission, type OrgNodeDto, OrgTreeDto } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import type { ExportColumn } from '@/shared/data-exchange/types';
@@ -62,7 +62,7 @@ export function OrgTableView({ tree, selectedId, onSelect }: Props) {
       listKey="org"
       caption={t('title')}
       title={t('table.title', { count: rows.length })}
-      toolbar={<ListToolbar listKey="org" {...list.toolbar({ label: t('table.searchLabel'), placeholder: t('table.searchPlaceholder') }, fields, false)} actions={<ExchangeButtons exporting={{ columns: exportColumns, filename: 'org-units', pageRows: rows, total: rows.length, loadAll: async () => rows }} />} />}
+      toolbar={<ListToolbar listKey="org" {...list.toolbar({ label: t('table.searchLabel'), placeholder: t('table.searchPlaceholder') }, fields, false)} actions={<ExchangeButtons permissions={{ export: CorePermission.OrgExport }} exporting={{ columns: exportColumns, filename: 'org-units', pageRows: rows, total: rows.length, loadAll: async () => rows }} />} />}
       rows={rows}
       rowKey={({ node }) => node.id}
       columns={[

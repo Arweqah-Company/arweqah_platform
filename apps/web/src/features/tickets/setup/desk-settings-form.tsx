@@ -1,6 +1,7 @@
-import { DESK_LIMITS, RECEPTION_STATUSES, type ReceptionStatus, type TicketDeskDto, type TicketDeskSettingsInput } from '@arweqah-platform/shared';
+import { CorePermission, DESK_LIMITS, RECEPTION_STATUSES, type ReceptionStatus, type TicketDeskDto, type TicketDeskSettingsInput } from '@arweqah-platform/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePermissions } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { saveWithToast } from '@/shared/lib/use-save-toast';
 import { useLiveError } from '@/shared/lib/live-validation';
@@ -52,12 +53,13 @@ export function DeskSettingsForm({ desk }: { desk: TicketDeskDto }) {
   const { t } = useTranslation('tickets');
   const { t: tc } = useTranslation();
   const save = useSaveDesk(desk.orgNodeId);
+  const canEdit = usePermissions().can(CorePermission.TicketsSetupEdit);
   const [form, setForm] = useState<Form>(() => toForm(desk));
   const set = (change: Partial<Form>) => setForm((f) => ({ ...f, ...change }));
   const valid = inRange(form) && !(form.receptionStatus === 'active' && !desk.manager);
   const submit = saveWithToast(save.mutateAsync, t('setup.saved'));
   return (
-    <form className="flex flex-col gap-6" onSubmit={(e) => { e.preventDefault(); void submit(toInput(form)); }} noValidate>
+    <form className="flex flex-col gap-6" aria-disabled={!canEdit} onSubmit={(e) => { e.preventDefault(); void submit(toInput(form)); }} noValidate>
       {save.isError && <Alert>{errorMessage(tc, save.error)}</Alert>}
       <SectionCard id="reception" title={t('setup.receptionTitle')} description={t('setup.receptionIntro')}>
         <StatusField value={form.receptionStatus} hasManager={!!desk.manager} onChange={(receptionStatus) => set({ receptionStatus })} />
@@ -68,7 +70,7 @@ export function DeskSettingsForm({ desk }: { desk: TicketDeskDto }) {
       <SectionCard id="durations" title={t('setup.durationsTitle')} description={t('setup.durationsIntro')}>
         {DAY_FIELDS.map(({ id, unit }) => <DaysField key={id} id={id} unit={unit} value={form[id]} onChange={(v) => set({ [id]: v } as Partial<Form>)} />)}
       </SectionCard>
-      <div><Button type="submit" disabled={save.isPending || !valid}>{tc('actions.save')}</Button></div>
+      {canEdit && <div><Button type="submit" disabled={save.isPending || !valid}>{tc('actions.save')}</Button></div>}
     </form>
   );
 }

@@ -125,7 +125,7 @@ export class EmployeesService {
 
   /** Ends the relationship: end date and reason are recorded; the account stops signing in the day after the end date. */
   async terminate(ctx: AccessContext, id: string, input: TerminateEmployeeInput, actorId: string): Promise<EmployeeDto> {
-    const employee = await this.mustFind(ctx, id, P.EmployeesDeactivate);
+    const employee = await this.mustFind(ctx, id, P.EmployeesTerminate);
     if (employee.userId === ctx.userId) throw new SelfActionError('You cannot end your own contract');
     if (input.endDate <= employee.startDate) throw new FieldRuleError('endDate', 'The end date must be after the start date', { ar: 'تاريخ النهاية يجب أن يكون بعد تاريخ البداية', en: 'The end date must be after the start date' });
     const isOther = await this.lookups.terminationReasonIsOther(input.terminationReasonId);
@@ -148,14 +148,14 @@ export class EmployeesService {
   }
 
   async resendInvite(ctx: AccessContext, id: string, actorId: string): Promise<InviteResultDto> {
-    const employee = await this.mustFind(ctx, id, P.EmployeesUpdate);
+    const employee = await this.mustFind(ctx, id, P.EmployeesResendInvite);
     this.audit(actorId, EMPLOYEE_AUDIT.invited, id, {});
     return this.invite(employee.userId);
   }
 
   /** Lost phone: the employee links the app again through a new invitation; their sessions end now. */
   async resetAuthenticator(ctx: AccessContext, id: string, actorId: string): Promise<InviteResultDto> {
-    const employee = await this.mustFind(ctx, id, P.EmployeesUpdate);
+    const employee = await this.mustFind(ctx, id, P.EmployeesResetAuthenticator);
     if (employee.userId === ctx.userId) throw new SelfActionError('Use the security page to manage your own authenticator');
     await this.authenticator.reset(employee.userId, actorId);
     await this.identity.revokeAllSessions(employee.userId);

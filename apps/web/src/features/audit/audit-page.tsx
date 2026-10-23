@@ -1,4 +1,4 @@
-import type { AuditLogDto } from '@arweqah-platform/shared';
+import { CorePermission, type AuditLogDto } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import type { ExportColumn } from '@/shared/data-exchange/types';
@@ -34,7 +34,7 @@ export function AuditPage() {
         {...table}
         caption={t('title')}
         title={t('allTitle')}
-        toolbar={<ListToolbar listKey="audit" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder'), dir: 'ltr' }, fields)} actions={<ExchangeButtons exporting={{ columns: exportColumns, filename: 'audit-log', pageRows: query.data?.items ?? [], total: query.data?.total ?? 0, loadAll }} />} />}
+        toolbar={<ListToolbar listKey="audit" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder'), dir: 'ltr' }, fields)} actions={<ExchangeButtons permissions={{ export: CorePermission.AuditExport }} exporting={{ columns: exportColumns, filename: 'audit-log', pageRows: query.data?.items ?? [], total: query.data?.total ?? 0, loadAll }} />} />}
         rowKey={(l) => l.id}
         columns={[
           { id: 'when', header: t('when'), className: 'whitespace-nowrap text-muted', cell: when },

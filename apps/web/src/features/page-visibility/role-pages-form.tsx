@@ -1,7 +1,8 @@
-import type { HideablePage, PageVisibilityRoleDto } from '@arweqah-platform/shared';
+import { CorePermission, type HideablePage, type PageVisibilityRoleDto } from '@arweqah-platform/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/lib/error-message';
+import { Can } from '@/core/permissions/can';
 import { saveWithToast } from '@/shared/lib/use-save-toast';
 import { Alert, Button, SectionCard } from '@/shared/ui';
 import { useSaveRolePages } from './api';
@@ -35,7 +36,7 @@ export function RolePagesForm({ role, pages }: Props) {
             </li>
           ))}
         </ul>
-        <div><Button type="submit" disabled={save.isPending || !changed || role.locked}>{tc('actions.save')}</Button></div>
+        <Can permission={CorePermission.PagesManage}><div><Button type="submit" disabled={save.isPending || !changed || role.locked}>{tc('actions.save')}</Button></div></Can>
       </form>
     </SectionCard>
   );
