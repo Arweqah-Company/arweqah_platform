@@ -1,0 +1,266 @@
+{
+  "title": "Tickets",
+  "description": "Send a request to a department and follow it, or answer the tickets that arrive for you.",
+  "newTicket": "New ticket",
+  "tabsLabel": "Ticket view",
+  "tabs": {
+    "mine": "My tickets",
+    "inbox": "Unit inbox"
+  },
+  "searchLabel": "Search tickets",
+  "searchPlaceholder": "Search by title, details or number",
+  "noMatches": "No tickets match.",
+  "empty": {
+    "mine": "You have not sent any ticket yet.",
+    "inbox": "No tickets have arrived for you."
+  },
+  "emptyHint": {
+    "mine": "Press “New ticket” to send your request to the right department.",
+    "inbox": "Tickets assigned to you appear here, or your department's tickets if you manage it."
+  },
+  "groupBy": {
+    "label": "Group by",
+    "none": "No grouping",
+    "assignee": "Assignee",
+    "status": "Status",
+    "desk": "Department",
+    "type": "Type"
+  },
+  "groups": {
+    "unassigned": "No assignee"
+  },
+  "columns": {
+    "number": "Number",
+    "title": "Title",
+    "desk": "Department",
+    "type": "Type",
+    "sender": "Sender",
+    "assignee": "Assignee",
+    "status": "Status",
+    "neededBy": "Needed by",
+    "activity": "Last activity"
+  },
+  "status": {
+    "open": "Open",
+    "close_requested": "Waiting for closing confirmation",
+    "closed": "Closed"
+  },
+  "closeReason": {
+    "confirmed": "confirmed by the sender",
+    "auto": "automatically",
+    "not_executed": "without being carried out"
+  },
+  "flags": {
+    "urgent": "Urgent",
+    "overdue": "Overdue",
+    "stale": "Stale",
+    "new": "New",
+    "personal": "Personal"
+  },
+  "filters": {
+    "desk": "Department",
+    "type": "Type",
+    "assignee": "Assignee",
+    "status": "Status"
+  },
+  "loading": "Loading…",
+  "sent": "The ticket was sent.",
+  "new": {
+    "title": "New ticket",
+    "description": "Choose the department and the type, then write your request."
+  },
+  "choose": {
+    "personalNotice": "Complaints and personal matters go to Human Resources directly.",
+    "search": "What do you need?",
+    "browse": "Browse departments",
+    "hideBrowse": "Hide departments",
+    "allDesks": "All departments",
+    "noMatches": "No type matches your search.",
+    "nothing": "No department receives tickets right now.",
+    "paused": "This department has paused receiving tickets for now.",
+    "notStarted": "This department has not started working yet.",
+    "noManager": "This department has no manager at the moment.",
+    "duration_one": "Usual time: 1 working day",
+    "duration_other": "Usual time: {{count}} working days",
+    "typesCount_one": "1 type",
+    "typesCount_other": "{{count}} types"
+  },
+  "details": {
+    "urgent": "Urgent",
+    "urgentOn": "On",
+    "urgentOff": "Normal",
+    "handledBy": "Handled by {{name}}",
+    "change": "Change",
+    "title": "Title",
+    "titleRequired": "Write a title for the ticket.",
+    "text": "Details",
+    "neededBy": "When do you need it",
+    "tooEarly": "The earliest date this department accepts is {{date}}.",
+    "priority": "Priority",
+    "attachments": "Ticket attachments",
+    "shortcut": "Ctrl + Enter to send",
+    "send": "Send",
+    "pageHint": "The ticket and its replies.",
+    "sentOn": "Sent on",
+    "neededByHint_one": "Suggested after 1 working day",
+    "neededByHint_other": "Suggested after {{count}} working days"
+  },
+  "reply": {
+    "label": "Your reply",
+    "send": "Send reply",
+    "sent": "The reply was sent.",
+    "closedNote": "The ticket is closed and takes no new replies."
+  },
+  "timeline": {
+    "label": "Ticket history",
+    "system": "System"
+  },
+  "events": {
+    "created": "Ticket sent",
+    "reply": "Reply",
+    "close_requested": "Closing requested",
+    "close_declined": "The sender declined the closing",
+    "confirmed": "The sender confirmed it was done",
+    "auto_closed": "Closed automatically",
+    "closed_not_executed": "Closed without being carried out",
+    "reopened": "Reopened"
+  },
+  "actions": {
+    "message": "Message (optional)",
+    "reopenLeft_one": "You can reopen it within 1 day",
+    "reopenLeft_other": "You can reopen it within {{count}} days",
+    "request-close": {
+      "button": "Request closing",
+      "title": "Request closing",
+      "description": "The sender is asked to confirm it was done, and it closes by itself if they do not answer in time.",
+      "confirm": "Request closing",
+      "done": "Closing requested."
+    },
+    "confirm-close": {
+      "button": "Confirm it was done",
+      "title": "Confirm the request was carried out",
+      "description": "The ticket closes as soon as you confirm.",
+      "confirm": "Confirm and close",
+      "done": "The ticket was closed."
+    },
+    "decline-close": {
+      "button": "Not done yet",
+      "title": "Decline the closing",
+      "description": "The ticket goes back to the department, open, with your message.",
+      "confirm": "Reopen it",
+      "done": "The ticket is open again."
+    },
+    "reopen": {
+      "button": "Reopen",
+      "title": "Reopen the ticket",
+      "description": "The ticket goes back to the department, open.",
+      "confirm": "Reopen",
+      "done": "The ticket was reopened."
+    },
+    "close-without-execution": {
+      "button": "Close without carrying out",
+      "title": "Close without carrying out",
+      "description": "The ticket closes without the request being carried out. Explain why to the sender.",
+      "confirm": "Close without carrying out",
+      "done": "The ticket was closed."
+    }
+  },
+  "setup": {
+    "title": "Ticket setup",
+    "description": "Set how your department receives tickets: types and durations.",
+    "desk": "Department",
+    "managerIs": "Manager: {{name}}",
+    "noManager": "This department has no manager yet: assign one in the organization structure to activate it.",
+    "needAdminMode": "This page works in platform admin mode. Turn it on at the top of the page.",
+    "none": "No department available to you",
+    "noneHint": "The departments you manage appear here.",
+    "receptionTitle": "Reception",
+    "receptionIntro": "Decide whether the department receives tickets now, and what the sender reads.",
+    "reception": "Reception status",
+    "status": {
+      "active": "Active",
+      "paused": "Paused for now",
+      "stopped": "Stopped"
+    },
+    "receptionHint": {
+      "active": "The department is listed and receives tickets.",
+      "paused": "The department is listed but disabled with a message, and is resumed by hand. Existing tickets are handled as usual.",
+      "stopped": "The department is not listed for anyone. Existing tickets are handled as usual."
+    },
+    "needsManager": "A department without a manager cannot be activated.",
+    "acceptsPersonal": "Accepts personal requests (the unit manager does not see them)",
+    "descriptionAr": "Department description for the sender (Arabic)",
+    "descriptionEn": "Department description for the sender (English)",
+    "descriptionHint": "Shown to the employee when they choose this department.",
+    "days": {
+      "defaultDueDays": "Usual completion time",
+      "minLeadDays": "Earliest date that can be asked for",
+      "autoCloseDays": "Automatic closing after a closing request",
+      "reopenWindowDays": "Time allowed for reopening",
+      "staleAfterDays": "A ticket is stale after"
+    },
+    "workingDays": "In working days (Friday and Saturday are off)",
+    "calendarDays": "In calendar days",
+    "daysRange": "A whole number from {{min}} to {{max}}.",
+    "saved": "The settings were saved.",
+    "typesTitle": "Ticket types",
+    "typesIntro": "Each type has a name, a description, an assignee and an optional own duration.",
+    "noTypes": "No types yet. Add one so the department can receive tickets.",
+    "type": {
+      "assignee": "Assignee",
+      "assigneeHint": "The employee tickets are assigned to. Required for a personal type.",
+      "personalNeedsAssignee": "A personal type needs an assignee.",
+      "nameAr": "Name in Arabic",
+      "nameEn": "Name in English",
+      "descriptionAr": "Description in Arabic",
+      "descriptionEn": "Description in English",
+      "dueDays": "Own duration in working days",
+      "dueDaysHint": "Leave empty to use the department's duration.",
+      "personal": "Personal type: the unit manager does not see it, only the sender and the assignee",
+      "active": "Active type",
+      "saved": "The type was saved.",
+      "editTitle": "Edit the type",
+      "newTitle": "Add a type",
+      "description": "The type's name and description are shown to the employee when they send.",
+      "handledBy": "Assignee: {{name}}",
+      "noAssignee": "No assignee: the department manager handles them",
+      "inactive": "Inactive",
+      "edit": "Edit {{name}}",
+      "remove": "Delete {{name}}",
+      "add": "Add a type",
+      "deleted": "The type was deleted.",
+      "deactivated": "The type was deactivated because it has tickets.",
+      "removeTitle": "Delete the type?",
+      "removeBody": "The type is deleted if it has no tickets; otherwise it is deactivated and its tickets stay.",
+      "days_one": "Time: 1 working day",
+      "days_other": "Time: {{count}} working days"
+    }
+  },
+  "figures": {
+    "title": "Ticket performance",
+    "description": "The last {{days}} days, by department.",
+    "indicators": "Indicators",
+    "openNow": "Open now",
+    "incoming": "Incoming tickets",
+    "avgFirstResponse": "Average time to first reply",
+    "avgResolution": "Average time to finish",
+    "outcomes": "How tickets ended",
+    "confirmed": "Closed with the sender's confirmation",
+    "auto": "Closed automatically",
+    "notExecuted": "Closed without being carried out",
+    "reopened": "Reopened after closing",
+    "count": "Count",
+    "open": "Open",
+    "closed": "Closed",
+    "byType": "By ticket type",
+    "byAssignee": "Who handles the tickets",
+    "attention": "Needs action today",
+    "attentionEmpty": "Nothing is overdue or stale.",
+    "none": "No department is set up yet",
+    "noneHint": "Set up a department on the “Ticket setup” page and its figures appear here.",
+    "hours_one": "1 hour",
+    "hours_other": "{{count}} hours",
+    "personalCount_one": "1 of them personal",
+    "personalCount_other": "{{count}} of them personal"
+  }
+}

@@ -11,6 +11,7 @@ import { notificationsFeature } from '@/features/notifications';
 import { orgFeature } from '@/features/org';
 import { rolesFeature } from '@/features/roles';
 import { securityFeature } from '@/features/security';
+import { ticketsFeature } from '@/features/tickets';
 
 /** Composition root: the list of features this app is built from (order = sidebar order). */
 export const FEATURES: FeatureModule[] = [
@@ -19,6 +20,7 @@ export const FEATURES: FeatureModule[] = [
   employeesFeature,
   orgFeature,
   companiesFeature,
+  ticketsFeature,
   rolesFeature,
   auditFeature,
   emailLogFeature,

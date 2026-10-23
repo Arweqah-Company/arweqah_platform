@@ -24,7 +24,7 @@ function SidebarLink({ item, collapsed, onNavigate, nested }: { item: NavItem; c
   const { t } = useTranslation();
   const Icon = item.icon;
   return (
-    <NavLink to={item.to} end={item.to === '/'} onClick={onNavigate} title={collapsed ? t(item.labelKey) : undefined} className={({ isActive }) => linkClass(isActive, cn(collapsed && 'lg:justify-center lg:px-0', nested && 'py-2.5'))}>
+    <NavLink to={item.to} end={item.to === '/' || item.end} onClick={onNavigate} title={collapsed ? t(item.labelKey) : undefined} className={({ isActive }) => linkClass(isActive, cn(collapsed && 'lg:justify-center lg:px-0', nested && 'py-2.5'))}>
       <Icon className="size-5 shrink-0" aria-hidden />
       <span className={cn(collapsed && 'lg:sr-only')}>{t(item.labelKey)}</span>
     </NavLink>

@@ -15,3 +15,5 @@ export * from './companies/schemas';
 export * from './org/schemas';
 export * from './employees/validators';
 export * from './employees/schemas';
+export * from './tickets/working-days';
+export * from './tickets/schemas';

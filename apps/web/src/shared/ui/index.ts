@@ -17,3 +17,4 @@ export { ConfirmDialog } from './confirm-dialog';
 export { EmptyState } from './empty-state';
 export { SectionCard } from './section-card';
 export { StatTile } from './stat-tile';
+export { FileAttachments } from './file-attachments';

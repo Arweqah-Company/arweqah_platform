@@ -18,9 +18,13 @@
     "groups": {
       "people": "People",
       "administration": "System administration",
-      "account": "My account"
+      "account": "My account",
+      "tickets": "Tickets"
     },
-    "profile": "Profile"
+    "profile": "Profile",
+    "tickets": "Tickets",
+    "ticketSetup": "Ticket setup",
+    "ticketFigures": "Ticket performance"
   },
   "actions": {
     "save": "Save",
@@ -80,7 +84,24 @@
     "ORG_LEVELS_NOT_EMPTY": "The company has units. Change its levels from the levels form.",
     "UNKNOWN_PERMISSION": "Unknown permission.",
     "NO_ENROLLMENT_IN_PROGRESS": "Start linking the app first.",
-    "MANAGER_NOT_FOUND": "The direct manager's employee number was not found."
+    "MANAGER_NOT_FOUND": "The direct manager's employee number was not found.",
+    "DESK_STOPPED": "This department does not receive tickets.",
+    "DESK_PAUSED": "The department has paused receiving tickets for now.",
+    "DESK_NOT_STARTED": "This department has not started working yet.",
+    "DESK_NO_MANAGER": "This department has no manager at the moment, so it cannot receive tickets.",
+    "TYPE_INACTIVE": "This type is not available.",
+    "PERSONAL_NOT_ACCEPTED": "This department does not accept personal requests.",
+    "TYPE_NO_HANDLER": "A personal type needs an active employee in charge of it.",
+    "ASSIGNEE_INVALID": "The assignee must be an active employee.",
+    "DUE_DATE_TOO_EARLY": "The needed-by date is earlier than the department accepts.",
+    "TICKET_STATE_INVALID": "This action cannot be done on the ticket in its current state.",
+    "REOPEN_WINDOW_EXPIRED": "The time allowed for reopening this ticket has passed.",
+    "TICKET_REVISION_CONFLICT": "The ticket was changed by someone else. Reload the page and try again.",
+    "NOT_A_DEPARTMENT": "Only departments receive tickets.",
+    "NOT_DESK_MANAGER": "Only the department manager can do this.",
+    "ADMIN_MODE_REQUIRED": "Turn on platform admin mode to continue.",
+    "ADMIN_MODE_NOT_ALLOWED": "Platform admin mode is not available for your account.",
+    "CODE_ALREADY_USED": "This code was already used. Wait for the next code in your app."
   },
   "scope": {
     "own": "Own record only",
@@ -239,5 +260,13 @@
     "locked": "Too many wrong attempts. Try again in a few minutes.",
     "turnedOn": "Platform admin mode is on.",
     "expired": "Platform admin mode stopped because of inactivity. Turn it on again when you need it."
+  },
+  "attachments": {
+    "add": "Attach files",
+    "remove": "Remove {{name}}",
+    "uploading": "Uploading…",
+    "tooMany": "At most {{max}} files.",
+    "failed": "The file could not be uploaded.",
+    "hint": "Optional. Images, PDF files or documents."
   }
 }

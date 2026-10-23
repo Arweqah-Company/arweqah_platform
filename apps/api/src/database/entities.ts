@@ -13,6 +13,7 @@ import { WorkflowInstance, WorkflowTransition } from '../core/workflow/domain/wo
 import { Employee } from '../modules/employees/domain/entities/employee.entity';
 import { LOOKUP_ENTITIES } from '../modules/lookups/domain/entities/lookup.entities';
 import { ORG_ENTITIES } from '../modules/org/domain/entities/org.entities';
+import { TICKET_ENTITIES } from '../modules/tickets/domain/entities/ticket.entities';
 
 /**
  * Every TypeORM entity, listed explicitly (no file globs) so the app, the CLI and
@@ -37,5 +38,6 @@ export const ENTITIES = [
   WorkflowTransition,
   ...LOOKUP_ENTITIES,
   ...ORG_ENTITIES,
+  ...TICKET_ENTITIES,
   Employee,
 ];

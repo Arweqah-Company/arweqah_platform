@@ -70,6 +70,12 @@ Bring employee, project and request management into one secure platform that spe
 | FR-33 | Light and dark theme (or follow the device): a toggle in the header and a choice on the profile page, saved in the browser and on the account; and an own profile page where a person changes the language, the theme and three contact details (personal phone, personal e-mail, English name) while the job details stay read-only; everything else belongs to HR | All users | Must | `apps/api/test/profile.e2e-spec.ts`, `apps/web/src/core/theme/theme.test.tsx`, `apps/web/src/features/profile/profile-page.test.tsx`, `e2e/tests/profile.spec.ts` |
 | FR-34 | Platform admin mode: people with an administrative capability (permission `admin_mode.use`, later e.g. a desk manager) work as ordinary employees until they switch the mode on in the header with a **fresh** authenticator code (a code already used is refused without counting as a failed attempt, backup codes are not accepted, wrong codes share the sign-in lock); it is kept on the session, enforced by the API for routes marked `@RequireAdminMode()` (403 `ADMIN_MODE_REQUIRED`), switches itself off after 30 minutes without admin activity and on sign-out, and every switch is audited | Platform manager | Must | `apps/api/test/admin-mode.e2e-spec.ts`, `apps/api/src/core/access/domain/admin-mode.rules.spec.ts`, `apps/web/src/core/admin-mode/admin-mode-toggle.test.tsx`, `e2e/tests/admin-mode.spec.ts` |
 | FR-35 | Every unit of the organization has the day it **started working** (required when adding, editable, shown in the unit's details; from 1980 up to two years ahead; existing units were filled with their creation date), and every level remembers which default level it came from (`org_levels.template_code`: sector, department, section, unit; kept through renaming, reordering and copying; null for levels a company added) so features can address "the departments" | Admin | Must | `apps/api/test/org.e2e-spec.ts`, `apps/web/src/features/org/org-page.test.tsx` |
+| FR-36 | Ticket setup (platform admin mode, desk manager or `tickets.administer`): every **department** (org level with `template_code = department`) can become a desk with a reception status (active / paused / stopped), a manager, minimum lead days and the durations, all in days (completion in working days, auto-close, reopen window, stale), plus the **kinds of ticket** it takes (name, description, expected days, optional default assignee, personal flag); a desk cannot be activated without a manager and nothing is accepted before the desk start date | Platform manager, desk manager | Must | `apps/api/test/tickets.e2e-spec.ts`, `e2e/tests/tickets.spec.ts` |
+| FR-37 | Any employee sends a ticket to a desk: a two-step dialog (search "what do you need?" or browse departments, then title, details, needed-by date, urgent flag, up to 5 files, Ctrl+Enter sends); blocked when the desk is paused, stopped, not started or has no manager; the needed-by date respects the desk's lead days; the ticket gets a number (TKT-000123) and a snapshot of the assignee | All users | Must | `apps/api/test/tickets.e2e-spec.ts`, `apps/web/src/features/tickets/new-ticket/new-ticket-dialog.test.tsx` |
+| FR-38 | Visibility follows the relation to the ticket (sender, assignee, desk manager); **personal** tickets are hidden from the desk manager and from platform admins; out-of-scope tickets are 404; lists have tabs, search, filters and grouping; attachments download only for people who may see the ticket | All users | Must | `apps/api/test/tickets.e2e-spec.ts`, `e2e/tests/tickets.spec.ts` |
+| FR-39 | Ticket life cycle: the assignee or manager answers and asks to close, the sender confirms or declines, the sender can close or reopen within the reopen window, reassignment, optimistic `revision` (409 on conflict); every step is a timeline event and a notice (in-app, e-mail for important ones) that carries only the ticket number and department, never its text | Sender, assignee, manager | Must | `apps/api/test/tickets.e2e-spec.ts`, `apps/api/src/modules/tickets/domain/rules/ticket.rules.spec.ts` |
+| FR-40 | Figures page (admin mode): per desk, last 30 days, counts only (open, closed, overdue, average completion in working days); personal tickets enter the totals but never a list | Platform manager, desk manager | Should | `apps/api/test/tickets.e2e-spec.ts`, `e2e/tests/tickets.spec.ts` |
+| FR-41 | Time-driven steps: a close request not answered within the desk's days closes the ticket by itself (durable `scheduled_jobs`, idempotent consumer), and a daily job (Asia/Riyadh) marks tickets with no activity as stale | System | Must | `apps/api/test/tickets.e2e-spec.ts` |
 
 Every test suite names the requirement IDs it covers in its `describe(...)` title.
 
@@ -239,6 +245,37 @@ erDiagram
     varchar event
     varchar to_state
   }
+  ticket_desks {
+    uuid org_node_id PK
+    varchar reception_status
+    uuid manager_id FK
+    date start_date
+  }
+  ticket_types {
+    uuid id PK
+    uuid desk_id FK
+    boolean is_personal
+    int due_days
+  }
+  tickets {
+    uuid id PK
+    bigint number
+    uuid type_id FK
+    uuid sender_id FK
+    uuid assignee_id FK
+    varchar status
+    int revision
+  }
+  ticket_events {
+    uuid id PK
+    uuid ticket_id FK
+    varchar kind
+  }
+  ticket_attachments {
+    uuid id PK
+    uuid ticket_id FK
+    uuid file_id FK
+  }
   users ||--o{ auth_accounts : "signs in with"
   users ||--o{ auth_sessions : has
   users ||--o| authenticators : "links one app"
@@ -261,6 +298,13 @@ erDiagram
   users ||--o{ notifications : receives
   users ||--o{ files : owns
   workflow_instances ||--o{ workflow_transitions : records
+  org_nodes ||--o| ticket_desks : "can be a desk"
+  ticket_desks ||--o{ ticket_types : takes
+  ticket_types ||--o{ tickets : "kind of"
+  users ||--o{ tickets : sends
+  tickets ||--o{ ticket_events : records
+  tickets ||--o{ ticket_attachments : holds
+  files ||--o{ ticket_attachments : "stored as"
 ```
 
 ## 7. Flowcharts
@@ -561,6 +605,7 @@ Requirement traceability: each `describe` title lists the FR/NFR IDs it covers, 
 | HR (custom role) | Create and update employees, place them in units, assign the roles they hold, resend activation links | Act outside their scope (gets 404), see salary / ID / IBAN without `employees.view_sensitive`, assign more than they hold, change their own roles |
 | Line manager (custom role) | What the role grants, limited to their unit or subtree | Act outside their scope |
 | System Admin (system role) | Every permission at the widest scope: companies, levels, units, job titles, roles, audit log, e-mail log, and may switch **platform admin mode** on (`admin_mode.use`) | Delete system roles; use anything before linking the authenticator |
+| Desk manager (named in a desk's setup) | Switch admin mode on, set up the desk, see its tickets (not personal ones), answer, reassign, read its figures | See personal tickets, act on other desks |
 | Auditor (custom role with `audit.view`) | Read the audit log | See secrets (redacted) |
 | Microsoft Entra ID | Authenticate company accounts (setup: `docs/microsoft-sign-in.md`, check: `npm run microsoft:check`) | Create accounts (sign-up disabled) |
 | Office 365 SMTP / SMS provider | Deliver messages | Read any data beyond the message |

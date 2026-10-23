@@ -46,6 +46,9 @@ export interface TestOrg {
   /** Ids of the section above A and B, and of the whole chain above them (for subtree checks). */
   sectionAB: string;
   sectionC: string;
+  /** The department above the sections (the one that can become a ticket desk), and the other company's. */
+  department: string;
+  otherDepartment: string;
 }
 
 let ipCounter = 1;
@@ -96,7 +99,7 @@ export class Factories {
     const otherDepartment = await this.unit(otherCompanyId, 1, otherSector.id, 'Other department');
     const otherSection = await this.unit(otherCompanyId, 2, otherDepartment.id, 'Other section');
     const unitOther = await this.leaf(otherCompanyId, otherSection.id, 'Other unit');
-    return { companyId, otherCompanyId, unitA, unitB, unitC, unitOther, sectionAB: sectionAB.id, sectionC: sectionC.id };
+    return { companyId, otherCompanyId, unitA, unitB, unitC, unitOther, sectionAB: sectionAB.id, sectionC: sectionC.id, department: department.id, otherDepartment: otherDepartment.id };
   }
 
   private async unit(companyId: string, levelIndex: number, parentId: string | null, name: string): Promise<{ id: string }> {

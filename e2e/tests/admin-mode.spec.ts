@@ -18,6 +18,10 @@ async function enterFreshCode(page: Page): Promise<void> {
 
 const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
 
+test.afterEach(async ({ page }) => {
+  await page.request.post('/api/admin-mode/deactivate', { headers: { origin: 'http://localhost:4173' } });
+});
+
 test.describe('Platform admin mode (FR-34)', () => {
   test('is off by default, turns on with a fresh authenticator code, shows its state, and turns off', async ({ page }) => {
     test.setTimeout(120_000); // may wait for the next 30-second code

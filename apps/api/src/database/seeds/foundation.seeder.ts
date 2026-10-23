@@ -12,6 +12,7 @@ import { CompaniesSeeder } from './companies.seeder';
 import { DEFAULT_COMPANY_CODE } from './data/lookups.data';
 import { LookupsSeeder } from './lookups.seeder';
 import { OrgDemoSeeder } from './org-demo.seeder';
+import { TicketsDemoSeeder } from './tickets-demo.seeder';
 
 export const SYSTEM_ADMIN_ROLE = 'System Admin';
 export const EMPLOYEE_ROLE = 'Employee';
@@ -31,6 +32,7 @@ export class FoundationSeeder {
     private readonly lookups: LookupsSeeder,
     private readonly companies: CompaniesSeeder,
     private readonly demo: OrgDemoSeeder,
+    private readonly ticketsDemo: TicketsDemoSeeder,
   ) {}
 
   async run(): Promise<void> {
@@ -40,6 +42,13 @@ export class FoundationSeeder {
     await this.companies.run();
     await this.demo.run();
     await this.firstAdmin(admin);
+    await this.ticketsDemo.run(await this.adminUserId());
+  }
+
+  private async adminUserId(): Promise<string | null> {
+    const email = this.config.get('SEED_ADMIN_EMAIL')?.toLowerCase();
+    const found = email ? await this.db.getRepository(User).findOne({ where: { email } }) : null;
+    return found?.id ?? null;
   }
 
   /** System Admin always holds every permission in the catalog at the widest scope. */

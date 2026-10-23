@@ -73,7 +73,7 @@ class ApiClient {
 
   private fail(status: number, body: Partial<ApiErrorBody> | null): ApiError {
     const error = new ApiError(status, body?.code ?? 'ERROR', body?.message ?? 'Request failed', body?.details);
-    if (status === 401 || error.code === 'MFA_REQUIRED') this.listeners.forEach((l) => l(error));
+    if (status === 401 || error.code === 'MFA_REQUIRED' || error.code === 'ADMIN_MODE_REQUIRED') this.listeners.forEach((l) => l(error));
     return error;
   }
 }

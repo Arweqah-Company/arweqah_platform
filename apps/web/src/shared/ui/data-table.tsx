@@ -1,6 +1,6 @@
 import type { Paginated } from '@arweqah-platform/shared';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { errorMessage } from '../lib/error-message';
 import { useIsPhone } from '../lib/use-is-phone';
@@ -38,15 +38,25 @@ interface DataTableProps<T> {
   title?: string;
   /** Search and filters, at the end of the top bar. */
   toolbar?: ReactNode;
+  /** The heading a row belongs to; rows must already be ordered by it. A heading is drawn when it changes. */
+  groupOf?: (row: T) => string;
 }
 
 interface RowsProps<T> {
   columns: Column<T>[];
   rows: T[] | undefined;
   rowKey: (row: T) => string;
+  groupOf?: (row: T) => string;
 }
 
-function RowTable<T>({ caption, columns, rows, rowKey, isLoading }: RowsProps<T> & { caption: string; isLoading?: boolean }) {
+/** The heading to draw before this row, or null when it belongs to the same group as the row before. */
+const headingBefore = <T,>(rows: T[], index: number, groupOf?: (row: T) => string): string | null => {
+  if (!groupOf) return null;
+  const group = groupOf(rows[index] as T);
+  return index === 0 || groupOf(rows[index - 1] as T) !== group ? group : null;
+};
+
+function RowTable<T>({ caption, columns, rows, rowKey, isLoading, groupOf }: RowsProps<T> & { caption: string; isLoading?: boolean }) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-neutral-200">
       <table className="w-full text-sm">
@@ -61,14 +71,19 @@ function RowTable<T>({ caption, columns, rows, rowKey, isLoading }: RowsProps<T>
           </tr>
         </thead>
         <tbody aria-busy={isLoading}>
-          {rows?.map((row) => (
-            <tr key={rowKey(row)} className="border-b border-neutral-200/70 transition-colors duration-150 last:border-0 hover:bg-neutral-50/70">
-              {columns.map((c) => (
-                <td key={c.id ?? c.header} className={`px-4 py-4 align-middle ${c.className ?? ''}`}>
-                  {c.cell(row)}
-                </td>
-              ))}
-            </tr>
+          {rows?.map((row, index) => (
+            <Fragment key={rowKey(row)}>
+              {headingBefore(rows, index, groupOf) !== null && (
+                <tr className="bg-neutral-50"><th scope="colgroup" colSpan={columns.length} className="px-4 py-2 text-start text-xs font-bold text-muted">{headingBefore(rows, index, groupOf)}</th></tr>
+              )}
+              <tr className="border-b border-neutral-200/70 transition-colors duration-150 last:border-0 hover:bg-neutral-50/70">
+                {columns.map((c) => (
+                  <td key={c.id ?? c.header} className={`px-4 py-4 align-middle ${c.className ?? ''}`}>
+                    {c.cell(row)}
+                  </td>
+                ))}
+              </tr>
+            </Fragment>
           ))}
         </tbody>
       </table>
@@ -77,13 +92,15 @@ function RowTable<T>({ caption, columns, rows, rowKey, isLoading }: RowsProps<T>
 }
 
 /** Phone layout: one card per row, label and value on a line, the actions column at the bottom. */
-function RowCards<T>({ columns, rows, rowKey }: RowsProps<T>) {
+function RowCards<T>({ columns, rows, rowKey, groupOf }: RowsProps<T>) {
   const fields = columns.filter((c) => !c.hideHeader);
   const actions = columns.filter((c) => c.hideHeader);
   return (
     <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-      {rows?.map((row) => (
-        <li key={rowKey(row)} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm shadow-ink/5">
+      {rows?.map((row, index) => (
+        <Fragment key={rowKey(row)}>
+          {headingBefore(rows, index, groupOf) !== null && <li className="col-span-full pt-2 text-xs font-bold text-muted">{headingBefore(rows, index, groupOf)}</li>}
+          <li className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm shadow-ink/5">
           <dl className="flex flex-col gap-2 text-sm">
             {fields.map((c) => (
               <div key={c.id ?? c.header} className="flex items-start justify-between gap-4">
@@ -93,14 +110,15 @@ function RowCards<T>({ columns, rows, rowKey }: RowsProps<T>) {
             ))}
           </dl>
           {actions.length > 0 && <div className="mt-3 flex justify-end gap-1 border-t border-neutral-200 pt-3">{actions.map((c) => <span key={c.id ?? c.header}>{c.cell(row)}</span>)}</div>}
-        </li>
+          </li>
+        </Fragment>
       ))}
     </ul>
   );
 }
 
 /** One table for every list: a rounded panel with a top bar, semantic markup, loading/empty states, pagination. */
-export function DataTable<T>({ caption, columns, rows, rowKey, isLoading, error, empty, page, onPageChange, onPageSizeChange, view, title, toolbar }: DataTableProps<T>) {
+export function DataTable<T>({ caption, columns, rows, rowKey, isLoading, error, empty, page, onPageChange, onPageSizeChange, view, title, toolbar, groupOf }: DataTableProps<T>) {
   const phone = useIsPhone();
   const cards = (view ?? (phone ? 'cards' : 'table')) === 'cards';
   if (error) return <QueryError error={error} />;
@@ -108,7 +126,7 @@ export function DataTable<T>({ caption, columns, rows, rowKey, isLoading, error,
     <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm shadow-ink/5">
       <TopBar title={title} toolbar={toolbar} />
       <div className="p-3 sm:p-5">
-        {cards ? <RowCards columns={columns} rows={rows} rowKey={rowKey} /> : <RowTable caption={caption} columns={columns} rows={rows} rowKey={rowKey} isLoading={isLoading} />}
+        {cards ? <RowCards columns={columns} rows={rows} rowKey={rowKey} groupOf={groupOf} /> : <RowTable caption={caption} columns={columns} rows={rows} rowKey={rowKey} isLoading={isLoading} groupOf={groupOf} />}
       </div>
       <TableState isLoading={isLoading} isEmpty={rows?.length === 0} empty={empty} />
       {page && <TableFooter page={page} onPageChange={onPageChange} onPageSizeChange={onPageSizeChange} />}

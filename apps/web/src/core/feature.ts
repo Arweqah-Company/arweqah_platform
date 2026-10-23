@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import type { RouteObject } from 'react-router';
 
-export type NavGroupId = 'people' | 'administration' | 'account';
+export type NavGroupId = 'people' | 'tickets' | 'administration' | 'account';
 
 export interface NavItem {
   to: string;
@@ -12,6 +12,8 @@ export interface NavItem {
   group?: NavGroupId;
   /** Hidden from users without it (the API enforces it regardless). */
   permission?: string;
+  /** Highlight this link only on its exact address (it is the start of its siblings' addresses). */
+  end?: boolean;
   /** An admin page: shown only while platform admin mode is on (the API enforces it with @RequireAdminMode). */
   requiresAdminMode?: boolean;
 }

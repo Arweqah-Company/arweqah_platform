@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { Settings2, UserCog, UsersRound, type LucideIcon } from 'lucide-react';
+import { LifeBuoy, Settings2, UserCog, UsersRound, type LucideIcon } from 'lucide-react';
 import type { NavGroupId, NavItem } from './feature';
 
 /** Navigation items the signed-in user may see; provided by the app layout. */
@@ -8,6 +8,7 @@ export const useNavItems = (): NavItem[] => useContext(NavContext);
 
 export const NAV_GROUPS: Record<NavGroupId, { labelKey: string; icon: LucideIcon }> = {
   people: { labelKey: 'nav.groups.people', icon: UsersRound },
+  tickets: { labelKey: 'nav.groups.tickets', icon: LifeBuoy },
   administration: { labelKey: 'nav.groups.administration', icon: Settings2 },
   account: { labelKey: 'nav.groups.account', icon: UserCog },
 };

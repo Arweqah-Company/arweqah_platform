@@ -20,6 +20,7 @@ import { MessagingModule } from './core/messaging/messaging.module';
 import { NotificationsModule } from './core/notifications/notifications.module';
 import { WorkflowModule } from './core/workflow/workflow.module';
 import { OrgDemoSeeder } from './database/seeds/org-demo.seeder';
+import { TicketsDemoSeeder } from './database/seeds/tickets-demo.seeder';
 import { CompaniesSeeder } from './database/seeds/companies.seeder';
 import { FoundationSeeder } from './database/seeds/foundation.seeder';
 import { LookupsSeeder } from './database/seeds/lookups.seeder';
@@ -27,6 +28,7 @@ import { HealthModule } from './health/health.module';
 import { EmployeesModule } from './modules/employees/employees.module';
 import { LookupsModule } from './modules/lookups/lookups.module';
 import { OrgModule } from './modules/org/org.module';
+import { TicketsModule } from './modules/tickets/tickets.module';
 
 const JSON_LIMIT = '1mb';
 
@@ -60,6 +62,7 @@ const JSON_LIMIT = '1mb';
     OrgModule,
     LookupsModule,
     EmployeesModule,
+    TicketsModule,
     HealthModule,
   ],
   providers: [
@@ -71,6 +74,7 @@ const JSON_LIMIT = '1mb';
     LookupsSeeder,
     CompaniesSeeder,
     OrgDemoSeeder,
+    TicketsDemoSeeder,
   ],
 })
 export class AppModule {}

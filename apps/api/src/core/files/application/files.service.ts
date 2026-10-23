@@ -48,6 +48,13 @@ export class FilesService {
     return file;
   }
 
+  /** For a feature that already decided the caller may read this file (e.g. an attachment of a ticket they may see). */
+  async getGranted(id: string): Promise<StoredFile> {
+    const file = await this.repo.findById(id);
+    if (!file) throw new NotFoundError('File', id);
+    return file;
+  }
+
   async open(file: StoredFile): Promise<{ url: string } | { stream: Readable }> {
     const url = await this.storage.signedUrl(file.storageKey, file.originalName);
     return url ? { url } : { stream: await this.storage.read(file.storageKey) };
