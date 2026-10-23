@@ -73,7 +73,7 @@ export function RolesPage() {
           { id: 'permissions', header: t('permissions'), cell: (r) => r.permissions.length },
           { id: 'users', header: t('holders'), cell: (r) => <span className="text-muted">{t('users', { count: r.usersCount })}</span> },
           { id: 'assignment', header: t('assignment.label'), cell: (r) => <Badge tone={r.assignment === 'auto' ? 'success' : 'neutral'}>{t(`assignment.${r.assignment}`)}</Badge> },
-          { id: 'type', header: t('system'), hideHeader: true, cell: (r) => (r.isSystem ? <Badge tone="highlight">{t('system')}</Badge> : null) },
+          { id: 'type', header: t('system'), hideHeader: true, cell: (r) => (r.isSystem ? <Badge tone="info">{t('system')}</Badge> : null) },
           {
             id: 'actions',
             header: tc('actions.edit'),

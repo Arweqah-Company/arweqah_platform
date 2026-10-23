@@ -5,9 +5,9 @@ import { Alert } from './alert';
 describe('Alert colors follow the message (FR-32)', () => {
   it.each([
     ['success', 'bg-green-50', 'border-green-400'],
-    ['info', 'bg-yellow-50', 'border-yellow-300'],
+    ['info', 'bg-petrol-50', 'border-petrol-800'],
     ['danger', 'bg-danger-50', 'border-danger-700'],
-    ['warning', 'bg-orange-50', 'border-orange-500'],
+    ['warning', 'bg-yellow-50', 'border-yellow-300'],
   ] as const)('%s uses %s with an icon and a start rule', (tone, background, border) => {
     render(<Alert tone={tone}>الرسالة</Alert>);
     const box = screen.getByText('الرسالة').closest('[role]') as HTMLElement;

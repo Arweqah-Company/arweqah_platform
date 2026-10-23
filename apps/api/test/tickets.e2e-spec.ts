@@ -446,16 +446,28 @@ describe('Tickets (FR-36 … FR-41)', () => {
       await w.agents.assignee.post(`/api/tickets/${a.id}/request-close`).send({}).expect(200);
       await w.agents.sender.post(`/api/tickets/${a.id}/confirm-close`).send({}).expect(200);
       await t.db.query(`UPDATE tickets SET needed_by = current_date - 2 WHERE title = $1 AND status = 'open' AND NOT is_personal`, ['الطابعة لا تعمل']);
-      const figures = (await w.agents.manager.get('/api/tickets/figures').expect(200)).body;
-      expect(figures.windowDays).toBe(30);
-      expect(figures.desks).toHaveLength(1);
-      const desk = figures.desks[0];
-      expect(desk).toMatchObject({ deskId: w.desk, openNow: 2, incoming: 3, personalCount: 1, outcomes: { confirmed: 1, auto: 0, notExecuted: 0, reopened: 0 } });
+      const response = (await w.agents.manager.get('/api/tickets/figures').expect(200)).body;
+      expect(response.windowDays).toBe(30);
+      expect(response.desks.map((d: { id: string }) => d.id)).toEqual([w.desk]);
+      expect(response.scope).toBe('all');
+      const desk = response.figures;
+      expect(desk).toMatchObject({ openNow: 2, incoming: 3, personalCount: 1, outcomes: { confirmed: 1, auto: 0, notExecuted: 0, reopened: 0 } });
       expect(desk.avgFirstResponseHours).not.toBeNull();
       expect(desk.byType.map((x: { typeId: string; count: number }) => [x.typeId, x.count]).sort()).toEqual([[personalId, 1], [typeId, 2]].sort());
-      expect(desk.byAssignee[0]).toMatchObject({ userId: w.assignee.id });
+      expect(desk.byType[0]).toHaveProperty('deskNameAr');
+      expect(desk.byAssignee[0]).toMatchObject({ userId: w.assignee.id, deskId: w.desk });
       expect(desk.needsAttention).toHaveLength(1); // the open overdue one; the personal ticket is never listed
+      expect(desk.needsAttention[0]).toHaveProperty('deskNameAr');
       expect(JSON.stringify(desk.needsAttention)).not.toContain('"isPersonal":true');
+      // A platform manager chooses among every department of the structure, also those never set up for tickets; "all" adds them up.
+      const platform = await t.factories.user({ grants: [{ key: CorePermission.TicketsAdminister, scope: 'all' }, { key: CorePermission.AdminModeUse, scope: 'all' }] });
+      const platformAgent = await t.factories.signIn(platform);
+      await adminModeOn(platformAgent, platform);
+      const everything = (await platformAgent.get('/api/tickets/figures').expect(200)).body;
+      expect(everything.desks.map((d: { id: string }) => d.id)).toEqual(expect.arrayContaining([w.desk, w.org.otherDepartment]));
+      expect(everything).toMatchObject({ scope: 'all', figures: { openNow: 2, incoming: 3 } });
+      const unset = (await platformAgent.get(`/api/tickets/figures?deskId=${w.org.otherDepartment}`).expect(200)).body;
+      expect(unset).toMatchObject({ scope: 'desk', figures: { openNow: 0, incoming: 0 } });
       await w.agents.manager.get(`/api/tickets/figures?deskId=${w.desk}`).expect(200);
       await w.agents.manager.get(`/api/tickets/figures?deskId=${w.org.otherDepartment}`).expect(404);
       await w.agents.sender.get('/api/tickets/figures').expect(403);

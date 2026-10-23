@@ -37,8 +37,8 @@ export function StatusRow({ employee: e, onDialog, onResend }: Omit<Props, 'onAc
   return (
     <div className="mb-4 flex flex-wrap items-center gap-2">
       <Badge tone={e.isActive ? 'success' : 'neutral'}>{tc(e.isActive ? 'status.active' : 'status.inactive')}</Badge>
-      <Badge tone={e.authenticatorEnabled ? 'success' : 'highlight'}>{e.authenticatorEnabled ? t('flags.appLinked') : t('flags.appNotLinked')}</Badge>
-      {unplaced && <Badge tone="highlight">{t('flags.needsPlacement')}</Badge>}
+      <Badge tone={e.authenticatorEnabled ? 'success' : 'warning'}>{e.authenticatorEnabled ? t('flags.appLinked') : t('flags.appNotLinked')}</Badge>
+      {unplaced && <Badge tone="warning">{t('flags.needsPlacement')}</Badge>}
       <Can permission={P.EmployeesUpdate}>
         <Button size="sm" variant="ghost" onClick={onResend}>{t('actions.resendInvite')}</Button>
         <Button size="sm" variant="ghost" onClick={() => onDialog('reset')}>{t('actions.resetAuthenticator')}</Button>

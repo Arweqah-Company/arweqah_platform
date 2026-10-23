@@ -26,9 +26,9 @@ export function useEmployeeColumns() {
       cell: (e) => (
         <span className="flex flex-wrap gap-1">
           <Badge tone={e.isActive ? 'success' : 'neutral'}>{tc(e.isActive ? 'status.active' : 'status.inactive')}</Badge>
-          {e.needsPlacement && <Badge tone="highlight">{t('flags.needsPlacement')}</Badge>}
+          {e.needsPlacement && <Badge tone="warning">{t('flags.needsPlacement')}</Badge>}
           {e.idExpiresSoon && <Badge tone="danger">{t('flags.idExpiring')}</Badge>}
-          {e.contractEndsSoon && <Badge tone="highlight">{t('flags.contractEnding')}</Badge>}
+          {e.contractEndsSoon && <Badge tone="warning">{t('flags.contractEnding')}</Badge>}
         </span>
       ),
     },

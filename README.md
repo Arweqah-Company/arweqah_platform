@@ -66,7 +66,7 @@ Bring employee, project and request management into one secure platform that spe
 | FR-29 | Import employees and companies from Excel or CSV: download a template whose drop-downs carry the system's lists (companies, units and job titles, countries, statuses, contract types…), preview the rows with their errors, import the valid ones, download an error report; every row goes through the same validation and API as the form | HR / admin | Must | `apps/web/src/shared/data-exchange/*.test.ts(x)`, `apps/web/src/features/employees/employees-import-rows.test.ts`, `apps/web/src/features/companies/companies-import.test.ts`, `apps/api/test/lookups.e2e-spec.ts` (org reference) |
 | FR-30 | The 401, 403 and 404 pages share one design (picture, what happened, what to do, one button): 404 for an unknown address, 403 when a route needs a permission the person lacks (route guard from the navigation item's permission), 401 when the session ends while working (a visitor without a session goes straight to sign-in) | All | Must | `apps/web/src/app/error-pages.test.tsx`, `e2e/tests/navigation.spec.ts` |
 | FR-31 | Organization page: choose the company, then see its structure as a chart (company card, one brand color per level with a legend, open / close nodes, open all, search, zoom, fit to screen, drag) or as a table (search, filters on level, status, employees and manager, export); selecting a unit shows its details beside it; the choice of chart or table is remembered | Admin / HR | Must | `apps/web/src/features/org/org-page.test.tsx`, `e2e/tests/org.spec.ts` |
-| FR-32 | Messages are colored by meaning, with an icon and a start rule: success green, information yellow, warning orange, error red | All | Must | `apps/web/src/shared/ui/alert.test.tsx` |
+| FR-32 | Messages are colored by meaning, with an icon and a start rule, the same four colors for alerts, toasts and badges (`shared/ui/message-tones.ts`): information **blue**, warning **yellow**, error **red**, success **green**; text stays dark | All | Must | `apps/web/src/shared/ui/alert.test.tsx` |
 | FR-33 | Light and dark theme (or follow the device): a toggle in the header and a choice on the profile page, saved in the browser and on the account; and an own profile page where a person changes the language, the theme and three contact details (personal phone, personal e-mail, English name) while the job details stay read-only; everything else belongs to HR | All users | Must | `apps/api/test/profile.e2e-spec.ts`, `apps/web/src/core/theme/theme.test.tsx`, `apps/web/src/features/profile/profile-page.test.tsx`, `e2e/tests/profile.spec.ts` |
 | FR-34 | Platform admin mode: people with an administrative capability (permission `admin_mode.use`, later e.g. a desk manager) work as ordinary employees until they switch the mode on in the header with a **fresh** authenticator code (a code already used is refused without counting as a failed attempt, backup codes are not accepted, wrong codes share the sign-in lock); it is kept on the session, enforced by the API for routes marked `@RequireAdminMode()` (403 `ADMIN_MODE_REQUIRED`; used by the ticket setup and figures, the companies, the audit log, the e-mail log, and role changes with the permission catalog; listing roles stays open because the employee screens assign them), switches itself off after 30 minutes without admin activity and on sign-out, and every switch is audited | Platform manager | Must | `apps/api/test/admin-mode.e2e-spec.ts`, `apps/api/src/core/access/domain/admin-mode.rules.spec.ts`, `apps/web/src/core/admin-mode/admin-mode-toggle.test.tsx`, `e2e/tests/admin-mode.spec.ts` |
 | FR-35 | Every unit of the organization has the day it **started working** (required when adding, editable, shown in the unit's details; from 1980 up to two years ahead; existing units were filled with their creation date), and every level remembers which default level it came from (`org_levels.template_code`: sector, department, section, unit; kept through renaming, reordering and copying; null for levels a company added) so features can address "the departments" | Admin | Must | `apps/api/test/org.e2e-spec.ts`, `apps/web/src/features/org/org-page.test.tsx` |
@@ -74,7 +74,7 @@ Bring employee, project and request management into one secure platform that spe
 | FR-37 | Any employee sends a ticket to a desk: a two-step dialog (search "what do you need?" or browse departments, then title, details, needed-by date, urgent flag, up to 5 files, Ctrl+Enter sends); blocked when the desk is paused, stopped, not started or has no manager; the needed-by date respects the desk's lead days; the ticket gets a number (TKT-000123) and a snapshot of the assignee | All users | Must | `apps/api/test/tickets.e2e-spec.ts`, `apps/web/src/features/tickets/new-ticket/new-ticket-dialog.test.tsx` |
 | FR-38 | Visibility follows the relation to the ticket (sender, assignee, desk manager); **personal** tickets are hidden from the desk manager and from platform admins; out-of-scope tickets are 404; lists have tabs, search, filters and grouping; attachments download only for people who may see the ticket | All users | Must | `apps/api/test/tickets.e2e-spec.ts`, `e2e/tests/tickets.spec.ts` |
 | FR-39 | Ticket life cycle: the assignee or manager answers and asks to close, the sender confirms or declines, the sender can close or reopen within the reopen window, reassignment, optimistic `revision` (409 on conflict); every step is a timeline event and a notice (in-app, e-mail for important ones) that carries only the ticket number and department, never its text | Sender, assignee, manager | Must | `apps/api/test/tickets.e2e-spec.ts`, `apps/api/src/modules/tickets/domain/rules/ticket.rules.spec.ts` |
-| FR-40 | Figures page (admin mode, with a department filter on top): per desk, last 30 days, counts only (open, closed, overdue, average completion in working days); personal tickets enter the totals but never a list | Platform manager, desk manager | Should | `apps/api/test/tickets.e2e-spec.ts`, `e2e/tests/tickets.spec.ts` |
+| FR-40 | Figures page (admin mode, with a department filter on top that lists every department of the organization structure, set up for tickets or not; with "all departments" the figures are added up and the tables get a department column, with one department they are that department only): last 30 days, counts only (open, closed, overdue, average completion in working days); personal tickets enter the totals but never a list | Platform manager, desk manager | Should | `apps/api/test/tickets.e2e-spec.ts`, `e2e/tests/tickets.spec.ts` |
 | FR-41 | Time-driven steps: a close request not answered within the desk's days closes the ticket by itself (durable `scheduled_jobs`, idempotent consumer), and a daily job (Asia/Riyadh) marks tickets with no activity as stale | System | Must | `apps/api/test/tickets.e2e-spec.ts` |
 | FR-42 | The name in the header opens a **My account** menu (profile, notifications, security, sign-out) instead of a sidebar group; and a **Page visibility** admin page (permission `pages.manage`, platform admin mode) where an administrator picks, per **role**, the pages that role does not see (employees, organization, companies, roles, audit log, e-mail log, tickets, ticket setup, ticket figures): a hidden page leaves the menu, shows the 403 page and its API answers 403 `PAGE_HIDDEN`; a person loses a page only when **every** role of theirs hides it, a role that manages page visibility cannot have pages hidden (`ROLE_PAGES_LOCKED`) and its members always see everything; home, profile, security and notifications cannot be hidden; every change is audited (`role.pages_updated`, page names only) | Platform manager | Must | `apps/api/test/page-visibility.e2e-spec.ts`, `apps/web/src/features/page-visibility/page-visibility-page.test.tsx`, `apps/web/src/app/app-layout.test.tsx`, `e2e/tests/page-visibility.spec.ts`, `e2e/tests/profile.spec.ts` |
 | FR-43 | Roles carry **how they are assigned** (`assignment`: automatic or manual) and a note (the description); the owner's list of 28 roles is created once (the two seeded roles are kept, the other 27 start with no permissions that an administrator sets from the roles page, which also edits the note and the assignment). Two roles are kept up to date by the system (`auto_rule`): **Employee** goes to everyone with an employee record (never taken away) and **Direct manager** goes exactly to people someone reports to; this runs after every employee change and every night; a role with a rule cannot become manual and is not offered in the employee role pickers | System Admin | Must | `apps/api/test/auto-roles.e2e-spec.ts`, `apps/api/test/seeds.e2e-spec.ts`, `e2e/tests/list-settings.spec.ts` |
@@ -324,6 +324,42 @@ erDiagram
 
 ## 7. Flowcharts
 
+**Ticket life cycle (FR-37 to FR-41)**
+
+```mermaid
+flowchart TD
+  send([Employee sends a ticket to a department]) --> ok{Desk active, started, has a manager, type active?}
+  ok -- no --> refused[Refused with its own reason]
+  ok -- yes --> open[Open: number TKT-000123, assignee snapshot, unit told]
+  open --> reply[Assignee or manager answers: first answer ends "new"]
+  reply --> ask[Assignee or manager asks to close: auto-close job scheduled]
+  ask --> sender{Sender}
+  sender -- confirms --> closed([Closed: confirmed])
+  sender -- declines or answers --> open
+  sender -- silent for the desk's days --> auto([Closed: auto])
+  open --> manager[Manager closes without execution] --> noexec([Closed: not executed])
+  closed --> reopen{Within the reopen window?}
+  auto --> reopen
+  reopen -- yes, sender reopens --> open
+  open --> stale{No activity for the stale days?}
+  stale -- yes --> told[Assignee and manager told once]
+```
+
+**Who sees a ticket, and how pages and lists are shown (FR-38, FR-42, FR-44)**
+
+```mermaid
+flowchart TD
+  req([A person opens a page or a list]) --> hidden{Hidden from every role of theirs?}
+  hidden -- yes --> no403[403 page; the API answers PAGE_HIDDEN]
+  hidden -- no --> perm{Has the permission, and admin mode for admin pages?}
+  perm -- no --> no403b[403 or "turn on admin mode"]
+  perm -- yes --> list[List: columns and filters the administrator left on, from GET /me]
+  list --> ticket{A ticket: sender, assignee or desk manager of it?}
+  ticket -- no --> nf[404, as if it did not exist]
+  ticket -- personal --> only[Only sender and assignee; never the manager or a platform admin]
+  ticket -- yes --> show[Shown]
+```
+
 **Sign-in (two steps, no password)**
 
 ```mermaid
@@ -508,6 +544,41 @@ sequenceDiagram
   BA-->>W: session cookie (not code-verified), redirect to the app
   W->>BA: POST /api/mfa/verify (or /api/mfa/enroll the first time)
   BA-->>W: session marked mfa_verified_at
+```
+
+### Ticket send and answer (FR-37, FR-39)
+
+```mermaid
+sequenceDiagram
+  actor E as Employee
+  actor H as Assignee
+  participant A as API
+  participant DB as PostgreSQL
+  participant J as Jobs (scheduled_jobs, outbox)
+  E->>A: POST /tickets {typeId, title, details, neededBy, fileIds}
+  A->>DB: desk and type usable? number from sequence, snapshot assignee, event "created" (one transaction)
+  A-->>E: 201 ticket (notice to the unit: number and department only)
+  H->>A: POST /tickets/:id/replies, then /request-close
+  A->>DB: revision check, event, status = close_requested
+  A->>J: schedule ticket:{id}:auto-close after the desk's days (dedupe key)
+  E->>A: POST /tickets/:id/confirm-close
+  A->>DB: status = closed (confirmed)
+  A->>J: cancel the auto-close job
+  J-->>A: (if the sender stayed silent) tickets.auto-close, idempotent
+  A->>DB: status = closed (auto)
+```
+
+### Automatic roles (FR-43)
+
+```mermaid
+sequenceDiagram
+  participant S as Employees service
+  participant R as AutoRolesService
+  participant DB as PostgreSQL
+  S->>R: EMPLOYEES_CHANGED (create, update, assign roles) and a nightly 03:00 Riyadh run
+  R->>DB: "everyone": insert the Employee role for every employee (never removed)
+  R->>DB: "has_reports": insert for managers with reports, delete for the others
+  R-->>S: ACCESS_CHANGED if anything changed (cached access is dropped)
 ```
 
 ### Platform admin mode (FR-34)

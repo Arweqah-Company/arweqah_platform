@@ -65,8 +65,14 @@ export const EMPTY_FORM: FormState = {
 
 const blank = (value: string): string | null => (value.trim() === '' ? null : value.trim());
 
+/** The API payload; roles are given when an employee is added (later changes use the roles dialog, and the update refuses the key). */
+export function toPayload(form: FormState, editing = false): Record<string, unknown> {
+  const { roleIds, ...rest } = payloadFields(form);
+  return editing ? rest : { ...rest, roleIds };
+}
+
 /** Empty inputs become null, numbers become numbers; unknown to the API: nothing. */
-export function toPayload(form: FormState): Record<string, unknown> {
+function payloadFields(form: FormState): Record<string, unknown> & { roleIds: string[] } {
   const optional = Object.fromEntries(TEXT_KEYS.map((key) => [key, blank(form[key])]));
   return {
     ...optional,

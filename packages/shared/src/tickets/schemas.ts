@@ -269,10 +269,15 @@ export interface TicketFilterOptionsDto {
   hasInbox: boolean;
 }
 
-export interface TicketFiguresDeskDto {
+/** Which department a breakdown row belongs to (the page shows it as a column when every department is chosen). */
+export interface FiguresDeskRef {
   deskId: string;
-  nameAr: string;
-  nameEn: string;
+  deskNameAr: string;
+  deskNameEn: string;
+}
+
+/** The figures of the chosen department, or the sum of all of them when none is chosen. */
+export interface TicketFiguresBlockDto {
   needsAttention: TicketListItemDto[];
   openNow: number;
   incoming: number;
@@ -282,11 +287,15 @@ export interface TicketFiguresDeskDto {
   outcomes: { confirmed: number; auto: number; notExecuted: number; reopened: number };
   /** Tickets of personal types are counted here only, never listed. */
   personalCount: number;
-  byType: { typeId: string; nameAr: string; nameEn: string; count: number }[];
-  byAssignee: { userId: string | null; name: string | null; open: number; closed: number; avgFirstResponseHours: number | null }[];
+  byType: (FiguresDeskRef & { typeId: string; nameAr: string; nameEn: string; count: number })[];
+  byAssignee: (FiguresDeskRef & { userId: string | null; name: string | null; open: number; closed: number; avgFirstResponseHours: number | null })[];
 }
 
 export interface TicketFiguresDto {
   windowDays: number;
-  desks: TicketFiguresDeskDto[];
+  /** Every department the person may see (the choices of the filter). */
+  desks: { id: string; nameAr: string; nameEn: string }[];
+  /** `all`: the figures add up every department; `desk`: one department. */
+  scope: 'all' | 'desk';
+  figures: TicketFiguresBlockDto;
 }

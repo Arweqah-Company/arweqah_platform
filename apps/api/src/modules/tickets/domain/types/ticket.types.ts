@@ -1,4 +1,4 @@
-import type { ReceptionStatus, TicketCloseReason, TicketFiguresDeskDto, TicketEventType, TicketGrouping, TicketStatus, TicketTab } from '@arweqah-platform/shared';
+import type { ReceptionStatus, TicketCloseReason, TicketFiguresBlockDto, TicketEventType, TicketGrouping, TicketStatus, TicketTab } from '@arweqah-platform/shared';
 
 /** The settings of one desk as stored. */
 export interface DeskRecord {
@@ -148,5 +148,8 @@ export interface FilterOptionsRows {
   hasInbox: boolean;
 }
 
-/** Figures of one desk over a window of days: the shared figures without the names and the list. */
-export type DeskFigureRows = Omit<TicketFiguresDeskDto, 'deskId' | 'nameAr' | 'nameEn' | 'needsAttention'>;
+/** Figures of some desks added together over a window of days: the shared figures without the department names and the list. */
+export type DeskFigureRows = Omit<TicketFiguresBlockDto, 'needsAttention' | 'byType' | 'byAssignee'> & {
+  byType: Omit<TicketFiguresBlockDto['byType'][number], 'deskNameAr' | 'deskNameEn'>[];
+  byAssignee: Omit<TicketFiguresBlockDto['byAssignee'][number], 'deskNameAr' | 'deskNameEn'>[];
+};

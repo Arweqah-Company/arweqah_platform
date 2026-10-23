@@ -51,4 +51,6 @@ export const useRemoveType = (deskId: string) => useTicketMutation((typeId: stri
 export const useAssignees = (deskId: string, search: string) =>
   useQuery({ queryKey: [KEY, 'assignees', deskId, search], queryFn: () => apiClient.get<PersonRefDto[]>(`/tickets/setup/desks/${deskId}/assignees`, { q: search }), placeholderData: keepPreviousData });
 
-export const useFigures = (enabled: boolean) => useQuery({ queryKey: [KEY, 'figures'], enabled, queryFn: () => apiClient.get<TicketFiguresDto>('/tickets/figures') });
+/** The figures of one department, or of all of them added up (no `deskId`); the last answer stays while the next one loads. */
+export const useFigures = (enabled: boolean, deskId: string) =>
+  useQuery({ queryKey: [KEY, 'figures', deskId], enabled, placeholderData: keepPreviousData, queryFn: () => apiClient.get<TicketFiguresDto>(`/tickets/figures${deskId ? `?deskId=${deskId}` : ''}`) });
