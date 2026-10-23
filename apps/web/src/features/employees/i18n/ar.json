@@ -141,7 +141,8 @@
     "activate": "تفعيل",
     "terminate": "إنهاء العلاقة",
     "resendInvite": "إعادة إرسال الدعوة",
-    "resetAuthenticator": "إعادة تعيين تطبيق المصادقة"
+    "resetAuthenticator": "إعادة تعيين تطبيق المصادقة",
+    "groups": "المجموعات"
   },
   "activated": "تم تفعيل الحساب.",
   "deactivated": "تم تعطيل الحساب وإنهاء جلساته.",
@@ -178,5 +179,10 @@
   "import": {
     "managerNumber": "الرقم الوظيفي للمدير المباشر"
   },
-  "flagsColumn": "علامات تحتاج انتباهًا"
+  "flagsColumn": "علامات تحتاج انتباهًا",
+  "groupsSaved": "تم حفظ المجموعات.",
+  "groupsDialog": {
+    "title": "مجموعات الأدوار",
+    "description": "كل مجموعة تعطي الموظف كل الأدوار التي فيها."
+  }
 }

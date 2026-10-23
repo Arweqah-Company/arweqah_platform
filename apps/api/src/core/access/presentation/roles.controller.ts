@@ -24,10 +24,8 @@ export class RolesController {
     private readonly catalog: PermissionCatalog,
   ) {}
 
+  /** security: self-scoped. The names of the permissions are not secret and the pickers of roles, groups and personal permissions all read them. */
   @Get('permissions/catalog')
-  @RequireAdminMode()
-  @HiddenWithPage('roles')
-  @RequirePermission(CorePermission.RolesView)
   getCatalog(): PermissionCatalogGroup[] {
     return this.catalog.grouped();
   }

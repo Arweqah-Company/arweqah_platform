@@ -27,7 +27,7 @@ import {
 import { deskUnavailableReason } from '../../domain/rules/ticket-flags.rules';
 import { abilitiesFor, nextState, reopenDaysLeft } from '../../domain/rules/ticket-lifecycle.rules';
 import { earliestNeededBy, resolveNeededBy } from '../../domain/rules/working-days.rules';
-import type { DeskRecord, DepartmentFacts, TicketRow, TypeRecord } from '../../domain/types/ticket.types';
+import type { DeskRecord, DepartmentFacts, TicketRow, TicketViewer, TypeRecord } from '../../domain/types/ticket.types';
 import { TICKET_AUDIT } from '../messages/ticket.messages';
 import { TicketAccessPolicy } from '../policies/ticket-access.policy';
 import { TicketTransformer, type DeskNames } from '../transformers/ticket.transformer';
@@ -52,7 +52,8 @@ export class TicketsService {
     private readonly events: EventEmitter2,
   ) {}
 
-  async create(userId: string, input: CreateTicketInput): Promise<TicketDto> {
+  async create(viewer: TicketViewer, input: CreateTicketInput): Promise<TicketDto> {
+    const userId = viewer.userId;
     const { type, desk, department } = await this.target(input.typeId);
     const today = riyadhToday(this.clock.now());
     this.assertReceiving(desk, department, today);
@@ -68,34 +69,35 @@ export class TicketsService {
       return ticketId;
     });
     this.audit(userId, TICKET_AUDIT.created, id, { deskId: desk.orgNodeId, typeId: type.id, priority: input.priority, isPersonal: type.isPersonal });
-    return this.get(userId, id);
+    return this.get(viewer, id);
   }
 
-  async list(userId: string, query: TicketsQuery): Promise<TicketsPageDto> {
-    const page = await this.tickets.list({ viewerUserId: userId, tab: query.tab, deskId: query.deskId, typeId: query.typeId, assigneeId: query.assigneeId, status: query.status, search: query.search, groupBy: query.groupBy, page: query.page, pageSize: query.pageSize });
+  async list(viewer: TicketViewer, query: TicketsQuery): Promise<TicketsPageDto> {
+    const page = await this.tickets.list({ viewer, tab: query.tab, deskId: query.deskId, typeId: query.typeId, assigneeId: query.assigneeId, status: query.status, search: query.search, groupBy: query.groupBy, page: query.page, pageSize: query.pageSize });
     const names = await this.deskNames(page.items.map((r) => r.deskId));
     const now = this.clock.now();
     const result: Paginated<ReturnType<TicketTransformer['toListItem']>> = { ...page, items: page.items.map((r) => this.transformer.toListItem(r, names.get(r.deskId), now)) };
     return { ...result, groupBy: page.groupBy };
   }
 
-  async get(userId: string, id: string): Promise<TicketDto> {
+  async get(viewer: TicketViewer, id: string): Promise<TicketDto> {
     const row = await this.tickets.find(id);
-    const relations = this.policy.assertCanView(userId, row);
+    const relations = this.policy.assertCanView(viewer, row);
     const found = row as TicketRow;
     const events = await this.tickets.events(id);
     const [attachments, names] = await Promise.all([this.tickets.attachments(events.map((e) => e.id)), this.deskNames([found.deskId])]);
     return this.transformer.toDetail({ row: found, desk: names.get(found.deskId), relations, events, attachments, now: this.clock.now() });
   }
 
-  async reply(userId: string, id: string, input: TicketReplyInput): Promise<TicketDto> {
+  async reply(viewer: TicketViewer, id: string, input: TicketReplyInput): Promise<TicketDto> {
+    const userId = viewer.userId;
     const row = await this.tickets.find(id);
-    const relations = this.policy.assertCanView(userId, row);
+    const relations = this.policy.assertCanView(viewer, row);
     const found = row as TicketRow;
     const now = this.clock.now();
     if (!abilitiesFor(relations, found.status, reopenDaysLeft(found.status, found.closedAt, found.deskReopenWindowDays, now)).reply) throw new TicketStateInvalidError('reply', found.status);
     await this.assertFiles(userId, input.fileIds);
-    const fromUnit = relations.includes('assignee') || relations.includes('manager');
+    const fromUnit = relations.includes('assignee') || relations.includes('manager') || relations.includes('desk');
     const senderAnswersClosing = relations.includes('sender') && !fromUnit && found.status === 'close_requested';
     await this.tx.run(async (tx) => {
       const patch = { lastActivityAt: now, ...(fromUnit && !found.firstResponseAt ? { firstResponseAt: now } : {}), ...(senderAnswersClosing ? { ...nextState('sender_reply', found.status), closeRequestedAt: null } : {}) };
@@ -104,18 +106,18 @@ export class TicketsService {
       await this.notifier.send({ kind: 'reply', ticket: found, recipients: fromUnit ? [found.senderUserId] : this.policy.unitRecipients(found), actorUserId: userId, tx });
     });
     this.audit(userId, TICKET_AUDIT.replied, id, { files: input.fileIds.length });
-    return this.get(userId, id);
+    return this.get(viewer, id);
   }
 
-  async options(userId: string): Promise<TicketFilterOptionsDto> {
-    const rows = await this.tickets.filterOptions(userId);
+  async options(viewer: TicketViewer): Promise<TicketFilterOptionsDto> {
+    const rows = await this.tickets.filterOptions(viewer);
     const names = await this.deskNames(rows.desks);
-    return { desks: rows.desks.map((id) => ({ id, nameAr: names.get(id)?.nameAr ?? '', nameEn: names.get(id)?.nameEn ?? '' })), types: rows.types, assignees: rows.assignees, hasInbox: rows.hasInbox };
+    return { desks: rows.desks.map((id) => ({ id, nameAr: names.get(id)?.nameAr ?? '', nameEn: names.get(id)?.nameEn ?? '' })), types: rows.types, assignees: rows.assignees, hasInbox: rows.hasInbox, hasTeam: rows.hasTeam };
   }
 
   /** The stream of an attachment, for someone who may see the ticket it belongs to. */
-  async openAttachment(userId: string, ticketId: string, fileId: string) {
-    this.policy.assertCanView(userId, await this.tickets.find(ticketId));
+  async openAttachment(viewer: TicketViewer, ticketId: string, fileId: string) {
+    this.policy.assertCanView(viewer, await this.tickets.find(ticketId));
     if (!(await this.tickets.attachedFile(ticketId, fileId))) throw new TicketNotFoundError();
     const file = await this.files.getGranted(fileId);
     return { file, opened: await this.files.open(file) };

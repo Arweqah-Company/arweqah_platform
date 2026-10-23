@@ -1,0 +1,76 @@
+{
+  "title": "Permissions",
+  "description": "Choose what the permissions go on: a role, a group of roles, one person or a group of people, then tick what they may do and how far.",
+  "kind": "Place permissions on",
+  "kindHint": "A group of roles is given to a person who then gets all its roles and permissions; a group of people is a set of chosen people who get the same permissions.",
+  "kinds": {
+    "role": "A role",
+    "role-group": "A group of roles",
+    "user": "One person",
+    "user-group": "A group of people"
+  },
+  "target": {
+    "role": "Role",
+    "role-group": "Group of roles",
+    "user": "Person",
+    "user-group": "Group of people"
+  },
+  "choose": "Choose…",
+  "searchPerson": "Search for the person",
+  "searchHint": "Type at least two letters of the name or e-mail.",
+  "loading": "Loading…",
+  "matrixTitle": "Permissions",
+  "matrixHint": {
+    "role": "Apply to everyone who holds this role.",
+    "role-group": "Apply to everyone the group is given to, on top of the permissions of its roles.",
+    "user": "Belong to this person alone, on top of what their roles and groups give.",
+    "user-group": "Apply to every member of the group."
+  },
+  "saved": "Permissions saved.",
+  "roleGroups": {
+    "title": "Groups of roles",
+    "description": "Bundle roles that go together under one name; giving the group to a person gives them every role in it.",
+    "new": "New group of roles",
+    "edit": "Edit group of roles",
+    "nameColumn": "Name",
+    "nameEn": "Name in English",
+    "roles": "Roles",
+    "users": "People given it",
+    "searchLabel": "Search groups of roles",
+    "deleteTitle": "Delete the group of roles?",
+    "deleteBody": "The group \"{{name}}\" is deleted and the people it was given to lose the permissions of its roles that came through it.",
+    "deleted": "Group deleted.",
+    "saved": "Group saved."
+  },
+  "userGroups": {
+    "title": "Groups of people",
+    "description": "Choose specific people who get the same permissions; the permissions of the group are set on the permissions page.",
+    "new": "New group of people",
+    "edit": "Edit group of people",
+    "nameColumn": "Name",
+    "nameEn": "Name in English",
+    "members": "Members",
+    "count_one": "One member",
+    "count_other": "{{count}} members",
+    "searchPerson": "Search for a person to add",
+    "searchHint": "Type at least two letters of the name or e-mail.",
+    "results": "Results",
+    "removeMember": "Remove {{name}} from the group",
+    "searchLabel": "Search groups of people",
+    "deleteTitle": "Delete the group of people?",
+    "deleteBody": "The group “{{name}}” is deleted and its members lose the permissions that came through it.",
+    "deleted": "Group deleted.",
+    "saved": "Group saved."
+  },
+  "newGroup": {
+    "role-group": "New group of roles",
+    "user-group": "New group of people"
+  },
+  "editGroup": "Edit the group",
+  "groupDeleted": "Group deleted.",
+  "deleteGroupTitle": "Delete the group?",
+  "deleteGroupBody": {
+    "role-group": "The group “{{name}}” is deleted and the people it was given to lose the permissions that came through it.",
+    "user-group": "The group “{{name}}” is deleted and its members lose the permissions that came through it."
+  }
+}

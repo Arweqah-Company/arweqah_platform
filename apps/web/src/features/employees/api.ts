@@ -53,6 +53,11 @@ export const useCreateEmployee = () => useEmployeeMutation((input: CreateEmploye
 export const useUpdateEmployee = (id: string) => useEmployeeMutation((input: UpdateEmployeeInput) => apiClient.put<EmployeeDto>(`/employees/${id}`, input));
 export const useSetActive = (id: string) => useEmployeeMutation((active: boolean) => apiClient.post<EmployeeDto>(`/employees/${id}/${active ? 'activate' : 'deactivate'}`));
 export const useTerminate = (id: string) => useEmployeeMutation((input: TerminateEmployeeInput) => apiClient.post<EmployeeDto>(`/employees/${id}/terminate`, input));
+export const useAssignGroups = (id: string) => useEmployeeMutation((groupIds: string[]) => apiClient.put<EmployeeDto>(`/employees/${id}/groups`, { groupIds }));
+
+/** The groups of roles to choose from (HR does not need the admin page for this). */
+export const useRoleGroupOptions = () => useQuery({ queryKey: ['lookups', 'role-groups'], queryFn: () => apiClient.get<{ id: string; nameAr: string; nameEn: string }[]>('/lookups/role-groups') });
+
 export const useAssignRoles = (id: string) => useEmployeeMutation((roleIds: string[]) => apiClient.put<EmployeeDto>(`/employees/${id}/roles`, { roleIds }));
 export const useResendInvite = (id: string) => useEmployeeMutation(() => apiClient.post<InviteResultDto>(`/employees/${id}/resend-invite`));
 export const useResetAuthenticator = (id: string) => useEmployeeMutation(() => apiClient.post<InviteResultDto>(`/employees/${id}/reset-authenticator`));

@@ -5,7 +5,8 @@
   "tabsLabel": "Ticket view",
   "tabs": {
     "mine": "My tickets",
-    "inbox": "Unit inbox"
+    "inbox": "Unit inbox",
+    "team": "My team"
   },
   "searchLabel": "Search tickets",
   "searchPlaceholder": "Search by title, details or number",

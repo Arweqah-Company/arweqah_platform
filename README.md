@@ -80,6 +80,8 @@ Bring employee, project and request management into one secure platform that spe
 | FR-43 | Roles carry **how they are assigned** (`assignment`: automatic or manual) and a note (the description); the owner's list of 28 roles is created once (the two seeded roles are kept, the other 27 start with no permissions that an administrator sets from the roles page, which also edits the note and the assignment). Two roles are kept up to date by the system (`auto_rule`): **Employee** goes to everyone with an employee record (never taken away) and **Direct manager** goes exactly to people someone reports to; this runs after every employee change and every night; a role with a rule cannot become manual and is not offered in the employee role pickers | System Admin | Must | `apps/api/test/auto-roles.e2e-spec.ts`, `apps/api/test/seeds.e2e-spec.ts`, `e2e/tests/list-settings.spec.ts` |
 | FR-44 | **List management** admin page (permission `lists.manage`, platform admin mode): for every table of the platform (employees, organization, companies, roles, audit log, e-mail log, tickets, notifications) an administrator chooses which **columns** appear and which **filters** are offered; one setting for everyone, carried by `GET /api/me` (`listSettings`); the first column of a list always stays, only the list's own columns and filters can be hidden (`LIST_SETTING_INVALID`); exports keep all columns; every change is audited (`list.settings_updated`, names only) | Platform manager | Must | `apps/api/test/list-settings.e2e-spec.ts`, `apps/web/src/features/list-settings/list-settings-page.test.tsx`, `apps/web/src/shared/ui/data-table-list-settings.test.tsx`, `e2e/tests/list-settings.spec.ts` |
 | FR-45 | **A permission for everything:** every page has a view key and every button or action its own key (add, edit, delete, move, approve, reject, export, import, reply, close…), declared in `packages/shared/src/permissions/keys.ts`, enforced by the API (`@RequirePermission`, 403) and by the web (navigation, routes, `Can` around buttons, `ExchangeButtons permissions`); the coarse keys `roles.manage`, `companies.manage` and `org.manage` were split and removed from the roles (nothing is granted automatically; an administrator chooses); sending and following tickets and the own-account pages are keys held by the Employee role from the start | System Admin | Must | `apps/api/test/security.e2e-spec.ts`, `apps/api/test/access.e2e-spec.ts`, `apps/api/test/employees.e2e-spec.ts`, `apps/web/src/app/app-layout.test.tsx` |
+| FR-46 | **Groups of roles and groups of people:** a *group of roles* bundles roles and is given to a person, who then holds every role inside it (and the permissions placed on the group); a *group of people* is a set of chosen people who all get the permissions placed on the group. Both are added, edited and deleted from the permissions page itself (no separate pages), each action with its own key; a person may be given groups of roles from the employee page (`employees.assign_groups`, never beyond what the giver holds); page hiding counts the roles inside groups | System Admin | Must | `apps/api/test/role-groups.e2e-spec.ts`, `apps/web/src/features/permissions/permissions-page.test.tsx`, `e2e/tests/permissions.spec.ts` |
+| FR-47 | **The permissions page** (`permissions.view`, platform admin mode): one page where an administrator places permissions on a **role, a group of roles, one person or a group of people** (each kind with its own save key), sees what already reaches the target from elsewhere, and can **select all** or clear all; nobody places more than they hold at the same or a wider scope; every change is audited (`permissions.updated`, key names only); roles are also edited from the roles page with the same matrix | System Admin | Must | `apps/api/test/role-groups.e2e-spec.ts`, `apps/web/src/features/roles/permission-matrix.test.tsx`, `apps/web/src/features/permissions/permissions-page.test.tsx`, `e2e/tests/permissions.spec.ts` |
 
 Every test suite names the requirement IDs it covers in its `describe(...)` title.
 
@@ -238,6 +240,43 @@ erDiagram
     varchar entity_type
     jsonb changes
   }
+  role_groups {
+    uuid id PK
+    varchar name_ar
+    varchar name_en
+  }
+  role_group_roles {
+    uuid group_id PK
+    uuid role_id PK
+  }
+  role_group_permissions {
+    uuid group_id PK
+    varchar permission_key PK
+    varchar scope
+  }
+  user_role_groups {
+    uuid user_id PK
+    uuid group_id PK
+  }
+  user_groups {
+    uuid id PK
+    varchar name_ar
+    varchar name_en
+  }
+  user_group_members {
+    uuid group_id PK
+    uuid user_id PK
+  }
+  user_group_permissions {
+    uuid group_id PK
+    varchar permission_key PK
+    varchar scope
+  }
+  user_permissions {
+    uuid user_id PK
+    varchar permission_key PK
+    varchar scope
+  }
   list_settings {
     varchar list_key PK
     jsonb hidden_columns
@@ -298,6 +337,15 @@ erDiagram
   users ||--o{ enrollment_invites : "invited by link"
   users ||--o{ user_roles : holds
   roles ||--o{ page_visibility_rules : "hides pages from"
+  role_groups ||--o{ role_group_roles : bundles
+  roles ||--o{ role_group_roles : "inside"
+  role_groups ||--o{ role_group_permissions : holds
+  users ||--o{ user_role_groups : "is given"
+  role_groups ||--o{ user_role_groups : "given to"
+  user_groups ||--o{ user_group_members : has
+  users ||--o{ user_group_members : "member of"
+  user_groups ||--o{ user_group_permissions : holds
+  users ||--o{ user_permissions : "holds alone"
   roles ||--o{ user_roles : "granted via"
   roles ||--o{ role_permissions : contains
   companies ||--o{ org_levels : defines
@@ -569,6 +617,20 @@ sequenceDiagram
   A->>DB: status = closed (auto)
 ```
 
+### What a person may do (FR-45 to FR-47)
+
+```mermaid
+sequenceDiagram
+  actor U as Person
+  participant A as API (PermissionsGuard)
+  participant DB as PostgreSQL
+  U->>A: a request for a page or a button's action
+  A->>DB: grants = permissions of their roles + of the roles inside their groups + of those groups + their own + of their groups of people
+  A->>A: has the key? (403 if not) and, for admin pages, is admin mode on?
+  A->>A: scope check on the record (404 outside the scope)
+  A-->>U: the answer (the web hid every button the person does not hold)
+```
+
 ### Automatic roles (FR-43)
 
 ```mermaid
@@ -698,7 +760,7 @@ Requirement traceability: each `describe` title lists the FR/NFR IDs it covers, 
 | Office 365 SMTP / SMS provider | Deliver messages | Read any data beyond the message |
 | GitHub Actions | Build, test, deploy | Read production secrets (they live on the server) |
 
-Permission catalog (one key for every **page** (view) and every **button or action**; the API refuses an action without its key and the web hides the button): admin mode `admin_mode.use`; roles `roles.view/create/update/delete/export`; pages `pages.view/manage`; lists `lists.view/manage`; audit `audit.view/export`; e-mail log `notifications.email_log`, `notifications.email_log_export`; `lookups.view`; own account `profile.view/update`, `security.view`, `notifications.view/mark_read/export`; companies `companies.view/create/update/delete/export/import`; organization `org.view`, `org.unit_create/update/move/delete`, `org.levels_manage`, `org.titles_manage`, `org.export`; employees `employees.view/create/update/deactivate/terminate/assign_roles/view_sensitive/resend_invite/reset_authenticator/export/import`; tickets `tickets.view/create/reply/request_close/confirm_close` (approve) `/decline_close` (reject) `/close_without_execution/reopen`, `tickets.setup_view/setup_edit/type_create/type_update/type_delete/figures_view`, `tickets.administer` (every department). The **Employee** role starts with the own-account and ticket keys (`EMPLOYEE_DEFAULT_PERMISSIONS`); everything else is given by an administrator from the roles page. Each feature module adds its own keys the same way.
+Permission catalog (one key for every **page** (view) and every **button or action**; the API refuses an action without its key and the web hides the button): admin mode `admin_mode.use`; roles `roles.view/create/update/delete/export`; groups of roles `role_groups.view/create/update/delete`; groups of people `user_groups.view/create/update/delete`; the permissions page `permissions.view`, `permissions.role_update/role_group_update/user_update/user_group_update`; pages `pages.view/manage`; lists `lists.view/manage`; audit `audit.view/export`; e-mail log `notifications.email_log`, `notifications.email_log_export`; `lookups.view`; own account `profile.view/update`, `security.view`, `notifications.view/mark_read/export`; companies `companies.view/create/update/delete/export/import`; organization `org.view`, `org.unit_create/update/move/delete`, `org.levels_manage`, `org.titles_manage`, `org.export`; employees `employees.view/create/update/deactivate/terminate/assign_roles/view_sensitive/resend_invite/reset_authenticator/export/import`; tickets `tickets.view/create/reply/request_close/confirm_close` (approve) `/decline_close` (reject) `/close_without_execution/reopen`, `tickets.setup_view/setup_edit/type_create/type_update/type_delete/figures_view`, `tickets.administer` (every department). The **Employee** role starts with the own-account and ticket keys (`EMPLOYEE_DEFAULT_PERMISSIONS`); everything else is given by an administrator from the roles page. Each feature module adds its own keys the same way.
 
 ## 13. Constraints
 

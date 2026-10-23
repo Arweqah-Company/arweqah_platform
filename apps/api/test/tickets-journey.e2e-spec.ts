@@ -4,7 +4,7 @@ import { ScheduledJobRelay } from '../src/core/messaging/infrastructure/typeorm-
 import { OutboxRelay } from '../src/core/messaging/infrastructure/typeorm-outbox';
 import { TicketLifecycleService } from '../src/modules/tickets/application/services/ticket-lifecycle.service';
 import { UserAccessService } from '../src/core/access/application/user-access.service';
-import { ADMIN_MODE_GRANT, TICKET_DESK_ADMIN_GRANTS } from './factories/factories';
+import { ADMIN_MODE_GRANT, TICKET_DESK_ADMIN_GRANTS, TICKET_PLATFORM_ADMIN_GRANTS } from './factories/factories';
 import { useTestApp } from './setup/test-app';
 
 const DAY = 86_400_000;
@@ -36,7 +36,7 @@ describe('Tickets: the whole cycle (FR-36 … FR-41)', () => {
     await t.db.query('UPDATE org_nodes SET manager_id = $1 WHERE id = $2', [hrManager.user.employeeId, org.otherDepartment]);
 
     // --- Setup by a platform manager (admin mode with a fresh code): two departments, three kinds and a personal one.
-    const platformUser = await t.factories.user({ grants: [ADMIN_MODE_GRANT, ...TICKET_DESK_ADMIN_GRANTS, { key: CorePermission.TicketsAdminister, scope: 'all' }, { key: CorePermission.PagesManage, scope: 'all' }] });
+    const platformUser = await t.factories.user({ grants: [ADMIN_MODE_GRANT, ...TICKET_PLATFORM_ADMIN_GRANTS, { key: CorePermission.PagesManage, scope: 'all' }] });
     const platform = await t.factories.signInAdminMode(platformUser);
     await platform.put(`/api/tickets/setup/desks/${org.department}`).send(SETTINGS).expect(200);
     await platform.put(`/api/tickets/setup/desks/${org.otherDepartment}`).send({ ...SETTINGS, acceptsPersonal: true }).expect(200);

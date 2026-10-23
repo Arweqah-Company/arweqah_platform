@@ -3,7 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 
 /** A signed-in employee: the Employee role's own-account and ticket keys, plus what the test adds. */
-const EMPLOYEE_KEYS: MeDto['permissions'] = EMPLOYEE_DEFAULT_PERMISSIONS.map((key) => ({ key, scope: 'all' as const }));
+const EMPLOYEE_KEYS: MeDto['permissions'] = EMPLOYEE_DEFAULT_PERMISSIONS;
 
 export const me = (permissions: MeDto['permissions'] = []): MeDto => ({
   id: 'u1',

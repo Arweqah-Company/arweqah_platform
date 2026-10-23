@@ -6,6 +6,7 @@ import { OrgDirectoryService } from '../../../org/application/services/org-direc
 import { TicketDirectory } from '../../domain/contracts/ticket-directory.port';
 import { TicketFiguresRepository } from '../../domain/contracts/ticket-figures.repository';
 import { DeskNotFoundError } from '../../domain/errors/ticket.errors';
+import { departmentsFor } from '../policies/department-scope';
 import { TicketTransformer } from '../transformers/ticket.transformer';
 
 const DAY_MS = 86_400_000;
@@ -25,7 +26,7 @@ export class TicketFiguresService {
   ) {}
 
   async figuresFor(ctx: AccessContext, deskId?: string): Promise<TicketFiguresDto> {
-    const departments = ctx.has(CorePermission.TicketsAdminister) ? await this.directory.departments() : await this.managed(ctx.userId);
+    const departments = await departmentsFor(ctx, CorePermission.TicketsFiguresView, this.directory);
     const wanted = deskId ? departments.filter((d) => d.orgNodeId === deskId) : departments;
     if (deskId && !wanted.length) throw new DeskNotFoundError();
     // Every department of the organization structure the person may see, set up for tickets or not (an unset one counts zero).
@@ -44,8 +45,4 @@ export class TicketFiguresService {
     return { windowDays: FIGURES_WINDOW_DAYS, desks: desks.sort((a, b) => a.nameAr.localeCompare(b.nameAr, 'ar')), scope: deskId ? 'desk' : 'all', figures };
   }
 
-  private async managed(userId: string) {
-    const ids = await this.directory.managedDepartmentIds(userId);
-    return ids.length ? this.directory.departments(ids) : [];
-  }
 }

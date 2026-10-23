@@ -8,10 +8,22 @@ import { AccessContextService } from './application/access-context.service';
 import { PageVisibilityService } from './application/page-visibility.service';
 import { ProfileService } from './application/profile.service';
 import { PermissionCatalog } from './application/permission-catalog';
+import { PermissionTargetsService } from './application/permission-targets.service';
+import { RoleGroupsService } from './application/role-groups.service';
+import { UserGroupsService } from './application/user-groups.service';
 import { RolesService } from './application/roles.service';
 import { UserAccessService } from './application/user-access.service';
 import { ACCESS_PERMISSIONS } from './domain/access.permissions';
 import { RoleRepository, UserAccessRepository } from './domain/access.repository';
+import { PermissionTargetRepository } from './domain/permission-target.repository';
+import { RoleGroupRepository } from './domain/role-group.repository';
+import { UserGroupRepository } from './domain/user-group.repository';
+import { TypeOrmPermissionTargetRepository } from './infrastructure/typeorm-permission-target.repository';
+import { TypeOrmUserGroupRepository } from './infrastructure/typeorm-user-group.repository';
+import { PermissionTargetsController } from './presentation/permission-targets.controller';
+import { UserGroupsController } from './presentation/user-groups.controller';
+import { TypeOrmRoleGroupRepository } from './infrastructure/typeorm-role-group.repository';
+import { RoleGroupsController } from './presentation/role-groups.controller';
 import { AdminModeRepository } from './domain/admin-mode.repository';
 import { PageVisibilityRepository } from './domain/page-visibility.repository';
 import { ProfileRepository } from './domain/profile.repository';
@@ -33,12 +45,15 @@ import { RolesController } from './presentation/roles.controller';
 @Global()
 @Module({
   imports: [TypeOrmModule.forFeature([Role, RolePermission, UserRole, User])],
-  controllers: [RolesController, MeController, AdminModeController, PageVisibilityController],
+  controllers: [RolesController, RoleGroupsController, UserGroupsController, PermissionTargetsController, MeController, AdminModeController, PageVisibilityController],
   providers: [
     PermissionCatalog,
     AccessContextService,
     AbilityFactory,
     RolesService,
+    RoleGroupsService,
+    UserGroupsService,
+    PermissionTargetsService,
     UserAccessService,
     ProfileService,
     AdminModeService,
@@ -48,11 +63,14 @@ import { RolesController } from './presentation/roles.controller';
     PermissionsGuard,
     { provide: AdminModeRepository, useClass: TypeOrmAdminModeRepository },
     { provide: RoleRepository, useClass: TypeOrmRoleRepository },
+    { provide: RoleGroupRepository, useClass: TypeOrmRoleGroupRepository },
+    { provide: UserGroupRepository, useClass: TypeOrmUserGroupRepository },
+    { provide: PermissionTargetRepository, useClass: TypeOrmPermissionTargetRepository },
     { provide: PageVisibilityRepository, useClass: TypeOrmPageVisibilityRepository },
     { provide: ProfileRepository, useClass: TypeOrmProfileRepository },
     { provide: UserAccessRepository, useClass: TypeOrmUserAccessRepository },
   ],
-  exports: [PermissionCatalog, AutoRolesService, AccessContextService, AbilityFactory, PermissionsGuard, UserAccessService, AdminModeService, AdminModeEligibility],
+  exports: [PermissionCatalog, RoleGroupsService, AutoRolesService, AccessContextService, AbilityFactory, PermissionsGuard, UserAccessService, AdminModeService, AdminModeEligibility],
 })
 export class AccessModule implements OnModuleInit {
   constructor(private readonly catalog: PermissionCatalog) {}

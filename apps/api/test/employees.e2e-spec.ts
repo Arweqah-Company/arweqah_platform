@@ -377,8 +377,8 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
 
 /** The editable fields of an employee as the form would send them back. */
 function asUpdate(e: Record<string, unknown> & { orgNode?: { id: string } | null; jobTitle?: { id: string } | null; company?: { id: string } }): Record<string, unknown> {
-  const { id, userId, isActive, isSystemAccount, authenticatorEnabled, company, orgNode, jobTitle, manager, roles, sensitiveHidden, createdAt, updatedAt, ...rest } = e as Record<string, unknown>;
-  void [id, userId, isActive, isSystemAccount, authenticatorEnabled, roles, sensitiveHidden, createdAt, updatedAt];
+  const { id, userId, isActive, isSystemAccount, authenticatorEnabled, company, orgNode, jobTitle, manager, roles, groups, sensitiveHidden, createdAt, updatedAt, ...rest } = e as Record<string, unknown>;
+  void [id, userId, isActive, isSystemAccount, authenticatorEnabled, roles, groups, sensitiveHidden, createdAt, updatedAt];
   const clean = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== null));
   return { ...clean, companyId: (company as { id: string }).id, orgNodeId: (orgNode as { id: string }).id, jobTitleId: (jobTitle as { id: string }).id, managerId: (manager as { id: string } | null)?.id ?? null };
 }

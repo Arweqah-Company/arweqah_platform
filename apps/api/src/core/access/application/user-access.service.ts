@@ -4,7 +4,9 @@ import type { TransactionContext } from '../../../common/application/transaction
 import type { AccessContext, Placement } from '../domain/access-context';
 import { RoleRepository, UserAccessRepository } from '../domain/access.repository';
 import type { Role } from '../domain/role.entity';
-import { scopeRank } from '@arweqah-platform/shared';
+import { RoleGroupRepository } from '../domain/role-group.repository';
+import { PermissionCatalog } from './permission-catalog';
+import { scopeRank, type PermissionGrant } from '@arweqah-platform/shared';
 import { ForbiddenError, NotFoundError } from '../../../common/domain/domain-error';
 import { ACCESS_CHANGED } from './access.events';
 
@@ -14,6 +16,8 @@ export class UserAccessService {
   constructor(
     private readonly access: UserAccessRepository,
     private readonly roles: RoleRepository,
+    private readonly groups: RoleGroupRepository,
+    private readonly catalog: PermissionCatalog,
     private readonly events: EventEmitter2,
   ) {}
 
@@ -23,6 +27,29 @@ export class UserAccessService {
 
   placementsOf(userIds: string[]): Promise<Map<string, Placement>> {
     return this.access.placementsOf(userIds);
+  }
+
+  groupsOf(userIds: string[]): Promise<Map<string, { id: string; nameAr: string; nameEn: string }[]>> {
+    return this.access.groupsOf(userIds);
+  }
+
+  permissionsOf(userId: string): Promise<PermissionGrant[]> {
+    return this.access.permissionsOf(userId);
+  }
+
+  async replaceGroups(userId: string, groupIds: string[], tx?: TransactionContext): Promise<void> {
+    const unique = [...new Set(groupIds)];
+    const known = await this.groups.all();
+    const missing = unique.find((id) => !known.some((g) => g.id === id));
+    if (missing) throw new NotFoundError('Role group', missing);
+    await this.access.replaceGroups(userId, unique, tx);
+    this.events.emit(ACCESS_CHANGED, { userId });
+  }
+
+  async replacePermissions(userId: string, grants: PermissionGrant[], tx?: TransactionContext): Promise<void> {
+    this.catalog.assertValid(grants);
+    await this.access.replacePermissions(userId, grants, tx);
+    this.events.emit(ACCESS_CHANGED, { userId });
   }
 
   async replaceRoles(userId: string, roleIds: string[], tx?: TransactionContext): Promise<void> {
@@ -43,9 +70,27 @@ export class UserAccessService {
     const roles = await this.roles.findByIds(unique);
     const missing = unique.find((id) => !roles.some((r) => r.id === id));
     if (missing) throw new NotFoundError('Role', missing);
-    for (const grant of roles.flatMap((r) => r.permissions)) {
+    this.assertHolds(actor, roles.flatMap((r) => r.permissions));
+  }
+
+  /** The same rule for groups: every role inside them must be grantable by the actor. */
+  async assertGroupsGrantable(actor: AccessContext, groupIds: string[]): Promise<void> {
+    const known = await this.groups.all();
+    const wanted = [...new Set(groupIds)];
+    const missing = wanted.find((id) => !known.some((g) => g.id === id));
+    if (missing) throw new NotFoundError('Role group', missing);
+    await this.assertGrantable(actor, known.filter((g) => wanted.includes(g.id)).flatMap((g) => g.roleIds));
+  }
+
+  /** Personal permissions follow the same rule: nobody gives what they do not hold at the same or a wider scope. */
+  assertPermissionsGrantable(actor: AccessContext, grants: PermissionGrant[]): void {
+    this.assertHolds(actor, grants);
+  }
+
+  private assertHolds(actor: AccessContext, grants: PermissionGrant[]): void {
+    for (const grant of grants) {
       const own = actor.scopeOf(grant.key);
-      if (!own || scopeRank(own) < scopeRank(grant.scope)) throw new ForbiddenError('You cannot assign a role that grants more than you hold');
+      if (!own || scopeRank(own) < scopeRank(grant.scope)) throw new ForbiddenError('You cannot assign more than you hold');
     }
   }
 }

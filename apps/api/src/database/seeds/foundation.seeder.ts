@@ -67,9 +67,9 @@ export class FoundationSeeder {
     if (!isAdmin) Object.assign(role, { assignment: EMPLOYEE_ROLE_SEED.assignment, autoRule: EMPLOYEE_ROLE_SEED.autoRule, description: role.description ?? EMPLOYEE_ROLE_SEED.note });
     const saved = await repo.save(role);
     // The Employee role starts with the own-account and ticket keys, only while it has none (later changes are the administrator's).
-    const grants = isAdmin ? this.catalog.all().map((p) => p.key) : saved.permissions.length === 0 ? EMPLOYEE_DEFAULT_PERMISSIONS : null;
+    const grants = isAdmin ? this.catalog.all().map((p) => ({ key: p.key, scope: 'all' as const })) : saved.permissions.length === 0 ? EMPLOYEE_DEFAULT_PERMISSIONS : null;
     if (grants) {
-      saved.replacePermissions(grants.map((key) => ({ key, scope: 'all' as const })));
+      saved.replacePermissions(grants);
       await this.db.transaction(async (m) => {
         await m.delete('role_permissions', { roleId: saved.id });
         await m.save(Role, saved);

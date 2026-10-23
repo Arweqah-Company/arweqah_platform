@@ -56,7 +56,7 @@ let ipCounter = 1;
 export const nextIp = (): string => `10.1.${Math.floor(ipCounter / 250)}.${(ipCounter++ % 250) + 1}`;
 
 /** Builders for test data (never copy-pasted objects in specs). */
-/** What a desk manager is given to set up their department and read its figures (admin mode is entered with ADMIN_MODE_GRANT). */
+/** What a desk manager is given to set up the departments they manage and read their figures (admin mode is entered with ADMIN_MODE_GRANT). */
 export const TICKET_DESK_ADMIN_GRANTS: PermissionGrant[] = [
   CorePermission.TicketsSetupView,
   CorePermission.TicketsSetupEdit,
@@ -64,7 +64,10 @@ export const TICKET_DESK_ADMIN_GRANTS: PermissionGrant[] = [
   CorePermission.TicketsTypeUpdate,
   CorePermission.TicketsTypeDelete,
   CorePermission.TicketsFiguresView,
-].map((key) => ({ key, scope: 'all' as const }));
+].map((key) => ({ key, scope: 'own' as const }));
+
+/** The same keys for every department (a platform manager). */
+export const TICKET_PLATFORM_ADMIN_GRANTS: PermissionGrant[] = TICKET_DESK_ADMIN_GRANTS.map((g) => ({ key: g.key, scope: 'all' as const }));
 
 /** Grant that lets a test user switch platform admin mode on. */
 export const ADMIN_MODE_GRANT: PermissionGrant = { key: CorePermission.AdminModeUse, scope: 'all' };
@@ -146,7 +149,7 @@ export class Factories {
     if (options.active === false) await this.db.query('UPDATE users SET is_active = false WHERE id = $1', [id]);
     // Like the real Employee role, everyone starts with the own-account and ticket keys; `grants` add to them; `bare` gives a person with no role at all.
     if (options.bare) return;
-    const defaults = EMPLOYEE_DEFAULT_PERMISSIONS.map((key) => ({ key, scope: 'all' as const }));
+    const defaults = EMPLOYEE_DEFAULT_PERMISSIONS;
     await this.app.get(UserAccessService).replaceRoles(id, [(await this.role([...defaults, ...(options.grants ?? [])])).id]);
   }
 

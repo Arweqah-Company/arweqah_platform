@@ -141,7 +141,8 @@
     "activate": "Activate",
     "terminate": "End contract",
     "resendInvite": "Resend invitation",
-    "resetAuthenticator": "Reset authenticator app"
+    "resetAuthenticator": "Reset authenticator app",
+    "groups": "Groups"
   },
   "activated": "Account activated.",
   "deactivated": "Account deactivated and its sessions ended.",
@@ -178,5 +179,10 @@
   "import": {
     "managerNumber": "Direct manager employee number"
   },
-  "flagsColumn": "Needs attention"
+  "flagsColumn": "Needs attention",
+  "groupsSaved": "Groups saved.",
+  "groupsDialog": {
+    "title": "Groups of roles",
+    "description": "Each group gives the employee every role inside it."
+  }
 }

@@ -9,6 +9,7 @@ import { DetailsSections } from './details-sections';
 import { HeaderActions, StatusRow, type EmployeeDialog } from './employee-actions';
 import { useEmployeeOptions } from './form/use-options';
 import { InvitationNotice, type InvitationState } from './invitation-notice';
+import { GroupsDialog } from './groups-dialog';
 import { RolesDialog } from './roles-dialog';
 import { TerminateDialog } from './terminate-dialog';
 
@@ -55,6 +56,7 @@ export function EmployeeDetailsPage() {
       <ConfirmDialog {...closeOn('reset')} tone="danger" title={t('resetDialog.title')} description={t('resetDialog.description')} confirmLabel={t('actions.resetAuthenticator')} onConfirm={() => run(async () => setInvitation(await reset.mutateAsync()), t('resetDone'))} />
       <TerminateDialog employeeId={e.id} {...closeOn('terminate')} />
       {dialog === 'roles' && <RolesDialog employee={e} {...closeOn('roles')} />}
+      {dialog === 'groups' && <GroupsDialog employee={e} {...closeOn('groups')} />}
     </>
   );
 }

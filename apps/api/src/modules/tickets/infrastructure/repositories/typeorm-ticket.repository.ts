@@ -15,6 +15,8 @@ import type {
   TicketListFilters,
   TicketPatch,
   TicketRow,
+  TicketViewer,
+  ViewerScope,
 } from '../../domain/types/ticket.types';
 import { ticketQuery, toTicketRow } from './ticket-sql';
 
@@ -25,8 +27,27 @@ const ORDER_BY_GROUP: Record<TicketGrouping, string> = {
   type: `ty.name_ar, `,
 };
 
-/** A ticket is in the viewer's inbox as its assignee, or as the manager of its desk (never a personal one: those are for the sender and the assignee only). */
-const INBOX = `(t.assignee_user_id = $1 OR (NOT t.is_personal AND dm.user_id = $1))`;
+/** Where each kind of scope looks: the people of a ticket (sender, assignee) or its desk. */
+const PEOPLE_COLUMNS = { node: ['se.org_node_id', 'ae.org_node_id'], company: ['se.company_id', 'ae.company_id', 'n.company_id'] };
+const DESK_COLUMNS = { node: ['t.desk_id'], company: ['n.company_id'] };
+
+/** SQL for "inside this scope" (the value is added to `values`); a scope that reaches nothing is FALSE. */
+function scopeSql(scope: ViewerScope, columns: { node: string[]; company: string[] }, values: unknown[]): string {
+  if (scope.kind === 'all') return 'TRUE';
+  if (scope.kind === 'none') return 'FALSE';
+  values.push(scope.kind === 'company' ? scope.companyId : [...scope.ids]);
+  const p = `$${values.length}`;
+  return scope.kind === 'company' ? `(${columns.company.map((c) => `${c} = ${p}`).join(' OR ')})` : `(${columns.node.map((c) => `${c} = ANY(${p})`).join(' OR ')})`;
+}
+
+/** A ticket is in the viewer's inbox as its assignee, as the manager of its desk, or when its desk is one they may handle (never a personal one except for its assignee). */
+const inboxSql = (viewer: TicketViewer, values: unknown[]): string => `(t.assignee_user_id = $1 OR (NOT t.is_personal AND (dm.user_id = $1 OR ${scopeSql(viewer.handle, DESK_COLUMNS, values)})))`;
+
+/** A ticket is in the viewer's team tab when its sender or assignee is inside the scope of their view permission (never a personal one). */
+const teamSql = (viewer: TicketViewer, values: unknown[]): string => `($1::uuid IS NOT NULL AND NOT t.is_personal AND ${scopeSql(viewer.view, PEOPLE_COLUMNS, values)})` // $1 (the viewer) is always bound, so it must always be used;
+
+/** The employees of a ticket's sender and assignee, for the people-based scope. */
+const PEOPLE_JOINS = `LEFT JOIN employees se ON se.user_id = t.sender_user_id AND se.deleted_at IS NULL LEFT JOIN employees ae ON ae.user_id = t.assignee_user_id AND ae.deleted_at IS NULL`;
 
 const HAS_INBOX = `SELECT (EXISTS (SELECT 1 FROM ticket_types WHERE default_assignee_user_id = $1)
   OR EXISTS (SELECT 1 FROM ticket_desks d JOIN org_nodes n ON n.id = d.org_node_id JOIN employees e ON e.id = n.manager_id AND e.deleted_at IS NULL WHERE e.user_id = $1)) AS yes`;
@@ -87,8 +108,9 @@ export class TypeOrmTicketRepository extends TicketRepository {
 
   /** The WHERE clause of a list (the viewer is $1) and its values. */
   private listWhere(f: TicketListFilters): { clause: string; values: unknown[] } {
-    const values: unknown[] = [f.viewerUserId];
-    const where: string[] = [f.tab === 'mine' ? 't.sender_user_id = $1' : INBOX];
+    const values: unknown[] = [f.viewer.userId];
+    const first = { mine: 't.sender_user_id = $1', inbox: inboxSql(f.viewer, values), team: teamSql(f.viewer, values) }[f.tab];
+    const where: string[] = [first];
     const add = (column: string, value: unknown) => {
       values.push(value);
       where.push(`${column} = $${values.length}`);
@@ -110,7 +132,7 @@ export class TypeOrmTicketRepository extends TicketRepository {
     const order = `${f.groupBy ? ORDER_BY_GROUP[f.groupBy] : ''}t.last_activity_at DESC, t.id`;
     const page = [...values, f.pageSize, (f.page - 1) * f.pageSize];
     const listSql = ticketQuery(clause, `ORDER BY ${order} LIMIT $${page.length - 1} OFFSET $${page.length}`);
-    const countSql = `SELECT count(*)::int AS n FROM tickets t JOIN ticket_types ty ON ty.id = t.type_id JOIN org_nodes n ON n.id = t.desk_id LEFT JOIN employees dm ON dm.id = n.manager_id AND dm.deleted_at IS NULL WHERE ${clause}`;
+    const countSql = `SELECT count(*)::int AS n FROM tickets t JOIN ticket_types ty ON ty.id = t.type_id JOIN org_nodes n ON n.id = t.desk_id LEFT JOIN employees dm ON dm.id = n.manager_id AND dm.deleted_at IS NULL ${PEOPLE_JOINS} WHERE ${clause}`;
     const [rows, count] = await Promise.all([this.ds.query(listSql, page), this.ds.query(countSql, values)]);
     return { items: rows.map(toTicketRow), total: count[0]?.n ?? 0, page: f.page, pageSize: f.pageSize, groupBy: f.groupBy ?? null };
   }
@@ -138,19 +160,23 @@ export class TypeOrmTicketRepository extends TicketRepository {
     return rows.length > 0;
   }
 
-  async filterOptions(viewerUserId: string): Promise<FilterOptionsRows> {
-    const visible = `FROM tickets t JOIN org_nodes n ON n.id = t.desk_id LEFT JOIN employees dm ON dm.id = n.manager_id AND dm.deleted_at IS NULL WHERE (t.sender_user_id = $1 OR ${INBOX})`;
+  async filterOptions(viewer: TicketViewer): Promise<FilterOptionsRows> {
+    const values: unknown[] = [viewer.userId];
+    const inbox = inboxSql(viewer, values);
+    const team = teamSql(viewer, values);
+    const visible = `FROM tickets t JOIN org_nodes n ON n.id = t.desk_id LEFT JOIN employees dm ON dm.id = n.manager_id AND dm.deleted_at IS NULL ${PEOPLE_JOINS} WHERE (t.sender_user_id = $1 OR ${inbox} OR ${team})`;
     const desksSql = `SELECT DISTINCT t.desk_id AS id ${visible}`;
     const typesSql = `SELECT ty.id, ty.desk_id AS "deskId", ty.name_ar AS "nameAr", ty.name_en AS "nameEn" FROM ticket_types ty WHERE ty.id IN (SELECT t.type_id ${visible}) ORDER BY ty.name_ar`;
+    const assigneeValues: unknown[] = [viewer.userId];
     const assigneesSql = `SELECT DISTINCT u.id, COALESCE(e.full_name, u.name) AS name FROM tickets t JOIN org_nodes n ON n.id = t.desk_id LEFT JOIN employees dm ON dm.id = n.manager_id AND dm.deleted_at IS NULL
-      JOIN users u ON u.id = t.assignee_user_id LEFT JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE ${INBOX} ORDER BY name`;
-    const [desks, types, assignees, inbox] = await Promise.all([
-      this.ds.query(desksSql, [viewerUserId]),
-      this.ds.query(typesSql, [viewerUserId]),
-      this.ds.query(assigneesSql, [viewerUserId]),
-      this.ds.query(HAS_INBOX, [viewerUserId]),
+      JOIN users u ON u.id = t.assignee_user_id LEFT JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE ${inboxSql(viewer, assigneeValues)} ORDER BY name`;
+    const [desks, types, assignees, inboxRow] = await Promise.all([
+      this.ds.query(desksSql, values),
+      this.ds.query(typesSql, values),
+      this.ds.query(assigneesSql, assigneeValues),
+      this.ds.query(HAS_INBOX, [viewer.userId]),
     ]);
-    return { desks: desks.map((d: { id: string }) => d.id), types, assignees, hasInbox: !!inbox[0]?.yes };
+    return { desks: desks.map((d: { id: string }) => d.id), types, assignees, hasInbox: !!inboxRow[0]?.yes || viewer.handle.kind !== 'none', hasTeam: viewer.view.kind !== 'none' };
   }
 
   async staleCandidates(now: Date): Promise<TicketRow[]> {

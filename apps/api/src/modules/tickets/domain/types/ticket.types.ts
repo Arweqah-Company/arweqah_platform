@@ -75,6 +75,12 @@ export interface TicketRow {
   revision: number;
   createdAt: Date;
   deskManagerUserId: string | null;
+  /** Where the sender, the assignee and the desk sit in the organization (for the scopes of the view and reply permissions). */
+  senderNodeId: string | null;
+  senderCompanyId: string | null;
+  assigneeNodeId: string | null;
+  assigneeCompanyId: string | null;
+  deskCompanyId: string;
   deskStaleAfterDays: number;
   deskReopenWindowDays: number;
   deskAutoCloseDays: number;
@@ -128,8 +134,18 @@ export interface TicketPatch {
   reopenCountIncrement?: boolean;
 }
 
+/** Where a permission reaches (the same shape as the access module's, kept here so the domain imports nothing from outside). */
+export type ViewerScope = { kind: 'none' } | { kind: 'nodes'; ids: readonly string[] } | { kind: 'company'; companyId: string } | { kind: 'all' };
+
+/** Who is looking: the person, how far their view permission reaches, and which departments they may handle. */
+export interface TicketViewer {
+  userId: string;
+  view: ViewerScope;
+  handle: ViewerScope;
+}
+
 export interface TicketListFilters {
-  viewerUserId: string;
+  viewer: TicketViewer;
   tab: TicketTab;
   deskId?: string;
   typeId?: string;
@@ -146,6 +162,7 @@ export interface FilterOptionsRows {
   types: { id: string; deskId: string; nameAr: string; nameEn: string }[];
   assignees: PersonRecord[];
   hasInbox: boolean;
+  hasTeam: boolean;
 }
 
 /** Figures of some desks added together over a window of days: the shared figures without the department names and the list. */

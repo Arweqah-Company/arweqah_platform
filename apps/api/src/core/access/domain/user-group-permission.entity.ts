@@ -1,0 +1,19 @@
+import type { PermissionScope } from '@arweqah-platform/shared';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+
+/** A permission placed on a group of people: every member holds it. */
+@Entity('user_group_permissions')
+export class UserGroupPermission {
+  @PrimaryColumn({ name: 'group_id', type: 'uuid' })
+  groupId: string;
+
+  @PrimaryColumn({ name: 'permission_key', type: 'varchar', length: 100 })
+  key: string;
+
+  @Column({ type: 'varchar', length: 20 })
+  scope: PermissionScope;
+
+  @ManyToOne('UserGroup', { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'group_id', foreignKeyConstraintName: 'FK_user_group_permissions_group' })
+  private readonly groupFk?: unknown;
+}

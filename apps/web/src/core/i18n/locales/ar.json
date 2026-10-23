@@ -24,6 +24,7 @@
     "profile": "الملف الشخصي",
     "tickets": "التذاكر",
     "ticketSetup": "إعداد التذاكر",
+    "permissions": "الصلاحيات",
     "listSettings": "إدارة القوائم",
     "pageVisibility": "ظهور الصفحات",
     "ticketFigures": "أداء التذاكر"
@@ -275,5 +276,10 @@
     "tooMany": "الحد الأقصى {{max}} ملفات.",
     "failed": "تعذّر رفع الملف.",
     "hint": "اختياري. صور أو ملفات PDF أو مستندات."
+  },
+  "groups": {
+    "nameAr": "الاسم بالعربية",
+    "nameEn": "الاسم بالإنجليزية",
+    "description": "الوصف"
   }
 }

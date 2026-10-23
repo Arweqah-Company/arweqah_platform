@@ -8,6 +8,7 @@ import {
   type OrgNodeOptionDto,
   type OrgReferenceDto,
 } from '@arweqah-platform/shared';
+import { RoleGroupsService } from '../../../../core/access/application/role-groups.service';
 import { RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
 import { LookupsService, type CompanyOptionDto } from '../../application/services/lookups.service';
 import { CompanyQueryDto, OrgNodeQueryDto } from '../dtos/lookups.dtos';
@@ -21,7 +22,10 @@ export function languageOf(header: string | undefined): Language {
 @ApiTags('lookups')
 @Controller('lookups')
 export class LookupsController {
-  constructor(private readonly lookups: LookupsService) {}
+  constructor(
+    private readonly lookups: LookupsService,
+    private readonly roleGroups: RoleGroupsService,
+  ) {}
 
   @Get()
   @RequirePermission(CorePermission.LookupsView)
@@ -33,6 +37,13 @@ export class LookupsController {
   @RequirePermission(CorePermission.LookupsView)
   companies(@Headers('accept-language') acceptLanguage?: string): Promise<CompanyOptionDto[]> {
     return this.lookups.companies(languageOf(acceptLanguage));
+  }
+
+  /** The role groups to choose from when giving a person groups (HR does not need the admin page for it). */
+  @Get('role-groups')
+  @RequirePermission(CorePermission.LookupsView)
+  async roleGroupOptions(): Promise<{ id: string; nameAr: string; nameEn: string }[]> {
+    return (await this.roleGroups.list()).map((g) => ({ id: g.id, nameAr: g.nameAr, nameEn: g.nameEn }));
   }
 
   @Get('org-nodes')

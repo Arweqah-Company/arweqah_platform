@@ -8,7 +8,18 @@ import { managerOf } from '../../../common/infrastructure/typeorm-transaction-ru
 import { NO_PLACEMENT, type Placement } from '../domain/access-context';
 import { UserAccessRepository, type UserAccessRecord } from '../domain/access.repository';
 import { Role } from '../domain/role.entity';
+import { UserPermission } from '../domain/user-permission.entity';
+import { UserRoleGroup } from '../domain/user-role-group.entity';
 import { UserRole } from '../domain/user-role.entity';
+
+const GRANTS_OF_USER = `
+  SELECT rp.permission_key AS key, rp.scope AS scope FROM role_permissions rp
+  WHERE rp.role_id IN (
+    SELECT role_id FROM user_roles WHERE user_id = $1
+    UNION SELECT gr.role_id FROM user_role_groups ug JOIN role_group_roles gr ON gr.group_id = ug.group_id WHERE ug.user_id = $1)
+  UNION ALL SELECT gp.permission_key, gp.scope FROM role_group_permissions gp JOIN user_role_groups ug ON ug.group_id = gp.group_id WHERE ug.user_id = $1
+  UNION ALL SELECT permission_key, scope FROM user_permissions WHERE user_id = $1
+  UNION ALL SELECT up.permission_key, up.scope FROM user_group_permissions up JOIN user_group_members m ON m.group_id = up.group_id WHERE m.user_id = $1`;
 
 const WITH_REPORTS = `EXISTS (SELECT 1 FROM employees s WHERE s.manager_id = m.id AND s.deleted_at IS NULL)`;
 /** "everyone": every person with an employee record; "has_reports": exactly the people some employee reports to. */
@@ -72,15 +83,38 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
     return rows.map((r) => r.id);
   }
 
+  /** What a person holds: the permissions of their roles, of the roles inside their groups, and their own. */
   private grantRows(userId: string): Promise<GrantRow[]> {
-    return this.userRoles
-      .createQueryBuilder('ur')
-      .innerJoin('roles', 'r', 'r.id = ur.role_id')
-      .leftJoin('role_permissions', 'rp', 'rp.role_id = r.id')
-      .select('rp.permission_key', 'key')
-      .addSelect('rp.scope', 'scope')
-      .where('ur.user_id = :userId', { userId })
-      .getRawMany<GrantRow>();
+    return this.userRoles.manager.query(GRANTS_OF_USER, [userId]);
+  }
+
+  async groupsOf(userIds: string[]): Promise<Map<string, { id: string; nameAr: string; nameEn: string }[]>> {
+    const result = new Map<string, { id: string; nameAr: string; nameEn: string }[]>(userIds.map((id) => [id, []]));
+    if (!userIds.length) return result;
+    const rows: { userId: string; id: string; nameAr: string; nameEn: string }[] = await this.userRoles.manager.query(
+      `SELECT ug.user_id AS "userId", g.id, g.name_ar AS "nameAr", g.name_en AS "nameEn" FROM user_role_groups ug JOIN role_groups g ON g.id = ug.group_id WHERE ug.user_id = ANY($1) ORDER BY g.name_ar`,
+      [userIds],
+    );
+    for (const row of rows) result.get(row.userId)?.push({ id: row.id, nameAr: row.nameAr, nameEn: row.nameEn });
+    return result;
+  }
+
+  async replaceGroups(userId: string, groupIds: string[], tx?: TransactionContext): Promise<void> {
+    const m = managerOf(tx, this.userRoles.manager);
+    await m.delete(UserRoleGroup, { userId });
+    if (groupIds.length) await m.insert(UserRoleGroup, [...new Set(groupIds)].map((groupId) => ({ userId, groupId })));
+  }
+
+  async permissionsOf(userId: string): Promise<PermissionGrant[]> {
+    const rows: { key: string; scope: PermissionScope }[] = await this.userRoles.manager.query('SELECT permission_key AS key, scope FROM user_permissions WHERE user_id = $1 ORDER BY permission_key', [userId]);
+    return rows;
+  }
+
+  async replacePermissions(userId: string, grants: PermissionGrant[], tx?: TransactionContext): Promise<void> {
+    const m = managerOf(tx, this.userRoles.manager);
+    await m.delete(UserPermission, { userId });
+    const unique = [...new Map(grants.map((g) => [g.key, g.scope])).entries()];
+    if (unique.length) await m.insert(UserPermission, unique.map(([key, scope]) => ({ userId, key, scope })));
   }
 
   async rolesOf(userIds: string[]): Promise<Map<string, Role[]>> {

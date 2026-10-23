@@ -22,7 +22,8 @@ export type TicketEventType = (typeof TICKET_EVENT_TYPES)[number];
 export const TICKET_GROUPINGS = ['assignee', 'status', 'desk', 'type'] as const;
 export type TicketGrouping = (typeof TICKET_GROUPINGS)[number];
 
-export const TICKET_TABS = ['mine', 'inbox'] as const;
+/** mine: sent by me; inbox: for me or my department to handle; team: of the people in my scope (when the view scope reaches further than my own). */
+export const TICKET_TABS = ['mine', 'inbox', 'team'] as const;
 export type TicketTab = (typeof TICKET_TABS)[number];
 
 /** TKT-000123 */
@@ -233,7 +234,8 @@ export interface TicketEventDto {
   createdAt: string;
 }
 
-export type TicketRelation = 'sender' | 'assignee' | 'manager';
+/** How a person is related to a ticket: sender, assignee, manager of its desk, handler through the reply scope (`desk`), or in sight through the view scope (`team`). */
+export type TicketRelation = 'sender' | 'assignee' | 'manager' | 'desk' | 'team';
 
 /** What this person may do with the ticket right now (the server decides; the screen only shows it). */
 export interface TicketAbilitiesDto {
@@ -265,8 +267,10 @@ export interface TicketFilterOptionsDto {
   desks: { id: string; nameAr: string; nameEn: string }[];
   types: { id: string; deskId: string; nameAr: string; nameEn: string }[];
   assignees: PersonRefDto[];
-  /** The inbox tab is offered to those who are assignees or desk managers. */
+  /** The inbox tab is offered to those who are assignees or desk managers, or whose reply scope reaches departments. */
   hasInbox: boolean;
+  /** The team tab is offered to those whose view scope reaches further than their own tickets. */
+  hasTeam: boolean;
 }
 
 /** Which department a breakdown row belongs to (the page shows it as a column when every department is chosen). */

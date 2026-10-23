@@ -24,6 +24,15 @@ export interface ScopeFilter {
   orgNodeId: string | null;
 }
 
+/** Where a granted permission reaches in the organization, for lists (SQL) and for records the person did not create. */
+export type NodeScope = { kind: 'none' } | { kind: 'nodes'; ids: readonly string[] } | { kind: 'company'; companyId: string } | { kind: 'all' };
+
+/** The place of a record in the organization. */
+export interface OrgPlace {
+  orgNodeId: string | null;
+  companyId: string | null;
+}
+
 /** Immutable snapshot of what a user may do, built once per request. */
 export class AccessContext {
   private readonly scopes: Map<string, PermissionScope>;
@@ -55,10 +64,46 @@ export class AccessContext {
     return [...this.scopes].map(([key, scope]) => ({ key, scope }));
   }
 
+  /** Where the permission reaches beyond the person's own records: nothing (own), their unit, their unit and below, their company, or everything. */
+  nodeScopeOf(key: string): NodeScope {
+    const { orgNodeId, companyId } = this.placement;
+    switch (this.scopeOf(key)) {
+      case 'all':
+        return { kind: 'all' };
+      case 'company':
+        return companyId ? { kind: 'company', companyId } : { kind: 'none' };
+      case 'subtree':
+        return this.subtreeNodeIds.length ? { kind: 'nodes', ids: this.subtreeNodeIds } : { kind: 'none' };
+      case 'unit':
+        return orgNodeId ? { kind: 'nodes', ids: [orgNodeId] } : { kind: 'none' };
+      default:
+        return { kind: 'none' };
+    }
+  }
+
+  /** True when the place (a department, or where a person sits) is inside what the permission reaches. */
+  reaches(key: string, place: OrgPlace): boolean {
+    return nodeScopeIncludes(this.nodeScopeOf(key), place);
+  }
+
   /** Null when the user has no grant for the key (callers then return 403/404). */
   filterFor(key: string): ScopeFilter | null {
     const scope = this.scopeOf(key);
     if (!scope) return null;
     return { scope, userId: this.userId, companyId: this.placement.companyId, orgNodeId: this.placement.orgNodeId };
+  }
+}
+
+/** Is the place inside the scope? (`all` includes even a place that is not known.) */
+export function nodeScopeIncludes(scope: NodeScope, place: OrgPlace): boolean {
+  switch (scope.kind) {
+    case 'all':
+      return true;
+    case 'company':
+      return place.companyId === scope.companyId;
+    case 'nodes':
+      return !!place.orgNodeId && scope.ids.includes(place.orgNodeId);
+    default:
+      return false;
   }
 }

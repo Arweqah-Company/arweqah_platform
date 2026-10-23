@@ -1,0 +1,58 @@
+import type { PermissionCatalogGroup, PermissionGrant, PermissionScope } from '@arweqah-platform/shared';
+import { useTranslation } from 'react-i18next';
+import { Button, Select } from '@/shared/ui';
+
+interface Props {
+  catalog: PermissionCatalogGroup[];
+  grants: PermissionGrant[];
+  onChange: (grants: PermissionGrant[]) => void;
+  /** Reaches the target from elsewhere (shown ticked and locked, with where it comes from left to the caller). */
+  inherited?: PermissionGrant[];
+  disabled?: boolean;
+}
+
+/** Every permission of the platform by module: tick it, then choose how far it reaches. Used for roles, groups and people alike. */
+export function PermissionMatrix({ catalog, grants, onChange, inherited = [], disabled = false }: Props) {
+  const { t, i18n } = useTranslation('roles');
+  const { t: tc } = useTranslation();
+  const scopeOf = (key: string) => grants.find((p) => p.key === key)?.scope;
+  const inheritedOf = (key: string) => inherited.find((p) => p.key === key)?.scope;
+  const setGrant = (key: string, scope: PermissionScope | null) => onChange([...grants.filter((p) => p.key !== key), ...(scope ? [{ key, scope }] : [])]);
+  const selectAll = () => onChange(catalog.flatMap((group) => group.permissions.map((perm) => ({ key: perm.key, scope: perm.scopes.at(-1) ?? 'company' }))));
+  return (
+    <div className="flex flex-col gap-4">
+      {!disabled && (
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="secondary" onClick={selectAll}>{t('selectAll')}</Button>
+          <Button size="sm" variant="ghost" onClick={() => onChange([])}>{t('clearAll')}</Button>
+        </div>
+      )}
+      {catalog.map((group) => (
+        <div key={group.module}>
+          <h3 className="mb-1 text-xs font-bold text-muted">{t(`module.${group.module}`, { defaultValue: group.module })}</h3>
+          <ul className="divide-y divide-neutral-200 rounded-[var(--radius-control)] border border-neutral-200">
+            {group.permissions.map((perm) => {
+              const scope = scopeOf(perm.key);
+              const from = inheritedOf(perm.key);
+              const label = i18n.language === 'ar' ? perm.labelAr : perm.labelEn;
+              return (
+                <li key={perm.key} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" disabled={disabled} checked={!!scope} onChange={(e) => setGrant(perm.key, e.target.checked ? (perm.scopes.at(-1) ?? 'company') : null)} />
+                    {label}
+                    {from && !scope && <span className="rounded-full bg-petrol-50 px-2 py-0.5 text-xs text-fg">{t('inheritedBadge', { scope: tc(`scope.${from}`) })}</span>}
+                  </label>
+                  {scope && perm.scopes.length > 1 && (
+                    <Select aria-label={`${t('scope')}: ${label}`} className="h-8 w-40" disabled={disabled} value={scope} onChange={(e) => setGrant(perm.key, e.target.value as PermissionScope)}>
+                      {perm.scopes.map((s) => <option key={s} value={s}>{tc(`scope.${s}`)}</option>)}
+                    </Select>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+}

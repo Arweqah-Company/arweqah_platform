@@ -18,6 +18,7 @@
     "email-log": "سجل البريد",
     "tickets": "التذاكر",
     "ticket-setup": "إعداد التذاكر",
-    "ticket-figures": "أداء التذاكر"
+    "ticket-figures": "أداء التذاكر",
+    "permissions": "الصلاحيات"
   }
 }

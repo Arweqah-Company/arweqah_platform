@@ -16,7 +16,7 @@ import { IdParam } from '../../../../common/presentation/zod-query';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
 import { Access, HiddenWithPage, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
 import { EmployeesService } from '../../application/services/employees.service';
-import { AssignRolesDto, CreateEmployeeDto, EmployeesQueryDto, ManagerSearchDto, TerminateEmployeeDto, UpdateEmployeeDto } from '../dtos/employee.dtos';
+import { AssignGroupsDto, AssignRolesDto, CreateEmployeeDto, EmployeesQueryDto, ManagerSearchDto, TerminateEmployeeDto, UpdateEmployeeDto } from '../dtos/employee.dtos';
 
 
 const P = CorePermission;
@@ -89,6 +89,12 @@ export class EmployeesController {
   @RequirePermission(P.EmployeesAssignRoles)
   assignRoles(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: AssignRolesDto, @CurrentUser() user: SessionUser): Promise<EmployeeDto> {
     return this.employees.assignRoles(ctx, id, body.roleIds, user.id);
+  }
+
+  @Put(':id/groups')
+  @RequirePermission(P.EmployeesAssignGroups)
+  assignGroups(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: AssignGroupsDto, @CurrentUser() user: SessionUser): Promise<EmployeeDto> {
+    return this.employees.assignGroups(ctx, id, body.groupIds, user.id);
   }
 
   @Post(':id/resend-invite')

@@ -4,7 +4,8 @@ import type { FeatureModule } from '@/core/feature';
 import ar from './i18n/ar.json';
 import en from './i18n/en.json';
 
-export { useRoles } from './api';
+export { useRoles, usePermissionCatalog } from './api';
+export { PermissionMatrix } from './permission-matrix';
 
 export const rolesFeature: FeatureModule = {
   id: 'roles',

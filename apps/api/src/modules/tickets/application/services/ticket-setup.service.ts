@@ -12,6 +12,7 @@ import { TicketRepository } from '../../domain/contracts/ticket.repository';
 import { AssigneeInvalidError, DeskNoManagerError, DeskNotFoundError, TypeNoHandlerError } from '../../domain/errors/ticket.errors';
 import type { DeskRecord, DeskSettingsValues, DepartmentFacts, TypeRecord, TypeValues } from '../../domain/types/ticket.types';
 import { TICKET_AUDIT } from '../messages/ticket.messages';
+import { departmentsFor } from '../policies/department-scope';
 import { TicketTransformer } from '../transformers/ticket.transformer';
 import { TicketNotifier } from './ticket-notifier.service';
 
@@ -21,8 +22,8 @@ const UNCONFIGURED = (orgNodeId: string): DeskRecord => ({ orgNodeId, ...DEFAULT
 
 /**
  * The setup of the departments that receive tickets: reception status, the description the sender sees, the durations, and the types.
- * Reached only in platform admin mode (enforced on the routes); inside it, a desk manager sets up their own departments and a
- * platform manager (`tickets.administer`) sets up every department.
+ * Reached only in platform admin mode (enforced on the routes); inside it, each key reaches the departments its scope says:
+ * the ones the person manages, their unit, their unit and below, their company, or every department.
  */
 @Injectable()
 export class TicketSetupService {
@@ -38,19 +39,19 @@ export class TicketSetupService {
   ) {}
 
   async listDesks(ctx: AccessContext): Promise<TicketDeskDto[]> {
-    const departments = await this.accessible(ctx);
+    const departments = await departmentsFor(ctx, CorePermission.TicketsSetupView, this.directory);
     const dtos = await this.toDtos(departments);
     return dtos.sort((a, b) => a.pathAr.localeCompare(b.pathAr, 'ar'));
   }
 
   async getDesk(ctx: AccessContext, deskId: string): Promise<TicketDeskDto> {
-    const department = await this.department(ctx, deskId);
+    const department = await this.department(ctx, deskId, CorePermission.TicketsSetupView);
     return (await this.toDtos([department]))[0] as TicketDeskDto;
   }
 
   /** Activating needs a manager; the other two states can be set any time. */
   async saveDesk(ctx: AccessContext, deskId: string, input: TicketDeskSettingsInput): Promise<TicketDeskDto> {
-    const department = await this.department(ctx, deskId);
+    const department = await this.department(ctx, deskId, CorePermission.TicketsSetupEdit);
     if (input.receptionStatus === 'active' && !department.managerUserId) throw new DeskNoManagerError();
     const before = (await this.desks.find(deskId)) ?? UNCONFIGURED(deskId);
     const values: DeskSettingsValues = { ...input, descriptionAr: input.descriptionAr ?? null, descriptionEn: input.descriptionEn ?? null };
@@ -60,7 +61,7 @@ export class TicketSetupService {
   }
 
   async createType(ctx: AccessContext, deskId: string, input: TicketTypeInput): Promise<TicketTypeDto> {
-    await this.department(ctx, deskId);
+    await this.department(ctx, deskId, CorePermission.TicketsTypeCreate);
     const values = await this.valuesOf(input);
     const id = await this.tx.run(async (tx) => {
       await this.ensureDesk(deskId, tx);
@@ -71,7 +72,7 @@ export class TicketSetupService {
   }
 
   async updateType(ctx: AccessContext, deskId: string, typeId: string, input: TicketTypeInput): Promise<TicketTypeDto> {
-    await this.department(ctx, deskId);
+    await this.department(ctx, deskId, CorePermission.TicketsTypeUpdate);
     const existing = await this.ownType(deskId, typeId);
     const values = await this.valuesOf(input);
     const moved = await this.tx.run(async (tx) => {
@@ -86,7 +87,7 @@ export class TicketSetupService {
 
   /** A type with tickets is only deactivated (its tickets keep their history); an unused one is deleted. */
   async removeType(ctx: AccessContext, deskId: string, typeId: string): Promise<{ deleted: boolean }> {
-    await this.department(ctx, deskId);
+    await this.department(ctx, deskId, CorePermission.TicketsTypeDelete);
     const existing = await this.ownType(deskId, typeId);
     const used = await this.desks.typeHasTickets(typeId);
     await this.tx.run((tx) => (used ? this.desks.updateType(typeId, { ...existing, isActive: false }, tx) : this.desks.deleteType(typeId, tx)));
@@ -96,22 +97,15 @@ export class TicketSetupService {
 
   /** Employees of the department's company, found by name or number, for the assignee picker. */
   async assignees(ctx: AccessContext, deskId: string, search?: string): Promise<PersonRefDto[]> {
-    const department = await this.department(ctx, deskId);
+    const department = await this.department(ctx, deskId, CorePermission.TicketsSetupView);
     return this.directory.assignableEmployees(department.companyId, search);
   }
 
   // -------------------------------------------------------------------- helpers
 
-  /** Every department for a platform manager; the managed ones for a desk manager. */
-  private async accessible(ctx: AccessContext): Promise<DepartmentFacts[]> {
-    if (ctx.has(CorePermission.TicketsAdminister)) return this.directory.departments();
-    const managed = await this.directory.managedDepartmentIds(ctx.userId);
-    return managed.length ? this.directory.departments(managed) : [];
-  }
-
-  /** The department if this person may set it up, else "not found" (so other departments are not revealed). */
-  private async department(ctx: AccessContext, deskId: string): Promise<DepartmentFacts> {
-    const found = (await this.accessible(ctx)).find((d) => d.orgNodeId === deskId);
+  /** The department if this person's permission reaches it, else "not found" (so other departments are not revealed). */
+  private async department(ctx: AccessContext, deskId: string, key: string): Promise<DepartmentFacts> {
+    const found = (await departmentsFor(ctx, key, this.directory)).find((d) => d.orgNodeId === deskId);
     if (!found) throw new DeskNotFoundError();
     return found;
   }

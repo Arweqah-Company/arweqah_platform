@@ -24,6 +24,12 @@ export abstract class UserAccessRepository {
   abstract rolesOf(userIds: string[]): Promise<Map<string, Role[]>>;
   abstract replaceRoles(userId: string, roleIds: string[], tx?: TransactionContext): Promise<void>;
   abstract placementsOf(userIds: string[]): Promise<Map<string, Placement>>;
+  /** The groups of roles each person was given. */
+  abstract groupsOf(userIds: string[]): Promise<Map<string, { id: string; nameAr: string; nameEn: string }[]>>;
+  abstract replaceGroups(userId: string, groupIds: string[], tx?: TransactionContext): Promise<void>;
+  /** Permissions given to one person alone. */
+  abstract permissionsOf(userId: string): Promise<PermissionGrant[]>;
+  abstract replacePermissions(userId: string, grants: PermissionGrant[], tx?: TransactionContext): Promise<void>;
   /** Brings the members of the roles that have an auto rule up to date; returns how many memberships changed. */
   abstract syncAutoRoles(): Promise<number>;
 }

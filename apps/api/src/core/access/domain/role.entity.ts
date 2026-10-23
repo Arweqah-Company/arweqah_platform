@@ -1,6 +1,6 @@
 import type { PermissionGrant, PermissionScope, RoleAssignment, RoleAutoRule } from '@arweqah-platform/shared';
 import { Column, Entity, OneToMany, PrimaryColumn, ManyToOne, JoinColumn, type Relation } from 'typeorm';
-import { BaseEntity } from '../../../common/domain/base.entity';
+import { NamedEntity } from '../../../common/domain/named.entity';
 import { BusinessRuleError } from '../../../common/domain/domain-error';
 
 @Entity('role_permissions')
@@ -21,16 +21,7 @@ export class RolePermission {
 
 /** A role built from the permission catalog at runtime (managed from the admin panel). */
 @Entity('roles')
-export class Role extends BaseEntity {
-  @Column({ name: 'name_ar', type: 'varchar', length: 120 })
-  nameAr: string;
-
-  @Column({ name: 'name_en', type: 'varchar', length: 120 })
-  nameEn: string;
-
-  @Column({ type: 'varchar', length: 500, nullable: true })
-  description: string | null;
-
+export class Role extends NamedEntity {
   /** System roles (seeded) cannot be deleted. */
   @Column({ name: 'is_system', type: 'boolean', default: false })
   isSystem: boolean;

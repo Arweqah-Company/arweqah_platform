@@ -33,10 +33,13 @@ export function reopenDaysLeft(status: TicketStatus, closedAt: Date | null, wind
   return left > 0 ? left : null;
 }
 
+/** The relations that stand on the unit's side of a ticket: its assignee, the manager of its desk, and whoever handles its department by scope. */
+const UNIT_SIDE: TicketRelation[] = ['assignee', 'manager', 'desk'];
+
 /** What each relation may do now. The sender replies to an open ticket; the unit (assignee or manager) closes it. */
 export function abilitiesFor(relations: readonly TicketRelation[], status: TicketStatus, reopenLeft: number | null): TicketAbilitiesDto {
   const sender = relations.includes('sender');
-  const unit = relations.includes('assignee') || relations.includes('manager');
+  const unit = UNIT_SIDE.some((relation) => relations.includes(relation));
   const live = status !== 'closed';
   return {
     reply: live && (sender || unit),

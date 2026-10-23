@@ -147,6 +147,16 @@ export class EmployeesService {
     return this.dto(ctx, employee);
   }
 
+  async assignGroups(ctx: AccessContext, id: string, groupIds: string[], actorId: string): Promise<EmployeeDto> {
+    const employee = await this.mustFind(ctx, id, P.EmployeesAssignGroups);
+    if (employee.userId === ctx.userId) throw new SelfActionError('You cannot change your own groups');
+    if (!this.ability.can(ctx, P.EmployeesAssignGroups, { companyId: employee.companyId, orgNodeId: employee.orgNodeId, ownerId: employee.userId })) throw new ForbiddenError();
+    await this.access.assertGroupsGrantable(ctx, groupIds);
+    await this.tx.run((tx) => this.access.replaceGroups(employee.userId, groupIds, tx));
+    this.audit(actorId, EMPLOYEE_AUDIT.groupsChanged, id, { groupIds });
+    return this.dto(ctx, employee);
+  }
+
   async resendInvite(ctx: AccessContext, id: string, actorId: string): Promise<InviteResultDto> {
     const employee = await this.mustFind(ctx, id, P.EmployeesResendInvite);
     this.audit(actorId, EMPLOYEE_AUDIT.invited, id, {});

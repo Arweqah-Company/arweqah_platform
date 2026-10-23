@@ -24,6 +24,7 @@
     "profile": "Profile",
     "tickets": "Tickets",
     "ticketSetup": "Ticket setup",
+    "permissions": "Permissions",
     "listSettings": "List management",
     "pageVisibility": "Page visibility",
     "ticketFigures": "Ticket performance"
@@ -275,5 +276,10 @@
     "tooMany": "At most {{max}} files.",
     "failed": "The file could not be uploaded.",
     "hint": "Optional. Images, PDF files or documents."
+  },
+  "groups": {
+    "nameAr": "Name in Arabic",
+    "nameEn": "Name in English",
+    "description": "Description"
   }
 }

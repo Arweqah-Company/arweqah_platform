@@ -13,6 +13,7 @@ export const EMPLOYEE_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.EmployeesTerminate, 'إنهاء علاقة الموظف', 'End an employee\'s contract', WIDE),
   def(CorePermission.EmployeesViewSensitive, 'عرض البيانات الحساسة (الهوية والآيبان والراتب)', 'View sensitive data (ID, IBAN, salary)', WIDE),
   def(CorePermission.EmployeesAssignRoles, 'تعيين أدوار الموظفين', 'Assign employee roles', ['company', 'all']),
+  def(CorePermission.EmployeesAssignGroups, 'تعيين مجموعات أدوار للموظف', 'Give an employee groups of roles', ['company', 'all']),
   def(CorePermission.EmployeesResendInvite, 'إعادة إرسال رابط التفعيل', 'Resend the activation link', RECORD),
   def(CorePermission.EmployeesResetAuthenticator, 'إعادة ضبط تطبيق المصادقة', 'Reset the authenticator app', RECORD),
   def(CorePermission.EmployeesExport, 'تصدير الموظفين', 'Export employees', ['all']),

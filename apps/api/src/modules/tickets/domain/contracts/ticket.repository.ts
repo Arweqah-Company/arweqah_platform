@@ -9,6 +9,7 @@ import type {
   TicketListFilters,
   TicketPatch,
   TicketRow,
+  TicketViewer,
 } from '../types/ticket.types';
 
 export abstract class TicketRepository {
@@ -23,7 +24,7 @@ export abstract class TicketRepository {
   abstract attachments(eventIds: string[]): Promise<AttachmentRow[]>;
   /** A file attached to this ticket (to authorize its download), or null. */
   abstract attachedFile(ticketId: string, fileId: string): Promise<boolean>;
-  abstract filterOptions(viewerUserId: string): Promise<FilterOptionsRows>;
+  abstract filterOptions(viewer: TicketViewer): Promise<FilterOptionsRows>;
   /** Open tickets quiet for longer than their desk's stale period that were not announced for the current quiet period. */
   abstract staleCandidates(now: Date): Promise<TicketRow[]>;
   abstract markStaleNotified(ids: string[], at: Date): Promise<void>;

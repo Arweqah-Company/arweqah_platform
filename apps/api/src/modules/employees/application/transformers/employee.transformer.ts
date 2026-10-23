@@ -39,12 +39,13 @@ export class EmployeeTransformer {
   ) {}
 
   async toDto(e: Employee, view: { isActive: boolean; sensitive: boolean }): Promise<EmployeeDto> {
-    const [companies, nodes, titles, managers, roles, authenticatorEnabled] = await Promise.all([
+    const [companies, nodes, titles, managers, roles, groups, authenticatorEnabled] = await Promise.all([
       this.org.describeCompanies([e.companyId]),
       this.org.describeNodes(e.orgNodeId ? [e.orgNodeId] : []),
       this.org.describeTitles(e.jobTitleId ? [e.jobTitleId] : []),
       this.placement.namesOf(e.managerId ? [e.managerId] : []),
       this.access.rolesOf([e.userId]),
+      this.access.groupsOf([e.userId]),
       this.authenticator.isEnabled(e.userId),
     ]);
     return {
@@ -61,6 +62,7 @@ export class EmployeeTransformer {
       ...this.plainFields(e),
       ...this.sensitiveFields(e, view.sensitive),
       roles: (roles.get(e.userId) ?? []).map((r) => ({ id: r.id, nameAr: r.nameAr, nameEn: r.nameEn })),
+      groups: groups.get(e.userId) ?? [],
       sensitiveHidden: !view.sensitive,
       createdAt: e.createdAt.toISOString(),
       updatedAt: e.updatedAt.toISOString(),

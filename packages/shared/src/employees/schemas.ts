@@ -257,6 +257,8 @@ export interface EmployeeDto {
   iban: string | null;
   notes: string | null;
   roles: NamedRef[];
+  /** Groups of roles the person was given (their roles come on top of the ones above). */
+  groups: NamedRef[];
   sensitiveHidden: boolean;
   createdAt: string;
   updatedAt: string;

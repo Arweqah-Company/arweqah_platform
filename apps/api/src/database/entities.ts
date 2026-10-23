@@ -1,5 +1,13 @@
 import { Role, RolePermission } from '../core/access/domain/role.entity';
 import { ListSetting } from '../core/lists/domain/list-setting.entity';
+import { RoleGroup } from '../core/access/domain/role-group.entity';
+import { RoleGroupPermission } from '../core/access/domain/role-group-permission.entity';
+import { RoleGroupRole } from '../core/access/domain/role-group-role.entity';
+import { UserGroup } from '../core/access/domain/user-group.entity';
+import { UserGroupMember } from '../core/access/domain/user-group-member.entity';
+import { UserGroupPermission } from '../core/access/domain/user-group-permission.entity';
+import { UserPermission } from '../core/access/domain/user-permission.entity';
+import { UserRoleGroup } from '../core/access/domain/user-role-group.entity';
 import { PageVisibilityRule } from '../core/access/domain/page-visibility-rule.entity';
 import { UserRole } from '../core/access/domain/user-role.entity';
 import { AuditLog } from '../core/audit/domain/audit-log.entity';
@@ -30,6 +38,14 @@ export const ENTITIES = [
   RolePermission,
   UserRole,
   PageVisibilityRule,
+  RoleGroup,
+  RoleGroupRole,
+  RoleGroupPermission,
+  UserGroup,
+  UserGroupMember,
+  UserGroupPermission,
+  UserRoleGroup,
+  UserPermission,
   ListSetting,
   AuditLog,
   StoredFile,

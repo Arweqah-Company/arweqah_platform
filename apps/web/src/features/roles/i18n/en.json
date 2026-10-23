@@ -40,5 +40,8 @@
     "manual": "Manual",
     "hint": "Automatic: given by a rule or a setup in the system. Manual: given by HR or an administrator.",
     "ruleHint": "A rule in the system keeps this role's members up to date, so it is not assigned by hand."
-  }
+  },
+  "inheritedBadge": "Comes from roles and groups ({{scope}})",
+  "selectAll": "Select all permissions",
+  "clearAll": "Clear all"
 }

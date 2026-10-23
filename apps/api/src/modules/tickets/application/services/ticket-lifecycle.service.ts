@@ -8,7 +8,7 @@ import { JobScheduler } from '../../../../core/messaging/application/outbox';
 import { TicketRepository } from '../../domain/contracts/ticket.repository';
 import { ReopenWindowExpiredError, TicketRevisionConflictError, TicketStateInvalidError } from '../../domain/errors/ticket.errors';
 import { abilitiesFor, nextState, reopenDaysLeft, type TicketAction } from '../../domain/rules/ticket-lifecycle.rules';
-import type { TicketPatch, TicketRow } from '../../domain/types/ticket.types';
+import type { TicketPatch, TicketRow, TicketViewer } from '../../domain/types/ticket.types';
 import { TICKET_AUDIT, TICKET_TOPICS, type NoticeKind } from '../messages/ticket.messages';
 import { TicketAccessPolicy } from '../policies/ticket-access.policy';
 import { TicketNotifier } from './ticket-notifier.service';
@@ -56,9 +56,10 @@ export class TicketLifecycleService {
     private readonly events: EventEmitter2,
   ) {}
 
-  async act(userId: string, id: string, action: PersonAction, message?: string): Promise<void> {
+  async act(viewer: TicketViewer, id: string, action: PersonAction, message?: string): Promise<void> {
+    const userId = viewer.userId;
     const row = await this.tickets.find(id);
-    const relations = this.policy.assertCanView(userId, row);
+    const relations = this.policy.assertCanView(viewer, row);
     const found = row as TicketRow;
     const left = reopenDaysLeft(found.status, found.closedAt, found.deskReopenWindowDays, this.clock.now());
     if (!abilitiesFor(relations, found.status, left)[ABILITY[action]]) {

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { ScheduledJobRelay } from '../src/core/messaging/infrastructure/typeorm-job-scheduler';
 import { OutboxRelay } from '../src/core/messaging/infrastructure/typeorm-outbox';
 import { TicketLifecycleService } from '../src/modules/tickets/application/services/ticket-lifecycle.service';
-import { TICKET_DESK_ADMIN_GRANTS, type TestAgent, type TestUser } from './factories/factories';
+import { TICKET_DESK_ADMIN_GRANTS, TICKET_PLATFORM_ADMIN_GRANTS, type TestAgent, type TestUser } from './factories/factories';
 import { codeFor } from './helpers/totp';
 import { useTestApp } from './setup/test-app';
 
@@ -12,6 +12,8 @@ const DAY = 86_400_000;
 
 const SETTINGS = { receptionStatus: 'active', descriptionAr: 'نصيحة', descriptionEn: 'Tip', acceptsPersonal: false, defaultDueDays: 3, minLeadDays: 0, autoCloseDays: 4, reopenWindowDays: 7, staleAfterDays: 14 };
 const TYPE = { nameAr: 'مشكلة تقنية', nameEn: 'Technical problem', descriptionAr: null, descriptionEn: null, dueDays: null, isPersonal: false, isActive: true };
+
+const ADMIN_MODE_GRANT_FOR_SCOPES = { key: CorePermission.AdminModeUse, scope: 'all' as const };
 
 describe('Tickets (FR-36 … FR-41)', () => {
   const t = useTestApp();
@@ -78,7 +80,7 @@ describe('Tickets (FR-36 … FR-41)', () => {
       await adminModeOn(otherAgent, otherManager);
       await otherAgent.get(`/api/tickets/setup/desks/${w.desk}`).expect(404);
       await setupDesk(otherAgent, w.desk).expect(404);
-      const platform = await t.factories.user({ grants: [...TICKET_DESK_ADMIN_GRANTS, { key: CorePermission.TicketsAdminister, scope: 'all' }, { key: CorePermission.AdminModeUse, scope: 'all' }] });
+      const platform = await t.factories.user({ grants: [...TICKET_PLATFORM_ADMIN_GRANTS, { key: CorePermission.AdminModeUse, scope: 'all' }] });
       const platformAgent = await t.factories.signIn(platform);
       await adminModeOn(platformAgent, platform);
       const all = (await platformAgent.get('/api/tickets/setup/desks').expect(200)).body as TicketDeskDto[];
@@ -89,7 +91,7 @@ describe('Tickets (FR-36 … FR-41)', () => {
     it('refuses to activate a department without a manager, and bad numbers or assignees', async () => {
       const w = await world();
       await t.db.query('UPDATE org_nodes SET manager_id = NULL WHERE id = $1', [w.desk]);
-      const platform = await t.factories.user({ grants: [...TICKET_DESK_ADMIN_GRANTS, { key: CorePermission.TicketsAdminister, scope: 'all' }, { key: CorePermission.AdminModeUse, scope: 'all' }] });
+      const platform = await t.factories.user({ grants: [...TICKET_PLATFORM_ADMIN_GRANTS, { key: CorePermission.AdminModeUse, scope: 'all' }] });
       const agent = await t.factories.signIn(platform);
       await adminModeOn(agent, platform);
       expect((await setupDesk(agent, w.desk).expect(422)).body.code).toBe('DESK_NO_MANAGER');
@@ -252,7 +254,7 @@ describe('Tickets (FR-36 … FR-41)', () => {
       await w.agents.manager.post(`/api/tickets/${ticket.id}/replies`).send({ body: 'peek' }).expect(404);
       expect((await w.agents.assignee.get('/api/tickets?tab=inbox').expect(200)).body.items).toHaveLength(1);
       await w.agents.assignee.get(`/api/tickets/${ticket.id}`).expect(200);
-      const platform = await t.factories.user({ grants: [...TICKET_DESK_ADMIN_GRANTS, { key: CorePermission.TicketsAdminister, scope: 'all' }, { key: CorePermission.AdminModeUse, scope: 'all' }] });
+      const platform = await t.factories.user({ grants: [...TICKET_PLATFORM_ADMIN_GRANTS, { key: CorePermission.AdminModeUse, scope: 'all' }] });
       const platformAgent = await t.factories.signIn(platform);
       await adminModeOn(platformAgent, platform);
       await platformAgent.get(`/api/tickets/${ticket.id}`).expect(404);
@@ -460,7 +462,7 @@ describe('Tickets (FR-36 … FR-41)', () => {
       expect(desk.needsAttention[0]).toHaveProperty('deskNameAr');
       expect(JSON.stringify(desk.needsAttention)).not.toContain('"isPersonal":true');
       // A platform manager chooses among every department of the structure, also those never set up for tickets; "all" adds them up.
-      const platform = await t.factories.user({ grants: [...TICKET_DESK_ADMIN_GRANTS, { key: CorePermission.TicketsAdminister, scope: 'all' }, { key: CorePermission.AdminModeUse, scope: 'all' }] });
+      const platform = await t.factories.user({ grants: [...TICKET_PLATFORM_ADMIN_GRANTS, { key: CorePermission.AdminModeUse, scope: 'all' }] });
       const platformAgent = await t.factories.signIn(platform);
       await adminModeOn(platformAgent, platform);
       const everything = (await platformAgent.get('/api/tickets/figures').expect(200)).body;
@@ -474,6 +476,67 @@ describe('Tickets (FR-36 … FR-41)', () => {
       await t.factories.freshStep(w.manager);
       const noMode = await t.factories.signIn(w.manager);
       expect((await noMode.get('/api/tickets/figures').expect(403)).body.code).toBe('ADMIN_MODE_REQUIRED');
+    });
+  });
+
+  describe('Scopes of the ticket permissions (FR-48)', () => {
+    const grant = (key: string, scope: 'own' | 'unit' | 'subtree' | 'company' | 'all') => ({ key, scope });
+
+    it('shows the tickets of the people in the scope of tickets.view in the team tab, never a personal one, and nothing beyond the scope', async () => {
+      const w = await world();
+      const typeId = await openDesk(w);
+      const personal = (await addType(w.agents.manager, w.desk, { nameEn: 'Private', isPersonal: true, defaultAssigneeUserId: w.assignee.id }).expect(201)).body.id as string;
+      await setupDesk(w.agents.manager, w.desk, { acceptsPersonal: true }).expect(200);
+      const fromB = await sendOne(w, typeId, { title: 'من الوحدة ب' });
+      await sendOne(w, personal, { title: 'خاصة' });
+      const viewerAt = async (unit: typeof w.org.unitA, scope: 'own' | 'unit' | 'subtree' | 'company' | 'all') => t.factories.signIn(await t.factories.user({ unit, grants: [grant('tickets.view', scope)] }));
+      const team = async (agent: Awaited<ReturnType<typeof viewerAt>>) => (await agent.get('/api/tickets?tab=team').expect(200)).body.items.map((x: { id: string }) => x.id) as string[];
+
+      const own = await viewerAt(w.org.unitB, 'own'); // the narrowest: only what they sent or handle
+      expect((await own.get('/api/tickets/options').expect(200)).body.hasTeam).toBe(false);
+      expect(await team(own)).toEqual([]);
+      await own.get(`/api/tickets/${fromB.id}`).expect(404);
+
+      const unit = await viewerAt(w.org.unitB, 'unit'); // a colleague of the sender
+      expect((await unit.get('/api/tickets/options').expect(200)).body.hasTeam).toBe(true);
+      expect(await team(unit)).toEqual([fromB.id]);
+      expect((await unit.get(`/api/tickets/${fromB.id}`).expect(200)).body.relations).toEqual(['team']);
+
+      expect(await team(await viewerAt(w.org.unitC, 'unit'))).toEqual([]); // another unit
+      expect(await team(await viewerAt(w.org.unitC, 'subtree'))).toEqual([]); // another section
+      expect(await team(await viewerAt(w.org.unitA, 'subtree'))).toEqual([fromB.id]); // the assignee sits in unit A: a ticket is in sight through its assignee too
+      expect(await team(await viewerAt(w.org.unitC, 'company'))).toEqual([fromB.id]); // the whole company
+      expect(await team(await viewerAt(w.org.unitOther, 'company'))).toEqual([]); // another company
+      expect(await team(await viewerAt(w.org.unitOther, 'all'))).toEqual([fromB.id]);
+    });
+
+    it('lets people whose tickets.reply scope reaches a department handle its tickets, and refuses the narrow scope', async () => {
+      const w = await world();
+      const ticket = await sendOne(w, await openDesk(w));
+      const helper = async (scope: 'own' | 'company' | 'all') => t.factories.signIn(await t.factories.user({ unit: w.org.unitC, grants: [grant('tickets.reply', scope), grant('tickets.request_close', 'all'), grant('tickets.close_without_execution', 'all')] }));
+      const narrow = await helper('own');
+      await narrow.get(`/api/tickets/${ticket.id}`).expect(404);
+      await narrow.post(`/api/tickets/${ticket.id}/replies`).send({ body: 'x' }).expect(404);
+      const wide = await helper('company');
+      expect((await wide.get('/api/tickets?tab=inbox').expect(200)).body.items.map((x: { id: string }) => x.id)).toEqual([ticket.id]);
+      const answered = (await wide.post(`/api/tickets/${ticket.id}/replies`).send({ body: 'من الإدارة' }).expect(201)).body as TicketDto;
+      expect(answered.relations).toContain('desk');
+      expect(answered.isNew).toBe(false);
+      expect((await wide.post(`/api/tickets/${ticket.id}/request-close`).send({}).expect(200)).body.status).toBe('close_requested');
+      const other = await t.factories.signIn(await t.factories.user({ unit: w.org.unitOther, grants: [grant('tickets.reply', 'company')] }));
+      await other.get(`/api/tickets/${ticket.id}`).expect(404); // a department of another company is outside its scope
+    });
+
+    it('sets up and reads the figures of the departments inside the scope of the setup and figures keys', async () => {
+      const w = await world();
+      const company = await t.factories.user({ unit: w.org.unitC, grants: [ADMIN_MODE_GRANT_FOR_SCOPES, grant('tickets.setup_view', 'company'), grant('tickets.figures_view', 'company')] });
+      const agent = await t.factories.signInAdminMode(company);
+      const ids = ((await agent.get('/api/tickets/setup/desks').expect(200)).body as { orgNodeId: string }[]).map((d) => d.orgNodeId);
+      expect(ids).toContain(w.desk); // a department of their company, though they do not manage it
+      expect(ids).not.toContain(w.org.otherDepartment);
+      await agent.get(`/api/tickets/setup/desks/${w.org.otherDepartment}`).expect(404);
+      expect((await agent.get(`/api/tickets/figures?deskId=${w.desk}`).expect(200)).body.scope).toBe('desk');
+      await agent.get(`/api/tickets/figures?deskId=${w.org.otherDepartment}`).expect(404);
     });
   });
 });

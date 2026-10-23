@@ -18,6 +18,7 @@
     "email-log": "E-mail log",
     "tickets": "Tickets",
     "ticket-setup": "Ticket setup",
-    "ticket-figures": "Ticket figures"
+    "ticket-figures": "Ticket figures",
+    "permissions": "Permissions"
   }
 }

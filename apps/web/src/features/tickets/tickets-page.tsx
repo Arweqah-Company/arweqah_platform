@@ -11,14 +11,14 @@ import { NewTicketDialog } from './new-ticket/new-ticket-dialog';
 import { GROUPINGS, groupLabel, toTicketsQuery, useTicketFilterFields } from './tickets-filters';
 import { useTicketColumns } from './tickets-columns';
 
-const TABS: TicketTab[] = ['mine', 'inbox'];
+const TABS: TicketTab[] = ['mine', 'inbox', 'team'];
 
-/** Two tabs: the tickets I sent, and the ones that arrived for me to answer (as assignee or manager). */
-function TabBar({ tab, hasInbox, onChange }: { tab: TicketTab; hasInbox: boolean; onChange: (tab: TicketTab) => void }) {
+/** The tickets I sent; the ones that arrived for me to answer (as assignee, manager, or by my reply scope); and those of the people in my view scope. */
+function TabBar({ tab, offered, onChange }: { tab: TicketTab; offered: Record<TicketTab, boolean>; onChange: (tab: TicketTab) => void }) {
   const { t } = useTranslation('tickets');
   return (
     <div role="tablist" aria-label={t('tabsLabel')} className="mb-4 inline-flex rounded-2xl border border-neutral-200 bg-neutral-50 p-1">
-      {TABS.filter((x) => x === 'mine' || hasInbox).map((x) => (
+      {TABS.filter((x) => offered[x]).map((x) => (
         <button key={x} type="button" role="tab" aria-selected={tab === x} onClick={() => onChange(x)} className={`rounded-xl px-5 py-2 text-sm font-medium transition-colors ${tab === x ? 'bg-white text-link shadow-sm' : 'text-muted hover:text-fg'}`}>
           {t(`tabs.${x}`)}
         </button>
@@ -60,7 +60,7 @@ export function TicketsPage() {
   return (
     <>
       <PageHeader title={t('title')} description={t('description')} actions={<Can permission={CorePermission.TicketsCreate}><Button onClick={() => setCreating(true)}><Plus className="size-4" aria-hidden />{t('newTicket')}</Button></Can>} />
-      <TabBar tab={tab} hasInbox={options.data?.hasInbox ?? false} onChange={switchTab} />
+      <TabBar tab={tab} offered={{ mine: true, inbox: options.data?.hasInbox ?? false, team: options.data?.hasTeam ?? false }} onChange={switchTab} />
       <DataTable<TicketListItemDto>
         listKey="tickets"
         {...table}

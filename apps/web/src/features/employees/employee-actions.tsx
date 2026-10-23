@@ -5,7 +5,7 @@ import { Can } from '@/core/permissions/can';
 import { Badge, Button } from '@/shared/ui';
 
 const P = CorePermission;
-export type EmployeeDialog = 'deactivate' | 'terminate' | 'roles' | 'reset' | null;
+export type EmployeeDialog = 'deactivate' | 'terminate' | 'roles' | 'groups' | 'reset' | null;
 
 interface Props {
   employee: EmployeeDto;
@@ -22,6 +22,7 @@ export function HeaderActions({ employee: e, onDialog, onActivate }: Props) {
     <>
       <Can permission={P.EmployeesUpdate}><Button asChild variant="secondary"><Link to={`/employees/${e.id}/edit`}>{tc('actions.edit')}</Link></Button></Can>
       <Can permission={P.EmployeesAssignRoles}><Button variant="secondary" onClick={() => onDialog('roles')}>{t('actions.roles')}</Button></Can>
+      <Can permission={P.EmployeesAssignGroups}><Button variant="secondary" onClick={() => onDialog('groups')}>{t('actions.groups')}</Button></Can>
       <Can permission={P.EmployeesDeactivate}>
         {e.isActive ? <Button variant="danger" onClick={() => onDialog('deactivate')}>{t('actions.deactivate')}</Button> : <Button onClick={onActivate}>{t('actions.activate')}</Button>}
       </Can>

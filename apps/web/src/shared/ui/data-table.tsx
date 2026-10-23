@@ -61,7 +61,7 @@ const headingBefore = <T,>(rows: T[], index: number, groupOf?: (row: T) => strin
 
 function RowTable<T>({ caption, columns, rows, rowKey, isLoading, groupOf }: RowsProps<T> & { caption: string; isLoading?: boolean }) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-neutral-200">
+    <div className="overflow-x-auto rounded-2xl border border-neutral-200" tabIndex={0} role="region" aria-label={caption}>
       <table className="w-full text-sm">
         <caption className="sr-only">{caption}</caption>
         <thead className="bg-neutral-50 text-muted">

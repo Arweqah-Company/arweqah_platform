@@ -11,6 +11,19 @@ export const CorePermission = {
   RolesUpdate: 'roles.update',
   RolesDelete: 'roles.delete',
   RolesExport: 'roles.export',
+  RoleGroupsView: 'role_groups.view',
+  RoleGroupsCreate: 'role_groups.create',
+  RoleGroupsUpdate: 'role_groups.update',
+  RoleGroupsDelete: 'role_groups.delete',
+  UserGroupsView: 'user_groups.view',
+  UserGroupsCreate: 'user_groups.create',
+  UserGroupsUpdate: 'user_groups.update',
+  UserGroupsDelete: 'user_groups.delete',
+  PermissionsView: 'permissions.view',
+  PermissionsRoleUpdate: 'permissions.role_update',
+  PermissionsRoleGroupUpdate: 'permissions.role_group_update',
+  PermissionsUserUpdate: 'permissions.user_update',
+  PermissionsUserGroupUpdate: 'permissions.user_group_update',
   PagesView: 'pages.view',
   PagesManage: 'pages.manage',
   ListsView: 'lists.view',
@@ -50,6 +63,7 @@ export const CorePermission = {
   EmployeesTerminate: 'employees.terminate',
   EmployeesViewSensitive: 'employees.view_sensitive',
   EmployeesAssignRoles: 'employees.assign_roles',
+  EmployeesAssignGroups: 'employees.assign_groups',
   EmployeesResendInvite: 'employees.resend_invite',
   EmployeesResetAuthenticator: 'employees.reset_authenticator',
   EmployeesExport: 'employees.export',
@@ -69,26 +83,27 @@ export const CorePermission = {
   TicketsTypeUpdate: 'tickets.type_update',
   TicketsTypeDelete: 'tickets.type_delete',
   TicketsFiguresView: 'tickets.figures_view',
-  /** Every department instead of only the ones the person manages (setup and figures). */
-  TicketsAdminister: 'tickets.administer',
 } as const;
 export type CorePermissionKey = (typeof CorePermission)[keyof typeof CorePermission];
 
-/** What every employee holds from the start (the "Employee" role): own account pages and sending and following tickets. */
-export const EMPLOYEE_DEFAULT_PERMISSIONS: CorePermissionKey[] = [
-  CorePermission.ProfileView,
-  CorePermission.ProfileUpdate,
-  CorePermission.SecurityView,
-  CorePermission.NotificationsView,
-  CorePermission.NotificationsMarkRead,
-  CorePermission.TicketsView,
-  CorePermission.TicketsCreate,
-  CorePermission.TicketsReply,
-  CorePermission.TicketsRequestClose,
-  CorePermission.TicketsConfirmClose,
-  CorePermission.TicketsDeclineClose,
-  CorePermission.TicketsCloseWithoutExecution,
-  CorePermission.TicketsReopen,
+/**
+ * What every employee holds from the start (the "Employee" role): own-account pages and sending and following tickets.
+ * Tickets are seen and answered at the narrowest scope ("own": the ones the person sent or handles); wider scopes are given on the permissions page.
+ */
+export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own' | 'all' }[] = [
+  { key: CorePermission.ProfileView, scope: 'all' },
+  { key: CorePermission.ProfileUpdate, scope: 'all' },
+  { key: CorePermission.SecurityView, scope: 'all' },
+  { key: CorePermission.NotificationsView, scope: 'all' },
+  { key: CorePermission.NotificationsMarkRead, scope: 'all' },
+  { key: CorePermission.TicketsView, scope: 'own' },
+  { key: CorePermission.TicketsCreate, scope: 'all' },
+  { key: CorePermission.TicketsReply, scope: 'own' },
+  { key: CorePermission.TicketsRequestClose, scope: 'all' },
+  { key: CorePermission.TicketsConfirmClose, scope: 'all' },
+  { key: CorePermission.TicketsDeclineClose, scope: 'all' },
+  { key: CorePermission.TicketsCloseWithoutExecution, scope: 'all' },
+  { key: CorePermission.TicketsReopen, scope: 'all' },
 ];
 
 /** Groups of keys that belong together (used by seeds and tests, and to give an administrator a whole area at once). */

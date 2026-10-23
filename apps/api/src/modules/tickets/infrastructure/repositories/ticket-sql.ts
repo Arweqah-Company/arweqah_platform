@@ -9,6 +9,7 @@ export const TICKET_SELECT = `
          t.status, t.close_reason AS "closeReason", t.first_response_at AS "firstResponseAt", t.close_requested_at AS "closeRequestedAt",
          t.closed_at AS "closedAt", t.last_activity_at AS "lastActivityAt", t.reopen_count AS "reopenCount", t.stale_notified_at AS "staleNotifiedAt",
          t.revision, t.created_at AS "createdAt", dm.user_id AS "deskManagerUserId",
+         se.org_node_id AS "senderNodeId", se.company_id AS "senderCompanyId", ae.org_node_id AS "assigneeNodeId", ae.company_id AS "assigneeCompanyId", n.company_id AS "deskCompanyId",
          d.stale_after_days AS "deskStaleAfterDays", d.reopen_window_days AS "deskReopenWindowDays", d.auto_close_days AS "deskAutoCloseDays"
   FROM tickets t
   JOIN ticket_types ty ON ty.id = t.type_id
