@@ -1,7 +1,7 @@
 import { execSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { ADMIN_EMAIL, ADMIN_STATE, ADMIN_TOTP_SECRET, AUTH_DIRECTORY, adminTotpUri } from './support/fixtures';
-import { totpFromUri } from './support/totp';
+import { forgetUsedCodes, freshCode } from './support/totp';
 
 const API = 'http://localhost:3100/api';
 const WEB = 'http://localhost:4173';
@@ -16,10 +16,11 @@ export default async function globalSetup(): Promise<void> {
     cwd: '..',
     env: { ...process.env, SEED_ADMIN_EMAIL: ADMIN_EMAIL, SEED_ADMIN_TOTP_SECRET: ADMIN_TOTP_SECRET, SEED_DEMO_ORG: 'true' },
   });
+  forgetUsedCodes();
   const res = await fetch(`${API}/auth/totp/sign-in`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', origin: WEB },
-    body: JSON.stringify({ email: ADMIN_EMAIL, code: totpFromUri(adminTotpUri) }),
+    body: JSON.stringify({ email: ADMIN_EMAIL, code: await freshCode(adminTotpUri) }),
   });
   if (!res.ok) throw new Error(`administrator sign-in failed: ${res.status} ${await res.text()}`);
   const cookies = res.headers.getSetCookie().map((line) => {

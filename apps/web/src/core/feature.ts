@@ -12,6 +12,8 @@ export interface NavItem {
   group?: NavGroupId;
   /** Hidden from users without it (the API enforces it regardless). */
   permission?: string;
+  /** An admin page: shown only while platform admin mode is on (the API enforces it with @RequireAdminMode). */
+  requiresAdminMode?: boolean;
 }
 
 /**

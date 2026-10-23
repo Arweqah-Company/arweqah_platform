@@ -13,7 +13,7 @@ export function AppLayout() {
   const { can } = usePermissions();
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const nav = FEATURES.flatMap((f) => f.nav ?? []).filter((n) => !n.permission || can(n.permission));
+  const nav = FEATURES.flatMap((f) => f.nav ?? []).filter((n) => (!n.permission || can(n.permission)) && (!n.requiresAdminMode || me?.adminMode.active));
 
   return (
     <NavContext.Provider value={nav}>

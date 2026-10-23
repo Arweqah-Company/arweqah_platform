@@ -37,6 +37,7 @@ export function SessionWatcher(): null {
           void client.invalidateQueries({ queryKey: ME_KEY });
           navigate('/login/verify');
         }
+        else if (error.code === 'ADMIN_MODE_REQUIRED') void client.invalidateQueries({ queryKey: ME_KEY });
         else if (error.status === 401) {
           // Someone who was signed in lost the session: say so (401 page). A visitor without a session just signs in.
           const wasSignedIn = !!client.getQueryData(ME_KEY);

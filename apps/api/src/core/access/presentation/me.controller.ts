@@ -15,6 +15,6 @@ export class MeController {
   @Get('me')
   @AllowBeforeMfa()
   me(@Access() ctx: AccessContext, @Req() req: AuthenticatedRequest): Promise<MeDto> {
-    return this.profile.me(ctx, { mfaVerified: !!req.session?.session.mfaVerifiedAt });
+    return this.profile.me(ctx, { mfaVerified: !!req.session?.session.mfaVerifiedAt, sessionId: req.session?.session.id ?? '' });
   }
 }

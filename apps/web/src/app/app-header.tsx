@@ -2,6 +2,7 @@ import { Globe, LogOut, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import type { MeDto } from '@arweqah-platform/shared';
+import { AdminModeToggle } from '@/core/admin-mode/admin-mode-toggle';
 import { setLanguage } from '@/core/i18n';
 import { useSavePreferences } from '@/core/theme/use-save-preferences';
 import { NotificationBell } from '@/features/notifications';
@@ -40,9 +41,10 @@ export function AppHeader({ me, menuOpen, onToggleMenu, onSignOut }: HeaderProps
       <Button variant="ghost" size="icon" className="lg:hidden" aria-label={t('nav.menu')} aria-expanded={menuOpen} onClick={onToggleMenu}>
         <Menu className="size-5" />
       </Button>
-      <BrandLogo layout="horizontal" width={110} className="lg:hidden" />
-      <div className="ms-auto flex items-center gap-2 sm:gap-3">
+      <BrandLogo layout="horizontal" width={96} className="lg:hidden" />
+      <div className="ms-auto flex items-center gap-0.5 sm:gap-3">
         <UserChip me={me} />
+        <AdminModeToggle />
         <NotificationBell />
         <ThemeToggle />
         <Button variant="secondary" size="sm" className="gap-2 border-neutral-500 text-fg max-sm:size-11 max-sm:px-0" aria-label={t('language.switchTo')} onClick={() => { const next = i18n.language === 'ar' ? 'en' : 'ar'; setLanguage(next); save.mutate({ locale: next }); }}>

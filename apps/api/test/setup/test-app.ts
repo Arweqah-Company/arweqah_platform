@@ -8,6 +8,7 @@ import { PermissionCatalog } from '../../src/core/access/application/permission-
 import { MailSender } from '../../src/core/notifications/application/notification-channel';
 import { LookupsSeeder } from '../../src/database/seeds/lookups.seeder';
 import { Factories } from '../factories/factories';
+import { AdminModeProbeController } from '../fakes/admin-mode-probe.controller';
 import { FakeMailSender } from '../fakes/fake-mail-sender';
 
 /** Stand-in for a business module's permission, so scope handling is exercised without one. */
@@ -38,7 +39,7 @@ export function useTestApp(): TestContext {
   const ctx = {} as TestContext;
   beforeAll(async () => {
     ctx.mail = new FakeMailSender();
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+    const moduleRef = await Test.createTestingModule({ imports: [AppModule], controllers: [AdminModeProbeController] })
       .overrideProvider(MailSender)
       .useValue(ctx.mail)
       .compile();

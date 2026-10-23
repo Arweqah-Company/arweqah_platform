@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { totpFromUri } from '../support/totp';
+import { freshCode } from '../support/totp';
 import { BasePage } from './base.page';
 
 /** The two-step sign-in page: the work e-mail first, then the six code boxes. */
@@ -21,8 +21,8 @@ export class LoginPage extends BasePage {
 
   async signIn(email: string, totpUri: string): Promise<void> {
     await this.enterEmail(email);
-    // The setup already used this 30-second step to sign in; a code is accepted once, so use the next step's.
-    await this.enterCode(totpFromUri(totpUri, Date.now() + 30_000));
+    // A code is accepted once: take the next one the server has not seen (waits for the clock when needed).
+    await this.enterCode(await freshCode(totpUri));
     await expect(this.page.getByRole('heading', { level: 1 })).toContainText('أهلًا');
   }
 

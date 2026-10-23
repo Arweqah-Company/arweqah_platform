@@ -68,6 +68,7 @@ Bring employee, project and request management into one secure platform that spe
 | FR-31 | Organization page: choose the company, then see its structure as a chart (company card, one brand color per level with a legend, open / close nodes, open all, search, zoom, fit to screen, drag) or as a table (search, filters on level, status, employees and manager, export); selecting a unit shows its details beside it; the choice of chart or table is remembered | Admin / HR | Must | `apps/web/src/features/org/org-page.test.tsx`, `e2e/tests/org.spec.ts` |
 | FR-32 | Messages are colored by meaning, with an icon and a start rule: success green, information yellow, warning orange, error red | All | Must | `apps/web/src/shared/ui/alert.test.tsx` |
 | FR-33 | Light and dark theme (or follow the device): a toggle in the header and a choice on the profile page, saved in the browser and on the account; and an own profile page where a person changes the language, the theme and three contact details (personal phone, personal e-mail, English name) while the job details stay read-only; everything else belongs to HR | All users | Must | `apps/api/test/profile.e2e-spec.ts`, `apps/web/src/core/theme/theme.test.tsx`, `apps/web/src/features/profile/profile-page.test.tsx`, `e2e/tests/profile.spec.ts` |
+| FR-34 | Platform admin mode: people with an administrative capability (permission `admin_mode.use`, later e.g. a desk manager) work as ordinary employees until they switch the mode on in the header with a **fresh** authenticator code (a code already used is refused without counting as a failed attempt, backup codes are not accepted, wrong codes share the sign-in lock); it is kept on the session, enforced by the API for routes marked `@RequireAdminMode()` (403 `ADMIN_MODE_REQUIRED`), switches itself off after 30 minutes without admin activity and on sign-out, and every switch is audited | Platform manager | Must | `apps/api/test/admin-mode.e2e-spec.ts`, `apps/api/src/core/access/domain/admin-mode.rules.spec.ts`, `apps/web/src/core/admin-mode/admin-mode-toggle.test.tsx`, `e2e/tests/admin-mode.spec.ts` |
 
 Every test suite names the requirement IDs it covers in its `describe(...)` title.
 
@@ -112,6 +113,8 @@ erDiagram
     text token UK
     timestamptz expires_at
     timestamptz mfa_verified_at
+    timestamptz admin_mode_enabled_at
+    timestamptz admin_mode_last_activity_at
   }
   authenticators {
     uuid user_id PK
@@ -445,6 +448,27 @@ sequenceDiagram
   BA-->>W: session marked mfa_verified_at
 ```
 
+### Platform admin mode (FR-34)
+
+```mermaid
+sequenceDiagram
+  actor U as Person with an administrative capability
+  participant W as Web (header switch)
+  participant A as API
+  participant DB as PostgreSQL (auth_sessions)
+  U->>W: press "Platform admin mode"
+  W->>U: ask for a code
+  U->>W: new 6-digit code from the authenticator app
+  W->>A: POST /admin-mode/activate {code}
+  A->>A: eligible? code valid, never used, not locked (backup codes refused)
+  A->>DB: admin_mode_enabled_at = now, last_activity_at = now (this session only)
+  A-->>W: { active: true, expiresAt }
+  U->>W: open an admin page
+  W->>A: GET /... (route marked @RequireAdminMode)
+  A->>DB: still within 30 min of last activity? yes: refresh last_activity_at
+  A-->>W: 200 (otherwise 403 ADMIN_MODE_REQUIRED and the mode is switched off, audited)
+```
+
 ## 9. Stack
 
 | Layer | Technology | Reason / change from team default |
@@ -533,7 +557,7 @@ Requirement traceability: each `describe` title lists the FR/NFR IDs it covers, 
 | Employee (role "Employee") | Sign in with e-mail or Microsoft plus the authenticator code, see and edit own profile (theme, language, personal phone and e-mail, English name), see own notifications, upload own files | See other employees, roles, organization admin, audit or e-mail log unless a role grants it |
 | HR (custom role) | Create and update employees, place them in units, assign the roles they hold, resend activation links | Act outside their scope (gets 404), see salary / ID / IBAN without `employees.view_sensitive`, assign more than they hold, change their own roles |
 | Line manager (custom role) | What the role grants, limited to their unit or subtree | Act outside their scope |
-| System Admin (system role) | Every permission at the widest scope: companies, levels, units, job titles, roles, audit log, e-mail log | Delete system roles; use anything before linking the authenticator |
+| System Admin (system role) | Every permission at the widest scope: companies, levels, units, job titles, roles, audit log, e-mail log, and may switch **platform admin mode** on (`admin_mode.use`) | Delete system roles; use anything before linking the authenticator |
 | Auditor (custom role with `audit.view`) | Read the audit log | See secrets (redacted) |
 | Microsoft Entra ID | Authenticate company accounts (setup: `docs/microsoft-sign-in.md`, check: `npm run microsoft:check`) | Create accounts (sign-up disabled) |
 | Office 365 SMTP / SMS provider | Deliver messages | Read any data beyond the message |

@@ -23,6 +23,7 @@ test.describe('Sign-in and language (FR-01, FR-12, FR-23)', () => {
   });
 
   test('admin signs in with the e-mail and the authenticator code, then signs out', async ({ page }) => {
+    test.setTimeout(90_000); // may wait for the next 30-second code
     const login = new LoginPage(page);
     await login.goto();
     await login.signIn(ADMIN_EMAIL, adminTotpUri);

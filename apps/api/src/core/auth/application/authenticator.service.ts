@@ -26,6 +26,8 @@ export interface EnrollmentStart {
 }
 
 export type CodeResult = 'ok' | 'invalid' | 'locked';
+/** `used`: the code is right but its time step was already accepted (not a failed attempt). */
+export type FreshCodeResult = CodeResult | 'used';
 
 @Injectable()
 export class AuthenticatorService {
@@ -75,6 +77,25 @@ export class AuthenticatorService {
       this.audit(userId, 'auth.code.failed');
       return 'invalid';
     }
+    return 'ok';
+  }
+
+  /**
+   * A fresh code from the app for a sensitive action (platform admin mode): backup codes are not accepted, a time step
+   * that was already used answers `used` without counting as a failure, and wrong codes count toward the same lock as sign-in.
+   */
+  async verifyAppCode(userId: string, code: string): Promise<FreshCodeResult> {
+    const record = await this.repo.find(userId);
+    if (!record?.enabledAt || looksLikeBackupCode(code)) return 'invalid';
+    if (isLocked(record)) return 'locked';
+    const step = matchingStep(this.cipher.decrypt(record.secretEnc), code);
+    if (step === null) {
+      await this.repo.recordFailure(userId, { maxFailures: MAX_FAILURES, lockMs: LOCK_MS });
+      this.audit(userId, 'auth.code.failed');
+      return 'invalid';
+    }
+    if (record.lastUsedStep !== null && step <= record.lastUsedStep) return 'used';
+    await this.repo.recordSuccess(userId, step);
     return 'ok';
   }
 

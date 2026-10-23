@@ -4,9 +4,13 @@ import type { AccessContext } from '../domain/access-context';
 
 export const REQUIRED_PERMISSION = 'required_permission';
 export const ALLOW_BEFORE_MFA = 'allow_before_mfa';
+export const REQUIRE_ADMIN_MODE = 'require_admin_mode';
 
 /** The caller needs this permission at any scope; services narrow by scope. */
 export const RequirePermission = (key: string) => SetMetadata(REQUIRED_PERMISSION, key);
+
+/** The route belongs to the admin pages: it works only while platform admin mode is on in the session. */
+export const RequireAdminMode = () => SetMetadata(REQUIRE_ADMIN_MODE, true);
 
 /** For routes reachable before the one-time code is verified (profile, entering the code, enrolling the app). */
 export const AllowBeforeMfa = () => SetMetadata(ALLOW_BEFORE_MFA, true);

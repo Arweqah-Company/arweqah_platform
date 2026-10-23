@@ -224,5 +224,20 @@
     "required": "This field is required.",
     "minLength": "Enter at least {{min}} characters.",
     "email": "Enter a valid e-mail address."
+  },
+  "adminMode": {
+    "off": "Platform admin mode",
+    "on": "Admin mode on",
+    "turnOn": "Turn on platform admin mode",
+    "turnOff": "Turn off platform admin mode",
+    "dialogTitle": "Turn on platform admin mode",
+    "dialogDescription": "Enter a new code from your authenticator app to see the admin pages.",
+    "codeLabel": "Authenticator app code",
+    "codeHint": "A new code is needed every time, and a code that was already used is refused. The mode stops by itself after 30 minutes without admin activity.",
+    "invalid": "The code is not valid. Try the current code in your app.",
+    "used": "This code was already used. Wait for the next code in your app and enter it.",
+    "locked": "Too many wrong attempts. Try again in a few minutes.",
+    "turnedOn": "Platform admin mode is on.",
+    "expired": "Platform admin mode stopped because of inactivity. Turn it on again when you need it."
   }
 }

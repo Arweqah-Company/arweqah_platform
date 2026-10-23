@@ -1,4 +1,6 @@
 import { createHmac } from 'node:crypto';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 const BASE32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
@@ -13,4 +15,40 @@ export function totpFromUri(uri: string, now = Date.now()): string {
   const hmac = createHmac('sha1', secret).update(counter).digest();
   const offset = (hmac[hmac.length - 1] ?? 0) & 0x0f;
   return ((hmac.readUInt32BE(offset) & 0x7fffffff) % 1_000_000).toString().padStart(6, '0');
+}
+
+const PERIOD_MS = 30_000;
+const MEMORY = join(import.meta.dirname, '..', '.auth', 'last-step.json');
+
+const lastStep = (): number => {
+  try {
+    return (JSON.parse(readFileSync(MEMORY, 'utf8')) as { step: number }).step;
+  } catch {
+    return -1;
+  }
+};
+const remember = (step: number): void => {
+  mkdirSync(join(MEMORY, '..'), { recursive: true });
+  writeFileSync(MEMORY, JSON.stringify({ step }));
+};
+
+/** The test database was reset: no code was used yet. */
+export const forgetUsedCodes = (): void => remember(-1);
+
+/**
+ * A code the server has not seen yet. The server accepts a code once per 30-second step and only steps within one of
+ * the current one, so every spec that signs in or turns admin mode on takes the next unused step from here (kept in a
+ * file, because specs run in separate processes) and waits for the clock when none is left.
+ */
+export async function freshCode(uri: string): Promise<string> {
+  for (;;) {
+    const now = Date.now();
+    const current = Math.floor(now / PERIOD_MS);
+    const step = [current - 1, current, current + 1].find((s) => s > lastStep());
+    if (step !== undefined) {
+      remember(step);
+      return totpFromUri(uri, step * PERIOD_MS + PERIOD_MS / 2);
+    }
+    await new Promise((resolve) => setTimeout(resolve, lastStep() * PERIOD_MS - now + 100));
+  }
 }

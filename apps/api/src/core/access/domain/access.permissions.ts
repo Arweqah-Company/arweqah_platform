@@ -15,4 +15,11 @@ export const ACCESS_PERMISSIONS: PermissionDefinition[] = [
     labelEn: 'Manage roles and permissions',
     scopes: ['all'],
   },
+  {
+    key: CorePermission.AdminModeUse,
+    module: 'access',
+    labelAr: 'استخدام وضع مدير المنصة',
+    labelEn: 'Use platform admin mode',
+    scopes: ['all'],
+  },
 ];

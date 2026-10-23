@@ -11,6 +11,7 @@ export const me = (permissions: MeDto['permissions'] = []): MeDto => ({
   isActive: true,
   authenticatorEnabled: true,
   mfaVerified: true,
+  adminMode: { available: false, active: false, expiresAt: null },
   roles: [],
   placement: { companyId: null, orgNodeId: null, managerId: null },
   createdAt: new Date(0).toISOString(),

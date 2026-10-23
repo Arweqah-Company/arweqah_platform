@@ -4,6 +4,7 @@ import { NotFoundError } from '../../../common/domain/domain-error';
 import { NO_PLACEMENT, type AccessContext } from '../domain/access-context';
 import { ProfileRepository } from '../domain/profile.repository';
 import { AuthenticatorService } from '../../auth/application/authenticator.service';
+import { AdminModeService } from './admin-mode.service';
 import { UserAccessService } from './user-access.service';
 
 /** The signed-in user's own profile (GET /api/me): identity, roles, placement and permissions. */
@@ -13,9 +14,10 @@ export class ProfileService {
     private readonly profiles: ProfileRepository,
     private readonly access: UserAccessService,
     private readonly authenticator: AuthenticatorService,
+    private readonly adminMode: AdminModeService,
   ) {}
 
-  async me(ctx: AccessContext, session: { mfaVerified: boolean }): Promise<MeDto> {
+  async me(ctx: AccessContext, session: { mfaVerified: boolean; sessionId: string }): Promise<MeDto> {
     const user = await this.profiles.findUser(ctx.userId);
     if (!user) throw new NotFoundError('User', ctx.userId);
     const [roles, placements] = await Promise.all([this.access.rolesOf([user.id]), this.access.placementsOf([user.id])]);
@@ -28,6 +30,8 @@ export class ProfileService {
       isActive: user.isActive,
       authenticatorEnabled: await this.authenticator.isEnabled(user.id),
       mfaVerified: session.mfaVerified,
+      // Before the code is verified nothing administrative is on offer.
+      adminMode: session.mfaVerified ? await this.adminMode.status(ctx, session.sessionId) : { available: false, active: false, expiresAt: null },
       roles: (roles.get(user.id) ?? []).map((r) => ({ id: r.id, nameAr: r.nameAr, nameEn: r.nameEn })),
       placement: placements.get(user.id) ?? NO_PLACEMENT,
       createdAt: user.createdAt.toISOString(),

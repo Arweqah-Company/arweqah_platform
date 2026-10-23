@@ -13,6 +13,21 @@ export type PlacementInput = z.infer<typeof placementSchema>;
 export const authCodeSchema = z.strictObject({ code: z.string().trim().min(6).max(12) });
 export type AuthCodeInput = z.infer<typeof authCodeSchema>;
 
+/** A fresh 6-digit code from the authenticator app (backup codes are not accepted here). */
+export const adminModeActivateSchema = z.strictObject({ code: z.string().trim().regex(/^\d{6}$/) });
+export type AdminModeActivateInput = z.infer<typeof adminModeActivateSchema>;
+
+/** Platform admin mode switches off by itself after this many minutes without admin activity. */
+export const ADMIN_MODE_IDLE_MINUTES = 30;
+
+/** Whether the person may use platform admin mode, and whether it is on in this session. */
+export interface AdminModeDto {
+  available: boolean;
+  active: boolean;
+  /** When it switches off if nothing admin-related happens; moves forward with each admin action. */
+  expiresAt: string | null;
+}
+
 /** Sign in with a work e-mail and an authenticator code (no password). */
 export const totpSignInSchema = z.strictObject({ email: z.email().max(254), code: z.string().trim().min(6).max(12) });
 export type TotpSignInInput = z.infer<typeof totpSignInSchema>;
@@ -53,5 +68,6 @@ export interface UserDto {
 export interface MeDto extends UserDto {
   /** The code of the authenticator app was entered for this session; every other route is blocked until then. */
   mfaVerified: boolean;
+  adminMode: AdminModeDto;
   permissions: { key: string; scope: PermissionScope }[];
 }

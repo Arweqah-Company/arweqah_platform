@@ -1,6 +1,8 @@
 import { Global, Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AbilityFactory } from './application/ability.factory';
+import { AdminModeEligibility } from './application/admin-mode-eligibility';
+import { AdminModeService } from './application/admin-mode.service';
 import { AccessContextService } from './application/access-context.service';
 import { ProfileService } from './application/profile.service';
 import { PermissionCatalog } from './application/permission-catalog';
@@ -8,13 +10,16 @@ import { RolesService } from './application/roles.service';
 import { UserAccessService } from './application/user-access.service';
 import { ACCESS_PERMISSIONS } from './domain/access.permissions';
 import { RoleRepository, UserAccessRepository } from './domain/access.repository';
+import { AdminModeRepository } from './domain/admin-mode.repository';
 import { ProfileRepository } from './domain/profile.repository';
 import { User } from '../auth/domain/user.entity';
 import { Role, RolePermission } from './domain/role.entity';
 import { UserRole } from './domain/user-role.entity';
+import { TypeOrmAdminModeRepository } from './infrastructure/typeorm-admin-mode.repository';
 import { TypeOrmProfileRepository } from './infrastructure/typeorm-profile.repository';
 import { TypeOrmRoleRepository } from './infrastructure/typeorm-role.repository';
 import { TypeOrmUserAccessRepository } from './infrastructure/typeorm-user-access.repository';
+import { AdminModeController } from './presentation/admin-mode.controller';
 import { MeController } from './presentation/me.controller';
 import { PermissionsGuard } from './presentation/permissions.guard';
 import { RolesController } from './presentation/roles.controller';
@@ -23,7 +28,7 @@ import { RolesController } from './presentation/roles.controller';
 @Global()
 @Module({
   imports: [TypeOrmModule.forFeature([Role, RolePermission, UserRole, User])],
-  controllers: [RolesController, MeController],
+  controllers: [RolesController, MeController, AdminModeController],
   providers: [
     PermissionCatalog,
     AccessContextService,
@@ -31,12 +36,15 @@ import { RolesController } from './presentation/roles.controller';
     RolesService,
     UserAccessService,
     ProfileService,
+    AdminModeService,
+    AdminModeEligibility,
     PermissionsGuard,
+    { provide: AdminModeRepository, useClass: TypeOrmAdminModeRepository },
     { provide: RoleRepository, useClass: TypeOrmRoleRepository },
     { provide: ProfileRepository, useClass: TypeOrmProfileRepository },
     { provide: UserAccessRepository, useClass: TypeOrmUserAccessRepository },
   ],
-  exports: [PermissionCatalog, AccessContextService, AbilityFactory, PermissionsGuard, UserAccessService],
+  exports: [PermissionCatalog, AccessContextService, AbilityFactory, PermissionsGuard, UserAccessService, AdminModeService, AdminModeEligibility],
 })
 export class AccessModule implements OnModuleInit {
   constructor(private readonly catalog: PermissionCatalog) {}
