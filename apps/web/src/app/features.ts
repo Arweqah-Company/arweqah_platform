@@ -9,6 +9,7 @@ import { homeFeature } from '@/features/home';
 import { profileFeature } from '@/features/profile';
 import { notificationsFeature } from '@/features/notifications';
 import { orgFeature } from '@/features/org';
+import { pageVisibilityFeature } from '@/features/page-visibility';
 import { rolesFeature } from '@/features/roles';
 import { securityFeature } from '@/features/security';
 import { ticketsFeature } from '@/features/tickets';
@@ -22,6 +23,7 @@ export const FEATURES: FeatureModule[] = [
   companiesFeature,
   ticketsFeature,
   rolesFeature,
+  pageVisibilityFeature,
   auditFeature,
   emailLogFeature,
   notificationsFeature,

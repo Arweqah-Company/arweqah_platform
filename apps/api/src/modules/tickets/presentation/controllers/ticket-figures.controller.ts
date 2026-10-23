@@ -2,7 +2,7 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { TicketFiguresDto } from '@arweqah-platform/shared';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
-import { Access, RequireAdminMode } from '../../../../core/access/presentation/require-permission.decorator';
+import { Access, HiddenWithPage, RequireAdminMode } from '../../../../core/access/presentation/require-permission.decorator';
 import { TicketFiguresService } from '../../application/services/ticket-figures.service';
 import { FiguresQueryDto } from '../dtos/tickets.dtos';
 
@@ -10,6 +10,7 @@ import { FiguresQueryDto } from '../dtos/tickets.dtos';
 @ApiTags('tickets')
 @Controller('tickets/figures')
 @RequireAdminMode()
+@HiddenWithPage('ticket-figures')
 export class TicketFiguresController {
   constructor(private readonly figures: TicketFiguresService) {}
 

@@ -67,9 +67,14 @@ test.describe('Light and dark theme, and the own profile (FR-33)', () => {
     await expect.poll(async () => (await (await page.request.get('/api/me')).json()).locale).toBe('en');
   });
 
-  test('the avatar in the header opens the profile', async ({ page }) => {
+  test('the name in the header opens the account menu: profile, notifications, security, sign-out', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: 'الملف الشخصي' }).first().click();
+    await expect(page.locator('aside').getByRole('link', { name: 'الأمان' })).toHaveCount(0); // no longer in the sidebar
+    await page.getByRole('button', { name: 'حسابي' }).click();
+    await expect(page.getByRole('menuitem', { name: 'الإشعارات' })).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: 'تسجيل الخروج' })).toBeVisible();
+    await new Page(page).expectNoSeriousA11yIssues();
+    await page.getByRole('menuitem', { name: 'الملف الشخصي' }).click();
     await expect(page).toHaveURL(/\/profile$/);
   });
 });

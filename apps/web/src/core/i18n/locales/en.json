@@ -24,6 +24,7 @@
     "profile": "Profile",
     "tickets": "Tickets",
     "ticketSetup": "Ticket setup",
+    "pageVisibility": "Page visibility",
     "ticketFigures": "Ticket performance"
   },
   "actions": {
@@ -77,6 +78,8 @@
     "COMPANY_IN_USE": "Move the company's employees and units first, then delete it.",
     "ORG_NODE_IN_USE": "Move its sub-units and employees first, then delete.",
     "ORG_NODE_HAS_TICKETS": "A department whose ticket desk receives tickets, or that has open tickets, cannot be moved or deleted.",
+    "PAGE_HIDDEN": "This page is not available to your role.",
+    "ROLE_PAGES_LOCKED": "Pages cannot be hidden from a role that manages page visibility.",
     "LAST_JOB_TITLE": "A unit that accepts employees needs at least one job title.",
     "JOB_TITLE_IN_USE": "Move the employees with this job title first.",
     "ORG_IMPACT_CHANGED": "The affected data changed. Review the new impact and confirm again.",

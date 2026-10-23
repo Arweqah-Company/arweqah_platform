@@ -7,6 +7,6 @@ import en from './i18n/en.json';
 export const auditFeature: FeatureModule = {
   id: 'audit',
   routes: [{ path: '/audit', lazy: () => import('./audit-page').then((m) => ({ Component: m.AuditPage })) }],
-  nav: [{ to: '/audit', labelKey: 'nav.audit', icon: ScrollText, group: 'administration', permission: CorePermission.AuditView, requiresAdminMode: true }],
+  nav: [{ to: '/audit', labelKey: 'nav.audit', icon: ScrollText, group: 'administration', permission: CorePermission.AuditView, requiresAdminMode: true, pageKey: 'audit' }],
   i18n: { ar, en },
 };

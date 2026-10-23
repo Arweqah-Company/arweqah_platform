@@ -1,39 +1,24 @@
 import { Globe, LogOut, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
 import type { MeDto } from '@arweqah-platform/shared';
+import type { NavItem } from '@/core/feature';
 import { AdminModeToggle } from '@/core/admin-mode/admin-mode-toggle';
 import { setLanguage } from '@/core/i18n';
 import { useSavePreferences } from '@/core/theme/use-save-preferences';
 import { NotificationBell } from '@/features/notifications';
 import { BrandLogo, Button, ThemeToggle } from '@/shared/ui';
-
-function UserChip({ me }: { me: MeDto | undefined }) {
-  const { t, i18n } = useTranslation();
-  const role = me?.roles[0];
-  return (
-    <Link to="/profile" aria-label={t('nav.profile')} className="flex items-center gap-3 rounded-xl ps-2 transition-colors hover:bg-neutral-50">
-      <div className="hidden text-end leading-tight sm:block">
-        <p className="text-sm font-medium">{me?.name}</p>
-        {role && <p className="text-xs text-muted">{i18n.language === 'ar' ? role.nameAr : role.nameEn}</p>}
-      </div>
-      <span className="relative grid size-10 place-items-center rounded-full bg-petrol-800 text-sm font-bold text-cream" aria-hidden>
-        {me?.name.trim().charAt(0).toUpperCase()}
-        <span className="absolute bottom-0 end-0 size-3 rounded-full border-2 border-white bg-green-400" />
-      </span>
-    </Link>
-  );
-}
+import { AccountMenu } from './account-menu';
 
 interface HeaderProps {
   me: MeDto | undefined;
+  accountItems: NavItem[];
   menuOpen: boolean;
   onToggleMenu: () => void;
   onSignOut: () => void;
 }
 
-/** Floating rounded bar: menu button (phone), language, notifications, the signed-in person, sign-out. */
-export function AppHeader({ me, menuOpen, onToggleMenu, onSignOut }: HeaderProps) {
+/** Floating rounded bar: menu button (phone), language, notifications, the signed-in person with the account menu, sign-out. */
+export function AppHeader({ me, accountItems, menuOpen, onToggleMenu, onSignOut }: HeaderProps) {
   const { t, i18n } = useTranslation();
   const save = useSavePreferences();
   return (
@@ -43,7 +28,7 @@ export function AppHeader({ me, menuOpen, onToggleMenu, onSignOut }: HeaderProps
       </Button>
       <BrandLogo layout="horizontal" width={96} className="lg:hidden" />
       <div className="ms-auto flex items-center gap-0.5 sm:gap-3">
-        <UserChip me={me} />
+        <AccountMenu me={me} items={accountItems} onSignOut={onSignOut} />
         <AdminModeToggle />
         <NotificationBell />
         <ThemeToggle />

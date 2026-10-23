@@ -1,3 +1,4 @@
+import type { HideablePage } from '../pages/schemas';
 import { z } from 'zod';
 import type { PermissionScope } from '../permissions/scope';
 
@@ -70,4 +71,6 @@ export interface MeDto extends UserDto {
   mfaVerified: boolean;
   adminMode: AdminModeDto;
   permissions: { key: string; scope: PermissionScope }[];
+  /** Pages hidden from every role of this person (the menu leaves them out and the API refuses them). */
+  hiddenPages: HideablePage[];
 }

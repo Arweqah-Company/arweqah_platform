@@ -14,7 +14,7 @@ import { CurrentUser } from '../../../../common/presentation/current-user.decora
 import type { SessionUser } from '../../../../common/presentation/request-context';
 import { IdParam } from '../../../../common/presentation/zod-query';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
-import { Access, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
+import { Access, HiddenWithPage, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
 import { EmployeesService } from '../../application/services/employees.service';
 import { AssignRolesDto, CreateEmployeeDto, EmployeesQueryDto, ManagerSearchDto, TerminateEmployeeDto, UpdateEmployeeDto } from '../dtos/employee.dtos';
 
@@ -23,6 +23,7 @@ const P = CorePermission;
 
 @ApiTags('employees')
 @Controller('employees')
+@HiddenWithPage('employees')
 export class EmployeesController {
   constructor(private readonly employees: EmployeesService) {}
 

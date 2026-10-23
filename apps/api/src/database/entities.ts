@@ -1,4 +1,5 @@
 import { Role, RolePermission } from '../core/access/domain/role.entity';
+import { PageVisibilityRule } from '../core/access/domain/page-visibility-rule.entity';
 import { UserRole } from '../core/access/domain/user-role.entity';
 import { AuditLog } from '../core/audit/domain/audit-log.entity';
 import { Authenticator, AuthenticatorBackupCode, EnrollmentInvite } from '../core/auth/domain/authenticator.entities';
@@ -27,6 +28,7 @@ export const ENTITIES = [
   Role,
   RolePermission,
   UserRole,
+  PageVisibilityRule,
   AuditLog,
   StoredFile,
   OutboxMessage,

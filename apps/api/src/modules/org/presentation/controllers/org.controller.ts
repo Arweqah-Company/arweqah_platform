@@ -11,7 +11,7 @@ import { CurrentUser } from '../../../../common/presentation/current-user.decora
 import type { SessionUser } from '../../../../common/presentation/request-context';
 import { IdParam } from '../../../../common/presentation/zod-query';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
-import { Access, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
+import { Access, HiddenWithPage, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
 import { assertCompanyAccess, ORG_MANAGE, ORG_VIEW } from '../../application/policies/org-access.policy';
 import { OrgLevelsService } from '../../application/services/org-levels.service';
 import { OrgNodesService } from '../../application/services/org-nodes.service';
@@ -20,6 +20,7 @@ import { AddTitlesBody, CopyLevelsBody, CreateNodeBody, MoveNodeBody, PreviewLev
 
 @ApiTags('org')
 @Controller('org')
+@HiddenWithPage('org')
 export class OrgController {
   constructor(
     private readonly levels: OrgLevelsService,

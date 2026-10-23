@@ -14,6 +14,6 @@ export const employeesFeature: FeatureModule = {
     { path: '/employees/:id', lazy: () => import('./employee-details-page').then((m) => ({ Component: m.EmployeeDetailsPage })) },
     { path: '/employees/:id/edit', lazy: () => import('./employee-form-page').then((m) => ({ Component: m.EmployeeFormPage })) },
   ],
-  nav: [{ to: '/employees', labelKey: 'nav.employees', icon: Users, group: 'people', permission: CorePermission.EmployeesView }],
+  nav: [{ to: '/employees', labelKey: 'nav.employees', icon: Users, group: 'people', permission: CorePermission.EmployeesView, pageKey: 'employees' }],
   i18n: { ar, en },
 };

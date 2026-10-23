@@ -22,4 +22,11 @@ export const ACCESS_PERMISSIONS: PermissionDefinition[] = [
     labelEn: 'Use platform admin mode',
     scopes: ['all'],
   },
+  {
+    key: CorePermission.PagesManage,
+    module: 'access',
+    labelAr: 'إدارة ظهور الصفحات',
+    labelEn: 'Manage page visibility',
+    scopes: ['all'],
+  },
 ];

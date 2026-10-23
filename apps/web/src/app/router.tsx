@@ -14,11 +14,11 @@ function Root() {
   );
 }
 
-/** A route inherits the permission and the admin-mode need of the navigation item that points at it. */
+/** A route inherits the permission and the admin-mode need and the page key of the navigation item that points at it. */
 const navByPath = new Map(FEATURES.flatMap((f) => f.nav ?? []).map((n) => [n.to, n]));
 const withPermission = (route: RouteObject): RouteObject => {
   const nav = route.path ? navByPath.get(`/${route.path.replace(/^\//, '')}`) : undefined;
-  const handle = { ...(nav?.permission && { permission: nav.permission }), ...(nav?.requiresAdminMode && { adminMode: true }) };
+  const handle = { ...(nav?.permission && { permission: nav.permission }), ...(nav?.requiresAdminMode && { adminMode: true }), ...(nav?.pageKey && { pageKey: nav.pageKey }) };
   return Object.keys(handle).length ? { ...route, handle } : route;
 };
 

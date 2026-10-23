@@ -5,6 +5,7 @@ import type { TicketCatalogDto, TicketDto, TicketFilterOptionsDto, TicketsPageDt
 import { CurrentUser } from '../../../../common/presentation/current-user.decorator';
 import type { SessionUser } from '../../../../common/presentation/request-context';
 import { IdParam } from '../../../../common/presentation/zod-query';
+import { HiddenWithPage } from '../../../../core/access/presentation/require-permission.decorator';
 import { TicketCatalogService } from '../../application/services/ticket-catalog.service';
 import { TicketLifecycleService, type PersonAction } from '../../application/services/ticket-lifecycle.service';
 import { TicketsService } from '../../application/services/tickets.service';
@@ -16,6 +17,7 @@ import { AttachmentParam, CreateTicketBody, TicketActionBody, TicketReplyBody, T
  */
 @ApiTags('tickets')
 @Controller('tickets')
+@HiddenWithPage('tickets')
 export class TicketsController {
   constructor(
     private readonly tickets: TicketsService,

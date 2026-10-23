@@ -1,0 +1,23 @@
+{
+  "title": "Page visibility",
+  "description": "Choose the pages each role sees. A hidden page leaves the menu and cannot be opened.",
+  "role": "Role",
+  "roleHint": "A page is hidden from a person only if all of their roles hide it.",
+  "loading": "Loading…",
+  "none": "There are no roles.",
+  "pagesTitle": "Pages",
+  "pagesIntro": "Tick the pages this role sees and clear the ones you want to hide.",
+  "locked": "This role manages page visibility, so it always sees every page.",
+  "saved": "Page visibility saved.",
+  "page": {
+    "employees": "Employees",
+    "org": "Organization structure",
+    "companies": "Companies",
+    "roles": "Roles and permissions",
+    "audit": "Audit log",
+    "email-log": "E-mail log",
+    "tickets": "Tickets",
+    "ticket-setup": "Ticket setup",
+    "ticket-figures": "Ticket figures"
+  }
+}

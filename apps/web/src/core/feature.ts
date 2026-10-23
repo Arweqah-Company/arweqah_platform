@@ -1,3 +1,4 @@
+import type { HideablePage } from '@arweqah-platform/shared';
 import type { LucideIcon } from 'lucide-react';
 import type { RouteObject } from 'react-router';
 
@@ -16,6 +17,8 @@ export interface NavItem {
   end?: boolean;
   /** An admin page: shown only while platform admin mode is on (the API enforces it with @RequireAdminMode). */
   requiresAdminMode?: boolean;
+  /** The page can be hidden from roles by an administrator (the API refuses it too, see HIDEABLE_PAGES). */
+  pageKey?: HideablePage;
 }
 
 /**

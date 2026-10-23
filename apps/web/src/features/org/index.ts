@@ -7,6 +7,6 @@ import en from './i18n/en.json';
 export const orgFeature: FeatureModule = {
   id: 'org',
   routes: [{ path: '/org', lazy: () => import('./org-page').then((m) => ({ Component: m.OrgPage })) }],
-  nav: [{ to: '/org', labelKey: 'nav.org', icon: Network, group: 'people', permission: CorePermission.OrgView }],
+  nav: [{ to: '/org', labelKey: 'nav.org', icon: Network, group: 'people', permission: CorePermission.OrgView, pageKey: 'org' }],
   i18n: { ar, en },
 };

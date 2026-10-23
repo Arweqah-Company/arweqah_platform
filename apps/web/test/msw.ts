@@ -16,6 +16,7 @@ export const me = (permissions: MeDto['permissions'] = []): MeDto => ({
   placement: { companyId: null, orgNodeId: null, managerId: null },
   createdAt: new Date(0).toISOString(),
   permissions,
+  hiddenPages: [],
 });
 
 export const catalog: PermissionCatalogGroup[] = [

@@ -8,7 +8,7 @@ test.use({ storageState: ADMIN_STATE });
 
 const limitedMe = {
   id: 'u1', name: 'موظف', email: 'e@arweqah.sa', locale: 'ar', isActive: true, authenticatorEnabled: true, mfaVerified: true, adminMode: { available: false, active: false, expiresAt: null }, roles: [],
-  placement: { companyId: null, orgNodeId: null, managerId: null }, permissions: [], createdAt: new Date().toISOString(),
+  placement: { companyId: null, orgNodeId: null, managerId: null }, permissions: [], hiddenPages: [], createdAt: new Date().toISOString(),
 };
 
 test.afterEach(async ({ page }) => adminModeOffViaApi(page));

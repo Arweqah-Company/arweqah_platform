@@ -13,9 +13,9 @@ export const ticketsFeature: FeatureModule = {
   ],
   // Every employee sends tickets; the two admin pages appear only while platform admin mode is on.
   nav: [
-    { to: '/tickets', labelKey: 'nav.tickets', icon: LifeBuoy, group: 'tickets', end: true },
-    { to: '/tickets/setup', labelKey: 'nav.ticketSetup', icon: SlidersHorizontal, group: 'tickets', requiresAdminMode: true },
-    { to: '/tickets/figures', labelKey: 'nav.ticketFigures', icon: BarChart3, group: 'tickets', requiresAdminMode: true },
+    { to: '/tickets', labelKey: 'nav.tickets', icon: LifeBuoy, group: 'tickets', end: true, pageKey: 'tickets' },
+    { to: '/tickets/setup', labelKey: 'nav.ticketSetup', icon: SlidersHorizontal, group: 'tickets', requiresAdminMode: true, pageKey: 'ticket-setup' },
+    { to: '/tickets/figures', labelKey: 'nav.ticketFigures', icon: BarChart3, group: 'tickets', requiresAdminMode: true, pageKey: 'ticket-figures' },
   ],
   i18n: { ar, en },
 };

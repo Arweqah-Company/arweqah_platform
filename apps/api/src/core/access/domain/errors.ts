@@ -52,3 +52,19 @@ export class CodeAlreadyUsedError extends BusinessRuleError {
     super('This code was already used. Wait for the next code in your app');
   }
 }
+
+/** The page is hidden from every role of the caller (see the "Page visibility" admin page). */
+export class PageHiddenError extends ForbiddenError {
+  override readonly code = 'PAGE_HIDDEN';
+  constructor() {
+    super('This page is not available to your role');
+  }
+}
+
+/** A role that manages pages sees every page, so nothing can be hidden from it. */
+export class RolePagesLockedError extends BusinessRuleError {
+  override readonly code = 'ROLE_PAGES_LOCKED';
+  constructor() {
+    super('Pages cannot be hidden from a role that manages page visibility');
+  }
+}

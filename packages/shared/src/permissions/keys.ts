@@ -3,6 +3,7 @@ export const CorePermission = {
   RolesView: 'roles.view',
   RolesManage: 'roles.manage',
   AdminModeUse: 'admin_mode.use',
+  PagesManage: 'pages.manage',
   TicketsAdminister: 'tickets.administer',
   AuditView: 'audit.view',
   EmailLogView: 'notifications.email_log',

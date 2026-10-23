@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/
 import { ApiTags } from '@nestjs/swagger';
 import type { PersonRefDto, TicketDeskDto, TicketTypeDto } from '@arweqah-platform/shared';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
-import { Access, RequireAdminMode } from '../../../../core/access/presentation/require-permission.decorator';
+import { Access, HiddenWithPage, RequireAdminMode } from '../../../../core/access/presentation/require-permission.decorator';
 import { TicketSetupService } from '../../application/services/ticket-setup.service';
 import { AssigneeSearchDto, DeskParam, DeskSettingsBody, TicketTypeBody, TypeParam } from '../dtos/tickets.dtos';
 
@@ -14,6 +14,7 @@ import { AssigneeSearchDto, DeskParam, DeskSettingsBody, TicketTypeBody, TypePar
 @ApiTags('tickets')
 @Controller('tickets/setup')
 @RequireAdminMode()
+@HiddenWithPage('ticket-setup')
 export class TicketSetupController {
   constructor(private readonly setup: TicketSetupService) {}
 

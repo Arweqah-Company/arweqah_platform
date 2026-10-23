@@ -5,6 +5,7 @@ import { NO_PLACEMENT, type AccessContext } from '../domain/access-context';
 import { ProfileRepository } from '../domain/profile.repository';
 import { AuthenticatorService } from '../../auth/application/authenticator.service';
 import { AdminModeService } from './admin-mode.service';
+import { PageVisibilityService } from './page-visibility.service';
 import { UserAccessService } from './user-access.service';
 
 /** The signed-in user's own profile (GET /api/me): identity, roles, placement and permissions. */
@@ -15,6 +16,7 @@ export class ProfileService {
     private readonly access: UserAccessService,
     private readonly authenticator: AuthenticatorService,
     private readonly adminMode: AdminModeService,
+    private readonly pages: PageVisibilityService,
   ) {}
 
   async me(ctx: AccessContext, session: { mfaVerified: boolean; sessionId: string }): Promise<MeDto> {
@@ -36,6 +38,7 @@ export class ProfileService {
       placement: placements.get(user.id) ?? NO_PLACEMENT,
       createdAt: user.createdAt.toISOString(),
       permissions: ctx.grants(),
+      hiddenPages: await this.pages.hiddenFor(ctx),
     };
   }
 }
