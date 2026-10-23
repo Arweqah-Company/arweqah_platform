@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
+import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { Alert, Button, Combobox, Dialog, FormField } from '@/shared/ui';
 import { useMoveNode } from './api';
 
@@ -19,7 +20,9 @@ export function MoveDialog({ tree, node, open, onOpenChange }: Props) {
   const { t: tc } = useTranslation();
   const ar = i18n.language === 'ar';
   const move = useMoveNode(node.id);
+  const rules = useRules();
   const [parentId, setParentId] = useState<string | null>(node.parentId);
+  const parent = useLiveError(parentId, rules.required);
   const levelIndex = tree.levels.findIndex((l) => l.id === node.levelId);
   const above = tree.levels[levelIndex - 1];
   const options = tree.nodes.filter((n) => n.levelId === above?.id && n.isActive).map((n) => ({ value: n.id, label: ar ? n.pathAr : n.pathEn }));
@@ -38,7 +41,7 @@ export function MoveDialog({ tree, node, open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange} title={t('move.title')} description={t('move.description')}>
       <div className="flex flex-col gap-4">
         {move.isError && <Alert>{errorMessage(tc, move.error)}</Alert>}
-        <FormField label={`${t('move.newParent')} *`}>{(p) => <Combobox id={p.id} label={t('move.newParent')} value={parentId} options={options} onChange={setParentId} />}</FormField>
+        <FormField label={`${t('move.newParent')} *`} error={parent.error}>{(p) => <Combobox id={p.id} label={t('move.newParent')} value={parentId} options={options} onChange={setParentId} />}</FormField>
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={() => onOpenChange(false)}>{tc('actions.cancel')}</Button>
           <Button disabled={!parentId || parentId === node.parentId || move.isPending} onClick={() => void submit()}>{t('move.confirm')}</Button>

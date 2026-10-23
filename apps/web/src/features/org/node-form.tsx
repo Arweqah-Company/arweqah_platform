@@ -1,6 +1,7 @@
 import type { OrgNodeDto, OrgTreeDto } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/lib/error-message';
+import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { Alert, Button, Combobox, Dialog, FormField, Input, Select } from '@/shared/ui';
 import { JobTitleRows } from './job-title-rows';
 import { useNodeForm, type NodeFormState } from './use-node-form';
@@ -16,6 +17,8 @@ interface Props {
 
 function PlacementFields({ tree, f }: { tree: OrgTreeDto; f: NodeFormState }) {
   const { t, i18n } = useTranslation('org');
+  const rules = useRules();
+  const parent = useLiveError(f.parentId, rules.required);
   const ar = i18n.language === 'ar';
   return (
     <>
@@ -27,7 +30,7 @@ function PlacementFields({ tree, f }: { tree: OrgTreeDto; f: NodeFormState }) {
         )}
       </FormField>
       {f.levelIndex > 0 && (
-        <FormField label={`${t('node.parent', { level: ar ? f.parentLevel?.nameAr : f.parentLevel?.nameEn })} *`}>
+        <FormField label={`${t('node.parent', { level: ar ? f.parentLevel?.nameAr : f.parentLevel?.nameEn })} *`} error={parent.error}>
           {(p) => <Combobox id={p.id} label={t('node.parentLabel')} value={f.parentId} options={f.parentOptions} onChange={f.setParentId} />}
         </FormField>
       )}
@@ -37,11 +40,14 @@ function PlacementFields({ tree, f }: { tree: OrgTreeDto; f: NodeFormState }) {
 
 function DetailsFields({ f, editing }: { f: NodeFormState; editing: boolean }) {
   const { t } = useTranslation('org');
+  const rules = useRules();
+  const nameAr = useLiveError(f.names.nameAr, rules.text(2));
+  const nameEn = useLiveError(f.names.nameEn, rules.text(2));
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label={`${t('node.nameAr')} *`}>{(p) => <Input {...p} value={f.names.nameAr} onChange={(e) => f.setNames({ ...f.names, nameAr: e.target.value })} />}</FormField>
-        <FormField label={`${t('node.nameEn')} *`}>{(p) => <Input {...p} dir="ltr" value={f.names.nameEn} onChange={(e) => f.setNames({ ...f.names, nameEn: e.target.value })} />}</FormField>
+        <FormField label={`${t('node.nameAr')} *`} error={nameAr.error}>{(p) => <Input {...p} onBlur={nameAr.onBlur} value={f.names.nameAr} onChange={(e) => f.setNames({ ...f.names, nameAr: e.target.value })} />}</FormField>
+        <FormField label={`${t('node.nameEn')} *`} error={nameEn.error}>{(p) => <Input {...p} dir="ltr" onBlur={nameEn.onBlur} value={f.names.nameEn} onChange={(e) => f.setNames({ ...f.names, nameEn: e.target.value })} />}</FormField>
       </div>
       <FormField label={t('node.manager')} hint={t('node.managerHint')}>
         {(p) => <Combobox id={p.id} label={t('node.manager')} value={f.managerId} options={f.managerOptions} onSearch={f.setSearch} onChange={f.setManagerId} clearable />}

@@ -1,13 +1,35 @@
 import type { JobTitleInput } from '@arweqah-platform/shared';
 import { Plus, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button, Input } from '@/shared/ui';
+import { useLiveError, useRules } from '@/shared/lib/live-validation';
+import { Button, FormField, Input } from '@/shared/ui';
 
 interface Props {
   rows: JobTitleInput[];
   onChange: (rows: JobTitleInput[]) => void;
   /** At least one title is mandatory: the last row cannot be removed. */
   minimum?: number;
+}
+
+interface RowProps {
+  row: JobTitleInput;
+  canRemove: boolean;
+  onPatch: (change: Partial<JobTitleInput>) => void;
+  onRemove: () => void;
+}
+
+function TitleRow({ row, canRemove, onPatch, onRemove }: RowProps) {
+  const { t } = useTranslation('org');
+  const rules = useRules();
+  const nameAr = useLiveError(row.nameAr, rules.text(2));
+  const nameEn = useLiveError(row.nameEn, rules.text(2));
+  return (
+    <div className="grid grid-cols-[1fr_1fr_auto] items-start gap-2">
+      <FormField label={t('titles.nameAr')} error={nameAr.error}>{(p) => <Input {...p} onBlur={nameAr.onBlur} value={row.nameAr} onChange={(e) => onPatch({ nameAr: e.target.value })} />}</FormField>
+      <FormField label={t('titles.nameEn')} error={nameEn.error}>{(p) => <Input {...p} dir="ltr" onBlur={nameEn.onBlur} value={row.nameEn} onChange={(e) => onPatch({ nameEn: e.target.value })} />}</FormField>
+      <Button size="icon" variant="ghost" className="mt-7" aria-label={t('titles.remove')} disabled={!canRemove} onClick={onRemove}><X className="size-4" /></Button>
+    </div>
+  );
 }
 
 /** Repeating Arabic/English name rows for job titles. */
@@ -17,11 +39,7 @@ export function JobTitleRows({ rows, onChange, minimum = 0 }: Props) {
   return (
     <div className="flex flex-col gap-3">
       {rows.map((row, index) => (
-        <div key={index} className="grid grid-cols-[1fr_1fr_auto] items-end gap-2">
-          <label className="text-xs">{t('titles.nameAr')}<Input value={row.nameAr} onChange={(e) => patch(index, { nameAr: e.target.value })} /></label>
-          <label className="text-xs">{t('titles.nameEn')}<Input dir="ltr" value={row.nameEn} onChange={(e) => patch(index, { nameEn: e.target.value })} /></label>
-          <Button size="icon" variant="ghost" aria-label={t('titles.remove')} disabled={rows.length <= minimum} onClick={() => onChange(rows.filter((_, i) => i !== index))}><X className="size-4" /></Button>
-        </div>
+        <TitleRow key={index} row={row} canRemove={rows.length > minimum} onPatch={(change) => patch(index, change)} onRemove={() => onChange(rows.filter((_, i) => i !== index))} />
       ))}
       <Button variant="secondary" size="sm" className="self-start" onClick={() => onChange([...rows, { nameAr: '', nameEn: '' }])}><Plus className="size-4" />{t('titles.add')}</Button>
     </div>

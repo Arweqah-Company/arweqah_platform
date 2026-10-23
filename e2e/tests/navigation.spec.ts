@@ -21,6 +21,18 @@ test.describe('Sidebar menus and the 401, 403, 404 pages (FR-30)', () => {
     await expect(page.getByRole('navigation', { name: 'مسار التنقل' })).toBeVisible();
   });
 
+  test('the sidebar stays in place while a long page scrolls (desktop)', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'on a phone the sidebar is a drawer');
+    await page.goto('/employees/new');
+    const aside = page.locator('aside');
+    await expect(aside).toBeVisible();
+    const before = await aside.boundingBox();
+    await page.mouse.wheel(0, 900);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(500);
+    const after = await aside.boundingBox();
+    expect(after?.y).toBe(before?.y);
+  });
+
   test('404: an unknown address shows the not-found page with a way back', async ({ page }) => {
     await page.goto('/nowhere');
     await expect(page.getByRole('heading', { level: 1, name: 'نأسف على إبلاغك بأن هذه الصفحة غير موجودة' })).toBeVisible();

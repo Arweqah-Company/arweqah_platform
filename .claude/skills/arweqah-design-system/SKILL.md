@@ -109,6 +109,7 @@ Rules (checked on real renders):
 ## Components (`shared/ui`)
 `Button` (primary/secondary/danger/ghost/soft/tint; sizes md/sm/icon) · `Alert` · `Badge` · `DataTable` (always pass `error`) · `Dialog` (Radix) · `FormField` (label, hint, error) · `PageHeader` · `SearchInput` · `ListToolbar` (+ `FilterField`) · `ExchangeButtons` / `ExportDialog` / `ImportDialog` (`shared/data-exchange`). Planned for the employees phase: `Combobox` (select with search), `TreeView`, `DateField`, `PhoneField`, `SectionCard`, `StatTile`, `EmptyState`, `ConfirmDialog`.
 - One primary button per view. Destructive actions use `danger` and a `ConfirmDialog`; irreversible bulk actions require typing the count.
+- **Validation talks while the person works:** every field shows its error as soon as they type in it or leave it (never only after pressing save, and never on a field nobody touched). Use `useLiveError` + `useRules` from `shared/lib/live-validation` (react-hook-form forms use `mode: 'all'`); put inputs in their own component so "touched" starts fresh each time a dialog opens; the same rule function feeds the error text and the save button.
 - Forms: label above field, `*` for required plus `aria-required`, error text under the field (not color only), hint under the label, sections in `SectionCard`, sticky save bar. Hidden conditional fields are cleared.
 - Selects with more than ~8 options use `Combobox` with search.
 
@@ -137,7 +138,7 @@ One `ErrorPage` (`shared/ui`) for all three: white panel, the heading (what happ
 - **Sign-in (`AuthShell`):** centered `cream` card on the `ink` screen; Microsoft button first, then the work e-mail, then the 6-box code step. Generic error text. Language button on top.
 - **Home:** greeting, stat tiles (permission-scoped), recent activity, shortcuts.
 - **List (every table page):** `PageHeader` (breadcrumb + title + primary action) → one rounded `DataTable` panel whose top bar is `ListToolbar`: `SearchInput`, the **filter panel** (a `FilterField` per attribute: `select`, `text`, `date`, `toggle`; the button shows the count; applied filters appear as removable chips) and the **table / cards switch** (`useViewMode(key)`, remembered per list, phones start with cards) → rows → footer with rows-per-page, numbered pages and the result range. A list is not done until every filterable attribute has a filter. Server-side lists send the values as query params (`useFilters`), small lists filter in the browser (`matchesText`).
-- **Form page:** section navigation on the side, sections as cards, sticky bar `[Cancel] [Save]`.
+- **Form page:** a sticky section menu on the start side (a small panel; the section being read is highlighted with the primary color and `aria-current="location"`, through `useActiveSection`), sections as cards, and a floating save bar styled like the header (`sticky bottom`, rounded, inside the content column, never under the sidebar).
 - **Tree + detail:** tree on the start side, details panel on the end side.
 
 ## Accessibility checklist

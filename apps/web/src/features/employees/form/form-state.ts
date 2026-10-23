@@ -1,4 +1,4 @@
-import { createEmployeeSchema, type CreateEmployeeInput, type EmployeeDto } from '@arweqah-platform/shared';
+import { createEmployeeSchema, idNumberProblem, type CreateEmployeeInput, type EmployeeDto, type IdTypeLookupDto } from '@arweqah-platform/shared';
 import type { FieldErrors, Resolver } from 'react-hook-form';
 
 /** What the inputs hold: strings (empty = not set) and booleans. Converted to the API shape on submit. */
@@ -129,6 +129,20 @@ export const employeeResolver: Resolver<FormState> = (values) => {
 function isMissing(issue: { code: string; input?: unknown; message: string }): boolean {
   // A rule that failed on a value that is there (e.g. a wrong e-mail domain) is not "missing".
   return issue.code !== 'custom' && (issue.code === 'invalid_type' || issue.input === '' || issue.input === undefined);
+}
+
+/** The same ID-number rule as the API (type, and nationality for some types), applied while typing, in the user's language. */
+export function employeeResolverWithIdRule(idTypes: IdTypeLookupDto[], language: string): Resolver<FormState> {
+  return async (values, context, options) => {
+    const base = await employeeResolver(values, context, options);
+    const type = idTypes.find((t) => t.id === values.idTypeId);
+    if (!type || !values.idNumber.trim()) return base;
+    const rules = type.rules.map((r) => ({ ...r, messageAr: r.errorMessageAr, messageEn: r.errorMessageEn }));
+    const problem = idNumberProblem({ idNumber: values.idNumber.trim(), nationalityId: values.nationalityId || null }, { requiresCountry: type.requiresCountry, rules });
+    if (!problem || (base.errors as Record<string, unknown>)[problem.path]) return base;
+    const message = language === 'en' ? problem.messageEn : problem.messageAr;
+    return { values: {}, errors: { ...base.errors, [problem.path]: { type: 'rule', message } } as FieldErrors<FormState> };
+  };
 }
 
 export type EmployeePayload = CreateEmployeeInput;

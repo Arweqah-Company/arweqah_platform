@@ -219,5 +219,10 @@
     "light": "Light",
     "dark": "Dark",
     "system": "Follow the device"
+  },
+  "validation": {
+    "required": "This field is required.",
+    "minLength": "Enter at least {{min}} characters.",
+    "email": "Enter a valid e-mail address."
   }
 }

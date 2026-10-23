@@ -52,7 +52,7 @@ Bring employee, project and request management into one secure platform that spe
 | FR-15 | No self sign-up and no password routes exist | All | Must | `apps/api/test/auth.e2e-spec.ts` |
 | FR-16 | Activation link (QR code, first code, backup codes), one use, 72 h; the e-mail step recognizes a first sign-in and e-mails the link (one per minute per address) | Employee | Must | `apps/api/test/mfa.e2e-spec.ts`, `apps/web/src/features/auth/pages/login-page.test.tsx` |
 | FR-17 | Employee form with 40 fields in 6 sections and conditional rules | HR | Must | `apps/api/test/employees.e2e-spec.ts`, `apps/web/src/features/employees/employee-form-page.test.tsx` |
-| FR-18 | ID validation by type and nationality; unique type + number (searchable through an HMAC blind index) | HR | Must | `apps/api/test/employees.e2e-spec.ts` |
+| FR-18 | ID validation by type (national ID and iqama: 10 digits, 1 / 2 prefix and a Luhn check digit) and by nationality for home-country and GCC IDs (rules are seeded data; one shared rule for the API and for the form, which shows the message while typing); unique type + number (searchable through an HMAC blind index) | HR | Must | `apps/api/test/employees.e2e-spec.ts`, `apps/api/src/modules/employees/domain/rules/id-number.rules.spec.ts`, `apps/web/src/features/employees/employee-form-page.test.tsx` |
 | FR-19 | Companies (10 seeded), levels, units, job titles with deletion and move rules | Admin | Must | `apps/api/test/org.e2e-spec.ts` |
 | FR-20 | Scopes own / unit / subtree / company / all with 404 outside the scope | All | Must | `apps/api/test/employees.e2e-spec.ts` |
 | FR-21 | ID number, IBAN and salary are encrypted and masked without `employees.view_sensitive` | HR | Must | `apps/api/test/employees.e2e-spec.ts` |

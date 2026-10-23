@@ -23,6 +23,7 @@ export interface IdTypeRuleDto {
   regex: string;
   minLength: number;
   maxLength: number;
+  checksum: 'luhn' | null;
   errorMessage: string;
   errorMessageAr: string;
   errorMessageEn: string;

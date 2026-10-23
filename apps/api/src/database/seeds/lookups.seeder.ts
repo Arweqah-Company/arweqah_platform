@@ -60,7 +60,7 @@ export class LookupsSeeder {
       await saveNames(m, { table: s.translations, foreignKey: s.foreignKey, parentId: id }, { nameAr: type.ar, nameEn: type.en });
       const ruleId = await this.upsert(m, 'id_type_rules', {
         code: `${type.code}_default`, sort_order: 1, is_active: true, id_type_id: id, country_id: null,
-        regex: type.rule.regex, min_length: type.rule.minLength, max_length: type.rule.maxLength,
+        regex: type.rule.regex, min_length: type.rule.minLength, max_length: type.rule.maxLength, checksum: type.rule.checksum ?? null,
       });
       await saveNames(m, { table: 'id_type_rule_translations', foreignKey: 'id_type_rule_id', parentId: ruleId }, { nameAr: type.rule.messageAr, nameEn: type.rule.messageEn });
     }

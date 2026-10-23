@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
-import { me, server } from '../../../test/msw';
+import { lookups, me, server } from '../../../test/msw';
 import { renderRoute } from '../../../test/render';
 import { EmployeeFormPage } from './employee-form-page';
 
@@ -92,5 +92,30 @@ describe('Employee form (FR-17, FR-18)', () => {
     fireEvent.change(screen.getByLabelText('بريد العمل *'), { target: { value: 'someone@gmail.com' } });
     fireEvent.click(screen.getByRole('button', { name: 'حفظ وإرسال الدعوة' }));
     expect(await screen.findByText(/arweqah\.sa\./)).toBeInTheDocument();
+  });
+});
+
+describe('Employee form validation while typing (FR-17, FR-18)', () => {
+  it('checks the ID number by type while typing, in the language of the screen', async () => {
+    const national = { ...lookups.idTypes[0], rules: [{ countryId: null, regex: '^1\\d{9}$', minLength: 10, maxLength: 10, checksum: 'luhn' as const, errorMessage: 'x', errorMessageAr: 'رقم الهوية الوطنية غير صالح', errorMessageEn: 'Invalid National ID' }] };
+    server.use(http.get('*/api/lookups', () => HttpResponse.json({ ...lookups, idTypes: [national] })));
+    await open();
+    fireEvent.change(screen.getByLabelText('نوع الهوية'), { target: { value: 'id-national_id' } });
+    fireEvent.change(screen.getByLabelText('رقم الهوية'), { target: { value: '1087654322' } });
+    fireEvent.click(screen.getByRole('button', { name: 'حفظ وإرسال الدعوة' }));
+    expect(await screen.findByText('رقم الهوية الوطنية غير صالح')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('رقم الهوية'), { target: { value: '1087654321' } });
+    await waitFor(() => expect(screen.queryByText('رقم الهوية الوطنية غير صالح')).not.toBeInTheDocument());
+  });
+
+  it('shows an error as soon as a field is left or edited, without pressing save', async () => {
+    await open();
+    expect(screen.queryByText('هذا الحقل مطلوب.')).not.toBeInTheDocument();
+    fireEvent.blur(screen.getByLabelText('الرقم الوظيفي *'));
+    expect(await screen.findByText('هذا الحقل مطلوب.')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('بريد العمل *'), { target: { value: 'x@gmail.com' } });
+    expect(await screen.findByText(/arweqah\.sa\./)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('بريد العمل *'), { target: { value: 'x@arweqah.sa' } });
+    await waitFor(() => expect(screen.queryByText(/arweqah\.sa\./)).not.toBeInTheDocument());
   });
 });

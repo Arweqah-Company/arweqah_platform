@@ -1,4 +1,4 @@
-import { matchesIdRule, type CreateEmployeeInput } from '@arweqah-platform/shared';
+import { idNumberProblem, type CreateEmployeeInput, type IdTypeRules } from '@arweqah-platform/shared';
 import { FieldRuleError } from '../errors/employee.errors';
 
 export type EmployeeInput = Omit<CreateEmployeeInput, 'roleIds'>;
@@ -6,10 +6,7 @@ export type EmployeeInput = Omit<CreateEmployeeInput, 'roleIds'>;
 /** Option flags the rules depend on, read from the seeded lookup tables (never hard-coded). */
 export interface RuleLookups {
   contractType: { requiresEndDate: boolean; isOther: boolean } | null;
-  idType: {
-    requiresCountry: boolean;
-    rules: { countryId: string | null; regex: string; minLength: number; maxLength: number; messageAr: string; messageEn: string }[];
-  } | null;
+  idType: IdTypeRules | null;
   terminationReasonIsOther: boolean | null;
 }
 
@@ -53,9 +50,7 @@ function terminationFields(input: EmployeeInput, lookups: RuleLookups): Pick<Emp
 
 /** The rule comes from the ID type, and from the nationality too for types such as the home-country or GCC ID. */
 function assertIdNumber(input: EmployeeInput, lookups: RuleLookups): void {
-  const type = lookups.idType;
-  if (!input.idTypeId || !input.idNumber || !type) return;
-  if (type.requiresCountry && !input.nationalityId) fail('nationalityId', 'Nationality is required for this ID type', 'الجنسية مطلوبة لهذا النوع من الهويات');
-  const rule = type.rules.find((r) => r.countryId !== null && r.countryId === input.nationalityId) ?? type.rules.find((r) => r.countryId === null);
-  if (rule && !matchesIdRule(input.idNumber, rule)) throw new FieldRuleError('idNumber', rule.messageEn, { ar: rule.messageAr, en: rule.messageEn });
+  if (!input.idTypeId || !input.idNumber || !lookups.idType) return;
+  const problem = idNumberProblem({ idNumber: input.idNumber, nationalityId: input.nationalityId }, lookups.idType);
+  if (problem) throw new FieldRuleError(problem.path, problem.messageEn, { ar: problem.messageAr, en: problem.messageEn });
 }

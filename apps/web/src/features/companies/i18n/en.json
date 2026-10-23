@@ -21,5 +21,6 @@
   "filters": {
     "withEmployees": "Has employees",
     "withoutEmployees": "No employees"
-  }
+  },
+  "codeInvalid": "Invalid code: English letters, digits and hyphen, 2 to 20."
 }

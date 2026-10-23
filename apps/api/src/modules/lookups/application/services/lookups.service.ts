@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import type { JobTitleOptionDto, Language, LookupsDto, ManagerOptionDto, OrgNodeOptionDto, OrgReferenceDto } from '@arweqah-platform/shared';
+import type { IdTypeRules, JobTitleOptionDto, Language, LookupsDto, ManagerOptionDto, OrgNodeOptionDto, OrgReferenceDto } from '@arweqah-platform/shared';
 import { OrgDirectoryService } from '../../../org/application/services/org-directory.service';
-import { LookupsRepository, type ContractTypeRule, type IdTypeRules } from '../../domain/contracts/lookups.repository';
+import { LookupsRepository, type ContractTypeRule } from '../../domain/contracts/lookups.repository';
 
 export interface CompanyOptionDto {
   id: string;

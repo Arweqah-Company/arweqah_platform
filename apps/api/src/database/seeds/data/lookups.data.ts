@@ -27,18 +27,18 @@ export const RESIDENCY_STATUSES: SeedName[] = [
 
 export interface IdTypeSeed extends SeedName {
   requiresCountry: boolean;
-  rule: { regex: string; minLength: number; maxLength: number; messageAr: string; messageEn: string };
+  rule: { regex: string; minLength: number; maxLength: number; checksum?: 'luhn'; messageAr: string; messageEn: string };
 }
 
 /** Rules are lenient where the official format is not confirmed yet (border number, passport, home-country and GCC IDs). */
 export const ID_TYPES: IdTypeSeed[] = [
   {
     code: 'national_id', ar: 'هوية وطنية', en: 'National ID', requiresCountry: false,
-    rule: { regex: '^1\\d{9}$', minLength: 10, maxLength: 10, messageAr: 'رقم الهوية الوطنية يتكون من 10 أرقام ويبدأ بالرقم 1', messageEn: 'National ID must be 10 digits starting with 1' },
+    rule: { regex: '^1\\d{9}$', minLength: 10, maxLength: 10, checksum: 'luhn', messageAr: 'رقم الهوية الوطنية غير صالح: 10 أرقام تبدأ بالرقم 1 ورقم تحقق صحيح', messageEn: 'Invalid National ID: 10 digits starting with 1 and a valid check digit' },
   },
   {
     code: 'iqama', ar: 'إقامة', en: 'Iqama (Residence Permit)', requiresCountry: false,
-    rule: { regex: '^2\\d{9}$', minLength: 10, maxLength: 10, messageAr: 'رقم الإقامة يتكون من 10 أرقام ويبدأ بالرقم 2', messageEn: 'Iqama number must be 10 digits starting with 2' },
+    rule: { regex: '^2\\d{9}$', minLength: 10, maxLength: 10, checksum: 'luhn', messageAr: 'رقم الإقامة غير صالح: 10 أرقام تبدأ بالرقم 2 ورقم تحقق صحيح', messageEn: 'Invalid iqama number: 10 digits starting with 2 and a valid check digit' },
   },
   {
     code: 'home_country_id', ar: 'هوية بلده', en: 'Home-Country ID', requiresCountry: true,

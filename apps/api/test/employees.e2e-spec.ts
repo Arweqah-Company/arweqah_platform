@@ -77,6 +77,8 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     const { agent, payload, org, lookups, pick } = await setup();
     const bad = async (overrides: Record<string, unknown>) => (await agent.post('/api/employees').send(payload(org.unitA, overrides))).status;
     expect(await bad({ workEmail: 'someone@gmail.com' })).toBe(400);
+    expect(await bad({ workEmail: 'someone@sub.arweqah.sa' })).toBe(400);
+    expect(await bad({ workEmail: 'someone@arweqah.sa.evil.com' })).toBe(400);
     expect(await bad({ iban: 'SA0000000000000000000000' })).toBe(400);
     expect(await bad({ iban: 'GB82WEST12345698765432' })).toBe(400);
     expect(await bad({ birthDate: '2015-01-01' })).toBe(400);
@@ -103,6 +105,9 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     expect((await rule({ contractTypeId: pick(lookups.contractTypes, 'other') })).details.path).toBe('contractTypeOther');
     const wrongNational = await rule({ idTypeId: pick(lookups.idTypes, 'national_id'), idNumber: '2087654321' });
     expect(wrongNational.details).toMatchObject({ path: 'idNumber', messageEn: expect.stringContaining('National ID'), messageAr: expect.stringContaining('الهوية الوطنية') });
+    const wrongChecksum = await rule({ idTypeId: pick(lookups.idTypes, 'national_id'), idNumber: '1087654322' });
+    expect(wrongChecksum.details).toMatchObject({ path: 'idNumber', messageEn: expect.stringContaining('check digit') });
+    expect((await rule({ idTypeId: pick(lookups.idTypes, 'iqama'), idNumber: '2087654321' })).details.path).toBe('idNumber');
     expect((await rule({ idTypeId: pick(lookups.idTypes, 'home_country_id'), idNumber: 'AB12345' })).details.path).toBe('nationalityId');
     expect((await rule({ endDate: '2026-01-01', terminationReasonId: pick(lookups.terminationReasons, 'other') })).details.path).toBe('terminationReasonOther');
     const ok = await agent.post('/api/employees').send(payload(org.unitA, { idTypeId: pick(lookups.idTypes, 'home_country_id'), idNumber: 'AB12345', nationalityId: sa }));

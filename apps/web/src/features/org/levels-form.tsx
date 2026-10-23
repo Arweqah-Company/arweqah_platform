@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
-import { Alert, Button, Dialog, Input } from '@/shared/ui';
+import { useLiveError, useRules } from '@/shared/lib/live-validation';
+import { Alert, Button, Dialog, FormField, Input } from '@/shared/ui';
 import { usePreviewLevels, useSaveLevels } from './api';
 import { ImpactDialog } from './impact-dialog';
 
@@ -30,12 +31,15 @@ interface RowProps {
 
 function LevelRow({ row, index, count, onPatch, onMove, onRemove }: RowProps) {
   const { t } = useTranslation('org');
+  const rules = useRules();
+  const nameAr = useLiveError(row.nameAr, rules.text(2));
+  const nameEn = useLiveError(row.nameEn, rules.text(2));
   return (
-    <li className="grid grid-cols-[auto_1fr_1fr_auto] items-end gap-2">
-      <span className="pb-2 text-sm text-muted" dir="ltr">{index + 1}</span>
-      <label className="text-xs">{t('levels.nameAr')}<Input value={row.nameAr} onChange={(e) => onPatch({ nameAr: e.target.value })} /></label>
-      <label className="text-xs">{t('levels.nameEn')}<Input dir="ltr" value={row.nameEn} onChange={(e) => onPatch({ nameEn: e.target.value })} /></label>
-      <span className="flex items-center gap-1 pb-1">
+    <li className="grid grid-cols-[auto_1fr_1fr_auto] items-start gap-2">
+      <span className="pt-9 text-sm text-muted" dir="ltr">{index + 1}</span>
+      <FormField label={t('levels.nameAr')} error={nameAr.error}>{(p) => <Input {...p} onBlur={nameAr.onBlur} value={row.nameAr} onChange={(e) => onPatch({ nameAr: e.target.value })} />}</FormField>
+      <FormField label={t('levels.nameEn')} error={nameEn.error}>{(p) => <Input {...p} dir="ltr" onBlur={nameEn.onBlur} value={row.nameEn} onChange={(e) => onPatch({ nameEn: e.target.value })} />}</FormField>
+      <span className="flex items-center gap-1 pt-7">
         <Button size="icon" variant="ghost" aria-label={t('levels.up')} disabled={index === 0} onClick={() => onMove(-1)}><ArrowUp className="size-4" /></Button>
         <Button size="icon" variant="ghost" aria-label={t('levels.down')} disabled={index === count - 1} onClick={() => onMove(1)}><ArrowDown className="size-4" /></Button>
         <Button size="icon" variant="ghost" aria-label={t('levels.remove')} onClick={onRemove}><X className="size-4" /></Button>

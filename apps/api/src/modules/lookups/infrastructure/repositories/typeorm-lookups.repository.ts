@@ -5,11 +5,12 @@ import type {
   CountryLookupDto,
   IdTypeLookupDto,
   IdTypeRuleDto,
+  IdTypeRules,
   Language,
   LookupItemDto,
   OtherFlagLookupDto,
 } from '@arweqah-platform/shared';
-import { LookupsRepository, type ContractTypeRule, type IdTypeRules } from '../../domain/contracts/lookups.repository';
+import { LookupsRepository, type ContractTypeRule } from '../../domain/contracts/lookups.repository';
 
 interface BaseRow {
   id: string;
@@ -93,6 +94,7 @@ export class TypeOrmLookupsRepository extends LookupsRepository {
       't.regex': 'regex',
       't.min_length': 'minLength',
       't.max_length': 'maxLength',
+      't.checksum': 'checksum',
     });
     const byType = new Map<string, IdTypeRuleDto[]>();
     for (const r of rows) {
@@ -101,6 +103,7 @@ export class TypeOrmLookupsRepository extends LookupsRepository {
         regex: r.regex as string,
         minLength: Number(r.minLength),
         maxLength: Number(r.maxLength),
+        checksum: (r.checksum as 'luhn' | null) ?? null,
         errorMessage: lang === 'en' ? r.nameEn : r.nameAr,
         errorMessageAr: r.nameAr,
         errorMessageEn: r.nameEn,
@@ -135,8 +138,8 @@ export class TypeOrmLookupsRepository extends LookupsRepository {
   async idTypeRules(id: string): Promise<IdTypeRules | null> {
     const types: { requires_country: boolean }[] = await this.ds.query('SELECT requires_country FROM id_types WHERE id = $1', [id]);
     if (!types[0]) return null;
-    const rules: { country_id: string | null; regex: string; min_length: number; max_length: number; ar: string | null; en: string | null }[] = await this.ds.query(
-      `SELECT r.country_id, r.regex, r.min_length, r.max_length, ta.name AS ar, te.name AS en
+    const rules: { country_id: string | null; regex: string; min_length: number; max_length: number; checksum: 'luhn' | null; ar: string | null; en: string | null }[] = await this.ds.query(
+      `SELECT r.country_id, r.regex, r.min_length, r.max_length, r.checksum, ta.name AS ar, te.name AS en
        FROM id_type_rules r
        LEFT JOIN id_type_rule_translations ta ON ta.id_type_rule_id = r.id AND ta.lang = 'ar'
        LEFT JOIN id_type_rule_translations te ON te.id_type_rule_id = r.id AND te.lang = 'en'
@@ -150,6 +153,7 @@ export class TypeOrmLookupsRepository extends LookupsRepository {
         regex: r.regex,
         minLength: r.min_length,
         maxLength: r.max_length,
+        checksum: r.checksum,
         messageAr: r.ar ?? 'رقم الهوية غير صالح',
         messageEn: r.en ?? r.ar ?? 'Invalid ID number',
       })),

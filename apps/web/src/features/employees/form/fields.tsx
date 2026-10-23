@@ -13,7 +13,7 @@ function useFieldError(name: string): string | undefined {
   const error = (formState.errors as Record<string, { message?: string; type?: string } | undefined>)[name];
   if (!error?.message) return undefined;
   // A message that came back from the API is already in the user's language.
-  if ((error as { type?: string }).type === 'server') return error.message;
+  if (error.type === 'server' || error.type === 'rule') return error.message;
   return error.message === 'required' ? t('validation.required') : t(`validation.${error.message}`, { defaultValue: t('validation.invalid') });
 }
 

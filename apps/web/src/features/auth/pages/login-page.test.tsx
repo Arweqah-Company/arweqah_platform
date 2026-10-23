@@ -29,6 +29,15 @@ describe('Sign-in page (FR-01, FR-23)', () => {
     expect(screen.queryByText(/نسيت|تسجيل جديد|إنشاء حساب/)).not.toBeInTheDocument();
   });
 
+  it('tells the person while typing that the e-mail is not valid, and stops once it is', async () => {
+    open();
+    expect(screen.queryByText('أدخل بريدًا إلكترونيًا صحيحًا.')).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('بريد العمل'), { target: { value: 'sara@' } });
+    expect(await screen.findByText('أدخل بريدًا إلكترونيًا صحيحًا.')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('بريد العمل'), { target: { value: 'sara@arweqah.sa' } });
+    await waitFor(() => expect(screen.queryByText('أدخل بريدًا إلكترونيًا صحيحًا.')).not.toBeInTheDocument());
+  });
+
   it('signs in with the e-mail and the code as soon as the sixth digit is entered', async () => {
     let body: unknown;
     server.use(http.post('*/api/auth/totp/sign-in', async ({ request }) => { body = await request.json(); return HttpResponse.json({ user: { id: 'u1' } }); }));

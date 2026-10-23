@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router';
 import { ApiError } from '@/core/api/api-client';
 import { authClient } from '@/core/auth/auth-client';
+import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { Alert, Button, CodeInput, FormField, Input } from '@/shared/ui';
 import { identifyEmail, signInWithCode } from '../api';
 import { AuthShell } from './auth-shell';
@@ -21,6 +22,8 @@ export function LoginPage() {
   const [firstTime, setFirstTime] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const rules = useRules();
+  const emailLive = useLiveError(email, rules.email);
   const target = (location.state as { from?: string } | null)?.from ?? '/';
 
   const microsoft = async () => {
@@ -78,8 +81,8 @@ export function LoginPage() {
       {step === 'email' ? (
         <form className="flex flex-col gap-4" onSubmit={(e) => void next(e)} noValidate>
           {error && <Alert>{error}</Alert>}
-          <FormField label={t('email')}>
-            {(p) => <Input {...p} type="email" autoComplete="username" dir="ltr" placeholder="name@arweqah.sa" value={email} onChange={(e) => setEmail(e.target.value)} required />}
+          <FormField label={t('email')} error={emailLive.error}>
+            {(p) => <Input {...p} type="email" autoComplete="username" dir="ltr" placeholder="name@arweqah.sa" onBlur={emailLive.onBlur} value={email} onChange={(e) => setEmail(e.target.value)} required />}
           </FormField>
           <Button type="submit" disabled={busy || !email}>{t('next')}</Button>
         </form>

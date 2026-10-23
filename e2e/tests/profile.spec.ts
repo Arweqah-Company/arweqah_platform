@@ -46,8 +46,9 @@ test.describe('Light and dark theme, and the own profile (FR-33)', () => {
     await expect(page.getByText('SYS-0001')).toBeVisible();
     await expect(page.getByLabel('الرقم الوظيفي')).toHaveCount(0);
     await page.getByLabel('الجوال الشخصي').fill('0501234567');
-    await page.getByRole('button', { name: 'حفظ التغييرات' }).click();
+    // The message appears while typing, and the save button waits until the details are valid.
     await expect(page.getByText('اكتب الجوال بالصيغة الدولية، مثل +966501234567.')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'حفظ التغييرات' })).toBeDisabled();
     await page.getByLabel('الجوال الشخصي').fill('+966501234567');
     await page.getByLabel('البريد الشخصي').fill('sara.personal@example.com');
     await page.getByRole('button', { name: 'حفظ التغييرات' }).click();

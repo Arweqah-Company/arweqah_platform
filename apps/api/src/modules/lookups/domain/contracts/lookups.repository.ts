@@ -2,6 +2,7 @@ import type {
   ContractTypeLookupDto,
   CountryLookupDto,
   IdTypeLookupDto,
+  IdTypeRules,
   Language,
   LookupItemDto,
   OtherFlagLookupDto,
@@ -11,11 +12,6 @@ import type {
 export interface ContractTypeRule {
   requiresEndDate: boolean;
   isOther: boolean;
-}
-
-export interface IdTypeRules {
-  requiresCountry: boolean;
-  rules: { countryId: string | null; regex: string; minLength: number; maxLength: number; messageAr: string; messageEn: string }[];
 }
 
 /** Reads the seeded option tables with their translations. `lang` only decides `name`; both languages are always returned. */

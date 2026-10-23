@@ -107,6 +107,10 @@ export class IdTypeRule extends LookupEntity {
   @Column({ name: 'max_length', type: 'int' })
   maxLength: number;
 
+  /** Extra check on the digits (`luhn` for the Saudi national ID and iqama); null for none. */
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  checksum: 'luhn' | null;
+
   @ManyToOne('IdType', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_type_id', foreignKeyConstraintName: 'FK_id_type_rules_id_type' })
   private readonly idTypeFk?: unknown;
