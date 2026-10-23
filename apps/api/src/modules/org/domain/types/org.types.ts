@@ -15,6 +15,7 @@ export interface LevelView extends Names {
   companyId: string;
   sortOrder: number;
   isAssignable: boolean;
+  templateCode: string | null;
 }
 
 export interface NodeView extends Names {
@@ -23,6 +24,8 @@ export interface NodeView extends Names {
   levelId: string;
   parentId: string | null;
   managerId: string | null;
+  /** ISO date (YYYY-MM-DD). */
+  startDate: string;
   isActive: boolean;
   sortOrder: number;
 }

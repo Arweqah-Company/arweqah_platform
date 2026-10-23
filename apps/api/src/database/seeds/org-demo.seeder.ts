@@ -10,6 +10,9 @@ import { DEMO_DEPARTMENTS, DEMO_SECTOR } from './data/demo-org.data';
 const SEEDER_ID = '00000000-0000-4000-8000-000000000002';
 
 /** Development only (SEED_DEMO_ORG): gives every company that has no units yet a small sample structure. */
+/** Sample units start on the same day (development only). */
+const DEMO_START_DATE = '2024-01-01';
+
 @Injectable()
 export class OrgDemoSeeder {
   private readonly logger = new Logger('Seed');
@@ -50,7 +53,7 @@ export class OrgDemoSeeder {
   private async create(levelId: string | undefined, parentId: string | null, names: { ar: string; en: string }, titles: { ar: string; en: string }[]): Promise<string> {
     const node = await this.nodes.createNode(
       this.ctx,
-      { levelId: levelId as string, parentId, nameAr: names.ar, nameEn: names.en, jobTitles: titles.map((t) => ({ nameAr: t.ar, nameEn: t.en })) },
+      { levelId: levelId as string, parentId, nameAr: names.ar, nameEn: names.en, startDate: DEMO_START_DATE, jobTitles: titles.map((t) => ({ nameAr: t.ar, nameEn: t.en })) },
       SEEDER_ID,
     );
     return node.id;

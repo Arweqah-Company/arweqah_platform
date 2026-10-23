@@ -15,6 +15,9 @@ import { OrgNodesService } from '../../src/modules/org/application/services/org-
 import { Employee } from '../../src/modules/employees/domain/entities/employee.entity';
 import { codeFor } from '../helpers/totp';
 
+/** Every unit made by the factories started long ago, so nothing depends on today's date. */
+const UNIT_START = '2024-01-01';
+
 export type TestAgent = ReturnType<typeof request.agent>;
 
 export interface TestUser {
@@ -98,7 +101,7 @@ export class Factories {
 
   private async unit(companyId: string, levelIndex: number, parentId: string | null, name: string): Promise<{ id: string }> {
     const levels = await this.app.get(OrgLevelsService).list(companyId);
-    const node = await this.app.get(OrgNodesService).createNode(this.admin, { levelId: levels[levelIndex]?.id as string, parentId, nameAr: name, nameEn: name, jobTitles: [] }, this.admin.userId);
+    const node = await this.app.get(OrgNodesService).createNode(this.admin, { levelId: levels[levelIndex]?.id as string, parentId, nameAr: name, nameEn: name, startDate: UNIT_START, jobTitles: [] }, this.admin.userId);
     return { id: node.id };
   }
 
@@ -106,7 +109,7 @@ export class Factories {
     const levels = await this.app.get(OrgLevelsService).list(companyId);
     const node = await this.app.get(OrgNodesService).createNode(
       this.admin,
-      { levelId: levels[3]?.id as string, parentId, nameAr: name, nameEn: name, jobTitles: [{ nameAr: `مسمى ${name}`, nameEn: `Title ${name}` }] },
+      { levelId: levels[3]?.id as string, parentId, nameAr: name, nameEn: name, startDate: UNIT_START, jobTitles: [{ nameAr: `مسمى ${name}`, nameEn: `Title ${name}` }] },
       this.admin.userId,
     );
     return { id: node.id, titleId: node.jobTitles[0]?.id as string, companyId };

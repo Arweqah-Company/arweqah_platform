@@ -17,6 +17,7 @@ export const toLevelDto = (l: LevelView, unitsCount: number): OrgLevelDto => ({
   nameAr: l.nameAr,
   nameEn: l.nameEn,
   isAssignable: l.isAssignable,
+  templateCode: l.templateCode,
   unitsCount,
 });
 
@@ -47,6 +48,7 @@ export const toNodeDto = (n: NodeView, parts: NodeDtoParts): OrgNodeDto => ({
   pathEn: parts.path?.pathEn ?? n.nameEn,
   managerId: n.managerId,
   managerName: parts.managerName,
+  startDate: n.startDate,
   isActive: n.isActive,
   employeesCount: parts.employeesCount,
   jobTitles: parts.titles,

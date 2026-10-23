@@ -55,7 +55,10 @@
     "managerHint": "Optional. Proposed as the direct manager of the unit's employees.",
     "active": "Active unit",
     "titlesRequired": "Job titles (at least one)",
-    "saved": "Unit saved."
+    "saved": "Unit saved.",
+    "startDate": "Start date",
+    "startHint": "The day the unit started working.",
+    "startInvalid": "Not a sensible date: from 1980 up to two years ahead."
   },
   "titles": {
     "title": "Add job titles",
@@ -88,7 +91,8 @@
     "deleted": "Unit deleted.",
     "deleteTitleTitle": "Delete the job title?",
     "deleteTitleBody": "A title with employees, or the last title of a unit, cannot be deleted.",
-    "titleDeleted": "Job title deleted."
+    "titleDeleted": "Job title deleted.",
+    "startDate": "Started"
   },
   "chart": {
     "company": "Company",

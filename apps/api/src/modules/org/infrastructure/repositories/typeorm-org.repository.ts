@@ -64,7 +64,7 @@ export class TypeOrmOrgRepository extends OrgRepository {
     const qb = this.ds.createQueryBuilder().from('org_levels', 'l').where('l.deleted_at IS NULL');
     joinNames(qb, { parentAlias: 'l', table: 'org_level_translations', foreignKey: 'org_level_id' });
     selectNames(
-      qb.select('l.id', 'id').addSelect('l.company_id', 'companyId').addSelect('l.sort_order', 'sortOrder').addSelect('l.is_assignable', 'isAssignable'),
+      qb.select('l.id', 'id').addSelect('l.company_id', 'companyId').addSelect('l.sort_order', 'sortOrder').addSelect('l.is_assignable', 'isAssignable').addSelect('l.template_code', 'templateCode'),
       'l',
     );
     return qb;
@@ -97,19 +97,20 @@ export class TypeOrmOrgRepository extends OrgRepository {
     }
   }
 
+  /** An existing level keeps its template code whatever is renamed or reordered. */
   private async updateLevel(m: EntityManager, id: string, item: { sortOrder: number; isAssignable: boolean }): Promise<string> {
     await m.query('UPDATE org_levels SET sort_order = $2, is_assignable = $3, updated_at = now() WHERE id = $1', [id, item.sortOrder, item.isAssignable]);
     return id;
   }
 
-  private async insertLevel(m: EntityManager, companyId: string, item: { sortOrder: number; isAssignable: boolean }): Promise<string> {
-    return insertRow(m, 'org_levels', { company_id: companyId, sort_order: item.sortOrder, is_assignable: item.isAssignable });
+  private async insertLevel(m: EntityManager, companyId: string, item: { sortOrder: number; isAssignable: boolean; templateCode?: string | null }): Promise<string> {
+    return insertRow(m, 'org_levels', { company_id: companyId, sort_order: item.sortOrder, is_assignable: item.isAssignable, template_code: item.templateCode ?? null });
   }
 
-  async templateLevels(): Promise<(Names & { sortOrder: number; isAssignable: boolean })[]> {
+  async templateLevels(): Promise<(Names & { sortOrder: number; isAssignable: boolean; templateCode: string })[]> {
     const qb = this.ds.createQueryBuilder().from('org_level_templates', 't').where('t.is_active = true');
     joinNames(qb, { parentAlias: 't', table: 'org_level_template_translations', foreignKey: 'org_level_template_id' });
-    selectNames(qb.select('t.sort_order', 'sortOrder').addSelect('t.is_assignable', 'isAssignable'), 't');
+    selectNames(qb.select('t.sort_order', 'sortOrder').addSelect('t.is_assignable', 'isAssignable').addSelect('t.code', 'templateCode'), 't');
     return qb.orderBy('t.sort_order').getRawMany();
   }
 
@@ -124,6 +125,7 @@ export class TypeOrmOrgRepository extends OrgRepository {
         .addSelect('n.org_level_id', 'levelId')
         .addSelect('n.parent_id', 'parentId')
         .addSelect('n.manager_id', 'managerId')
+        .addSelect("to_char(n.start_date, 'YYYY-MM-DD')", 'startDate')
         .addSelect('n.is_active', 'isActive')
         .addSelect('n.sort_order', 'sortOrder'),
       'n',
@@ -150,11 +152,11 @@ export class TypeOrmOrgRepository extends OrgRepository {
   }
 
   async insertNode(
-    data: Names & { companyId: string; levelId: string; parentId: string | null; managerId: string | null; sortOrder: number },
+    data: Names & { companyId: string; levelId: string; parentId: string | null; managerId: string | null; startDate: string; sortOrder: number },
     tx: TransactionContext,
   ): Promise<string> {
     const m = this.m(tx);
-    const id = await insertRow(m, 'org_nodes', { company_id: data.companyId, org_level_id: data.levelId, parent_id: data.parentId, manager_id: data.managerId, sort_order: data.sortOrder });
+    const id = await insertRow(m, 'org_nodes', { company_id: data.companyId, org_level_id: data.levelId, parent_id: data.parentId, manager_id: data.managerId, start_date: data.startDate, sort_order: data.sortOrder });
     await saveNames(m, { table: 'org_node_translations', foreignKey: 'org_node_id', parentId: id }, data);
     await m.query(
       `INSERT INTO org_node_closure (ancestor_id, descendant_id, depth)
@@ -165,8 +167,8 @@ export class TypeOrmOrgRepository extends OrgRepository {
     return id;
   }
 
-  async updateNode(id: string, data: Names & { managerId: string | null; isActive: boolean }, tx: TransactionContext): Promise<void> {
-    await this.m(tx).query('UPDATE org_nodes SET manager_id = $2, is_active = $3, updated_at = now() WHERE id = $1', [id, data.managerId, data.isActive]);
+  async updateNode(id: string, data: Names & { managerId: string | null; startDate: string; isActive: boolean }, tx: TransactionContext): Promise<void> {
+    await this.m(tx).query('UPDATE org_nodes SET manager_id = $2, start_date = $3, is_active = $4, updated_at = now() WHERE id = $1', [id, data.managerId, data.startDate, data.isActive]);
     await saveNames(this.m(tx), { table: 'org_node_translations', foreignKey: 'org_node_id', parentId: id }, data);
   }
 

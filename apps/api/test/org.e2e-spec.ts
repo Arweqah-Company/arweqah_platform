@@ -90,21 +90,57 @@ describe('Org structure built by forms (FR-24)', () => {
     const { agent } = await admin();
     const companyId = await t.factories.company();
     const levels = await levelsOf(agent, companyId);
-    const sector = await agent.post('/api/org/nodes').send({ levelId: levels[0]?.id, parentId: null, nameAr: 'قطاع', nameEn: 'Sector' }).expect(201);
-    await agent.post('/api/org/nodes').send({ levelId: levels[0]?.id, parentId: sector.body.id, nameAr: 'قطاع', nameEn: 'Sector' }).expect(422);
-    await agent.post('/api/org/nodes').send({ levelId: levels[2]?.id, parentId: sector.body.id, nameAr: 'قسم', nameEn: 'Section' }).expect(422);
-    const department = await agent.post('/api/org/nodes').send({ levelId: levels[1]?.id, parentId: sector.body.id, nameAr: 'إدارة', nameEn: 'Dept' }).expect(201);
+    const sector = await agent.post('/api/org/nodes').send({ startDate: '2024-01-01', levelId: levels[0]?.id, parentId: null, nameAr: 'قطاع', nameEn: 'Sector' }).expect(201);
+    await agent.post('/api/org/nodes').send({ startDate: '2024-01-01', levelId: levels[0]?.id, parentId: sector.body.id, nameAr: 'قطاع', nameEn: 'Sector' }).expect(422);
+    await agent.post('/api/org/nodes').send({ startDate: '2024-01-01', levelId: levels[2]?.id, parentId: sector.body.id, nameAr: 'قسم', nameEn: 'Section' }).expect(422);
+    const department = await agent.post('/api/org/nodes').send({ startDate: '2024-01-01', levelId: levels[1]?.id, parentId: sector.body.id, nameAr: 'إدارة', nameEn: 'Dept' }).expect(201);
     expect(department.body.pathEn).toBe('Sector › Dept');
-    const section = await agent.post('/api/org/nodes').send({ levelId: levels[2]?.id, parentId: department.body.id, nameAr: 'قسم', nameEn: 'Section' }).expect(201);
-    const noTitles = await agent.post('/api/org/nodes').send({ levelId: levels[3]?.id, parentId: section.body.id, nameAr: 'وحدة', nameEn: 'Unit' }).expect(422);
+    const section = await agent.post('/api/org/nodes').send({ startDate: '2024-01-01', levelId: levels[2]?.id, parentId: department.body.id, nameAr: 'قسم', nameEn: 'Section' }).expect(201);
+    const noTitles = await agent.post('/api/org/nodes').send({ startDate: '2024-01-01', levelId: levels[3]?.id, parentId: section.body.id, nameAr: 'وحدة', nameEn: 'Unit' }).expect(422);
     expect(noTitles.body.message).toMatch(/at least one job title/);
-    await agent.post('/api/org/nodes').send({ levelId: levels[1]?.id, parentId: sector.body.id, nameAr: 'إدارة', nameEn: 'D2', jobTitles: [{ nameAr: 'مسمى', nameEn: 'Title' }] }).expect(422);
+    await agent.post('/api/org/nodes').send({ startDate: '2024-01-01', levelId: levels[1]?.id, parentId: sector.body.id, nameAr: 'إدارة', nameEn: 'D2', jobTitles: [{ nameAr: 'مسمى', nameEn: 'Title' }] }).expect(422);
     const unit = await agent
       .post('/api/org/nodes')
-      .send({ levelId: levels[3]?.id, parentId: section.body.id, nameAr: 'وحدة', nameEn: 'Unit', jobTitles: [{ nameAr: 'مطور', nameEn: 'Developer' }] })
+      .send({ startDate: '2024-01-01', levelId: levels[3]?.id, parentId: section.body.id, nameAr: 'وحدة', nameEn: 'Unit', jobTitles: [{ nameAr: 'مطور', nameEn: 'Developer' }] })
       .expect(201);
     expect(unit.body.jobTitles).toHaveLength(1);
     expect(unit.body.pathEn).toBe('Sector › Dept › Section › Unit');
+  });
+
+  it('stores the day a unit started working: required, in a sensible range, editable (FR-35)', async () => {
+    const { agent } = await admin();
+    const companyId = await t.factories.company();
+    const levels = await levelsOf(agent, companyId);
+    const base = { levelId: levels[0]?.id, parentId: null, nameAr: 'قطاع', nameEn: 'Sector' };
+    await agent.post('/api/org/nodes').send(base).expect(400);
+    await agent.post('/api/org/nodes').send({ ...base, startDate: '1979-12-31' }).expect(400);
+    await agent.post('/api/org/nodes').send({ ...base, startDate: '2999-01-01' }).expect(400);
+    await agent.post('/api/org/nodes').send({ ...base, startDate: 'not a date' }).expect(400);
+    const created = await agent.post('/api/org/nodes').send({ ...base, startDate: '2022-03-15' }).expect(201);
+    expect(created.body.startDate).toBe('2022-03-15');
+    const planned = new Date();
+    planned.setUTCFullYear(planned.getUTCFullYear() + 1);
+    const edit = { nameAr: 'قطاع', nameEn: 'Sector', isActive: true };
+    await agent.put(`/api/org/nodes/${created.body.id}`).send(edit).expect(400);
+    const updated = await agent.put(`/api/org/nodes/${created.body.id}`).send({ ...edit, startDate: planned.toISOString().slice(0, 10) }).expect(200);
+    expect(updated.body.startDate).toBe(planned.toISOString().slice(0, 10));
+    const tree = await agent.get(`/api/org/companies/${companyId}/tree`).expect(200);
+    expect(tree.body.nodes.find((n: { id: string }) => n.id === created.body.id).startDate).toBe(updated.body.startDate);
+  });
+
+  it('remembers which default level each level came from, and keeps it through renaming, reordering and copying (FR-35)', async () => {
+    const { agent } = await admin();
+    const companyId = await t.factories.company();
+    const levels = (await levelsOf(agent, companyId)) as (Level & { templateCode: string | null })[];
+    expect(levels.map((l) => l.templateCode)).toEqual(['sector', 'department', 'section', 'unit']);
+    const renamed = levels.map((l, i) => ({ id: l.id, nameAr: i === 1 ? 'دائرة' : l.nameAr, nameEn: i === 1 ? 'Directorate' : l.nameEn, isAssignable: l.isAssignable }));
+    const custom = [...renamed.slice(0, 3), { nameAr: 'فريق', nameEn: 'Team', isAssignable: false }, renamed[3]];
+    const saved = (await agent.post('/api/org/levels').send({ companyId, levels: custom }).expect(200)).body as { nameEn: string; templateCode: string | null }[];
+    expect(saved.map((l) => [l.nameEn, l.templateCode])).toEqual([['Sector', 'sector'], ['Directorate', 'department'], ['Section', 'section'], ['Team', null], ['Unit', 'unit']]);
+    const other = await t.factories.company();
+    await agent.post('/api/org/levels/copy').send({ fromCompanyId: companyId, toCompanyId: other }).expect(200);
+    const copied = (await levelsOf(agent, other)) as (Level & { templateCode: string | null })[];
+    expect(copied.map((l) => l.templateCode)).toEqual(['sector', 'department', 'section', null, 'unit']);
   });
 
   it('moves a unit within the rules, protects units in use and keeps the last job title', async () => {
@@ -132,7 +168,7 @@ describe('Org structure built by forms (FR-24)', () => {
     await agent.get(`/api/org/companies/${org.otherCompanyId}/tree`).expect(404);
     await agent.post(`/api/org/nodes/${org.unitOther.id}/move`).send({ parentId: null }).expect(404);
     const otherLevels = await levelsOf(await t.factories.signIn(await t.factories.user({ grants: orgAdminGrants })), org.otherCompanyId);
-    await agent.post('/api/org/nodes').send({ levelId: otherLevels[0]?.id, parentId: null, nameAr: 'قطاع', nameEn: 'Xx' }).expect(404);
+    await agent.post('/api/org/nodes').send({ startDate: '2024-01-01', levelId: otherLevels[0]?.id, parentId: null, nameAr: 'قطاع', nameEn: 'Xx' }).expect(404);
   });
 
   describe('changing levels that hold data asks for confirmation first', () => {

@@ -49,11 +49,11 @@ export class OrgNodesService {
     if (input.managerId) await this.assertManager(input.managerId);
     this.assertTitlesFor(level, input.jobTitles.length);
     const id = await this.tx.run(async (tx) => {
-      const nodeId = await this.repo.insertNode({ ...input, companyId: level.companyId, parentId: input.parentId, managerId: input.managerId ?? null, sortOrder: 0 }, tx);
+      const nodeId = await this.repo.insertNode({ ...input, companyId: level.companyId, parentId: input.parentId, managerId: input.managerId ?? null, startDate: input.startDate, sortOrder: 0 }, tx);
       if (input.jobTitles.length) await this.repo.insertTitles(nodeId, input.jobTitles, tx);
       return nodeId;
     });
-    this.audit(actorId, ORG_AUDIT.unitCreated, id, { levelId: level.id, parentId: input.parentId, jobTitles: input.jobTitles.length });
+    this.audit(actorId, ORG_AUDIT.unitCreated, id, { levelId: level.id, parentId: input.parentId, startDate: input.startDate, jobTitles: input.jobTitles.length });
     return this.nodeDto(id);
   }
 
@@ -62,7 +62,7 @@ export class OrgNodesService {
     assertCompanyAccess(ctx, ORG_MANAGE, node.companyId);
     if (input.managerId) await this.assertManager(input.managerId);
     await this.tx.run((tx) => this.repo.updateNode(id, { ...input, managerId: input.managerId ?? null }, tx));
-    this.audit(actorId, ORG_AUDIT.unitUpdated, id, { isActive: input.isActive });
+    this.audit(actorId, ORG_AUDIT.unitUpdated, id, { isActive: input.isActive, startDate: input.startDate });
     return this.nodeDto(id);
   }
 

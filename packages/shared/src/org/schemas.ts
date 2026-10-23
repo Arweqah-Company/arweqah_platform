@@ -3,6 +3,18 @@ import { localizedNameSchema } from '../common/localized';
 
 export const MAX_ORG_LEVELS = 12;
 
+/** The day a unit started working: not before the group's earliest records, and at most two years ahead (a planned unit). */
+export const UNIT_START_EARLIEST = '1980-01-01';
+export const UNIT_START_YEARS_AHEAD = 2;
+
+export const unitStartDateIsValid = (isoDate: string, today: Date = new Date()): boolean => {
+  const latest = new Date(today);
+  latest.setUTCFullYear(latest.getUTCFullYear() + UNIT_START_YEARS_AHEAD);
+  return isoDate >= UNIT_START_EARLIEST && isoDate <= latest.toISOString().slice(0, 10);
+};
+
+const unitStartDateSchema = z.iso.date().refine((d) => unitStartDateIsValid(d), 'Start date is out of range');
+
 /** One division of a company's structure (sector, department, section, unit…). */
 export const orgLevelInputSchema = z.strictObject({
   /** Present when editing an existing level, absent for a new one. */
@@ -58,6 +70,8 @@ export const createOrgNodeSchema = z.strictObject({
   parentId: z.uuid().nullable(),
   ...localizedNameSchema,
   managerId: z.uuid().nullable().optional(),
+  /** The day the unit starts working. */
+  startDate: unitStartDateSchema,
   /** At least one title is required when the level accepts titles; none otherwise. */
   jobTitles: z.array(jobTitleInputSchema).max(50).default([]),
 });
@@ -66,6 +80,7 @@ export type CreateOrgNodeInput = z.infer<typeof createOrgNodeSchema>;
 export const updateOrgNodeSchema = z.strictObject({
   ...localizedNameSchema,
   managerId: z.uuid().nullable().optional(),
+  startDate: unitStartDateSchema,
   isActive: z.boolean().default(true),
 });
 export type UpdateOrgNodeInput = z.infer<typeof updateOrgNodeSchema>;
@@ -88,6 +103,8 @@ export interface OrgLevelDto {
   nameAr: string;
   nameEn: string;
   isAssignable: boolean;
+  /** Which default level this one came from (`sector`, `department`, `section`, `unit`); null for levels a company added itself. */
+  templateCode: string | null;
   unitsCount: number;
 }
 
@@ -111,6 +128,8 @@ export interface OrgNodeDto {
   pathEn: string;
   managerId: string | null;
   managerName: string | null;
+  /** ISO date the unit started working. */
+  startDate: string;
   isActive: boolean;
   employeesCount: number;
   jobTitles: JobTitleDto[];

@@ -1,4 +1,4 @@
-import type { OrgNodeDto, OrgTreeDto } from '@arweqah-platform/shared';
+import { unitStartDateIsValid, type OrgNodeDto, type OrgTreeDto } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/lib/error-message';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
@@ -43,12 +43,14 @@ function DetailsFields({ f, editing }: { f: NodeFormState; editing: boolean }) {
   const rules = useRules();
   const nameAr = useLiveError(f.names.nameAr, rules.text(2));
   const nameEn = useLiveError(f.names.nameEn, rules.text(2));
+  const start = useLiveError(f.startDate, (v: string) => rules.required(v) ?? (unitStartDateIsValid(v) ? undefined : t('node.startInvalid')));
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-2">
         <FormField label={`${t('node.nameAr')} *`} error={nameAr.error}>{(p) => <Input {...p} onBlur={nameAr.onBlur} value={f.names.nameAr} onChange={(e) => f.setNames({ ...f.names, nameAr: e.target.value })} />}</FormField>
         <FormField label={`${t('node.nameEn')} *`} error={nameEn.error}>{(p) => <Input {...p} dir="ltr" onBlur={nameEn.onBlur} value={f.names.nameEn} onChange={(e) => f.setNames({ ...f.names, nameEn: e.target.value })} />}</FormField>
       </div>
+      <FormField label={`${t('node.startDate')} *`} hint={t('node.startHint')} error={start.error}>{(p) => <Input {...p} type="date" dir="ltr" onBlur={start.onBlur} value={f.startDate} onChange={(e) => f.setStartDate(e.target.value)} />}</FormField>
       <FormField label={t('node.manager')} hint={t('node.managerHint')}>
         {(p) => <Combobox id={p.id} label={t('node.manager')} value={f.managerId} options={f.managerOptions} onSearch={f.setSearch} onChange={f.setManagerId} clearable />}
       </FormField>

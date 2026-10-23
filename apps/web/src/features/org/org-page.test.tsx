@@ -5,7 +5,7 @@ import { me, server } from '../../../test/msw';
 import { renderPage } from '../../../test/render';
 import { OrgPage } from './org-page';
 
-const level = (id: string, sortOrder: number, names: [string, string], isAssignable = false) => ({ id, companyId: 'c1', sortOrder, nameAr: names[0], nameEn: names[1], isAssignable, unitsCount: 0 });
+const level = (id: string, sortOrder: number, names: [string, string], isAssignable = false) => ({ id, companyId: 'c1', sortOrder, nameAr: names[0], nameEn: names[1], isAssignable, templateCode: ['sector', 'department', 'section', 'unit'][sortOrder - 1] ?? null, unitsCount: 0 });
 const emptyTree = { companyId: 'c1', nodes: [], levels: [level('l1', 1, ['قطاع', 'Sector']), level('l2', 2, ['إدارة', 'Department']), level('l3', 3, ['قسم', 'Section']), level('l4', 4, ['وحدة', 'Unit'], true)] };
 
 const open = () => {
@@ -31,10 +31,25 @@ describe('Organization page for a company with no units yet (FR-13)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'إضافة وحدة' }));
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
   });
+
+  it('asks for the day the unit started working, and explains a missing or senseless date as the person types (FR-35)', async () => {
+    open();
+    await screen.findByText(/قطاع › إدارة › قسم › وحدة/);
+    fireEvent.click(screen.getByRole('button', { name: 'إضافة وحدة' }));
+    const start = await screen.findByLabelText('تاريخ بدء العمل *');
+    expect(screen.queryByText('هذا الحقل مطلوب.')).not.toBeInTheDocument();
+    fireEvent.blur(start);
+    expect(await screen.findByText('هذا الحقل مطلوب.')).toBeInTheDocument();
+    fireEvent.change(start, { target: { value: '1900-01-01' } });
+    expect(await screen.findByText(/تاريخ غير معقول/)).toBeInTheDocument();
+    fireEvent.change(start, { target: { value: '2022-03-15' } });
+    await waitFor(() => expect(screen.queryByText(/تاريخ غير معقول/)).not.toBeInTheDocument());
+    expect(screen.getByRole('button', { name: 'حفظ' })).toBeDisabled(); // the names are still empty
+  });
 });
 
 const U = { sector: 'aaaaaaaa-0000-4000-8000-000000000001', dept: 'aaaaaaaa-0000-4000-8000-000000000002', unit: 'aaaaaaaa-0000-4000-8000-000000000003' };
-const node = (id: string, parent: { parentId: string | null; levelId: string }, nameAr: string, employeesCount: number) => ({ id, companyId: 'c1', ...parent, nameAr, nameEn: nameAr, pathAr: nameAr, pathEn: nameAr, managerId: null, managerName: id === U.dept ? 'خالد' : null, isActive: true, employeesCount, jobTitles: [] });
+const node = (id: string, parent: { parentId: string | null; levelId: string }, nameAr: string, employeesCount: number) => ({ id, companyId: 'c1', ...parent, nameAr, nameEn: nameAr, pathAr: nameAr, pathEn: nameAr, managerId: null, managerName: id === U.dept ? 'خالد' : null, startDate: '2024-01-01', isActive: true, employeesCount, jobTitles: [] });
 const filledTree = { ...emptyTree, nodes: [node(U.sector, { parentId: null, levelId: 'l1' }, 'القطاع التنفيذي', 0), node(U.dept, { parentId: U.sector, levelId: 'l2' }, 'إدارة الموارد البشرية', 3), node(U.unit, { parentId: U.dept, levelId: 'l4' }, 'وحدة التوظيف', 2)] };
 
 describe('Organization chart and table (FR-31)', () => {
@@ -77,6 +92,8 @@ describe('Organization chart and table (FR-31)', () => {
     await waitFor(() => expect(screen.getAllByRole('row')).toHaveLength(2));
     fireEvent.click(screen.getByRole('button', { name: 'إدارة الموارد البشرية' }));
     expect(await screen.findByRole('complementary', { name: 'إدارة الموارد البشرية' })).toBeInTheDocument();
+    expect(screen.getByText('بدأت العمل')).toBeInTheDocument();
+    expect(screen.getByText('2024-01-01')).toBeInTheDocument();
   });
 });
 

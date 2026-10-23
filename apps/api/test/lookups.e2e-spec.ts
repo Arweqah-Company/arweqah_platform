@@ -46,7 +46,7 @@ describe('Lookups and translations (FR-22)', () => {
     const before = (await agent.get('/api/lookups/org-nodes').query({ companyId: org.companyId }).expect(200)).body;
     expect(before.map((n: { id: string }) => n.id).sort()).toEqual([org.unitA.id, org.unitB.id, org.unitC.id].sort());
     expect(before.every((n: { defaultManagerId: string | null }) => n.defaultManagerId === null)).toBe(true);
-    await agent.put(`/api/org/nodes/${org.sectionAB}`).send({ nameAr: 'قسم أ ب', nameEn: 'Section AB', managerId: admin.employeeId, isActive: true }).expect(200);
+    await agent.put(`/api/org/nodes/${org.sectionAB}`).send({ startDate: '2024-01-01', nameAr: 'قسم أ ب', nameEn: 'Section AB', managerId: admin.employeeId, isActive: true }).expect(200);
     const after = (await agent.get('/api/lookups/org-nodes').query({ companyId: org.companyId }).expect(200)).body as { id: string; defaultManagerId: string | null; pathEn: string }[];
     expect(after.find((n) => n.id === org.unitA.id)?.defaultManagerId).toBe(admin.employeeId);
     expect(after.find((n) => n.id === org.unitC.id)?.defaultManagerId).toBeNull();

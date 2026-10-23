@@ -26,6 +26,7 @@ function Facts({ node, levelName }: { node: OrgNodeDto; levelName: string | unde
     <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
       <div><dt className="text-xs text-muted">{t('details.level')}</dt><dd>{levelName}</dd></div>
       <div><dt className="text-xs text-muted">{t('details.manager')}</dt><dd>{node.managerName ?? '—'}</dd></div>
+      <div><dt className="text-xs text-muted">{t('details.startDate')}</dt><dd dir="ltr">{node.startDate}</dd></div>
       <div><dt className="text-xs text-muted">{t('details.employees')}</dt><dd dir="ltr">{node.employeesCount}</dd></div>
       <div><dt className="text-xs text-muted">{t('details.status')}</dt><dd><Badge tone={node.isActive ? 'success' : 'neutral'}>{tc(node.isActive ? 'status.active' : 'status.inactive')}</Badge></dd></div>
     </dl>

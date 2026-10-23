@@ -57,7 +57,7 @@ describe('Platform admin mode switch (FR-34)', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'تفعيل وضع مدير المنصة' }));
     await screen.findByRole('dialog');
     type('123456');
-    expect(await screen.findByText(new RegExp(text))).toBeInTheDocument();
+    expect(await screen.findByText((content) => content.includes(text))).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'إيقاف وضع مدير المنصة' })).not.toBeInTheDocument();
   });
 });

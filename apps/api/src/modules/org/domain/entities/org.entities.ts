@@ -57,6 +57,10 @@ export class OrgLevel extends SoftDeletableEntity {
   @Column({ name: 'is_assignable', type: 'boolean', default: false })
   isAssignable: boolean;
 
+  /** Which default level this came from (`department` is the one that can receive tickets); null for levels the company added. */
+  @Column({ name: 'template_code', type: 'varchar', length: 30, nullable: true })
+  templateCode: string | null;
+
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
@@ -97,6 +101,10 @@ export class OrgNode extends SoftDeletableEntity {
 
   @Column({ name: 'sort_order', type: 'int', default: 0 })
   sortOrder: number;
+
+  /** The day the unit started working. */
+  @Column({ name: 'start_date', type: 'date' })
+  startDate: string;
 
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;

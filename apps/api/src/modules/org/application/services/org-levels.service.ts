@@ -91,7 +91,7 @@ export class OrgLevelsService {
     await Promise.all([this.assertCompany(input.fromCompanyId), this.assertCompany(input.toCompanyId)]);
     if ((await this.repo.unitsCountOfCompany(input.toCompanyId)) > 0) throw new OrgLevelsNotEmptyError();
     const [source, target] = await Promise.all([this.repo.levels(input.fromCompanyId), this.repo.levels(input.toCompanyId)]);
-    const items = source.map((l) => ({ nameAr: l.nameAr, nameEn: l.nameEn, isAssignable: l.isAssignable, sortOrder: l.sortOrder }));
+    const items = source.map((l) => ({ nameAr: l.nameAr, nameEn: l.nameEn, isAssignable: l.isAssignable, sortOrder: l.sortOrder, templateCode: l.templateCode }));
     await this.tx.run((tx) => this.repo.applyLevels(input.toCompanyId, { removeIds: target.map((l) => l.id), items }, tx));
     this.audit(actorId, ORG_AUDIT.levelsCopied, input.toCompanyId, { fromCompanyId: input.fromCompanyId });
     return this.list(input.toCompanyId);

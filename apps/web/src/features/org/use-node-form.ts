@@ -1,4 +1,4 @@
-import type { JobTitleInput, OrgNodeDto, OrgTreeDto } from '@arweqah-platform/shared';
+import { unitStartDateIsValid, type JobTitleInput, type OrgNodeDto, type OrgTreeDto } from '@arweqah-platform/shared';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -31,9 +31,9 @@ function withCurrentManager(found: ComboboxOption[], editing: OrgNodeDto | undef
 /** What each input starts with: the unit being edited, or a new unit under the chosen parent. */
 function initialValues({ tree, editing, initialParentId }: Omit<Options, 'close'>) {
   if (editing) {
-    return { levelId: editing.levelId, parentId: editing.parentId, names: { nameAr: editing.nameAr, nameEn: editing.nameEn }, managerId: editing.managerId, isActive: editing.isActive };
+    return { levelId: editing.levelId, parentId: editing.parentId, names: { nameAr: editing.nameAr, nameEn: editing.nameEn }, managerId: editing.managerId, startDate: editing.startDate, isActive: editing.isActive };
   }
-  return { levelId: startingLevelId(tree, initialParentId), parentId: initialParentId ?? null, names: { nameAr: '', nameEn: '' }, managerId: null, isActive: true };
+  return { levelId: startingLevelId(tree, initialParentId), parentId: initialParentId ?? null, names: { nameAr: '', nameEn: '' }, managerId: null, startDate: '', isActive: true };
 }
 
 /** Every input of the form. Changing the level forgets the parent, which belonged to the old level. */
@@ -43,20 +43,21 @@ function useNodeFields(options: Omit<Options, 'close'>) {
   const [parentId, setParentId] = useState<string | null>(initial.parentId);
   const [names, setNames] = useState(initial.names);
   const [managerId, setManagerId] = useState<string | null>(initial.managerId);
+  const [startDate, setStartDate] = useState(initial.startDate);
   const [isActive, setIsActive] = useState(initial.isActive);
   const [titles, setTitles] = useState<JobTitleInput[]>([{ nameAr: '', nameEn: '' }]);
   const setLevelId = (id: string) => {
     setLevel(id);
     setParentId(null);
   };
-  return { levelId, setLevelId, parentId, setParentId, names, setNames, managerId, setManagerId, isActive, setIsActive, titles, setTitles };
+  return { levelId, setLevelId, parentId, setParentId, names, setNames, managerId, setManagerId, startDate, setStartDate, isActive, setIsActive, titles, setTitles };
 }
 
 type Fields = ReturnType<typeof useNodeFields>;
 
-/** The form can be saved when names, placement and (for units that take employees) job titles are complete. */
+/** The form can be saved when names, start date, placement and (for units that take employees) job titles are complete. */
 function isComplete(f: Fields, where: { hasLevel: boolean; levelIndex: number; editing: boolean; needsTitles: boolean }): boolean {
-  const namesOk = f.names.nameAr.trim().length >= 2 && f.names.nameEn.trim().length >= 2;
+  const namesOk = f.names.nameAr.trim().length >= 2 && f.names.nameEn.trim().length >= 2 && unitStartDateIsValid(f.startDate);
   const placementOk = where.hasLevel && (where.editing || where.levelIndex === 0 || !!f.parentId);
   const titlesOk = !where.needsTitles || (f.titles.length > 0 && titleRowsValid(f.titles));
   return namesOk && placementOk && titlesOk;
@@ -87,7 +88,7 @@ export function useNodeForm({ tree, editing, initialParentId, close }: Options) 
   const update = useUpdateNode(editing?.id ?? '');
 
   const submit = async () => {
-    const base = { nameAr: fields.names.nameAr.trim(), nameEn: fields.names.nameEn.trim(), managerId: fields.managerId };
+    const base = { nameAr: fields.names.nameAr.trim(), nameEn: fields.names.nameEn.trim(), managerId: fields.managerId, startDate: fields.startDate };
     try {
       if (editing) await update.mutateAsync({ ...base, isActive: fields.isActive });
       else await create.mutateAsync({ ...base, levelId: fields.levelId, parentId: choices.levelIndex === 0 ? null : fields.parentId, jobTitles: choices.needsTitles ? fields.titles : [] });

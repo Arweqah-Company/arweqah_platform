@@ -3,7 +3,7 @@ import type { CompanyView, LevelView, Names, NodePath, NodeView, TitleView } fro
 
 export interface LevelsWrite {
   removeIds: string[];
-  items: (Names & { id?: string; sortOrder: number; isAssignable: boolean })[];
+  items: (Names & { id?: string; sortOrder: number; isAssignable: boolean; templateCode?: string | null })[];
 }
 
 export abstract class OrgRepository {
@@ -21,7 +21,7 @@ export abstract class OrgRepository {
   abstract level(id: string): Promise<LevelView | null>;
   abstract unitCountsByLevel(companyId: string): Promise<Map<string, number>>;
   abstract applyLevels(companyId: string, write: LevelsWrite, tx: TransactionContext): Promise<void>;
-  abstract templateLevels(): Promise<(Names & { sortOrder: number; isAssignable: boolean })[]>;
+  abstract templateLevels(): Promise<(Names & { sortOrder: number; isAssignable: boolean; templateCode: string })[]>;
 
   // Units
   abstract nodes(companyId: string): Promise<NodeView[]>;
@@ -29,10 +29,10 @@ export abstract class OrgRepository {
   abstract nodesByIds(ids: string[]): Promise<NodeView[]>;
   abstract nodesOfLevels(levelIds: string[]): Promise<NodeView[]>;
   abstract insertNode(
-    data: Names & { companyId: string; levelId: string; parentId: string | null; managerId: string | null; sortOrder: number },
+    data: Names & { companyId: string; levelId: string; parentId: string | null; managerId: string | null; startDate: string; sortOrder: number },
     tx: TransactionContext,
   ): Promise<string>;
-  abstract updateNode(id: string, data: Names & { managerId: string | null; isActive: boolean }, tx: TransactionContext): Promise<void>;
+  abstract updateNode(id: string, data: Names & { managerId: string | null; startDate: string; isActive: boolean }, tx: TransactionContext): Promise<void>;
   abstract moveNode(id: string, parentId: string | null, tx: TransactionContext): Promise<void>;
   abstract softDeleteNodes(ids: string[], tx: TransactionContext): Promise<void>;
   abstract childrenCount(nodeId: string): Promise<number>;
