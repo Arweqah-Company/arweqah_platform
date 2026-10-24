@@ -1,5 +1,5 @@
 # Build from the repo root: docker build -f apps/api/Dockerfile .
-FROM node:24.21-alpine AS base
+FROM node:26.11-alpine AS base
 RUN npm i -g turbo@2.11.7
 
 FROM base AS pruner
@@ -15,7 +15,7 @@ RUN npm ci
 COPY --from=pruner /repo/out/full/ .
 RUN turbo run build --filter=@arweqah-platform/api && npm prune --omit=dev
 
-FROM node:24.21-alpine AS runner
+FROM node:26.11-alpine AS runner
 ENV NODE_ENV=production
 # Pick up Alpine security fixes published after the base image was built (Trivy gates the deploy on them).
 RUN apk upgrade --no-cache
