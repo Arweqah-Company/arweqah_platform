@@ -4,7 +4,9 @@ updates:
     directory: /
     schedule: { interval: monthly }
     cooldown: { default-days: 7 }
-    open-pull-requests-limit: 10
+    # 0 = no npm PRs: Dependabot generates a lockfile without eslint/vitest here (npm ci then fails).
+    # Dependencies are upgraded by hand; npm audit in security.yml still reports advisories.
+    open-pull-requests-limit: 0
     ignore:
       # TypeScript stays on 5.9 (decision 74): 7 removes `baseUrl` (TS5102) and breaks ts-node / typescript-eslint.
       - dependency-name: typescript
