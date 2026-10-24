@@ -6,6 +6,8 @@ export abstract class BasePage {
   constructor(protected readonly page: Page) {}
 
   async expectNoSeriousA11yIssues(): Promise<void> {
+    // Colors are measured while a fade-in is still running on a slow machine: let the animations finish first.
+    await this.page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))));
     const { violations } = await new AxeBuilder({ page: this.page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
     const serious = violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
     expect(serious, serious.map((v) => `${v.id}: ${v.help}`).join('\n')).toEqual([]);
