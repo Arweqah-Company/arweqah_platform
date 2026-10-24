@@ -16,7 +16,16 @@ async function enterFreshCode(page: Page): Promise<void> {
   await expect(page.getByRole('button', { name: TURN_OFF })).toBeVisible();
 }
 
-const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
+/** Waits for running animations to end; one removed from the page mid-wait rejects with AbortError, which is fine. */
+const settled = (page: Page) =>
+  page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((a) => Number.isFinite(a.effect?.getComputedTiming().endTime))
+        .map((a) => a.finished.catch(() => undefined)),
+    ),
+  );
 
 test.afterEach(async ({ page }) => {
   await page.request.post('/api/admin-mode/deactivate', { headers: { origin: 'http://localhost:4173' } });
