@@ -2,7 +2,7 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
     cooldown: { default-days: 7 }
     open-pull-requests-limit: 10
     ignore:
@@ -16,9 +16,9 @@ updates:
         update-types: [minor, patch]
   - package-ecosystem: docker
     directories: [/apps/api, /apps/web]
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
     cooldown: { default-days: 7 }
   - package-ecosystem: github-actions
     directory: /
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
     cooldown: { default-days: 7 }
