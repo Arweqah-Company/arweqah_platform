@@ -17,7 +17,7 @@ export const ROLE_SEEDS: RoleSeed[] = [
   auto('مدير مباشر', 'Direct manager', { autoRule: 'has_reports', note: 'يُسند لمن له مرؤوسون' }),
   auto('مستقبِل تذاكر الوحدة', 'Unit ticket receiver'),
   auto('مسؤول تذاكر الوحدة', 'Unit ticket owner'),
-  auto('مسؤول وسوم الوحدة', 'Unit tags owner'),
+  auto('مسؤول فئات الوحدة', 'Unit tags owner'),
   auto('مطوّر فرص', 'Opportunity developer'),
   auto('مسؤول علاقات', 'Relations officer'),
   manual('قارئ كل الفرص', 'All-opportunities reader'),

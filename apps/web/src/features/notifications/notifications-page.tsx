@@ -1,16 +1,18 @@
 import { CorePermission, type NotificationDto } from '@arweqah-platform/shared';
+import { CheckCheck, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import type { ExportColumn } from '@/shared/data-exchange/types';
 import { useListPage } from '@/shared/lib/use-list-page';
 import { useServerList } from '@/shared/lib/use-server-list';
 import { Can } from '@/core/permissions/can';
-import { Button, DataTable, ListToolbar, PageHeader, type FilterField } from '@/shared/ui';
+import { Button, DataTable, ListToolbar, PageHeader, RowAction, type FilterField } from '@/shared/ui';
 import { useMarkRead } from './api/notifications.api';
 
 export function NotificationsPage() {
   const { t, i18n } = useTranslation('notifications');
+  const navigate = useNavigate();
   const list = useListPage('notifications');
   const state = list.filters.values.state;
   const fields: FilterField[] = [
@@ -45,6 +47,20 @@ export function NotificationsPage() {
         caption={t('title')}
         toolbar={<ListToolbar listKey="notifications" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={<ExchangeButtons permissions={{ export: CorePermission.NotificationsExport }} exporting={{ columns: exportColumns, filename: 'notifications', pageRows: query.data?.items ?? [], total: query.data?.total ?? 0, loadAll }} />} />}
         rowKey={(n) => n.id}
+        onRowClick={(n) => {
+          if (n.link?.startsWith('/')) {
+            markRead.mutate([n.id]);
+            navigate(n.link);
+          }
+        }}
+        actions={(n) => (
+          <>
+            {n.link?.startsWith('/') && (
+              <Button asChild variant="ghost" size="icon"><Link to={n.link} aria-label={t('open')} title={t('open')} onClick={() => markRead.mutate([n.id])}><ExternalLink className="size-5" aria-hidden /></Link></Button>
+            )}
+            {!n.readAt && <Can permission={CorePermission.NotificationsMarkRead}><RowAction label={t('markOne')} icon={CheckCheck} onClick={() => markRead.mutate([n.id])} /></Can>}
+          </>
+        )}
         empty={t('empty')}
         columns={[
           {
@@ -58,18 +74,6 @@ export function NotificationsPage() {
             ),
           },
           { id: 'date', header: 'date', hideHeader: true, className: 'w-40 whitespace-nowrap text-sm text-muted', cell: (n) => new Date(n.createdAt).toLocaleString(i18n.language) },
-          {
-            id: 'open',
-            header: t('open'),
-            hideHeader: true,
-            className: 'w-24',
-            cell: (n) =>
-              n.link?.startsWith('/') ? (
-                <Link className="text-sm text-link underline-offset-4 hover:underline" to={n.link} onClick={() => markRead.mutate([n.id])}>
-                  {t('open')}
-                </Link>
-              ) : null,
-          },
         ]}
       />
     </>

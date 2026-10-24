@@ -21,6 +21,11 @@ export const LIST_CATALOG = {
     columns: ['number', 'title', 'desk', 'type', 'sender', 'assignee', 'status', 'neededBy', 'activity'],
     filters: ['deskId', 'typeId', 'assigneeId', 'status'],
   },
+  tasks: {
+    columns: ['title', 'assignee', 'dueDate', 'priority', 'status', 'tag', 'estimate'],
+    filters: ['status', 'priority', 'assigneeId', 'tagId', 'stale', 'overdue'],
+  },
+  'task-tags': { columns: ['name', 'department', 'status'], filters: ['status'] },
   notifications: { columns: [], filters: ['state', 'from', 'until'] },
 } as const satisfies Record<string, { columns: readonly string[]; filters: readonly string[] }>;
 

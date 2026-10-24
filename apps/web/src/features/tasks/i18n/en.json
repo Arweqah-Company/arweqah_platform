@@ -1,0 +1,337 @@
+{
+  "title": "My tasks",
+  "description": "What is asked of you, what you asked of others, and what you follow.",
+  "newTask": "New task",
+  "searchLabel": "Search tasks",
+  "searchPlaceholder": "Search by title or task number",
+  "noMatches": "No tasks match your search or filters.",
+  "loading": "Loading…",
+  "tabsLabel": "My tasks",
+  "tabs": {
+    "assigned": "Assigned to me",
+    "created": "Assigned by me",
+    "following": "Following",
+    "team": "My team"
+  },
+  "empty": {
+    "assigned": "Nothing is asked of you",
+    "created": "You have not asked anyone for anything",
+    "following": "You are not following any task",
+    "team": "Your team has no tasks"
+  },
+  "emptyHint": {
+    "assigned": "Open tasks given to you, or created by you for yourself, appear here, ordered by due date.",
+    "created": "Tasks you give to other people appear here so you can follow their progress.",
+    "following": "Open a task and choose Follow to see it here.",
+    "team": "Tasks of your direct reports, or of everyone below you, appear here."
+  },
+  "status": {
+    "pending_approval": "Pending approval",
+    "todo": "To do",
+    "in_progress": "In progress",
+    "awaiting_review": "Awaiting review",
+    "done": "Done",
+    "rejected": "Rejected"
+  },
+  "priority": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High"
+  },
+  "flags": {
+    "urgent": "Urgent",
+    "overdue": "Overdue",
+    "stale": "Stale",
+    "objected": "Objected to"
+  },
+  "columns": {
+    "number": "Number",
+    "title": "Title",
+    "assignee": "Assignee",
+    "dueDate": "Due date",
+    "priority": "Priority",
+    "status": "Status",
+    "tag": "Tag",
+    "estimate": "Estimate"
+  },
+  "estimate": {
+    "hours": "{{hours}} h",
+    "minutes": "{{count}} min"
+  },
+  "filters": {
+    "status": "Status",
+    "priority": "Priority",
+    "assignee": "Person",
+    "tag": "Tag",
+    "stale": "Stale only",
+    "overdue": "Overdue only",
+    "showClosed": "Include finished and rejected",
+    "archived": "Archived"
+  },
+  "groupBy": {
+    "label": "Group by",
+    "none": "No grouping",
+    "due": "Due date",
+    "status": "Status",
+    "person": "Person"
+  },
+  "groups": {
+    "overdue": "Overdue"
+  },
+  "views": {
+    "table": "Table",
+    "board": "Kanban board"
+  },
+  "board": {
+    "label": "Task board",
+    "drag": "Drag the task {{title}}",
+    "moveTo": "Move the task {{title}} to",
+    "truncated": "Showing the first {{shown}} of {{total}} tasks. Narrow the list with the search or the filters."
+  },
+  "moveReason": {
+    "NO_CHANGE": "The task is already in this status.",
+    "AWAITING_APPROVAL": "A task waiting for approval moves only when the approver approves or rejects it.",
+    "REJECTED_TASK": "A rejected task is sent again for approval by its owner; it is not moved.",
+    "NOT_ALLOWED_PATH": "A task cannot move between these two statuses.",
+    "NOT_ASSIGNEE": "Only the assignee, or a manager of the team, can do this move.",
+    "NOT_REVIEWER": "Only the reviewer can accept the work or send it back.",
+    "NOT_CREATOR_OR_MANAGER": "Only whoever gave the task, or a manager, can reopen it.",
+    "REVIEW_NOT_REQUIRED": "This task does not need a review."
+  },
+  "transition": {
+    "noteTitle": "Send the work back",
+    "noteDescription": "The task goes back to the assignee. Write what is missing.",
+    "note": "Note",
+    "dateTitle": "When did the work end?",
+    "dateDescription": "The task is later than the allowed time. State the real day it was finished.",
+    "completedOn": "Completion date",
+    "completedOnHint": "It can go back only as far as the policy allows."
+  },
+  "team": {
+    "reach": "Show",
+    "direct": "Direct reports",
+    "all": "Everyone below me",
+    "lanes": "One row for each person"
+  },
+  "matrix": {
+    "title": "Task matrix",
+    "description": "Your open tasks in four squares: important or not, urgent or not. A task is important when its priority is high; it is urgent when it is due soon, overdue or marked urgent.",
+    "scope": "Show",
+    "mine": "My tasks",
+    "team": "My team's tasks",
+    "empty": "No tasks here",
+    "important_urgent": {
+      "title": "Important and urgent",
+      "hint": "Do these first."
+    },
+    "important_not_urgent": {
+      "title": "Important, not urgent",
+      "hint": "Plan them before they become urgent."
+    },
+    "normal_urgent": {
+      "title": "Urgent, not important",
+      "hint": "Finish them quickly or hand them over."
+    },
+    "normal_not_urgent": {
+      "title": "Neither",
+      "hint": "Do them when there is time."
+    }
+  },
+  "form": {
+    "newTitle": "New task",
+    "newDescription": "Give a task to yourself or to someone you may.",
+    "title": "Title",
+    "description": "Details",
+    "assignee": "Assign to",
+    "assigneeHint": "Yourself by default.",
+    "me": "{{name}} (me)",
+    "tag": "Tag",
+    "noTag": "No tag",
+    "noTags": "Your department has not created any tags yet.",
+    "dueDate": "Due date",
+    "dueInPast": "The due date cannot be in the past.",
+    "priority": "Priority",
+    "estimate": "Expected time (hours)",
+    "estimateHint": "Leave empty when unknown.",
+    "recurrence": "Repeats",
+    "recurrenceEnd": "Repeats until",
+    "recurrenceEndHint": "Leave empty to repeat without an end.",
+    "urgent": "Urgent",
+    "urgentLabel": "Mark as urgent",
+    "review": "Review",
+    "reviewLabel": "Needs a review",
+    "on": "On",
+    "off": "Off",
+    "approvedBy": "This task is for yourself, so it will be approved by {{name}}.",
+    "noApproval": "This task is for yourself and nobody has to approve it.",
+    "create": "Create the task",
+    "created": "The task was created."
+  },
+  "recurrence": {
+    "none": "Does not repeat",
+    "daily": "Every day",
+    "weekly": "Every week",
+    "monthly": "Every month"
+  },
+  "details": {
+    "pageHint": "Everything about this task: who, when, and what happened.",
+    "creator": "Given by",
+    "reviewer": "Reviewer",
+    "approver": "Approver",
+    "logged": "Time logged / estimate",
+    "recurrence": "Repeats",
+    "followers": "Followers",
+    "archivedNote": "This task was archived on {{date}}. It can be restored.",
+    "objectionNote": "{{name}} objected ({{reason}}). The objection lapses on {{date}} if nobody answers.",
+    "pendingNote": "This task waits for the approval of {{name}}."
+  },
+  "actions": {
+    "moveTo": "Move to",
+    "chooseStatus": "Choose a status",
+    "approve": "Approve",
+    "reject": "Reject",
+    "resubmit": "Send again",
+    "object": "Object",
+    "answer": "Answer the objection",
+    "time": "Log time",
+    "edit": "Edit",
+    "follow": "Follow",
+    "unfollow": "Stop following",
+    "followed": "You follow this task.",
+    "unfollowed": "You no longer follow this task.",
+    "restore": "Restore",
+    "restored": "The task was restored."
+  },
+  "decision": {
+    "note": "Note (optional)",
+    "approve": {
+      "title": "Approve the task",
+      "description": "The task moves to To do for its owner.",
+      "confirm": "Approve",
+      "done": "The task was approved."
+    },
+    "reject": {
+      "title": "Reject the task",
+      "description": "The task is refused. Its owner may edit it and send it again.",
+      "confirm": "Reject",
+      "done": "The task was rejected."
+    },
+    "resubmit": {
+      "title": "Send the task again",
+      "description": "The task goes back to your manager for approval.",
+      "confirm": "Send",
+      "done": "The task was sent again."
+    }
+  },
+  "objection": {
+    "title": "Object to the task",
+    "description": "Choose why. Unanswered, the objection lapses after a few working days and the task stays with you.",
+    "reasonLabel": "Reason",
+    "note": "Note (optional)",
+    "confirm": "Send the objection",
+    "done": "Your objection was sent.",
+    "reason": {
+      "not_my_scope": "Not my responsibility",
+      "not_enough_time": "Not enough time",
+      "missing_information": "Information is missing",
+      "conflicting_priorities": "Conflicting priorities"
+    },
+    "answerTitle": "Answer the objection",
+    "answerDescription": "Rejecting keeps the task with its assignee. Accepting gives it to somebody else, who is told.",
+    "outcome": "Your answer",
+    "accept": "I accept the objection and give the task to someone else",
+    "reject": "I keep the task with its assignee",
+    "answerConfirm": "Send the answer",
+    "answered": "The objection was answered.",
+    "newAssignee": "Give the task to",
+    "newAssigneeHint": "Only people you may give a task to are offered.",
+    "choosePerson": "Choose a person"
+  },
+  "time": {
+    "title": "Log time",
+    "description": "Record the time you worked on this task.",
+    "minutes": "Minutes",
+    "day": "Day worked",
+    "confirm": "Log",
+    "done": "The time was logged."
+  },
+  "edit": {
+    "title": "Edit the task",
+    "saved": "The task was saved."
+  },
+  "timeline": {
+    "label": "History of the task",
+    "system": "The system"
+  },
+  "events": {
+    "created": "Created",
+    "updated": "Edited",
+    "transitioned": "Changed status",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "resubmitted": "Sent again",
+    "objected": "Objected",
+    "objection_answered": "Objection answered",
+    "objection_expired": "Objection lapsed",
+    "archived": "Archived",
+    "restored": "Restored",
+    "handed_over": "Handed over",
+    "time_logged": "Time logged",
+    "minutes": "{{count}} min",
+    "reassigned": "Given to someone else"
+  },
+  "tags": {
+    "title": "Task tags",
+    "description": "Each department keeps its own tags for its tasks, such as reports or meetings.",
+    "new": "Add a tag",
+    "searchLabel": "Search tags",
+    "searchPlaceholder": "Search by name or department",
+    "name": "Tag",
+    "nameAr": "Arabic name",
+    "nameEn": "English name",
+    "department": "Department",
+    "chooseDepartment": "Choose a department",
+    "status": "Status",
+    "active": "Active (offered on new tasks)",
+    "editTitle": "Edit the tag",
+    "newTitle": "Add a tag",
+    "dialogDescription": "A tag belongs to one department.",
+    "saved": "The tag was saved.",
+    "deleted": "The tag was deleted.",
+    "deleteTitle": "Delete the tag?",
+    "deleteBody": "The tag {{name}} will be deleted. If tasks use it, turn it off instead.",
+    "empty": "No tags yet",
+    "emptyHint": "No department has created tags. Add the first one."
+  },
+  "policies": {
+    "title": "Task policies",
+    "description": "Every number of the task rules for a company. Each has limits so no value can switch tasks off.",
+    "company": "Company",
+    "saved": "The policies were saved.",
+    "range": "From {{min}} to {{max}}",
+    "outOfRange": "Use a whole number from {{min}} to {{max}}.",
+    "sections": {
+      "time": "Dates and reminders",
+      "timeHint": "When a task counts as urgent, when its owner is reminded, and how far back a date may be recorded.",
+      "follow": "Follow-up",
+      "followHint": "When a task counts as stale and how long an objection waits.",
+      "reports": "Summaries and archive",
+      "reportsHint": "The day of the managers' summary and how long closed standalone tasks stay before they are archived."
+    },
+    "fields": {
+      "urgentDays": "Urgent when due within (days)",
+      "reminderDaysBefore": "Reminder before the due date (days)",
+      "backdateDays": "Back-dating allowed (days)",
+      "staleDays": "Stale after no movement for (days)",
+      "objectionWorkingDays": "An objection lapses after (working days)",
+      "digestWeekday": "Day of the managers' summary (0 = Sunday … 6 = Saturday)",
+      "standaloneRetentionDays": "Archive standalone tasks after closing (days)"
+    }
+  },
+  "home": {
+    "title": "My current tasks",
+    "all": "All my tasks",
+    "empty": "You have no open tasks.",
+    "splitLabel": "Your open tasks by status"
+  }
+}

@@ -137,6 +137,37 @@
         "from": "From",
         "until": "Until"
       }
+    },
+    "tasks": {
+      "name": "Tasks",
+      "columns": {
+        "title": "Title",
+        "assignee": "Assignee",
+        "dueDate": "Due date",
+        "priority": "Priority",
+        "status": "Status",
+        "tag": "Tag",
+        "estimate": "Estimate"
+      },
+      "filters": {
+        "status": "Status",
+        "priority": "Priority",
+        "assigneeId": "Assignee",
+        "tagId": "Tag",
+        "stale": "Stale",
+        "overdue": "Overdue"
+      }
+    },
+    "task-tags": {
+      "name": "Task tags",
+      "columns": {
+        "name": "Name",
+        "department": "Department",
+        "status": "Status"
+      },
+      "filters": {
+        "status": "Status"
+      }
     }
   },
   "listHint": "The first column (the name) always stays.",

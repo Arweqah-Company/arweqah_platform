@@ -14,6 +14,7 @@ import { permissionsFeature } from '@/features/permissions';
 import { pageVisibilityFeature } from '@/features/page-visibility';
 import { rolesFeature } from '@/features/roles';
 import { securityFeature } from '@/features/security';
+import { tasksFeature } from '@/features/tasks';
 import { ticketsFeature } from '@/features/tickets';
 
 /** Composition root: the list of features this app is built from (order = sidebar order). */
@@ -23,6 +24,7 @@ export const FEATURES: FeatureModule[] = [
   employeesFeature,
   orgFeature,
   companiesFeature,
+  tasksFeature,
   ticketsFeature,
   rolesFeature,
   permissionsFeature,

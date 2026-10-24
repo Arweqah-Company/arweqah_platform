@@ -11,5 +11,34 @@
     "contractEnding": "عقود تنتهي قريبًا",
     "needsPlacement": "بحاجة لتعيين وحدة",
     "soonHint": "خلال 30 يومًا"
+  },
+  "loading": "جارٍ التحميل…",
+  "numbers": {
+    "title": "أرقامي",
+    "tasksOpen": "مهامي المفتوحة",
+    "tasksOverdue": "المهام المتأخرة",
+    "tasksSoon": "موعدها خلال 7 أيام",
+    "tasksDone": "أنجزتها",
+    "onTime": "أنجزتها في موعدها",
+    "tasksReview": "بانتظار مراجعتي",
+    "tasksApproval": "بانتظار اعتمادي",
+    "teamOverdue": "الفريق: متأخرة",
+    "teamStale": "الفريق: راكدة",
+    "teamDone": "الفريق: منجزة",
+    "ticketsSent": "تذاكر أرسلتها ولم تُغلق",
+    "ticketsConfirm": "بانتظار تأكيدي",
+    "ticketsReply": "بانتظار ردّي",
+    "soonHint": "المهام المفتوحة",
+    "doneHint": "آخر 30 يومًا",
+    "weekHint": "هذا الأسبوع"
+  },
+  "tickets": {
+    "title": "تذاكري",
+    "all": "كل التذاكر",
+    "sent": "أرسلتها وما زالت مفتوحة",
+    "sentEmpty": "ليس عندك تذاكر مفتوحة.",
+    "waiting": "تنتظر ردّي",
+    "waitingEmpty": "لا شيء ينتظر ردّك.",
+    "needsConfirm": "بانتظار تأكيدك"
   }
 }

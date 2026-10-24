@@ -1,0 +1,75 @@
+# Existing files the tasks feature (docs/plans/phase-3-tasks.md) may change. Anything else that already exists must stay untouched.
+# Used by scripts/check-existing-untouched.sh (phase 1). Paths are relative to the repository root; a trailing / means the whole folder.
+# Phase 0 (documentation)
+README.md
+docs/decisions.md
+docs/plans/phase-3-tasks.md
+# Phase 1 (foundation and catalogs). The tickets working-days rules are not moved: addWorkingDays already lives in packages/shared.
+packages/shared/src/permissions/keys.ts
+packages/shared/src/pages/schemas.ts
+packages/shared/src/lists/
+packages/shared/src/index.ts
+apps/api/src/database/entities.ts
+apps/api/src/app.module.ts
+apps/web/src/app/features.ts
+apps/web/src/features/roles/i18n/ar.json
+apps/web/src/features/roles/i18n/en.json
+apps/web/src/features/page-visibility/i18n/ar.json
+apps/web/src/features/page-visibility/i18n/en.json
+apps/web/src/features/list-settings/i18n/ar.json
+apps/web/src/features/list-settings/i18n/en.json
+apps/web/src/core/i18n/locales/ar.json
+apps/web/src/core/i18n/locales/en.json
+# Phase 2 and 8 (tickets: new summary and the port adapter, registration only)
+apps/api/src/modules/tickets/tickets.module.ts
+# Phase 4 (employees: publish employee.terminated)
+apps/api/src/modules/employees/application/services/employees.service.ts
+apps/api/src/modules/employees/application/messages/employee.messages.ts
+# Phase 8 (home page)
+apps/web/src/features/home/home-page.tsx
+apps/web/src/features/home/i18n/ar.json
+apps/web/src/features/home/i18n/en.json
+apps/web/src/features/tickets/index.ts
+# Phase 6 (a sidebar menu for tasks: one more group id and its entry)
+apps/web/src/core/feature.ts
+apps/web/src/core/navigation.tsx
+# Phase 6 (the table learns to sort by a header: optional props, nothing changes for other lists)
+apps/web/src/shared/ui/data-table.tsx
+apps/web/src/shared/ui/index.ts
+apps/web/src/shared/ui/dialog.tsx
+# Phase 8 (a link may open a list already filtered: an optional start value)
+apps/web/src/shared/lib/use-filters.ts
+apps/web/src/shared/lib/use-list-page.ts
+# The direct manager is optional in the employee form
+apps/web/src/features/employees/form/work-section.tsx
+apps/web/src/features/employees/i18n/ar.json
+apps/web/src/features/employees/i18n/en.json
+# Every list table: an actions column and a click on the row
+apps/web/src/features/audit/
+apps/web/src/features/companies/companies-page.tsx
+apps/web/src/features/email-log/
+apps/web/src/features/employees/employees-page.tsx
+apps/web/src/features/notifications/
+apps/web/src/features/org/
+apps/web/src/features/roles/roles-page.tsx
+apps/web/src/features/tickets/tickets-page.tsx
+README.md
+# Documentation of the feature
+CLAUDE.md
+.claude/skills/arweqah-design-system/SKILL.md
+# Phase 7 (dependency)
+apps/web/package.json
+package-lock.json
+apps/api/src/database/seeds/data/roles.data.ts
+# Views (radial tree, tickets board)
+apps/web/src/features/employees/employees-columns.tsx
+apps/web/src/features/org/org-chart-view.tsx
+apps/web/src/features/org/org-page.tsx
+apps/web/src/features/org/org-page.test.tsx
+apps/web/src/features/tickets/tickets-page.tsx
+apps/web/src/features/tickets/tickets-page.test.tsx
+apps/web/src/features/tickets/i18n/ar.json
+apps/web/src/features/tickets/i18n/en.json
+apps/web/src/shared/ui/index.ts
+# Shared chart helpers extracted for the icicle (behaviour unchanged)
+apps/web/src/shared/ui/tree-chart.tsx

@@ -137,6 +137,37 @@
         "from": "من تاريخ",
         "until": "إلى تاريخ"
       }
+    },
+    "tasks": {
+      "name": "المهام",
+      "columns": {
+        "title": "العنوان",
+        "assignee": "المسند إليه",
+        "dueDate": "الموعد",
+        "priority": "الأولوية",
+        "status": "الحالة",
+        "tag": "الفئة",
+        "estimate": "التقدير"
+      },
+      "filters": {
+        "status": "الحالة",
+        "priority": "الأولوية",
+        "assigneeId": "المسند إليه",
+        "tagId": "الفئة",
+        "stale": "الراكدة",
+        "overdue": "المتأخرة"
+      }
+    },
+    "task-tags": {
+      "name": "فئات المهام",
+      "columns": {
+        "name": "الاسم",
+        "department": "الإدارة",
+        "status": "الحالة"
+      },
+      "filters": {
+        "status": "الحالة"
+      }
     }
   },
   "listHint": "العمود الأول (الاسم) يبقى دائمًا.",

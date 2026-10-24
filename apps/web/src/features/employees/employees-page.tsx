@@ -1,7 +1,7 @@
 import { CorePermission, type EmployeeListItemDto } from '@arweqah-platform/shared';
 import { Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { Can, usePermissions } from '@/core/permissions/can';
 import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import { useListPage } from '@/shared/lib/use-list-page';
@@ -9,10 +9,12 @@ import { useServerList } from '@/shared/lib/use-server-list';
 import { Button, DataTable, EmptyState, ListToolbar, PageHeader } from '@/shared/ui';
 import { useEmployeeColumns } from './employees-columns';
 import { toEmployeesQuery, useEmployeeFilterFields } from './employees-filters';
+import { EmployeeRowActions } from './employee-row-actions';
 import { useEmployeesImport } from './employees-import';
 
 export function EmployeesPage() {
   const { t } = useTranslation('employees');
+  const navigate = useNavigate();
   const list = useListPage('employees');
   const fields = useEmployeeFilterFields(list.filters.values);
   const { columns, exportColumns } = useEmployeeColumns();
@@ -31,6 +33,8 @@ export function EmployeesPage() {
         title={t('allTitle')}
         toolbar={<ListToolbar listKey="employees" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={exchange} />}
         rowKey={(e) => e.id}
+        onRowClick={(e) => navigate(`/employees/${e.id}`)}
+        actions={(e) => <EmployeeRowActions employee={e} />}
         empty={<EmptyState icon={Users} title={list.narrowed ? t('noMatches') : t('empty')} description={list.narrowed ? undefined : t('emptyHint')} />}
         columns={columns}
       />

@@ -7,7 +7,11 @@ import { useMe } from '@/core/auth/session';
 import { useNavItems } from '@/core/navigation';
 import { usePermissions } from '@/core/permissions/can';
 import { StatTile } from '@/shared/ui';
+import { MatrixSection, MyTasksPanel, useTaskSummary } from '@/features/tasks';
 import { useEmployeesSummary } from '../employees/api';
+import { useTicketSummary } from './api';
+import { NumbersSection } from './numbers-section';
+import { TicketsPanel } from './tickets-panel';
 
 const attention = (count: number | undefined) => (count ? 'attention' : 'neutral');
 
@@ -64,21 +68,48 @@ function RecentActivity() {
   );
 }
 
-/** The landing page: counts for the employees the viewer may see, recent activity, and shortcuts. */
-export function HomePage() {
-  const { t } = useTranslation('home');
+/** What the person may see on the home page, and the numbers behind it (a section is asked for only when its key is held and its page is not hidden). */
+function useHomeData() {
   const me = useMe().data;
   const { can } = usePermissions();
+  const hidden = me?.hiddenPages ?? [];
+  const showTasks = can(CorePermission.TasksView) && !hidden.includes('tasks');
+  const showTickets = can(CorePermission.TicketsView) && !hidden.includes('tickets');
   const canSeeEmployees = can(CorePermission.EmployeesView);
-  const summary = useEmployeesSummary(canSeeEmployees).data;
+  const showMatrix = can(CorePermission.TasksMatrixView) && !hidden.includes('tasks-matrix');
+  return {
+    me,
+    can,
+    showTasks,
+    showTickets,
+    showMatrix,
+    canSeeEmployees,
+    employees: useEmployeesSummary(canSeeEmployees).data,
+    tasks: useTaskSummary(showTasks).data,
+    tickets: useTicketSummary(showTickets).data,
+  };
+}
+
+/** The landing page: my numbers, my tasks and tickets, the employee counts for those who may see them, recent activity, and shortcuts. */
+export function HomePage() {
+  const { t } = useTranslation('home');
+  const h = useHomeData();
   return (
-    <div className="max-w-5xl">
-      <h1 className="text-3xl font-bold">{t('greeting', { name: me?.name.split(' ')[0] ?? '' })}</h1>
+    <div>
+      <h1 className="text-3xl font-bold">{t('greeting', { name: h.me?.name.split(' ')[0] ?? '' })}</h1>
       <p className="mt-2 max-w-[65ch] text-muted">{t('intro')}</p>
-      {canSeeEmployees && <StatsSection summary={summary} />}
+      <NumbersSection tasks={h.tasks} tickets={h.tickets} showTasks={h.showTasks} showTickets={h.showTickets} />
+      {(h.showTasks || h.showTickets) && (
+        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+          {h.showTasks && <MyTasksPanel summary={h.tasks} />}
+          {h.showTickets && <TicketsPanel summary={h.tickets} />}
+        </div>
+      )}
+      {h.showMatrix && <MatrixSection />}
+      {h.canSeeEmployees && <StatsSection summary={h.employees} />}
       <div className="mt-10 grid gap-8 lg:grid-cols-2">
         <Shortcuts />
-        {can(CorePermission.AuditView) && <RecentActivity />}
+        {h.can(CorePermission.AuditView) && <RecentActivity />}
       </div>
     </div>
   );

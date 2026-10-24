@@ -19,6 +19,11 @@
     "tickets": "Tickets",
     "ticket-setup": "Ticket setup",
     "ticket-figures": "Ticket figures",
-    "permissions": "Permissions"
+    "permissions": "Permissions",
+    "tasks": "Tasks",
+    "tasks-team": "My team's tasks",
+    "tasks-matrix": "Task matrix",
+    "task-tags": "Task tags",
+    "task-policies": "Task policies"
   }
 }

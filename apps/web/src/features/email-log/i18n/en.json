@@ -26,5 +26,9 @@
   "filters": {
     "from": "From date",
     "until": "To date"
-  }
+  },
+  "sentAt": "Sent at",
+  "error": "Error",
+  "response": "Server response",
+  "viewTitle": "Sent e-mail"
 }

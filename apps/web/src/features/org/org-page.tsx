@@ -1,5 +1,5 @@
 import { CorePermission, type OrgTreeDto } from '@arweqah-platform/shared';
-import { Network, Table2, X } from 'lucide-react';
+import { AlignStartVertical, Network, Table2, X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMe } from '@/core/auth/session';
@@ -9,6 +9,7 @@ import { useViewMode } from '@/shared/lib/use-view-mode';
 import { Alert, Button, EmptyState, PageHeader, Select, ViewSwitch } from '@/shared/ui';
 import { useCompanyOptions, useOrgTree } from './api';
 import { LevelsForm } from './levels-form';
+import { NodeActionDialogs, type NodeAction } from './node-action-dialogs';
 import { NodeDetails } from './node-details';
 import { NodeForm } from './node-form';
 import { OrgChartView } from './org-chart-view';
@@ -16,7 +17,7 @@ import { OrgTableView } from './org-table-view';
 import { TitlesForm } from './titles-form';
 
 type Form = 'levels' | 'node' | 'titles' | null;
-type OrgView = 'chart' | 'table';
+type OrgView = 'chart' | 'icicle' | 'table';
 
 function Toolbar({ ready, onLevels, onAddUnit, onAddTitle }: { ready: boolean; onLevels: () => void; onAddUnit: () => void; onAddTitle: () => void }) {
   const { t } = useTranslation('org');
@@ -37,11 +38,12 @@ function useOrgPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [form, setForm] = useState<Form>(null);
   const [parentId, setParentId] = useState<string | null>(null);
-  const [view, setView] = useViewMode<OrgView>('org', { modes: ['chart', 'table'], phoneDefault: 'table' });
+  const [rowAction, setRowAction] = useState<{ nodeId: string; action: NodeAction } | null>(null);
+  const [view, setView] = useViewMode<OrgView>('org', { modes: ['chart', 'icicle', 'table'], phoneDefault: 'table' });
   const companyId = chosen || me?.placement.companyId || companies.data?.[0]?.id || '';
   const treeQuery = useOrgTree(companyId || undefined);
   return {
-    companies: companies.data ?? [], companyId, treeQuery, selectedId, setSelectedId, form, setForm, parentId, view, setView,
+    companies: companies.data ?? [], companyId, treeQuery, selectedId, setSelectedId, form, setForm, parentId, view, setView, rowAction, setRowAction,
     chooseCompany: (id: string) => { setChosen(id); setSelectedId(null); },
     openNode: (parent: string | null) => { setParentId(parent); setForm('node'); },
   };
@@ -62,6 +64,13 @@ function DetailsPanel({ page, tree }: { page: Page; tree: OrgTreeDto }) {
   );
 }
 
+/** The popup of an action chosen on a unit's row (edit, move, delete). */
+function RowDialogs({ page, tree }: { page: Page; tree: OrgTreeDto }) {
+  const node = tree.nodes.find((n) => n.id === page.rowAction?.nodeId);
+  if (!node || !page.rowAction) return null;
+  return <NodeActionDialogs tree={tree} node={node} action={page.rowAction.action} onClose={() => page.setRowAction(null)} onDeleted={() => page.selectedId === node.id && page.setSelectedId(null)} />;
+}
+
 /** The structure (chart or table) with the selected unit's details, and whichever of the three forms is open. */
 function OrgBody({ page, tree, companyName }: { page: Page; tree: OrgTreeDto; companyName: string }) {
   const { t, i18n } = useTranslation('org');
@@ -79,11 +88,12 @@ function OrgBody({ page, tree, companyName }: { page: Page; tree: OrgTreeDto; co
       ) : (
         <div className={selected ? 'grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]' : undefined}>
           <div className="min-w-0">
-            {page.view === 'chart' ? <OrgChartView tree={tree} companyName={companyName} selectedId={page.selectedId} onSelect={page.setSelectedId} /> : <OrgTableView tree={tree} selectedId={page.selectedId} onSelect={page.setSelectedId} />}
+            {page.view !== 'table' ? <OrgChartView icicle={page.view === 'icicle'} tree={tree} companyName={companyName} selectedId={page.selectedId} onSelect={page.setSelectedId} /> : <OrgTableView tree={tree} selectedId={page.selectedId} onSelect={page.setSelectedId} onAction={(node, action) => page.setRowAction({ nodeId: node.id, action })} onAddChild={(node) => page.openNode(node.id)} />}
           </div>
           <DetailsPanel page={page} tree={tree} />
         </div>
       )}
+      <RowDialogs page={page} tree={tree} />
       {page.form === 'levels' && <LevelsForm companyId={page.companyId} levels={tree.levels} open onOpenChange={close} />}
       {page.form === 'node' && <NodeForm tree={tree} initialParentId={page.parentId} open onOpenChange={close} />}
       {page.form === 'titles' && <TitlesForm tree={tree} initialNodeId={page.selectedId} open onOpenChange={close} />}
@@ -107,7 +117,7 @@ export function OrgPage() {
         <Select className="max-w-sm" aria-label={t('company')} value={page.companyId} onChange={(e) => page.chooseCompany(e.target.value)}>
           {page.companies.map((c) => <option key={c.id} value={c.id}>{ar ? c.nameAr : c.nameEn}</option>)}
         </Select>
-        <ViewSwitch<OrgView> value={page.view} onChange={page.setView} choices={[{ id: 'chart', label: tc('view.chart'), icon: Network }, { id: 'table', label: tc('view.table'), icon: Table2 }]} />
+        <ViewSwitch<OrgView> value={page.view} onChange={page.setView} choices={[{ id: 'chart', label: tc('view.chart'), icon: Network }, { id: 'icicle', label: tc('view.icicle'), icon: AlignStartVertical }, { id: 'table', label: tc('view.table'), icon: Table2 }]} />
       </div>
       {page.treeQuery.isError && <Alert>{errorMessage(tc, page.treeQuery.error)}</Alert>}
       {tree && <OrgBody page={page} tree={tree} companyName={company ? (ar ? company.nameAr : company.nameEn) : ''} />}

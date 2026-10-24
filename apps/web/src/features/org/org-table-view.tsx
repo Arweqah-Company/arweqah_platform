@@ -1,11 +1,14 @@
 import { CorePermission, type OrgNodeDto, OrgTreeDto } from '@arweqah-platform/shared';
+import { ArrowRightLeft, Eye, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import type { ExportColumn } from '@/shared/data-exchange/types';
 import { cn } from '@/shared/lib/cn';
 import { matchesText } from '@/shared/lib/text-match';
 import { useListPage } from '@/shared/lib/use-list-page';
-import { Badge, DataTable, ListToolbar, type FilterField } from '@/shared/ui';
+import type { NodeAction } from './node-action-dialogs';
+import { Can } from '@/core/permissions/can';
+import { Badge, DataTable, RowAction, ListToolbar, type FilterField } from '@/shared/ui';
 
 /** How far a unit is indented by its depth (logical padding, so it follows the reading direction). */
 const INDENT = ['', 'ps-4', 'ps-8', 'ps-12', 'ps-16', 'ps-20'];
@@ -14,6 +17,25 @@ interface Props {
   tree: OrgTreeDto;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  /** Edit, move or delete a unit from its row (the popups open in the page). */
+  onAction: (node: OrgNodeDto, action: NodeAction) => void;
+  /** Add a unit below this one. */
+  onAddChild: (node: OrgNodeDto) => void;
+}
+
+/** Every action on a unit's row: view, edit, add a unit below, move, delete; each only with its key (and where it makes sense). */
+function UnitRowActions({ node, lastLevelId, label, onSelect, onAction, onAddChild }: { node: OrgNodeDto; lastLevelId: string | undefined; label: string } & Pick<Props, 'onSelect' | 'onAction' | 'onAddChild'>) {
+  const { t } = useTranslation('org');
+  const { t: tc } = useTranslation();
+  return (
+    <>
+      <RowAction label={`${tc('actions.view')}: ${label}`} icon={Eye} onClick={() => onSelect(node.id)} />
+      <Can permission={CorePermission.OrgUnitUpdate}><RowAction label={`${tc('actions.edit')}: ${label}`} icon={Pencil} onClick={() => onAction(node, 'edit')} /></Can>
+      {node.levelId !== lastLevelId && <Can permission={CorePermission.OrgUnitCreate}><RowAction label={`${t('details.addChild')}: ${label}`} icon={Plus} onClick={() => onAddChild(node)} /></Can>}
+      {node.parentId && <Can permission={CorePermission.OrgUnitMove}><RowAction label={`${t('details.move')}: ${label}`} icon={ArrowRightLeft} onClick={() => onAction(node, 'move')} /></Can>}
+      <Can permission={CorePermission.OrgUnitDelete}><RowAction label={`${tc('actions.delete')}: ${label}`} icon={Trash2} danger onClick={() => onAction(node, 'delete')} /></Can>
+    </>
+  );
 }
 
 /** Units in tree order (each parent before its children) with how deep they sit. */
@@ -24,7 +46,7 @@ function inTreeOrder(nodes: OrgNodeDto[]): { node: OrgNodeDto; depth: number }[]
 }
 
 /** The structure as a table: the same units as the chart, with search, filters on every attribute and export. */
-export function OrgTableView({ tree, selectedId, onSelect }: Props) {
+export function OrgTableView({ tree, selectedId, onSelect, onAction, onAddChild }: Props) {
   const { t, i18n } = useTranslation('org');
   const { t: tc } = useTranslation();
   const ar = i18n.language === 'ar';
@@ -65,6 +87,8 @@ export function OrgTableView({ tree, selectedId, onSelect }: Props) {
       toolbar={<ListToolbar listKey="org" {...list.toolbar({ label: t('table.searchLabel'), placeholder: t('table.searchPlaceholder') }, fields, false)} actions={<ExchangeButtons permissions={{ export: CorePermission.OrgExport }} exporting={{ columns: exportColumns, filename: 'org-units', pageRows: rows, total: rows.length, loadAll: async () => rows }} />} />}
       rows={rows}
       rowKey={({ node }) => node.id}
+      onRowClick={({ node }) => onSelect(node.id)}
+      actions={({ node }) => <UnitRowActions node={node} lastLevelId={tree.levels.at(-1)?.id} label={name(node)} onSelect={onSelect} onAction={onAction} onAddChild={onAddChild} />}
       columns={[
         {
           id: 'name',

@@ -23,6 +23,7 @@ import { WorkflowInstance, WorkflowTransition } from '../core/workflow/domain/wo
 import { Employee } from '../modules/employees/domain/entities/employee.entity';
 import { LOOKUP_ENTITIES } from '../modules/lookups/domain/entities/lookup.entities';
 import { ORG_ENTITIES } from '../modules/org/domain/entities/org.entities';
+import { TASK_ENTITIES } from '../modules/tasks/domain/entities/task.entities';
 import { TICKET_ENTITIES } from '../modules/tickets/domain/entities/ticket.entities';
 
 /**
@@ -59,5 +60,6 @@ export const ENTITIES = [
   ...LOOKUP_ENTITIES,
   ...ORG_ENTITIES,
   ...TICKET_ENTITIES,
+  ...TASK_ENTITIES,
   Employee,
 ];

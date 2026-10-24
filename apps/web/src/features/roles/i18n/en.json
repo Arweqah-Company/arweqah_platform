@@ -22,7 +22,8 @@
     "lookups": "Form options",
     "notifications": "Notifications and e-mail",
     "lists": "Lists",
-    "tickets": "Tickets"
+    "tickets": "Tickets",
+    "tasks": "Tasks"
   },
   "holders": "Users",
   "searchLabel": "Search roles",

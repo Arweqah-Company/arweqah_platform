@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   CorePermission,
+  EMPLOYEE_TERMINATED_TOPIC,
   todayIso,
   type CreateEmployeeInput,
   type CreateEmployeeResultDto,
@@ -23,6 +24,7 @@ import { ACCESS_CHANGED, EMPLOYEES_CHANGED } from '../../../../core/access/appli
 import { UserAccessService } from '../../../../core/access/application/user-access.service';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
+import { Outbox } from '../../../../core/messaging/application/outbox';
 import { AuthenticatorService } from '../../../../core/auth/application/authenticator.service';
 import { IdentityProvider } from '../../../../core/auth/application/identity-provider';
 import { InvitationService } from '../../../../core/auth/application/invitation.service';
@@ -53,6 +55,7 @@ export class EmployeesService {
     private readonly lookups: LookupsService,
     private readonly tx: TransactionRunner,
     private readonly events: EventEmitter2,
+    private readonly outbox: Outbox,
   ) {}
 
   async list(ctx: AccessContext, query: EmployeesQuery): Promise<Paginated<EmployeeListItemDto>> {
@@ -131,7 +134,10 @@ export class EmployeesService {
     const isOther = await this.lookups.terminationReasonIsOther(input.terminationReasonId);
     if (isOther === null) throw new FieldRuleError('terminationReasonId', 'Unknown option');
     if (isOther && !input.terminationReasonOther) throw new FieldRuleError('terminationReasonOther', 'State the reason', { ar: 'اذكر السبب', en: 'State the reason' });
-    await this.tx.run((tx) => this.repo.update(id, { endDate: input.endDate, terminationReasonId: input.terminationReasonId, terminationReasonOther: isOther ? (input.terminationReasonOther ?? null) : null }, tx));
+    await this.tx.run(async (tx) => {
+      await this.repo.update(id, { endDate: input.endDate, terminationReasonId: input.terminationReasonId, terminationReasonOther: isOther ? (input.terminationReasonOther ?? null) : null }, tx);
+      await this.outbox.enqueue(EMPLOYEE_TERMINATED_TOPIC, { employeeId: id, userId: employee.userId, endDate: input.endDate }, tx);
+    });
     if (input.endDate < todayIso()) await this.identity.setActive(employee.userId, false);
     this.audit(actorId, EMPLOYEE_AUDIT.terminated, id, { endDate: input.endDate });
     return this.dto(ctx, (await this.repo.findById(id)) as Employee);

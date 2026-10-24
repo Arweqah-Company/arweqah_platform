@@ -8,7 +8,8 @@ import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import type { ExportColumn } from '@/shared/data-exchange/types';
 import { useListPage } from '@/shared/lib/use-list-page';
 import { matchesText } from '@/shared/lib/text-match';
-import { Badge, Button, ConfirmDialog, DataTable, ListToolbar, PageHeader, type FilterField } from '@/shared/ui';
+import { Pencil, Trash2 } from 'lucide-react';
+import { Badge, Button, ConfirmDialog, DataTable, ListToolbar, PageHeader, RowAction, type FilterField } from '@/shared/ui';
 import { useCompanies, useDeleteCompany } from './api';
 import { useCompaniesImport } from './companies-import';
 import { CompanyDialog } from './company-dialog';
@@ -23,7 +24,9 @@ export function CompaniesPage() {
     { id: 'status', label: t('status'), type: 'select', options: [{ value: 'active', label: tc('status.active') }, { value: 'inactive', label: tc('status.inactive') }] },
     { id: 'employees', label: t('employees'), type: 'select', options: [{ value: 'with', label: t('filters.withEmployees') }, { value: 'without', label: t('filters.withoutEmployees') }] },
   ];
-  const canImport = usePermissions().can(CorePermission.CompaniesImport);
+  const { can } = usePermissions();
+  const canImport = can(CorePermission.CompaniesImport);
+  const canUpdate = can(CorePermission.CompaniesUpdate);
   const exportColumns: ExportColumn<CompanyDto>[] = [
     { id: 'code', header: t('code'), value: (c) => c.code },
     { id: 'nameAr', header: t('nameAr'), value: (c) => c.nameAr },
@@ -65,23 +68,18 @@ export function CompaniesPage() {
         isLoading={companies.isPending}
         error={companies.error}
         rowKey={(c) => c.id}
+        onRowClick={canUpdate ? (c) => setEditing({ company: c }) : undefined}
+        actions={(c) => (
+          <>
+            <Can permission={CorePermission.CompaniesUpdate}><RowAction label={tc('actions.edit')} icon={Pencil} onClick={() => setEditing({ company: c })} /></Can>
+            <Can permission={CorePermission.CompaniesDelete}><RowAction label={tc('actions.delete')} icon={Trash2} danger onClick={() => setDeleting(c)} /></Can>
+          </>
+        )}
         columns={[
           { id: 'code', header: t('code'), cell: (c) => <span dir="ltr" className="font-medium">{c.code}</span> },
           { id: 'name', header: t('name'), cell: (c) => (ar ? c.nameAr : c.nameEn) },
           { id: 'employees', header: t('employees'), cell: (c) => <span dir="ltr">{c.employeesCount}</span> },
           { id: 'status', header: t('status'), cell: (c) => <Badge tone={c.isActive ? 'success' : 'neutral'}>{tc(c.isActive ? 'status.active' : 'status.inactive')}</Badge> },
-          {
-            id: 'actions',
-            header: tc('actions.edit'),
-            hideHeader: true,
-            className: 'w-40 text-end',
-            cell: (c) => (
-              <>
-                <Can permission={CorePermission.CompaniesUpdate}><Button size="sm" variant="ghost" onClick={() => setEditing({ company: c })}>{tc('actions.edit')}</Button></Can>
-                <Can permission={CorePermission.CompaniesDelete}><Button size="sm" variant="ghost" className="text-danger-text" onClick={() => setDeleting(c)}>{tc('actions.delete')}</Button></Can>
-              </>
-            ),
-          },
         ]}
       />
       {editing && <CompanyDialog company={editing.company} open onOpenChange={(o) => !o && setEditing(null)} />}

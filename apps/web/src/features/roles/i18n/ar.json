@@ -22,7 +22,8 @@
     "lookups": "خيارات النماذج",
     "notifications": "الإشعارات والبريد",
     "lists": "القوائم",
-    "tickets": "التذاكر"
+    "tickets": "التذاكر",
+    "tasks": "المهام"
   },
   "holders": "المستخدمون",
   "searchLabel": "بحث في الأدوار",

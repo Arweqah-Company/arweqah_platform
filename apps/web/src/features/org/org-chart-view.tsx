@@ -1,7 +1,7 @@
 import type { OrgTreeDto } from '@arweqah-platform/shared';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SearchInput, TreeChart, type ChartItem, type ChartTone } from '@/shared/ui';
+import { Icicle, SearchInput, TreeChart, type ChartItem, type ChartTone } from '@/shared/ui';
 
 const ROOT = 'root';
 
@@ -34,10 +34,16 @@ interface Props {
   companyName: string;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  /** Rows of blocks instead of a top-down tree. */
+  icicle?: boolean;
 }
 
-/** The organization chart: search, open / close all, zoom, drag; a click selects the unit. */
-export function OrgChartView({ tree, companyName, selectedId, onSelect }: Props) {
+function Picture({ icicle, ...props }: { items: ChartItem[]; selectedId: string | null; onSelect: (id: string) => void; label: string; query: string; icicle: boolean }) {
+  return icicle ? <Icicle {...props} /> : <TreeChart {...props} />;
+}
+
+/** The organization chart (top-down or icicle): search, open / close all, zoom, drag; a click selects the unit. */
+export function OrgChartView({ tree, companyName, selectedId, onSelect, icicle = false }: Props) {
   const { t, i18n } = useTranslation('org');
   const [query, setQuery] = useState('');
   const items = useMemo(() => chartItems(tree, companyName, t, i18n.language === 'ar'), [tree, companyName, t, i18n.language]);
@@ -54,7 +60,7 @@ export function OrgChartView({ tree, companyName, selectedId, onSelect }: Props)
           ))}
         </ul>
       </div>
-      <TreeChart items={items} selectedId={selectedId} onSelect={onSelect} label={t('chart.label', { company: companyName })} query={query} />
+      <Picture items={items} selectedId={selectedId} onSelect={onSelect} label={t('chart.label', { company: companyName })} query={query} icicle={icicle} />
     </div>
   );
 }

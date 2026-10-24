@@ -1,7 +1,8 @@
 import type { ListKey, Paginated } from '@arweqah-platform/shared';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Fragment, type ReactNode } from 'react';
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Fragment, type MouseEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { cn } from '../lib/cn';
 import { errorMessage } from '../lib/error-message';
 import { useHiddenInList } from '../lib/list-settings';
 import { useIsPhone } from '../lib/use-is-phone';
@@ -16,6 +17,15 @@ export interface Column<T> {
   hideHeader?: boolean;
   cell: (row: T) => ReactNode;
   className?: string;
+  /** With `sort` and `onSort` on the table, the header becomes a button that sorts by this key. */
+  sortKey?: string;
+  /** The actions column: the last column of the table, and the bottom of a card. */
+  isAction?: boolean;
+}
+
+export interface TableSort {
+  key: string;
+  dir: 'asc' | 'desc';
 }
 
 type PageInfo = Pick<Paginated<unknown>, 'page' | 'pageSize' | 'total'>;
@@ -43,6 +53,13 @@ interface DataTableProps<T> {
   toolbar?: ReactNode;
   /** The heading a row belongs to; rows must already be ordered by it. A heading is drawn when it changes. */
   groupOf?: (row: T) => string;
+  /** The current order and the way to change it (clicking a sortable header asks for that key). */
+  sort?: TableSort;
+  onSort?: (key: string) => void;
+  /** Clicking anywhere on a row (not on a button or link inside it) opens the row's view. */
+  onRowClick?: (row: T) => void;
+  /** Every action on a row: they become the last column, headed "Actions" (a card shows them at its bottom). */
+  actions?: (row: T) => ReactNode;
 }
 
 interface RowsProps<T> {
@@ -50,6 +67,45 @@ interface RowsProps<T> {
   rows: T[] | undefined;
   rowKey: (row: T) => string;
   groupOf?: (row: T) => string;
+  sort?: TableSort;
+  onSort?: (key: string) => void;
+  onRowClick?: (row: T) => void;
+}
+
+/** A click on the row itself opens it; a click on a button, link or field inside it does its own thing. */
+const INTERACTIVE = 'a,button,input,select,textarea,label,[role=button],[role=checkbox],[role=switch]';
+const rowClick = <T,>(row: T, onRowClick?: (row: T) => void) => (event: MouseEvent) => {
+  if (!onRowClick || (event.target as HTMLElement).closest(INTERACTIVE)) return;
+  onRowClick(row);
+};
+
+function ariaSortOf(active: boolean, dir: 'asc' | 'desc' | undefined, sortable: boolean): 'ascending' | 'descending' | 'none' | undefined {
+  if (!sortable) return undefined;
+  if (!active) return 'none';
+  return dir === 'desc' ? 'descending' : 'ascending';
+}
+
+/** The header of a sortable column: a button that orders the table by it and shows the current direction. */
+function SortButton({ text, active, dir, onClick }: { text: ReactNode; active: boolean; dir: 'asc' | 'desc' | undefined; onClick: () => void }) {
+  const Arrow = dir === 'desc' ? ArrowDown : ArrowUp;
+  return (
+    <button type="button" onClick={onClick} className="inline-flex items-center gap-1 rounded-md hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-link">
+      {text}
+      {active && <Arrow className="size-3.5" aria-hidden />}
+    </button>
+  );
+}
+
+/** A header cell; a sortable one is a button that says (to screen readers too) which way the table is ordered. */
+function HeaderCell<T>({ column, sort, onSort }: { column: Column<T>; sort?: TableSort; onSort?: (key: string) => void }) {
+  const text = <span className={column.hideHeader ? 'sr-only' : undefined}>{column.header}</span>;
+  const sortKey = column.sortKey;
+  const active = !!sortKey && sort?.key === sortKey;
+  return (
+    <th scope="col" aria-sort={ariaSortOf(active, sort?.dir, !!sortKey && !!onSort)} className={`px-4 py-3 text-start font-medium ${column.className ?? ''}`}>
+      {sortKey && onSort ? <SortButton text={text} active={active} dir={sort?.dir} onClick={() => onSort(sortKey)} /> : text}
+    </th>
+  );
 }
 
 /** The heading to draw before this row, or null when it belongs to the same group as the row before. */
@@ -59,18 +115,14 @@ const headingBefore = <T,>(rows: T[], index: number, groupOf?: (row: T) => strin
   return index === 0 || groupOf(rows[index - 1] as T) !== group ? group : null;
 };
 
-function RowTable<T>({ caption, columns, rows, rowKey, isLoading, groupOf }: RowsProps<T> & { caption: string; isLoading?: boolean }) {
+function RowTable<T>({ caption, columns, rows, rowKey, isLoading, groupOf, sort, onSort, onRowClick }: RowsProps<T> & { caption: string; isLoading?: boolean }) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-neutral-200" tabIndex={0} role="region" aria-label={caption}>
       <table className="w-full text-sm">
         <caption className="sr-only">{caption}</caption>
         <thead className="bg-neutral-50 text-muted">
           <tr className="border-b border-neutral-200">
-            {columns.map((c) => (
-              <th key={c.id ?? c.header} scope="col" className={`px-4 py-3 text-start font-medium ${c.className ?? ''}`}>
-                <span className={c.hideHeader ? 'sr-only' : undefined}>{c.header}</span>
-              </th>
-            ))}
+            {columns.map((c) => <HeaderCell key={c.id ?? c.header} column={c} sort={sort} onSort={onSort} />)}
           </tr>
         </thead>
         <tbody aria-busy={isLoading}>
@@ -79,7 +131,7 @@ function RowTable<T>({ caption, columns, rows, rowKey, isLoading, groupOf }: Row
               {headingBefore(rows, index, groupOf) !== null && (
                 <tr className="bg-neutral-50"><th scope="colgroup" colSpan={columns.length} className="px-4 py-2 text-start text-xs font-bold text-muted">{headingBefore(rows, index, groupOf)}</th></tr>
               )}
-              <tr className="border-b border-neutral-200/70 transition-colors duration-150 last:border-0 hover:bg-neutral-50/70">
+              <tr onClick={rowClick(row, onRowClick)} className={cn('border-b border-neutral-200/70 transition-colors duration-150 last:border-0 hover:bg-neutral-50/70', onRowClick && 'cursor-pointer')}>
                 {columns.map((c) => (
                   <td key={c.id ?? c.header} className={`px-4 py-4 align-middle ${c.className ?? ''}`}>
                     {c.cell(row)}
@@ -95,15 +147,15 @@ function RowTable<T>({ caption, columns, rows, rowKey, isLoading, groupOf }: Row
 }
 
 /** Phone layout: one card per row, label and value on a line, the actions column at the bottom. */
-function RowCards<T>({ columns, rows, rowKey, groupOf }: RowsProps<T>) {
-  const fields = columns.filter((c) => !c.hideHeader);
-  const actions = columns.filter((c) => c.hideHeader);
+function RowCards<T>({ columns, rows, rowKey, groupOf, onRowClick }: RowsProps<T>) {
+  const fields = columns.filter((c) => !c.hideHeader && !c.isAction);
+  const actions = columns.filter((c) => c.hideHeader || c.isAction);
   return (
     <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {rows?.map((row, index) => (
         <Fragment key={rowKey(row)}>
           {headingBefore(rows, index, groupOf) !== null && <li className="col-span-full pt-2 text-xs font-bold text-muted">{headingBefore(rows, index, groupOf)}</li>}
-          <li className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm shadow-ink/5">
+          <li onClick={rowClick(row, onRowClick)} className={cn('rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm shadow-ink/5', onRowClick && 'cursor-pointer')}>
           <dl className="flex flex-col gap-2 text-sm">
             {fields.map((c) => (
               <div key={c.id ?? c.header} className="flex items-start justify-between gap-4">
@@ -120,18 +172,29 @@ function RowCards<T>({ columns, rows, rowKey, groupOf }: RowsProps<T>) {
   );
 }
 
+/** The last column of every list: all the actions on the row, in one place. */
+const actionsColumn = <T,>(header: string, actions: (row: T) => ReactNode): Column<T> => ({
+  id: 'actions',
+  header,
+  isAction: true,
+  className: 'w-px whitespace-nowrap',
+  cell: (row) => <div className="flex items-center justify-end gap-1">{actions(row)}</div>,
+});
+
 /** One table for every list: a rounded panel with a top bar, semantic markup, loading/empty states, pagination. */
-export function DataTable<T>({ listKey, caption, columns: allColumns, rows, rowKey, isLoading, error, empty, page, onPageChange, onPageSizeChange, view, title, toolbar, groupOf }: DataTableProps<T>) {
+export function DataTable<T>({ listKey, caption, columns: allColumns, rows, rowKey, isLoading, error, empty, page, onPageChange, onPageSizeChange, view, title, toolbar, groupOf, sort, onSort, onRowClick, actions }: DataTableProps<T>) {
   const phone = useIsPhone();
+  const { t } = useTranslation();
   const hidden = useHiddenInList(listKey);
-  const columns = allColumns.filter((column) => !column.id || !hidden.columns.has(column.id));
+  const visible = allColumns.filter((column) => !column.id || !hidden.columns.has(column.id));
+  const columns = actions ? [...visible, actionsColumn(t('table.actions'), actions)] : visible;
   const cards = (view ?? (phone ? 'cards' : 'table')) === 'cards';
   if (error) return <QueryError error={error} />;
   return (
     <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm shadow-ink/5">
       <TopBar title={title} toolbar={toolbar} />
       <div className="p-3 sm:p-5">
-        {cards ? <RowCards columns={columns} rows={rows} rowKey={rowKey} groupOf={groupOf} /> : <RowTable caption={caption} columns={columns} rows={rows} rowKey={rowKey} isLoading={isLoading} groupOf={groupOf} />}
+        {cards ? <RowCards columns={columns} rows={rows} rowKey={rowKey} groupOf={groupOf} onRowClick={onRowClick} /> : <RowTable caption={caption} columns={columns} rows={rows} rowKey={rowKey} isLoading={isLoading} groupOf={groupOf} sort={sort} onSort={onSort} onRowClick={onRowClick} />}
       </div>
       <TableState isLoading={isLoading} isEmpty={rows?.length === 0} empty={empty} />
       {page && <TableFooter page={page} onPageChange={onPageChange} onPageSizeChange={onPageSizeChange} />}

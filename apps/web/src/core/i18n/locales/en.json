@@ -19,7 +19,8 @@
       "people": "People",
       "administration": "System administration",
       "account": "My account",
-      "tickets": "Tickets"
+      "tickets": "Tickets",
+      "tasks": "Tasks"
     },
     "profile": "Profile",
     "tickets": "Tickets",
@@ -27,7 +28,10 @@
     "permissions": "Permissions",
     "listSettings": "List management",
     "pageVisibility": "Page visibility",
-    "ticketFigures": "Ticket performance"
+    "ticketFigures": "Ticket performance",
+    "tasks": "My tasks",
+    "taskTags": "Task tags",
+    "taskPolicies": "Task policies"
   },
   "actions": {
     "save": "Save",
@@ -38,7 +42,8 @@
     "signOut": "Sign out",
     "retry": "Try again",
     "close": "Close",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "view": "View"
   },
   "language": {
     "switchTo": "العربية",
@@ -54,7 +59,8 @@
     "range": "{{from}} to {{to}} of {{total}} results",
     "show": "Show",
     "rows": "Rows per page",
-    "pageN": "Page {{page}}"
+    "pageN": "Page {{page}}",
+    "actions": "Actions"
   },
   "errors": {
     "generic": "The request could not be completed. Try again.",
@@ -108,7 +114,23 @@
     "NOT_DESK_MANAGER": "Only the department manager can do this.",
     "ADMIN_MODE_REQUIRED": "Turn on platform admin mode to continue.",
     "ADMIN_MODE_NOT_ALLOWED": "Platform admin mode is not available for your account.",
-    "CODE_ALREADY_USED": "This code was already used. Wait for the next code in your app."
+    "CODE_ALREADY_USED": "This code was already used. Wait for the next code in your app.",
+    "TASK_REVISION_CONFLICT": "The task was changed by someone else. Reload the page and try again.",
+    "TASK_TRANSITION_NOT_ALLOWED": "The task cannot be moved to this status.",
+    "TASK_ASSIGNMENT_NOT_ALLOWED": "You cannot give a task to this person.",
+    "TASK_ASSIGNEE_INVALID": "The assignee must be an active employee of the same company.",
+    "TASK_NOTE_REQUIRED": "Write a note when sending a task back from review.",
+    "TASK_COMPLETION_DATE_REQUIRED": "The task is later than the allowed time; state the real completion date.",
+    "TASK_BACKDATE_TOO_FAR": "A date further back than allowed, or in the future, cannot be recorded.",
+    "TASK_STATE_INVALID": "This action cannot be done on the task in its current state.",
+    "TASK_OBJECTION_NOT_ALLOWED": "You cannot object to this task now.",
+    "TASK_NOT_ARCHIVED": "The task is not archived.",
+    "TASK_DUE_DATE_INVALID": "The due date cannot be in the past.",
+    "TASK_TAG_INVALID": "This tag is not available for this task.",
+    "TASK_DEPARTMENT_INVALID": "A tag belongs to a department of the organization structure and does not move to another.",
+    "TASK_NOT_APPROVABLE": "This task is not waiting for your approval.",
+    "TASK_TAG_IN_USE": "Tasks use this tag; turn it off instead of deleting it.",
+    "TASK_POLICY_COMPANY_REQUIRED": "Choose the company whose task policy you mean."
   },
   "scope": {
     "own": "Own record only",
@@ -146,7 +168,9 @@
     "label": "View",
     "table": "Table",
     "cards": "Cards",
-    "chart": "Chart"
+    "chart": "Chart",
+    "icicle": "Icicle",
+    "board": "Kanban board"
   },
   "dataExchange": {
     "export": "Export",

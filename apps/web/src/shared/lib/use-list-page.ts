@@ -1,20 +1,21 @@
 import { useState } from 'react';
 import type { FilterField } from '../ui/list-toolbar';
 import { useDebounced } from './use-debounced';
-import { useFilters } from './use-filters';
+import { useFilters, type FilterValues } from './use-filters';
 import { usePageSize } from './use-page-size';
 import { useViewMode } from './use-view-mode';
 
 /**
  * The state every list page shares: search (debounced), filters, page, rows per page and table / cards.
  * Any change to the search, a filter or the page size goes back to page 1. `toolbar()` is what `ListToolbar` needs.
+ * `initialFilters` lets a link open the list already filtered (the home page's numbers do).
  */
-export function useListPage(id: string) {
+export function useListPage(id: string, initialFilters?: FilterValues) {
   const [search, setSearchText] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = usePageSize(() => setPage(1));
   const [view, setView] = useViewMode(id);
-  const filters = useFilters(() => setPage(1));
+  const filters = useFilters(() => setPage(1), initialFilters);
   const term = useDebounced(search);
   const setSearch = (value: string) => {
     setSearchText(value);

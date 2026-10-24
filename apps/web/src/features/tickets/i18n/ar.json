@@ -288,5 +288,11 @@
     "personalCount_other": "منها {{count}} تذكرة شخصية",
     "allDesks": "كل الإدارات",
     "desk": "الإدارة"
+  },
+  "board": {
+    "label": "لوحة التذاكر",
+    "assignee": "المسؤول: {{name}}",
+    "sender": "المرسل: {{name}}",
+    "truncated": "يعرض {{shown}} من {{total}} تذكرة. استخدم البحث أو المرشحات لتضييق النتائج."
   }
 }

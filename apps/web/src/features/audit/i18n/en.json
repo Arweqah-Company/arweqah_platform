@@ -18,5 +18,7 @@
     "to": "To date"
   },
   "entityId": "Record id",
-  "ip": "IP address"
+  "ip": "IP address",
+  "changes": "Changes",
+  "viewTitle": "Audit entry"
 }

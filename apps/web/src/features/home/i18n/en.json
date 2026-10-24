@@ -11,5 +11,34 @@
     "contractEnding": "Contracts ending soon",
     "needsPlacement": "Need a unit",
     "soonHint": "Within 30 days"
+  },
+  "loading": "Loading…",
+  "numbers": {
+    "title": "My numbers",
+    "tasksOpen": "My open tasks",
+    "tasksOverdue": "Overdue tasks",
+    "tasksSoon": "Due within 7 days",
+    "tasksDone": "Finished",
+    "onTime": "Finished on time",
+    "tasksReview": "Awaiting my review",
+    "tasksApproval": "Awaiting my approval",
+    "teamOverdue": "Team: overdue",
+    "teamStale": "Team: stale",
+    "teamDone": "Team: finished",
+    "ticketsSent": "Tickets I sent, still open",
+    "ticketsConfirm": "Awaiting my confirmation",
+    "ticketsReply": "Awaiting my reply",
+    "soonHint": "Open tasks",
+    "doneHint": "Last 30 days",
+    "weekHint": "This week"
+  },
+  "tickets": {
+    "title": "My tickets",
+    "all": "All tickets",
+    "sent": "Sent by me and still open",
+    "sentEmpty": "You have no open tickets.",
+    "waiting": "Waiting for my reply",
+    "waitingEmpty": "Nothing waits for your reply.",
+    "needsConfirm": "Awaiting your confirmation"
   }
 }

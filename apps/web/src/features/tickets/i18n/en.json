@@ -267,5 +267,11 @@
     "personalCount_other": "{{count}} of them personal",
     "allDesks": "All departments",
     "desk": "Department"
+  },
+  "board": {
+    "label": "Tickets board",
+    "assignee": "Assignee: {{name}}",
+    "sender": "Sender: {{name}}",
+    "truncated": "Showing {{shown}} of {{total}} tickets. Search or filter to narrow."
   }
 }

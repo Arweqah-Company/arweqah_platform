@@ -19,9 +19,9 @@ Internal ERP for Arweqah Alreyadah: one place for people, organization, requests
 5. Every person has a profile page: they pick the light or dark theme and the language, and edit their personal phone, personal e-mail and English name; the rest of their record is HR's.
 6. A user receives notifications in the app (and by e-mail); an auditor reviews the audit log; an administrator follows every e-mail the platform sent (sent / failed and why).
 
-**In scope now:** passwordless authentication (Microsoft + authenticator app), companies, dynamic organization structure, employees, dynamic roles and scoped permissions, audit log, notifications (in-app, email, SMS adapter), file storage, workflow engine, messaging (outbox + RabbitMQ + durable scheduled jobs), sent-e-mail log, bilingual UI shell with grouped navigation.
+**In scope now:** passwordless authentication (Microsoft + authenticator app), tasks (my tasks, my team, matrix, table and Kanban, approval, objection, reminders, archive), companies, dynamic organization structure, employees, dynamic roles and scoped permissions, audit log, notifications (in-app, email, SMS adapter), file storage, workflow engine, messaging (outbox + RabbitMQ + durable scheduled jobs), sent-e-mail log, bilingual UI shell with grouped navigation.
 
-**Out of scope now (planned modules):** attendance, leaves, requests, projects and tasks, tickets with SLA, expenses / advances / invoices tracking, payroll records, dashboards, two-way Airtable / Google Sheets sync. Out of scope for version 1 entirely: double-entry accounting, e-invoicing (ZATCA), GOSI / Mudad / WPS integrations.
+**Out of scope now (planned modules):** attendance, leaves, requests, projects (tasks already exist on their own; project tasks, the project manager's approval and Gantt come with that module), tickets with SLA, expenses / advances / invoices tracking, payroll records, dashboards, two-way Airtable / Google Sheets sync. Out of scope for version 1 entirely: double-entry accounting, e-invoicing (ZATCA), GOSI / Mudad / WPS integrations.
 
 ## 2. Vision
 
@@ -61,11 +61,11 @@ Bring employee, project and request management into one secure platform that spe
 | FR-24 | Dynamic organization built by forms; impact warning and confirmation when levels that hold data change (transfer employees with job-title mapping, or delete by typing the count) | Admin | Must | `apps/api/test/org.e2e-spec.ts` |
 | FR-25 | Idempotent seeders: lookups, countries, 10 companies with the default levels (+ optional sample units in development) | System | Must | `apps/api/test/seeds.e2e-spec.ts` |
 | FR-26 | Sent-e-mail log: every e-mail with status (pending / sent / failed), reason and server reply, never the body; filters; permission `notifications.email_log` | Admin | Should | `apps/api/test/email-log.e2e-spec.ts`, `apps/web/src/features/email-log/email-log-page.test.tsx` |
-| FR-27 | Every list offers search, filters on every attribute that can be filtered (applied filters shown as removable chips), and a choice between a table and cards (remembered per list; phones start with cards). Employees: company, status, relation type, unit, job title, contract type, nationality, gender, work mode, marital and residency status, contract start range, ID / contract needing attention. Audit log: search, action, record type, actor, date range. E-mail log: search, status, type, address, date range. Notifications: search, read / unread, date range. Companies and roles: search plus status, type or holders | All | Must | `apps/api/test/employees.e2e-spec.ts`, `apps/api/test/platform.e2e-spec.ts`, `apps/api/test/email-log.e2e-spec.ts`, `apps/web/src/shared/ui/list-toolbar.test.tsx` |
+| FR-27 | Every list has an **Actions** column as its last column holding every action on the row as an **icon** with its name as tooltip and accessible name (view, edit, delete, activate… `RowAction`), and a click anywhere on a row (outside its buttons and links) opens the row's view: its page, its dialog, or, for log entries (audit, sent e-mails), a details dialog (`DataTable` props `actions` and `onRowClick`). Every list offers search, filters on every attribute that can be filtered (applied filters shown as removable chips), and a choice between a table and cards (remembered per list; phones start with cards). Employees: company, status, relation type, unit, job title, contract type, nationality, gender, work mode, marital and residency status, contract start range, ID / contract needing attention. Audit log: search, action, record type, actor, date range. E-mail log: search, status, type, address, date range. Notifications: search, read / unread, date range. Companies and roles: search plus status, type or holders | All | Must | `apps/api/test/employees.e2e-spec.ts`, `apps/api/test/platform.e2e-spec.ts`, `apps/api/test/email-log.e2e-spec.ts`, `apps/web/src/shared/ui/list-toolbar.test.tsx` |
 | FR-28 | Export from every list: choose the scope (rows on the page, or all results of the current search and filters), the columns, and the file type (Excel or CSV); formulas are neutralized | All | Must | `apps/web/src/shared/data-exchange/data-exchange.test.ts`, `apps/web/src/shared/data-exchange/dialogs.test.tsx` |
 | FR-29 | Import employees and companies from Excel or CSV: download a template whose drop-downs carry the system's lists (companies, units and job titles, countries, statuses, contract types…), preview the rows with their errors, import the valid ones, download an error report; every row goes through the same validation and API as the form | HR / admin | Must | `apps/web/src/shared/data-exchange/*.test.ts(x)`, `apps/web/src/features/employees/employees-import-rows.test.ts`, `apps/web/src/features/companies/companies-import.test.ts`, `apps/api/test/lookups.e2e-spec.ts` (org reference) |
 | FR-30 | The 401, 403 and 404 pages share one design (picture, what happened, what to do, one button): 404 for an unknown address, 403 when a route needs a permission the person lacks (route guard from the navigation item's permission), 401 when the session ends while working (a visitor without a session goes straight to sign-in) | All | Must | `apps/web/src/app/error-pages.test.tsx`, `e2e/tests/navigation.spec.ts` |
-| FR-31 | Organization page: choose the company, then see its structure as a chart (company card, one brand color per level with a legend, open / close nodes, open all, search, zoom, fit to screen, drag) or as a table (search, filters on level, status, employees and manager, export); selecting a unit shows its details beside it; the choice of chart or table is remembered | Admin / HR | Must | `apps/web/src/features/org/org-page.test.tsx`, `e2e/tests/org.spec.ts` |
+| FR-31 | Organization page: choose the company, then see its structure as a chart (company card, one brand color per level with a legend, open / close nodes, open all, search, zoom, fit to screen, drag), as a horizontal **icicle** (the company as a block on the start side, one column per level, each unit a block beside its parent as tall as the units below it, every name written whole, any block with units under it opens and closes, open all, close all, same colors, legend, search and zoom) or as a table (search, filters on level, status, employees and manager, export; every unit's row has its actions as icons — view, edit, add a unit below, move, delete — and the forms and the confirmation open as popups); selecting a unit shows its details beside it; the choice of chart, icicle or table is remembered | Admin / HR | Must | `apps/web/src/features/org/org-page.test.tsx`, `e2e/tests/org.spec.ts` |
 | FR-32 | Messages are colored by meaning, with an icon and a start rule, the same four colors for alerts, toasts and badges (`shared/ui/message-tones.ts`): information **blue**, warning **yellow**, error **red**, success **green**; text stays dark | All | Must | `apps/web/src/shared/ui/alert.test.tsx` |
 | FR-33 | Light and dark theme (or follow the device): a toggle in the header and a choice on the profile page, saved in the browser and on the account; and an own profile page where a person changes the language, the theme and three contact details (personal phone, personal e-mail, English name) while the job details stay read-only; everything else belongs to HR | All users | Must | `apps/api/test/profile.e2e-spec.ts`, `apps/web/src/core/theme/theme.test.tsx`, `apps/web/src/features/profile/profile-page.test.tsx`, `e2e/tests/profile.spec.ts` |
 | FR-34 | Platform admin mode: people with an administrative capability (permission `admin_mode.use`, later e.g. a desk manager) work as ordinary employees until they switch the mode on in the header with a **fresh** authenticator code (a code already used is refused without counting as a failed attempt, backup codes are not accepted, wrong codes share the sign-in lock); it is kept on the session, enforced by the API for routes marked `@RequireAdminMode()` (403 `ADMIN_MODE_REQUIRED`; used by the ticket setup and figures, the companies, the audit log, the e-mail log, and role changes with the permission catalog; listing roles stays open because the employee screens assign them), switches itself off after 30 minutes without admin activity and on sign-out, and every switch is audited | Platform manager | Must | `apps/api/test/admin-mode.e2e-spec.ts`, `apps/api/src/core/access/domain/admin-mode.rules.spec.ts`, `apps/web/src/core/admin-mode/admin-mode-toggle.test.tsx`, `e2e/tests/admin-mode.spec.ts` |
@@ -82,6 +82,16 @@ Bring employee, project and request management into one secure platform that spe
 | FR-45 | **A permission for everything:** every page has a view key and every button or action its own key (add, edit, delete, move, approve, reject, export, import, reply, close…), declared in `packages/shared/src/permissions/keys.ts`, enforced by the API (`@RequirePermission`, 403) and by the web (navigation, routes, `Can` around buttons, `ExchangeButtons permissions`); the coarse keys `roles.manage`, `companies.manage` and `org.manage` were split and removed from the roles (nothing is granted automatically; an administrator chooses); sending and following tickets and the own-account pages are keys held by the Employee role from the start | System Admin | Must | `apps/api/test/security.e2e-spec.ts`, `apps/api/test/access.e2e-spec.ts`, `apps/api/test/employees.e2e-spec.ts`, `apps/web/src/app/app-layout.test.tsx` |
 | FR-46 | **Groups of roles and groups of people:** a *group of roles* bundles roles and is given to a person, who then holds every role inside it (and the permissions placed on the group); a *group of people* is a set of chosen people who all get the permissions placed on the group. Both are added, edited and deleted from the permissions page itself (no separate pages), each action with its own key; a person may be given groups of roles from the employee page (`employees.assign_groups`, never beyond what the giver holds); page hiding counts the roles inside groups | System Admin | Must | `apps/api/test/role-groups.e2e-spec.ts`, `apps/web/src/features/permissions/permissions-page.test.tsx`, `e2e/tests/permissions.spec.ts` |
 | FR-47 | **The permissions page** (`permissions.view`, platform admin mode): one page where an administrator places permissions on a **role, a group of roles, one person or a group of people** (each kind with its own save key), sees what already reaches the target from elsewhere, and can **select all** or clear all; nobody places more than they hold at the same or a wider scope; every change is audited (`permissions.updated`, key names only); roles are also edited from the roles page with the same matrix | System Admin | Must | `apps/api/test/role-groups.e2e-spec.ts`, `apps/web/src/features/roles/permission-matrix.test.tsx`, `apps/web/src/features/permissions/permissions-page.test.tsx`, `e2e/tests/permissions.spec.ts` |
+| FR-48 | **My tasks** (`tasks.view`): the employee's page with three tabs — *assigned to me*, *assigned by me*, *following* — and a fourth, *my team*, for managers — opening on open tasks ordered by due date. **New task** popup (a dialog over the list, like editing a task; no page of its own): title, assignee (default: me), due date (default: today), priority (default: medium; low / medium / high), expected time, tag, recurrence. Assigning is limited: a manager to anyone below them, an employee to their department's manager, people on the same ticket to each other, project members (deferred, see below); assigning to yourself needs approval and the form says who approves before saving. Every task has a number (TSK-000123), follow / unfollow, time entries (back-dating up to 7 days), and a timeline of who changed what | Employees given the keys | Must | `apps/api/test/tasks.e2e-spec.ts`, `apps/api/src/modules/tasks/domain/rules/task-assignment.rules.spec.ts`, `apps/web/src/features/tasks/my-tasks/my-tasks-page.test.tsx`, `apps/web/src/features/tasks/new-task/new-task-dialog.test.tsx`, `e2e/tests/tasks.spec.ts` |
+| FR-49 | **My team** (`tasks.team_view`, scope unit or unit and below) is a **tab of my tasks** and the **matrix** (`tasks.matrix_view`) is a **section of the home page**: a manager sees the tasks of direct reports or of everyone below them, filters by person, and views the same tasks in four squares (high priority or not × urgent or not); a task is urgent when due within the policy days (default 2), overdue, or marked urgent by hand; out-of-scope tasks are 404 | Managers | Must | `apps/api/test/tasks.e2e-spec.ts`, `apps/api/src/modules/tasks/domain/rules/task-reach.rules.spec.ts`, `apps/api/src/modules/tasks/domain/rules/task-flags.rules.spec.ts`, `apps/web/src/features/tasks/matrix/matrix-section.test.tsx`, `apps/web/src/features/tasks/my-tasks/my-tasks-page.test.tsx`, `e2e/tests/tasks.spec.ts` |
+| FR-50 | **Table and board** on my tasks and my team: a switch (remembered per user) between a table (sortable columns; red *urgent* and grey *stale* marks; grouping by date, status or person) and a Kanban board with six columns (pending approval, to do, in progress, awaiting review, done, **rejected**); the board scrolls horizontally on a phone; team page can split the board into one swimlane per person. A drag is a status change and **the API is the only authority**: one transition service checks who may move a task from where to where (pending approval cannot be dragged; to do → in progress and in progress → done by the assignee, a task that needs review goes to awaiting review; awaiting review → done or back to in progress by the reviewer, who writes a note; done → any column is a reopen by the assigner or a manager; a manager may move the team's tasks within their scope); finishing a task more than 7 days past its due date asks for the real completion date, back-dating is limited to 7 days; every move is recorded (who, when, from, to) and resets the stale counter; a refused move returns the card with the reason | Employees, managers | Must | `apps/api/test/task-transitions.e2e-spec.ts`, `apps/api/src/modules/tasks/domain/rules/task-transitions.rules.spec.ts`, `apps/api/src/modules/tasks/domain/rules/task-dates.rules.spec.ts`, `apps/web/src/features/tasks/board/task-board.test.tsx`, `apps/web/src/shared/ui/data-table-sort.test.tsx`, `e2e/tests/tasks.spec.ts` |
+| FR-51 | **Self-approval:** a task you give yourself waits for approval (XState machine `task.self_approval`, first the direct manager, then — for project tasks, deferred — the project manager; a person without a manager is approved automatically); the approver approves or rejects (`tasks.approve`, `tasks.reject`); a rejected task goes to the *rejected* status and its owner may edit and resubmit it (`tasks.resubmit`) | Employees, managers | Must | `apps/api/test/task-approval.e2e-spec.ts`, `apps/api/src/modules/tasks/domain/rules/task-approval.machine.spec.ts` |
+| FR-52 | **Objection:** the assignee may object to a task that is still *to do* by choosing one of four fixed reasons; an objection nobody answers lapses after the policy's working days (default 3, Friday and Saturday off) and the task stays with the assignee; an objected task shows a mark on its card, not a column; whoever gave the task answers: rejecting keeps the task with its assignee, accepting gives it to somebody else they choose | Assignees | Must | `apps/api/test/task-objection.e2e-spec.ts`, `apps/api/src/modules/tasks/domain/rules/task-objection.rules.spec.ts` |
+| FR-53 | **Time-driven steps** (Asia/Riyadh): a reminder the day before the due date; every Sunday morning each manager gets a digest of overdue tasks in their team; a task with no movement for the policy's stale days (default 30) is marked stale; recurring tasks create the next one when closed; **standalone tasks** (no project, ticket or other link) are **archived** 30 days after they close, leave the normal lists and can be **restored** from the archive tab (`tasks.archive_view`, `tasks.restore`); a task that is a review-required task cannot close without its reviewer | System | Must | `apps/api/test/task-jobs.e2e-spec.ts`, `apps/api/src/modules/tasks/domain/rules/task-recurrence.rules.spec.ts` |
+| FR-54 | **Tags and policies:** each department keeps its own tags (`tasks.tags_view`, `tasks.tag_create`, `tasks.tag_update`, `tasks.tag_delete`); the **task policies** admin page (`tasks.policies_view`, `tasks.policies_edit`, platform admin mode) holds every number of the rules (objection days, stale days, back-dating days, urgent days, reminder days, digest weekday, standalone retention) per company, with limits so no value can disable tasks; every change is audited | Platform manager, department managers | Must | `apps/api/test/task-setup.e2e-spec.ts`, `apps/web/src/features/tasks/policies/policies-page.test.tsx`, `apps/web/src/features/tasks/tags/tags-page.test.tsx`, `e2e/tests/tasks.spec.ts` |
+| FR-55 | **Leaving employees:** when an employee's service ends (the employees module publishes `employee.terminated` through the outbox) their ordinary open tasks go to their direct manager, and project tasks to the project manager (deferred: no project module yet); every transfer is a timeline event, an audit entry and a notice; the consumer is idempotent | System | Must | `apps/api/test/task-handover.e2e-spec.ts` |
+| FR-56 | **Task notices** (in the app, e-mail only for important ones, never carrying the title in e-mail): the assignee when a task is assigned; **the person who assigned it on every status change** and when it is finished; the reviewer when a task awaits review; the assignee and the assigner when the due date passes and when logged time passes the estimate (once each); objection, answer, rejected completion and ownership transfer; nobody is notified of their own change and quick changes to one task within a minute arrive as one notice | All task users | Must | `apps/api/test/task-notices.e2e-spec.ts`, `apps/api/test/task-jobs.e2e-spec.ts` |
+| FR-57 | **Home page:** besides the employee counts, a person with the keys sees the **task matrix** (four squares) and **my numbers** (tasks: open, overdue, due in 7 days, finished in 30 days, on-time rate, awaiting my review, awaiting my approval; tickets: sent and still open, awaiting my confirmation, awaiting my reply; for managers the team's overdue, stale and finished-this-week), **my current tasks** (first 5 open, with a split bar by status) and **my tickets** (sent and open, and waiting for my reply); each section appears only with its key and personal tickets count for their owner only | All users | Should | `apps/api/test/home-summary.e2e-spec.ts`, `apps/web/src/features/home/home-page.test.tsx`, `e2e/tests/tasks.spec.ts` |
 
 Every test suite names the requirement IDs it covers in its `describe(...)` title.
 
@@ -299,6 +309,71 @@ erDiagram
     varchar event
     varchar to_state
   }
+  tasks {
+    uuid id PK
+    bigint number UK
+    uuid company_id FK
+    uuid assignee_user_id FK
+    uuid creator_user_id FK
+    uuid reviewer_user_id FK
+    uuid approver_user_id FK
+    varchar status
+    varchar priority
+    date due_date
+    int estimate_minutes
+    uuid tag_id FK
+    bool urgent_manual
+    bool needs_review
+    varchar recurrence
+    varchar source
+    uuid project_id
+    uuid ticket_id FK
+    timestamptz last_activity_at
+    timestamptz archived_at
+    int revision
+  }
+  task_events {
+    uuid id PK
+    uuid task_id FK
+    varchar type
+    uuid actor_user_id FK
+    varchar from_status
+    varchar to_status
+  }
+  task_followers {
+    uuid task_id PK
+    uuid user_id PK
+  }
+  task_objections {
+    uuid id PK
+    uuid task_id FK
+    varchar reason_code
+    timestamptz expires_at
+    varchar status
+  }
+  task_time_entries {
+    uuid id PK
+    uuid task_id FK
+    int minutes
+    date worked_on
+  }
+  task_tags {
+    uuid id PK
+    uuid org_node_id FK
+    varchar name_ar
+    varchar name_en
+    bool is_active
+  }
+  task_policies {
+    uuid company_id PK
+    int objection_working_days
+    int stale_days
+    int backdate_days
+    int urgent_days
+    int reminder_days_before
+    int digest_weekday
+    int standalone_retention_days
+  }
   ticket_desks {
     uuid org_node_id PK
     varchar reception_status
@@ -369,9 +444,43 @@ erDiagram
   tickets ||--o{ ticket_events : records
   tickets ||--o{ ticket_attachments : holds
   files ||--o{ ticket_attachments : "stored as"
+  users ||--o{ tasks : "does or gives"
+  companies ||--o{ tasks : owns
+  companies ||--|| task_policies : "has the rules of"
+  org_nodes ||--o{ task_tags : "keeps"
+  task_tags ||--o{ tasks : labels
+  tasks ||--o{ tasks : "next repeat"
+  tickets ||--o{ tasks : "may link"
+  tasks ||--o{ task_events : history
+  tasks ||--o{ task_followers : "followed by"
+  tasks ||--o{ task_objections : "objected to"
+  tasks ||--o{ task_time_entries : "time logged"
 ```
 
 ## 7. Flowcharts
+
+**Task life cycle (FR-48 to FR-53)**
+
+```mermaid
+flowchart TD
+  create([A task is created]) --> self{For oneself?}
+  self -- yes, with a manager --> pending[Pending approval: the direct manager decides]
+  self -- no, or no manager --> todo[To do]
+  pending -- approves --> todo
+  pending -- rejects --> rejected[Rejected: the owner edits and sends it again]
+  rejected -- resubmit --> pending
+  todo -- assignee objects --> objection[Objection flag: lapses after the policy's working days if nobody answers]
+  objection -- giver rejects, or nobody answers --> todo
+  objection -- giver accepts and chooses a new person --> todo
+  todo -- assignee or manager starts --> progress[In progress]
+  progress -- finishes --> review{Needs review?}
+  review -- no --> done([Done: the real day is recorded; the next repeat is created])
+  review -- yes --> waiting[Awaiting review: the reviewer alone decides]
+  waiting -- accepts --> done
+  waiting -- sends back with a note --> progress
+  done -- whoever gave it, or a manager, reopens --> progress
+  done -- standalone and quiet for the policy's days --> archived([Archived: restored from the archive tab])
+```
 
 **Ticket life cycle (FR-37 to FR-41)**
 
@@ -595,6 +704,29 @@ sequenceDiagram
   BA-->>W: session marked mfa_verified_at
 ```
 
+### Moving a task (FR-50, FR-56)
+
+```mermaid
+sequenceDiagram
+  actor U as Person (board, table or details)
+  participant W as Web
+  participant A as API (TaskTransitionService)
+  participant DB as PostgreSQL
+  U->>W: drags the card (or chooses a status)
+  W->>A: POST /tasks/:id/transition {to, revision, note?, completedOn?}
+  A->>DB: read the task; table of moves decides who may go from where to where
+  alt refused
+    A-->>W: 422 TASK_TRANSITION_NOT_ALLOWED with the reason
+    W-->>U: the card goes back and says why
+  else a note or the real completion date is missing
+    A-->>W: 422 TASK_NOTE_REQUIRED / TASK_COMPLETION_DATE_REQUIRED
+    W-->>U: asks for it, then sends the move again
+  else allowed
+    A->>DB: revision check, status, last activity reset, event (who, when, from, to), notices, audit (one transaction)
+    A-->>W: 200 task
+  end
+```
+
 ### Ticket send and answer (FR-37, FR-39)
 
 ```mermaid
@@ -751,6 +883,7 @@ Requirement traceability: each `describe` title lists the FR/NFR IDs it covers, 
 | Actor | Can | Cannot |
 |---|---|---|
 | Employee (role "Employee") | Sign in with e-mail or Microsoft plus the authenticator code, see and edit own profile (theme, language, personal phone and e-mail, English name), see own notifications, upload own files | See other employees, roles, organization admin, audit or e-mail log unless a role grants it |
+| Person given the task keys (custom role) | Work with their tasks (create, follow, log time, object, move their own cards), see the numbers of their tasks and tickets on the home page; with the team keys: the team page, matrix, approvals, moves of the team's cards, archive and restore, within the scope of each key | See or move a task outside their relation or scope (404); change a status outside the table of moves (422); the keys are not part of the Employee role |
 | HR (custom role) | Create and update employees, place them in units, assign the roles they hold, resend activation links | Act outside their scope (gets 404), see salary / ID / IBAN without `employees.view_sensitive`, assign more than they hold, change their own roles |
 | Line manager (custom role) | What the role grants, limited to their unit or subtree | Act outside their scope |
 | System Admin (system role) | Every permission at the widest scope: companies, levels, units, job titles, roles (with how each is assigned), page visibility per role, list management, audit log, e-mail log, and may switch **platform admin mode** on (`admin_mode.use`) | Delete system roles; use anything before linking the authenticator |

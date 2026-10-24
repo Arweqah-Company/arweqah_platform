@@ -16,5 +16,6 @@
   },
   "titleColumn": "Title",
   "textColumn": "Text",
-  "whenColumn": "Time"
+  "whenColumn": "Time",
+  "markOne": "Mark as read"
 }

@@ -19,7 +19,8 @@
       "people": "الموارد البشرية",
       "administration": "إدارة النظام",
       "account": "حسابي",
-      "tickets": "التذاكر"
+      "tickets": "التذاكر",
+      "tasks": "المهام"
     },
     "profile": "الملف الشخصي",
     "tickets": "التذاكر",
@@ -27,7 +28,10 @@
     "permissions": "الصلاحيات",
     "listSettings": "إدارة القوائم",
     "pageVisibility": "ظهور الصفحات",
-    "ticketFigures": "أداء التذاكر"
+    "ticketFigures": "أداء التذاكر",
+    "tasks": "مهامي",
+    "taskTags": "فئات المهام",
+    "taskPolicies": "سياسات المهام"
   },
   "actions": {
     "save": "حفظ",
@@ -38,7 +42,8 @@
     "signOut": "تسجيل الخروج",
     "retry": "إعادة المحاولة",
     "close": "إغلاق",
-    "confirm": "تأكيد"
+    "confirm": "تأكيد",
+    "view": "عرض"
   },
   "language": {
     "switchTo": "English",
@@ -54,7 +59,8 @@
     "range": "من {{from}} إلى {{to}} من أصل {{total}} نتيجة",
     "show": "عرض",
     "rows": "عدد الصفوف في الصفحة",
-    "pageN": "الصفحة {{page}}"
+    "pageN": "الصفحة {{page}}",
+    "actions": "الإجراءات"
   },
   "errors": {
     "generic": "تعذّر إكمال الطلب. حاول مرة أخرى.",
@@ -108,7 +114,23 @@
     "NOT_DESK_MANAGER": "مدير الإدارة فقط يستطيع هذا.",
     "ADMIN_MODE_REQUIRED": "فعّل وضع مدير المنصة للمتابعة.",
     "ADMIN_MODE_NOT_ALLOWED": "وضع مدير المنصة غير متاح لحسابك.",
-    "CODE_ALREADY_USED": "هذا الرمز استُخدم من قبل. انتظر الرمز التالي في تطبيقك."
+    "CODE_ALREADY_USED": "هذا الرمز استُخدم من قبل. انتظر الرمز التالي في تطبيقك.",
+    "TASK_REVISION_CONFLICT": "تم تعديل المهمة من شخص آخر. أعد تحميل الصفحة وحاول مرة أخرى.",
+    "TASK_TRANSITION_NOT_ALLOWED": "لا يمكن نقل المهمة إلى هذه الحالة.",
+    "TASK_ASSIGNMENT_NOT_ALLOWED": "لا يمكنك إسناد مهمة لهذا الشخص.",
+    "TASK_ASSIGNEE_INVALID": "المسند إليه يجب أن يكون موظفًا نشطًا في نفس الشركة.",
+    "TASK_NOTE_REQUIRED": "اكتب ملاحظة عند إعادة المهمة من المراجعة.",
+    "TASK_COMPLETION_DATE_REQUIRED": "تأخرت المهمة أكثر من المدة المسموحة؛ اذكر تاريخ الإنجاز الفعلي.",
+    "TASK_BACKDATE_TOO_FAR": "لا يمكن تسجيل تاريخ أبعد من المدة المسموحة ولا تاريخ في المستقبل.",
+    "TASK_STATE_INVALID": "لا يمكن تنفيذ هذا الإجراء والمهمة في حالتها الحالية.",
+    "TASK_OBJECTION_NOT_ALLOWED": "لا يمكنك الاعتراض على هذه المهمة الآن.",
+    "TASK_NOT_ARCHIVED": "المهمة ليست مؤرشفة.",
+    "TASK_DUE_DATE_INVALID": "لا يمكن أن يكون الموعد في الماضي.",
+    "TASK_TAG_INVALID": "هذه الفئة غير متاحة لهذه المهمة.",
+    "TASK_DEPARTMENT_INVALID": "الفئة تتبع إدارة من الهيكل التنظيمي ولا تُنقل إلى غيرها.",
+    "TASK_NOT_APPROVABLE": "هذه المهمة لا تنتظر اعتمادك.",
+    "TASK_TAG_IN_USE": "مهام تستعمل هذه الفئة؛ أوقفها بدل حذفها.",
+    "TASK_POLICY_COMPANY_REQUIRED": "اختر الشركة التي تقصد سياسة مهامها."
   },
   "scope": {
     "own": "سجله فقط",
@@ -146,7 +168,9 @@
     "label": "طريقة العرض",
     "table": "جدول",
     "cards": "بطاقات",
-    "chart": "مخطط"
+    "chart": "مخطط",
+    "icicle": "مخطط طبقي",
+    "board": "لوحة كانبان"
   },
   "dataExchange": {
     "export": "تصدير",

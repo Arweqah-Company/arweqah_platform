@@ -19,6 +19,11 @@
     "tickets": "التذاكر",
     "ticket-setup": "إعداد التذاكر",
     "ticket-figures": "أداء التذاكر",
-    "permissions": "الصلاحيات"
+    "permissions": "الصلاحيات",
+    "tasks": "المهام",
+    "tasks-team": "مهام الفريق",
+    "tasks-matrix": "مصفوفة المهام",
+    "task-tags": "فئات المهام",
+    "task-policies": "سياسات المهام"
   }
 }

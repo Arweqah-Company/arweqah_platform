@@ -1,7 +1,9 @@
 import { ChevronDown, ChevronUp, Maximize2, Minus, Plus } from 'lucide-react';
-import { useMemo, useRef, useState, type PointerEvent, type ReactNode } from 'react';
+import { useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { childrenOf, descendantCount } from '../lib/chart-tree';
 import { cn } from '../lib/cn';
+import { useOpenNodes } from '../lib/use-open-nodes';
 
 export interface ChartItem {
   id: string;
@@ -54,40 +56,6 @@ const ZOOMS = [
 const DEFAULT_ZOOM = ZOOMS.findIndex((z) => z.value === 0.75);
 /** How many levels start open. */
 const OPEN_DEPTH = 2;
-
-function childrenOf(items: ChartItem[], id: string): ChartItem[] {
-  return items.filter((i) => i.parentId === id);
-}
-
-function descendantCount(items: ChartItem[], id: string): number {
-  return childrenOf(items, id).reduce((sum, child) => sum + 1 + descendantCount(items, child.id), 0);
-}
-
-/** Ids of the nodes that have children and are not open at the start (deeper than OPEN_DEPTH). */
-function initiallyClosed(items: ChartItem[], rootId: string): Set<string> {
-  const closed = new Set<string>();
-  const walk = (id: string, depth: number) => {
-    const kids = childrenOf(items, id);
-    if (kids.length && depth >= OPEN_DEPTH) closed.add(id);
-    kids.forEach((k) => walk(k.id, depth + 1));
-  };
-  walk(rootId, 0);
-  return closed;
-}
-
-/** Items matching the query and every ancestor of a match (those must be open to show it). */
-function matchesOf(items: ChartItem[], query: string): { hits: Set<string>; open: Set<string> } {
-  const hits = new Set<string>();
-  const open = new Set<string>();
-  const needle = query.trim().toLowerCase();
-  if (!needle) return { hits, open };
-  const byId = new Map(items.map((i) => [i.id, i]));
-  for (const item of items.filter((i) => i.title.toLowerCase().includes(needle) && i.parentId !== null)) {
-    hits.add(item.id);
-    for (let p = byId.get(item.parentId ?? ''); p; p = byId.get(p.parentId ?? '')) open.add(p.id);
-  }
-  return { hits, open };
-}
 
 interface NodeProps {
   item: ChartItem;
@@ -152,15 +120,11 @@ export function TreeChart({ items, selectedId, onSelect, label, query = '' }: Tr
   const { t, i18n } = useTranslation();
   const rtl = i18n.language === 'ar';
   const root = items.find((i) => i.parentId === null) as ChartItem;
-  const [closed, setClosed] = useState<Set<string>>(() => initiallyClosed(items, root.id));
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const viewport = useRef<HTMLDivElement>(null);
   const content = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
-  const { hits, open: forcedOpen } = useMemo(() => matchesOf(items, query), [items, query]);
-
-  const toggle = (id: string) => setClosed((prev) => { const next = new Set(prev); if (!next.delete(id)) next.add(id); return next; });
-  const isOpen = (id: string) => forcedOpen.has(id) || !closed.has(id);
+  const { hits, isOpen, toggle, openAll: openNodes, closeAll: closeNodes } = useOpenNodes(items, root.id, query, OPEN_DEPTH);
 
   /** Picks the zoom that shows everything and scrolls to the middle (the chart is centered on the box). */
   const fit = () => {
@@ -172,8 +136,8 @@ export function TreeChart({ items, selectedId, onSelect, label, query = '' }: Tr
   };
   // The new layout exists after the next paint, so measure then (two frames: state applied, then drawn).
   const afterLayout = () => requestAnimationFrame(() => requestAnimationFrame(fit));
-  const openAll = () => { setClosed(new Set()); afterLayout(); };
-  const closeAll = () => { setClosed(new Set(items.filter((i) => childrenOf(items, i.id).length).map((i) => i.id))); afterLayout(); };
+  const openAll = () => { openNodes(); afterLayout(); };
+  const closeAll = () => { closeNodes(); afterLayout(); };
 
   const down = (e: PointerEvent<HTMLDivElement>) => {
     const box = viewport.current;

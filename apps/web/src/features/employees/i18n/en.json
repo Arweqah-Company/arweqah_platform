@@ -90,7 +90,7 @@
   "hints": {
     "pickCompanyFirst": "Choose the company first.",
     "pickUnitFirst": "Choose the unit first.",
-    "managerDefault": "The unit's manager is proposed automatically; you can change it.",
+    "managerDefault": "The unit's manager is proposed for a new employee; you can change it or clear it. A direct manager is not required.",
     "workEmail": "It is the sign-in email and the Microsoft account, and cannot be changed later.",
     "emailLocked": "The work email is the sign-in identity and cannot be changed.",
     "phone": "International format, e.g. +966501234567",

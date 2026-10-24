@@ -17,8 +17,10 @@ interface Props {
 /** Company → unit → job title → direct manager: each choice narrows the next, and the manager defaults from the unit. */
 export function WorkSection({ options, currentManager, employeeId }: Props) {
   const { t, i18n } = useTranslation('employees');
-  const { watch, setValue, getValues, formState } = useFormContext<FormState>();
+  const { watch, setValue, getValues } = useFormContext<FormState>();
   const [search, setSearch] = useState('');
+  /** Once the person chose (or cleared) the manager themselves, the unit no longer proposes one: the manager is never forced. */
+  const [chosenByHand, setChosenByHand] = useState(false);
   const companyId = watch('companyId');
   const orgNodeId = watch('orgNodeId');
   const nodes = useOrgNodeOptions(companyId || undefined);
@@ -32,16 +34,16 @@ export function WorkSection({ options, currentManager, employeeId }: Props) {
     return currentManager && !found.some((m) => m.value === currentManager.id) ? [{ value: currentManager.id, label: currentManager.fullName }, ...found] : found;
   }, [managers.data, currentManager]);
 
-  // A chosen unit proposes its manager, unless the person already picked one by hand.
+  // A chosen unit proposes its manager to a new employee, unless the person already chose (or cleared) it by hand. The manager is optional.
   useEffect(() => {
     const node = nodes.data?.find((n) => n.id === orgNodeId);
-    if (node && !formState.dirtyFields.managerId && !getValues('managerId') && node.defaultManagerId) setValue('managerId', node.defaultManagerId);
-  }, [orgNodeId, nodes.data, formState.dirtyFields.managerId, getValues, setValue]);
+    if (!employeeId && node && !chosenByHand && !getValues('managerId') && node.defaultManagerId) setValue('managerId', node.defaultManagerId);
+  }, [employeeId, orgNodeId, nodes.data, chosenByHand, getValues, setValue]);
 
   const onCompany = (value: string | null) => {
     setValue('orgNodeId', '');
     setValue('jobTitleId', '');
-    if (!formState.dirtyFields.managerId) setValue('managerId', '');
+    if (!chosenByHand) setValue('managerId', '');
     if (value && !getValues('contractCompanyId')) setValue('contractCompanyId', value);
   };
 
@@ -51,7 +53,7 @@ export function WorkSection({ options, currentManager, employeeId }: Props) {
       <SelectField name="relationTypeId" label={t('fields.relationTypeId')} options={options.relationTypes} />
       <ComboField name="orgNodeId" label={t('fields.orgNodeId')} options={nodeOptions} required disabled={!companyId} hint={companyId ? undefined : t('hints.pickCompanyFirst')} onPick={() => setValue('jobTitleId', '')} />
       <SelectField name="jobTitleId" label={t('fields.jobTitleId')} options={titleOptions} required hint={orgNodeId ? undefined : t('hints.pickUnitFirst')} />
-      <ComboField name="managerId" label={t('fields.managerId')} options={managerOptions} onSearch={setSearch} clearable hint={t('hints.managerDefault')} />
+      <ComboField name="managerId" label={t('fields.managerId')} options={managerOptions} onSearch={setSearch} onPick={() => setChosenByHand(true)} clearable hint={t('hints.managerDefault')} />
       <TextField name="workLocation" label={t('fields.workLocation')} />
       <ComboField name="workCountryId" label={t('fields.workCountryId')} options={options.countries} clearable onPick={(v) => v && !getValues('salaryCurrencyCountryId') && setValue('salaryCurrencyCountryId', v)} />
       <SelectField name="workMode" label={t('fields.workMode')} options={options.workModes} />

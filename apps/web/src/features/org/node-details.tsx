@@ -5,9 +5,8 @@ import { toast } from 'sonner';
 import { Can } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Badge, Button, ConfirmDialog } from '@/shared/ui';
-import { useDeleteNode, useDeleteTitle } from './api';
-import { MoveDialog } from './move-dialog';
-import { NodeForm } from './node-form';
+import { useDeleteTitle } from './api';
+import { NodeActionDialogs, type NodeAction } from './node-action-dialogs';
 
 interface Props {
   tree: OrgTreeDto;
@@ -17,7 +16,7 @@ interface Props {
   onDeleted: () => void;
 }
 
-type Open = 'edit' | 'move' | 'delete' | null;
+type Open = NodeAction | null;
 
 function Facts({ node, levelName }: { node: OrgNodeDto; levelName: string | undefined }) {
   const { t } = useTranslation('org');
@@ -53,28 +52,22 @@ function TitlesList({ node, onAdd, onDelete }: { node: OrgNodeDto; onAdd: () => 
   );
 }
 
-/** Deleting a unit or a job title, each behind its own confirmation. */
-function DeleteDialogs({ node, open, titleToDelete, onClose, onCloseTitle, onDeleted }: { node: OrgNodeDto; open: boolean; titleToDelete: string | null; onClose: () => void; onCloseTitle: () => void; onDeleted: () => void }) {
+/** Deleting a job title, behind its own confirmation. */
+function TitleDeleteDialog({ titleToDelete, onClose }: { titleToDelete: string | null; onClose: () => void }) {
   const { t } = useTranslation('org');
   const { t: tc } = useTranslation();
-  const remove = useDeleteNode();
   const removeTitle = useDeleteTitle();
-  const attempt = async (action: () => Promise<unknown>, message: string) => {
+  const confirm = async () => {
     try {
-      await action();
-      toast.success(message);
-      return true;
+      await removeTitle.mutateAsync(titleToDelete as string);
+      toast.success(t('details.titleDeleted'));
     } catch (error) {
       toast.error(errorMessage(tc, error));
-      return false;
+    } finally {
+      onClose();
     }
   };
-  return (
-    <>
-      <ConfirmDialog open={open} onOpenChange={(o) => !o && onClose()} tone="danger" title={t('details.deleteTitle')} description={t('details.deleteBody')} confirmLabel={tc('actions.delete')} onConfirm={async () => { if (await attempt(() => remove.mutateAsync(node.id), t('details.deleted'))) onDeleted(); onClose(); }} />
-      <ConfirmDialog open={!!titleToDelete} onOpenChange={(o) => !o && onCloseTitle()} tone="danger" title={t('details.deleteTitleTitle')} description={t('details.deleteTitleBody')} confirmLabel={tc('actions.delete')} onConfirm={async () => { await attempt(() => removeTitle.mutateAsync(titleToDelete as string), t('details.titleDeleted')); onCloseTitle(); }} />
-    </>
-  );
+  return <ConfirmDialog open={!!titleToDelete} onOpenChange={(o) => !o && onClose()} tone="danger" title={t('details.deleteTitleTitle')} description={t('details.deleteTitleBody')} confirmLabel={tc('actions.delete')} onConfirm={confirm} />;
 }
 
 function Actions({ node, hasChildLevel, onOpen, onAddChild }: { node: OrgNodeDto; hasChildLevel: boolean; onOpen: (open: Open) => void; onAddChild: () => void }) {
@@ -87,16 +80,6 @@ function Actions({ node, hasChildLevel, onOpen, onAddChild }: { node: OrgNodeDto
       {node.parentId && <Can permission={CorePermission.OrgUnitMove}><Button size="sm" variant="secondary" onClick={() => onOpen('move')}>{t('details.move')}</Button></Can>}
       <Can permission={CorePermission.OrgUnitDelete}><Button size="sm" variant="danger" onClick={() => onOpen('delete')}>{tc('actions.delete')}</Button></Can>
     </div>
-  );
-}
-
-function NodeDialogs({ tree, node, open, onClose }: { tree: OrgTreeDto; node: OrgNodeDto; open: Open; onClose: () => void }) {
-  const close = (o: boolean) => !o && onClose();
-  return (
-    <>
-      {open === 'edit' && <NodeForm tree={tree} editing={node} open onOpenChange={close} />}
-      {open === 'move' && <MoveDialog tree={tree} node={node} open onOpenChange={close} />}
-    </>
   );
 }
 
@@ -118,8 +101,8 @@ export function NodeDetails({ tree, node, onAddTitles, onAddChild, onDeleted }: 
       <Facts node={node} levelName={localized(ar, level?.nameAr, level?.nameEn)} />
       {level?.isAssignable && <TitlesList node={node} onAdd={onAddTitles} onDelete={setTitleToDelete} />}
       <Actions node={node} hasChildLevel={hasChildLevel} onOpen={setOpen} onAddChild={onAddChild} />
-      <NodeDialogs tree={tree} node={node} open={open} onClose={() => setOpen(null)} />
-      <DeleteDialogs node={node} open={open === 'delete'} titleToDelete={titleToDelete} onClose={() => setOpen(null)} onCloseTitle={() => setTitleToDelete(null)} onDeleted={onDeleted} />
+      <NodeActionDialogs tree={tree} node={node} action={open} onClose={() => setOpen(null)} onDeleted={onDeleted} />
+      <TitleDeleteDialog titleToDelete={titleToDelete} onClose={() => setTitleToDelete(null)} />
     </aside>
   );
 }

@@ -2,7 +2,7 @@ import type { HideablePage } from '@arweqah-platform/shared';
 import type { LucideIcon } from 'lucide-react';
 import type { RouteObject } from 'react-router';
 
-export type NavGroupId = 'people' | 'tickets' | 'administration' | 'account';
+export type NavGroupId = 'people' | 'tasks' | 'tickets' | 'administration' | 'account';
 
 export interface NavItem {
   to: string;

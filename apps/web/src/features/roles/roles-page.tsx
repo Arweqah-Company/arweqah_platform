@@ -1,20 +1,22 @@
 import { CorePermission, type RoleDto } from '@arweqah-platform/shared';
+import { Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { Can } from '@/core/permissions/can';
-import { errorMessage } from '@/shared/lib/error-message';
+import { Can, usePermissions } from '@/core/permissions/can';
 import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import type { ExportColumn } from '@/shared/data-exchange/types';
 import { useListPage } from '@/shared/lib/use-list-page';
 import { matchesText } from '@/shared/lib/text-match';
-import { Badge, Button, DataTable, ListToolbar, PageHeader, type FilterField } from '@/shared/ui';
+import { errorMessage } from '@/shared/lib/error-message';
+import { Badge, Button, DataTable, ListToolbar, PageHeader, RowAction, type FilterField } from '@/shared/ui';
 import { useDeleteRole, useRoles } from './api';
 import { RoleEditor } from './role-editor';
 
 export function RolesPage() {
   const { t, i18n } = useTranslation('roles');
   const { t: tc } = useTranslation();
+  const canUpdate = usePermissions().can(CorePermission.RolesUpdate);
   const roles = useRoles();
   const list = useListPage('roles');
   const fields: FilterField[] = [
@@ -68,24 +70,19 @@ export function RolesPage() {
         isLoading={roles.isPending}
         error={roles.error}
         rowKey={(r) => r.id}
+        onRowClick={canUpdate ? (r) => setEditing({ role: r }) : undefined}
+        actions={(r) => (
+          <>
+            <Can permission={CorePermission.RolesUpdate}><RowAction label={tc('actions.edit')} icon={Pencil} onClick={() => setEditing({ role: r })} /></Can>
+            {!r.isSystem && <Can permission={CorePermission.RolesDelete}><RowAction label={tc('actions.delete')} icon={Trash2} danger onClick={() => void onDelete(r)} /></Can>}
+          </>
+        )}
         columns={[
           { id: 'name', header: t('nameAr'), cell: (r) => <span className="font-medium">{name(r)}</span> },
           { id: 'permissions', header: t('permissions'), cell: (r) => r.permissions.length },
           { id: 'users', header: t('holders'), cell: (r) => <span className="text-muted">{t('users', { count: r.usersCount })}</span> },
           { id: 'assignment', header: t('assignment.label'), cell: (r) => <Badge tone={r.assignment === 'auto' ? 'success' : 'neutral'}>{t(`assignment.${r.assignment}`)}</Badge> },
           { id: 'type', header: t('system'), hideHeader: true, cell: (r) => (r.isSystem ? <Badge tone="info">{t('system')}</Badge> : null) },
-          {
-            id: 'actions',
-            header: tc('actions.edit'),
-            hideHeader: true,
-            className: 'w-40 text-end',
-            cell: (r) => (
-              <>
-                <Can permission={CorePermission.RolesUpdate}><Button size="sm" variant="ghost" onClick={() => setEditing({ role: r })}>{tc('actions.edit')}</Button></Can>
-                {!r.isSystem && <Can permission={CorePermission.RolesDelete}><Button size="sm" variant="ghost" className="text-danger-text" onClick={() => void onDelete(r)}>{tc('actions.delete')}</Button></Can>}
-              </>
-            ),
-          },
         ]}
       />
       {editing && <RoleEditor key={editing.role?.id ?? 'new'} role={editing.role} open onOpenChange={(o) => !o && setEditing(null)} />}
