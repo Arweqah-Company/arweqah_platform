@@ -1096,3 +1096,7 @@ shared/data-exchange/   export-file · template · read-sheet · csv · mapping 
 - **مخططات README:** أخطاء العرض في GitHub كانت من علامات اقتباس وفواصل منقوطة داخل نصوص العقد؛ أُزيلت.
 - **التحقق:** `npm audit --omit=dev --audit-level=high` يمر، و`verify` كاملًا (يشمل رفع الملفات).
 
+
+### 2026-10-24 — تثبيت TypeScript على 5.9
+- فشل بناء الـ web في CI كان من فرع Dependabot `typescript-7.0.2` وليس من `main` (TypeScript 7 أزال `baseUrl`).
+- أُضيف `ignore` لـ `typescript` في `.github/dependabot.yml` لمنع أي ترقية، وسُجّل القرار 74 في `docs/decisions.md`.
