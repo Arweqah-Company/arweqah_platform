@@ -34,7 +34,7 @@
     "jscpd": "5.4.0",
     "prettier": "3.9.9",
     "turbo": "2.11.7",
-    "typescript": "5.9.3"
+    "typescript": "7.0.2"
   },
   "dependencies": {
     "body-parser": "2.4.0",
