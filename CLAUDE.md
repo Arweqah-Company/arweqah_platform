@@ -12,7 +12,7 @@ Replies in Arabic; code, comments, commits and README in English.
 
 ## Stack (pinned — see docs/decisions.md for why)
 npm workspaces + Turborepo · NestJS 11.2 (not 12: nestjs-zod) · TypeScript 5.9 · PostgreSQL 16 + TypeORM 1.1 (migrations only) · zod 4 in `packages/shared` · Better Auth 1.7 (passwordless: Microsoft Entra company tenant or work e-mail, always with an authenticator-app code, HttpOnly session cookie) · CASL 7 · XState 5 · RabbitMQ (outbox + `scheduled_jobs`, no Redis) · React 19 + Vite 8 + React Router 8 + TanStack Query 5 + Tailwind 4 + Radix · i18next · Vitest (API + web), MSW 3, Playwright + axe.
-New dependencies: latest stable release at least 14 days old, exact version pinned. `.npmrc` has `legacy-peer-deps=true` (npm bug with Better Auth peers) — list needed peers explicitly.
+New dependencies: latest stable release at least 14 days old, exact version pinned (`.npmrc` has `min-release-age=7`). The one exception is a fix for a high or critical advisory: take the fixed version at once, install with `npm install --min-release-age=0`, and record it in `docs/decisions.md`. `.npmrc` has `legacy-peer-deps=true` (npm bug with Better Auth peers) — list needed peers explicitly.
 
 ## Commands
 ```bash

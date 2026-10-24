@@ -35,5 +35,13 @@
     "prettier": "3.9.9",
     "turbo": "2.11.7",
     "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "body-parser": "2.4.0",
+    "multer": "2.5.0"
+  },
+  "overrides": {
+    "multer": "$multer",
+    "body-parser": "$body-parser"
   }
 }

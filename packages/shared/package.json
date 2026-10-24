@@ -10,6 +10,6 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src"
   },
-  "dependencies": { "zod": "4.6.5" },
+  "dependencies": { "zod": "4.6.7" },
   "devDependencies": { "@arweqah-platform/tsconfig": "*", "@arweqah-platform/eslint-config": "*" }
 }

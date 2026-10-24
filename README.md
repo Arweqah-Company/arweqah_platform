@@ -380,7 +380,7 @@ flowchart TD
   send([Employee sends a ticket to a department]) --> ok{Desk active, started, has a manager, type active?}
   ok -- no --> refused[Refused with its own reason]
   ok -- yes --> open[Open: number TKT-000123, assignee snapshot, unit told]
-  open --> reply[Assignee or manager answers: first answer ends "new"]
+  open --> reply[Assignee or manager answers: the first answer ends the new mark]
   reply --> ask[Assignee or manager asks to close: auto-close job scheduled]
   ask --> sender{Sender}
   sender -- confirms --> closed([Closed: confirmed])
@@ -399,13 +399,13 @@ flowchart TD
 ```mermaid
 flowchart TD
   req([A person opens a page or a list]) --> hidden{Hidden from every role of theirs?}
-  hidden -- yes --> no403[403 page; the API answers PAGE_HIDDEN]
+  hidden -- yes --> no403[403 page, the API answers PAGE_HIDDEN]
   hidden -- no --> perm{Has the permission, and admin mode for admin pages?}
-  perm -- no --> no403b[403 or "turn on admin mode"]
+  perm -- no --> no403b[403, or turn on admin mode]
   perm -- yes --> list[List: columns and filters the administrator left on, from GET /me]
   list --> ticket{A ticket: sender, assignee or desk manager of it?}
   ticket -- no --> nf[404, as if it did not exist]
-  ticket -- personal --> only[Only sender and assignee; never the manager or a platform admin]
+  ticket -- personal --> only[Only sender and assignee, never the manager or a platform admin]
   ticket -- yes --> show[Shown]
 ```
 
