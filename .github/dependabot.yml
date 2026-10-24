@@ -8,6 +8,9 @@ updates:
     ignore:
       # TypeScript stays on 5.9 (decision 74): 7 removes `baseUrl` (TS5102) and breaks ts-node / typescript-eslint.
       - dependency-name: typescript
+      # NestJS stays on 11 (decision 3): nestjs-zod does not support 12 yet.
+      - dependency-name: "@nestjs/*"
+        update-types: [version-update:semver-major]
     groups:
       minor-and-patch:
         update-types: [minor, patch]
