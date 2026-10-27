@@ -105,10 +105,16 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'integration.tested': a('settings', 'جرّب خدمة (ترجمة أو بريد)', 'Tried a service (translation or e-mail)'),
   'integration.activated': a('settings', 'فعّل خدمة (ترجمة أو بريد)', 'Switched a service on (translation or e-mail)'),
   'integration.deactivated': a('settings', 'أوقف خدمة (ترجمة أو بريد)', 'Switched a service off (translation or e-mail)'),
+  'template.saved': a('settings', 'عدّل صياغة رسالة (بريد أو إشعار)', 'Edited the wording of a message (e-mail or notification)'),
+  'template.submitted': a('settings', 'قدّم تعديل رسالة للاعتماد', 'Submitted a message change for approval'),
+  'template.approved': a('settings', 'اعتمد تعديل رسالة', 'Approved a message change'),
+  'template.rejected': a('settings', 'رفض تعديل رسالة', 'Rejected a message change'),
+  'template.reset': a('settings', 'أعاد رسالة إلى صياغتها الأصلية', 'Reset a message to its default wording'),
+  'template.settings_changed': a('settings', 'غيّر إعداد اعتماد تعديلات الرسائل', 'Changed the approval setting for message changes'),
   'list.settings_updated': a('settings', 'عدّل أعمدة قائمة وفلاترها', 'Edited a list’s columns and filters'),
 };
 
-const PREFIX_CATEGORY: Record<string, AuditCategory> = { auth: 'sign_in', employee: 'employees', profile: 'employees', company: 'organization', org: 'organization', role: 'access', role_group: 'access', user_group: 'access', permissions: 'access', ticket: 'tickets', task: 'tasks', tasks: 'tasks', integration: 'settings', list: 'settings' };
+const PREFIX_CATEGORY: Record<string, AuditCategory> = { auth: 'sign_in', employee: 'employees', profile: 'employees', company: 'organization', org: 'organization', role: 'access', role_group: 'access', user_group: 'access', permissions: 'access', ticket: 'tickets', task: 'tasks', tasks: 'tasks', integration: 'settings', list: 'settings', template: 'settings' };
 
 /** The category of an action; one the list does not know yet falls back to its first word, then to "other". */
 export function categoryOfAction(action: string): AuditCategory {

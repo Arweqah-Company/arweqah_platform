@@ -1,6 +1,9 @@
 import { Global, Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PermissionCatalog } from '../access/application/permission-catalog';
+import { TemplateRegistry } from '../templates/application/services/template-registry';
+import { EMAIL_TEMPLATES } from './application/email-templates';
+import { TemplateTestMailService } from './application/template-test-mail.service';
 import { EmailLogService } from './application/email-log.service';
 import { EmailProbe } from './application/email-probe';
 import { MailTransport, MailTransportFactory } from './application/mail-transport';
@@ -22,12 +25,13 @@ import {
 } from './infrastructure/typeorm-notification.repository';
 import { TypeOrmEmailLogRepository } from './infrastructure/typeorm-email-log.repository';
 import { EmailLogController } from './presentation/email-log.controller';
+import { TemplateTestController } from './presentation/template-test.controller';
 import { NotificationsController } from './presentation/notifications.controller';
 
 @Global()
 @Module({
   imports: [TypeOrmModule.forFeature([Notification, EmailLog])],
-  controllers: [NotificationsController, EmailLogController],
+  controllers: [NotificationsController, EmailLogController, TemplateTestController],
   providers: [
     NotificationsService,
     EmailChannel,
@@ -35,6 +39,7 @@ import { NotificationsController } from './presentation/notifications.controller
     { provide: NOTIFICATION_CHANNELS, inject: [EmailChannel, SmsChannel], useFactory: (...c: unknown[]) => c },
     EmailLogService,
     EmailProbe,
+    TemplateTestMailService,
     { provide: MailTransportFactory, useClass: ProviderMailTransportFactory },
     { provide: MailTransport, useClass: ActiveMailTransport },
     { provide: EmailLogRepository, useClass: TypeOrmEmailLogRepository },
@@ -46,9 +51,13 @@ import { NotificationsController } from './presentation/notifications.controller
   exports: [NotificationsService, MailSender],
 })
 export class NotificationsModule implements OnModuleInit {
-  constructor(private readonly catalog: PermissionCatalog) {}
+  constructor(
+    private readonly catalog: PermissionCatalog,
+    private readonly templates: TemplateRegistry,
+  ) {}
 
   onModuleInit(): void {
     this.catalog.register(NOTIFICATIONS_PERMISSIONS);
+    this.templates.register(EMAIL_TEMPLATES);
   }
 }

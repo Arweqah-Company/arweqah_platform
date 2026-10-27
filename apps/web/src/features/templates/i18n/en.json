@@ -1,0 +1,109 @@
+{
+  "title": {
+    "email": "E-mail templates",
+    "notification": "Notification templates"
+  },
+  "description": {
+    "email": "The e-mails the platform sends, in Arabic and English. Change the wording and the colors (brand colors only). Type @ in the text to insert a value the platform fills in, such as the person's name.",
+    "notification": "The notices the platform sends (the bell and the e-mail copy), in Arabic and English. Type @ in the text to insert a value the platform fills in, such as the task number."
+  },
+  "columns": {
+    "template": "Message",
+    "area": "Area",
+    "status": "State",
+    "updated": "Last change"
+  },
+  "areas": {
+    "sign_in": "Sign-in",
+    "tickets": "Tickets",
+    "tasks": "Tasks",
+    "notifications": "Notifications"
+  },
+  "status": {
+    "default": "Default wording",
+    "custom": "Customised",
+    "pending": "Waiting for approval"
+  },
+  "searchLabel": "Search messages",
+  "searchPlaceholder": "Search by name or description",
+  "noMatches": "No message matches.",
+  "actions": {
+    "submit": "Send for approval",
+    "test": "Send me a test",
+    "reset": "Back to default",
+    "approve": "Approve",
+    "reject": "Reject"
+  },
+  "saved": {
+    "live": "Saved. The new wording is in use.",
+    "submitted": "Sent for approval. The current wording stays until someone else approves.",
+    "approved": "Approved. The new wording is in use.",
+    "rejected": "The change was rejected.",
+    "reset": "The default wording is back."
+  },
+  "reset": {
+    "title": "Go back to the default wording?",
+    "description": "Your wording for this message (and any change waiting for approval) is discarded. The default is sent from now on."
+  },
+  "approval": {
+    "label": "A second person must approve changes",
+    "hint": "When on, a saved change waits until someone other than its author approves it; until then the current wording is sent.",
+    "active": "Changes wait for a second person's approval before they are used.",
+    "on": "Approval by a second person is on.",
+    "off": "Approval by a second person is off."
+  },
+  "pending": {
+    "banner": "A change by {{name}} is waiting for approval; you are editing it.",
+    "ownChange": "You made this change, so someone else must approve it."
+  },
+  "lang": {
+    "label": "Language",
+    "ar": "Arabic",
+    "en": "English"
+  },
+  "fields": {
+    "subject": "Subject",
+    "title": "Title",
+    "preheader": "Preview line",
+    "preheaderHint": "The short line mail apps show beside the subject.",
+    "body": "Text",
+    "button": "Button label",
+    "buttonHint": "The button opens the link. Leave it empty for no button.",
+    "band": "Header color",
+    "buttonColor": "Button color"
+  },
+  "colors": {
+    "cream": "Cream",
+    "green": "Green",
+    "ink": "Dark navy",
+    "orange": "Orange",
+    "beige": "Beige",
+    "petrol": "Petrol blue",
+    "yellow": "Yellow"
+  },
+  "variables": {
+    "title": "Values the platform fills in",
+    "hint": "Type @ in the text and pick one. Only these can be used.",
+    "required": "must stay",
+    "example": "Example"
+  },
+  "preview": {
+    "title": "Preview with example values",
+    "subject": "Subject",
+    "frame": "Preview of the message"
+  },
+  "test": {
+    "sent": "A test was sent to {{to}}."
+  },
+  "editor": {
+    "toolbar": "Formatting",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "bullets": "Bulleted list",
+    "numbers": "Numbered list",
+    "link": "Link",
+    "linkAddress": "Link address",
+    "apply": "Apply"
+  }
+}

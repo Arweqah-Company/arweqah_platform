@@ -1,7 +1,9 @@
 import { randomBytes } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { AppConfig } from '../../../config/app-config.service';
+import { INVITATION_TEMPLATE } from '../../notifications/application/email-templates';
 import { MailSender } from '../../notifications/application/notification-channel';
+import { TemplateRenderer } from '../../templates/application/services/template-renderer';
 import { AuthenticatorRepository } from '../domain/authenticator.repository';
 import { InvitationInvalidError } from '../domain/errors';
 import { hashToken } from '../domain/totp';
@@ -26,6 +28,7 @@ export class InvitationService {
     private readonly repo: AuthenticatorRepository,
     private readonly mail: MailSender,
     private readonly config: AppConfig,
+    private readonly templates: TemplateRenderer,
   ) {}
 
   /** Issues a fresh link (older unused ones stop working) and e-mails it. */
@@ -35,7 +38,8 @@ export class InvitationService {
     const token = randomBytes(32).toString('base64url');
     await this.repo.replaceInvite(userId, hashToken(token), new Date(Date.now() + INVITE_TTL_MS));
     const url = `${this.config.get('APP_URL')}/enroll/${token}`;
-    await this.mail.send({ purpose: 'activation', to: user.email, subject: subjectFor(user.locale), text: textFor(user.locale, user.name, url), html: htmlFor(user.locale, user.name, url, this.config.get('APP_URL')) });
+    const mail = await this.templates.renderEmail(INVITATION_TEMPLATE, user.locale, { name: user.name, link: url });
+    await this.mail.send({ purpose: 'activation', to: user.email, subject: mail.subject, text: mail.text, html: mail.html });
     return { sentTo: user.email, enrollmentUrl: this.config.isProduction ? undefined : url };
   }
 
@@ -70,24 +74,3 @@ export class InvitationService {
     return this.repo.markInviteUsed(inviteId);
   }
 }
-
-const subjectFor = (locale: 'ar' | 'en'): string => (locale === 'en' ? 'Activate your Arweqah account' : 'فعّل حسابك في منصة أروقة');
-
-function textFor(locale: 'ar' | 'en', name: string, url: string): string {
-  return locale === 'en'
-    ? `Hello ${name},\n\nAn Arweqah Platform account was created for you. Open this link within 72 hours to link your authenticator app (Microsoft or Google Authenticator):\n${url}\n\nYou can also sign in with your Microsoft work account.`
-    : `مرحبًا ${name}،\n\nتم إنشاء حساب لك في منصة أروقة. افتح الرابط التالي خلال 72 ساعة لربط تطبيق المصادقة (Microsoft أو Google Authenticator):\n${url}\n\nيمكنك أيضًا الدخول بحساب Microsoft الخاص بالعمل.`;
-}
-
-function htmlFor(locale: 'ar' | 'en', name: string, url: string, appUrl: string): string {
-  const rtl = locale === 'ar';
-  const body = textFor(locale, escapeHtml(name), '').split('\n\n');
-  const cta = rtl ? 'ربط تطبيق المصادقة' : 'Link authenticator app';
-  return `<div dir="${rtl ? 'rtl' : 'ltr'}" style="font-family:Tajawal,Arial,sans-serif;background:#FFFCEE;color:#0C2028;padding:24px">
-<img src="${appUrl}/brand/logo-color-horizontal.png" alt="Arweqah" width="180" style="display:block;margin-bottom:24px">
-<p>${body[0] ?? ''}</p><p>${(body[1] ?? '').replace(/\n.*$/s, '')}</p>
-<p><a href="${url}" style="display:inline-block;background:#00415B;color:#FFFCEE;padding:12px 20px;border-radius:8px;text-decoration:none">${cta}</a></p>
-<p style="font-size:13px;color:#556263">${body[2] ?? ''}</p></div>`;
-}
-
-const escapeHtml = (value: string): string => value.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);

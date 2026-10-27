@@ -48,3 +48,5 @@ Single source of terms. Extend it when a feature adds a concept.
 | سجل البريد | E-mail log | sent e-mails and their status |
 | رجوع | Back | error pages and dialogs |
 | فتح الكل / طي الكل | Open all / Close all | chart nodes |
+| قالب رسالة / قوالب البريد والإشعارات | Message template / E-mail and notification templates | the wording of a message the platform sends (not the import template file) |
+| اعتماد شخص ثانٍ | Second-person approval | a change to a template waits until someone other than its author approves it |

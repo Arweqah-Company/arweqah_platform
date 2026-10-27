@@ -5,10 +5,12 @@ import { expect, type Page } from '@playwright/test';
 export abstract class BasePage {
   constructor(protected readonly page: Page) {}
 
-  async expectNoSeriousA11yIssues(): Promise<void> {
+  /** `exclude` leaves out content that is not ours to fix, such as the e-mail preview shown in a sandboxed frame (axe cannot run inside it). */
+  async expectNoSeriousA11yIssues(exclude: string[] = []): Promise<void> {
     // Colors are measured while a fade-in is still running on a slow machine: let the animations finish first.
     await this.page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))));
-    const { violations } = await new AxeBuilder({ page: this.page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+    const builder = exclude.reduce((b, selector) => b.exclude(selector), new AxeBuilder({ page: this.page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']));
+    const { violations } = await builder.analyze();
     const serious = violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
     expect(serious, serious.map((v) => `${v.id}: ${v.help}`).join('\n')).toEqual([]);
   }

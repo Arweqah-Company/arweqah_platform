@@ -194,6 +194,32 @@
         "status": "Status",
         "active": "In use"
       }
+    },
+    "email-templates": {
+      "name": "E-mail templates",
+      "columns": {
+        "template": "Message",
+        "area": "Area",
+        "status": "State",
+        "updated": "Last change"
+      },
+      "filters": {
+        "area": "Area",
+        "status": "State"
+      }
+    },
+    "notification-templates": {
+      "name": "Notification templates",
+      "columns": {
+        "template": "Message",
+        "area": "Area",
+        "status": "State",
+        "updated": "Last change"
+      },
+      "filters": {
+        "area": "Area",
+        "status": "State"
+      }
     }
   },
   "listHint": "The first column (the name) always stays.",

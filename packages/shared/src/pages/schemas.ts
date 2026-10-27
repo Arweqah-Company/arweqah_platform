@@ -4,7 +4,7 @@ import { z } from 'zod';
  * The pages an administrator may hide from roles. Not in the list: the home page, "My profile" and "Security"
  * (everyone needs them), the notifications page (the header bell depends on it) and this page itself.
  */
-export const HIDEABLE_PAGES = ['employees', 'org', 'companies', 'roles', 'audit', 'email-log', 'translation-settings', 'email-settings', 'tickets', 'ticket-setup', 'ticket-figures', 'permissions', 'tasks', 'tasks-team', 'tasks-matrix', 'task-tags', 'task-policies'] as const;
+export const HIDEABLE_PAGES = ['employees', 'org', 'companies', 'roles', 'audit', 'email-log', 'translation-settings', 'email-settings', 'email-templates', 'notification-templates', 'tickets', 'ticket-setup', 'ticket-figures', 'permissions', 'tasks', 'tasks-team', 'tasks-matrix', 'task-tags', 'task-policies'] as const;
 export type HideablePage = (typeof HIDEABLE_PAGES)[number];
 
 /** The page keys a role does not see; every other page stays visible. */

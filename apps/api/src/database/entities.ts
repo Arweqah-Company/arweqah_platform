@@ -18,6 +18,8 @@ import { OutboxMessage } from '../core/messaging/domain/outbox-message.entity';
 import { ProcessedMessage } from '../core/messaging/domain/processed-message.entity';
 import { ScheduledJob } from '../core/messaging/domain/scheduled-job.entity';
 import { IntegrationProvider } from '../core/integrations/domain/entities/integration-provider.entity';
+import { MessageTemplate } from '../core/templates/domain/entities/message-template.entity';
+import { TemplateSetting } from '../core/templates/domain/entities/template-setting.entity';
 import { EmailLog } from '../core/notifications/domain/email-log.entity';
 import { Notification } from '../core/notifications/domain/notification.entity';
 import { WorkflowInstance, WorkflowTransition } from '../core/workflow/domain/workflow-instance.entity';
@@ -57,6 +59,8 @@ export const ENTITIES = [
   Notification,
   EmailLog,
   IntegrationProvider,
+  MessageTemplate,
+  TemplateSetting,
   WorkflowInstance,
   WorkflowTransition,
   ...LOOKUP_ENTITIES,

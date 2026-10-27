@@ -11,6 +11,7 @@ import { AppConfigModule } from './config/config.module';
 import { typeOrmOptions } from './config/typeorm.config';
 import { AccessModule } from './core/access/access.module';
 import { IntegrationsModule } from './core/integrations/integrations.module';
+import { TemplatesModule } from './core/templates/templates.module';
 import { ListsModule } from './core/lists/lists.module';
 import { PermissionsGuard } from './core/access/presentation/permissions.guard';
 import { AuditModule } from './core/audit/audit.module';
@@ -60,6 +61,7 @@ const JSON_LIMIT = '1mb';
     AccessModule,
     ListsModule,
     IntegrationsModule,
+    TemplatesModule,
     AuditModule,
     MessagingModule,
     WorkflowModule,

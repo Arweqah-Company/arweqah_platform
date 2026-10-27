@@ -16,6 +16,12 @@ Element.prototype.scrollIntoView = () => undefined;
 Element.prototype.hasPointerCapture = () => false;
 Element.prototype.releasePointerCapture = () => undefined;
 
+// ProseMirror (the template editor) measures text with these; jsdom has no layout, so they answer "nothing".
+const NO_RECT = { x: 0, y: 0, width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0, toJSON: () => ({}) };
+Range.prototype.getBoundingClientRect = () => NO_RECT as DOMRect;
+Range.prototype.getClientRects = () => [] as unknown as DOMRectList;
+document.elementFromPoint = () => null;
+
 // CI and turbo run suites in parallel; give async queries room on a busy machine.
 configure({ asyncUtilTimeout: 5000 });
 

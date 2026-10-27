@@ -26,6 +26,8 @@
     "task-tags": "Task tags",
     "task-policies": "Task policies",
     "translation-settings": "Translation settings",
-    "email-settings": "E-mail settings"
+    "email-settings": "E-mail settings",
+    "email-templates": "E-mail templates",
+    "notification-templates": "Notification templates"
   }
 }

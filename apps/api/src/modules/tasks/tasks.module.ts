@@ -1,3 +1,5 @@
+import { TemplateRegistry } from '../../core/templates/application/services/template-registry';
+import { TASK_TEMPLATES } from './application/messages/task-templates';
 import { Module, OnModuleInit } from '@nestjs/common';
 import { PermissionCatalog } from '../../core/access/application/permission-catalog';
 import { WorkflowRegistry } from '../../core/workflow/application/workflow-definition';
@@ -84,10 +86,12 @@ export class TasksModule implements OnModuleInit {
   constructor(
     private readonly catalog: PermissionCatalog,
     private readonly workflows: WorkflowRegistry,
+    private readonly templates: TemplateRegistry,
   ) {}
 
   onModuleInit(): void {
     this.catalog.register(TASK_PERMISSIONS);
+    this.templates.register(TASK_TEMPLATES);
     this.workflows.register({ key: TASK_APPROVAL_KEY, version: TASK_APPROVAL_VERSION, machine: taskApprovalMachine });
   }
 }

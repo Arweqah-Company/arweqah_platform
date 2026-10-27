@@ -5,6 +5,7 @@ import { emailLogFeature } from '@/features/email-log';
 import { authFeature } from '@/features/auth';
 import { companiesFeature } from '@/features/companies';
 import { integrationsFeature } from '@/features/integrations';
+import { templatesFeature } from '@/features/templates';
 import { employeesFeature } from '@/features/employees';
 import { homeFeature } from '@/features/home';
 import { profileFeature } from '@/features/profile';
@@ -34,6 +35,7 @@ export const FEATURES: FeatureModule[] = [
   auditFeature,
   emailLogFeature,
   integrationsFeature,
+  templatesFeature,
   notificationsFeature,
   profileFeature,
   securityFeature,

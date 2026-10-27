@@ -27,3 +27,4 @@ export * from './tasks/schemas';
 export * from './translation/schemas';
 export * from './integrations/catalog';
 export * from './integrations/schemas';
+export * from './templates/schemas';

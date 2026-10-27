@@ -26,6 +26,8 @@
     "task-tags": "فئات المهام",
     "task-policies": "سياسات المهام",
     "translation-settings": "إعدادات الترجمة",
-    "email-settings": "إعدادات البريد الإلكتروني"
+    "email-settings": "إعدادات البريد الإلكتروني",
+    "email-templates": "قوالب البريد الإلكتروني",
+    "notification-templates": "قوالب الإشعارات"
   }
 }

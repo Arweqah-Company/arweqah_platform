@@ -137,7 +137,13 @@
     "PROVIDER_INCOMPLETE": "The service data is incomplete. Fill in every required field.",
     "PROVIDER_NOT_TESTED": "Try the service with its current data first; it can be switched on only after a passed test.",
     "PROVIDER_TEST_INPUT": "Fill in the test box first.",
-    "PROVIDER_TEST_RATE_LIMITED": "Too many tests. Try again in a minute."
+    "PROVIDER_TEST_RATE_LIMITED": "Too many tests. Try again in a minute.",
+    "TEMPLATE_UNKNOWN_VARIABLE": "The text uses values this message cannot fill. Use only the values listed under the text.",
+    "TEMPLATE_MISSING_VARIABLE": "This message must keep a required value (the activation link). Add it back or give the button a label.",
+    "TEMPLATE_INVALID_CONTENT": "The text is not valid. Notifications are plain text, without tags.",
+    "TEMPLATE_SELF_APPROVAL": "A change must be approved by someone other than who made it.",
+    "TEMPLATE_NOTHING_PENDING": "No change is waiting for approval.",
+    "TEMPLATE_TEST_RATE_LIMITED": "Too many test messages. Try again in a minute."
   },
   "scope": {
     "own": "Own record only",

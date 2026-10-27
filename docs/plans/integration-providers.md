@@ -96,7 +96,7 @@ All done and verified; each has its FR row in README §4 and a decision row.
 5. **Audit log in words, by category, filter by person** and **e-mail log by category and person** — FR-63, decisions 105–106. The e-mail log categories are set by the senders, so the provider test mail is filed as «E-mail settings test».
 6. **Deploy:** the `apk upgrade` image layer is rebuilt on every build (`APK_CACHE_BUST`) so Trivy sees Alpine fixes.
 
-## Next: e-mail templates and notification templates (owner request 2026-10-27) — FR-64, FR-65, not built yet
+## E-mail templates and notification templates (owner request 2026-10-27) — FR-64, FR-65, built
 Two more tabs in the Settings page: **E-mail templates** and **Notification templates**. An administrator edits every message the platform sends, in Arabic and English, and the edits are saved in the database. Same page, same tabs component, same permission pattern (one view / edit / reset key per tab).
 
 ### What is a template
@@ -134,3 +134,10 @@ API e2e (FR-64, FR-65): default sent when no row; edit applied to the next e-mai
 3. **SMS templates: left out for now** (no SMS provider yet); the template registry is built so an `sms` kind can be added later without changing the tabs.
 
 Added to the plan above: keys `templates.email_approve`, `templates.notification_approve`, `templates.settings`; audit actions `template.submitted`, `template.approved`, `template.rejected` (added to the audit catalog); errors `TEMPLATE_SELF_APPROVAL` (403) and `TEMPLATE_NOTHING_PENDING` (409); a setting row `templates.require_approval` per kind, stored with the other settings.
+
+### As built (differences from the plan above)
+- The editor is TipTap with a `@` pick list; variables are stored as `{{name}}`. Notification text and titles use the same editor in plain / one-line mode.
+- The e-mail templates are two: the activation invitation and `notification.email`, the frame that carries every notification sent by e-mail (its subject is the notice's title, its body the notice's text). The notice's own wording is edited in the notification templates (28: 8 tickets, 20 tasks).
+- Variables that differ by language (department name, status) are passed per language when the notice is rendered.
+- Approval: the switch is `template_settings.require_approval` per tab; a pending change lives in the same row (`pending`, `pending_by`, `pending_at`). **Not built yet:** notifying the approvers when a change is submitted (the list shows the state «Waiting for approval»); it needs a «people holding a permission» lookup the access module does not offer yet.
+- The «send me a test» endpoint lives in `core/notifications` (it sends mail); everything else is in the new `core/templates` module.

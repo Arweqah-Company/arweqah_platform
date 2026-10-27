@@ -194,6 +194,32 @@
         "status": "الحالة",
         "active": "قيد الاستخدام"
       }
+    },
+    "email-templates": {
+      "name": "قوالب البريد الإلكتروني",
+      "columns": {
+        "template": "الرسالة",
+        "area": "المجال",
+        "status": "الحالة",
+        "updated": "آخر تعديل"
+      },
+      "filters": {
+        "area": "المجال",
+        "status": "الحالة"
+      }
+    },
+    "notification-templates": {
+      "name": "قوالب الإشعارات",
+      "columns": {
+        "template": "الرسالة",
+        "area": "المجال",
+        "status": "الحالة",
+        "updated": "آخر تعديل"
+      },
+      "filters": {
+        "area": "المجال",
+        "status": "الحالة"
+      }
     }
   },
   "listHint": "العمود الأول (الاسم) يبقى دائمًا.",

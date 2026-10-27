@@ -137,7 +137,13 @@
     "PROVIDER_INCOMPLETE": "بيانات الخدمة ناقصة. أكمل كل الحقول المطلوبة.",
     "PROVIDER_NOT_TESTED": "جرّب الخدمة ببياناتها الحالية أولًا؛ لا تُفعَّل إلا بعد نجاح التجربة.",
     "PROVIDER_TEST_INPUT": "املأ خانة التجربة أولًا.",
-    "PROVIDER_TEST_RATE_LIMITED": "تجارب كثيرة. حاول بعد دقيقة."
+    "PROVIDER_TEST_RATE_LIMITED": "تجارب كثيرة. حاول بعد دقيقة.",
+    "TEMPLATE_UNKNOWN_VARIABLE": "يحتوي النص على قيم لا تستطيع هذه الرسالة ملأها. استعمل القيم المذكورة تحت النص فقط.",
+    "TEMPLATE_MISSING_VARIABLE": "يجب أن تبقي هذه الرسالة قيمة إلزامية (رابط التفعيل). أعدها أو اكتب نصًا للزر.",
+    "TEMPLATE_INVALID_CONTENT": "النص غير صالح. الإشعارات نص عادي بلا وسوم.",
+    "TEMPLATE_SELF_APPROVAL": "يجب أن يعتمد التعديلَ شخصٌ غير من أجراه.",
+    "TEMPLATE_NOTHING_PENDING": "لا يوجد تعديل بانتظار الاعتماد.",
+    "TEMPLATE_TEST_RATE_LIMITED": "رسائل تجربة كثيرة. حاول بعد دقيقة."
   },
   "scope": {
     "own": "سجله فقط",

@@ -1,3 +1,5 @@
+import { TemplateRegistry } from '../../core/templates/application/services/template-registry';
+import { TICKET_TEMPLATES } from './application/messages/ticket-templates';
 import { Global, Module, OnModuleInit } from '@nestjs/common';
 import { AdminModeEligibility } from '../../core/access/application/admin-mode-eligibility';
 import { PermissionCatalog } from '../../core/access/application/permission-catalog';
@@ -64,10 +66,12 @@ export class TicketsModule implements OnModuleInit {
     private readonly catalog: PermissionCatalog,
     private readonly eligibility: AdminModeEligibility,
     private readonly directory: TicketDirectory,
+    private readonly templates: TemplateRegistry,
   ) {}
 
   onModuleInit(): void {
     this.catalog.register(TICKET_PERMISSIONS);
+    this.templates.register(TICKET_TEMPLATES);
     // A manager of a department may use admin mode to set up its tickets.
     this.eligibility.register(async (ctx) => (await this.directory.managedDepartmentIds(ctx.userId)).length > 0);
   }

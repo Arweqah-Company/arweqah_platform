@@ -7,7 +7,7 @@
   "description": {
     "translation": "Choose which service translates Arabic into English while people type. A service is switched on only after it passes a test with its saved data.",
     "email": "Choose how the platform sends e-mail (sign-in links, invitations, notices). A service is switched on only after it passes a test with its saved data.",
-    "settings": "Translation and e-mail service settings in one page."
+    "settings": "Translation, e-mail services, and the wording of e-mails and notifications, in one page."
   },
   "serverSettings": {
     "translation": "No service is switched on here, so the settings on the server are used (if there are none, translation is off).",
@@ -155,7 +155,9 @@
   },
   "tabs": {
     "translation": "Translation",
-    "email": "E-mail"
+    "email": "E-mail",
+    "email-templates": "E-mail templates",
+    "notification-templates": "Notification templates"
   },
   "tabsLabel": "Services",
   "noTabs": "You may not view any of these settings.",
