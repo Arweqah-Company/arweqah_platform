@@ -45,6 +45,7 @@ jobs:
           file: apps/${{ matrix.app }}/Dockerfile
           push: true
           build-args: |
+            APK_CACHE_BUST=${{ github.event.workflow_run.head_sha || github.sha }}
             VITE_MICROSOFT_ENABLED=${{ vars.MICROSOFT_ENABLED || 'false' }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:${{ github.event.workflow_run.head_sha || github.sha }}

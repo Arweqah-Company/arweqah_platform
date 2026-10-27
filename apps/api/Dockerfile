@@ -18,7 +18,9 @@ RUN turbo run build --filter=@arweqah-platform/api && npm prune --omit=dev
 FROM node:24.21-alpine AS runner
 ENV NODE_ENV=production
 # Pick up Alpine security fixes published after the base image was built (Trivy gates the deploy on them).
-RUN apk upgrade --no-cache
+# A new value per build (the commit) keeps this layer out of the build cache, so the upgrade really runs.
+ARG APK_CACHE_BUST=0
+RUN echo "$APK_CACHE_BUST" >/dev/null && apk upgrade --no-cache
 # The runtime only runs `node dist/main.js`: drop npm, npx, corepack and yarn, whose bundled copies of
 # tar, brace-expansion, ip-address and undici keep triggering Trivy HIGH findings (not used by the app).
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
