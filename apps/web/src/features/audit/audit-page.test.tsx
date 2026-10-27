@@ -5,7 +5,7 @@ import { me, server } from '../../../test/msw';
 import { renderPage } from '../../../test/render';
 import { AuditPage } from './audit-page';
 
-const entry = { id: 'a1', actorId: 'u1', actorName: 'سارة أحمد', action: 'task.created', entityType: 'task', entityId: '11111111-2222-3333-4444-555555555555', changes: { priority: 'high' }, ip: '10.0.0.7', createdAt: '2026-10-24T08:00:00.000Z' };
+const entry = { id: 'a1', actorId: 'u1', actorName: 'سارة أحمد', action: 'task.created', category: 'tasks', entityType: 'task', entityId: '11111111-2222-3333-4444-555555555555', changes: { priority: 'high' }, ip: '10.0.0.7', createdAt: '2026-10-24T08:00:00.000Z' };
 
 describe('Audit log: a click on a row opens its entry, and the actions column says "View"', () => {
   it('opens the entry in full from the row and from its action', async () => {
@@ -14,7 +14,7 @@ describe('Audit log: a click on a row opens its entry, and the actions column sa
       http.get('*/api/audit-logs', () => HttpResponse.json({ items: [entry], total: 1, page: 1, pageSize: 20 })),
     );
     renderPage(<AuditPage />);
-    const row = (await screen.findByText('task.created')).closest('tr') as HTMLElement;
+    const row = (await screen.findByText('أنشأ مهمة')).closest('tr') as HTMLElement;
     expect(screen.getByRole('columnheader', { name: 'الإجراءات' })).toBeInTheDocument();
     fireEvent.click(within(row).getByText('سارة أحمد'));
     const dialog = await screen.findByRole('dialog', { name: 'قيد التدقيق' });
@@ -23,5 +23,16 @@ describe('Audit log: a click on a row opens its entry, and the actions column sa
     fireEvent.click(within(dialog).getByRole('button', { name: 'إغلاق' }));
     fireEvent.click(within(row).getByRole('button', { name: 'عرض' }));
     expect(await screen.findByRole('dialog', { name: 'قيد التدقيق' })).toBeInTheDocument();
+  });
+
+  it('shows the action as a sentence and its category, never the technical name (FR-63)', async () => {
+    server.use(
+      http.get('*/api/me', () => HttpResponse.json(me())),
+      http.get('*/api/audit-logs', () => HttpResponse.json({ items: [entry], total: 1, page: 1, pageSize: 20 })),
+    );
+    renderPage(<AuditPage />);
+    const row = (await screen.findByText('أنشأ مهمة')).closest('tr') as HTMLElement;
+    expect(within(row).getByText('المهام')).toBeInTheDocument();
+    expect(screen.queryByText('task.created')).not.toBeInTheDocument();
   });
 });

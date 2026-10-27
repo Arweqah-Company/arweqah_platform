@@ -28,7 +28,7 @@ export class EmailProbe extends ProviderProbe implements OnModuleInit {
         to: input.to,
         subject: 'Arweqah Platform: test message / رسالة تجريبية',
         text: 'This is a test message from the Arweqah Platform e-mail settings. If you can read it, the provider works.\n\nهذه رسالة تجريبية من إعدادات البريد في منصة أروقة. إن وصلتك فالمزود يعمل.',
-        purpose: 'other',
+        purpose: 'test',
       });
       return { ok: true, message: receipt.response, text: null };
     } catch (error) {

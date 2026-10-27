@@ -9,6 +9,7 @@ export * from './roles/schemas';
 export * from './notifications/schemas';
 export * from './notifications/email-log';
 export * from './audit/schemas';
+export * from './audit/catalog';
 export * from './files/schemas';
 export * from './lookups/schemas';
 export * from './companies/schemas';

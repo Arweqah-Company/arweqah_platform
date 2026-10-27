@@ -1,28 +1,31 @@
 {
   "title": "Sent e-mail log",
-  "description": "Every e-mail the platform sent and its status: pending, sent or failed, with the reason for a failure. The message body is not stored.",
+  "description": "Every e-mail the platform sent and its status: pending, sent or failed, with the reason for a failure. Filter by category (tickets, tasks, activation invitations…) or type a person's e-mail to see what was sent to them. The message body is not stored.",
   "when": "When",
   "to": "To",
   "subject": "Subject",
-  "purpose": "Type",
+  "purpose": "Category",
   "status": "Status",
   "details": "Details",
-  "filterTo": "Filter by e-mail",
+  "filterTo": "Person (e-mail)",
   "allStatuses": "All statuses",
-  "allPurposes": "All types",
+  "allPurposes": "All categories",
   "statuses": {
     "pending": "Pending",
     "sent": "Sent",
     "failed": "Failed"
   },
   "purposes": {
-    "activation": "Account activation",
-    "notification": "Notification",
+    "activation": "Account activation invitations",
+    "tickets": "Tickets",
+    "tasks": "Tasks",
+    "notification": "General notices",
+    "test": "E-mail settings test",
     "other": "Other"
   },
   "allTitle": "All e-mails",
   "searchLabel": "Search e-mails",
-  "searchPlaceholder": "Search by subject or address",
+  "searchPlaceholder": "Search by subject or the person's e-mail",
   "filters": {
     "from": "From date",
     "until": "To date"

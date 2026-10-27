@@ -1,0 +1,138 @@
+/**
+ * What the audit log means to a person. The database and the code keep the technical action name (`task.moved`); the
+ * screens show the text below and the category it belongs to, never the name. One list drives the API (filter by category,
+ * search by text) and the web (labels, filter options).
+ */
+export const AUDIT_CATEGORIES = ['sign_in', 'employees', 'organization', 'access', 'tickets', 'tasks', 'settings', 'other'] as const;
+export type AuditCategory = (typeof AUDIT_CATEGORIES)[number];
+
+export const AUDIT_CATEGORY_LABELS: Record<AuditCategory, { ar: string; en: string }> = {
+  sign_in: { ar: 'الدخول والأمان', en: 'Sign-in and security' },
+  employees: { ar: 'الموظفون', en: 'Employees' },
+  organization: { ar: 'الهيكل التنظيمي والشركات', en: 'Organization and companies' },
+  access: { ar: 'الأدوار والصلاحيات', en: 'Roles and permissions' },
+  tickets: { ar: 'التذاكر', en: 'Tickets' },
+  tasks: { ar: 'المهام', en: 'Tasks' },
+  settings: { ar: 'إعدادات النظام', en: 'System settings' },
+  other: { ar: 'أخرى', en: 'Other' },
+};
+
+interface AuditAction {
+  category: AuditCategory;
+  ar: string;
+  en: string;
+}
+
+const a = (category: AuditCategory, ar: string, en: string): AuditAction => ({ category, ar, en });
+
+export const AUDIT_ACTIONS: Record<string, AuditAction> = {
+  'auth.sign_in': a('sign_in', 'تسجيل دخول', 'Signed in'),
+  'auth.mfa.verified': a('sign_in', 'أدخل رمز التطبيق بنجاح', 'Verified the authenticator code'),
+  'auth.code.failed': a('sign_in', 'أدخل رمز تطبيق خاطئًا', 'Entered a wrong authenticator code'),
+  'auth.authenticator.enabled': a('sign_in', 'ربط تطبيق المصادقة', 'Linked the authenticator app'),
+  'auth.authenticator.reset': a('sign_in', 'أعاد ضبط تطبيق المصادقة لموظف', 'Reset an employee’s authenticator app'),
+  'auth.admin_mode.enabled': a('sign_in', 'شغّل وضع الإدارة', 'Turned admin mode on'),
+  'auth.admin_mode.disabled': a('sign_in', 'أوقف وضع الإدارة', 'Turned admin mode off'),
+  'auth.admin_mode.expired': a('sign_in', 'انتهى وضع الإدارة تلقائيًا', 'Admin mode ended by itself'),
+
+  'employee.created': a('employees', 'أضاف موظفًا', 'Added an employee'),
+  'employee.updated': a('employees', 'عدّل بيانات موظف', 'Edited an employee'),
+  'employee.invited': a('employees', 'أرسل دعوة تفعيل لموظف', 'Sent an activation invitation'),
+  'employee.activated': a('employees', 'فعّل حساب موظف', 'Activated an employee’s account'),
+  'employee.deactivated': a('employees', 'أوقف حساب موظف', 'Deactivated an employee’s account'),
+  'employee.deactivated.contract_ended': a('employees', 'أُوقف حساب موظف لانتهاء عقده', 'An account was deactivated because the contract ended'),
+  'employee.terminated': a('employees', 'أنهى خدمة موظف', 'Ended an employee’s service'),
+  'employee.roles.changed': a('employees', 'غيّر أدوار موظف', 'Changed an employee’s roles'),
+  'employee.groups.changed': a('employees', 'غيّر مجموعات موظف', 'Changed an employee’s groups'),
+  'profile.updated': a('employees', 'عدّل ملفه الشخصي', 'Edited their own profile'),
+
+  'company.created': a('organization', 'أضاف شركة', 'Added a company'),
+  'company.updated': a('organization', 'عدّل شركة', 'Edited a company'),
+  'company.deleted': a('organization', 'حذف شركة', 'Deleted a company'),
+  'org.unit.created': a('organization', 'أضاف وحدة تنظيمية', 'Added an organizational unit'),
+  'org.unit.updated': a('organization', 'عدّل وحدة تنظيمية', 'Edited an organizational unit'),
+  'org.unit.moved': a('organization', 'نقل وحدة تنظيمية', 'Moved an organizational unit'),
+  'org.unit.deleted': a('organization', 'حذف وحدة تنظيمية', 'Deleted an organizational unit'),
+  'org.levels.changed': a('organization', 'غيّر مستويات الهيكل', 'Changed the structure levels'),
+  'org.levels.copied': a('organization', 'نسخ مستويات الهيكل من شركة أخرى', 'Copied the structure levels from another company'),
+
+  'role.created': a('access', 'أضاف دورًا', 'Added a role'),
+  'role.updated': a('access', 'عدّل دورًا', 'Edited a role'),
+  'role.deleted': a('access', 'حذف دورًا', 'Deleted a role'),
+  'role.pages_updated': a('access', 'غيّر الصفحات المخفية عن دور', 'Changed the pages hidden from a role'),
+  'role_group.created': a('access', 'أضاف مجموعة أدوار', 'Added a group of roles'),
+  'role_group.updated': a('access', 'عدّل مجموعة أدوار', 'Edited a group of roles'),
+  'role_group.deleted': a('access', 'حذف مجموعة أدوار', 'Deleted a group of roles'),
+  'user_group.created': a('access', 'أضاف مجموعة أشخاص', 'Added a group of people'),
+  'user_group.updated': a('access', 'عدّل مجموعة أشخاص', 'Edited a group of people'),
+  'user_group.deleted': a('access', 'حذف مجموعة أشخاص', 'Deleted a group of people'),
+  'permissions.updated': a('access', 'غيّر الصلاحيات الممنوحة', 'Changed the granted permissions'),
+
+  'ticket.created': a('tickets', 'أنشأ تذكرة', 'Created a ticket'),
+  'ticket.replied': a('tickets', 'ردّ على تذكرة', 'Replied to a ticket'),
+  'ticket.close_requested': a('tickets', 'طلب إغلاق تذكرة', 'Asked to close a ticket'),
+  'ticket.close_declined': a('tickets', 'رفض إغلاق تذكرة', 'Declined to close a ticket'),
+  'ticket.confirmed': a('tickets', 'أكّد إغلاق تذكرة', 'Confirmed the closing of a ticket'),
+  'ticket.closed_not_executed': a('tickets', 'أغلق تذكرة دون تنفيذ', 'Closed a ticket without carrying it out'),
+  'ticket.auto_closed': a('tickets', 'أُغلقت تذكرة تلقائيًا', 'A ticket was closed automatically'),
+  'ticket.reopened': a('tickets', 'أعاد فتح تذكرة', 'Reopened a ticket'),
+  'ticket.personal.reassigned': a('tickets', 'أعاد إسناد تذكرة شخصية', 'Reassigned a personal ticket'),
+  'ticket.desk.updated': a('tickets', 'عدّل إعدادات استقبال وحدة للتذاكر', 'Edited a unit’s ticket reception settings'),
+  'ticket.type.created': a('tickets', 'أضاف نوع تذكرة', 'Added a ticket type'),
+  'ticket.type.updated': a('tickets', 'عدّل نوع تذكرة', 'Edited a ticket type'),
+  'ticket.type.removed': a('tickets', 'حذف نوع تذكرة', 'Removed a ticket type'),
+
+  'task.created': a('tasks', 'أنشأ مهمة', 'Created a task'),
+  'task.updated': a('tasks', 'عدّل مهمة', 'Edited a task'),
+  'task.moved': a('tasks', 'نقل مهمة إلى حالة أخرى', 'Moved a task to another status'),
+  'task.approved': a('tasks', 'اعتمد مهمة', 'Approved a task'),
+  'task.rejected': a('tasks', 'رفض مهمة', 'Rejected a task'),
+  'task.resubmitted': a('tasks', 'أعاد إرسال مهمة للاعتماد', 'Sent a task for approval again'),
+  'task.objected': a('tasks', 'اعترض على مهمة', 'Objected to a task'),
+  'task.objection_answered': a('tasks', 'ردّ على اعتراض على مهمة', 'Answered an objection to a task'),
+  'task.objection_expired': a('tasks', 'انتهت مهلة اعتراض على مهمة', 'The time to object to a task ran out'),
+  'task.time_logged': a('tasks', 'سجّل وقت عمل على مهمة', 'Logged time on a task'),
+  'task.archived': a('tasks', 'أرشف مهمة', 'Archived a task'),
+  'task.restored': a('tasks', 'استعاد مهمة من الأرشيف', 'Restored a task from the archive'),
+  'task.handed_over': a('tasks', 'سلّم مهام موظف لغيره', 'Handed an employee’s tasks to someone else'),
+  'task.handover_skipped': a('tasks', 'تعذّر تسليم بعض المهام', 'Some tasks could not be handed over'),
+  'task.tag.created': a('tasks', 'أضاف فئة للمهام', 'Added a task category'),
+  'task.tag.updated': a('tasks', 'عدّل فئة للمهام', 'Edited a task category'),
+  'task.tag.removed': a('tasks', 'حذف فئة للمهام', 'Removed a task category'),
+  'task.policy.updated': a('tasks', 'عدّل سياسة المهام', 'Edited the task policy'),
+
+  'integration.saved': a('settings', 'حفظ بيانات خدمة (ترجمة أو بريد)', 'Saved a service’s data (translation or e-mail)'),
+  'integration.tested': a('settings', 'جرّب خدمة (ترجمة أو بريد)', 'Tried a service (translation or e-mail)'),
+  'integration.activated': a('settings', 'فعّل خدمة (ترجمة أو بريد)', 'Switched a service on (translation or e-mail)'),
+  'integration.deactivated': a('settings', 'أوقف خدمة (ترجمة أو بريد)', 'Switched a service off (translation or e-mail)'),
+  'list.settings_updated': a('settings', 'عدّل أعمدة قائمة وفلاترها', 'Edited a list’s columns and filters'),
+};
+
+const PREFIX_CATEGORY: Record<string, AuditCategory> = { auth: 'sign_in', employee: 'employees', profile: 'employees', company: 'organization', org: 'organization', role: 'access', role_group: 'access', user_group: 'access', permissions: 'access', ticket: 'tickets', task: 'tasks', tasks: 'tasks', integration: 'settings', list: 'settings' };
+
+/** The category of an action; one the list does not know yet falls back to its first word, then to "other". */
+export function categoryOfAction(action: string): AuditCategory {
+  return AUDIT_ACTIONS[action]?.category ?? PREFIX_CATEGORY[action.split('.')[0] ?? ''] ?? 'other';
+}
+
+/** The sentence a person reads for an action, in the language asked for; an unknown action reads as its category's name. */
+export function auditActionText(action: string, lang: 'ar' | 'en'): string {
+  const known = AUDIT_ACTIONS[action];
+  return known ? known[lang] : AUDIT_CATEGORY_LABELS[categoryOfAction(action)][lang];
+}
+
+/** LIKE patterns of the first words that put an unlisted action in the category (`ticket.%`). */
+export function prefixPatterns(category?: AuditCategory): string[] {
+  return Object.entries(PREFIX_CATEGORY).filter(([, c]) => !category || c === category).map(([p]) => `${p}.%`);
+}
+
+export function actionsOfCategory(category: AuditCategory): string[] {
+  return Object.entries(AUDIT_ACTIONS).filter(([, v]) => v.category === category).map(([k]) => k);
+}
+
+/** Known actions whose text (either language) contains the term: lets the search box find "moved a task" by what the person reads. */
+export function actionsMatchingText(term: string): string[] {
+  const needle = term.trim().toLowerCase();
+  if (!needle) return [];
+  return Object.entries(AUDIT_ACTIONS).filter(([, v]) => v.ar.includes(needle) || v.en.toLowerCase().includes(needle)).map(([k]) => k);
+}

@@ -12,7 +12,7 @@ export class EmailChannel extends NotificationChannel {
 
   async send(recipient: Recipient, message: OutgoingMessage): Promise<void> {
     const text = message.link ? `${message.body}\n\n${message.link}` : message.body;
-    await this.mail.send({ purpose: 'notification', to: recipient.email, subject: message.title, text });
+    await this.mail.send({ purpose: message.purpose ?? 'notification', to: recipient.email, subject: message.title, text });
   }
 }
 

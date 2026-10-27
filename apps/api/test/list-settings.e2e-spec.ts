@@ -43,9 +43,9 @@ describe('List management (FR-44)', () => {
     const noMode = await t.factories.signIn(await t.factories.user({ grants: MANAGER }));
     expect((await noMode.put('/api/list-settings/audit').send({ hiddenColumns: [], hiddenFilters: [] }).expect(403)).body.code).toBe('ADMIN_MODE_REQUIRED');
     const admin = await manager();
-    await admin.put('/api/list-settings/audit').send({ hiddenColumns: ['target'], hiddenFilters: ['from'] }).expect(200);
+    await admin.put('/api/list-settings/audit').send({ hiddenColumns: ['category'], hiddenFilters: ['from'] }).expect(200);
     await new Promise((resolve) => setTimeout(resolve, 300));
     const rows = await t.db.query<{ changes: unknown }[]>(`SELECT changes FROM audit_logs WHERE action = 'list.settings_updated' AND entity_id = 'audit'`);
-    expect(rows[0]?.changes).toEqual({ hiddenColumns: ['target'], hiddenFilters: ['from'] });
+    expect(rows[0]?.changes).toEqual({ hiddenColumns: ['category'], hiddenFilters: ['from'] });
   });
 });

@@ -81,14 +81,14 @@
         "when": "الوقت",
         "actor": "المنفِّذ",
         "action": "الإجراء",
-        "target": "الهدف"
+        "category": "الفئة"
       },
       "filters": {
         "action": "الإجراء",
-        "entityType": "نوع السجل",
         "actor": "المنفِّذ",
         "from": "من تاريخ",
-        "to": "إلى تاريخ"
+        "to": "إلى تاريخ",
+        "category": "الفئة"
       }
     },
     "email-log": {

@@ -22,6 +22,6 @@ export class TaskNotifier {
     const userIds = [...new Set(input.recipients.filter((id): id is string => !!id))].filter((id) => id !== input.actorUserId);
     if (!userIds.length) return;
     const notice = taskNoticeFor(input.kind, { number: input.task.number, title: input.task.title, toStatus: input.toStatus, count: input.count });
-    await this.notifications.notify({ userIds, ...notice, link: input.task.id ? `/tasks/${input.task.id}` : input.kind === 'digest' ? '/tasks/team' : '/tasks', channels: EMAIL_NOTICES.has(input.kind) ? ['email'] : undefined, tx: input.tx });
+    await this.notifications.notify({ userIds, ...notice, link: input.task.id ? `/tasks/${input.task.id}` : input.kind === 'digest' ? '/tasks/team' : '/tasks', channels: EMAIL_NOTICES.has(input.kind) ? ['email'] : undefined, purpose: 'tasks', tx: input.tx });
   }
 }

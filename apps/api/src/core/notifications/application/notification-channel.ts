@@ -5,6 +5,7 @@ export interface OutgoingMessage {
   title: string;
   body: string;
   link: string | null;
+  purpose?: EmailPurpose;
 }
 
 /** Strategy: one class per delivery channel (email, SMS…). Adding a channel = adding a class. */

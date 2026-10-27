@@ -1,24 +1,20 @@
 {
   "title": "Audit log",
-  "description": "Every sign-in and change to permissions, users and the organization: who did it and when.",
+  "description": "Every sign-in and change to employees, the organization, permissions, tickets, tasks and settings: who did it and when. Filter by category or pick a person to see their history.",
   "when": "When",
   "actor": "By",
   "action": "Action",
-  "target": "Record",
   "system": "System",
-  "filterAction": "Filter by action",
   "allTitle": "All entries",
   "searchLabel": "Search the log",
-  "searchPlaceholder": "Search by action, record type or record id",
+  "searchPlaceholder": "Search by what was done or by who did it",
   "filters": {
-    "action": "Action (exact)",
-    "entityType": "Record type",
-    "actor": "Actor (name or e-mail)",
+    "actor": "Person (name or e-mail)",
     "from": "From date",
     "to": "To date"
   },
-  "entityId": "Record id",
   "ip": "IP address",
   "changes": "Changes",
-  "viewTitle": "Audit entry"
+  "viewTitle": "Audit entry",
+  "category": "Category"
 }

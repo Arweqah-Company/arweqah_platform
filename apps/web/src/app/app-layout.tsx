@@ -15,7 +15,7 @@ export function AppLayout() {
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const hidden = me?.hiddenPages ?? [];
-  const nav = FEATURES.flatMap((f) => f.nav ?? []).filter((n) => (!n.permission || can(n.permission)) && (!n.requiresAdminMode || me?.adminMode.active) && !(n.pageKey && hidden.includes(n.pageKey)));
+  const nav = FEATURES.flatMap((f) => f.nav ?? []).filter((n) => !n.hideFromMenu && (!n.permission || can(n.permission)) && (!n.requiresAdminMode || me?.adminMode.active) && !(n.pageKey && hidden.includes(n.pageKey)));
   // "My account" lives in the header menu, everything else in the sidebar.
   const sidebarItems = nav.filter((n) => n.group !== 'account');
   const accountItems = nav.filter((n) => n.group === 'account');

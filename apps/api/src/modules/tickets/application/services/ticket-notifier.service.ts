@@ -18,7 +18,7 @@ export class TicketNotifier {
     if (!userIds.length) return;
     const desk = (await this.org.describeNodes([input.ticket.deskId])).get(input.ticket.deskId);
     const notice = noticeFor(input.kind, { number: input.ticket.number, deskNameAr: desk?.nameAr ?? '', deskNameEn: desk?.nameEn ?? '', count: input.count });
-    await this.notifications.notify({ userIds, ...notice, link: `/tickets/${input.ticket.id}`, channels: input.email ? ['email'] : undefined, tx: input.tx });
+    await this.notifications.notify({ userIds, ...notice, link: `/tickets/${input.ticket.id}`, channels: input.email ? ['email'] : undefined, purpose: 'tickets', tx: input.tx });
   }
 
   /** "N personal tickets moved to a new assignee": says how many, never which. */

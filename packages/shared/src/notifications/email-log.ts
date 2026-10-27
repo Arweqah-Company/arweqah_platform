@@ -4,8 +4,8 @@ import { paginationQuerySchema } from '../common/pagination';
 export const EMAIL_STATUSES = ['pending', 'sent', 'failed'] as const;
 export type EmailStatus = (typeof EMAIL_STATUSES)[number];
 
-/** Why an e-mail was sent; keeps the log readable without storing the message body. */
-export const EMAIL_PURPOSES = ['activation', 'notification', 'other'] as const;
+/** Why an e-mail was sent (the category the log is filtered by); keeps the log readable without storing the message body. */
+export const EMAIL_PURPOSES = ['activation', 'tickets', 'tasks', 'notification', 'test', 'other'] as const;
 export type EmailPurpose = (typeof EMAIL_PURPOSES)[number];
 
 export const emailLogQuerySchema = paginationQuerySchema.extend({

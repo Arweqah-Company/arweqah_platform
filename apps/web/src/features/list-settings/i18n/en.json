@@ -81,14 +81,14 @@
         "when": "When",
         "actor": "Actor",
         "action": "Action",
-        "target": "Target"
+        "category": "Category"
       },
       "filters": {
         "action": "Action",
-        "entityType": "Record type",
         "actor": "Actor",
         "from": "From",
-        "to": "To"
+        "to": "To",
+        "category": "Category"
       }
     },
     "email-log": {

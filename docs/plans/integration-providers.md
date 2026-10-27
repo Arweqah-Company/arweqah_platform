@@ -1,6 +1,6 @@
 # Plan: pluggable translation and e-mail providers (FR-59, FR-60)
 
-Status: plan, not built. Owner request 2026-10-27. Builds on FR-58 (translation while typing) and the existing e-mail sender (`core/notifications`).
+Status: built (FR-59…FR-62) with the additions below. Owner request 2026-10-27. Builds on FR-58 (translation while typing) and the existing e-mail sender (`core/notifications`).
 
 ## Goal
 An administrator picks, in System administration, which provider sends e-mail and which one translates. Keys and settings live in the database, not in `.env`. A provider can be switched on only with complete data. Each provider can be tried from the page before it is relied on.
@@ -86,3 +86,51 @@ New packages: exact versions, at least 14 days old (`@google-cloud/translate`, `
 2. SendGrid is added to the e-mail providers.
 3. Sign-in (Better Auth, Microsoft Entra, authenticator code) is untouched. Provider keys can also be entered from the dashboard; Google uses the service-account JSON.
 4. `.env` values stay as the fallback when no provider is active; they are not copied into the database.
+
+## Additions after the first build (owner, 2026-10-27, same session)
+All done and verified; each has its FR row in README §4 and a decision row.
+1. **One Settings page with tabs** (translation, e-mail), shared `Tabs` component, old addresses redirect; keys stay per kind. Replaces the two separate pages in «Web» above.
+2. **Notification bell opens a drop-down** (newest five, mark all read, link to the full page) — FR-61.
+3. **Guide per service** — a description under each name and a «How to get the data» popup (steps and the meaning of every value) — FR-62.
+4. **Sidebar:** «Page visibility» and «List management» left out of the menu for now (`hideFromMenu`), routes unchanged — decision 104.
+5. **Audit log in words, by category, filter by person** and **e-mail log by category and person** — FR-63, decisions 105–106. The e-mail log categories are set by the senders, so the provider test mail is filed as «E-mail settings test».
+6. **Deploy:** the `apk upgrade` image layer is rebuilt on every build (`APK_CACHE_BUST`) so Trivy sees Alpine fixes.
+
+## Next: e-mail templates and notification templates (owner request 2026-10-27) — FR-64, FR-65, not built yet
+Two more tabs in the Settings page: **E-mail templates** and **Notification templates**. An administrator edits every message the platform sends, in Arabic and English, and the edits are saved in the database. Same page, same tabs component, same permission pattern (one view / edit / reset key per tab).
+
+### What is a template
+- One row per message the code sends, found by a **template key** the code owns (`auth.invitation`, `ticket.created`, `ticket.reply`, `task.assigned`, `task.overdue`…). The administrator can change a message's wording, but cannot add or delete a message: the code decides when it is sent, so a template without a sender would be dead text.
+- E-mail template fields (each in **Arabic and English**): subject, a short description line (the preview text shown by mail apps), the body written in a rich-text editor, and the colors (header band, button, accent) picked from the brand palette only. Notification template fields (Arabic and English): title and body (short rich text: bold, link, line break; no images, no colors, because the bell and the SMS channel show plain text).
+- The default wording stays in the code (today's `noticeFor`, `taskNoticeFor` and the invitation texts become the defaults). The database row holds only what the administrator changed; «Reset to default» deletes the row. If the row is missing or broken, the default is sent, so a bad edit can never stop an e-mail.
+
+### Variables (the owner's `@` idea)
+- Each template key declares its own list of **variables** in code (a registry, like `PermissionCatalog`): name, Arabic and English description, an example value, and a resolver that is real code: `@name` = the recipient's name, `@ticketNumber`, `@deskName`, `@taskTitle`, `@link`… A variable exists only if some code fills it, so what the editor offers is exactly what the code can reflect.
+- In the editor typing **`@`** opens a pick list of that template's variables (with their descriptions); choosing one inserts a **variable chip**. A variable can be written only from the list: free text such as `@foo` is not a variable and is saved as plain text.
+- Saving is refused (422 `TEMPLATE_UNKNOWN_VARIABLE`) when a variable is not in the key's list, and a **required** variable (the activation link in the invitation) cannot be removed (422 `TEMPLATE_MISSING_VARIABLE`).
+- Variables are replaced on the server when the message is built, in the recipient's language. Values are escaped (HTML) before they go into the body, so a ticket title cannot inject markup.
+
+### Editor
+- A rich-text editor (TipTap, `@tiptap/react` + the Mention extension; exact pinned versions at least 14 days old, recorded in decisions): bold, italic, lists, link, text direction follows the language, and the `@` mention list. Two panes in the dialog, Arabic and English (a switch above the editor), a live **preview** with example values in the chosen language, light and dark, and a **«Send me a test»** button (e-mail templates) that sends the template to the administrator's own address through the e-mail service in use.
+- Output is stored as a small JSON document (the editor's own) plus a rendered HTML string; the server **sanitizes** the HTML (allow-list: p, br, strong, em, ul, ol, li, a with http/https/mailto; no scripts, styles, or event attributes) and builds the e-mail page itself (logo, band color, button color, footer) so the colors cannot break the layout. Every e-mail gets a plain-text version made from the same content.
+
+### Storage
+`message_templates`: id, kind (`email` | `notification`), key, `content` **jsonb** (per language: subject / title, preheader, body JSON, body HTML; for e-mail also the colors), `updated_by`, base-entity dates; unique `(kind, key)`. Default wording is not copied into the table. Audit: `template.saved` and `template.reset` (key and language only, never the body). New audit actions are added to the audit catalog (FR-63) in the same change.
+
+### Where the code changes
+- `core/notifications`: `TemplateRegistry` (keys, variables, defaults), `MessageTemplatesService` (list, save, reset, preview, render), a `render` step used by `LoggedMailSender`'s callers (invitation, the notification e-mail channel) and by `NotificationsService.notify` (in-app and SMS text). The ticket and task notifiers pass the template key and the variable values instead of building the text themselves; their `noticeFor` functions remain as the defaults.
+- Permissions: `templates.email_view/edit/reset/test` and `templates.notification_view/edit/reset`, each with Arabic and English labels in `keys.ts`, the module's permissions file, the permissions page, page visibility (`email-templates`, `notification-templates`) and the list catalog.
+- Web: two tabs in the Settings page; each tab is the shared list (table and cards, search by key description, filter by area: sign-in, tickets, tasks; row icons: edit, preview, reset) and an edit dialog with the editor.
+
+### Tests
+API e2e (FR-64, FR-65): default sent when no row; edit applied to the next e-mail / notification; unknown or missing required variable → 422; HTML sanitized; escaped values; reset; 403 per role and admin mode; audit without the body. Unit: variable parser and renderer. Web: editor `@` list, chips, preview, test-send, reset. Playwright + axe: edit a template, send a test.
+
+### Owner decisions (2026-10-27)
+1. **Colors: the brand palette only** (the seven brand colors; the editor and the band/button pickers offer nothing else, and the server refuses any other value).
+2. **Who edits:** an administrator, through ordinary permission keys, so which roles may edit, reset or test can change later from the permissions page. **A second person's approval is optional and set from Settings** (a switch per tab, off at first):
+   - Off: a saved edit is live at once, audited.
+   - On: a save becomes a **pending change** (the row keeps the live content and a `pending_content`, `submitted_by`, `submitted_at`); the live message is still the old one. A different person who holds `templates.email_approve` / `templates.notification_approve` approves (it goes live) or rejects with a note; the submitter can never approve their own change (a second submit replaces their own pending change). The list shows «Waiting for approval», the approver gets a notification, and audit records submitted / approved / rejected (keys and language only).
+   - The switch itself needs its own key (`templates.settings`) and its change is audited.
+3. **SMS templates: left out for now** (no SMS provider yet); the template registry is built so an `sms` kind can be added later without changing the tabs.
+
+Added to the plan above: keys `templates.email_approve`, `templates.notification_approve`, `templates.settings`; audit actions `template.submitted`, `template.approved`, `template.rejected` (added to the audit catalog); errors `TEMPLATE_SELF_APPROVAL` (403) and `TEMPLATE_NOTHING_PENDING` (409); a setting row `templates.require_approval` per kind, stored with the other settings.

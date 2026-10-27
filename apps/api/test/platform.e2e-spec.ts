@@ -182,7 +182,8 @@ describe('Audit log filters (FR-11)', () => {
     await agent.post('/api/roles').send({ nameAr: 'دور', nameEn: 'Filter role', permissions: [] }).expect(201);
     await new Promise((r) => setTimeout(r, 200));
     const items = async (query: Record<string, unknown>) => (await agent.get('/api/audit-logs').query(query).expect(200)).body.items as { action: string }[];
-    expect((await items({ search: 'role.cre' })).map((i) => i.action)).toContain('role.created');
+    expect((await items({ search: 'أضاف دورًا' })).map((i) => i.action)).toContain('role.created');
+    expect((await items({ search: 'added a role' })).map((i) => i.action)).toContain('role.created');
     expect((await items({ search: 'no-such-thing' }))).toEqual([]);
     expect((await items({ actor: auditor.email })).length).toBeGreaterThan(0);
     expect(await items({ actor: 'nobody-at-all' })).toEqual([]);
@@ -190,5 +191,25 @@ describe('Audit log filters (FR-11)', () => {
     expect((await items({ from: today, to: today })).length).toBeGreaterThan(0);
     expect(await items({ from: '2000-01-01', to: '2000-01-02' })).toEqual([]);
     await agent.get('/api/audit-logs').query({ from: 'yesterday' }).expect(400);
+  });
+});
+
+describe('Audit log categories (FR-11, FR-63)', () => {
+  const t = useTestApp();
+
+  it('files every entry under a category, filters by it, and finds an action by what a person reads', async () => {
+    const auditor = await t.factories.user({ grants: [ADMIN_MODE_GRANT, { key: 'audit.view', scope: 'company' }, { key: 'roles.create', scope: 'company' }] });
+    const agent = await t.factories.signInAdminMode(auditor);
+    await agent.post('/api/roles').send({ nameAr: 'دور', nameEn: 'Categorised role', permissions: [] }).expect(201);
+    await new Promise((r) => setTimeout(r, 200));
+    const items = async (query: Record<string, unknown>) => (await agent.get('/api/audit-logs').query(query).expect(200)).body.items as { action: string; category: string }[];
+    const access = await items({ category: 'access' });
+    expect(access.map((i) => i.action)).toContain('role.created');
+    expect(access.every((i) => i.category === 'access')).toBe(true);
+    expect((await items({ category: 'sign_in' })).map((i) => i.action)).toContain('auth.sign_in');
+    expect((await items({ category: 'tasks' })).map((i) => i.action)).not.toContain('role.created');
+    expect((await items({ category: 'other' })).map((i) => i.action)).not.toContain('role.created');
+    expect((await items({ search: 'تسجيل دخول' })).length).toBeGreaterThan(0);
+    await agent.get('/api/audit-logs').query({ category: 'bogus' }).expect(400);
   });
 });

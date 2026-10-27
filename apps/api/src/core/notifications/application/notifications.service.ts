@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import type { NotificationChannel as ChannelName, NotificationDto, NotificationsQuery, Paginated } from '@arweqah-platform/shared';
+import type { EmailPurpose, NotificationChannel as ChannelName, NotificationDto, NotificationsQuery, Paginated } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../common/application/transaction-runner';
 import { AppConfig } from '../../../config/app-config.service';
 import { MessageBus } from '../../messaging/application/message-bus';
@@ -19,6 +19,8 @@ export interface NotifyCommand {
   link?: string;
   /** In-app is always created; these are sent in addition, in the background. */
   channels?: Exclude<ChannelName, 'in_app'>[];
+  /** The category the e-mail is filed under in the e-mail log; a general notification when not given. */
+  purpose?: EmailPurpose;
   tx?: TransactionContext;
 }
 
@@ -31,6 +33,7 @@ interface DispatchPayload {
   bodyAr: string;
   bodyEn: string;
   link: string | null;
+  purpose?: EmailPurpose;
 }
 
 @Injectable()
@@ -67,7 +70,7 @@ export class NotificationsService implements OnModuleInit {
     );
     for (const row of rows) {
       for (const channel of cmd.channels ?? []) {
-        const payload: DispatchPayload = { notificationId: row.id, channel, ...pickContent(row) };
+        const payload: DispatchPayload = { notificationId: row.id, channel, purpose: cmd.purpose, ...pickContent(row) };
         await this.outbox.enqueue(NOTIFICATION_DISPATCH, { ...payload }, cmd.tx);
       }
     }
@@ -99,6 +102,7 @@ export class NotificationsService implements OnModuleInit {
       title: ar ? payload.titleAr : payload.titleEn,
       body: ar ? payload.bodyAr : payload.bodyEn,
       link,
+      purpose: payload.purpose,
     });
   }
 }

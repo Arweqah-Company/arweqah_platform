@@ -59,4 +59,16 @@ describe('Sent e-mail log (FR-26)', () => {
     expect(await total({ from: '2000-01-01', until: '2000-01-02' })).toBe(0);
     await agent.get('/api/email-logs').query({ from: 'x' }).expect(400);
   });
+
+  it('files each e-mail under a category and filters by it (FR-63)', async () => {
+    await new LoggedMailSender(okSmtp, logs()).send({ ...mail, purpose: 'tickets' });
+    await new LoggedMailSender(okSmtp, logs()).send({ ...mail, purpose: 'tasks', to: 'c@arweqah.sa' });
+    await new LoggedMailSender(okSmtp, logs()).send({ ...mail, purpose: 'test', to: 'd@arweqah.sa' });
+    const agent = await viewer();
+    const to = async (query: Record<string, unknown>) => ((await agent.get('/api/email-logs').query(query).expect(200)).body.items as { to: string }[]).map((i) => i.to);
+    expect(await to({ purpose: 'tickets' })).toEqual(['a@arweqah.sa']);
+    expect(await to({ purpose: 'tasks' })).toEqual(['c@arweqah.sa']);
+    expect(await to({ purpose: 'test' })).toEqual(['d@arweqah.sa']);
+    expect(await to({ purpose: 'tasks', to: 'a@' })).toEqual([]);
+  });
 });

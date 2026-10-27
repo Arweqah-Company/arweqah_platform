@@ -17,6 +17,8 @@ export interface NavItem {
   end?: boolean;
   /** An admin page: shown only while platform admin mode is on (the API enforces it with @RequireAdminMode). */
   requiresAdminMode?: boolean;
+  /** Left out of the sidebar for now; the route, its permission and its address still work. */
+  hideFromMenu?: boolean;
   /** The page can be hidden from roles by an administrator (the API refuses it too, see HIDEABLE_PAGES). */
   pageKey?: HideablePage;
 }
