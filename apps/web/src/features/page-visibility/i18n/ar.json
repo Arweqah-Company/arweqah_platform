@@ -24,6 +24,8 @@
     "tasks-team": "مهام الفريق",
     "tasks-matrix": "مصفوفة المهام",
     "task-tags": "فئات المهام",
-    "task-policies": "سياسات المهام"
+    "task-policies": "سياسات المهام",
+    "translation-settings": "إعدادات الترجمة",
+    "email-settings": "إعدادات البريد الإلكتروني"
   }
 }

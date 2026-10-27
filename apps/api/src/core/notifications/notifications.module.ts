@@ -2,6 +2,8 @@ import { Global, Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PermissionCatalog } from '../access/application/permission-catalog';
 import { EmailLogService } from './application/email-log.service';
+import { EmailProbe } from './application/email-probe';
+import { MailTransport, MailTransportFactory } from './application/mail-transport';
 import { MailSender, NOTIFICATION_CHANNELS, SmsSender } from './application/notification-channel';
 import { NotificationsService } from './application/notifications.service';
 import { EmailLog } from './domain/email-log.entity';
@@ -12,7 +14,8 @@ import { NotificationRepository, RecipientDirectory } from './domain/notificatio
 import { EmailChannel, SmsChannel } from './infrastructure/channels';
 import { LogSmsSender } from './infrastructure/log-sms.sender';
 import { LoggedMailSender } from './infrastructure/logged-mail.sender';
-import { SmtpMailSender } from './infrastructure/smtp-mail.sender';
+import { ActiveMailTransport } from './infrastructure/transports/active-mail.transport';
+import { ProviderMailTransportFactory } from './infrastructure/transports/provider-mail-transport.factory';
 import {
   TypeOrmNotificationRepository,
   TypeOrmRecipientDirectory,
@@ -31,7 +34,9 @@ import { NotificationsController } from './presentation/notifications.controller
     SmsChannel,
     { provide: NOTIFICATION_CHANNELS, inject: [EmailChannel, SmsChannel], useFactory: (...c: unknown[]) => c },
     EmailLogService,
-    SmtpMailSender,
+    EmailProbe,
+    { provide: MailTransportFactory, useClass: ProviderMailTransportFactory },
+    { provide: MailTransport, useClass: ActiveMailTransport },
     { provide: EmailLogRepository, useClass: TypeOrmEmailLogRepository },
     { provide: MailSender, useClass: LoggedMailSender },
     { provide: SmsSender, useClass: LogSmsSender },

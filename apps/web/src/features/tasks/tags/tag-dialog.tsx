@@ -6,6 +6,7 @@ import { errorMessage } from '@/shared/lib/error-message';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { Alert, Button, Dialog, FormField, Input, Select } from '@/shared/ui';
 import { useSaveTag, useTagDepartments } from '../api';
+import { useAutoEnglish } from '@/shared/lib/use-auto-english';
 
 interface Form {
   orgNodeId: string;
@@ -23,6 +24,7 @@ function TagFields({ form, set, editing }: { form: Form; set: (change: Partial<F
   const departments = useTagDepartments(!editing).data ?? [];
   const nameAr = useLiveError(form.nameAr, rules.text(2));
   const nameEn = useLiveError(form.nameEn, rules.text(2));
+  useAutoEnglish(form.nameAr, form.nameEn, (nameEn) => set({ nameEn }));
   return (
     <>
       {!editing && (

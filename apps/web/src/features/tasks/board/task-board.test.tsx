@@ -5,6 +5,7 @@ import { server } from '../../../../test/msw';
 import { renderPage } from '../../../../test/render';
 import { taskDetail, taskItem } from '../../../../test/task-fixtures';
 import { TaskBoard } from './task-board';
+import { chooseOption } from '../../../../test/select';
 
 const todo = taskItem({ id: 't1', title: 'مهمة للتنفيذ', status: 'todo' });
 const progress = taskItem({ id: 't2', title: 'مهمة جارية', status: 'in_progress', revision: 3 });
@@ -47,7 +48,7 @@ describe('The Kanban board (FR-50)', () => {
   it('asks the API for the move with the task\'s revision, and shows the card in its new column at once', async () => {
     const calls = serve(() => HttpResponse.json(taskDetail({ id: 't1', status: 'in_progress' })));
     renderPage(<TaskBoard lanes={lanes} today="2026-11-01" />);
-    fireEvent.change(screen.getByLabelText(/انقل المهمة مهمة للتنفيذ إلى/), { target: { value: 'in_progress' } });
+    await chooseOption(screen.getByLabelText(/انقل المهمة مهمة للتنفيذ إلى/), 'in_progress');
     await waitFor(() => expect(calls).toHaveLength(1));
     expect(calls[0]).toEqual({ id: 't1', body: { to: 'in_progress', revision: 1 } });
   });
@@ -55,7 +56,7 @@ describe('The Kanban board (FR-50)', () => {
   it('puts the card back in its column when the API refuses the move', async () => {
     const calls = serve(refusal('TASK_TRANSITION_NOT_ALLOWED', { from: 'todo', to: 'done', reason: 'NOT_ALLOWED_PATH' }));
     renderPage(<TaskBoard lanes={lanes} today="2026-11-01" />);
-    fireEvent.change(screen.getByLabelText(/انقل المهمة مهمة للتنفيذ إلى/), { target: { value: 'done' } });
+    await chooseOption(screen.getByLabelText(/انقل المهمة مهمة للتنفيذ إلى/), 'done');
     await waitFor(() => expect(calls).toHaveLength(1));
     await waitFor(() => expect(within(column('للتنفيذ')).getByText('مهمة للتنفيذ')).toBeInTheDocument());
     expect(within(column('مكتملة')).queryByText('مهمة للتنفيذ')).not.toBeInTheDocument();
@@ -75,7 +76,7 @@ describe('The Kanban board asks for what the API needs (FR-50)', () => {
     });
     const inReview = taskItem({ id: 't2', title: 'تنتظر المراجعة', status: 'awaiting_review', revision: 4 });
     renderPage(<TaskBoard lanes={[{ id: 'all', tasks: [inReview] }]} today="2026-11-01" />);
-    fireEvent.change(screen.getByLabelText(/انقل المهمة تنتظر المراجعة إلى/), { target: { value: 'in_progress' } });
+    await chooseOption(screen.getByLabelText(/انقل المهمة تنتظر المراجعة إلى/), 'in_progress');
     const note = await screen.findByLabelText(/الملاحظة/);
     fireEvent.change(note, { target: { value: 'ينقصه ملخص' } });
     fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
@@ -93,7 +94,7 @@ describe('The Kanban board asks for what the API needs (FR-50)', () => {
       return HttpResponse.json(taskDetail({ id: 't2', status: 'done' }));
     });
     renderPage(<TaskBoard lanes={[{ id: 'all', tasks: [progress] }]} today="2026-11-01" />);
-    fireEvent.change(screen.getByLabelText(/انقل المهمة مهمة جارية إلى/), { target: { value: 'done' } });
+    await chooseOption(screen.getByLabelText(/انقل المهمة مهمة جارية إلى/), 'done');
     const date = await screen.findByLabelText(/تاريخ الإنجاز/);
     expect(date).toHaveAttribute('max', '2026-11-01');
     fireEvent.change(date, { target: { value: '2026-10-30' } });

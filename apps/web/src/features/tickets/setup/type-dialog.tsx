@@ -6,6 +6,7 @@ import { errorMessage } from '@/shared/lib/error-message';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { Alert, Button, Combobox, Dialog, FormField, Input, Textarea } from '@/shared/ui';
 import { useAssignees, useSaveType } from '../api';
+import { useAutoEnglish } from '@/shared/lib/use-auto-english';
 
 interface Form {
   nameAr: string;
@@ -54,6 +55,8 @@ function TypeFields({ deskId, form, set }: { deskId: string; form: Form; set: (c
   const rules = useRules();
   const nameAr = useLiveError(form.nameAr, rules.text(2));
   const nameEn = useLiveError(form.nameEn, rules.text(2));
+  useAutoEnglish(form.nameAr, form.nameEn, (nameEn) => set({ nameEn }));
+  useAutoEnglish(form.descriptionAr, form.descriptionEn, (descriptionEn) => set({ descriptionEn }));
   const assignee = useLiveError(form.assignee, (v: Form['assignee']) => (form.isPersonal && !v ? t('setup.type.personalNeedsAssignee') : undefined));
   return (
     <>

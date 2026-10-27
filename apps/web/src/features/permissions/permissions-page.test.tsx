@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { catalog, me, server } from '../../../test/msw';
 import { renderPage } from '../../../test/render';
 import { PermissionsPage } from './permissions-page';
+import { chooseOption } from '../../../test/select';
 
 const role: PermissionTargetDto = { kind: 'role', id: 'r1', nameAr: 'موظف', nameEn: 'Employee', permissions: [], inherited: [] };
 
@@ -29,8 +30,8 @@ describe('Permissions page (FR-47)', () => {
   it('places permissions on a role: choose the kind and the role, tick, save', async () => {
     const saved = serve(['permissions.view', 'permissions.role_update']);
     renderPage(<PermissionsPage />);
-    expect(await screen.findByLabelText('أضع الصلاحيات على')).toHaveValue('role');
-    fireEvent.change(await screen.findByLabelText('الدور'), { target: { value: 'r1' } });
+    expect(await screen.findByLabelText('أضع الصلاحيات على')).toHaveTextContent('دور');
+    await chooseOption((await screen.findByLabelText('الدور')), 'r1');
     const box = await screen.findByRole('checkbox', { name: 'عرض الموظفين' });
     const save = screen.getByRole('button', { name: 'حفظ' });
     expect(save).toBeDisabled();
@@ -43,19 +44,19 @@ describe('Permissions page (FR-47)', () => {
   it('hides the save button without the key of that kind, and offers a new group only with its key', async () => {
     serve(['permissions.view']);
     renderPage(<PermissionsPage />);
-    fireEvent.change(await screen.findByLabelText('الدور'), { target: { value: 'r1' } });
+    await chooseOption((await screen.findByLabelText('الدور')), 'r1');
     await screen.findByRole('checkbox', { name: 'عرض الموظفين' });
     expect(screen.queryByRole('button', { name: 'حفظ' })).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('أضع الصلاحيات على'), { target: { value: 'role-group' } });
+    await chooseOption(screen.getByLabelText('أضع الصلاحيات على'), 'role-group');
     expect(screen.queryByRole('button', { name: 'مجموعة أدوار جديدة' })).not.toBeInTheDocument();
   });
 
   it('offers a new group of roles and a new group of people from the same page', async () => {
     serve(['permissions.view', 'role_groups.create', 'user_groups.create']);
     renderPage(<PermissionsPage />);
-    fireEvent.change(await screen.findByLabelText('أضع الصلاحيات على'), { target: { value: 'role-group' } });
+    await chooseOption((await screen.findByLabelText('أضع الصلاحيات على')), 'role-group');
     expect(await screen.findByRole('button', { name: 'مجموعة أدوار جديدة' })).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('أضع الصلاحيات على'), { target: { value: 'user-group' } });
+    await chooseOption(screen.getByLabelText('أضع الصلاحيات على'), 'user-group');
     expect(await screen.findByRole('button', { name: 'مجموعة مستخدمين جديدة' })).toBeInTheDocument();
   });
 });

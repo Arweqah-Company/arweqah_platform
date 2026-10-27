@@ -5,6 +5,7 @@ import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { Alert, Button, Combobox, Dialog, FormField, Input, Select } from '@/shared/ui';
 import { JobTitleRows } from './job-title-rows';
 import { useNodeForm, type NodeFormState } from './use-node-form';
+import { useAutoEnglish } from '@/shared/lib/use-auto-english';
 
 interface Props {
   tree: OrgTreeDto;
@@ -43,6 +44,7 @@ function DetailsFields({ f, editing }: { f: NodeFormState; editing: boolean }) {
   const rules = useRules();
   const nameAr = useLiveError(f.names.nameAr, rules.text(2));
   const nameEn = useLiveError(f.names.nameEn, rules.text(2));
+  useAutoEnglish(f.names.nameAr, f.names.nameEn, (nameEn) => f.setNames({ ...f.names, nameEn }));
   const start = useLiveError(f.startDate, (v: string) => rules.required(v) ?? (unitStartDateIsValid(v) ? undefined : t('node.startInvalid')));
   return (
     <>

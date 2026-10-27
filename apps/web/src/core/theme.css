@@ -116,6 +116,11 @@ h3 {
   outline-offset: 2px;
 }
 
+/* The search box inside a drop-down shows focus with its bottom rule (see Combobox), not a heavy ring. */
+[cmdk-input]:focus-visible {
+  outline: none;
+}
+
 /* Dark surfaces (sidebar): petrol would vanish on ink, so the ring turns yellow. */
 .on-dark :focus-visible {
   outline-color: var(--color-yellow-300);

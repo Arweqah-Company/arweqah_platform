@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { ListPage } from '../pages/list.page';
 import { ADMIN_STATE } from '../support/fixtures';
+import { choose } from '../support/select';
 
 test.use({ storageState: ADMIN_STATE });
 
@@ -33,9 +34,26 @@ test.describe('Organization: chart or table, per company (FR-31)', () => {
     await list.expectNoSeriousA11yIssues();
   });
 
+  test('picks a level and a parent unit from the drop-downs inside the add-unit dialog', async ({ page }) => {
+    await page.goto('/org');
+    await page.getByRole('button', { name: 'إضافة وحدة' }).click();
+    const dialog = page.getByRole('dialog', { name: 'إضافة وحدة' });
+    const level = dialog.getByLabel('التقسيم *', { exact: true });
+    await level.click();
+    await page.getByRole('option').nth(1).click();
+    await expect(dialog).toBeVisible();
+    const parent = dialog.getByRole('combobox', { name: 'الوحدة الأب' });
+    await parent.click();
+    const first = page.getByRole('option').first();
+    const name = (await first.innerText()).split('\n')[0] ?? '';
+    await first.click();
+    await expect(dialog).toBeVisible();
+    await expect(parent).toContainText(name);
+  });
+
   test('another company shows its own structure (empty until it is filled)', async ({ page }) => {
     await page.goto('/org');
-    await page.getByLabel('الشركة').selectOption({ label: 'لدن' });
+    await choose(page.getByLabel('الشركة'), 'لدن');
     await expect(page.getByText('لا توجد وحدات في هذه الشركة بعد')).toBeVisible();
   });
 });

@@ -3,6 +3,7 @@ import { BasePage } from '../pages/base.page';
 import { ADMIN_STATE, adminTotpUri } from '../support/fixtures';
 import { adminModeOnViaApi } from '../support/admin-mode';
 import { freshCode } from '../support/totp';
+import { choose } from '../support/select';
 
 class Screen extends BasePage {}
 test.use({ storageState: ADMIN_STATE });
@@ -68,7 +69,7 @@ test.describe('Tickets (FR-36 … FR-41)', () => {
     await expect(page.getByRole('link', { name: 'الطابعة لا تعمل' }).first()).toBeVisible();
     await page.getByLabel('بحث في التذاكر').fill('الطابعة');
     await expect(page.getByRole('link', { name: 'الطابعة لا تعمل' }).first()).toBeVisible();
-    await page.getByLabel('تجميع حسب').selectOption({ label: 'الحالة' });
+    await choose(page.getByLabel('تجميع حسب'), 'الحالة');
     await expect(page.getByText('مفتوحة', { exact: true }).first()).toBeVisible();
     await settled(page);
     await new Screen(page).expectNoSeriousA11yIssues();
@@ -83,8 +84,8 @@ test.describe('Tickets (FR-36 … FR-41)', () => {
     await page.goto('/tickets/setup');
     await expect(page.getByRole('heading', { level: 1, name: 'إعداد التذاكر' })).toBeVisible();
     const desk = page.getByLabel('الإدارة', { exact: true });
-    await desk.selectOption(await desk.locator('option', { hasText: 'أروقة الريادة' }).filter({ hasText: 'الخدمات المشتركة' }).getAttribute('value'));
-    await page.getByLabel('حالة الاستقبال').selectOption({ label: 'متوقف مؤقتًا' });
+    await choose(desk, /(?=.*أروقة الريادة)(?=.*الخدمات المشتركة)/);
+    await choose(page.getByLabel('حالة الاستقبال'), 'متوقف مؤقتًا');
     await page.getByRole('button', { name: 'حفظ', exact: true }).first().click();
     await expect(page.getByText('حُفظت الإعدادات.')).toBeVisible();
     await settled(page);
@@ -92,7 +93,7 @@ test.describe('Tickets (FR-36 … FR-41)', () => {
     await page.getByLabel('مدة الإنجاز المعتادة').fill('0');
     await expect(page.getByText('عدد صحيح من 1 إلى 60.')).toBeVisible();
     await page.getByLabel('مدة الإنجاز المعتادة').fill('3');
-    await page.getByLabel('حالة الاستقبال').selectOption({ label: 'مفعّل' });
+    await choose(page.getByLabel('حالة الاستقبال'), 'مفعّل');
     await page.getByRole('button', { name: 'حفظ', exact: true }).first().click();
     await expect(page.getByText('حُفظت الإعدادات.')).toBeVisible();
 
@@ -124,7 +125,7 @@ test.describe('Tickets (FR-36 … FR-41)', () => {
     await expect(page.getByText('مفتوحة الآن').first()).toBeVisible();
     await new Screen(page).expectNoSeriousA11yIssues();
 
-    await page.getByLabel('الإدارة', { exact: true }).selectOption({ label: 'إدارة الخدمات المشتركة' });
+    await choose(page.getByLabel('الإدارة', { exact: true }), 'إدارة الخدمات المشتركة');
     await expect(byType.getByRole('columnheader', { name: 'النوع' })).toBeVisible();
     await expect(byType.getByRole('columnheader', { name: 'الإدارة' })).toHaveCount(0); // one department: no column
     await expect(page.getByText('مفتوحة الآن').first()).toBeVisible();

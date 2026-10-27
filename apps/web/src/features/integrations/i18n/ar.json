@@ -1,0 +1,279 @@
+{
+  "title": {
+    "translation": "إعدادات الترجمة",
+    "email": "إعدادات البريد الإلكتروني",
+    "settings": "الإعدادات"
+  },
+  "description": {
+    "translation": "اختر الخدمة التي تترجم من العربية إلى الإنجليزية أثناء الكتابة. لا تُفعَّل الخدمة إلا بعد نجاح تجربتها ببياناتها المحفوظة.",
+    "email": "اختر طريقة إرسال البريد من المنصة (روابط الدخول والدعوات والإشعارات). لا تُفعَّل الخدمة إلا بعد نجاح تجربتها ببياناتها المحفوظة.",
+    "settings": "إعدادات الخدمات: الترجمة والبريد الإلكتروني، في صفحة واحدة."
+  },
+  "serverSettings": {
+    "translation": "لا توجد خدمة مفعّلة هنا، فتُستخدم إعدادات الخادم (وإن لم توجد فالترجمة متوقفة).",
+    "email": "لا توجد خدمة مفعّلة هنا، فتُستخدم إعدادات البريد في الخادم."
+  },
+  "providers": {
+    "aws": "أمازون ترانسليت (Amazon Translate)",
+    "google": "ترجمة جوجل كلاود (Google Cloud Translation)",
+    "azure": "مترجم أزور (Azure AI Translator)",
+    "smtp": "SMTP",
+    "ses": "أمازون SES",
+    "sendgrid": "SendGrid",
+    "graph": "مايكروسوفت 365 (Graph)"
+  },
+  "columns": {
+    "provider": "الخدمة",
+    "status": "الحالة",
+    "tested": "آخر تجربة",
+    "active": "قيد الاستخدام"
+  },
+  "status": {
+    "incomplete": "البيانات ناقصة",
+    "untested": "لم تُجرَّب",
+    "tested": "تمت تجربتها"
+  },
+  "active": "قيد الاستخدام",
+  "inactive": "غير مستخدمة",
+  "yes": "نعم",
+  "no": "لا",
+  "searchLabel": "بحث في الخدمات",
+  "searchPlaceholder": "ابحث باسم الخدمة",
+  "noMatches": "لا توجد خدمة مطابقة.",
+  "activate": "تفعيل",
+  "deactivate": "إيقاف",
+  "activated": "تم تفعيل {{name}}.",
+  "deactivated": "تم إيقاف {{name}}، وتُستخدم إعدادات الخادم.",
+  "saved": "تم الحفظ.",
+  "secretSaved": "توجد قيمة محفوظة. اتركه فارغًا لإبقائها، أو اكتب قيمة جديدة.",
+  "secretSavedPlaceholder": "محفوظ",
+  "invalid": {
+    "sender": "اكتب عنوانًا أو \"الاسم <العنوان>\".",
+    "email": "اكتب بريدًا إلكترونيًا صحيحًا.",
+    "url": "اكتب عنوان موقع يبدأ بـ https://.",
+    "service-account-json": "الصق ملف مفتاح حساب الخدمة (JSON) كاملًا.",
+    "text": "القيمة غير صحيحة.",
+    "password": "القيمة غير صحيحة.",
+    "textarea": "القيمة غير صحيحة.",
+    "number": "اكتب رقمًا صحيحًا.",
+    "boolean": "القيمة غير صحيحة."
+  },
+  "guide": {
+    "incomplete": "أكمل: {{names}}.",
+    "edited": "غيّرت البيانات. احفظها ثم جرّبها ثم فعّلها.",
+    "untested": "جرّبها أولًا: لا تُفعَّل الخدمة إلا بعد نجاح تجربة بهذه البيانات نفسها.",
+    "tested": "نجحت التجربة بهذه البيانات. يمكنك تفعيلها.",
+    "active": "هذه الخدمة قيد الاستخدام.",
+    "activeEdit": "حفظ بيانات مغيَّرة يوقف هذه الخدمة حتى تُجرَّب وتُفعَّل من جديد."
+  },
+  "test": {
+    "open": "تجربة",
+    "title": "تجربة {{name}}",
+    "description": {
+      "translation": "اكتب بالعربية في الخانة الأولى فتظهر الترجمة الإنجليزية تلقائيًا. لا يُحفظ شيء من هذه الخانات.",
+      "email": "أرسل رسالة قصيرة إلى أي عنوان بالبيانات الموجودة في النموذج."
+    },
+    "arabic": "العربية",
+    "arabicHint": "اكتب أي نص عربي.",
+    "english": "الإنجليزية",
+    "translating": "جارٍ الترجمة…",
+    "works": "تعمل الخدمة: وصل منها رد.",
+    "problem": "ردّت الخدمة بمشكلة",
+    "failed": "فشلت التجربة.",
+    "to": "إرسال إلى",
+    "toHint": "أي بريد إلكتروني تستطيع فتحه.",
+    "send": "إرسال رسالة تجريبية",
+    "sending": "جارٍ الإرسال…",
+    "sent": "قبلت الخدمة الرسالة إلى {{to}}. تأكد أنها وصلت.",
+    "note": "نجاح التجربة يخص البيانات المستخدمة فيها: إن غيّرتها لزمت تجربة الخدمة من جديد."
+  },
+  "fields": {
+    "aws": {
+      "accessKeyId": "معرّف مفتاح الوصول",
+      "secretAccessKey": "المفتاح السري",
+      "region": "المنطقة"
+    },
+    "google": {
+      "serviceAccountJson": "مفتاح حساب الخدمة (JSON)"
+    },
+    "azure": {
+      "key": "المفتاح",
+      "region": "المنطقة",
+      "endpoint": "عنوان الخدمة"
+    },
+    "smtp": {
+      "host": "الخادم",
+      "port": "المنفذ",
+      "secure": "اتصال آمن (TLS)",
+      "user": "اسم المستخدم",
+      "password": "كلمة المرور",
+      "from": "المرسِل"
+    },
+    "ses": {
+      "accessKeyId": "معرّف مفتاح الوصول",
+      "secretAccessKey": "المفتاح السري",
+      "region": "المنطقة",
+      "from": "المرسِل"
+    },
+    "sendgrid": {
+      "apiKey": "مفتاح API",
+      "from": "المرسِل"
+    },
+    "graph": {
+      "tenantId": "معرّف المستأجر (Tenant)",
+      "clientId": "معرّف التطبيق (Client ID)",
+      "clientSecret": "السر (Client secret)",
+      "sender": "صندوق المرسِل"
+    }
+  },
+  "hints": {
+    "smtp": {
+      "from": "مثال: Arweqah Platform <no-reply@arweqah.sa>",
+      "secure": "فعّله مع المنفذ 465؛ المنفذ 587 يرفع الاتصال تلقائيًا."
+    },
+    "ses": {
+      "from": "عنوان أو نطاق موثّق في Amazon SES.",
+      "region": "المنطقة التي وُثّق فيها المرسِل."
+    },
+    "sendgrid": {
+      "from": "مرسِل موثّق في SendGrid.",
+      "apiKey": "يكفي له صلاحية إرسال البريد (Mail Send)."
+    },
+    "graph": {
+      "sender": "صندوق البريد الذي يرسل منه التطبيق. يحتاج التطبيق صلاحية Mail.Send من نوع التطبيق."
+    },
+    "google": {
+      "serviceAccountJson": "الصق الملف كاملًا كما نزّلته من Google Cloud. يحتاج الحساب دور Cloud Translation API User."
+    },
+    "aws": {
+      "secretAccessKey": "استخدم مستخدم IAM مقيّدًا بـ translate:TranslateText."
+    },
+    "azure": {
+      "region": "منطقة مورد المترجم كما تظهر مع مفاتيحه.",
+      "endpoint": "الافتراضي يكفي غالبًا."
+    }
+  },
+  "tabs": {
+    "translation": "الترجمة",
+    "email": "البريد الإلكتروني"
+  },
+  "tabsLabel": "الخدمات",
+  "noTabs": "لا تملك صلاحية عرض أي من هذه الإعدادات.",
+  "help": {
+    "open": "كيف أحصل على البيانات",
+    "title": "{{name}}: كيف أحصل على البيانات",
+    "stepsTitle": "الخطوات",
+    "fieldsTitle": "معنى كل قيمة",
+    "warn": "احفظ المفاتيح سرًّا. من يملكها يستطيع استعمال الخدمة على حسابك.",
+    "providers": {
+      "aws": {
+        "summary": "خدمة الترجمة من أمازون. تحتاج مفاتيح وصول لمستخدم IAM.",
+        "steps": [
+          "ادخل إلى AWS Console وافتح IAM ← Users ← Create user (مثلًا arweqah-translate).",
+          "أرفق سياسة تسمح بـ translate:TranslateText فقط.",
+          "افتح المستخدم ← Security credentials ← Create access key ← «Application running outside AWS».",
+          "انسخ Access key ID وSecret access key فورًا: السرّ يظهر مرة واحدة فقط.",
+          "اختر منطقة تتوفر فيها Amazon Translate (مثل us-east-1 أو eu-west-1)."
+        ],
+        "fields": {
+          "accessKeyId": "النصف العام من زوج المفاتيح، ويبدو هكذا: AKIA… .",
+          "secretAccessKey": "النصف السري، يظهر مرة واحدة عند إنشاء المفتاح. أنشئ مفتاحًا جديدًا إن ضاع.",
+          "region": "منطقة AWS التي تستقبل طلبات الترجمة."
+        }
+      },
+      "google": {
+        "summary": "خدمة الترجمة من جوجل. تحتاج ملف مفتاح حساب خدمة (JSON).",
+        "steps": [
+          "افتح Google Cloud Console، اختر مشروعًا أو أنشئ واحدًا، وتأكد أن الفوترة مفعّلة.",
+          "افتح APIs & Services ← Library، ابحث عن «Cloud Translation API» واضغط Enable.",
+          "افتح IAM & Admin ← Service Accounts ← Create service account.",
+          "امنحه الدور «Cloud Translation API User».",
+          "افتح الحساب ← Keys ← Add key ← Create new key ← JSON. سيُنزَّل ملف.",
+          "افتح الملف في محرر نصوص والصق محتواه كله هنا."
+        ],
+        "fields": {
+          "serviceAccountJson": "ملف JSON كاملًا لحساب الخدمة. فيه بريد الحساب ومفتاحه الخاص، لذلك يُخزَّن مشفّرًا ولا يُعرض مرة أخرى."
+        }
+      },
+      "azure": {
+        "summary": "خدمة الترجمة من مايكروسوفت (Azure AI Translator). تحتاج مفتاح مورد Translator.",
+        "steps": [
+          "ادخل إلى Azure portal ← Create a resource ← ابحث عن «Translator» ← Create.",
+          "اختر الاشتراك ومجموعة الموارد والمنطقة والفئة (F0 مجانية بحد شهري).",
+          "عند الجاهزية افتح المورد ← Keys and Endpoint.",
+          "انسخ Key 1 وLocation/Region.",
+          "اترك العنوان (Endpoint) كما هو إلا إذا أعطتك مايكروسوفت عنوانًا خاصًا."
+        ],
+        "fields": {
+          "key": "Key 1 أو Key 2 للمورد، وكلاهما يصلح.",
+          "region": "الـ Location/Region الظاهر بجوار المفاتيح (مثل westeurope). المورد العام قد يستعمل «global».",
+          "endpoint": "العنوان الذي تُرسَل إليه الطلبات. الافتراضي https://api.cognitive.microsofttranslator.com يناسب أغلب الموارد."
+        }
+      },
+      "smtp": {
+        "summary": "أي خادم بريد يقبل SMTP، مثل استضافتك أو Microsoft 365.",
+        "steps": [
+          "اسأل مزوّد البريد (أو راجع مساعدته) عن خادم SMTP والمنفذ وهل يحتاج اسم مستخدم وكلمة مرور.",
+          "أنشئ صندوق بريد للمنصة (مثل no-reply@نطاقك)، وكلمة مرور تطبيق إن طلبها المزوّد.",
+          "المنفذ 587 يستعمل STARTTLS؛ والمنفذ 465 يستعمل TLS ويحتاج تشغيل «اتصال آمن».",
+          "Microsoft 365: الخادم smtp.office365.com والمنفذ 587، ويجب تفعيل SMTP AUTH لصندوق البريد.",
+          "استعمل عنوان مرسِل يسمح الخادم لهذا الصندوق بالإرسال به."
+        ],
+        "fields": {
+          "host": "عنوان خادم البريد، مثل smtp.office365.com.",
+          "port": "غالبًا 587 (STARTTLS) أو 465 (TLS).",
+          "secure": "شغّله للمنفذ 465. اتركه مغلقًا للمنفذ 587 فهو يرفع الاتصال تلقائيًا.",
+          "user": "اسم دخول صندوق البريد، وغالبًا العنوان الكامل. اتركه فارغًا لخادم لا يطلب ذلك.",
+          "password": "كلمة مرور صندوق البريد أو كلمة مرور التطبيق.",
+          "from": "ما يراه المستلم مرسِلًا، عنوانًا أو «الاسم <العنوان>». يجب أن يسمح به الخادم."
+        }
+      },
+      "ses": {
+        "summary": "خدمة إرسال البريد من أمازون، عبر واجهتها البرمجية.",
+        "steps": [
+          "افتح Amazon SES في AWS Console، في المنطقة التي ستستعملها.",
+          "Verified identities ← Create identity: وثّق نطاقك (الأفضل) أو عنوانًا واحدًا.",
+          "الحسابات الجديدة في وضع التجربة (المستلمون الموثّقون فقط): اطلب الوصول للإنتاج عند الجاهزية.",
+          "في IAM أنشئ مستخدمًا يملك ses:SendEmail فقط، ثم أنشئ له مفتاح وصول.",
+          "انسخ Access key ID وSecret access key فورًا؛ السرّ يظهر مرة واحدة."
+        ],
+        "fields": {
+          "accessKeyId": "النصف العام من زوج مفاتيح مستخدم IAM.",
+          "secretAccessKey": "النصف السري، يظهر مرة واحدة عند إنشاء المفتاح.",
+          "region": "منطقة SES التي وُثّق فيها المرسِل.",
+          "from": "العنوان الموثّق، أو أي عنوان من النطاق الموثّق، عنوانًا أو «الاسم <العنوان>»."
+        }
+      },
+      "sendgrid": {
+        "summary": "خدمة إرسال البريد من SendGrid، عبر واجهتها البرمجية.",
+        "steps": [
+          "ادخل إلى SendGrid ← Settings ← API Keys ← Create API Key.",
+          "اختر «Restricted Access» وفعّل Mail Send فقط.",
+          "انسخ المفتاح فورًا: يظهر مرة واحدة.",
+          "Settings ← Sender Authentication: وثّق نطاقًا أو عنوان مرسِل واحدًا.",
+          "استعمل هذا العنوان الموثّق مرسِلًا هنا."
+        ],
+        "fields": {
+          "apiKey": "المفتاح الذي أنشأته؛ يبدأ بـ SG. ويحتاج صلاحية Mail Send فقط.",
+          "from": "مرسِل موثّق في SendGrid، عنوانًا أو «الاسم <العنوان>»."
+        }
+      },
+      "graph": {
+        "summary": "الإرسال من صندوق Microsoft 365 بتطبيق مسجّل في مستأجر Entra لديك.",
+        "steps": [
+          "افتح Microsoft Entra admin center ← App registrations ← New registration.",
+          "من Overview للتطبيق انسخ Application (client) ID وDirectory (tenant) ID.",
+          "Certificates & secrets ← New client secret ← انسخ Value فورًا (وليس Secret ID).",
+          "من «API permissions» اضغط Add ثم Microsoft Graph ثم Application permissions ثم Mail.Send، ثم Grant admin consent لمنح الموافقة.",
+          "استعمل صندوق بريد حقيقيًا من مستأجرك مرسِلًا (يصلح الصندوق المشترك). واطلب من قسم التقنية حصر التطبيق بهذا الصندوق إن أمكن."
+        ],
+        "fields": {
+          "tenantId": "معرّف الدليل Directory (tenant) ID لمستأجر Microsoft Entra.",
+          "clientId": "معرّف التطبيق Application (client) ID للتطبيق المسجَّل.",
+          "clientSecret": "قيمة السرّ المنشأ في Certificates & secrets؛ ينتهي في التاريخ الذي اخترته، فجدّده قبله.",
+          "sender": "صندوق البريد الذي يرسل التطبيق باسمه. يحتاج التطبيق صلاحية Mail.Send من نوع Application."
+        }
+      }
+    }
+  }
+}

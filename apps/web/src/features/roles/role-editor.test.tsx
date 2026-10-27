@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { server } from '../../../test/msw';
 import { renderPage } from '../../../test/render';
 import { RoleEditor } from './role-editor';
+import { chooseOption } from '../../../test/select';
 
 describe('RoleEditor', () => {
   it('sends the ticked permission with the chosen scope', async () => {
@@ -19,7 +20,7 @@ describe('RoleEditor', () => {
     fireEvent.change(screen.getByLabelText('الاسم بالعربية'), { target: { value: 'مشرف قسم' } });
     fireEvent.change(screen.getByLabelText('الاسم بالإنجليزية'), { target: { value: 'Department lead' } });
     fireEvent.click(await screen.findByLabelText('عرض الموظفين'));
-    fireEvent.change(screen.getByLabelText('النطاق: عرض الموظفين'), { target: { value: 'subtree' } });
+    await chooseOption(screen.getByLabelText('النطاق: عرض الموظفين'), 'subtree');
     fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
     await waitFor(() => expect(sent?.permissions).toEqual([{ key: 'employees.view', scope: 'subtree' }]));
   });

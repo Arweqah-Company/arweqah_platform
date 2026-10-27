@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { BasePage } from '../pages/base.page';
 import { ADMIN_STATE } from '../support/fixtures';
+import { choose } from '../support/select';
 
 class Page extends BasePage {}
 test.use({ storageState: ADMIN_STATE });
@@ -61,7 +62,7 @@ test.describe('Light and dark theme, and the own profile (FR-33)', () => {
 
   test('the language choice on the profile page switches the interface and is saved', async ({ page }) => {
     await page.goto('/profile');
-    await page.getByLabel('اللغة').selectOption('en');
+    await choose(page.getByLabel('اللغة'), 'English');
     await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
     await expect(page.getByRole('heading', { level: 1, name: 'Profile' })).toBeVisible();
     await expect.poll(async () => (await (await page.request.get('/api/me')).json()).locale).toBe('en');

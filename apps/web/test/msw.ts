@@ -62,4 +62,6 @@ export const server = setupServer(
   http.get('*/api/roles', () => HttpResponse.json(roles)),
   http.get('*/api/lookups', () => HttpResponse.json(lookups)),
   http.get('*/api/lookups/companies', () => HttpResponse.json(companyOptions)),
+  // Translation is off unless a test turns it on, so typing Arabic never fills an English field by itself.
+  http.post('*/api/translate', () => HttpResponse.json({ statusCode: 502, code: 'TRANSLATION_UNAVAILABLE', message: 'Translation is not available' }, { status: 502 })),
 );

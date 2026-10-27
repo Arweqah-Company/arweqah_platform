@@ -17,6 +17,8 @@ export const LIST_CATALOG = {
   roles: { columns: ['name', 'permissions', 'users', 'assignment', 'type'], filters: ['type', 'assignment', 'holders'] },
   audit: { columns: ['when', 'actor', 'action', 'target'], filters: ['action', 'entityType', 'actor', 'from', 'to'] },
   'email-log': { columns: ['when', 'to', 'subject', 'purpose', 'status', 'details'], filters: ['status', 'purpose', 'to', 'from', 'until'] },
+  'translation-providers': { columns: ['provider', 'status', 'tested', 'active'], filters: ['status', 'active'] },
+  'email-providers': { columns: ['provider', 'status', 'tested', 'active'], filters: ['status', 'active'] },
   tickets: {
     columns: ['number', 'title', 'desk', 'type', 'sender', 'assignee', 'status', 'neededBy', 'activity'],
     filters: ['deskId', 'typeId', 'assigneeId', 'status'],

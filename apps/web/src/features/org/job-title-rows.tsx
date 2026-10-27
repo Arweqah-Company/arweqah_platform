@@ -3,6 +3,7 @@ import { Plus, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { Button, FormField, Input } from '@/shared/ui';
+import { useAutoEnglish } from '@/shared/lib/use-auto-english';
 
 interface Props {
   rows: JobTitleInput[];
@@ -23,6 +24,7 @@ function TitleRow({ row, canRemove, onPatch, onRemove }: RowProps) {
   const rules = useRules();
   const nameAr = useLiveError(row.nameAr, rules.text(2));
   const nameEn = useLiveError(row.nameEn, rules.text(2));
+  useAutoEnglish(row.nameAr, row.nameEn, (nameEn) => onPatch({ nameEn }));
   return (
     <div className="grid grid-cols-[1fr_1fr_auto] items-start gap-2">
       <FormField label={t('titles.nameAr')} error={nameAr.error}>{(p) => <Input {...p} onBlur={nameAr.onBlur} value={row.nameAr} onChange={(e) => onPatch({ nameAr: e.target.value })} />}</FormField>

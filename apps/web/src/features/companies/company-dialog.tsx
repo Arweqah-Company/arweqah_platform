@@ -6,6 +6,7 @@ import { errorMessage } from '@/shared/lib/error-message';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { Alert, Button, Dialog, FormField, Input } from '@/shared/ui';
 import { useSaveCompany } from './api';
+import { useAutoEnglish } from '@/shared/lib/use-auto-english';
 
 interface Props {
   company: CompanyDto | null;
@@ -24,6 +25,7 @@ function CompanyFields({ form, setForm }: Pick<CompanyFormState, 'form' | 'setFo
   const rules = useRules();
   const nameAr = useLiveError(form.nameAr, rules.text(2));
   const nameEn = useLiveError(form.nameEn, rules.text(2));
+  useAutoEnglish(form.nameAr, form.nameEn, (nameEn) => setForm({ ...form, nameEn }));
   const code = useLiveError(form.code, rules.pattern(CODE, t('codeInvalid')));
   return (
     <>

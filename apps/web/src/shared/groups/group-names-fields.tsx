@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { FormField, Input } from '@/shared/ui';
+import { useAutoEnglish } from '@/shared/lib/use-auto-english';
 
 export interface GroupNames {
   nameAr: string;
@@ -14,6 +15,7 @@ export function GroupNamesFields({ value, onChange }: { value: GroupNames; onCha
   const rules = useRules();
   const nameAr = useLiveError(value.nameAr, rules.text(2));
   const nameEn = useLiveError(value.nameEn, rules.text(2));
+  useAutoEnglish(value.nameAr, value.nameEn, (nameEn) => onChange({ ...value, nameEn }));
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-2">

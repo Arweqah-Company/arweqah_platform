@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { cn } from '@/shared/lib/cn';
 import { TaskFlags, TaskPriorityBadge } from '../task-badges';
+import { Select } from '@/shared/ui/select';
 
 /** Cards that wait for somebody's decision, or were refused, are not moved by hand. */
 export const isFixed = (status: TaskStatus): boolean => status === 'pending_approval' || status === 'rejected';
@@ -50,9 +51,9 @@ export function TaskCard({ task, status, onMove }: { task: TaskListItemDto; stat
           <button type="button" aria-label={t('board.drag', { title: task.title })} className="grid size-9 touch-none place-items-center rounded-lg text-muted hover:bg-neutral-50 hover:text-fg" {...attributes} {...listeners}>
             <GripVertical className="size-4" aria-hidden />
           </button>
-          <select aria-label={t('board.moveTo', { title: task.title })} value={status} onChange={(e) => onMove(task, e.target.value as TaskStatus)} className="h-9 min-w-0 flex-1 rounded-lg border border-neutral-200 bg-white px-2 text-xs text-fg">
+          <Select aria-label={t('board.moveTo', { title: task.title })} className="h-9 min-w-0 flex-1 text-xs" value={status} onChange={(e) => onMove(task, e.target.value as TaskStatus)}>
             {MOVE_TARGETS.map((s) => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
-          </select>
+          </Select>
         </div>
       )}
     </li>

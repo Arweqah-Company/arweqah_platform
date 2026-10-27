@@ -168,6 +168,32 @@
       "filters": {
         "status": "Status"
       }
+    },
+    "translation-providers": {
+      "name": "Translation services",
+      "columns": {
+        "provider": "Service",
+        "status": "Status",
+        "tested": "Last test",
+        "active": "In use"
+      },
+      "filters": {
+        "status": "Status",
+        "active": "In use"
+      }
+    },
+    "email-providers": {
+      "name": "E-mail services",
+      "columns": {
+        "provider": "Service",
+        "status": "Status",
+        "tested": "Last test",
+        "active": "In use"
+      },
+      "filters": {
+        "status": "Status",
+        "active": "In use"
+      }
     }
   },
   "listHint": "The first column (the name) always stays.",

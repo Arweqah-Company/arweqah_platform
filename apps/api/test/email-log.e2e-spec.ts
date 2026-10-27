@@ -3,12 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { ExternalServiceError } from '../src/common/domain/domain-error';
 import { EmailLogRepository } from '../src/core/notifications/domain/email-log.repository';
 import { LoggedMailSender } from '../src/core/notifications/infrastructure/logged-mail.sender';
-import type { SmtpMailSender } from '../src/core/notifications/infrastructure/smtp-mail.sender';
+import type { MailTransport } from '../src/core/notifications/application/mail-transport';
 import { ADMIN_MODE_GRANT } from './factories/factories';
 import { useTestApp } from './setup/test-app';
 
-const okSmtp = { send: async () => ({ messageId: '<id-1@arweqah.sa>', response: '250 2.0.0 OK' }) } as unknown as SmtpMailSender;
-const brokenSmtp = { send: async () => { throw new ExternalServiceError('Email delivery failed', { cause: '535 5.7.139 Authentication unsuccessful' }); } } as unknown as SmtpMailSender;
+const okSmtp = { send: async () => ({ messageId: '<id-1@arweqah.sa>', response: '250 2.0.0 OK' }) } as unknown as MailTransport;
+const brokenSmtp = { send: async () => { throw new ExternalServiceError('Email delivery failed', { cause: '535 5.7.139 Authentication unsuccessful' }); } } as unknown as MailTransport;
 
 describe('Sent e-mail log (FR-26)', () => {
   const t = useTestApp();

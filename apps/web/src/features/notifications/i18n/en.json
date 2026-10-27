@@ -17,5 +17,7 @@
   "titleColumn": "Title",
   "textColumn": "Text",
   "whenColumn": "Time",
-  "markOne": "Mark as read"
+  "markOne": "Mark as read",
+  "emptyShort": "No notifications yet.",
+  "viewAll": "View all notifications"
 }

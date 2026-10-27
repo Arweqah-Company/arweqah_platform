@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { BasePage } from '../pages/base.page';
 import { adminModeOffViaApi, adminModeOnViaApi } from '../support/admin-mode';
 import { ADMIN_STATE } from '../support/fixtures';
+import { choose } from '../support/select';
 
 class Screen extends BasePage {}
 test.use({ storageState: ADMIN_STATE });
@@ -24,7 +25,7 @@ test.describe('Tasks (FR-48, FR-49, FR-50, FR-51)', () => {
 
     await page.getByRole('button', { name: 'مهمة جديدة' }).click();
     const popup = page.getByRole('dialog', { name: 'مهمة جديدة' });
-    await expect(popup.getByLabel('الأولوية')).toHaveValue('medium');
+    await expect(popup.getByLabel('الأولوية')).toHaveText('متوسطة');
     await expect(popup.getByRole('button', { name: 'إنشاء المهمة' })).toBeDisabled();
     await popup.getByLabel('العنوان *').fill(title);
     await popup.getByLabel('الوقت المتوقع (ساعات)').fill('2');
@@ -44,7 +45,7 @@ test.describe('Tasks (FR-48, FR-49, FR-50, FR-51)', () => {
     await dialog.getByLabel('الدقائق *').fill('45');
     await dialog.getByRole('button', { name: 'تسجيل', exact: true }).click();
     await expect(page.getByText('0:45 / 2:00')).toBeVisible();
-    await page.getByLabel('نقل إلى').selectOption({ label: 'قيد التنفيذ' });
+    await choose(page.getByLabel('نقل إلى'), 'قيد التنفيذ');
     await expect(page.getByText('قيد التنفيذ').first()).toBeVisible();
 
     await page.goto('/tasks');
@@ -54,7 +55,7 @@ test.describe('Tasks (FR-48, FR-49, FR-50, FR-51)', () => {
     await expect(progress.getByRole('link', { name: title })).toBeVisible();
     await settled(page);
     await new Screen(page).expectNoSeriousA11yIssues();
-    await progress.getByLabel(`انقل المهمة ${title} إلى`).selectOption({ label: 'مكتملة' });
+    await choose(progress.getByLabel(`انقل المهمة ${title} إلى`), 'مكتملة');
     await expect(page.getByRole('region', { name: 'مكتملة' }).getByRole('link', { name: title })).toBeVisible();
     await expect(page.getByRole('region', { name: 'قيد التنفيذ' }).getByRole('link', { name: title })).toHaveCount(0);
   });
@@ -62,7 +63,7 @@ test.describe('Tasks (FR-48, FR-49, FR-50, FR-51)', () => {
   test('sorts the table by a header and groups it', async ({ page }) => {
     await page.goto('/tasks');
     await expect(page.getByRole('heading', { level: 1, name: 'مهامي' })).toBeVisible();
-    await page.getByLabel('تجميع حسب').selectOption({ label: 'الحالة' });
+    await choose(page.getByLabel('تجميع حسب'), 'الحالة');
     const phone = (await page.getByRole('button', { name: 'القائمة', exact: true }).isVisible());
     if (!phone) {
       const header = page.getByRole('columnheader', { name: 'العنوان' });
@@ -91,8 +92,7 @@ test.describe('Task tags and policies (FR-54)', () => {
     await page.getByRole('button', { name: 'إضافة فئة' }).click();
     const dialog = page.getByRole('dialog', { name: 'إضافة فئة' });
     const department = dialog.getByLabel('الإدارة *');
-    await expect(department.locator('option').nth(1)).toBeAttached();
-    await department.selectOption(await department.locator('option', { hasText: 'الخدمات المشتركة' }).first().getAttribute('value'));
+    await choose(department, /الخدمات المشتركة/);
     await dialog.getByLabel('الاسم بالعربية *').fill('تقارير الأداء');
     await dialog.getByLabel('الاسم بالإنجليزية *').fill('Performance reports');
     await settled(page);

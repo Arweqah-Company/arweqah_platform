@@ -6,6 +6,7 @@ import { me, server } from '../../../../test/msw';
 import { renderPage, renderRoute } from '../../../../test/render';
 import { taskItem, taskPage } from '../../../../test/task-fixtures';
 import { MyTasksPage } from './my-tasks-page';
+import { chooseOption } from '../../../../test/select';
 
 const options = { assignees: [{ id: 'u1', name: 'سارة أحمد', isSelf: true }], tags: [], approver: null };
 
@@ -140,7 +141,7 @@ describe('My team is a tab of my tasks (FR-49)', () => {
     fireEvent.click(await screen.findByRole('tab', { name: 'فريقي' }));
     expect(await screen.findByText('مهمة من الفريق')).toBeInTheDocument();
     expect(team[0]?.get('reach')).toBe('direct');
-    fireEvent.change(screen.getByLabelText('عرض', { exact: true }), { target: { value: 'all' } });
+    await chooseOption(screen.getByLabelText('عرض', { exact: true }), 'all');
     await waitFor(() => expect(team.at(-1)?.get('reach')).toBe('all'));
   });
 

@@ -8,6 +8,7 @@ import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { Alert, Button, Dialog, FormField, Input } from '@/shared/ui';
 import { usePreviewLevels, useSaveLevels } from './api';
 import { ImpactDialog } from './impact-dialog';
+import { useAutoEnglish } from '@/shared/lib/use-auto-english';
 
 interface Props {
   companyId: string;
@@ -34,6 +35,7 @@ function LevelRow({ row, index, count, onPatch, onMove, onRemove }: RowProps) {
   const rules = useRules();
   const nameAr = useLiveError(row.nameAr, rules.text(2));
   const nameEn = useLiveError(row.nameEn, rules.text(2));
+  useAutoEnglish(row.nameAr, row.nameEn, (nameEn) => onPatch({ nameEn }));
   return (
     <li className="grid grid-cols-[auto_1fr_1fr_auto] items-start gap-2">
       <span className="pt-9 text-sm text-muted" dir="ltr">{index + 1}</span>

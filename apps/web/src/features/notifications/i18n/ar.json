@@ -17,5 +17,7 @@
   "titleColumn": "العنوان",
   "textColumn": "النص",
   "whenColumn": "الوقت",
-  "markOne": "تعليم كمقروء"
+  "markOne": "تعليم كمقروء",
+  "emptyShort": "لا توجد إشعارات بعد.",
+  "viewAll": "عرض كل الإشعارات"
 }

@@ -1,3 +1,4 @@
+import { chooseOption } from '../../../test/select';
 import type { PageVisibilityDto } from '@arweqah-platform/shared';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
@@ -39,7 +40,7 @@ describe('Page visibility page (FR-42)', () => {
     fireEvent.click(save);
     await waitFor(() => expect(saved).toEqual([{ hiddenPages: ['org', 'employees'] }]));
 
-    fireEvent.change(screen.getByLabelText('الدور'), { target: { value: 'r2' } });
+    await chooseOption(screen.getByLabelText('الدور'), 'r2');
     expect(await screen.findByText(/هذا الدور يدير ظهور الصفحات/)).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'الموظفون' })).toBeDisabled();
   });

@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { lookups, me, server } from '../../../test/msw';
 import { renderRoute } from '../../../test/render';
 import { EmployeeFormPage } from './employee-form-page';
+import { chooseOption } from '../../../test/select';
 
 const withPermissions = (keys: string[]) =>
   server.use(
@@ -52,9 +53,9 @@ describe('Employee form (FR-17, FR-18)', () => {
   it('makes the end date required for a fixed-term contract and asks for text on "other"', async () => {
     await open();
     expect(screen.getByLabelText('تاريخ النهاية')).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('نوع العقد'), { target: { value: 'id-fixed_term' } });
+    await chooseOption(screen.getByLabelText('نوع العقد'), 'id-fixed_term');
     expect(await screen.findByLabelText('تاريخ النهاية *')).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('نوع العقد'), { target: { value: 'id-other' } });
+    await chooseOption(screen.getByLabelText('نوع العقد'), 'id-other');
     expect(await screen.findByLabelText('اذكر نوع العقد *')).toBeInTheDocument();
   });
 
@@ -100,7 +101,7 @@ describe('Employee form validation while typing (FR-17, FR-18)', () => {
     const national = { ...lookups.idTypes[0], rules: [{ countryId: null, regex: '^1\\d{9}$', minLength: 10, maxLength: 10, checksum: 'luhn' as const, errorMessage: 'x', errorMessageAr: 'رقم الهوية الوطنية غير صالح', errorMessageEn: 'Invalid National ID' }] };
     server.use(http.get('*/api/lookups', () => HttpResponse.json({ ...lookups, idTypes: [national] })));
     await open();
-    fireEvent.change(screen.getByLabelText('نوع الهوية'), { target: { value: 'id-national_id' } });
+    await chooseOption(screen.getByLabelText('نوع الهوية'), 'id-national_id');
     fireEvent.change(screen.getByLabelText('رقم الهوية'), { target: { value: '1087654322' } });
     fireEvent.click(screen.getByRole('button', { name: 'حفظ وإرسال الدعوة' }));
     expect(await screen.findByText('رقم الهوية الوطنية غير صالح')).toBeInTheDocument();

@@ -8,6 +8,7 @@ import { useHiddenInList } from '../lib/list-settings';
 import { useIsPhone } from '../lib/use-is-phone';
 import { Alert } from './alert';
 import { Button } from './button';
+import { Select } from './select';
 
 export interface Column<T> {
   /** Stable key; defaults to the header text. */
@@ -232,9 +233,9 @@ function PageSizeSelect({ value, onChange }: { value: number; onChange: (pageSiz
   return (
     <label className="flex items-center gap-2 rounded-xl bg-neutral-50 ps-3 text-muted">
       {t('table.show')}
-      <select aria-label={t('table.rows')} className="h-9 cursor-pointer rounded-xl bg-transparent pe-2 text-fg outline-none focus-visible:ring-2 focus-visible:ring-petrol-800" value={value} onChange={(e) => onChange(Number(e.target.value))}>
-        {[...new Set([...PAGE_SIZES, value])].sort((a, b) => a - b).map((n) => <option key={n} value={n}>{n}</option>)}
-      </select>
+      <Select aria-label={t('table.rows')} className="h-9 w-24" value={String(value)} onChange={(e) => onChange(Number(e.target.value))}>
+        {[...new Set([...PAGE_SIZES, value])].sort((a, b) => a - b).map((n) => <option key={n} value={String(n)}>{n}</option>)}
+      </Select>
     </label>
   );
 }

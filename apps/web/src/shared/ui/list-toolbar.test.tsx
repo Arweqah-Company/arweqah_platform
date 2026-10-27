@@ -5,6 +5,7 @@ import { useFilters } from '../lib/use-filters';
 import type { ViewMode } from '../lib/use-view-mode';
 import { DataTable } from './data-table';
 import { ListToolbar, type FilterField } from './list-toolbar';
+import { chooseOption } from '../../../test/select';
 
 const rows = [{ id: '1', name: 'أروقة', status: 'active' }, { id: '2', name: 'لدن', status: 'inactive' }];
 const fields: FilterField[] = [
@@ -51,7 +52,7 @@ describe('List toolbar: search, filters and view (FR-27)', () => {
   it('filters from the panel, shows the applied filter as a chip and removes it again', async () => {
     render(<Harness />);
     fireEvent.click(screen.getByRole('button', { name: /تصفية/ }));
-    fireEvent.change(await screen.findByLabelText('الحالة'), { target: { value: 'inactive' } });
+    await chooseOption((await screen.findByLabelText('الحالة')), 'inactive');
     expect(screen.queryByText('أروقة')).not.toBeInTheDocument();
     const chip = screen.getByRole('list', { name: 'عوامل التصفية المطبّقة' });
     expect(chip).toHaveTextContent('الحالة: معطّل');

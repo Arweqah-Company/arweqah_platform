@@ -7,6 +7,7 @@ import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { Alert, Button, Dialog, FormField, Input, Select } from '@/shared/ui';
 import { usePermissionCatalog, useSaveRole } from './api';
 import { PermissionMatrix } from './permission-matrix';
+import { useAutoEnglish } from '@/shared/lib/use-auto-english';
 
 interface Props {
   role: RoleDto | null;
@@ -22,6 +23,7 @@ function RoleNames({ form, onChange }: { form: UpsertRoleInput; onChange: (chang
   const rules = useRules();
   const nameAr = useLiveError(form.nameAr, rules.text(2));
   const nameEn = useLiveError(form.nameEn, rules.text(2));
+  useAutoEnglish(form.nameAr, form.nameEn, (nameEn) => onChange({ nameEn }));
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <FormField label={t('nameAr')} error={nameAr.error}>{(p) => <Input {...p} aria-required onBlur={nameAr.onBlur} value={form.nameAr} onChange={(e) => onChange({ nameAr: e.target.value })} />}</FormField>

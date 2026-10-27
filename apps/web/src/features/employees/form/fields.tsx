@@ -1,4 +1,5 @@
-import { Controller, useFormContext } from 'react-hook-form';
+import type { ReactNode } from 'react';
+import { Controller, useFormContext, type ControllerRenderProps } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Combobox, FormField, Input, Select, Textarea, type ComboboxOption } from '@/shared/ui';
 import type { FormState } from './form-state';
@@ -46,39 +47,42 @@ export function TextAreaField({ name, label }: { name: TextName; label: string }
   );
 }
 
-export function SelectField({ name, label, options, required, hint }: BaseProps & { options: { value: string; label: string }[] }) {
-  const { register } = useFormContext<FormState>();
-  const { t } = useTranslation('employees');
+type FieldRender = (props: { id: string; 'aria-invalid': boolean }, field: ControllerRenderProps<FormState, TextName>) => ReactNode;
+
+/** A form-context field under a label with its live error: the one place where a controlled input meets react-hook-form. */
+function ControlledField({ name, label, required, hint, children }: BaseProps & { children: FieldRender }) {
+  const { control } = useFormContext<FormState>();
   const error = useFieldError(name);
   return (
     <FormField label={withStar(label, required)} hint={hint} error={error}>
-      {(p) => (
-        <Select {...p} aria-required={required} {...register(name)}>
+      {(p) => <Controller control={control} name={name} render={({ field }) => <>{children(p, field)}</>} />}
+    </FormField>
+  );
+}
+
+export function SelectField({ name, label, options, required, hint }: BaseProps & { options: { value: string; label: string }[] }) {
+  const { t } = useTranslation('employees');
+  return (
+    <ControlledField name={name} label={label} required={required} hint={hint}>
+      {(p, field) => (
+        <Select {...p} aria-required={required} value={String(field.value ?? '')} onBlur={field.onBlur} onChange={(e) => field.onChange(e.target.value)}>
           <option value="">{t('choose')}</option>
           {options.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </Select>
       )}
-    </FormField>
+    </ControlledField>
   );
 }
 
 export function ComboField({ name, label, options, required, hint, disabled, onSearch, onPick, clearable }: BaseProps & { options: ComboboxOption[]; disabled?: boolean; onSearch?: (q: string) => void; onPick?: (value: string | null) => void; clearable?: boolean }) {
-  const { control } = useFormContext<FormState>();
-  const error = useFieldError(name);
   return (
-    <FormField label={withStar(label, required)} hint={hint} error={error}>
-      {(p) => (
-        <Controller
-          control={control}
-          name={name}
-          render={({ field }) => (
-            <Combobox id={p.id} label={label} value={field.value} options={options} disabled={disabled} invalid={p['aria-invalid']} clearable={clearable} onSearch={onSearch} onChange={(v) => { field.onChange(v ?? ''); onPick?.(v); }} />
-          )}
-        />
+    <ControlledField name={name} label={label} required={required} hint={hint}>
+      {(p, field) => (
+        <Combobox id={p.id} label={label} value={field.value as string} options={options} disabled={disabled} invalid={p['aria-invalid']} clearable={clearable} onSearch={onSearch} onChange={(v) => { field.onChange(v ?? ''); onPick?.(v); }} />
       )}
-    </FormField>
+    </ControlledField>
   );
 }
 

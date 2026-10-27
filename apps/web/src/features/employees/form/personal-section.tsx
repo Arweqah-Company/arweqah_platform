@@ -1,10 +1,15 @@
+import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { useAutoEnglish } from '@/shared/lib/use-auto-english';
 import { SectionCard } from '@/shared/ui';
 import { ComboField, SelectField, TextField } from './fields';
+import type { FormState } from './form-state';
 import type { EmployeeOptions } from './use-options';
 
 export function PersonalSection({ options, sensitive }: { options: EmployeeOptions; sensitive: boolean }) {
   const { t } = useTranslation('employees');
+  const { watch, setValue } = useFormContext<FormState>();
+  useAutoEnglish(watch('fullName'), watch('fullNameEn'), (value) => setValue('fullNameEn', value, { shouldDirty: true, shouldValidate: true }));
   return (
     <SectionCard id="personal" title={t('sections.personal')}>
       <TextField name="employeeNumber" label={t('fields.employeeNumber')} required ltr />

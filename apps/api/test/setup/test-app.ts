@@ -2,14 +2,20 @@ import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
 import { afterAll, beforeAll, beforeEach } from 'vitest';
+import { ActiveProviders } from '../../src/core/integrations/application/services/active-providers.service';
 import { AppModule } from '../../src/app.module';
 import { configureApp } from '../../src/app.setup';
 import { PermissionCatalog } from '../../src/core/access/application/permission-catalog';
 import { MailSender } from '../../src/core/notifications/application/notification-channel';
+import { MailTransportFactory } from '../../src/core/notifications/application/mail-transport';
+import { TranslatorFactory } from '../../src/core/translation/domain/contracts/translator-factory';
+import { Translator } from '../../src/core/translation/domain/contracts/translator';
 import { LookupsSeeder } from '../../src/database/seeds/lookups.seeder';
 import { Factories } from '../factories/factories';
 import { AdminModeProbeController } from '../fakes/admin-mode-probe.controller';
 import { FakeMailSender } from '../fakes/fake-mail-sender';
+import { FakeMailTransportFactory, FakeProviders, FakeTranslatorFactory } from '../fakes/fake-provider-factories';
+import { FakeTranslator } from '../fakes/fake-translator';
 
 /** Stand-in for a business module's permission, so scope handling is exercised without one. */
 export const DEMO_PERMISSION = 'demo.view';
@@ -29,6 +35,8 @@ export interface TestContext {
   factories: Factories;
   db: DataSource;
   mail: FakeMailSender;
+  translator: FakeTranslator;
+  providers: FakeProviders;
 }
 
 /**
@@ -39,9 +47,17 @@ export function useTestApp(): TestContext {
   const ctx = {} as TestContext;
   beforeAll(async () => {
     ctx.mail = new FakeMailSender();
+    ctx.translator = new FakeTranslator();
+    ctx.providers = new FakeProviders();
     const moduleRef = await Test.createTestingModule({ imports: [AppModule], controllers: [AdminModeProbeController] })
       .overrideProvider(MailSender)
       .useValue(ctx.mail)
+      .overrideProvider(Translator)
+      .useValue(ctx.translator)
+      .overrideProvider(TranslatorFactory)
+      .useValue(new FakeTranslatorFactory(ctx.providers))
+      .overrideProvider(MailTransportFactory)
+      .useValue(new FakeMailTransportFactory(ctx.providers))
       .compile();
     ctx.app = moduleRef.createNestApplication({ bodyParser: false });
     configureApp(ctx.app);
@@ -55,6 +71,10 @@ export function useTestApp(): TestContext {
   });
   beforeEach(async () => {
     ctx.mail.sent.length = 0;
+    ctx.translator.calls.length = 0;
+    ctx.providers.reset();
+    ctx.app.get(ActiveProviders).invalidate('translation');
+    ctx.app.get(ActiveProviders).invalidate('email');
     await truncateAll(ctx.db);
   });
   afterAll(async () => {

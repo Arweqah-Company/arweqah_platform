@@ -1,11 +1,12 @@
 import { CorePermission as P, type TaskMatrixDto } from '@arweqah-platform/shared';
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { me, server } from '../../../../test/msw';
 import { renderPage } from '../../../../test/render';
 import { taskItem } from '../../../../test/task-fixtures';
 import { MatrixSection } from './matrix-section';
+import { chooseOption } from '../../../../test/select';
 
 const matrix = (): TaskMatrixDto => ({
   quadrants: [
@@ -48,7 +49,7 @@ describe('The task matrix section (FR-49)', () => {
     own.unmount();
     const scopes = serve('subtree');
     renderPage(<MatrixSection />);
-    fireEvent.change(await screen.findByLabelText('عرض'), { target: { value: 'team' } });
+    await chooseOption((await screen.findByLabelText('عرض')), 'team');
     await waitFor(() => expect(scopes).toContain('team'));
   });
 });

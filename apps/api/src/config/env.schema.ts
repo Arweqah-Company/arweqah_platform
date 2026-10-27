@@ -52,6 +52,11 @@ export const envSchema = z
     S3_BUCKET: z.string().optional(),
     S3_REGION: z.string().default('me-south-1'),
 
+    /** Amazon Translate fills the English field while a person types Arabic. Both keys or none; none turns the helper off. */
+    TRANSLATE_AWS_ACCESS_KEY_ID: z.string().optional(),
+    TRANSLATE_AWS_SECRET_ACCESS_KEY: z.string().optional(),
+    TRANSLATE_AWS_REGION: z.string().default('us-east-1'),
+
     SEED_ADMIN_EMAIL: z.email().optional(),
     /** Local development only: links an authenticator app to the first admin so sign-in works before Microsoft is set up. */
     SEED_ADMIN_TOTP_SECRET: z.string().regex(/^[A-Z2-7]{16,64}$/, 'must be a base32 secret').optional(),
@@ -71,6 +76,9 @@ export const envSchema = z
     }
     if (env.MICROSOFT_CLIENT_ID) checkMicrosoftCredential(env, ctx);
     if (env.NODE_ENV === 'production') forbidDevelopmentSettings(env, ctx);
+    if (!!env.TRANSLATE_AWS_ACCESS_KEY_ID !== !!env.TRANSLATE_AWS_SECRET_ACCESS_KEY) {
+      ctx.addIssue({ code: 'custom', path: ['TRANSLATE_AWS_SECRET_ACCESS_KEY'], message: 'set TRANSLATE_AWS_ACCESS_KEY_ID and TRANSLATE_AWS_SECRET_ACCESS_KEY together' });
+    }
     if (env.FILE_STORAGE === 's3' && !env.S3_BUCKET) {
       ctx.addIssue({ code: 'custom', path: ['S3_BUCKET'], message: 'required when FILE_STORAGE=s3' });
     }

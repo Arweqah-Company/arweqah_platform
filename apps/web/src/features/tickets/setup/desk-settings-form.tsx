@@ -7,6 +7,7 @@ import { saveWithToast } from '@/shared/lib/use-save-toast';
 import { useLiveError } from '@/shared/lib/live-validation';
 import { Alert, Button, FormField, Input, SectionCard, Select, Textarea } from '@/shared/ui';
 import { useSaveDesk } from '../api';
+import { useAutoEnglish } from '@/shared/lib/use-auto-english';
 
 type Days = 'defaultDueDays' | 'minLeadDays' | 'autoCloseDays' | 'reopenWindowDays' | 'staleAfterDays';
 const DAY_FIELDS: { id: Days; unit: 'working' | 'calendar' }[] = [
@@ -56,6 +57,7 @@ export function DeskSettingsForm({ desk }: { desk: TicketDeskDto }) {
   const canEdit = usePermissions().can(CorePermission.TicketsSetupEdit);
   const [form, setForm] = useState<Form>(() => toForm(desk));
   const set = (change: Partial<Form>) => setForm((f) => ({ ...f, ...change }));
+  useAutoEnglish(form.descriptionAr, form.descriptionEn, (descriptionEn) => set({ descriptionEn }));
   const valid = inRange(form) && !(form.receptionStatus === 'active' && !desk.manager);
   const submit = saveWithToast(save.mutateAsync, t('setup.saved'));
   return (

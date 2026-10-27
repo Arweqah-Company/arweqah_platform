@@ -3,6 +3,7 @@ import { BasePage } from '../pages/base.page';
 import { ListPage } from '../pages/list.page';
 import { adminModeOffViaApi, adminModeOnViaApi } from '../support/admin-mode';
 import { ADMIN_STATE } from '../support/fixtures';
+import { choose } from '../support/select';
 
 class Screen extends BasePage {}
 test.use({ storageState: ADMIN_STATE });
@@ -16,7 +17,7 @@ test.describe('List management (FR-44) and roles (FR-43)', () => {
     await adminModeOnViaApi(page);
     await page.goto('/list-settings');
     await expect(page.getByRole('heading', { level: 1, name: 'إدارة القوائم' })).toBeVisible();
-    await page.locator('#main select').first().selectOption({ label: 'الشركات' });
+    await choose(page.locator('#main [role=combobox]').first(), 'الشركات');
     await expect(page.getByRole('checkbox', { name: 'الرمز' })).toBeDisabled();
     await page.getByRole('checkbox', { name: 'الموظفون', exact: true }).uncheck();
     await page.getByRole('checkbox', { name: 'له موظفون' }).uncheck();
@@ -35,7 +36,7 @@ test.describe('List management (FR-44) and roles (FR-43)', () => {
     await page.keyboard.press('Escape');
 
     await page.goto('/list-settings');
-    await page.locator('#main select').first().selectOption({ label: 'الشركات' });
+    await choose(page.locator('#main [role=combobox]').first(), 'الشركات');
     await page.getByRole('checkbox', { name: 'الموظفون', exact: true }).check();
     await page.getByRole('checkbox', { name: 'له موظفون' }).check();
     await page.getByRole('button', { name: 'حفظ', exact: true }).click();

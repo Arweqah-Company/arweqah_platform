@@ -6,6 +6,7 @@ import { me, server } from '../../../../test/msw';
 import { renderRoute } from '../../../../test/render';
 import { taskDetail } from '../../../../test/task-fixtures';
 import { TaskDetailsPage } from './task-details-page';
+import { chooseOption, optionLabels } from '../../../../test/select';
 
 const closed: TaskAbilitiesDto = { moveTo: [], edit: false, approve: false, object: false, answerObjection: false, resubmit: false, follow: false, logTime: false, restore: false };
 
@@ -61,8 +62,8 @@ describe('Task details (FR-48 to FR-52)', () => {
     page();
     fireEvent.click(await screen.findByRole('button', { name: 'اعتراض' }));
     const reason = await screen.findByLabelText(/السبب/);
-    expect(reason.querySelectorAll('option')).toHaveLength(4);
-    fireEvent.change(reason, { target: { value: 'not_enough_time' } });
+    expect(await optionLabels(reason)).toHaveLength(4);
+    await chooseOption(reason, 'not_enough_time');
     fireEvent.click(screen.getByRole('button', { name: 'إرسال الاعتراض' }));
     await waitFor(() => expect(calls.some((c) => c.path === 'objection')).toBe(true));
     expect(calls.find((c) => c.path === 'objection')?.body).toEqual({ reason: 'not_enough_time' });
@@ -87,8 +88,8 @@ describe('Task details: objections, time and moves (FR-52)', () => {
     const save = await screen.findByRole('button', { name: 'إرسال الرد' });
     expect(save).toBeDisabled();
     const person = await screen.findByLabelText(/أسندها إلى/);
-    expect(Array.from(person.querySelectorAll('option')).map((o) => o.textContent)).toEqual(['اختر شخصًا', 'خالد علي']);
-    fireEvent.change(person, { target: { value: 'u9' } });
+    expect(await optionLabels(person)).toEqual(['اختر شخصًا', 'خالد علي']);
+    await chooseOption(person, 'u9');
     expect(save).toBeEnabled();
     fireEvent.click(save);
     await waitFor(() => expect(calls.some((c) => c.path === 'objection/answer')).toBe(true));
@@ -119,7 +120,7 @@ describe('Task details: objections, time and moves (FR-52)', () => {
     serve(taskDetail({ abilities: { ...closed, moveTo: ['in_progress'] } }));
     page();
     const menu = await screen.findByLabelText('نقل إلى');
-    expect(Array.from(menu.querySelectorAll('option')).map((o) => o.textContent)).toEqual(['اختر حالة', 'قيد التنفيذ']);
+    expect(await optionLabels(menu)).toEqual(['اختر حالة', 'قيد التنفيذ']);
   });
 
   it('shows a plain message when the task cannot be seen', async () => {

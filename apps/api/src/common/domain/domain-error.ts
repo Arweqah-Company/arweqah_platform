@@ -33,5 +33,5 @@ export class BusinessRuleError extends DomainError {
 }
 
 export class ExternalServiceError extends DomainError {
-  readonly code = 'EXTERNAL_SERVICE';
+  readonly code: string = 'EXTERNAL_SERVICE';
 }

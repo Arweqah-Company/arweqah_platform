@@ -1,11 +1,9 @@
-import { ChevronDown } from 'lucide-react';
-import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
+import { useId, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react';
 import { cn } from '../lib/cn';
+import { control, controlBase } from './control-style';
 
-/** Soft controls: gentle hover, a calm focus halo (the border still turns petrol, so focus never relies on the halo alone). */
-const controlBase =
-  'w-full rounded-xl border border-neutral-200 bg-white px-4 text-sm text-fg outline-none transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-muted hover:border-neutral-500 focus:border-link focus:ring-4 focus:ring-link/15 disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-muted aria-[invalid=true]:border-danger-700 aria-[invalid=true]:focus:ring-danger-700/15';
-export const control = `h-12 ${controlBase}`;
+export { control };
+export { Select } from './select';
 
 interface FieldProps {
   label: string;
@@ -44,13 +42,4 @@ export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElem
 
 export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return <textarea className={cn(controlBase, 'py-3', className)} {...props} />;
-}
-
-export function Select({ className, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
-  return (
-    <span className={cn('relative block h-12 w-full', className)}>
-      <select className={cn(controlBase, 'h-full cursor-pointer appearance-none pe-10')} {...props} />
-      <ChevronDown aria-hidden className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-link" />
-    </span>
-  );
 }

@@ -3,6 +3,7 @@ import { readFileSync, statSync } from 'node:fs';
 import { ListPage } from '../pages/list.page';
 import { adminModeOffViaApi, adminModeOnViaApi } from '../support/admin-mode';
 import { ADMIN_STATE } from '../support/fixtures';
+import { choose } from '../support/select';
 
 test.use({ storageState: ADMIN_STATE });
 test.afterEach(async ({ page }) => adminModeOffViaApi(page));
@@ -16,7 +17,7 @@ test.describe('Lists: search, filters, table or cards, export and import (FR-27,
     await expect(page.getByText('SYS-0001')).toBeHidden();
     await list.search('بحث في الموظفين').fill('');
     await list.openFilters();
-    await page.getByLabel('الحالة', { exact: true }).selectOption('inactive');
+    await choose(page.getByLabel('الحالة', { exact: true }), 'معطّل');
     const chips = page.getByRole('list', { name: 'عوامل التصفية المطبّقة' });
     await expect(chips).toContainText('الحالة: معطّل');
     await expect(page.getByText('SYS-0001')).toBeHidden();

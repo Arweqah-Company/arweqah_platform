@@ -24,6 +24,8 @@
     "tasks-team": "My team's tasks",
     "tasks-matrix": "Task matrix",
     "task-tags": "Task tags",
-    "task-policies": "Task policies"
+    "task-policies": "Task policies",
+    "translation-settings": "Translation settings",
+    "email-settings": "E-mail settings"
   }
 }

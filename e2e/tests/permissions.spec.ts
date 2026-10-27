@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { BasePage } from '../pages/base.page';
 import { adminModeOffViaApi, adminModeOnViaApi } from '../support/admin-mode';
 import { ADMIN_STATE } from '../support/fixtures';
+import { choose } from '../support/select';
 
 class Screen extends BasePage {}
 test.use({ storageState: ADMIN_STATE });
@@ -21,7 +22,7 @@ test.describe('Permissions page (FR-46, FR-47)', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'الصلاحيات' })).toBeVisible();
 
     // a role
-    await page.getByLabel('الدور', { exact: true }).selectOption({ label: roleName });
+    await choose(page.getByLabel('الدور', { exact: true }), roleName);
     const audit = page.getByRole('checkbox', { name: 'عرض صفحة سجل التدقيق' });
     await expect(audit).not.toBeChecked();
     await audit.check();
@@ -34,14 +35,14 @@ test.describe('Permissions page (FR-46, FR-47)', () => {
     await expect(page.getByText('حُفظت الصلاحيات.').first()).toBeVisible();
 
     // a new group of roles, with a role inside, and a permission on the group
-    await page.getByLabel('أضع الصلاحيات على').selectOption({ label: 'مجموعة أدوار' });
+    await choose(page.getByLabel('أضع الصلاحيات على'), 'مجموعة أدوار');
     await page.getByRole('button', { name: 'مجموعة أدوار جديدة' }).click();
     const dialog = page.getByRole('dialog', { name: 'مجموعة أدوار جديدة' });
     await dialog.getByLabel('الاسم بالعربية *').fill(`مجموعة تجريبية${suffix}`);
     await dialog.getByLabel('الاسم بالإنجليزية *').fill(`Demo bundle${suffix}`);
     await dialog.getByRole('checkbox', { name: roleName }).check();
     await dialog.getByRole('button', { name: 'حفظ' }).click();
-    await expect(page.getByLabel('مجموعة الأدوار', { exact: true })).toHaveValue(/.+/);
+    await expect(page.getByLabel('مجموعة الأدوار', { exact: true })).not.toHaveText('اختر…');
     await page.getByRole('checkbox', { name: 'عرض صفحة سجل التدقيق' }).check();
     await page.getByRole('button', { name: 'حفظ', exact: true }).click();
     await expect(page.getByText('حُفظت الصلاحيات.').first()).toBeVisible();
@@ -50,7 +51,7 @@ test.describe('Permissions page (FR-46, FR-47)', () => {
     await expect(page.getByText('حُذفت المجموعة.').first()).toBeVisible();
 
     // a new group of people: a member found by search
-    await page.getByLabel('أضع الصلاحيات على').selectOption({ label: 'مجموعة مستخدمين' });
+    await choose(page.getByLabel('أضع الصلاحيات على'), 'مجموعة مستخدمين');
     await page.getByRole('button', { name: 'مجموعة مستخدمين جديدة' }).click();
     const people = page.getByRole('dialog', { name: 'مجموعة مستخدمين جديدة' });
     await people.getByLabel('الاسم بالعربية *').fill(`فريق تجريبي${suffix}`);
@@ -59,7 +60,7 @@ test.describe('Permissions page (FR-46, FR-47)', () => {
     await people.getByRole('list', { name: 'النتائج' }).getByRole('button').first().click();
     await expect(people.getByRole('list', { name: 'الأعضاء' }).getByRole('listitem')).toHaveCount(1);
     await people.getByRole('button', { name: 'حفظ' }).click();
-    await expect(page.getByLabel('مجموعة المستخدمين', { exact: true })).toHaveValue(/.+/);
+    await expect(page.getByLabel('مجموعة المستخدمين', { exact: true })).not.toHaveText('اختر…');
     await page.getByRole('button', { name: 'حذف' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'حذف' }).click();
     await expect(page.getByText('حُذفت المجموعة.').first()).toBeVisible();

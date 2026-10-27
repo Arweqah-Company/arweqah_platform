@@ -31,7 +31,10 @@
     "ticketFigures": "أداء التذاكر",
     "tasks": "مهامي",
     "taskTags": "فئات المهام",
-    "taskPolicies": "سياسات المهام"
+    "taskPolicies": "سياسات المهام",
+    "translationSettings": "إعدادات الترجمة",
+    "emailSettings": "إعدادات البريد",
+    "serviceSettings": "الإعدادات"
   },
   "actions": {
     "save": "حفظ",
@@ -130,7 +133,11 @@
     "TASK_DEPARTMENT_INVALID": "الفئة تتبع إدارة من الهيكل التنظيمي ولا تُنقل إلى غيرها.",
     "TASK_NOT_APPROVABLE": "هذه المهمة لا تنتظر اعتمادك.",
     "TASK_TAG_IN_USE": "مهام تستعمل هذه الفئة؛ أوقفها بدل حذفها.",
-    "TASK_POLICY_COMPANY_REQUIRED": "اختر الشركة التي تقصد سياسة مهامها."
+    "TASK_POLICY_COMPANY_REQUIRED": "اختر الشركة التي تقصد سياسة مهامها.",
+    "PROVIDER_INCOMPLETE": "بيانات الخدمة ناقصة. أكمل كل الحقول المطلوبة.",
+    "PROVIDER_NOT_TESTED": "جرّب الخدمة ببياناتها الحالية أولًا؛ لا تُفعَّل إلا بعد نجاح التجربة.",
+    "PROVIDER_TEST_INPUT": "املأ خانة التجربة أولًا.",
+    "PROVIDER_TEST_RATE_LIMITED": "تجارب كثيرة. حاول بعد دقيقة."
   },
   "scope": {
     "own": "سجله فقط",

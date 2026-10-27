@@ -10,6 +10,7 @@ import { AppConfig } from './config/app-config.service';
 import { AppConfigModule } from './config/config.module';
 import { typeOrmOptions } from './config/typeorm.config';
 import { AccessModule } from './core/access/access.module';
+import { IntegrationsModule } from './core/integrations/integrations.module';
 import { ListsModule } from './core/lists/lists.module';
 import { PermissionsGuard } from './core/access/presentation/permissions.guard';
 import { AuditModule } from './core/audit/audit.module';
@@ -17,6 +18,7 @@ import { AuthCoreModule } from './core/auth/auth-core.module';
 import type { BetterAuthInstance } from './core/auth/infrastructure/better-auth.factory';
 import { BETTER_AUTH } from './core/auth/infrastructure/tokens';
 import { FilesModule } from './core/files/files.module';
+import { TranslationModule } from './core/translation/translation.module';
 import { MessagingModule } from './core/messaging/messaging.module';
 import { NotificationsModule } from './core/notifications/notifications.module';
 import { WorkflowModule } from './core/workflow/workflow.module';
@@ -57,11 +59,13 @@ const JSON_LIMIT = '1mb';
     // Core (shared infrastructure for every feature)
     AccessModule,
     ListsModule,
+    IntegrationsModule,
     AuditModule,
     MessagingModule,
     WorkflowModule,
     NotificationsModule,
     FilesModule,
+    TranslationModule,
     // Feature modules
     OrgModule,
     LookupsModule,

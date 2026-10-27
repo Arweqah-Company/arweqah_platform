@@ -31,7 +31,10 @@
     "ticketFigures": "Ticket performance",
     "tasks": "My tasks",
     "taskTags": "Task tags",
-    "taskPolicies": "Task policies"
+    "taskPolicies": "Task policies",
+    "translationSettings": "Translation settings",
+    "emailSettings": "E-mail settings",
+    "serviceSettings": "Settings"
   },
   "actions": {
     "save": "Save",
@@ -130,7 +133,11 @@
     "TASK_DEPARTMENT_INVALID": "A tag belongs to a department of the organization structure and does not move to another.",
     "TASK_NOT_APPROVABLE": "This task is not waiting for your approval.",
     "TASK_TAG_IN_USE": "Tasks use this tag; turn it off instead of deleting it.",
-    "TASK_POLICY_COMPANY_REQUIRED": "Choose the company whose task policy you mean."
+    "TASK_POLICY_COMPANY_REQUIRED": "Choose the company whose task policy you mean.",
+    "PROVIDER_INCOMPLETE": "The service data is incomplete. Fill in every required field.",
+    "PROVIDER_NOT_TESTED": "Try the service with its current data first; it can be switched on only after a passed test.",
+    "PROVIDER_TEST_INPUT": "Fill in the test box first.",
+    "PROVIDER_TEST_RATE_LIMITED": "Too many tests. Try again in a minute."
   },
   "scope": {
     "own": "Own record only",

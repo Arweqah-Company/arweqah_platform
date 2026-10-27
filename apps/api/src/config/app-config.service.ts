@@ -9,6 +9,12 @@ export interface MicrosoftSettings {
   credential: { kind: 'secret'; secret: string } | { kind: 'certificate'; privateKeyPem: string; thumbprint: string };
 }
 
+export interface TranslateSettings {
+  region: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+}
+
 /** Typed access to configuration; no string keys scattered across the codebase. */
 @Injectable()
 export class AppConfig {
@@ -24,6 +30,13 @@ export class AppConfig {
 
   get isTest(): boolean {
     return this.get('NODE_ENV') === 'test';
+  }
+
+  /** Amazon Translate keys; null when they are not set, which turns the translation helper off. */
+  get translate(): TranslateSettings | null {
+    const accessKeyId = this.get('TRANSLATE_AWS_ACCESS_KEY_ID');
+    const secretAccessKey = this.get('TRANSLATE_AWS_SECRET_ACCESS_KEY');
+    return accessKeyId && secretAccessKey ? { region: this.get('TRANSLATE_AWS_REGION'), accessKeyId, secretAccessKey } : null;
   }
 
   /** Microsoft sign-in: the app's identity is proven by a client secret or by a certificate; null when it is not set up. */

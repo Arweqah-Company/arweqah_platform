@@ -1,0 +1,279 @@
+{
+  "title": {
+    "translation": "Translation settings",
+    "email": "E-mail settings",
+    "settings": "Settings"
+  },
+  "description": {
+    "translation": "Choose which service translates Arabic into English while people type. A service is switched on only after it passes a test with its saved data.",
+    "email": "Choose how the platform sends e-mail (sign-in links, invitations, notices). A service is switched on only after it passes a test with its saved data.",
+    "settings": "Translation and e-mail service settings in one page."
+  },
+  "serverSettings": {
+    "translation": "No service is switched on here, so the settings on the server are used (if there are none, translation is off).",
+    "email": "No service is switched on here, so the e-mail settings on the server are used."
+  },
+  "providers": {
+    "aws": "Amazon Translate",
+    "google": "Google Cloud Translation",
+    "azure": "Azure AI Translator",
+    "smtp": "SMTP",
+    "ses": "Amazon SES",
+    "sendgrid": "SendGrid",
+    "graph": "Microsoft 365 (Graph)"
+  },
+  "columns": {
+    "provider": "Service",
+    "status": "Status",
+    "tested": "Last test",
+    "active": "In use"
+  },
+  "status": {
+    "incomplete": "Data incomplete",
+    "untested": "Not tested",
+    "tested": "Tested"
+  },
+  "active": "In use",
+  "inactive": "Not in use",
+  "yes": "Yes",
+  "no": "No",
+  "searchLabel": "Search services",
+  "searchPlaceholder": "Search by service name",
+  "noMatches": "No service matches.",
+  "activate": "Switch on",
+  "deactivate": "Switch off",
+  "activated": "{{name}} is now in use.",
+  "deactivated": "{{name}} is switched off; the server settings are used.",
+  "saved": "Saved.",
+  "secretSaved": "A value is saved. Leave it blank to keep it, or type a new one.",
+  "secretSavedPlaceholder": "Saved",
+  "invalid": {
+    "sender": "Enter an address or \"Name <address>\".",
+    "email": "Enter a valid e-mail address.",
+    "url": "Enter a web address starting with https://.",
+    "service-account-json": "Paste the whole JSON key file of the service account.",
+    "text": "This value is not valid.",
+    "password": "This value is not valid.",
+    "textarea": "This value is not valid.",
+    "number": "Enter a valid number.",
+    "boolean": "This value is not valid."
+  },
+  "guide": {
+    "incomplete": "Fill in: {{names}}.",
+    "edited": "You changed the data. Save it, try it, then switch it on.",
+    "untested": "Try it first: a service is switched on only after a test with this exact data passes.",
+    "tested": "The test passed with this data. You can switch it on.",
+    "active": "This service is in use.",
+    "activeEdit": "Saving changed data switches this service off until it is tested and switched on again."
+  },
+  "test": {
+    "open": "Try",
+    "title": "Try {{name}}",
+    "description": {
+      "translation": "Type Arabic on the right side; the English appears by itself. Nothing is saved from this box.",
+      "email": "Send a short message to any address with the data in the form."
+    },
+    "arabic": "Arabic",
+    "arabicHint": "Type any Arabic text.",
+    "english": "English",
+    "translating": "Translating…",
+    "works": "It works: the service answered.",
+    "problem": "The service answered with a problem",
+    "failed": "The test failed.",
+    "to": "Send to",
+    "toHint": "Any e-mail address you can open.",
+    "send": "Send test message",
+    "sending": "Sending…",
+    "sent": "The message was accepted for {{to}}. Check that it arrived.",
+    "note": "A passed test counts for the data used in the test: change it and the service must be tried again."
+  },
+  "fields": {
+    "aws": {
+      "accessKeyId": "Access key ID",
+      "secretAccessKey": "Secret access key",
+      "region": "Region"
+    },
+    "google": {
+      "serviceAccountJson": "Service account key (JSON)"
+    },
+    "azure": {
+      "key": "Key",
+      "region": "Region",
+      "endpoint": "Endpoint"
+    },
+    "smtp": {
+      "host": "Server",
+      "port": "Port",
+      "secure": "Secure connection (TLS)",
+      "user": "User name",
+      "password": "Password",
+      "from": "Sender"
+    },
+    "ses": {
+      "accessKeyId": "Access key ID",
+      "secretAccessKey": "Secret access key",
+      "region": "Region",
+      "from": "Sender"
+    },
+    "sendgrid": {
+      "apiKey": "API key",
+      "from": "Sender"
+    },
+    "graph": {
+      "tenantId": "Tenant ID",
+      "clientId": "Application (client) ID",
+      "clientSecret": "Client secret",
+      "sender": "Sender mailbox"
+    }
+  },
+  "hints": {
+    "smtp": {
+      "from": "Example: Arweqah Platform <no-reply@arweqah.sa>",
+      "secure": "Turn on for port 465; port 587 upgrades the connection by itself."
+    },
+    "ses": {
+      "from": "An address or domain verified in Amazon SES.",
+      "region": "The region where the sender is verified."
+    },
+    "sendgrid": {
+      "from": "A sender verified in SendGrid.",
+      "apiKey": "Needs the Mail Send permission only."
+    },
+    "graph": {
+      "sender": "The mailbox the app sends as. The app needs the Mail.Send application permission."
+    },
+    "google": {
+      "serviceAccountJson": "Paste the whole file downloaded from Google Cloud. The account needs the Cloud Translation API User role."
+    },
+    "aws": {
+      "secretAccessKey": "Use an IAM user limited to translate:TranslateText."
+    },
+    "azure": {
+      "region": "The region of the Translator resource, as shown with its keys.",
+      "endpoint": "Usually the default."
+    }
+  },
+  "tabs": {
+    "translation": "Translation",
+    "email": "E-mail"
+  },
+  "tabsLabel": "Services",
+  "noTabs": "You may not view any of these settings.",
+  "help": {
+    "open": "How to get the data",
+    "title": "{{name}}: how to get the data",
+    "stepsTitle": "Steps",
+    "fieldsTitle": "What each value means",
+    "warn": "Keep keys secret. Anyone holding them can use the service on your account.",
+    "providers": {
+      "aws": {
+        "summary": "Amazon's translation service. Needs an IAM user's access keys.",
+        "steps": [
+          "Sign in to the AWS Console and open IAM → Users → Create user (for example arweqah-translate).",
+          "Attach a policy that allows only translate:TranslateText.",
+          "Open the user → Security credentials → Create access key → «Application running outside AWS».",
+          "Copy the Access key ID and the Secret access key at once: the secret is shown only one time.",
+          "Pick a region where Amazon Translate is available (for example us-east-1 or eu-west-1)."
+        ],
+        "fields": {
+          "accessKeyId": "The public half of the key pair; it looks like AKIA… .",
+          "secretAccessKey": "The private half, shown once when the key is created. Create a new key if it is lost.",
+          "region": "The AWS region that receives the translation requests."
+        }
+      },
+      "google": {
+        "summary": "Google's translation service. Needs a service account key file (JSON).",
+        "steps": [
+          "Open Google Cloud Console, pick or create a project, and make sure billing is on.",
+          "Open APIs & Services → Library, search «Cloud Translation API» and press Enable.",
+          "Open IAM & Admin → Service Accounts → Create service account.",
+          "Give it the role «Cloud Translation API User».",
+          "Open the account → Keys → Add key → Create new key → JSON. A file downloads.",
+          "Open the file in a text editor and paste all of it here."
+        ],
+        "fields": {
+          "serviceAccountJson": "The whole JSON file of the service account. It holds the account's e-mail and private key, so it is stored encrypted and never shown again."
+        }
+      },
+      "azure": {
+        "summary": "Microsoft's translation service (Azure AI Translator). Needs a Translator resource key.",
+        "steps": [
+          "Sign in to the Azure portal → Create a resource → search «Translator» → Create.",
+          "Choose a subscription, resource group, region and pricing tier (F0 is free with a monthly limit).",
+          "When it is ready open the resource → Keys and Endpoint.",
+          "Copy Key 1 and the Location/Region.",
+          "Leave the endpoint as it is unless Microsoft gave you a private one."
+        ],
+        "fields": {
+          "key": "Key 1 or Key 2 of the resource; either one works.",
+          "region": "The Location/Region shown next to the keys (for example westeurope). A global resource may use «global».",
+          "endpoint": "The address requests are sent to. The default https://api.cognitive.microsofttranslator.com fits most resources."
+        }
+      },
+      "smtp": {
+        "summary": "Any mail server that accepts SMTP, such as your hosting or Microsoft 365.",
+        "steps": [
+          "Ask the mail provider (or find in its help) for the SMTP server, port, and whether it needs a user name and password.",
+          "Create a mailbox for the platform (for example no-reply@yourdomain) and, if the provider needs it, an app password.",
+          "Port 587 uses STARTTLS; port 465 uses TLS and needs «Secure connection» turned on.",
+          "Microsoft 365: server smtp.office365.com, port 587, and SMTP AUTH must be enabled for the mailbox.",
+          "Use the sender address the server allows this mailbox to send as."
+        ],
+        "fields": {
+          "host": "The mail server's address, for example smtp.office365.com.",
+          "port": "Usually 587 (STARTTLS) or 465 (TLS).",
+          "secure": "Turn on for port 465. Leave off for 587, which upgrades the connection by itself.",
+          "user": "The mailbox login, often the full e-mail address. Leave empty for a server that needs none.",
+          "password": "The mailbox password or app password.",
+          "from": "What recipients see as the sender, as an address or «Name <address>». The server must allow it."
+        }
+      },
+      "ses": {
+        "summary": "Amazon's e-mail sending service, through its API.",
+        "steps": [
+          "Open Amazon SES in the AWS Console, in the region you will use.",
+          "Verified identities → Create identity: verify your domain (recommended) or one address.",
+          "New accounts are in the sandbox (only verified recipients): request production access when ready.",
+          "In IAM create a user allowed ses:SendEmail only, then create an access key for it.",
+          "Copy the Access key ID and the Secret access key at once; the secret is shown one time."
+        ],
+        "fields": {
+          "accessKeyId": "The public half of the IAM user's key pair.",
+          "secretAccessKey": "The private half, shown once when the key is created.",
+          "region": "The SES region where the sender is verified.",
+          "from": "The verified address, or any address of the verified domain, as an address or «Name <address>»."
+        }
+      },
+      "sendgrid": {
+        "summary": "SendGrid's e-mail sending service, through its API.",
+        "steps": [
+          "Sign in to SendGrid → Settings → API Keys → Create API Key.",
+          "Choose «Restricted Access» and turn on Mail Send only.",
+          "Copy the key at once: it is shown one time.",
+          "Settings → Sender Authentication: verify a domain or a single sender address.",
+          "Use that verified address as the sender here."
+        ],
+        "fields": {
+          "apiKey": "The key you created; it starts with SG. and needs the Mail Send permission only.",
+          "from": "A sender verified in SendGrid, as an address or «Name <address>»."
+        }
+      },
+      "graph": {
+        "summary": "Send as a Microsoft 365 mailbox with an app registered in your Entra tenant.",
+        "steps": [
+          "Open the Microsoft Entra admin center → App registrations → New registration.",
+          "On the app's Overview copy the Application (client) ID and the Directory (tenant) ID.",
+          "Certificates & secrets → New client secret → copy the secret Value at once (not the Secret ID).",
+          "API permissions → Add → Microsoft Graph → Application permissions → Mail.Send → Grant admin consent.",
+          "Use a real mailbox of your tenant as the sender (a shared mailbox works). Ask IT to limit the app to that mailbox if possible."
+        ],
+        "fields": {
+          "tenantId": "The Directory (tenant) ID of your Microsoft Entra tenant.",
+          "clientId": "The Application (client) ID of the registered app.",
+          "clientSecret": "The secret Value created under Certificates & secrets; it expires on the date you chose, so renew it before then.",
+          "sender": "The mailbox the app sends as. The app needs the Mail.Send application permission."
+        }
+      }
+    }
+  }
+}

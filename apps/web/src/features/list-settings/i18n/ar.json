@@ -168,6 +168,32 @@
       "filters": {
         "status": "الحالة"
       }
+    },
+    "translation-providers": {
+      "name": "خدمات الترجمة",
+      "columns": {
+        "provider": "الخدمة",
+        "status": "الحالة",
+        "tested": "آخر تجربة",
+        "active": "قيد الاستخدام"
+      },
+      "filters": {
+        "status": "الحالة",
+        "active": "قيد الاستخدام"
+      }
+    },
+    "email-providers": {
+      "name": "خدمات البريد",
+      "columns": {
+        "provider": "الخدمة",
+        "status": "الحالة",
+        "tested": "آخر تجربة",
+        "active": "قيد الاستخدام"
+      },
+      "filters": {
+        "status": "الحالة",
+        "active": "قيد الاستخدام"
+      }
     }
   },
   "listHint": "العمود الأول (الاسم) يبقى دائمًا.",

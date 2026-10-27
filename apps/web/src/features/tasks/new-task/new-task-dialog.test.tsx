@@ -6,6 +6,7 @@ import { me, server } from '../../../../test/msw';
 import { renderPage } from '../../../../test/render';
 import { taskDetail } from '../../../../test/task-fixtures';
 import { NewTaskDialog } from './new-task-dialog';
+import { chooseOption } from '../../../../test/select';
 
 const options = (approver: { id: string; name: string } | null) => ({
   assignees: [{ id: 'u1', name: 'سارة أحمد', isSelf: true }, { id: 'u9', name: 'خالد علي', isSelf: false }],
@@ -34,10 +35,10 @@ describe('New task popup (FR-48)', () => {
     serve();
     page();
     const assignee = await screen.findByLabelText(/المسند إليه/);
-    await waitFor(() => expect(assignee).toHaveValue('u1'));
+    await waitFor(() => expect(assignee).toHaveTextContent('سارة أحمد'));
     expect(screen.getByLabelText(/الموعد/)).toHaveValue(riyadhToday());
-    expect(screen.getByLabelText('الأولوية')).toHaveValue('medium');
-    expect(screen.getByLabelText('التكرار')).toHaveValue('none');
+    expect(screen.getByLabelText('الأولوية')).toHaveTextContent('متوسطة');
+    expect(screen.getByLabelText('التكرار')).toHaveTextContent('لا تتكرر');
     expect(screen.getByRole('button', { name: 'إنشاء المهمة' })).toBeDisabled();
   });
 
@@ -54,8 +55,7 @@ describe('New task popup (FR-48)', () => {
   it('hides the approval note when the task is for somebody else', async () => {
     serve();
     page();
-    await screen.findByRole('option', { name: 'خالد علي' });
-    fireEvent.change(screen.getByLabelText(/المسند إليه/), { target: { value: 'u9' } });
+    await chooseOption(await screen.findByLabelText(/المسند إليه/), 'u9');
     await waitFor(() => expect(screen.queryByText(/فيعتمدها/)).not.toBeInTheDocument());
   });
 
@@ -64,8 +64,8 @@ describe('New task popup (FR-48)', () => {
     page();
     fireEvent.change(await screen.findByLabelText(/العنوان/), { target: { value: 'إعداد تقرير الربع' } });
     fireEvent.change(screen.getByLabelText(/الوقت المتوقع/), { target: { value: '1.5' } });
-    fireEvent.change(screen.getByLabelText('الأولوية'), { target: { value: 'high' } });
-    fireEvent.change(screen.getByLabelText('الفئة'), { target: { value: 'g1' } });
+    await chooseOption(screen.getByLabelText('الأولوية'), 'high');
+    await chooseOption(screen.getByLabelText('الفئة'), 'g1');
     fireEvent.click(screen.getByRole('button', { name: 'إنشاء المهمة' }));
     await waitFor(() => expect(closed).toContain(false));
     expect(posted[0]).toMatchObject({ title: 'إعداد تقرير الربع', priority: 'high', estimateMinutes: 90, tagId: 'g1', dueDate: riyadhToday(), recurrence: 'none', urgent: false, needsReview: false });
@@ -88,7 +88,7 @@ describe('New task popup (FR-48)', () => {
     page();
     await screen.findByLabelText('التكرار');
     expect(screen.queryByLabelText('يتكرر حتى')).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('التكرار'), { target: { value: 'weekly' } });
+    await chooseOption(screen.getByLabelText('التكرار'), 'weekly');
     expect(await screen.findByLabelText('يتكرر حتى')).toBeInTheDocument();
   });
 });
