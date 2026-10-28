@@ -48,20 +48,19 @@ const body = z.string().trim().max(MAX_COMMENT_TEXT);
 export const createCommentSchema = z.strictObject({ body: body.default(''), fileIds: z.array(z.uuid()).max(10).default([]) });
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 
-export const replyCommentSchema = createCommentSchema.extend({ replyToUserId: z.uuid().optional() });
-export type ReplyCommentInput = z.infer<typeof replyCommentSchema>;
-
 export const editCommentSchema = z.strictObject({ body: body.min(1) });
 export type EditCommentInput = z.infer<typeof editCommentSchema>;
 
 export const mentionablesQuerySchema = z.strictObject({ search: z.string().trim().max(100).optional() });
 export type MentionablesQuery = z.infer<typeof mentionablesQuerySchema>;
 
+const cells = z.strictObject({ read: z.boolean(), write: z.boolean(), reply: z.boolean(), upload: z.boolean(), mention: z.boolean(), edit_own: z.boolean(), delete_own: z.boolean() });
+
 /** One cell per relation and action; every cell must be present (the whole matrix is saved at once). */
 export const commentRulesInputSchema = z.strictObject({
-  rules: z.strictObject(Object.fromEntries(COMMENT_RELATIONS.map((r) => [r, z.strictObject(Object.fromEntries(COMMENT_ACTIONS.map((a) => [a, z.boolean()])))]))),
+  rules: z.strictObject({ assignee: cells, creator: cells, approver: cells, reviewer: cells, follower: cells, manager: cells, category_peer: cells, mentioned: cells }),
 });
-export type CommentRulesInput = { rules: CommentRuleMatrix };
+export type CommentRulesInput = z.infer<typeof commentRulesInputSchema>;
 
 // ------------------------------------------------------------------ read models
 
@@ -110,6 +109,4 @@ export interface CommentRulesDto {
   rules: CommentRuleMatrix;
 }
 
-export interface MentionableDto extends CommentPersonDto {
-  email: string;
-}
+export type MentionableDto = CommentPersonDto;

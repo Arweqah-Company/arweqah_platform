@@ -7,7 +7,7 @@ import { useTestApp } from './setup/test-app';
 
 const TAG_KEYS = [P.TasksTagsView, P.TasksTagCreate, P.TasksTagUpdate, P.TasksTagDelete];
 const tagGrants = (scope: 'own' | 'unit' | 'subtree' | 'company' | 'all') => TAG_KEYS.map((key) => ({ key, scope }));
-const POLICY = { objectionWorkingDays: 5, staleDays: 45, backdateDays: 3, urgentDays: 1, reminderDaysBefore: 2, digestWeekday: 1, standaloneRetentionDays: 60 };
+const POLICY = { objectionWorkingDays: 5, staleDays: 45, backdateDays: 3, urgentDays: 1, reminderDaysBefore: 2, digestWeekday: 1, standaloneRetentionDays: 60, commentMaxFiles: 3, commentEditMinutes: 30, commentLockDays: 14 };
 
 describe('Tasks: tags and policies (FR-54)', () => {
   const t = useTestApp();

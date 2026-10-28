@@ -100,6 +100,10 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'task.tag.updated': a('tasks', 'عدّل فئة للمهام', 'Edited a task category'),
   'task.tag.removed': a('tasks', 'حذف فئة للمهام', 'Removed a task category'),
   'task.policy.updated': a('tasks', 'عدّل سياسة المهام', 'Edited the task policy'),
+  'task.comment_added': a('tasks', 'كتب تعليقًا على مهمة', 'Wrote a comment on a task'),
+  'task.comment_edited': a('tasks', 'عدّل تعليقًا على مهمة', 'Edited a comment on a task'),
+  'task.comment_deleted': a('tasks', 'حذف تعليقًا على مهمة', 'Deleted a comment on a task'),
+  'task.comment_rules_changed': a('tasks', 'عدّل صلاحيات التعليقات على المهام', 'Changed who may comment on tasks'),
 
   'integration.saved': a('settings', 'حفظ بيانات خدمة (ترجمة أو بريد)', 'Saved a service’s data (translation or e-mail)'),
   'integration.tested': a('settings', 'جرّب خدمة (ترجمة أو بريد)', 'Tried a service (translation or e-mail)'),

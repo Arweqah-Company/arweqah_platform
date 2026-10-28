@@ -37,7 +37,8 @@ export class TaskPolicyService {
     return this.forCompany(company);
   }
 
-  private async companyOf(companyId: string | null | undefined, ownCompanyId: string | null): Promise<string> {
+  /** The company named in the request, else the administrator's own; it must exist. */
+  async companyOf(companyId: string | null | undefined, ownCompanyId: string | null): Promise<string> {
     const company = companyId ?? ownCompanyId;
     if (!company) throw new TaskPolicyCompanyError();
     if (!(await this.org.companyExists(company))) throw new NotFoundError('Company');

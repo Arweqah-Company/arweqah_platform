@@ -62,4 +62,14 @@ export class TypeOrmTaskDirectory extends TaskDirectory {
     const sql = `${PERSON} AND ${where.join(' AND ')} ORDER BY name LIMIT 30`;
     return this.ds.query(sql, values);
   }
+
+  async mentionables(companyId: string, search?: string): Promise<{ userId: string; name: string }[]> {
+    const values: unknown[] = [companyId];
+    let match = '';
+    if (search) {
+      values.push(likeContains(search));
+      match = ` AND COALESCE(e.full_name, u.name) ILIKE $2`;
+    }
+    return this.ds.query(`SELECT u.id AS "userId", COALESCE(e.full_name, u.name) AS name FROM users u JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE u.is_active AND e.company_id = $1${match} ORDER BY name LIMIT 20`, values);
+  }
 }

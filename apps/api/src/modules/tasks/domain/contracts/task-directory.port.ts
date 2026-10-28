@@ -12,4 +12,6 @@ export abstract class TaskDirectory {
   abstract departmentOf(userId: string): Promise<{ nodeId: string; managerUserId: string | null } | null>;
   /** People the viewer may give tasks to by scope (and `search` by name), at most 30, never the viewer. */
   abstract assignCandidates(viewer: TaskViewer, scope: PermissionScope | null, search?: string): Promise<TaskPerson[]>;
+  /** Active employees of the company whose name matches `search`, at most 20 (for the @ list). */
+  abstract mentionables(companyId: string, search?: string): Promise<{ userId: string; name: string }[]>;
 }

@@ -20,6 +20,10 @@ export const TASK_AUDIT = {
   tagUpdated: 'task.tag.updated',
   tagRemoved: 'task.tag.removed',
   policyUpdated: 'task.policy.updated',
+  commentAdded: 'task.comment_added',
+  commentEdited: 'task.comment_edited',
+  commentDeleted: 'task.comment_deleted',
+  commentRulesChanged: 'task.comment_rules_changed',
 } as const;
 
 export const TASK_TOPICS = {

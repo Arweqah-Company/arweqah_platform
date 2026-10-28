@@ -5,7 +5,16 @@ import { PermissionCatalog } from '../../core/access/application/permission-cata
 import { WorkflowRegistry } from '../../core/workflow/application/workflow-definition';
 import { OrgModule } from '../org/org.module';
 import { TaskAccessPolicy } from './application/policies/task-access.policy';
+import { TaskCommentAccessPolicy } from './application/policies/task-comment-access.policy';
+import { TaskCommentInputPolicy } from './application/policies/task-comment-input.policy';
 import { TaskViewerFactory } from './application/policies/task-viewer';
+import { TaskCommentRulesService } from './application/services/task-comment-rules.service';
+import { TaskCommentService } from './application/services/task-comment.service';
+import { TaskCommentTransformer } from './application/transformers/task-comment.transformer';
+import { TaskCommentRepository } from './domain/contracts/task-comment.repository';
+import { TypeOrmTaskCommentRepository } from './infrastructure/repositories/typeorm-task-comment.repository';
+import { TaskCommentRulesController } from './presentation/controllers/task-comment-rules.controller';
+import { TaskCommentsController } from './presentation/controllers/task-comments.controller';
 import { TaskApprovalService } from './application/services/task-approval.service';
 import { TaskObjectionService } from './application/services/task-objection.service';
 import { TaskArchiveService } from './application/services/task-archive.service';
@@ -50,7 +59,7 @@ import { TasksController } from './presentation/controllers/tasks.controller';
 @Module({
   imports: [OrgModule],
   // The fixed paths (tags, policies) have their own controllers; `tasks/:id` is last in its own.
-  controllers: [TaskTagsController, TaskPoliciesController, TasksController],
+  controllers: [TaskTagsController, TaskPoliciesController, TaskCommentRulesController, TaskCommentsController, TasksController],
   providers: [
     TasksService,
     TaskQueryService,
@@ -68,6 +77,11 @@ import { TasksController } from './presentation/controllers/tasks.controller';
     TaskDailyJob,
     TaskHandoverConsumer,
     TaskPolicyService,
+    TaskCommentService,
+    TaskCommentRulesService,
+    TaskCommentAccessPolicy,
+    TaskCommentInputPolicy,
+    TaskCommentTransformer,
     TaskNotifier,
     TaskAccessPolicy,
     TaskViewerFactory,
@@ -77,6 +91,7 @@ import { TasksController } from './presentation/controllers/tasks.controller';
     { provide: TaskMaintenanceRepository, useClass: TypeOrmTaskMaintenanceRepository },
     { provide: TaskPolicyRepository, useClass: TypeOrmTaskPolicyRepository },
     { provide: TaskSummaryRepository, useClass: TypeOrmTaskSummaryRepository },
+    { provide: TaskCommentRepository, useClass: TypeOrmTaskCommentRepository },
     { provide: TaskTagRepository, useClass: TypeOrmTaskTagRepository },
     { provide: TaskTicketParticipants, useClass: TypeOrmTaskTicketParticipants },
     { provide: TaskProjectMembers, useClass: NoProjectMembersAdapter },

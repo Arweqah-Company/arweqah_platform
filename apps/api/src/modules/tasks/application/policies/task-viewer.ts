@@ -23,6 +23,14 @@ const SCOPED_KEYS: string[] = [
   CorePermission.TasksLogTime,
   CorePermission.TasksArchiveView,
   CorePermission.TasksRestore,
+  CorePermission.TasksCommentView,
+  CorePermission.TasksCommentAdd,
+  CorePermission.TasksCommentReply,
+  CorePermission.TasksCommentUpload,
+  CorePermission.TasksCommentMention,
+  CorePermission.TasksCommentEdit,
+  CorePermission.TasksCommentDelete,
+  CorePermission.TasksCommentDeleteAny,
 ];
 
 /** Builds who is asking: the person, their employee record, and how far each tasks key of theirs reaches. */

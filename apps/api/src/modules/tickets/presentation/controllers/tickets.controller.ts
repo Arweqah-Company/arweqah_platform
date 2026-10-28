@@ -10,6 +10,7 @@ import { viewerOf } from '../../application/policies/ticket-viewer';
 import { TicketCatalogService } from '../../application/services/ticket-catalog.service';
 import { TicketLifecycleService, type PersonAction } from '../../application/services/ticket-lifecycle.service';
 import { TicketsService } from '../../application/services/tickets.service';
+import { sendOpenedFile } from '../../../../core/files/presentation/send-file';
 import { AttachmentParam, CreateTicketBody, TicketActionBody, TicketReplyBody, TicketsQueryDto } from '../dtos/tickets.dtos';
 
 /**
@@ -101,10 +102,7 @@ export class TicketsController {
   @RequirePermission(CorePermission.TicketsView)
   async attachment(@Access() ctx: AccessContext, @Param() { id, fileId }: AttachmentParam, @Res() res: Response): Promise<void> {
     const { file, opened } = await this.tickets.openAttachment(viewerOf(ctx), id, fileId);
-    if ('url' in opened) return res.redirect(opened.url);
-    res.setHeader('Content-Type', file.contentType);
-    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(file.originalName)}`);
-    opened.stream.pipe(res);
+    sendOpenedFile(res, file, opened);
   }
 
   private async act(ctx: AccessContext, id: string, action: PersonAction, body: TicketActionBody): Promise<TicketDto> {
