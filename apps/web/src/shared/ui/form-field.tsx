@@ -1,4 +1,4 @@
-import { useId, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react';
+import { useId, type ComponentProps, type InputHTMLAttributes, type ReactNode } from 'react';
 import { cn } from '../lib/cn';
 import { control, controlBase } from './control-style';
 
@@ -40,6 +40,7 @@ export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElem
   return <input className={cn(control, className)} {...props} />;
 }
 
-export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+/** React 19 passes `ref` as a prop, so a caller may reach the element (the mention box reads the caret). */
+export function Textarea({ className, ...props }: ComponentProps<'textarea'>) {
   return <textarea className={cn(controlBase, 'py-3', className)} {...props} />;
 }

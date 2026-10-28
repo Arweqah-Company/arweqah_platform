@@ -14,6 +14,7 @@ export const tasksFeature: FeatureModule = {
     { path: '/tasks', lazy: () => import('./my-tasks/my-tasks-page').then((m) => ({ Component: m.MyTasksPage })) },
     { path: '/tasks/tags', lazy: () => import('./tags/tags-page').then((m) => ({ Component: m.TagsPage })) },
     { path: '/tasks/policies', lazy: () => import('./policies/policies-page').then((m) => ({ Component: m.PoliciesPage })) },
+    { path: '/tasks/:id/conversation', lazy: () => import('./comments/conversation-page').then((m) => ({ Component: m.ConversationPage })) },
     { path: '/tasks/:id', lazy: () => import('./details/task-details-page').then((m) => ({ Component: m.TaskDetailsPage })) },
   ],
   // Every page has its own key (a person sees only the pages they hold); my team is a tab of my tasks and the matrix a section of the home page; the policies page appears only while platform admin mode is on.

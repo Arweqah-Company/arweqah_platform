@@ -1,10 +1,12 @@
-import { riyadhToday, type TaskDto } from '@arweqah-platform/shared';
+import { CorePermission, riyadhToday, type TaskDto } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
+import { Can } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Alert, PageHeader } from '@/shared/ui';
 import { useTask } from '../api';
 import { TaskFlags, TaskPriorityBadge, TaskStatusBadge } from '../task-badges';
+import { Conversation } from '../comments/conversation';
 import { TaskActions } from './task-actions';
 import { TaskFacts } from './task-facts';
 import { TaskTimeline } from './task-timeline';
@@ -38,6 +40,12 @@ export function TaskDetailsPage() {
         <Notes task={task} />
         <TaskFacts task={task} />
         <TaskActions task={task} today={riyadhToday()} />
+        <Can permission={CorePermission.TasksCommentView}>
+          <section aria-labelledby="task-comments" className="flex flex-col gap-3">
+            <h2 id="task-comments" className="text-lg font-bold">{t('comments.title')}</h2>
+            <Conversation taskId={task.id} />
+          </section>
+        </Can>
         <TaskTimeline task={task} />
       </div>
     </>

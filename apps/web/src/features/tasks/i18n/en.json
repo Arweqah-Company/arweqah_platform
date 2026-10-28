@@ -316,7 +316,9 @@
       "follow": "Follow-up",
       "followHint": "When a task counts as stale and how long an objection waits.",
       "reports": "Summaries and archive",
-      "reportsHint": "The day of the managers' summary and how long closed standalone tasks stay before they are archived."
+      "reportsHint": "The day of the managers' summary and how long closed standalone tasks stay before they are archived.",
+      "comments": "Comments",
+      "commentsHint": "The most files in a comment, how long its author may edit or delete it, and when the conversation closes after the task is done."
     },
     "fields": {
       "urgentDays": "Urgent when due within (days)",
@@ -325,7 +327,10 @@
       "staleDays": "Stale after no movement for (days)",
       "objectionWorkingDays": "An objection lapses after (working days)",
       "digestWeekday": "Day of the managers' summary (0 = Sunday … 6 = Saturday)",
-      "standaloneRetentionDays": "Archive standalone tasks after closing (days)"
+      "standaloneRetentionDays": "Archive standalone tasks after closing (days)",
+      "commentMaxFiles": "Most files in a comment",
+      "commentEditMinutes": "Time to edit or delete a comment (minutes)",
+      "commentLockDays": "Close the conversation after the task is done (days, 0 = never)"
     }
   },
   "home": {
@@ -333,5 +338,61 @@
     "all": "All my tasks",
     "empty": "You have no open tasks.",
     "splitLabel": "Your open tasks by status"
+  },
+  "comments": {
+    "title": "Comments",
+    "pageHint": "The conversation of the task: comments, replies and files.",
+    "openTask": "Open the task",
+    "notFound": "There is no conversation for this task.",
+    "write": "Write a comment",
+    "replyTo": "Write a reply to {{name}}",
+    "editing": "Edit your comment",
+    "attach": "Attach files to the comment",
+    "hint": "Type @ to mention a colleague · Ctrl+Enter to send",
+    "hintNoMention": "Ctrl+Enter to send",
+    "send": "Send",
+    "saveEdit": "Save the change",
+    "sent": "The comment was sent.",
+    "saved": "The change was saved.",
+    "reply": "Reply",
+    "edit": "Edit",
+    "delete": "Delete",
+    "edited": "edited",
+    "deleted": "This comment was deleted",
+    "deleteTitle": "Delete the comment",
+    "deleteText": "The text and the files of the comment disappear for everyone; the replies under it stay.",
+    "inReplyTo": "replying to {{name}}",
+    "empty": "No comments yet.",
+    "locked": "The conversation of this task is closed: you can only read it.",
+    "outsider": "You see the task number, its title and its conversation only.",
+    "readOnly": "You may not write in this conversation.",
+    "mentionList": "Colleagues you can mention"
+  },
+  "commentRules": {
+    "title": "Who may do what in task comments",
+    "hint": "An action passes when the person's role holds its key and the cell of one of their relations to the task is on here. A change applies at once to the old comments too.",
+    "relation": "Relation to the task",
+    "outsiderNote": "A colleague of the category and a mentioned person see the task number, title and conversation only.",
+    "saved": "The comment rules were saved.",
+    "relations": {
+      "assignee": "Assignee",
+      "creator": "Who gave the task",
+      "approver": "Responsible (approver)",
+      "reviewer": "Reviewer",
+      "follower": "Follower",
+      "manager": "Manager (within their team's reach)",
+      "category_peer": "Colleague with an open task of the same category",
+      "mentioned": "Mentioned with @"
+    },
+    "actions": {
+      "read": "Read",
+      "write": "Write",
+      "reply": "Reply",
+      "upload": "Upload a file",
+      "mention": "Mention @",
+      "edit_own": "Edit own",
+      "delete_own": "Delete own"
+    },
+    "cell": "{{relation}}: {{action}}"
   }
 }

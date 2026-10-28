@@ -143,7 +143,16 @@
     "TEMPLATE_INVALID_CONTENT": "The text is not valid. Notifications are plain text, without tags.",
     "TEMPLATE_SELF_APPROVAL": "A change must be approved by someone other than who made it.",
     "TEMPLATE_NOTHING_PENDING": "No change is waiting for approval.",
-    "TEMPLATE_TEST_RATE_LIMITED": "Too many test messages. Try again in a minute."
+    "TEMPLATE_TEST_RATE_LIMITED": "Too many test messages. Try again in a minute.",
+    "TASK_COMMENT_NOT_ALLOWED": "You may not do this in the task conversation.",
+    "TASK_COMMENT_EMPTY": "Write some text or attach a file.",
+    "TASK_COMMENT_TOO_MANY_FILES": "There are more files than a comment may carry.",
+    "TASK_COMMENT_MENTION_INVALID": "You can mention active employees of the task's company only.",
+    "TASK_COMMENT_REPLY_INVALID": "This comment cannot be answered.",
+    "TASK_COMMENT_EDIT_EXPIRED": "The time to edit or delete the comment has passed.",
+    "TASK_COMMENT_CLOSED": "The conversation of this task is closed.",
+    "TASK_COMMENT_ALREADY_DELETED": "This comment was already deleted.",
+    "TASK_COMMENT_FILE_INVALID": "A file could not be attached: upload it yourself first and do not repeat it."
   },
   "scope": {
     "own": "Own record only",

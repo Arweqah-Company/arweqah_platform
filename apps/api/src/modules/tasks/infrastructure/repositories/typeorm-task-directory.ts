@@ -23,6 +23,9 @@ const DEPARTMENT = `SELECT n.id AS "nodeId", mgr.user_id AS "managerUserId"
   WHERE e.user_id = $1 AND e.deleted_at IS NULL
   ORDER BY c.depth ASC LIMIT 1`;
 
+/** Active employees of one company, for the @ list. */
+const MENTIONABLES = `SELECT u.id AS "userId", COALESCE(e.full_name, u.name) AS name FROM users u JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE u.is_active AND e.company_id = $1`;
+
 const PEOPLE_BY_IDS = `${PERSON} AND u.id = ANY($1)`;
 
 @Injectable()
@@ -65,11 +68,8 @@ export class TypeOrmTaskDirectory extends TaskDirectory {
 
   async mentionables(companyId: string, search?: string): Promise<{ userId: string; name: string }[]> {
     const values: unknown[] = [companyId];
-    let match = '';
-    if (search) {
-      values.push(likeContains(search));
-      match = ` AND COALESCE(e.full_name, u.name) ILIKE $2`;
-    }
-    return this.ds.query(`SELECT u.id AS "userId", COALESCE(e.full_name, u.name) AS name FROM users u JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE u.is_active AND e.company_id = $1${match} ORDER BY name LIMIT 20`, values);
+    if (search) values.push(likeContains(search));
+    const sql = `${MENTIONABLES}${search ? ' AND COALESCE(e.full_name, u.name) ILIKE $2' : ''} ORDER BY name LIMIT 20`;
+    return this.ds.query(sql, values);
   }
 }

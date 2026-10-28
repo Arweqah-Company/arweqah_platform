@@ -5,4 +5,5 @@ export const POLICY_SECTIONS: { id: string; keys: TaskPolicyKey[] }[] = [
   { id: 'time', keys: ['urgentDays', 'reminderDaysBefore', 'backdateDays'] },
   { id: 'follow', keys: ['staleDays', 'objectionWorkingDays'] },
   { id: 'reports', keys: ['digestWeekday', 'standaloneRetentionDays'] },
+  { id: 'comments', keys: ['commentMaxFiles', 'commentEditMinutes', 'commentLockDays'] },
 ];

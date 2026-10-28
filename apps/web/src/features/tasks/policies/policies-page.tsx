@@ -6,6 +6,7 @@ import { useCompanyOptions } from '@/core/api/lookups';
 import { Can } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Alert, Button, FormField, Input, PageHeader, SectionCard, Select } from '@/shared/ui';
+import { CommentRulesSection } from '../comments/comment-rules-section';
 import { usePolicy, useSavePolicy } from '../api';
 import { POLICY_SECTIONS } from './policy-sections';
 
@@ -81,6 +82,7 @@ export function PoliciesPage() {
       </div>
       {policy.isError && <Alert>{errorMessage(tc, policy.error)}</Alert>}
       {policy.data && <PolicyForm key={policy.data.companyId} policy={policy.data} />}
+      {policy.data && <Can permission={CorePermission.TasksCommentRulesView}><div className="mt-4 max-w-5xl"><CommentRulesSection companyId={policy.data.companyId} /></div></Can>}
     </>
   );
 }

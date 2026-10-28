@@ -13,6 +13,9 @@ const COMMENT_SELECT = `SELECT c.id, c.task_id AS "taskId", c.parent_id AS "pare
   JOIN users au ON au.id = c.author_user_id LEFT JOIN employees ae ON ae.user_id = au.id AND ae.deleted_at IS NULL
   LEFT JOIN users ru ON ru.id = c.reply_to_user_id LEFT JOIN employees re ON re.user_id = ru.id AND re.deleted_at IS NULL`;
 
+const LIST_COMMENTS = `${COMMENT_SELECT} WHERE c.task_id = $1 ORDER BY c.created_at, c.id`;
+const FIND_COMMENT = `${COMMENT_SELECT} WHERE c.task_id = $1 AND c.id = $2`;
+
 @Injectable()
 export class TypeOrmTaskCommentRepository extends TaskCommentRepository {
   constructor(private readonly ds: DataSource) {
@@ -20,11 +23,11 @@ export class TypeOrmTaskCommentRepository extends TaskCommentRepository {
   }
 
   list(taskId: string): Promise<CommentRow[]> {
-    return this.ds.query(`${COMMENT_SELECT} WHERE c.task_id = $1 ORDER BY c.created_at, c.id`, [taskId]);
+    return this.ds.query(LIST_COMMENTS, [taskId]);
   }
 
   async find(taskId: string, commentId: string): Promise<CommentRow | null> {
-    const rows: CommentRow[] = await this.ds.query(`${COMMENT_SELECT} WHERE c.task_id = $1 AND c.id = $2`, [taskId, commentId]);
+    const rows: CommentRow[] = await this.ds.query(FIND_COMMENT, [taskId, commentId]);
     return rows[0] ?? null;
   }
 

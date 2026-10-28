@@ -116,16 +116,16 @@ test.describe('Task tags and policies (FR-54)', () => {
     await expect(stale).toHaveValue('30');
     await stale.fill('3');
     await expect(page.getByText('استعمل عددًا صحيحًا من 7 إلى 180.')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'حفظ', exact: true })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'حفظ', exact: true }).first()).toBeDisabled();
     await stale.fill('45');
     await settled(page);
     await new Screen(page).expectNoSeriousA11yIssues();
-    await page.getByRole('button', { name: 'حفظ', exact: true }).click();
+    await page.getByRole('button', { name: 'حفظ', exact: true }).first().click();
     await expect(page.getByText('حُفظت السياسات.')).toBeVisible();
     await page.reload();
     await expect(page.getByLabel('راكدة بعد عدم الحركة لمدة (أيام)')).toHaveValue('45');
     await page.getByLabel('راكدة بعد عدم الحركة لمدة (أيام)').fill('30');
-    await page.getByRole('button', { name: 'حفظ', exact: true }).click();
+    await page.getByRole('button', { name: 'حفظ', exact: true }).first().click();
     await expect(page.getByText('حُفظت السياسات.')).toBeVisible();
   });
 
