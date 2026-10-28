@@ -132,6 +132,16 @@ export const CorePermission = {
   TasksTagDelete: 'tasks.tag_delete',
   TasksPoliciesView: 'tasks.policies_view',
   TasksPoliciesEdit: 'tasks.policies_edit',
+  TasksCommentView: 'tasks.comment_view',
+  TasksCommentAdd: 'tasks.comment_add',
+  TasksCommentReply: 'tasks.comment_reply',
+  TasksCommentUpload: 'tasks.comment_upload',
+  TasksCommentMention: 'tasks.comment_mention',
+  TasksCommentEdit: 'tasks.comment_edit',
+  TasksCommentDelete: 'tasks.comment_delete',
+  TasksCommentDeleteAny: 'tasks.comment_delete_any',
+  TasksCommentRulesView: 'tasks.comment_rules_view',
+  TasksCommentRulesEdit: 'tasks.comment_rules_edit',
 } as const;
 export type CorePermissionKey = (typeof CorePermission)[keyof typeof CorePermission];
 

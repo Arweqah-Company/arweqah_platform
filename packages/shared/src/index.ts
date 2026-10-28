@@ -24,6 +24,7 @@ export * from './pages/schemas';
 export * from './lists/catalog';
 export * from './tasks/statuses';
 export * from './tasks/schemas';
+export * from './tasks/comments';
 export * from './translation/schemas';
 export * from './integrations/catalog';
 export * from './integrations/schemas';

@@ -61,6 +61,10 @@ export const TASK_POLICY_LIMITS = {
   reminderDaysBefore: { min: 1, max: 7 },
   digestWeekday: { min: 0, max: 6 },
   standaloneRetentionDays: { min: 7, max: 365 },
+  commentMaxFiles: { min: 1, max: 10 },
+  commentEditMinutes: { min: 0, max: 1440 },
+  /** Days after a task closes when its conversation closes too; 0 = never. */
+  commentLockDays: { min: 0, max: 365 },
 } as const;
 export type TaskPolicyKey = keyof typeof TASK_POLICY_LIMITS;
 
@@ -72,4 +76,7 @@ export const TASK_POLICY_DEFAULTS: Record<TaskPolicyKey, number> = {
   reminderDaysBefore: 1,
   digestWeekday: 0,
   standaloneRetentionDays: 30,
+  commentMaxFiles: 5,
+  commentEditMinutes: 15,
+  commentLockDays: 0,
 };

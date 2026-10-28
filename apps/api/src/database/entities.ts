@@ -27,6 +27,7 @@ import { Employee } from '../modules/employees/domain/entities/employee.entity';
 import { LOOKUP_ENTITIES } from '../modules/lookups/domain/entities/lookup.entities';
 import { ORG_ENTITIES } from '../modules/org/domain/entities/org.entities';
 import { TASK_ENTITIES } from '../modules/tasks/domain/entities/task.entities';
+import { TASK_COMMENT_ENTITIES } from '../modules/tasks/domain/entities/task-comment.entities';
 import { TICKET_ENTITIES } from '../modules/tickets/domain/entities/ticket.entities';
 
 /**
@@ -67,5 +68,6 @@ export const ENTITIES = [
   ...ORG_ENTITIES,
   ...TICKET_ENTITIES,
   ...TASK_ENTITIES,
+  ...TASK_COMMENT_ENTITIES,
   Employee,
 ];

@@ -125,6 +125,9 @@ export const taskPolicyInputSchema = z.strictObject({
   reminderDaysBefore: policyNumber('reminderDaysBefore'),
   digestWeekday: policyNumber('digestWeekday'),
   standaloneRetentionDays: policyNumber('standaloneRetentionDays'),
+  commentMaxFiles: policyNumber('commentMaxFiles'),
+  commentEditMinutes: policyNumber('commentEditMinutes'),
+  commentLockDays: policyNumber('commentLockDays'),
 });
 export type TaskPolicyInput = z.infer<typeof taskPolicyInputSchema>;
 

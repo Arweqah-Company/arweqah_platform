@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-10-28 — Task comments
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 110 | Task comments (FR-66): who may read or write is dynamic — a permission key in the person's role **and** a per-company matrix cell (relation × action) on one of their relations; relations include a colleague with an open task of the same category and a mentioned person, who see only the title and the conversation, never the task's other details or lists; plain-text bodies (`{{mention:id}}`, no HTML), one reply level, soft delete, 15-minute edit window and a file cap as policy numbers | Owner: permissions must be changeable from the dashboard; plain text avoids XSS and keeps notifications and exports simple; the matrix reuses the keys-plus-scope model already on the roles page | A project module adds project members as a relation, or the owner wants private notes or rich text |
+
 ## 2026-10-27 — Settings in one page
 
 | # | Decision | Why | Revisit when |

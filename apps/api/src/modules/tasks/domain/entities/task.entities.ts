@@ -50,6 +50,16 @@ export class TaskPolicy {
   @Column({ name: 'standalone_retention_days', type: 'int', default: 30 })
   standaloneRetentionDays: number;
 
+  @Column({ name: 'comment_max_files', type: 'int', default: 5 })
+  commentMaxFiles: number;
+
+  @Column({ name: 'comment_edit_minutes', type: 'int', default: 15 })
+  commentEditMinutes: number;
+
+  /** 0 = the conversation never closes. */
+  @Column({ name: 'comment_lock_days', type: 'int', default: 0 })
+  commentLockDays: number;
+
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 
@@ -61,6 +71,7 @@ export class TaskPolicy {
 @Entity('tasks')
 @Index('IDX_tasks_assignee_status', ['assigneeUserId', 'status'])
 @Index('IDX_tasks_status_activity', ['status', 'lastActivityAt'])
+@Index('IDX_tasks_tag_status', ['tagId', 'status'])
 export class Task extends BaseEntity {
   /** Human number shown as TSK-000123, from a database sequence. */
   @Index('UQ_tasks_number', { unique: true })
