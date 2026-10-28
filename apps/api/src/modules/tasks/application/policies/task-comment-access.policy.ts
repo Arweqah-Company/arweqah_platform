@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { COMMENT_ACTION_KEYS, CorePermission, type CommentAction, type CommentRelation, type CommentRuleMatrix } from '@arweqah-platform/shared';
+import { CorePermission, type CommentAction, type CommentRelation, type CommentRuleMatrix } from '@arweqah-platform/shared';
 import { Clock } from '../../../../common/application/clock';
 import { TaskCommentRepository } from '../../domain/contracts/task-comment.repository';
 import { TaskRepository } from '../../domain/contracts/task.repository';
@@ -42,14 +42,10 @@ export class TaskCommentAccessPolicy {
     const [relations, matrix, policy] = await Promise.all([this.relationsOf(viewer, task), this.comments.rules(task.companyId), this.policies.forCompany(task.companyId)]);
     const now = this.clock.now();
     const may = (action: CommentAction): boolean => mayDo({ action, relations, holdsKey: holds, matrix });
-    if (!may('read')) throw new TaskNotFoundError();
+    // An archived task stays hidden from whoever may not see the archive, in its conversation too.
+    if (!may('read') || (task.archivedAt !== null && !holds(CorePermission.TasksArchiveView))) throw new TaskNotFoundError();
     const closed = isConversationClosed({ archived: task.archivedAt !== null, completedAt: task.completedAt, lockDays: policy.commentLockDays, now });
     return { viewer, task, relations, isOutsider: isOutsider(relations), matrix, policy, closed, now, may, holds };
-  }
-
-  /** The key of an action, for messages and checks that name it. */
-  keyOf(action: CommentAction): string {
-    return COMMENT_ACTION_KEYS[action];
   }
 
   holdsDeleteAny(ctx: Pick<CommentContext, 'holds'>): boolean {
@@ -58,7 +54,7 @@ export class TaskCommentAccessPolicy {
 
   private async relationsOf(viewer: TaskViewer, task: TaskRow): Promise<CommentRelation[]> {
     const [isCategoryPeer, isMentioned] = await Promise.all([
-      task.tagId ? this.comments.hasOpenTaskInCategory(viewer.userId, task.tagId) : Promise.resolve(false),
+      this.isCategoryPeer(viewer, task),
       this.comments.isMentioned(task.id, viewer.userId),
     ]);
     return commentRelations({
@@ -72,5 +68,11 @@ export class TaskCommentAccessPolicy {
       isCategoryPeer,
       isMentioned,
     });
+  }
+
+  /** Colleagues of the category read a task's conversation only once the task is approved: one still waiting or refused is not theirs to see. */
+  private isCategoryPeer(viewer: TaskViewer, task: TaskRow): Promise<boolean> {
+    const vetted = task.status !== 'pending_approval' && task.status !== 'rejected';
+    return task.tagId && vetted ? this.comments.hasOpenTaskInCategory(viewer.userId, task.tagId) : Promise.resolve(false);
   }
 }

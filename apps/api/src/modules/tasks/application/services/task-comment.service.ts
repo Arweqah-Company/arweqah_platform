@@ -77,7 +77,7 @@ export class TaskCommentService {
   async remove(viewer: TaskViewer, taskId: string, commentId: string): Promise<TaskConversationDto> {
     const ctx = await this.access.open(viewer, taskId);
     const row = await this.liveComment(ctx, commentId);
-    if (!(this.access.holdsDeleteAny(ctx) || this.mayDeleteOwn(ctx, row))) throw new TaskCommentNotAllowedError('delete this comment');
+    this.assertMayDelete(ctx, row);
     await this.tx.run((tx) => this.comments.softDelete(row.id, viewer.userId, ctx.now, tx));
     this.audit(viewer.userId, TASK_AUDIT.commentDeleted, taskId, { commentId: row.id, byAuthor: row.authorUserId === viewer.userId });
     return this.render(ctx);
@@ -122,10 +122,12 @@ export class TaskCommentService {
     if (!withinEditWindow(row.createdAt, ctx.now, ctx.policy.commentEditMinutes)) throw new TaskCommentEditExpiredError(ctx.policy.commentEditMinutes);
   }
 
-  private mayDeleteOwn(ctx: CommentContext, row: CommentRow): boolean {
-    if (row.authorUserId !== ctx.viewer.userId || !ctx.may('delete_own')) return false;
+  /** Anybody may remove their own comment inside the window; the delete-any key (a moderator) removes anybody's at any time. */
+  private assertMayDelete(ctx: CommentContext, row: CommentRow): void {
+    if (this.access.holdsDeleteAny(ctx)) return;
+    if (row.authorUserId !== ctx.viewer.userId) throw new TaskCommentNotAllowedError('delete another person’s comment');
+    this.input.assertMay(ctx, 'delete_own');
     this.assertInWindow(ctx, row);
-    return true;
   }
 
   private async render(ctx: CommentContext): Promise<TaskConversationDto> {

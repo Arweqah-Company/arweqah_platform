@@ -110,16 +110,13 @@ export class TypeOrmTaskCommentRepository extends TaskCommentRepository {
   }
 
   async saveRules(companyId: string, matrix: CommentRuleMatrix, tx: TransactionContext): Promise<void> {
-    const m = managerOf(tx, this.ds.manager);
-    for (const relation of COMMENT_RELATIONS) {
-      for (const action of COMMENT_ACTIONS) {
-        await m.query(
-          `INSERT INTO task_comment_rules (company_id, relation, action, allowed) VALUES ($1, $2, $3, $4)
-           ON CONFLICT (company_id, relation, action) DO UPDATE SET allowed = $4`,
-          [companyId, relation, action, matrix[relation][action]],
-        );
-      }
-    }
+    const cells = COMMENT_RELATIONS.flatMap((relation) => COMMENT_ACTIONS.map((action) => ({ relation, action, allowed: matrix[relation][action] })));
+    await managerOf(tx, this.ds.manager).query(
+      `INSERT INTO task_comment_rules (company_id, relation, action, allowed)
+       SELECT $1, c.relation, c.action, c.allowed FROM unnest($2::text[], $3::text[], $4::boolean[]) AS c(relation, action, allowed)
+       ON CONFLICT (company_id, relation, action) DO UPDATE SET allowed = EXCLUDED.allowed`,
+      [companyId, cells.map((c) => c.relation), cells.map((c) => c.action), cells.map((c) => c.allowed)],
+    );
   }
 
   private async link(commentId: string, mentionIds: string[], fileIds: string[], tx: TransactionContext): Promise<void> {

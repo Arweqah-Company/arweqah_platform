@@ -7,13 +7,26 @@ export interface Mentioned {
 
 export type BodyPart = { kind: 'text'; text: string } | { kind: 'mention'; id: string; name: string };
 
+const WORD = /[\p{L}\p{N}_]/u;
+
+/** Replaces `@name` with `token` where it stands alone: not inside an e-mail address and not as the start of a longer name. */
+function replaceMention(text: string, name: string, token: string): string {
+  const needle = `@${name}`;
+  let out = '';
+  let from = 0;
+  for (let at = text.indexOf(needle); at !== -1; at = text.indexOf(needle, from)) {
+    const before = text[at - 1];
+    const after = text[at + needle.length];
+    const standsAlone = !(before && WORD.test(before)) && !(after && WORD.test(after));
+    out += text.slice(from, at) + (standsAlone ? token : needle);
+    from = at + needle.length;
+  }
+  return out + text.slice(from);
+}
+
 /** The text typed in the box (`@Name`) becomes the stored text (`{{mention:id}}`) for every person picked from the list who is still named. */
 export function encodeMentions(text: string, picked: Mentioned[]): string {
-  let out = text;
-  for (const person of [...picked].sort((a, b) => b.name.length - a.name.length)) {
-    out = out.split(`@${person.name}`).join(`{{mention:${person.id}}}`);
-  }
-  return out;
+  return [...picked].sort((a, b) => b.name.length - a.name.length).reduce((out, person) => replaceMention(out, person.name, `{{mention:${person.id}}}`), text);
 }
 
 /** The stored text split for display: plain pieces and the people it names (an unknown id shows as a bare mention). */

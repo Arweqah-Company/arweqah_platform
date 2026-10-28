@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { CommentRelation } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../../common/application/transaction-runner';
 import { TaskDirectory } from '../../domain/contracts/task-directory.port';
 import { TaskRepository } from '../../domain/contracts/task.repository';
@@ -35,11 +36,12 @@ export class TaskCommentNotices {
     const groups: [TaskNoticeKind, string[], boolean][] = [
       ['commentMentioned', take(posted.mentionIds), false],
       ['commentReplied', take([posted.replyToUserId]), false],
-      ['commentAdded', take([ctx.task.assigneeUserId, ctx.task.creatorUserId]), false],
+      ['commentAdded', take([ctx.task.assigneeUserId, ctx.task.creatorUserId, ctx.task.approverUserId, ctx.task.reviewerUserId]), false],
       ['commentAdded', take(await this.tasks.followerIds(ctx.task.id)), true],
     ];
     for (const [kind, recipients, coalesce] of groups) {
-      await this.notifier.send({ kind, task: ctx.task, recipients, actorUserId: author, commenter, link: `/tasks/${ctx.task.id}/conversation`, coalesce, tx });
+      const readers = recipients.filter((id) => this.mayRead(ctx, id, kind === 'commentMentioned'));
+      await this.notifier.send({ kind, task: ctx.task, recipients: readers, actorUserId: author, commenter, link: `/tasks/${ctx.task.id}/conversation`, coalesce, tx });
     }
   }
 
@@ -47,5 +49,17 @@ export class TaskCommentNotices {
   async sendMentions(ctx: CommentContext, userIds: string[], tx: TransactionContext): Promise<void> {
     const commenter = (await this.directory.person(ctx.viewer.userId))?.name ?? '';
     await this.notifier.send({ kind: 'commentMentioned', task: ctx.task, recipients: userIds, actorUserId: ctx.viewer.userId, commenter, link: `/tasks/${ctx.task.id}/conversation`, tx });
+  }
+
+  /** Whom the company's matrix lets read the conversation by their relation to the task (their keys are not known here); a notice that would open a 404 is not sent. */
+  private mayRead(ctx: CommentContext, userId: string, mentioned: boolean): boolean {
+    const t = ctx.task;
+    const relations: CommentRelation[] = [];
+    if (mentioned) relations.push('mentioned');
+    if (userId === t.assigneeUserId) relations.push('assignee');
+    if (userId === t.creatorUserId) relations.push('creator');
+    if (userId === t.approverUserId) relations.push('approver');
+    if (userId === t.reviewerUserId) relations.push('reviewer');
+    return relations.length === 0 || relations.some((r) => ctx.matrix[r].read);
   }
 }

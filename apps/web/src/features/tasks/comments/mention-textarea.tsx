@@ -73,7 +73,7 @@ export function MentionTextarea({ taskId, value, onChange, onPick, label, mayMen
         maxLength={maxLength}
         aria-label={label}
         value={value}
-        onChange={(e) => { setDismissed(false); setCaret(e.target.selectionStart); onChange(e.target.value); }}
+        onChange={(e) => { setDismissed(false); setActive(0); setCaret(e.target.selectionStart); onChange(e.target.value); }}
         onKeyUp={(e) => setCaret(e.currentTarget.selectionStart)}
         onClick={(e) => setCaret(e.currentTarget.selectionStart)}
         onKeyDown={onKeyDown}

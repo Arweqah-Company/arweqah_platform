@@ -247,8 +247,7 @@ describe('Task comments, replies, files and mentions (FR-66)', () => {
     it('audits a change of the matrix without any text', async () => {
       const w = await world();
       await saveRules(w, (m) => { m.manager.delete_own = false; });
-      const rows: { action: string }[] = await t.db.query(`SELECT action FROM audit_logs WHERE action = 'task.comment_rules_changed'`);
-      expect(rows).toHaveLength(1);
+      await expect.poll(async () => (await t.db.query(`SELECT 1 FROM audit_logs WHERE action = 'task.comment_rules_changed'`)).length).toBe(1);
     });
   });
 
@@ -276,6 +275,16 @@ describe('Task comments, replies, files and mentions (FR-66)', () => {
       const mine = (await w.agents.peer.get('/api/tasks').expect(200)).body.items as { id: string }[];
       expect(mine.map((x) => x.id)).not.toContain(w.task.id);
       await t.db.query(`UPDATE tasks SET status = 'done' WHERE id = $1`, [own.id]);
+      await w.agents.peer.get(url(w)).expect(404);
+    });
+
+    it('does not let a colleague read the conversation of a task still waiting for approval', async () => {
+      const w = await world();
+      const tagId = await categorised(w);
+      const own = (await w.agents.peer.post('/api/tasks').send({ title: 'مهمتي', assigneeUserId: w.peer.id }).expect(201)).body as TaskDto;
+      await t.db.query(`UPDATE tasks SET tag_id = $1, status = 'todo' WHERE id = $2`, [tagId, own.id]);
+      await w.agents.peer.get(url(w)).expect(200);
+      await t.db.query(`UPDATE tasks SET status = 'pending_approval' WHERE id = $1`, [w.task.id]);
       await w.agents.peer.get(url(w)).expect(404);
     });
 
@@ -355,6 +364,17 @@ describe('Task comments, replies, files and mentions (FR-66)', () => {
       await post(w.agents.assignee, w, { body: 'بعد الاسترجاع' });
     });
 
+    it('keeps an archived task\'s conversation from whoever may not see the archive', async () => {
+      const w = await world();
+      await post(w.agents.assignee, w, { body: 'قبل الأرشفة' });
+      await t.db.query('UPDATE tasks SET archived_at = now() WHERE id = $1', [w.task.id]);
+      await t.db.query('INSERT INTO task_followers (task_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [w.task.id, w.stranger.id]);
+      await w.agents.assignee.get(url(w)).expect(200);
+      const noArchive = await t.factories.user({ unit: w.org.unitA, grants: TASK_COMMENT_GRANTS });
+      await t.db.query('INSERT INTO task_followers (task_id, user_id) VALUES ($1, $2)', [w.task.id, noArchive.id]);
+      await (await t.factories.signIn(noArchive)).get(url(w)).expect(404);
+    });
+
     it('locks the conversation the policy days after the task closed (0 = never)', async () => {
       const w = await world();
       await t.db.query(`UPDATE tasks SET status = 'done', completed_at = now() - interval '10 days' WHERE id = $1`, [w.task.id]);
@@ -387,6 +407,15 @@ describe('Task comments, replies, files and mentions (FR-66)', () => {
       for (const who of ['assignee', 'manager'] as const) expect((await notices(w.agents[who])).filter((n) => n.link === conversation(w))).toHaveLength(1);
       expect((await notices(w.agents.follower)).filter((n) => n.link === conversation(w))).toHaveLength(0);
       expect(JSON.stringify(await notices(w.agents.assignee))).not.toContain('123456');
+    });
+
+    it('also tells the approver and the reviewer, and skips a person whose read cell is off', async () => {
+      const w = await world();
+      await t.db.query('UPDATE tasks SET reviewer_user_id = $1 WHERE id = $2', [w.follower.id, w.task.id]);
+      await saveRules(w, (m) => { m.assignee.read = false; });
+      await post(w.agents.manager, w, { body: 'للجميع' });
+      expect((await notices(w.agents.assignee)).filter((n) => n.link === conversation(w))).toHaveLength(0);
+      expect((await notices(w.agents.follower)).filter((n) => n.link === conversation(w))).toHaveLength(1);
     });
 
     it('tells whom a reply answers (once, by that reason), and a follower only once while an earlier notice is unread', async () => {
@@ -422,6 +451,7 @@ describe('Task comments, replies, files and mentions (FR-66)', () => {
       const [c] = (await post(w.agents.assignee, w, { body: 'نص سري جدًا' })).comments;
       await w.agents.assignee.patch(url(w, `/${c?.id}`)).send({ body: 'نص سري معدّل' }).expect(200);
       await w.agents.assignee.delete(url(w, `/${c?.id}`)).expect(200);
+      await expect.poll(async () => (await t.db.query(`SELECT 1 FROM audit_logs WHERE action LIKE 'task.comment_%'`)).length).toBe(3);
       const rows: { action: string; changes: unknown }[] = await t.db.query(`SELECT action, changes FROM audit_logs WHERE action LIKE 'task.comment_%' ORDER BY created_at`);
       expect(rows.map((r) => r.action)).toEqual(['task.comment_added', 'task.comment_edited', 'task.comment_deleted']);
       expect(JSON.stringify(rows)).not.toContain('سري');

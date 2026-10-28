@@ -8,6 +8,9 @@ describe('Mentions in a comment (FR-66)', () => {
   it('stores a picked name as its token, the longest name first so a shorter one does not eat it', () => {
     expect(encodeMentions('مرحبا @سارة أحمد و @سارة', [SAMI, SARA])).toBe(`مرحبا {{mention:${SARA.id}}} و {{mention:${SAMI.id}}}`);
     expect(encodeMentions('بريد a@b.com', [SARA])).toBe('بريد a@b.com');
+    const ALI = { id: SARA.id, name: 'Ali' };
+    expect(encodeMentions('cc @Alice and a@Ali', [ALI])).toBe('cc @Alice and a@Ali');
+    expect(encodeMentions('cc @Ali, thanks', [ALI])).toBe(`cc {{mention:${SARA.id}}}, thanks`);
   });
 
   it('splits the stored text for display and decodes it back for editing', () => {
