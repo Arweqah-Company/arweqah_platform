@@ -79,7 +79,7 @@ test.describe('Tasks (FR-48, FR-49, FR-50, FR-51)', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'مهامي' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'فريقي' })).toHaveCount(0);
     await page.getByRole('tab', { name: 'فريقي' }).click();
-    await expect(page.getByLabel('عرض', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('عرض', { exact: true }).first()).toBeVisible();
     await settled(page);
     await new Screen(page).expectNoSeriousA11yIssues();
   });
