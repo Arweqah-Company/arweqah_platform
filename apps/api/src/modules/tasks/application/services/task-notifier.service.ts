@@ -22,19 +22,23 @@ export class TaskNotifier {
     actorUserId?: string | null;
     toStatus?: TaskStatus;
     count?: number;
+    commenter?: string;
+    /** Where the notice opens (the task page by default). */
+    link?: string;
+    coalesce?: boolean;
     tx?: TransactionContext;
   }): Promise<void> {
     const userIds = [...new Set(input.recipients.filter((id): id is string => !!id))].filter((id) => id !== input.actorUserId);
     if (!userIds.length) return;
     const notice = await this.notice(input);
-    await this.notifications.notify({ userIds, ...notice, link: input.task.id ? `/tasks/${input.task.id}` : input.kind === 'digest' ? '/tasks/team' : '/tasks', channels: EMAIL_NOTICES.has(input.kind) ? ['email'] : undefined, purpose: 'tasks', tx: input.tx });
+    await this.notifications.notify({ userIds, ...notice, link: input.link ?? (input.task.id ? `/tasks/${input.task.id}` : input.kind === 'digest' ? '/tasks/team' : '/tasks'), coalesce: input.coalesce, channels: EMAIL_NOTICES.has(input.kind) ? ['email'] : undefined, purpose: 'tasks', tx: input.tx });
   }
 
   /** The wording of a notice: the live template filled with the task number (and its title where the notice is not e-mailed) and, for a status change, the status in each language. */
-  private notice(input: { kind: TaskNoticeKind; task: { title: string; number: string | number }; toStatus?: TaskStatus; count?: number }) {
+  private notice(input: { kind: TaskNoticeKind; task: { title: string; number: string | number }; toStatus?: TaskStatus; count?: number; commenter?: string }) {
     const number = formatTaskNumber(input.task.number);
     const task = EMAIL_NOTICES.has(input.kind) ? number : `${number} — ${input.task.title}`;
     const status = input.toStatus ? STATUS_NAMES[input.toStatus] : { ar: '', en: '' };
-    return this.templates.renderNotice(TASK_TEMPLATE_KEYS[input.kind], { taskNumber: number, task, count: String(input.count ?? 0) }, { ar: { status: status.ar }, en: { status: status.en } });
+    return this.templates.renderNotice(TASK_TEMPLATE_KEYS[input.kind], { taskNumber: number, task, count: String(input.count ?? 0), commenter: input.commenter ?? '' }, { ar: { status: status.ar }, en: { status: status.en } });
   }
 }

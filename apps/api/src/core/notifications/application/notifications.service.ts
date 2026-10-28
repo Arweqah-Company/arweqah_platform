@@ -21,6 +21,8 @@ export interface NotifyCommand {
   channels?: Exclude<ChannelName, 'in_app'>[];
   /** The category the e-mail is filed under in the e-mail log; a general notification when not given. */
   purpose?: EmailPurpose;
+  /** Skip the people who still have an unread notification with the same link (a busy thread tells them once). */
+  coalesce?: boolean;
   tx?: TransactionContext;
 }
 
@@ -57,8 +59,11 @@ export class NotificationsService implements OnModuleInit {
   }
 
   async notify(cmd: NotifyCommand): Promise<void> {
+    const quiet = cmd.coalesce && cmd.link ? await this.repo.withUnreadAt(cmd.userIds, cmd.link, cmd.tx) : [];
+    const userIds = cmd.userIds.filter((id) => !quiet.includes(id));
+    if (!userIds.length) return;
     const rows = await this.repo.insertMany(
-      cmd.userIds.map((userId) => ({
+      userIds.map((userId) => ({
         userId,
         titleAr: cmd.titleAr,
         titleEn: cmd.titleEn,

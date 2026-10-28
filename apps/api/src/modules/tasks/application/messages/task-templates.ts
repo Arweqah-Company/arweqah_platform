@@ -28,11 +28,15 @@ export const TASK_TEMPLATE_KEYS: Record<TaskNoticeKind, string> = {
   reassigned: 'task.reassigned',
   archived: 'task.archived',
   restored: 'task.restored',
+  commentMentioned: 'task.comment_mentioned',
+  commentReplied: 'task.comment_replied',
+  commentAdded: 'task.comment_added',
 };
 
 const NUMBER = variable('taskNumber', ['رقم المهمة', 'The task number'], formatTaskNumber(45));
 const TASK = localizedVariable('task', ['المهمة (رقمها، ومعه عنوانها حيث يجوز)', 'The task (its number, with its title where allowed)'], [`${formatTaskNumber(45)} — إعداد التقرير`, `${formatTaskNumber(45)} — Prepare the report`]);
 const STATUS = localizedVariable('status', ['الحالة الجديدة', 'The new status'], ['قيد التنفيذ', 'In progress']);
+const COMMENTER = variable('commenter', ['اسم كاتب التعليق', 'The name of the person who commented'], 'Sara');
 const COUNT = variable('count', ['العدد', 'The count'], '5');
 
 type Spec = [TaskNoticeKind, [string, string], [string, string], [string, string], [string, string]];
@@ -58,11 +62,20 @@ const SPECS: Spec[] = [
   ['reassigned', ['تغيّر المسند إليه', 'New assignee'], ['عندما تنتقل مهمة إلى مسؤول جديد بسبب انتهاء خدمة موظف', 'When a task moves to a new assignee because an employee left'], ['تغيّر المسند إليه في {{taskNumber}}', '{{taskNumber}} has a new assignee'], ['انتقلت المهمة {{task}} إلى مسؤول جديد بسبب انتهاء خدمة موظف.', 'Task {{task}} moved to a new assignee because an employee left.']],
   ['archived', ['أرشفة مهمة', 'Task archived'], ['عند أرشفة مهمة', 'When a task is archived'], ['أُرشفت {{taskNumber}}', '{{taskNumber}} was archived'], ['أُرشفت المهمة {{task}}.', 'Task {{task}} was archived.']],
   ['restored', ['استرجاع مهمة', 'Task restored'], ['عند استرجاع مهمة من الأرشيف', 'When a task is restored from the archive'], ['استُرجعت {{taskNumber}}', '{{taskNumber}} was restored'], ['استُرجعت المهمة {{task}} من الأرشيف.', 'Task {{task}} was restored from the archive.']],
+  ['commentMentioned', ['ذكرك أحد في تعليق', 'Mentioned in a comment'], ['عندما يذكرك زميل بـ @ في تعليق على مهمة (البريد بلا نص التعليق)', 'When a colleague mentions you with @ in a comment on a task (the e-mail never carries the comment)'], ['ذكرك {{commenter}} في {{taskNumber}}', '{{commenter}} mentioned you in {{taskNumber}}'], ['ذكرك {{commenter}} في تعليق على المهمة {{task}}.', '{{commenter}} mentioned you in a comment on task {{task}}.']],
+  ['commentReplied', ['ردّ على تعليقك', 'Reply to your comment'], ['عندما يرد أحد على تعليقك في مهمة', 'When someone replies to your comment on a task'], ['ردّ {{commenter}} على تعليقك في {{taskNumber}}', '{{commenter}} replied to your comment in {{taskNumber}}'], ['ردّ {{commenter}} على تعليقك في المهمة {{task}}.', '{{commenter}} replied to your comment on task {{task}}.']],
+  ['commentAdded', ['تعليق جديد', 'New comment'], ['عند كتابة تعليق على مهمة أنت فيها (لا يصل تكراره ما دام السابق غير مقروء)', 'When someone comments on a task you are in (not repeated while the earlier notice is unread)'], ['تعليق جديد على {{taskNumber}}', 'New comment on {{taskNumber}}'], ['كتب {{commenter}} تعليقًا على المهمة {{task}}.', '{{commenter}} commented on task {{task}}.']],
 ];
 
 const COUNTED: ReadonlySet<TaskNoticeKind> = new Set(['digest', 'handedOverMany']);
 
-const variablesOf = (kind: TaskNoticeKind) => (COUNTED.has(kind) ? [COUNT] : kind === 'statusChanged' ? [NUMBER, TASK, STATUS] : [NUMBER, TASK]);
+const COMMENTED: ReadonlySet<TaskNoticeKind> = new Set(['commentMentioned', 'commentReplied', 'commentAdded']);
+
+const variablesOf = (kind: TaskNoticeKind) => {
+  if (COUNTED.has(kind)) return [COUNT];
+  if (COMMENTED.has(kind)) return [NUMBER, TASK, COMMENTER];
+  return kind === 'statusChanged' ? [NUMBER, TASK, STATUS] : [NUMBER, TASK];
+};
 
 export const TASK_TEMPLATES: TemplateDefinition[] = SPECS.map(([kind, name, when, title, body]) =>
   noticeTemplate({ key: TASK_TEMPLATE_KEYS[kind], area: 'tasks', name, when, variables: variablesOf(kind), title, body }),

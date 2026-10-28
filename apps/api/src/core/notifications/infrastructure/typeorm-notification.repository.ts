@@ -20,6 +20,15 @@ export class TypeOrmNotificationRepository extends NotificationRepository {
     return m.save(Notification, rows.map((r) => m.create(Notification, r)));
   }
 
+  async withUnreadAt(userIds: string[], link: string, tx?: TransactionContext): Promise<string[]> {
+    if (!userIds.length) return [];
+    const rows: { userId: string }[] = await managerOf(tx, this.repo.manager).query(
+      'SELECT DISTINCT user_id AS "userId" FROM notifications WHERE user_id = ANY($1) AND link = $2 AND read_at IS NULL',
+      [userIds, link],
+    );
+    return rows.map((r) => r.userId);
+  }
+
   async listFor(userId: string, query: NotificationsQuery): Promise<Paginated<Notification>> {
     const base = {
       userId,

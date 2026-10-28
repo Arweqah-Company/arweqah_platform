@@ -21,6 +21,7 @@ import { TASK_AUDIT } from '../messages/task.messages';
 import { TaskCommentAccessPolicy, type CommentContext } from '../policies/task-comment-access.policy';
 import { TaskCommentInputPolicy } from '../policies/task-comment-input.policy';
 import { TaskCommentTransformer } from '../transformers/task-comment.transformer';
+import { TaskCommentNotices } from './task-comment-notices.service';
 
 /** The conversation of a task: comments, replies, files and mentions. Every action asks the key and the company's matrix (see TaskCommentAccessPolicy). */
 @Injectable()
@@ -30,6 +31,7 @@ export class TaskCommentService {
     private readonly access: TaskCommentAccessPolicy,
     private readonly input: TaskCommentInputPolicy,
     private readonly transformer: TaskCommentTransformer,
+    private readonly notices: TaskCommentNotices,
     private readonly directory: TaskDirectory,
     private readonly files: FilesService,
     private readonly tx: TransactionRunner,
@@ -64,7 +66,10 @@ export class TaskCommentService {
     this.assertInWindow(ctx, row);
     const previous = (await this.comments.mentionsOf([row.id])).map((m) => m.userId);
     const mentionIds = await this.input.mentionIds(ctx, body.body, previous);
-    await this.tx.run((tx) => this.comments.edit(row.id, { body: body.body, editedAt: ctx.now, mentionIds }, tx));
+    await this.tx.run(async (tx) => {
+      await this.comments.edit(row.id, { body: body.body, editedAt: ctx.now, mentionIds }, tx);
+      await this.notices.sendMentions(ctx, mentionIds.filter((id) => !previous.includes(id)), tx);
+    });
     this.audit(viewer.userId, TASK_AUDIT.commentEdited, taskId, { commentId: row.id, mentions: mentionIds.length });
     return this.render(ctx);
   }
@@ -96,7 +101,11 @@ export class TaskCommentService {
   // -------------------------------------------------------------------- helpers
 
   private async store(ctx: CommentContext, comment: { body: string; fileIds: string[]; parentId: string | null; replyToUserId: string | null; mentionIds: string[] }): Promise<TaskConversationDto> {
-    const id = await this.tx.run((tx) => this.comments.insert({ taskId: ctx.task.id, authorUserId: ctx.viewer.userId, ...comment }, tx));
+    const id = await this.tx.run(async (tx) => {
+      const created = await this.comments.insert({ taskId: ctx.task.id, authorUserId: ctx.viewer.userId, ...comment }, tx);
+      await this.notices.send(ctx, comment, tx);
+      return created;
+    });
     this.audit(ctx.viewer.userId, TASK_AUDIT.commentAdded, ctx.task.id, { commentId: id, reply: comment.parentId !== null, files: comment.fileIds.length, mentions: comment.mentionIds.length });
     return this.render(ctx);
   }

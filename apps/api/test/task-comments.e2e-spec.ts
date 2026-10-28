@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { TestAgent } from './factories/factories';
 import { ADMIN_MODE_GRANT } from './factories/factories';
 import { TASK_COMMENT_GRANTS, TASK_COMMENTER_GRANTS, taskManagerGrants } from './factories/task-grants';
+import { OutboxRelay } from '../src/core/messaging/infrastructure/typeorm-outbox';
 import { useTestApp } from './setup/test-app';
 
 const PNG = Buffer.from('89504e470d0a1a0a0000000d4948445200000001000000010806000000', 'hex');
@@ -364,6 +365,54 @@ describe('Task comments, replies, files and mentions (FR-66)', () => {
       expect((await read(w.agents.assignee, w)).locked).toBe(true);
       await put(0);
       await post(w.agents.assignee, w, { body: 'عاد مفتوحًا' });
+    });
+  });
+
+  describe('Notices', () => {
+    const notices = async (agent: TestAgent) => (await agent.get('/api/notifications').expect(200)).body.items as { link: string; titleEn: string; bodyEn: string }[];
+    const conversation = (w: World) => `/tasks/${w.task.id}/conversation`;
+
+    it('tells the mentioned person (also by e-mail, without the text), the assignee and whoever gave the task, never the author', async () => {
+      const w = await world();
+      t.mail.sent.length = 0;
+      await post(w.agents.follower, w, { body: `${mention(w.stranger.id)} رقم الحساب 123456` });
+      const mentioned = await notices(w.agents.stranger);
+      expect(mentioned).toHaveLength(1);
+      expect(mentioned[0]).toMatchObject({ link: conversation(w) });
+      expect(mentioned[0]?.titleEn).toContain('mentioned you');
+      await t.app.get(OutboxRelay).flush();
+      const mails = t.mail.sent.filter((m) => m.to === w.stranger.email);
+      expect(mails).toHaveLength(1);
+      expect(JSON.stringify(mails)).not.toContain('123456');
+      for (const who of ['assignee', 'manager'] as const) expect((await notices(w.agents[who])).filter((n) => n.link === conversation(w))).toHaveLength(1);
+      expect((await notices(w.agents.follower)).filter((n) => n.link === conversation(w))).toHaveLength(0);
+      expect(JSON.stringify(await notices(w.agents.assignee))).not.toContain('123456');
+    });
+
+    it('tells whom a reply answers (once, by that reason), and a follower only once while an earlier notice is unread', async () => {
+      const w = await world();
+      const [root] = (await post(w.agents.assignee, w, { body: 'سؤال' })).comments;
+      await w.agents.manager.post(url(w, `/${root?.id}/replies`)).send({ body: 'جواب' }).expect(201);
+      const assigneeNotices = (await notices(w.agents.assignee)).filter((n) => n.link === conversation(w));
+      expect(assigneeNotices).toHaveLength(1);
+      expect(assigneeNotices[0]?.titleEn).toContain('replied to your comment');
+      await post(w.agents.manager, w, { body: 'ثانية' });
+      await post(w.agents.manager, w, { body: 'ثالثة' });
+      expect((await notices(w.agents.follower)).filter((n) => n.link === conversation(w))).toHaveLength(1);
+      await w.agents.follower.post('/api/notifications/read-all').expect(200);
+      await post(w.agents.manager, w, { body: 'رابعة' });
+      expect((await notices(w.agents.follower)).filter((n) => n.link === conversation(w))).toHaveLength(2);
+    });
+
+    it('tells only the new name when an edit mentions somebody else', async () => {
+      const w = await world();
+      const [c] = (await post(w.agents.assignee, w, { body: `${mention(w.stranger.id)} هل` })).comments;
+      const before = (await notices(w.agents.stranger)).length;
+      const managerBefore = (await notices(w.agents.manager)).length;
+      await w.agents.assignee.patch(url(w, `/${c?.id}`)).send({ body: `${mention(w.stranger.id)} ${mention(w.peer.id)} هل` }).expect(200);
+      expect((await notices(w.agents.stranger)).length).toBe(before);
+      expect(await notices(w.agents.peer)).toHaveLength(1);
+      expect((await notices(w.agents.manager)).length).toBe(managerBefore);
     });
   });
 

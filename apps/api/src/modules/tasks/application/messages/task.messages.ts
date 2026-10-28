@@ -51,10 +51,13 @@ export type TaskNoticeKind =
   | 'handedOverMany'
   | 'reassigned'
   | 'archived'
-  | 'restored';
+  | 'restored'
+  | 'commentMentioned'
+  | 'commentReplied'
+  | 'commentAdded';
 
 /** Notices that also go out by e-mail: their text never carries the title (e-mail is not the place for it). */
-export const EMAIL_NOTICES: ReadonlySet<TaskNoticeKind> = new Set<TaskNoticeKind>(['assigned', 'objected', 'completionRejected', 'awaitingReview', 'handedOver', 'handedOverMany']);
+export const EMAIL_NOTICES: ReadonlySet<TaskNoticeKind> = new Set<TaskNoticeKind>(['assigned', 'objected', 'completionRejected', 'awaitingReview', 'handedOver', 'handedOverMany', 'commentMentioned']);
 
 export const STATUS_NAMES: Record<TaskStatus, { ar: string; en: string }> = {
   pending_approval: { ar: 'بانتظار الاعتماد', en: 'Pending approval' },
