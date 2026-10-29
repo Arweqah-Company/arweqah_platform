@@ -157,7 +157,8 @@
     "translation": "Translation",
     "email": "E-mail",
     "email-templates": "E-mail templates",
-    "notification-templates": "Notification templates"
+    "notification-templates": "Notification templates",
+    "tour-settings": "Welcome tour"
   },
   "tabsLabel": "Services",
   "noTabs": "You may not view any of these settings.",
@@ -275,6 +276,18 @@
           "clientSecret": "The secret Value created under Certificates & secrets; it expires on the date you chose, so renew it before then.",
           "sender": "The mailbox the app sends as. The app needs the Mail.Send application permission."
         }
+      }
+    }
+  },
+  "tour": {
+    "settings": {
+      "title": "Settings",
+      "body": "Translation and e-mail services, message and notification templates and the welcome tour in one page of tabs, each tab shown to whoever holds its key.",
+      "can": {
+        "translation": "Set up and try the translation service",
+        "email": "Set up and try the e-mail service",
+        "email_templates": "Reword the e-mail messages",
+        "notification_templates": "Reword the notifications"
       }
     }
   }

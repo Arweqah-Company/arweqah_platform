@@ -72,5 +72,17 @@
   "deleteGroupBody": {
     "role-group": "The group “{{name}}” is deleted and the people it was given to lose the permissions that came through it.",
     "user-group": "The group “{{name}}” is deleted and its members lose the permissions that came through it."
+  },
+  "tour": {
+    "permissions": {
+      "title": "Permissions",
+      "body": "Every page and button has a permission key. This page shows what each role, group and person holds, and at which scope (all, the unit, or only their own).",
+      "can": {
+        "role": "Change a role’s permissions",
+        "group": "Change a group of roles",
+        "user": "Give one person particular permissions",
+        "usergroup": "Change a group of people’s permissions"
+      }
+    }
   }
 }

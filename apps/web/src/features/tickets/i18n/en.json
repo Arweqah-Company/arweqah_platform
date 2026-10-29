@@ -273,5 +273,36 @@
     "assignee": "Assignee: {{name}}",
     "sender": "Sender: {{name}}",
     "truncated": "Showing {{shown}} of {{total}} tickets. Search or filter to narrow."
+  },
+  "tour": {
+    "tickets": {
+      "title": "Tickets",
+      "body": "Tickets are the formal way to ask another department for something: pick the department and type, write your request, and follow its status and replies until it is closed. Every ticket has a number and a clear path.",
+      "can": {
+        "create": "Send a new ticket to the right department",
+        "reply": "Reply to tickets and exchange files and notes",
+        "request_close": "Ask to close a ticket once it is done",
+        "confirm_close": "Confirm or decline closing a ticket",
+        "reopen": "Reopen a closed ticket",
+        "setup": "Set up your desk, its ticket types and its durations",
+        "figures": "Read the figures and performance of the desks"
+      }
+    },
+    "ticket-new": {
+      "title": "New ticket",
+      "body": "Open a ticket from this button: pick the department and the type of request, write the title and details, attach any files, and send. It reaches the person in charge of that department and gets a number you can follow it by.",
+      "can": {
+        "reply": "After sending you follow replies and add notes and files from the ticket page"
+      }
+    },
+    "ticket-views": {
+      "title": "Ways to view tickets",
+      "body": "Switch here between the table, cards and a status board. The board puts each status in a column so you see where every request stands. Click any ticket to open its page with replies, files and its history. A ticket is not edited once sent; the conversation continues in replies until it is closed.",
+      "can": {
+        "reply": "You reply to a ticket from its page",
+        "request_close": "You ask to close it once the work is done",
+        "confirm_close": "You confirm the closing, or decline it if the request is not complete"
+      }
+    }
   }
 }

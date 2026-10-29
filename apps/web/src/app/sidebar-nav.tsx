@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation } from 'react-router';
 import type { NavGroupId, NavItem } from '@/core/feature';
 import { buildNavEntries, NAV_GROUPS } from '@/core/navigation';
+import { useTourControls } from '@/features/tour';
 import { cn } from '@/shared/lib/cn';
 
 interface Props {
@@ -24,7 +25,7 @@ function SidebarLink({ item, collapsed, onNavigate, nested }: { item: NavItem; c
   const { t } = useTranslation();
   const Icon = item.icon;
   return (
-    <NavLink to={item.to} end={item.to === '/' || item.end} onClick={onNavigate} title={collapsed ? t(item.labelKey) : undefined} className={({ isActive }) => linkClass(isActive, cn(collapsed && 'lg:justify-center lg:px-0', nested && 'py-2.5'))}>
+    <NavLink to={item.to} data-tour={`nav:${item.to}`} end={item.to === '/' || item.end} onClick={onNavigate} title={collapsed ? t(item.labelKey) : undefined} className={({ isActive }) => linkClass(isActive, cn(collapsed && 'lg:justify-center lg:px-0', nested && 'py-2.5'))}>
       <Icon className="size-5 shrink-0" aria-hidden />
       <span className={cn(collapsed && 'lg:sr-only')}>{t(item.labelKey)}</span>
     </NavLink>
@@ -64,7 +65,9 @@ export function SidebarNav({ items, collapsed, onNavigate }: Props) {
   const activeGroup = entries.find((e) => e.kind === 'group' && e.items.some((i) => pathname.startsWith(i.to)));
   // What the person toggled wins; otherwise the menu holding the current page is open.
   const [toggled, setToggled] = useState<Partial<Record<NavGroupId, boolean>>>({});
-  const isOpen = (id: NavGroupId) => toggled[id] ?? (activeGroup?.kind === 'group' && activeGroup.id === id);
+  const { navForced } = useTourControls();
+  const forced = entries.find((e) => e.kind === 'group' && e.items.some((i) => i.to === navForced));
+  const isOpen = (id: NavGroupId) => (forced?.kind === 'group' && forced.id === id) || (toggled[id] ?? (activeGroup?.kind === 'group' && activeGroup.id === id));
   const toggle = (id: NavGroupId) => setToggled((prev) => ({ ...prev, [id]: !isOpen(id) }));
 
   return (

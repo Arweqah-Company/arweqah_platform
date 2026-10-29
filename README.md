@@ -101,6 +101,7 @@ Bring employee, project and request management into one secure platform that spe
 | FR-64 | **E-mail templates (Settings → «E-mail templates» tab):** an administrator edits every e-mail the platform sends (the account-activation invitation, and the frame that carries each notification e-mailed: tickets, tasks…) in Arabic and English: subject, preview line, body in a rich-text editor (bold, italic, underline, lists, link), the button label, and the header band and button colors from the **seven brand colors only**. Typing **`@`** in the text offers the **variables** that template's code fills (recipient name, activation link, notification title…), inserted as chips and stored as `{{name}}`; a variable the code cannot fill is refused (422 `TEMPLATE_UNKNOWN_VARIABLE`), and the activation link cannot be removed (422 `TEMPLATE_MISSING_VARIABLE`; a button label counts as carrying it). The server sanitizes the HTML (no script, style, image or event attributes; http, https and mailto links only), escapes every filled value, builds the page itself (logo, band, button, footer, right-to-left for Arabic) and adds a plain-text part. Live preview with example values, «Send me a test» (to the administrator's own address; filed as «e-mail settings test» in the e-mail log), «Back to default». Default wording stays in the code and is what is sent when nothing is customised or when a customised message fails to render. Saved in `message_templates` (jsonb). **Approval by a second person** is a switch in the tab (`templates.email_settings`, off at first): while on, a save becomes a pending change, the current wording stays live, and someone else holding `templates.email_approve` approves or rejects it; the author cannot approve (403 `TEMPLATE_SELF_APPROVAL`). Keys: `templates.email_view/edit/reset/test/approve/settings/export`. Audit: `template.saved/submitted/approved/rejected/reset/settings_changed` (key and kind only, never the wording). SMS is not templated yet. Plan: `docs/plans/integration-providers.md`. |  Platform administrator | Should | `apps/api/test/templates.e2e-spec.ts`, `apps/api/src/core/templates/domain/rules/template-rules.spec.ts`, `apps/web/src/features/templates/*.test.ts*`, `e2e/tests/templates.spec.ts` |
 | FR-65 | **Notification templates (Settings → «Notification templates» tab):** the same for the title and body of every in-app notice (the bell, and the e-mail copy that goes through the e-mail frame of FR-64) in Arabic and English: the 8 ticket notices and 20 task notices, each with its own variables (`@ticketNumber`, `@deskName`, `@taskNumber`, `@task`, `@status`, `@count`). Notifications are **plain text** (paragraphs and variables; markup is refused, 422 `TEMPLATE_INVALID_CONTENT`) because the bell and later SMS show plain text. Same list, preview, reset, approval switch (`templates.notification_settings`) and audit. The ticket and task notifiers now take their wording from the live template, with today's text as the default. Keys: `templates.notification_view/edit/reset/approve/settings/export`. |  Platform administrator | Should | `apps/api/test/templates.e2e-spec.ts`, `apps/web/src/features/templates/templates-tab.test.tsx` |
 | FR-66 | **Task comments (`docs/plans/phase-3-tasks.md` §14):** every task has a conversation: plain-text comments with paragraphs, up to 5 files each, one level of replies and **`@` mentions** (any active employee of the company; typing `@` opens a list, the name is stored as `{{mention:id}}`; the mentioned person joins the conversation as «mentioned» — not as a follower of the task, so the task itself stays hidden from them — and is notified, e-mail never carries the text). Who may read and write is **dynamic**: an action passes when the person's role holds the key **and** a cell of a per-company matrix (relation × action, edited in Task policies) is on for one of their relations: assignee, assigner, approver («responsible»), reviewer, follower, manager in scope, **colleague with an open task of the same category**, mentioned. A person who is not a party (colleague, mentioned) sees only the task number, title and the conversation. Edit and delete of one's own comment within 15 minutes (a number in the policies), an «edited» mark, a soft delete that leaves «this comment was deleted» with its replies; deleting another's comment needs its own key. Comments stay open after «done», read-only once archived, optional lock after X days (0 = never). Notices (editable in Settings → Notification templates, variable `@commenter`): the mentioned (also by e-mail), whoever a reply answers, the assignee and whoever gave the task, and the followers once while an earlier notice of the thread is still unread; nobody is told of their own comment. Keys: `tasks.comment_view/add/reply/upload/mention/edit/delete/delete_any`, `tasks.comment_rules_view/edit` (admin mode, the matrix is a section of the Task policies page). A conversation has no list, so it has no export. Audit: `task.comment_added/edited/deleted`, `task.comment_rules_changed` (ids only, never the text). | Employees, managers, platform administrator | Must | `apps/api/test/task-comments.e2e-spec.ts`, `apps/api/src/modules/tasks/domain/rules/task-comment-access.rules.spec.ts`, `apps/web/src/features/tasks/comments/*.test.ts*`, `e2e/tests/task-comments.spec.ts` |
+| FR-67 | **Welcome tour (`docs/plans/welcome-tour.md`):** the first time a person signs in, a guided tour dims the screen and highlights the real elements one by one with a bubble (title, text, next / back / skip; Esc skips, arrows move): their account menu (profile, security, sign-out, restart), language and theme, notifications, the side menu, then the home page, and for each page (tickets, tasks and «new task», employees, the organization) **first its link in the side menu** (the tour opens the menu that holds it) and then the steps inside the page, each only if the person holds the page's key and no role hides the page. Every page step says in a few lines what the feature is for and then **what this person can do there**, one line for each permission they hold (e.g. send a ticket, approve tasks, export), so two people see different lists. How it ended (finished or skipped) is saved **on the account**, so it never returns from another device; «Restart the tour» is in the account menu and the profile page. An administrator who switches admin mode on for the first time gets a separate **administration tour** (admin mode, companies, roles, permissions, audit log, e-mail log, settings, and the tour settings; pages with no link in the side menu, such as page visibility and list management, have no step); both are 404 to anyone who may not use admin mode. After a release adds steps, a person who already finished is offered a small «what’s new» card with only the new steps (start or later). The steps and what they highlight live in the code (each feature declares those of its pages: `FeatureModule.tour`, catalog `packages/shared/src/tour/catalog.ts`); an administrator edits each step's wording in Arabic and English, switches it off and reorders it in **Settings → Welcome tour** (a list with table / cards, search, filters by tour, state and «changed», export; keys `tour.settings_view`, `_edit`, `_reorder`, `_reset`, `_export`; admin mode; the page can be hidden). The bubble is built from the design system (`Button`, `Badge`, semantic colors, `--tour-overlay`) and works in light and dark, Arabic and English, desktop and phone, with focus kept inside it. Every new feature adds the steps of its pages (standing rule 9). Tests: API e2e `tour.e2e-spec.ts` (own progress, permission-based steps, hidden pages, what's new, admin tour 404, settings edit / order / reset, 400/422, 403 per key, audit without wording), unit (step order rules, play steps, auto start, tooltip), component (settings tab), Playwright + axe (`tour.spec.ts`, desktop and phone, Arabic / English / dark). |
 
 Every test suite names the requirement IDs it covers in its `describe(...)` title.
 
@@ -375,6 +376,24 @@ erDiagram
     int minutes
     date worked_on
   }
+  user_tour_progress {
+    uuid id PK
+    uuid user_id FK
+    string tour "general or admin"
+    string status "completed or skipped"
+    text[] seen_steps
+  }
+  tour_step_settings {
+    uuid id PK
+    string step_key UK "declared in code"
+    bool enabled
+    int sort_order
+    string title_ar
+    string title_en
+    string body_ar
+    string body_en
+    uuid updated_by
+  }
   task_tags {
     uuid id PK
     uuid org_node_id FK
@@ -473,6 +492,7 @@ erDiagram
   tasks ||--o{ task_followers : "followed by"
   tasks ||--o{ task_objections : "objected to"
   tasks ||--o{ task_time_entries : "time logged"
+  users ||--o{ user_tour_progress : "how far in a tour"
 ```
 
 ## 7. Flowcharts
@@ -609,6 +629,25 @@ flowchart LR
   save --> check{Every key in catalog and scope allowed?}
   check -- no --> e422[422 UNKNOWN_PERMISSION / SCOPE_NOT_ALLOWED]
   check -- yes --> store[Replace grants atomically] --> invalidate[Drop cached access contexts] --> live([Applies on the holders' next request])
+```
+
+### Welcome tour (FR-67)
+
+```mermaid
+flowchart TD
+  login([Signed in, code verified]) --> get[GET /api/me/tour/general: the steps this person may see]
+  get --> seen{Progress saved?}
+  seen -- none --> play[Dim the screen, show step 1: open its page or menu, wait for the element]
+  seen -- finished or skipped --> fresh{Steps not seen yet?}
+  fresh -- yes --> card[Offer the what's new card] --> play
+  fresh -- no --> quiet([Nothing shown])
+  play --> step{Element appears?}
+  step -- no --> skipstep[Skip it in the direction of travel] --> play
+  step -- yes --> bubble[Bubble: next, back, skip, Esc, arrows]
+  bubble --> end{Last step or skip?}
+  end -- no --> play
+  end -- yes --> save[POST complete or skip: saved on the account] --> quiet
+  restart([Restart in the account menu or profile]) --> clear[POST restart: forget progress] --> play
 ```
 
 ## 8. Sequence diagrams
@@ -794,6 +833,23 @@ sequenceDiagram
   R-->>S: ACCESS_CHANGED if anything changed (cached access is dropped)
 ```
 
+### Editing the welcome tour (FR-67)
+
+```mermaid
+sequenceDiagram
+  actor A as Administrator (admin mode on)
+  participant W as Settings → Welcome tour
+  participant API as API (/api/tour-steps)
+  participant DB as PostgreSQL
+  actor E as Employee
+  A->>W: reword a step, switch it off or move it
+  W->>API: PUT /tour-steps/:key or /tour-steps/order (key per action)
+  API->>DB: upsert tour_step_settings (null text = the code's wording)
+  API-->>A: the row (customised) and an audit entry (step name, never the wording)
+  E->>API: GET /me/tour/general (own permissions and hidden pages applied)
+  API-->>E: enabled steps in the administrator's order with the changed wording
+```
+
 ### Platform admin mode (FR-34)
 
 ```mermaid
@@ -906,12 +962,13 @@ Requirement traceability: each `describe` title lists the FR/NFR IDs it covers, 
 | Line manager (custom role) | What the role grants, limited to their unit or subtree | Act outside their scope |
 | System Admin (system role) | Every permission at the widest scope: translation and e-mail services (data, try-out, switch on), companies, levels, units, job titles, roles (with how each is assigned), page visibility per role, list management, audit log, e-mail log, and may switch **platform admin mode** on (`admin_mode.use`) | Delete system roles; use anything before linking the authenticator |
 | Desk manager (named in a desk's setup) | Switch admin mode on, set up the desk, see its tickets (not personal ones), answer, reassign, read its figures | See personal tickets, act on other desks |
+| Administrator with the tour keys (`tour.settings_*`) | In admin mode, reword, switch off and reorder the welcome-tour steps (Settings → Welcome tour), reset a step to the code's wording | Add or remove steps (they come with the code), read anyone's progress |
 | Auditor (custom role with `audit.view`) | Read the audit log | See secrets (redacted) |
 | Microsoft Entra ID | Authenticate company accounts (setup: `docs/microsoft-sign-in.md`, check: `npm run microsoft:check`) | Create accounts (sign-up disabled) |
 | Translation and e-mail services (AWS, Google, Azure, SMTP, SES, SendGrid, Microsoft 365) / SMS provider | Translate text, deliver messages | Read any data beyond the message |
 | GitHub Actions | Build, test, deploy | Read production secrets (they live on the server) |
 
-Permission catalog (one key for every **page** (view) and every **button or action**; the API refuses an action without its key and the web hides the button): admin mode `admin_mode.use`; roles `roles.view/create/update/delete/export`; groups of roles `role_groups.view/create/update/delete`; groups of people `user_groups.view/create/update/delete`; the permissions page `permissions.view`, `permissions.role_update/role_group_update/user_update/user_group_update`; pages `pages.view/manage`; lists `lists.view/manage`; audit `audit.view/export`; e-mail log `notifications.email_log`, `notifications.email_log_export`; `lookups.view`; own account `profile.view/update`, `security.view`, `notifications.view/mark_read/export`; companies `companies.view/create/update/delete/export/import`; organization `org.view`, `org.unit_create/update/move/delete`, `org.levels_manage`, `org.titles_manage`, `org.export`; employees `employees.view/create/update/deactivate/terminate/assign_roles/view_sensitive/resend_invite/reset_authenticator/export/import`; tickets `tickets.view/create/reply/request_close/confirm_close` (approve) `/decline_close` (reject) `/close_without_execution/reopen`, `tickets.setup_view/setup_edit/type_create/type_update/type_delete/figures_view`, `tickets.administer` (every department). The **Employee** role starts with the own-account and ticket keys (`EMPLOYEE_DEFAULT_PERMISSIONS`); everything else is given by an administrator from the roles page. Each feature module adds its own keys the same way.
+Permission catalog (one key for every **page** (view) and every **button or action**; the API refuses an action without its key and the web hides the button): admin mode `admin_mode.use`; roles `roles.view/create/update/delete/export`; groups of roles `role_groups.view/create/update/delete`; groups of people `user_groups.view/create/update/delete`; the permissions page `permissions.view`, `permissions.role_update/role_group_update/user_update/user_group_update`; pages `pages.view/manage`; lists `lists.view/manage`; audit `audit.view/export`; e-mail log `notifications.email_log`, `notifications.email_log_export`; `lookups.view`; own account `profile.view/update`, `security.view`, `notifications.view/mark_read/export`; companies `companies.view/create/update/delete/export/import`; organization `org.view`, `org.unit_create/update/move/delete`, `org.levels_manage`, `org.titles_manage`, `org.export`; employees `employees.view/create/update/deactivate/terminate/assign_roles/view_sensitive/resend_invite/reset_authenticator/export/import`; tickets `tickets.view/create/reply/request_close/confirm_close` (approve) `/decline_close` (reject) `/close_without_execution/reopen`, `tickets.setup_view/setup_edit/type_create/type_update/type_delete/figures_view`, `tickets.administer` (every department). The **Employee** role starts with the own-account and ticket keys (`EMPLOYEE_DEFAULT_PERMISSIONS`); everything else is given by an administrator from the roles page. Each feature module adds its own keys the same way. Welcome tour settings `tour.settings_view`, `tour.settings_edit`, `tour.settings_reorder`, `tour.settings_reset`, `tour.settings_export` (the tour itself needs no key).
 
 ## 13. Constraints
 
@@ -990,7 +1047,8 @@ Every API module has `domain / application / infrastructure / presentation`, eac
 2. API: `apps/api/src/modules/<feature>/{domain,application,infrastructure,presentation}`, a `<feature>.permissions.ts` registered on module init, entities added to `database/entities.ts`, a migration (`npm run db:migration:generate --name=<Feature>`), a workflow definition registered in `WorkflowRegistry` if it has approvals, e2e specs named with its FR IDs.
 3. Shared: request schemas and DTOs in `packages/shared/src/<feature>/`.
 4. Web: `apps/web/src/features/<feature>/` with `index.ts` exporting a `FeatureModule` (lazy routes, nav item with its permission, `i18n/{ar,en}.json`), then one line in `app/features.ts`.
-5. Update sections 4, 6, 7, 8 and 12 of this README in the same PR.
+5. Add the welcome-tour steps of every new page (`packages/shared/src/tour/catalog.ts`, `FeatureModule.tour`, `data-tour`, `tour.<key>.{title,body}` in ar and en, a Playwright check) — standing rule 9; the plan lists them without being asked.
+6. Update sections 4, 6, 7, 8 and 12 of this README in the same PR.
 
 ### Brand
 

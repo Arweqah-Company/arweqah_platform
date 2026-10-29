@@ -27,7 +27,7 @@ export function PageHeader({ title, description, actions }: { title: string; des
       <Breadcrumb current={title} />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-fg">{title}</h1>
+          <h1 data-tour="page-title" className="text-2xl font-bold text-fg">{title}</h1>
           {description && <p className="mt-1 max-w-[70ch] text-sm text-muted">{description}</p>}
         </div>
         {actions && <div className="flex gap-2">{actions}</div>}

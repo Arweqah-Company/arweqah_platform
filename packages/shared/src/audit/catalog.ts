@@ -115,10 +115,13 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'template.rejected': a('settings', 'رفض تعديل رسالة', 'Rejected a message change'),
   'template.reset': a('settings', 'أعاد رسالة إلى صياغتها الأصلية', 'Reset a message to its default wording'),
   'template.settings_changed': a('settings', 'غيّر إعداد اعتماد تعديلات الرسائل', 'Changed the approval setting for message changes'),
+  'tour.step_edited': a('settings', 'عدّل خطوة في جولة الترحيب', 'Edited a welcome-tour step'),
+  'tour.step_reset': a('settings', 'أعاد خطوة في جولة الترحيب إلى نصّها الأصلي', 'Reset a welcome-tour step to its default wording'),
+  'tour.reordered': a('settings', 'غيّر ترتيب خطوات جولة الترحيب', 'Reordered the welcome-tour steps'),
   'list.settings_updated': a('settings', 'عدّل أعمدة قائمة وفلاترها', 'Edited a list’s columns and filters'),
 };
 
-const PREFIX_CATEGORY: Record<string, AuditCategory> = { auth: 'sign_in', employee: 'employees', profile: 'employees', company: 'organization', org: 'organization', role: 'access', role_group: 'access', user_group: 'access', permissions: 'access', ticket: 'tickets', task: 'tasks', tasks: 'tasks', integration: 'settings', list: 'settings', template: 'settings' };
+const PREFIX_CATEGORY: Record<string, AuditCategory> = { auth: 'sign_in', employee: 'employees', profile: 'employees', company: 'organization', org: 'organization', role: 'access', role_group: 'access', user_group: 'access', permissions: 'access', ticket: 'tickets', task: 'tasks', tasks: 'tasks', integration: 'settings', list: 'settings', template: 'settings', tour: 'settings' };
 
 /** The category of an action; one the list does not know yet falls back to its first word, then to "other". */
 export function categoryOfAction(action: string): AuditCategory {

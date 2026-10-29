@@ -34,6 +34,7 @@ import { EmployeesModule } from './modules/employees/employees.module';
 import { LookupsModule } from './modules/lookups/lookups.module';
 import { OrgModule } from './modules/org/org.module';
 import { TasksModule } from './modules/tasks/tasks.module';
+import { TourModule } from './modules/tour/tour.module';
 import { TicketsModule } from './modules/tickets/tickets.module';
 
 const JSON_LIMIT = '1mb';
@@ -74,6 +75,7 @@ const JSON_LIMIT = '1mb';
     EmployeesModule,
     TicketsModule,
     TasksModule,
+    TourModule,
     HealthModule,
   ],
   providers: [

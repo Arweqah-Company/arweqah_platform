@@ -29,3 +29,5 @@ export * from './translation/schemas';
 export * from './integrations/catalog';
 export * from './integrations/schemas';
 export * from './templates/schemas';
+export * from './tour/catalog';
+export * from './tour/schemas';

@@ -2,6 +2,13 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-10-29 — Welcome tour
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 111 | The welcome tour (FR-67, `docs/plans/welcome-tour.md`) uses `react-joyride` 3.2.0 (MIT, exact pin, published 2026-07-09) with our own `TourTooltip` built from `shared/ui` (`Button`, `Badge`) and semantic tokens; dimming is `--tour-overlay` in `theme.css` (light and dark), the arrow uses `var(--color-white)`, the spotlight ring `var(--color-link)`. Candidates rejected: Shepherd.js and Intro.js (AGPL-3.0), Onborda (needs Next.js), reactour (abandoned) and `@reactour/tour` (no release since May 2025); driver.js is vanilla JS and harder to link with our components and routes. Phase 0 spike checked on real renders: Arabic RTL and English LTR, light and dark, desktop and phone, focus stays inside the bubble, no CSP problem (web CSP allows inline styles; Joyride also accepts a `nonce`). Findings to keep: pass `locale` (next, back, skip, close, last) from i18n because the buttons' `aria-label`s default to English; give the bubble `aria-labelledby` its title (axe `aria-dialog-name`); the library's overlay and arrow colors take CSS variables | Owner chose a tour that matches the design system in both themes; AGPL libraries would force opening our code | A release that breaks RTL or the React 19 peer range, or a real CSP nonce policy |
+| 112 | The tour's flow is ours, not Joyride's: one step at a time, so a step on another page, in the account menu or in the phone's drawer can open what it needs, wait for its element (3 s) and be skipped in the direction of travel when it never shows; progress is saved on the account (`user_tour_progress`: status and the steps already seen, so a later release offers only the new ones); the steps are declared in code (shared catalog + `FeatureModule.tour`) and only the wording, the switch and the order are stored (`tour_step_settings`, a null text means the code's wording); the administration tour is 404 for anyone without `admin_mode.use`; audit entries carry the step name, never the wording | Joyride's own multi-step mode cannot navigate between routes or keep a Radix menu open, and its buttons are labelled in English by default | Joyride adds route-aware steps, or a step needs a target inside a dialog |
+
 ## 2026-10-28 — Task comments
 
 | # | Decision | Why | Revisit when |

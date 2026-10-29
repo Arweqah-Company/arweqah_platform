@@ -44,5 +44,17 @@
   },
   "inheritedBadge": "Comes from roles and groups ({{scope}})",
   "selectAll": "Select all permissions",
-  "clearAll": "Clear all"
+  "clearAll": "Clear all",
+  "tour": {
+    "roles": {
+      "title": "Roles",
+      "body": "A role is a set of permissions given to whoever holds it. Here you see the roles, how each is given (by hand or automatically) and how many people hold it, and you can open a role to review its permissions.",
+      "can": {
+        "create": "Create a new role with its permissions and scope",
+        "update": "Edit an existing role",
+        "delete": "Delete a role nobody holds",
+        "export": "Export the list of roles"
+      }
+    }
+  }
 }

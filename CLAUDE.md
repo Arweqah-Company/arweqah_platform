@@ -54,8 +54,10 @@ Seeded admin (local): `s.magdy@arweqah.sa` (no password): sign in with Microsoft
 7. **One code structure and architecture everywhere:** API modules and web features follow the folders in the `module-architecture` skill and "Architecture rules" above, shared code in shared places; new modules copy the structure of tickets / tasks, never invent another.
 8. **Quality gates on every task:** clean code (`clean-code` skill, limits enforced by ESLint, duplication < 3 %), security (`security-check`, `npm run security:check`, scope and permission tests), and tests: API e2e named with FR ids (happy path, validation, 403 per role, out-of-scope 404), component tests, Playwright + axe; `npm run verify` and both e2e suites green before saying done.
 
+9. **Every new feature plan includes its welcome-tour part by default** (`docs/plans/welcome-tour.md`), without the owner having to ask: each page the feature adds gets a step (key in `packages/shared/src/tour/catalog.ts` with its permission or page key, `data-tour` on the element, `tour.<key>.{title,body}` in ar + en, a Playwright check that the step shows for the right role), and the plan's phases list it. A plan without its tour row is incomplete.
+
 ## Definition of done for a feature
-Description captured as FR rows in README §4 (next free FR id; foundation used FR-01…FR-12) · API module + migration + permissions · shared schemas · web feature (ar + en) · API e2e specs named with FR ids (happy path, validation, 403 per role, out-of-scope 404, concurrency where relevant) · component tests · Playwright journey + axe · README §4/6/7/8/12 updated · `turbo run lint typecheck build test` and both e2e suites green · Conventional Commit.
+Description captured as FR rows in README §4 (next free FR id; foundation used FR-01…FR-12) · API module + migration + permissions · shared schemas · web feature (ar + en) · API e2e specs named with FR ids (happy path, validation, 403 per role, out-of-scope 404, concurrency where relevant) · component tests · Playwright journey + axe · welcome-tour steps for its pages (standing rule 9) · README §4/6/7/8/12 updated · `turbo run lint typecheck build test` and both e2e suites green · Conventional Commit.
 
 ## Start of every task (read first, in this order)
 Before writing code for any task, read what is current so nothing is built on stale assumptions:

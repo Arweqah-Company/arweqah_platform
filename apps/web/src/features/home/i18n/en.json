@@ -40,5 +40,18 @@
     "waiting": "Waiting for my reply",
     "waitingEmpty": "Nothing waits for your reply.",
     "needsConfirm": "Awaiting your confirmation"
+  },
+  "tour": {
+    "home": {
+      "title": "Home",
+      "body": "Your day at a glance: the numbers of your tasks and tickets and what needs your attention now. Each number opens the list it counts, so the details are one click away.",
+      "can": {
+        "tasks": "See the numbers of your open, late and soon-due tasks",
+        "tickets": "See the numbers of the tickets you sent or handle",
+        "matrix": "See the task matrix by importance and urgency",
+        "employees": "See the employee statistics within your scope",
+        "audit": "See the latest activity recorded on the platform"
+      }
+    }
   }
 }

@@ -22,5 +22,18 @@
     "withEmployees": "Has employees",
     "withoutEmployees": "No employees"
   },
-  "codeInvalid": "Invalid code: English letters, digits and hyphen, 2 to 20."
+  "codeInvalid": "Invalid code: English letters, digits and hyphen, 2 to 20.",
+  "tour": {
+    "companies": {
+      "title": "Companies",
+      "body": "The companies on the platform with their codes and headcount. Each company has its own structure and policies, managed here in admin mode.",
+      "can": {
+        "create": "Add a new company",
+        "update": "Edit a company",
+        "delete": "Delete a company that has no employees",
+        "import": "Import companies from a file",
+        "export": "Export the list of companies"
+      }
+    }
+  }
 }

@@ -115,5 +115,38 @@
     "withoutEmployees": "No employees",
     "withManager": "Has a manager",
     "withoutManager": "No manager"
+  },
+  "tour": {
+    "org": {
+      "title": "Organization",
+      "body": "The company tree with its sectors, departments, sections and units, each with its manager and headcount. Switch between the chart and the table to see the view that suits you, and search to reach any unit.",
+      "can": {
+        "unit_create": "Add a new unit to the structure",
+        "unit_update": "Edit a unit and its manager",
+        "unit_move": "Move a unit elsewhere in the tree",
+        "levels": "Manage the levels of the structure",
+        "titles": "Manage job titles",
+        "export": "Export the structure to a file"
+      }
+    },
+    "org-views": {
+      "title": "Ways to view the structure",
+      "body": "Switch between three views: the chart is a tree of colored cards, the icicle is side-by-side blocks, and the table lists every unit. The divisions are the levels of the structure (sector, department, section, unit); each level has a fixed color shown in the legend above the chart. Click any unit to see its manager, employees and job titles."
+    },
+    "org-levels": {
+      "title": "Structure levels",
+      "body": "Here you set the levels of the structure, their names and order; every unit belongs to one of them. A change here shows across the company.",
+      "can": {
+        "titles": "You add job titles to your units with the \"Add job title\" button"
+      }
+    },
+    "org-add-unit": {
+      "title": "Add a unit",
+      "body": "Click here to add a unit: write its name in Arabic and English, choose its level, then the parent unit it belongs to, its manager and its job titles, and save so it appears in the chart. In the table view a \"+\" button on each row adds a unit directly under it.",
+      "can": {
+        "unit_update": "You edit any unit and its manager with the pencil on its row",
+        "unit_move": "You move a unit under another parent with the move button"
+      }
+    }
   }
 }

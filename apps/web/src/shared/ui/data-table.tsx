@@ -132,7 +132,7 @@ function RowTable<T>({ caption, columns, rows, rowKey, isLoading, groupOf, sort,
               {headingBefore(rows, index, groupOf) !== null && (
                 <tr className="bg-neutral-50"><th scope="colgroup" colSpan={columns.length} className="px-4 py-2 text-start text-xs font-bold text-muted">{headingBefore(rows, index, groupOf)}</th></tr>
               )}
-              <tr onClick={rowClick(row, onRowClick)} className={cn('border-b border-neutral-200/70 transition-colors duration-150 last:border-0 hover:bg-neutral-50/70', onRowClick && 'cursor-pointer')}>
+              <tr data-tour={index === 0 ? 'first-row' : undefined} onClick={rowClick(row, onRowClick)} className={cn('border-b border-neutral-200/70 transition-colors duration-150 last:border-0 hover:bg-neutral-50/70', onRowClick && 'cursor-pointer')}>
                 {columns.map((c) => (
                   <td key={c.id ?? c.header} className={`px-4 py-4 align-middle ${c.className ?? ''}`}>
                     {c.cell(row)}
@@ -156,7 +156,7 @@ function RowCards<T>({ columns, rows, rowKey, groupOf, onRowClick }: RowsProps<T
       {rows?.map((row, index) => (
         <Fragment key={rowKey(row)}>
           {headingBefore(rows, index, groupOf) !== null && <li className="col-span-full pt-2 text-xs font-bold text-muted">{headingBefore(rows, index, groupOf)}</li>}
-          <li onClick={rowClick(row, onRowClick)} className={cn('rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm shadow-ink/5', onRowClick && 'cursor-pointer')}>
+          <li data-tour={index === 0 ? 'first-row' : undefined} onClick={rowClick(row, onRowClick)} className={cn('rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm shadow-ink/5', onRowClick && 'cursor-pointer')}>
           <dl className="flex flex-col gap-2 text-sm">
             {fields.map((c) => (
               <div key={c.id ?? c.header} className="flex items-start justify-between gap-4">

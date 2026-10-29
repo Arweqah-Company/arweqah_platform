@@ -1,0 +1,122 @@
+{
+  "next": "Next",
+  "back": "Back",
+  "skip": "Skip",
+  "done": "Done",
+  "close": "Close the tour",
+  "progress": "{{current}} of {{total}}",
+  "restart": "Restart the tour",
+  "whatsNew": {
+    "title": "There is something new",
+    "start": "Show me",
+    "later": "Later",
+    "body_one": "One new step was added to the tour. Would you like to see it?",
+    "body_other": "{{count}} new steps were added to the tour. Would you like to see them?"
+  },
+  "tour": {
+    "welcome": {
+      "title": "Welcome to the Arweqah platform",
+      "body": "A short tour of the most important places and what you can do in each, by your permissions. You can skip it at any time and restart it later from your account menu."
+    },
+    "account-menu": {
+      "title": "Your account",
+      "body": "Your name in the top bar opens your account menu: your profile, security, sign-out and this tour."
+    },
+    "profile": {
+      "title": "My profile",
+      "body": "Change your language and theme (light or dark), see your work details kept by HR, and edit your contact details.",
+      "can": {
+        "update": "Edit your phone, personal e-mail and English name"
+      }
+    },
+    "security": {
+      "title": "Security",
+      "body": "The authenticator app you sign in with, your open sessions, and how to keep your account safe."
+    },
+    "sign-out": {
+      "title": "Sign out",
+      "body": "Leave the platform from here when you are done, especially on a shared device."
+    },
+    "language-theme": {
+      "title": "Language and theme",
+      "body": "Switch between Arabic and English, and between the light and the dark theme. Your choice is saved in your account."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "body": "The bell tells you what concerns you: a reply to your ticket, a task assigned to you, or a mention of your name in a conversation. Press it for the latest five, or open the full page with its filters.",
+      "can": {
+        "mark": "Mark notifications as read",
+        "export": "Export notifications to a file"
+      }
+    },
+    "sidebar": {
+      "title": "The side menu",
+      "body": "Every page you may open, in groups. Press a group to open it."
+    },
+    "finish": {
+      "title": "That is the tour",
+      "body": "You are ready. You can restart the tour at any time from your account menu. Good luck!"
+    },
+    "admin-mode": {
+      "title": "Admin mode",
+      "body": "The administration pages appear only while this mode is on, with a fresh code from the authenticator app, and it switches off by itself after some idle time. It keeps you from changing something important by mistake."
+    },
+    "tour-settings": {
+      "title": "Welcome tour settings",
+      "body": "Control this tour itself: reword each step in Arabic and English, switch off the ones you do not want, and reorder the steps. The original wording is kept and you can go back to it.",
+      "can": {
+        "edit": "Reword a step and switch it off",
+        "reorder": "Reorder the steps",
+        "reset": "Reset a step to its original wording",
+        "export": "Export the list of steps"
+      }
+    }
+  },
+  "settings": {
+    "title": "Welcome tour steps",
+    "description": "The tour every employee sees on first sign-in, and the administration tour for administrators. Reword a step, switch it off or move it. The steps themselves (what is highlighted and where) are fixed in the system.",
+    "searchLabel": "Search the tour steps",
+    "searchPlaceholder": "Search the title or text",
+    "noMatches": "No steps match.",
+    "columns": {
+      "title": "Step",
+      "order": "Order",
+      "tour": "Tour",
+      "status": "State",
+      "updated": "Last change"
+    },
+    "tours": {
+      "general": "General tour",
+      "admin": "Administration tour"
+    },
+    "status": {
+      "on": "Shown",
+      "off": "Switched off"
+    },
+    "customised": "Changed from the original",
+    "yes": "Yes",
+    "no": "No",
+    "moveUp": "Move the step up",
+    "moveDown": "Move the step down",
+    "dialogHint": "Leave a field empty to show the original wording. Plain text, no formatting.",
+    "shown": "The step is shown in the tour",
+    "languages": {
+      "ar": "Arabic",
+      "en": "English"
+    },
+    "fields": {
+      "title": "Title",
+      "body": "Text",
+      "emptyHint": "Empty = the original wording"
+    },
+    "saved": "The step was saved.",
+    "resetDone": "The step is back to its original wording.",
+    "reset": {
+      "title": "Reset the step to the original?",
+      "description": "The step’s wording, order and visibility go back to what the system has.",
+      "confirm": "Reset to original"
+    }
+  },
+  "navHint": "Open “{{page}}” from here at any time.",
+  "canTitle": "What you can do here"
+}

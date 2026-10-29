@@ -220,6 +220,21 @@
         "area": "Area",
         "status": "State"
       }
+    },
+    "tour-steps": {
+      "name": "Welcome tour steps",
+      "columns": {
+        "title": "Step",
+        "order": "Order",
+        "tour": "Tour",
+        "status": "State",
+        "updated": "Last change"
+      },
+      "filters": {
+        "tour": "Tour",
+        "status": "State",
+        "customised": "Changed from the original"
+      }
     }
   },
   "listHint": "The first column (the name) always stays.",

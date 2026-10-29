@@ -18,6 +18,7 @@ import { rolesFeature } from '@/features/roles';
 import { securityFeature } from '@/features/security';
 import { tasksFeature } from '@/features/tasks';
 import { ticketsFeature } from '@/features/tickets';
+import { tourFeature } from '@/features/tour';
 
 /** Composition root: the list of features this app is built from (order = sidebar order). */
 export const FEATURES: FeatureModule[] = [
@@ -39,6 +40,7 @@ export const FEATURES: FeatureModule[] = [
   notificationsFeature,
   profileFeature,
   securityFeature,
+  tourFeature,
 ];
 
 for (const feature of FEATURES) if (feature.i18n) addTranslations(feature.id, feature.i18n);

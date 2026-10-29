@@ -127,7 +127,7 @@ export function TicketsPage() {
   );
   return (
     <>
-      <PageHeader title={t('title')} description={t('description')} actions={<Can permission={CorePermission.TicketsCreate}><Button onClick={() => setCreating(true)}><Plus className="size-4" aria-hidden />{t('newTicket')}</Button></Can>} />
+      <PageHeader title={t('title')} description={t('description')} actions={<Can permission={CorePermission.TicketsCreate}><Button data-tour="ticket-new" onClick={() => setCreating(true)}><Plus className="size-4" aria-hidden />{t('newTicket')}</Button></Can>} />
       <TabBar tab={tab} offered={{ mine: true, inbox: options.data?.hasInbox ?? false, team: options.data?.hasTeam ?? false }} onChange={switchTab} />
       <TicketsBody tab={tab} mode={mode} groupBy={groupBy} params={params} list={list} toolbar={toolbar} />
       <NewTicketDialog open={creating} onOpenChange={setCreating} />

@@ -29,6 +29,9 @@ export default async function globalSetup(): Promise<void> {
     const maxAge = Number(attributes.find((a) => /^max-age=/i.test(a))?.split('=')[1] ?? 3600);
     return { name, value: value.join('='), domain: 'localhost', path: '/', httpOnly: true, secure: false, sameSite: 'Lax' as const, expires: Math.floor(Date.now() / 1000) + maxAge };
   });
+  const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join('; ');
+  // The welcome tour would cover every screen the other specs click through: the administrator has already seen it.
+  for (const tour of ['general', 'admin']) await fetch(`${API}/me/tour/${tour}/skip`, { method: 'POST', headers: { cookie: cookieHeader, origin: WEB } });
   mkdirSync(AUTH_DIRECTORY, { recursive: true });
   writeFileSync(ADMIN_STATE, JSON.stringify({ cookies, origins: [] }));
 }

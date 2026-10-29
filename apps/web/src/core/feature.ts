@@ -23,6 +23,27 @@ export interface NavItem {
   pageKey?: HideablePage;
 }
 
+/** Where a welcome-tour step points; the wording is `tour.<key>.{title,body}` in the owning feature's i18n (the code's default, an administrator may change it). */
+export interface TourStepUi {
+  /** A key of `TOUR_STEPS` in the shared package (permission and page rules live there). */
+  key: string;
+  /** CSS selector of the highlighted element: `data-tour` attributes, never style classes. */
+  target: string;
+  /** Opened first when the person is on another page. */
+  route?: string;
+  /** `start` and `end` follow the reading direction; `center` needs no element. */
+  placement?: 'top' | 'bottom' | 'start' | 'end' | 'center';
+  /** The step points into the account menu or the phone's side drawer, which the tour opens for it. */
+  menu?: 'account' | 'drawer';
+  /** What the person can do on the page, one line each: shown only for those whose permission the person holds (`tour.<key>.can.<id>`). */
+  can?: { id: string; permission: string }[];
+  /** Set by the tour for the sidebar step it adds before a page's own: the menu holding this link opens. */
+  navOpen?: string;
+}
+
+/** The target of a page's heading: every page has one (`PageHeader`). */
+export const PAGE_TITLE_TARGET = '[data-tour="page-title"]';
+
 /**
  * What a feature contributes to the app. Adding a feature = writing its folder
  * and adding one line to app/features.ts.
@@ -34,6 +55,8 @@ export interface FeatureModule {
   /** Routes outside the layout (sign-in pages). */
   publicRoutes?: RouteObject[];
   nav?: NavItem[];
+  /** Welcome-tour steps for this feature's pages (standing rule 9). */
+  tour?: TourStepUi[];
   /** Namespace = feature id; JSON files in the feature's i18n folder. */
   i18n?: { ar: TranslationBundle; en: TranslationBundle };
 }

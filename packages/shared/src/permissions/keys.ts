@@ -56,6 +56,12 @@ export const CorePermission = {
   TemplatesNotificationApprove: 'templates.notification_approve',
   TemplatesNotificationSettings: 'templates.notification_settings',
   TemplatesNotificationExport: 'templates.notification_export',
+  // Welcome tour settings (the tour itself needs no key: every employee sees it)
+  TourSettingsView: 'tour.settings_view',
+  TourSettingsEdit: 'tour.settings_edit',
+  TourSettingsReorder: 'tour.settings_reorder',
+  TourSettingsReset: 'tour.settings_reset',
+  TourSettingsExport: 'tour.settings_export',
   // My account
   ProfileView: 'profile.view',
   ProfileUpdate: 'profile.update',

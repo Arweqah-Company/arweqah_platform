@@ -28,6 +28,7 @@
     "translation-settings": "إعدادات الترجمة",
     "email-settings": "إعدادات البريد الإلكتروني",
     "email-templates": "قوالب البريد الإلكتروني",
-    "notification-templates": "قوالب الإشعارات"
+    "notification-templates": "قوالب الإشعارات",
+    "tour-settings": "جولة الترحيب"
   }
 }

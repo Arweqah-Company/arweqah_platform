@@ -394,5 +394,51 @@
       "delete_own": "Delete own"
     },
     "cell": "{{relation}}: {{action}}"
+  },
+  "tour": {
+    "tasks": {
+      "title": "Tasks",
+      "body": "Everything on your plate, what you assigned and what you follow, in one place as a table or a Kanban board. Each task has a due date, a priority, a tag and a status, and its own conversation with comments, files and mentions.",
+      "can": {
+        "change_status": "Move your tasks through their statuses until done",
+        "team": "See your team’s tasks in the «My team» tab",
+        "assign": "Assign tasks to your colleagues",
+        "approve": "Approve or reject the tasks waiting for you",
+        "review": "Review finished tasks and send them back if needed",
+        "object": "Object to a task assigned to you",
+        "log_time": "Log the time you spent on a task",
+        "follow": "Follow others’ tasks and get their notices",
+        "comment": "Write comments and mention colleagues with @",
+        "archive": "Open the archive of finished tasks",
+        "export": "Export the task list to a file"
+      }
+    },
+    "task-new": {
+      "title": "New task",
+      "body": "Use this button to create a task with a title, description, due date, priority and tag. Add attachments and choose who follows it; once saved it appears in your list and its conversation starts.",
+      "can": {
+        "assign": "Assign it to a colleague instead of yourself",
+        "follow": "Add followers who get every update"
+      }
+    },
+    "task-views": {
+      "title": "Table or Kanban board",
+      "body": "Switch here between the table, cards and the Kanban board. The board has a column per status and each task is a card with its title, due date and priority. The same search and filters work in every view, and the platform remembers your choice.",
+      "can": {
+        "change_status": "You move a card between columns by dragging its handle, or from its \"Move to\" menu (keyboard and phone); you may be asked for a note or the completion date",
+        "team": "On the \"My team\" tab the board has a row per person",
+        "team_move": "You move your team's tasks between statuses too"
+      }
+    },
+    "task-open": {
+      "title": "Open a task and edit it",
+      "body": "Click any task in the list to open its page: details, timeline and conversation. From there you act on the task with the buttons that fit its state.",
+      "can": {
+        "update": "You edit its title, description, due date and priority with the Edit button",
+        "log_time": "You log the time you spent on it",
+        "comment": "You write in its conversation, attach files and mention colleagues",
+        "object": "You object to it if it was assigned to you unfairly"
+      }
+    }
   }
 }

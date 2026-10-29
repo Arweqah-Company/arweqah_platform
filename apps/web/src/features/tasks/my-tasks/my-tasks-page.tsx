@@ -53,7 +53,7 @@ export function MyTasksPage() {
   const { state, tab } = page;
   return (
     <>
-      <PageHeader title={t('title')} description={t('description')} actions={<Can permission={CorePermission.TasksCreate}><Button onClick={() => page.setCreating(true)}><Plus className="size-4" aria-hidden />{t('newTask')}</Button></Can>} />
+      <PageHeader title={t('title')} description={t('description')} actions={<Can permission={CorePermission.TasksCreate}><Button data-tour="task-new" onClick={() => page.setCreating(true)}><Plus className="size-4" aria-hidden />{t('newTask')}</Button></Can>} />
       <TaskTabs tab={tab} withTeam={page.withTeam} onChange={page.onTab} />
       {page.team && <TeamControls reach={page.reach} onReach={page.onReach} board={state.board} lanes={page.lanes} onLanes={page.setLanes} />}
       <TaskListView state={state} caption={t(`tabs.${tab}`)} lanesBy={page.team && page.lanes ? 'person' : undefined} empty={<TasksEmpty narrowed={state.list.narrowed} title={t(`empty.${tab}`)} hint={t(`emptyHint.${tab}`)} />} />

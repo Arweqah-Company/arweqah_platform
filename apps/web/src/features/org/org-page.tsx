@@ -23,8 +23,8 @@ function Toolbar({ ready, onLevels, onAddUnit, onAddTitle }: { ready: boolean; o
   const { t } = useTranslation('org');
   return (
     <>
-      <Can permission={CorePermission.OrgLevelsManage}><Button variant="secondary" onClick={onLevels} disabled={!ready}>{t('actions.levels')}</Button></Can>
-      <Can permission={CorePermission.OrgUnitCreate}><Button onClick={onAddUnit} disabled={!ready}>{t('actions.addUnit')}</Button></Can>
+      <Can permission={CorePermission.OrgLevelsManage}><Button data-tour="org-levels" variant="secondary" onClick={onLevels} disabled={!ready}>{t('actions.levels')}</Button></Can>
+      <Can permission={CorePermission.OrgUnitCreate}><Button data-tour="org-add-unit" onClick={onAddUnit} disabled={!ready}>{t('actions.addUnit')}</Button></Can>
       <Can permission={CorePermission.OrgTitlesManage}><Button variant="secondary" onClick={onAddTitle} disabled={!ready}>{t('actions.addTitle')}</Button></Can>
     </>
   );

@@ -76,6 +76,7 @@
   --color-primary: #0c2028; /* the primary button */
   --color-on-primary: #fffcee;
   --color-primary-hover: #16303b;
+  --tour-overlay: rgb(12 32 40 / 0.55); /* dimming behind the welcome tour */
   --color-success: #245a39; /* text on green tints */
   --color-warning: #9c4a18; /* text on orange tints */
   --color-danger-text: #b3261e; /* text on red tints and surfaces */
@@ -225,6 +226,7 @@ h3 {
   --color-primary: #fffcee;
   --color-on-primary: #0c2028;
   --color-primary-hover: #e9e4d2;
+  --tour-overlay: rgb(0 0 0 / 0.68);
   --color-success: #8fd3a8;
   --color-warning: #ffb784;
   --color-danger-text: #ff9a92;

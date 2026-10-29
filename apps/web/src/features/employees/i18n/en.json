@@ -184,5 +184,20 @@
   "groupsDialog": {
     "title": "Groups of roles",
     "description": "Each group gives the employee every role inside it."
+  },
+  "tour": {
+    "employees": {
+      "title": "Employees",
+      "body": "The directory of employees and their records: name, unit, title, status and work details. Search and filter by company, unit, status and more, and open any record for its details. What you see follows your permissions and scope.",
+      "can": {
+        "create": "Add a new employee and send them an activation link",
+        "update": "Edit employees’ details and move them between units",
+        "roles": "Give employees their roles",
+        "deactivate": "Deactivate an account or end an employee’s service",
+        "sensitive": "See national ID, IBAN and salary",
+        "import": "Import employees from a file",
+        "export": "Export the list of employees"
+      }
+    }
   }
 }

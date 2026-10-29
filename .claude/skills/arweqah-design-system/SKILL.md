@@ -184,3 +184,10 @@ Report what was checked and any deviation; fix deviations before calling the ste
 - [ ] All text through i18n (`npm run i18n:check`).
 - [ ] Reuses `shared/ui`; new reusable pieces added there.
 - [ ] Keyboard and screen-reader pass; axe clean; works at phone width.
+
+## Welcome tour (guided walk-through)
+- **Built from the system, never a one-off:** the bubble is `TourTooltip` (`features/tour`): white `rounded-3xl` surface, `neutral-200` border, soft shadow, title `font-heading`, text `text-muted`, count in a neutral `Badge`, one primary «Next» (the last step says «Done»), «Back» secondary, «Skip» ghost, a close button like the dialogs'. No fixed colors: dimming is `--tour-overlay`, the arrow `var(--color-white)`, the ring `var(--color-link)`, all re-pointed in the dark theme by `theme.css`; yellow is never used.
+- **Engine:** `react-joyride` only draws the dimming, the ring and the bubble's place (one step at a time, keyed by the step); the buttons, keys (Esc skips, arrows move, mirrored in RTL), the page changes and the opening of the account menu or the phone drawer are the tour's own. `start` / `end` placements follow the reading direction; on a phone the drawer step is centred. Buttons use the tour's own labels (Joyride's `aria-label`s are not spread).
+- **Targets:** `data-tour` attributes (never style classes): every page title carries `data-tour="page-title"` (`PageHeader`), the shell has `account-menu`, `account:/path`, `sign-out`, `language-theme`, `notifications`, `admin-mode`, `sidebar`. A feature declares its steps in `FeatureModule.tour` and the wording in its own i18n under `tour.<key>.{title,body}`; every new page adds a step (standing rule 9).
+- **A page's steps start in the side menu:** the tour first highlights the page's link (`data-tour="nav:/path"`, its menu opened by the tour, the drawer on a phone), then goes to the page and its own steps; once per page.
+- **Settings list** (Settings → Welcome tour): the standard list (table / cards, search, filters, export, row actions: move up / down, edit, reset) and a dialog with both languages side by side, empty = the code's wording shown as the placeholder.

@@ -21,6 +21,7 @@ export const LIST_CATALOG = {
   'email-providers': { columns: ['provider', 'status', 'tested', 'active'], filters: ['status', 'active'] },
   'email-templates': { columns: ['template', 'area', 'status', 'updated'], filters: ['area', 'status'] },
   'notification-templates': { columns: ['template', 'area', 'status', 'updated'], filters: ['area', 'status'] },
+  'tour-steps': { columns: ['title', 'order', 'tour', 'status', 'updated'], filters: ['tour', 'status', 'customised'] },
   tickets: {
     columns: ['number', 'title', 'desk', 'type', 'sender', 'assignee', 'status', 'neededBy', 'activity'],
     filters: ['deskId', 'typeId', 'assigneeId', 'status'],

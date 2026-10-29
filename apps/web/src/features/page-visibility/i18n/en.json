@@ -28,6 +28,7 @@
     "translation-settings": "Translation settings",
     "email-settings": "E-mail settings",
     "email-templates": "E-mail templates",
-    "notification-templates": "Notification templates"
+    "notification-templates": "Notification templates",
+    "tour-settings": "Welcome tour"
   }
 }

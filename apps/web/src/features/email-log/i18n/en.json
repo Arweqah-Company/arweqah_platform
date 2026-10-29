@@ -33,5 +33,14 @@
   "sentAt": "Sent at",
   "error": "Error",
   "response": "Server response",
-  "viewTitle": "Sent e-mail"
+  "viewTitle": "Sent e-mail",
+  "tour": {
+    "email-log": {
+      "title": "E-mail log",
+      "body": "Every e-mail the platform sent: to whom, when, its subject and its status (delivered or failed) and the reason for a failure. The message text itself is never stored.",
+      "can": {
+        "export": "Export the e-mail log to a file"
+      }
+    }
+  }
 }

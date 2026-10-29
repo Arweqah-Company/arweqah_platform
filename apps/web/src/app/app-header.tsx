@@ -31,13 +31,15 @@ export function AppHeader({ me, accountItems, menuOpen, onToggleMenu, onSignOut 
       <BrandLogo layout="horizontal" width={96} className="lg:hidden" />
       <div className="ms-auto flex items-center gap-0.5 sm:gap-3">
         <AccountMenu me={me} items={accountItems} onSignOut={onSignOut} />
-        <AdminModeToggle />
-        {can(CorePermission.NotificationsView) && <NotificationBell />}
+        <span data-tour="admin-mode" className="inline-flex"><AdminModeToggle /></span>
+        {can(CorePermission.NotificationsView) && <span data-tour="notifications" className="inline-flex"><NotificationBell /></span>}
+        <span data-tour="language-theme" className="flex items-center gap-0.5 sm:gap-3">
         <ThemeToggle />
         <Button variant="secondary" size="sm" className="gap-2 border-neutral-500 text-fg max-sm:size-11 max-sm:px-0" aria-label={t('language.switchTo')} onClick={() => { const next = i18n.language === 'ar' ? 'en' : 'ar'; setLanguage(next); save.mutate({ locale: next }); }}>
           <Globe className="size-4" aria-hidden />
           <span className="max-sm:sr-only">{t('language.switchTo')}</span>
         </Button>
+        </span>
         <Button variant="ghost" size="icon" className="max-lg:hidden" aria-label={t('actions.signOut')} onClick={onSignOut}>
           <LogOut className="size-5 rtl:-scale-x-100" />
         </Button>

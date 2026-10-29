@@ -96,7 +96,7 @@ export function HomePage() {
   const h = useHomeData();
   return (
     <div>
-      <h1 className="text-3xl font-bold">{t('greeting', { name: h.me?.name.split(' ')[0] ?? '' })}</h1>
+      <h1 data-tour="page-title" className="text-3xl font-bold">{t('greeting', { name: h.me?.name.split(' ')[0] ?? '' })}</h1>
       <p className="mt-2 max-w-[65ch] text-muted">{t('intro')}</p>
       <NumbersSection tasks={h.tasks} tickets={h.tickets} showTasks={h.showTasks} showTickets={h.showTickets} />
       {(h.showTasks || h.showTickets) && (

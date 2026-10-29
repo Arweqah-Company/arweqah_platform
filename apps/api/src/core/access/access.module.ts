@@ -70,7 +70,7 @@ import { RolesController } from './presentation/roles.controller';
     { provide: ProfileRepository, useClass: TypeOrmProfileRepository },
     { provide: UserAccessRepository, useClass: TypeOrmUserAccessRepository },
   ],
-  exports: [PermissionCatalog, RoleGroupsService, AutoRolesService, AccessContextService, AbilityFactory, PermissionsGuard, UserAccessService, AdminModeService, AdminModeEligibility],
+  exports: [PermissionCatalog, PageVisibilityService, RoleGroupsService, AutoRolesService, AccessContextService, AbilityFactory, PermissionsGuard, UserAccessService, AdminModeService, AdminModeEligibility],
 })
 export class AccessModule implements OnModuleInit {
   constructor(private readonly catalog: PermissionCatalog) {}

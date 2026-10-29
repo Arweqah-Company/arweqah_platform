@@ -29,7 +29,7 @@ export interface ViewChoice<M extends string = string> {
 export function ViewSwitch<M extends string>({ value, onChange, choices }: { value: M; onChange: (mode: M) => void; choices: ViewChoice<M>[] }) {
   const { t } = useTranslation();
   return (
-    <div role="group" aria-label={t('view.label')} className="flex rounded-xl border border-neutral-200 bg-neutral-50 p-1">
+    <div role="group" data-tour="view-switch" aria-label={t('view.label')} className="flex rounded-xl border border-neutral-200 bg-neutral-50 p-1">
       {choices.map(({ id, label, icon: Icon }) => (
         <button
           key={id}

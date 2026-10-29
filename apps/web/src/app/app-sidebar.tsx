@@ -21,6 +21,7 @@ export function AppSidebar({ items, open, collapsed, onToggleCollapsed, onNaviga
   const { t } = useTranslation();
   return (
     <aside
+      data-tour="sidebar"
       className={cn(
         'on-dark fixed inset-y-3 start-3 z-30 flex w-64 -translate-x-[115%] flex-col overflow-y-auto rounded-3xl bg-ink text-cream shadow-xl shadow-ink/20 transition-[transform,width] duration-200 rtl:translate-x-[115%]',
         'lg:sticky lg:top-4 lg:bottom-auto lg:h-[calc(100vh-2rem)] lg:translate-x-0 lg:rtl:translate-x-0',

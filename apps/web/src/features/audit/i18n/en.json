@@ -16,5 +16,14 @@
   "ip": "IP address",
   "changes": "Changes",
   "viewTitle": "Audit entry",
-  "category": "Category"
+  "category": "Category",
+  "tour": {
+    "audit": {
+      "title": "Audit log",
+      "body": "A record of every important change on the platform: who did what, when and from where, as a plain sentence and a category (sign-in, employees, tasks…). Sensitive data never appears in it.",
+      "can": {
+        "export": "Export the log to a file"
+      }
+    }
+  }
 }
