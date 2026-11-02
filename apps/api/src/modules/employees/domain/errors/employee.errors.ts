@@ -8,6 +8,19 @@ export class FieldRuleError extends BusinessRuleError {
   }
 }
 
+/** A plain employee tried to change a field of their own record that only HR or an administrator may change. */
+export class FieldNotEditableError extends BusinessRuleError {
+  override readonly code = 'FIELD_NOT_EDITABLE';
+  constructor(fields: string[]) {
+    super('These fields can only be changed by HR or an administrator', {
+      path: fields[0],
+      fields,
+      messageAr: 'هذه البيانات يعدّلها الموارد البشرية أو مدير النظام فقط',
+      messageEn: 'These details can only be changed by HR or an administrator',
+    });
+  }
+}
+
 export class EmployeeEmailTakenError extends ConflictError {
   override readonly code = 'EMPLOYEE_EMAIL_TAKEN';
   constructor() {

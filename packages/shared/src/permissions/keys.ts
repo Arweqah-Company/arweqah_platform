@@ -165,7 +165,7 @@ export const CorePermission = {
 export type CorePermissionKey = (typeof CorePermission)[keyof typeof CorePermission];
 
 /**
- * What every employee holds from the start (the "Employee" role): own-account pages and sending and following tickets.
+ * What every employee holds from the start (the "Employee" role): own-account pages (seeing their own employee record and editing a few fields of it) and sending and following tickets.
  * Tickets are seen and answered at the narrowest scope ("own": the ones the person sent or handles); wider scopes are given on the permissions page.
  */
 export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own' | 'all' }[] = [
@@ -174,6 +174,8 @@ export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own
   { key: CorePermission.SecurityView, scope: 'all' },
   { key: CorePermission.NotificationsView, scope: 'all' },
   { key: CorePermission.NotificationsMarkRead, scope: 'all' },
+  { key: CorePermission.EmployeesView, scope: 'own' },
+  { key: CorePermission.EmployeesUpdate, scope: 'own' },
   { key: CorePermission.TicketsView, scope: 'own' },
   { key: CorePermission.TicketsCreate, scope: 'all' },
   { key: CorePermission.TicketsReply, scope: 'own' },

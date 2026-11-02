@@ -8,7 +8,7 @@ const WIDE: PermissionDefinition['scopes'] = ['subtree', 'company', 'all'];
 export const EMPLOYEE_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.EmployeesView, 'عرض الموظفين', 'View employees', ['own', 'unit', 'subtree', 'company', 'all']),
   def(CorePermission.EmployeesCreate, 'إضافة موظفين', 'Add employees', RECORD),
-  def(CorePermission.EmployeesUpdate, 'تعديل بيانات الموظفين', 'Edit employees', RECORD),
+  def(CorePermission.EmployeesUpdate, 'تعديل بيانات الموظفين', 'Edit employees', ['own', ...RECORD]),
   def(CorePermission.EmployeesDeactivate, 'تعطيل الموظفين وتفعيلهم', 'Deactivate and activate employees', WIDE),
   def(CorePermission.EmployeesTerminate, 'إنهاء علاقة الموظف', 'End an employee\'s contract', WIDE),
   def(CorePermission.EmployeesViewSensitive, 'عرض البيانات الحساسة (الهوية والآيبان والراتب)', 'View sensitive data (ID, IBAN, salary)', WIDE),

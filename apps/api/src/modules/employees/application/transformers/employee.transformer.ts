@@ -77,7 +77,7 @@ export class EmployeeTransformer {
     };
   }
 
-  async toListItems(items: Employee[], states: Map<string, boolean>): Promise<EmployeeListItemDto[]> {
+  async toListItems(items: Employee[], states: Map<string, boolean>, viewerId: string): Promise<EmployeeListItemDto[]> {
     const [companies, nodes, titles] = await Promise.all([
       this.org.describeCompanies([...new Set(items.map((e) => e.companyId))]),
       this.org.describeNodes(items.flatMap((e) => (e.orgNodeId ? [e.orgNodeId] : []))),
@@ -96,6 +96,7 @@ export class EmployeeTransformer {
       needsPlacement: needsPlacement(e),
       idExpiresSoon: isWithin(e.idExpiryDate, today, { fromPast: true }),
       contractEndsSoon: isWithin(e.endDate, today, { fromPast: false }),
+      isOwn: e.userId === viewerId,
     }));
   }
 

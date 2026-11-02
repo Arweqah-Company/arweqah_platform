@@ -82,7 +82,7 @@ describe('A head role for every organization unit (FR-69)', () => {
     const other = await t.factories.user({ unit: org.unitOther });
     const head = await t.factories.user({ unit: org.unitC });
     const session = await t.factories.signIn(head);
-    await session.get('/api/employees').expect(403);
+    expect(await employeesSeenBy(session)).toEqual([head.employeeId]);
     await setManager(org.sectionAB, head.employeeId);
     const seen = await employeesSeenBy(session);
     expect(seen).toEqual(expect.arrayContaining([a.employeeId, b.employeeId, head.employeeId]));
@@ -90,7 +90,7 @@ describe('A head role for every organization unit (FR-69)', () => {
     await session.get(`/api/employees/${a.employeeId}`).expect(200);
     await session.get(`/api/employees/${other.employeeId}`).expect(404);
     await setManager(org.sectionAB, null);
-    await session.get('/api/employees').expect(403);
+    expect(await employeesSeenBy(session)).toEqual([head.employeeId]);
   });
 
   it('renames the role with the unit, makes the role of a unit that has none, and drops the role of a removed unit', async () => {

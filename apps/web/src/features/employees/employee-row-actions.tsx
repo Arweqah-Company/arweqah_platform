@@ -2,6 +2,7 @@ import { CorePermission as P, type EmployeeListItemDto } from '@arweqah-platform
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import { useCanEditEmployee } from './form/use-self-service';
 import { Can } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Eye, Pencil, Power, PowerOff } from 'lucide-react';
@@ -12,6 +13,7 @@ import { useSetActive } from './api';
 export function EmployeeRowActions({ employee: e }: { employee: EmployeeListItemDto }) {
   const { t } = useTranslation('employees');
   const { t: tc } = useTranslation();
+  const canEdit = useCanEditEmployee();
   const setActive = useSetActive(e.id);
   const [asking, setAsking] = useState(false);
   const run = async (active: boolean) => {
@@ -27,7 +29,7 @@ export function EmployeeRowActions({ employee: e }: { employee: EmployeeListItem
   return (
     <>
       <RowAction label={tc('actions.view')} icon={Eye} to={`/employees/${e.id}`} />
-      <Can permission={P.EmployeesUpdate}><RowAction label={tc('actions.edit')} icon={Pencil} to={`/employees/${e.id}/edit`} /></Can>
+      {canEdit(e.isOwn) && <RowAction label={tc('actions.edit')} icon={Pencil} to={`/employees/${e.id}/edit`} />}
       <Can permission={P.EmployeesDeactivate}>
         {e.isActive ? (
           <RowAction label={t('actions.deactivate')} icon={PowerOff} danger onClick={() => setAsking(true)} />

@@ -7,7 +7,7 @@ import { renderRoute } from '../../../test/render';
 import { EmployeesPage } from './employees-page';
 
 const ref = { id: 'c1', nameAr: 'أروقة الريادة', nameEn: 'Arweqah' };
-const person = (over: Partial<EmployeeListItemDto> = {}): EmployeeListItemDto => ({ id: 'e1', employeeNumber: 'N1', fullName: 'خالد المدير', workEmail: 'k@arweqah.sa', company: ref, orgNode: null, jobTitle: null, isActive: true, needsPlacement: false, idExpiresSoon: false, contractEndsSoon: false, ...over });
+const person = (over: Partial<EmployeeListItemDto> = {}): EmployeeListItemDto => ({ id: 'e1', employeeNumber: 'N1', fullName: 'خالد المدير', workEmail: 'k@arweqah.sa', company: ref, orgNode: null, jobTitle: null, isActive: true, needsPlacement: false, idExpiresSoon: false, contractEndsSoon: false, isOwn: false, ...over });
 
 function serve(keys: string[], items = [person()]) {
   server.use(
@@ -32,6 +32,15 @@ describe('Employees list: row click and the actions column (FR-17)', () => {
     expect(within(row).getByRole('link', { name: 'عرض' })).toHaveAttribute('href', '/employees/e1');
     expect(within(row).getByRole('link', { name: 'تعديل' })).toHaveAttribute('href', '/employees/e1/edit');
     expect(within(row).getByRole('button', { name: 'تعطيل' })).toBeInTheDocument();
+  });
+
+  it('offers a plain employee (edit reaches only their own record) the edit of their own row alone', async () => {
+    serve([], [person({ id: 'e1', employeeNumber: 'N1', isOwn: true }), person({ id: 'e2', employeeNumber: 'N2', isOwn: false })]);
+    server.use(http.get('*/api/me', () => HttpResponse.json({ ...me(), permissions: [{ key: P.EmployeesView, scope: 'subtree' as const }, { key: P.EmployeesUpdate, scope: 'own' as const }] })));
+    const mine = (await screen.findByText('N1')).closest('tr') as HTMLElement;
+    const other = screen.getByText('N2').closest('tr') as HTMLElement;
+    expect(within(mine).getByRole('link', { name: 'تعديل' })).toBeInTheDocument();
+    expect(within(other).queryByRole('link', { name: 'تعديل' })).not.toBeInTheDocument();
   });
 
   it('shows no edit or deactivation without their keys, and "activate" for an inactive employee', async () => {

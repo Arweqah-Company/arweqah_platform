@@ -11,11 +11,11 @@ test.describe('Forms validate while typing and when leaving a field (FR-17)', ()
     await expect(page.getByRole('heading', { level: 1, name: 'إضافة موظف' })).toBeVisible();
     await expect(page.getByText('هذا الحقل مطلوب.')).toHaveCount(0);
     const email = page.getByLabel('بريد العمل *');
-    await email.fill('someone@gmail.com');
-    await expect(page.getByText(/arweqah\.sa\./)).toBeVisible();
+    await email.fill('someone');
+    await expect(page.getByText('بريد العمل غير صحيح.')).toBeVisible();
     await new Page(page).expectNoSeriousA11yIssues();
     await email.fill('someone@arweqah.sa');
-    await expect(page.getByText(/arweqah\.sa\./)).toHaveCount(0);
+    await expect(page.getByText('بريد العمل غير صحيح.')).toHaveCount(0);
     await page.getByLabel('الرقم الوظيفي *').focus();
     await page.getByLabel('الاسم الكامل *').focus();
     await expect(page.getByText('هذا الحقل مطلوب.')).toHaveCount(1);

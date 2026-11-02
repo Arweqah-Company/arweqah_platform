@@ -218,7 +218,7 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
 
   it('returns 403 to each role without the permission', async () => {
     const { org, payload } = await setup();
-    const none = await t.factories.signIn(await t.factories.user());
+    const none = await t.factories.signIn(await t.factories.user({ bare: true }));
     await none.get('/api/employees').expect(403);
     await none.post('/api/employees').send(payload(org.unitA)).expect(403);
     const viewer = await t.factories.signIn(await t.factories.user({ grants: [grant(P.EmployeesView, 'all')] }));
@@ -438,7 +438,7 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     expect(summary).toMatchObject({ total: 4, active: 4, inactive: 0, contractEnding: 1, idExpiring: 0, needsPlacement: 1 });
     const unitViewer = await t.factories.signIn(await t.factories.user({ unit: org.unitA, grants: [grant(P.EmployeesView, 'unit')] }));
     expect((await unitViewer.get('/api/employees/summary').expect(200)).body.total).toBe(2);
-    const plain = await t.factories.signIn(await t.factories.user());
+    const plain = await t.factories.signIn(await t.factories.user({ bare: true }));
     await plain.get('/api/employees/summary').expect(403);
   });
 

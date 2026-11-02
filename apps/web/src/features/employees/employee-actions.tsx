@@ -1,6 +1,8 @@
 import { CorePermission, type EmployeeDto } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
+import { useMe } from '@/core/auth/session';
+import { useCanEditEmployee } from './form/use-self-service';
 import { Can } from '@/core/permissions/can';
 import { Badge, Button } from '@/shared/ui';
 
@@ -16,11 +18,13 @@ interface Props {
 
 /** The buttons in the page header: edit, roles, and (de)activation, each shown only with its permission. */
 export function HeaderActions({ employee: e, onDialog, onActivate }: Props) {
+  const canEdit = useCanEditEmployee();
+  const me = useMe().data;
   const { t } = useTranslation('employees');
   const { t: tc } = useTranslation();
   return (
     <>
-      <Can permission={P.EmployeesUpdate}><Button asChild variant="secondary"><Link to={`/employees/${e.id}/edit`}>{tc('actions.edit')}</Link></Button></Can>
+      {canEdit(e.userId === me?.id) && <Button asChild variant="secondary"><Link to={`/employees/${e.id}/edit`}>{tc('actions.edit')}</Link></Button>}
       <Can permission={P.EmployeesAssignRoles}><Button variant="secondary" onClick={() => onDialog('roles')}>{t('actions.roles')}</Button></Can>
       <Can permission={P.EmployeesAssignGroups}><Button variant="secondary" onClick={() => onDialog('groups')}>{t('actions.groups')}</Button></Can>
       <Can permission={P.EmployeesDeactivate}>

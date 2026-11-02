@@ -3,6 +3,7 @@ import { ListPage } from '../pages/list.page';
 import { adminModeOffViaApi, adminModeOnViaApi } from '../support/admin-mode';
 import { ADMIN_STATE } from '../support/fixtures';
 import { choose } from '../support/select';
+import { settled } from '../support/settled';
 
 test.use({ storageState: ADMIN_STATE });
 test.afterEach(async ({ page }) => adminModeOffViaApi(page));
@@ -48,10 +49,15 @@ test.describe('Organization: chart or table, per company (FR-31)', () => {
   test('picks a level and a parent unit from the drop-downs inside the add-unit dialog', async ({ page }) => {
     await adminModeOnViaApi(page);
     await page.goto('/org');
-    await page.getByRole('button', { name: 'إضافة وحدة' }).click();
+    const addUnit = page.locator('[data-tour="org-add-unit"]');
+    await expect(addUnit).toBeEnabled();
+    await settled(page);
+    await addUnit.click();
     const dialog = page.getByRole('dialog', { name: 'إضافة وحدة' });
     const level = dialog.getByLabel('التقسيم *', { exact: true });
-    await level.click();
+    await expect(level).toBeVisible();
+    // On the phone the sheet keeps re-laying out for a moment after opening (the unit cards behind it), so Playwright never sees the control as stable.
+    await level.click({ force: true });
     await page.getByRole('option').nth(1).click();
     await expect(dialog).toBeVisible();
     const parent = dialog.getByRole('combobox', { name: 'الوحدة الأب' });
