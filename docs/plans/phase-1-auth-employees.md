@@ -1193,3 +1193,8 @@ shared/data-exchange/   export-file · template · read-sheet · csv · mapping 
 - **ما تم:** كانت مهمة يومية تعطّل الحساب بعد تاريخ الإنهاء موجودة لكنها تحسب اليوم بتوقيت UTC؛ صارت تعمل 00:05 بتوقيت الرياض وبتاريخها، وتسجّل `employees.access_ended_at`؛ إنهاء التعاقد بتاريخ ماضٍ يعطّل فورًا (وتنتهي الجلسة المفتوحة)؛ إزالة تاريخ النهاية أو نقله إلى اليوم أو بعده يعيد الدخول لمن يملك `employees.deactivate` (ولا يعيده بدونه ولا مع بقاء التاريخ ماضيًا)؛ صفحة الموظف تعرض «دخوله مغلق لانتهاء التعاقد منذ…»؛ تدقيق `employee.access_restored`. استثناء «متابعة طلب الخروج» ونسخة البريد مؤجلان لوحدة الطلبات.
 - **أين:** `modules/employees/{application/services/employees.service,infrastructure/jobs/employee-lifecycle.job,infrastructure/repositories,domain/entities}`، migration `EmployeeAccessEnded`، `features/employees/employee-actions.tsx`.
 - **التحقق:** 3 اختبارات جديدة في `employees.e2e-spec.ts` (الإغلاق في اليوم التالي بتوقيت الرياض، الإغلاق الفوري وانتهاء الجلسة، الاستعادة بالشروط).
+
+### 2026-11-02 — المسمى الوظيفي لكل شخص (المرحلة 4.4 من `docs/plans/phase-4-access.md`، FR-72)
+- **ما تم:** المسمى (والوحدة) كان مطلوبًا أصلًا عند إضافة موظف أو تعديله ويرفضه الـAPI بلا مسمى أو بمسمى null، وعدّاد «بحاجة لتسكين» على الرئيسية؛ أُضيف فلتر «بحاجة لتسكين» (`needsPlacement`) في قائمة الموظفين (أي شخص بلا وحدة أو مسمى، دون حساب النظام) لتصفية الموجودين. **لم يُضف قيد قاعدة البيانات** (قرار 129): كل مصانع اختبارات الـAPI تنشئ أشخاصًا بلا وحدة فسيفشل القيد فيها، وحساب النظام بلا مسمى؛ يُضاف بعد تعديل المصانع وتصفية الموجودين.
+- **أين:** `packages/shared/src/employees/schemas.ts`، `typeorm-employee.repository.ts`، `features/employees/employees-filters.ts`، كتالوج القوائم.
+- **التحقق:** اختبار API جديد (الفلتر ورفض الإنشاء بلا مسمى) واختبار وحدة للفلتر.
