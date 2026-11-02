@@ -24,7 +24,7 @@ type Step = 'details' | 'roles';
 function StepsHeader({ step, steps }: { step: Step; steps: Step[] }) {
   const { t } = useTranslation('employees');
   return (
-    <ol aria-label={t('steps.label')} className="flex items-center gap-2 text-sm">
+    <ol aria-label={t('steps.label')} className="mb-6 flex flex-wrap items-center gap-2 text-sm">
       {steps.map((s, index) => (
         <li key={s} aria-current={step === s ? 'step' : undefined} className={cn('flex items-center gap-2 rounded-full border px-3 py-1.5', step === s ? 'border-transparent bg-primary font-medium text-on-primary' : 'border-neutral-200 text-muted')}>
           <span aria-hidden className="font-medium">{index + 1}</span>

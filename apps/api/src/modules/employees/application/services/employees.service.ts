@@ -43,6 +43,12 @@ import { EMPLOYEE_AUDIT } from '../messages/employee.messages';
 
 const P = CorePermission;
 
+/** Who acts, and whether platform admin mode is on for them: in admin mode a person may change their own roles and groups. */
+export interface Actor {
+  id: string;
+  adminMode: boolean;
+}
+
 @Injectable()
 export class EmployeesService {
   private readonly logger = new Logger(EmployeesService.name);
@@ -178,25 +184,25 @@ export class EmployeesService {
     return this.dto(ctx, (await this.repo.findById(id)) as Employee);
   }
 
-  async assignRoles(ctx: AccessContext, id: string, input: AssignEmployeeRolesInput, actorId: string): Promise<EmployeeDto> {
+  async assignRoles(ctx: AccessContext, id: string, input: AssignEmployeeRolesInput, actor: Actor): Promise<EmployeeDto> {
     const { roleIds, roleExpiries } = input;
     this.assertRoleExpiries(roleIds, roleExpiries);
     const employee = await this.mustFind(ctx, id, P.EmployeesAssignRoles);
-    if (employee.userId === ctx.userId) throw new SelfActionError('You cannot change your own roles');
+    if (employee.userId === ctx.userId && !actor.adminMode) throw new SelfActionError('You cannot change your own roles');
     await this.assertCanAssignRoles(ctx, roleIds, { companyId: employee.companyId, orgNodeId: employee.orgNodeId, ownerId: employee.userId }, (await this.access.defaultRoleIds(employee.jobTitleId, await this.isLimited(employee.relationTypeId))).ids);
-    await this.tx.run((tx) => this.access.replaceRoles(employee.userId, roleIds, { expiries: roleExpiries, grantedBy: actorId }, tx));
+    await this.tx.run((tx) => this.access.replaceRoles(employee.userId, roleIds, { expiries: roleExpiries, grantedBy: actor.id }, tx));
     await this.events.emitAsync(EMPLOYEES_CHANGED);
-    this.audit(actorId, EMPLOYEE_AUDIT.rolesChanged, id, { roleIds, withEndDate: Object.keys(roleExpiries ?? {}).length });
+    this.audit(actor.id, EMPLOYEE_AUDIT.rolesChanged, id, { roleIds, withEndDate: Object.keys(roleExpiries ?? {}).length });
     return this.dto(ctx, employee);
   }
 
-  async assignGroups(ctx: AccessContext, id: string, groupIds: string[], actorId: string): Promise<EmployeeDto> {
+  async assignGroups(ctx: AccessContext, id: string, groupIds: string[], actor: Actor): Promise<EmployeeDto> {
     const employee = await this.mustFind(ctx, id, P.EmployeesAssignGroups);
-    if (employee.userId === ctx.userId) throw new SelfActionError('You cannot change your own groups');
+    if (employee.userId === ctx.userId && !actor.adminMode) throw new SelfActionError('You cannot change your own groups');
     if (!this.ability.can(ctx, P.EmployeesAssignGroups, { companyId: employee.companyId, orgNodeId: employee.orgNodeId, ownerId: employee.userId })) throw new ForbiddenError();
     await this.access.assertGroupsGrantable(ctx, groupIds);
-    await this.tx.run((tx) => this.access.replaceGroups(employee.userId, groupIds, actorId, tx));
-    this.audit(actorId, EMPLOYEE_AUDIT.groupsChanged, id, { groupIds });
+    await this.tx.run((tx) => this.access.replaceGroups(employee.userId, groupIds, actor.id, tx));
+    this.audit(actor.id, EMPLOYEE_AUDIT.groupsChanged, id, { groupIds });
     return this.dto(ctx, employee);
   }
 
