@@ -158,7 +158,8 @@
     "email": "E-mail",
     "email-templates": "E-mail templates",
     "notification-templates": "Notification templates",
-    "tour-settings": "Welcome tour"
+    "tour-settings": "Welcome tour",
+    "security-settings": "Security"
   },
   "tabsLabel": "Services",
   "noTabs": "You may not view any of these settings.",

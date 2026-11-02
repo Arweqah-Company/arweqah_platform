@@ -158,7 +158,8 @@
     "email": "البريد الإلكتروني",
     "email-templates": "قوالب البريد",
     "notification-templates": "قوالب الإشعارات",
-    "tour-settings": "جولة الترحيب"
+    "tour-settings": "جولة الترحيب",
+    "security-settings": "الأمان"
   },
   "tabsLabel": "الخدمات",
   "noTabs": "لا تملك صلاحية عرض أي من هذه الإعدادات.",

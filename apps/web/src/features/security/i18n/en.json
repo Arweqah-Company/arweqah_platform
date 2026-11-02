@@ -8,5 +8,35 @@
   "howMicrosoft": "Even when you sign in with Microsoft, the app code is asked every time.",
   "howSessions": "A session ends after 12 hours, and immediately if your account is deactivated.",
   "lostTitle": "Lost your phone?",
-  "lostBody": "Use one of the backup codes you saved when you linked the app, or ask HR to reset the app so a new invitation reaches you."
+  "lostBody": "Use one of the backup codes you saved when you linked the app, or ask HR to reset the app so a new invitation reaches you.",
+  "sessions": {
+    "title": "Devices you are signed in on",
+    "description": "Every open sign-in in your name. End any session you do not know.",
+    "current": "This device",
+    "unknownDevice": "Unknown device",
+    "lastActive": "Last active {{when}}",
+    "end": "End the session",
+    "ended": "The session was ended.",
+    "endOthers": "End all other sessions",
+    "endedOthers": "The other sessions were ended."
+  },
+  "trusted": {
+    "title": "Trusted devices",
+    "description": "After signing in with Microsoft and entering the code, you can trust the browser so the code is not asked there for the days the platform administrator set. E-mail sign-in always asks for the code.",
+    "none": "No trusted devices.",
+    "thisBrowser": "This browser",
+    "until": "Trusted until {{date}}",
+    "remove": "Stop trusting",
+    "removed": "The device is no longer trusted.",
+    "remember": "Remember this device and do not ask for the code there"
+  },
+  "settings": {
+    "trustedDeviceDays": "Days a device stays trusted",
+    "trustedDeviceDaysHint": "How long the code is skipped on a trusted browser after a Microsoft sign-in. 0 switches the choice off (at most {{max}}).",
+    "requestsPerMinute": "Requests per minute",
+    "requestsPerMinuteHint": "How many requests one address may send in a minute before it is told to wait. Sign-in has its own, stricter limit.",
+    "range": "Enter a whole number between {{min}} and {{max}}.",
+    "saved": "The security settings were saved.",
+    "loading": "Loading…"
+  }
 }

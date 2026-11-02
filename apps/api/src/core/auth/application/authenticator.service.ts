@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FieldCipher } from '../../../common/application/field-cipher';
 import { AUDIT_EVENT, type AuditEvent } from '../../audit/application/audit.events';
+import { DeviceSecurityRepository } from '../domain/device-security.repository';
 import { AuthenticatorRepository, type AuthenticatorRecord, type AuthUser } from '../domain/authenticator.repository';
 import { AlreadyEnrolledError, AuthenticatorLockedError, InvalidCodeError, NoEnrollmentInProgressError } from '../domain/errors';
 import {
@@ -33,6 +34,7 @@ export type FreshCodeResult = CodeResult | 'used';
 export class AuthenticatorService {
   constructor(
     private readonly repo: AuthenticatorRepository,
+    private readonly devices: DeviceSecurityRepository,
     private readonly cipher: FieldCipher,
     private readonly events: EventEmitter2,
   ) {}
@@ -121,6 +123,8 @@ export class AuthenticatorService {
   /** Admin action: the employee must enroll again (lost phone). */
   async reset(userId: string, actorId: string): Promise<void> {
     await this.repo.remove(userId);
+    // The trusted browsers vouched for the old app: they stop counting.
+    await this.devices.removeAllTrusted(userId);
     this.audit(actorId, 'auth.authenticator.reset', userId);
   }
 

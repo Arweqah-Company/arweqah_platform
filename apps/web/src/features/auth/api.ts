@@ -5,7 +5,10 @@ import { apiClient } from '@/core/api/api-client';
 export const signInWithCode = (input: { email: string; code: string }) => apiClient.post<{ user: { id: string } }>('/auth/totp/sign-in', input);
 
 /** The code step for a session that is not code-verified yet (after Microsoft sign-in). */
-export const verifyCode = (code: string) => apiClient.post<void>('/mfa/verify', { code });
+export const verifyCode = (code: string, rememberDevice = false) => apiClient.post<void>('/mfa/verify', { code, ...(rememberDevice ? { rememberDevice } : {}) });
+
+/** After a Microsoft sign-in: the code step is skipped on a browser the person trusted. */
+export const skipCodeOnTrustedDevice = () => apiClient.post<{ skipped: boolean }>('/mfa/trusted-skip');
 
 export const inviteEnrollment = (token: string) => apiClient.get<EnrollmentStartDto>(`/mfa/enrollment/${token}`);
 export const confirmInviteEnrollment = (token: string, code: string) => apiClient.post<BackupCodesDto>(`/mfa/enrollment/${token}/confirm`, { code });

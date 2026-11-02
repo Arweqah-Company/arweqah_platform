@@ -18,7 +18,8 @@
     "backupLabel": "Backup code",
     "invalid": "The code is not valid.",
     "locked": "Too many attempts. Try again in a moment.",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "remember": "Remember this device and do not ask for the code there"
   },
   "enroll": {
     "title": "Link your authenticator app",
