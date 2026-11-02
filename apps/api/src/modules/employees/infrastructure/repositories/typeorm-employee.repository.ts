@@ -69,6 +69,7 @@ export class TypeOrmEmployeeRepository extends EmployeeRepository {
     const today = new Date().toISOString().slice(0, 10);
     const soon = new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
     if (query.idExpiring) qb.andWhere('e.id_expiry_date IS NOT NULL AND e.id_expiry_date <= :soon', { soon });
+    if (query.needsPlacement) qb.andWhere('e.is_system_account = false AND (e.org_node_id IS NULL OR e.job_title_id IS NULL)');
     if (query.contractEnding) qb.andWhere('e.end_date IS NOT NULL AND e.end_date BETWEEN :today AND :soon', { today, soon });
   }
 

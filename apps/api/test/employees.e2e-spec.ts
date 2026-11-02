@@ -245,6 +245,19 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     expect(created.id).toBeTruthy();
   });
 
+  it('lists the people with no unit or job title to place, and never asks for a new employee without them (FR-72)', async () => {
+    const { org, agent, payload } = await setup();
+    const unplaced = await t.factories.user();
+    const placed = await t.factories.user({ unit: org.unitA });
+    const ids = ((await agent.get('/api/employees').query({ needsPlacement: 'true', pageSize: 100 }).expect(200)).body.items as { id: string; needsPlacement: boolean }[]);
+    expect(ids.map((e) => e.id)).toContain(unplaced.employeeId);
+    expect(ids.map((e) => e.id)).not.toContain(placed.employeeId);
+    expect(ids.every((e) => e.needsPlacement)).toBe(true);
+    const { jobTitleId: _title, ...withoutTitle } = payload(org.unitA);
+    expect((await agent.post('/api/employees').send(withoutTitle).expect(400)).body.code).toBeDefined();
+    expect((await agent.post('/api/employees').send({ ...payload(org.unitA), jobTitleId: null }).expect(400)).body.code).toBeDefined();
+  });
+
   it('cuts sign-in the day after the end date (Riyadh), keeps it through the end date, and says so on the employee (FR-71)', async () => {
     const { org, agent, payload } = await setup();
     const day = (offset: number): string => new Date(Date.parse(`${todayInRiyadh()}T00:00:00Z`) + offset * 86_400_000).toISOString().slice(0, 10);

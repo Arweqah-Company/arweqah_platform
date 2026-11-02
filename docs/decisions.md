@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-02 — Job title for everyone
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 129 | The job title is required by the API (create and update) and flagged («needs placement» filter, home count); **no `NOT NULL`/CHECK on `employees.job_title_id` yet** | Every API e2e factory adds a person without a unit, so a database rule would fail them all; the system account has no title by design; the owner's existing employees are test data to be placed from the filter | The factories give every person a title; then add `CHECK (is_system_account OR job_title_id IS NOT NULL) NOT VALID` and validate it after the cleanup |
+
 ## 2026-11-02 — Sign-in after the contract
 
 | # | Decision | Why | Revisit when |
