@@ -157,6 +157,10 @@ export class TypeOrmEmployeeRepository extends EmployeeRepository {
     return (await this.repo.count({ where: { id } })) > 0;
   }
 
+  async setAccessEnded(id: string, at: Date | null): Promise<void> {
+    await this.ds.query('UPDATE employees SET access_ended_at = $2, updated_at = now() WHERE id = $1', [id, at]);
+  }
+
   async endedStillActive(today: string): Promise<{ id: string; userId: string }[]> {
     const rows: { id: string; user_id: string }[] = await this.ds.query(
       `SELECT e.id, e.user_id FROM employees e JOIN users u ON u.id = e.user_id

@@ -61,6 +61,7 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'access.exception_revoked': a('access', 'سحب استثناءً', 'Took an exception back'),
   'access.exception_expiry_changed': a('access', 'غيّر تاريخ انتهاء استثناء', 'Changed the end date of an exception'),
   'access.exception_expired': a('access', 'انتهى استثناء وسُحب تلقائيًا', 'An exception ended and was taken back'),
+  'employee.access_restored': a('employees', 'أعاد دخول موظف بعد تعديل تاريخ نهاية تعاقده', 'Gave an employee their sign-in back after the end date changed'),
   'role.auto_synced': a('access', 'حدّث أعضاء الأدوار التلقائية', 'Refreshed the members of the automatic roles'),
   'role.deleted': a('access', 'حذف دورًا', 'Deleted a role'),
   'role.pages_updated': a('access', 'غيّر الصفحات المخفية عن دور', 'Changed the pages hidden from a role'),

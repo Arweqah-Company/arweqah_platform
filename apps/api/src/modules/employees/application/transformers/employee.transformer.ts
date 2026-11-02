@@ -55,6 +55,7 @@ export class EmployeeTransformer {
       isActive: view.isActive,
       isSystemAccount: e.isSystemAccount,
       authenticatorEnabled,
+      accessEndedAt: e.accessEndedAt?.toISOString() ?? null,
       company: companies.get(e.companyId) ?? UNKNOWN,
       relationTypeId: e.relationTypeId,
       orgNode: pick(nodes, e.orgNodeId),

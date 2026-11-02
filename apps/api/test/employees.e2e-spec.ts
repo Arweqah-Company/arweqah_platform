@@ -1,5 +1,6 @@
 import { CorePermission, type LookupsDto, type PermissionGrant } from '@arweqah-platform/shared';
 import { describe, expect, it } from 'vitest';
+import { todayInRiyadh } from '../src/common/domain/riyadh-date';
 import { EmployeeLifecycleJob } from '../src/modules/employees/infrastructure/jobs/employee-lifecycle.job';
 import type { TestAgent, TestOrg, TestUnit, TestUser } from './factories/factories';
 import { codeFor } from './helpers/totp';
@@ -244,6 +245,57 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     expect(created.id).toBeTruthy();
   });
 
+  it('cuts sign-in the day after the end date (Riyadh), keeps it through the end date, and says so on the employee (FR-71)', async () => {
+    const { org, agent, payload } = await setup();
+    const day = (offset: number): string => new Date(Date.parse(`${todayInRiyadh()}T00:00:00Z`) + offset * 86_400_000).toISOString().slice(0, 10);
+    const ended = (await agent.post('/api/employees').send(payload(org.unitA)).expect(201)).body.employee;
+    const lastDay = (await agent.post('/api/employees').send(payload(org.unitA)).expect(201)).body.employee;
+    await t.db.query('UPDATE employees SET end_date = $2 WHERE id = $1', [ended.id, day(-1)]);
+    await t.db.query('UPDATE employees SET end_date = $2 WHERE id = $1', [lastDay.id, day(0)]);
+    const job = t.app.get(EmployeeLifecycleJob);
+    expect(await job.deactivateEnded()).toBe(1);
+    expect(await job.deactivateEnded()).toBe(0);
+    expect((await agent.get(`/api/employees/${ended.id}`).expect(200)).body).toMatchObject({ isActive: false, accessEndedAt: expect.any(String) });
+    expect((await agent.get(`/api/employees/${lastDay.id}`).expect(200)).body).toMatchObject({ isActive: true, accessEndedAt: null });
+    expect(await job.deactivateEnded(day(1))).toBe(1);
+  });
+
+  it('ends sign-in at once when a contract is ended in the past, and an open session stops working (FR-71)', async () => {
+    const { org, agent, payload, lookups, pick } = await setup();
+    const day = (offset: number): string => new Date(Date.parse(`${todayInRiyadh()}T00:00:00Z`) + offset * 86_400_000).toISOString().slice(0, 10);
+    const person = await t.factories.user({ unit: org.unitA });
+    const session = await t.factories.signIn(person);
+    await session.get('/api/me').expect(200);
+    await agent.post(`/api/employees/${person.employeeId}/terminate`).send({ endDate: day(-1), terminationReasonId: pick(lookups.terminationReasons, 'resignation') }).expect(200);
+    expect((await t.db.query('SELECT access_ended_at FROM employees WHERE id = $1', [person.employeeId]))[0].access_ended_at).not.toBeNull();
+    await session.get('/api/me').expect(401);
+  });
+
+  it('gives sign-in back when the end date is removed or moved out, only to who may switch accounts on, and not while the date is still past (FR-71)', async () => {
+    const { org, agent, payload } = await setup();
+    const day = (offset: number): string => new Date(Date.parse(`${todayInRiyadh()}T00:00:00Z`) + offset * 86_400_000).toISOString().slice(0, 10);
+    const make = async () => {
+      const e = (await agent.post('/api/employees').send(payload(org.unitA)).expect(201)).body.employee;
+      await t.db.query('UPDATE employees SET end_date = $2 WHERE id = $1', [e.id, day(-3)]);
+      await t.app.get(EmployeeLifecycleJob).deactivateEnded();
+      return (await agent.get(`/api/employees/${e.id}`).expect(200)).body;
+    };
+    const active = async (id: string) => (await agent.get(`/api/employees/${id}`).expect(200)).body;
+    const moved = await make();
+    await agent.put(`/api/employees/${moved.id}`).send({ ...asUpdate(moved), endDate: day(30) }).expect(200);
+    expect(await active(moved.id)).toMatchObject({ isActive: true, accessEndedAt: null, endDate: day(30) });
+    const removed = await make();
+    await agent.put(`/api/employees/${removed.id}`).send({ ...asUpdate(removed), endDate: null }).expect(200);
+    expect(await active(removed.id)).toMatchObject({ isActive: true, accessEndedAt: null });
+    const stillPast = await make();
+    await agent.put(`/api/employees/${stillPast.id}`).send({ ...asUpdate(stillPast), endDate: day(-1) }).expect(200);
+    expect(await active(stillPast.id)).toMatchObject({ isActive: false, accessEndedAt: expect.any(String) });
+    const noSwitch = await t.factories.signIn(await t.factories.user({ grants: hr.filter((g) => g.key !== P.EmployeesDeactivate) }));
+    const another = await make();
+    await noSwitch.put(`/api/employees/${another.id}`).send({ ...asUpdate(another), endDate: day(30) }).expect(200);
+    expect(await active(another.id)).toMatchObject({ isActive: false, endDate: day(30) });
+  });
+
   it('ends a contract with a reason, and the account stops working after the end date (job is idempotent)', async () => {
     const { org, agent, payload, lookups, pick } = await setup();
     const created = (await agent.post('/api/employees').send(payload(org.unitA)).expect(201)).body.employee;
@@ -377,8 +429,8 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
 
 /** The editable fields of an employee as the form would send them back. */
 function asUpdate(e: Record<string, unknown> & { orgNode?: { id: string } | null; jobTitle?: { id: string } | null; company?: { id: string } }): Record<string, unknown> {
-  const { id, userId, isActive, isSystemAccount, authenticatorEnabled, company, orgNode, jobTitle, manager, roles, groups, sensitiveHidden, createdAt, updatedAt, ...rest } = e as Record<string, unknown>;
-  void [id, userId, isActive, isSystemAccount, authenticatorEnabled, roles, groups, sensitiveHidden, createdAt, updatedAt];
+  const { id, userId, isActive, isSystemAccount, authenticatorEnabled, accessEndedAt, company, orgNode, jobTitle, manager, roles, groups, sensitiveHidden, createdAt, updatedAt, ...rest } = e as Record<string, unknown>;
+  void [id, userId, isActive, isSystemAccount, authenticatorEnabled, accessEndedAt, roles, groups, sensitiveHidden, createdAt, updatedAt];
   const clean = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== null));
   return { ...clean, companyId: (company as { id: string }).id, orgNodeId: (orgNode as { id: string }).id, jobTitleId: (jobTitle as { id: string }).id, managerId: (manager as { id: string } | null)?.id ?? null };
 }
