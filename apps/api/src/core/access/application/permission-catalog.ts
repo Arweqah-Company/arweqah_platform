@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import type {
-  PermissionCatalogGroup,
-  PermissionDefinition,
-  PermissionGrant,
+import {
+  baseScopeOf,
+  type PermissionCatalogGroup,
+  type PermissionDefinition,
+  type PermissionGrant,
 } from '@arweqah-platform/shared';
 import { ScopeNotAllowedError, UnknownPermissionError } from '../domain/errors';
 
@@ -37,7 +38,7 @@ export class PermissionCatalog {
     for (const grant of grants) {
       const def = this.definitions.get(grant.key);
       if (!def) throw new UnknownPermissionError(grant.key);
-      if (!def.scopes.includes(grant.scope)) throw new ScopeNotAllowedError(grant.key, grant.scope);
+      if (!def.scopes.includes(baseScopeOf(grant.scope))) throw new ScopeNotAllowedError(grant.key, grant.scope);
     }
   }
 }

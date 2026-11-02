@@ -1,16 +1,14 @@
 import type { PermissionGrant, RoleOriginDto } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../common/domain/transaction-context';
 import type { Role } from './role.entity';
-import type { Placement } from './access-context';
+import type { Placement, UnitReach } from './access-context';
 
 export interface UserAccessRecord {
   isActive: boolean;
   grants: PermissionGrant[];
   placement: Placement;
-  /** The user's org unit and every unit below it (empty when unplaced). */
-  subtreeNodeIds: string[];
-  /** Units the person manages through the head role of their level, and those units with everything below them. */
-  managed: { unitIds: string[]; subtreeIds: string[] };
+  /** The units the person reaches and how deep: the unit they sit in and the units they manage through a head role, then the units below them. */
+  reach: UnitReach;
 }
 
 /** A role to make for a job title: its name follows the title, its permissions are copied from a template. */

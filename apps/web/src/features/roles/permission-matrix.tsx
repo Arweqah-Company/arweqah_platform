@@ -1,5 +1,6 @@
-import type { PermissionCatalogGroup, PermissionGrant, PermissionScope } from '@arweqah-platform/shared';
+import { offeredScopes, type PermissionCatalogGroup, type PermissionGrant, type PermissionScope } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
+import { useScopeLabel } from '@/shared/lib/use-scope-label';
 import { Button, Select } from '@/shared/ui';
 
 interface Props {
@@ -14,7 +15,7 @@ interface Props {
 /** Every permission of the platform by module: tick it, then choose how far it reaches. Used for roles, groups and people alike. */
 export function PermissionMatrix({ catalog, grants, onChange, inherited = [], disabled = false }: Props) {
   const { t, i18n } = useTranslation('roles');
-  const { t: tc } = useTranslation();
+  const scopeLabel = useScopeLabel();
   const scopeOf = (key: string) => grants.find((p) => p.key === key)?.scope;
   const inheritedOf = (key: string) => inherited.find((p) => p.key === key)?.scope;
   const setGrant = (key: string, scope: PermissionScope | null) => onChange([...grants.filter((p) => p.key !== key), ...(scope ? [{ key, scope }] : [])]);
@@ -40,11 +41,11 @@ export function PermissionMatrix({ catalog, grants, onChange, inherited = [], di
                   <label className="flex items-center gap-2 text-sm">
                     <input type="checkbox" disabled={disabled} checked={!!scope} onChange={(e) => setGrant(perm.key, e.target.checked ? (perm.scopes.at(-1) ?? 'company') : null)} />
                     {label}
-                    {from && !scope && <span className="rounded-full bg-petrol-50 px-2 py-0.5 text-xs text-fg">{t('inheritedBadge', { scope: tc(`scope.${from}`) })}</span>}
+                    {from && !scope && <span className="rounded-full bg-petrol-50 px-2 py-0.5 text-xs text-fg">{t('inheritedBadge', { scope: scopeLabel(from) })}</span>}
                   </label>
-                  {scope && perm.scopes.length > 1 && (
+                  {scope && offeredScopes(perm.scopes).length > 1 && (
                     <Select aria-label={`${t('scope')}: ${label}`} className="h-8 w-40" disabled={disabled} value={scope} onChange={(e) => setGrant(perm.key, e.target.value as PermissionScope)}>
-                      {perm.scopes.map((s) => <option key={s} value={s}>{tc(`scope.${s}`)}</option>)}
+                      {offeredScopes(perm.scopes).map((s) => <option key={s} value={s}>{scopeLabel(s)}</option>)}
                     </Select>
                   )}
                 </li>

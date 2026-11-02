@@ -21,7 +21,7 @@ import { EmployeePlacementPort } from '../../domain/contracts/employee-placement
 import { InvalidOrgHierarchyError, JobTitleInUseError, LastJobTitleError, OrgNodeHasTicketsError, OrgNodeInUseError } from '../../domain/errors/org.errors';
 import type { LevelView, NodeView, TitleView } from '../../domain/types/org.types';
 import { OrgRepository } from '../../domain/contracts/org.repository';
-import { assertCompanyAccess, ORG_TITLES, ORG_UNIT_CREATE, ORG_UNIT_DELETE, ORG_UNIT_MOVE, ORG_UNIT_UPDATE, ORG_VIEW } from '../policies/org-access.policy';
+import { assertCompanyAccess, visibleNodes, ORG_TITLES, ORG_UNIT_CREATE, ORG_UNIT_DELETE, ORG_UNIT_MOVE, ORG_UNIT_UPDATE, ORG_VIEW } from '../policies/org-access.policy';
 import { toLevelDto, toNodeDto, toTitleDto } from '../transformers/org.transformer';
 import { ORG_AUDIT } from '../messages/org.messages';
 import { JobTitleRolesService } from '../../../../core/access/application/job-title-roles.service';
@@ -47,7 +47,7 @@ export class OrgNodesService {
     return {
       companyId,
       levels: levels.map((l) => toLevelDto(l, unitCounts.get(l.id) ?? 0)),
-      nodes: await this.nodeDtos(nodes),
+      nodes: await this.nodeDtos(visibleNodes(ctx, ORG_VIEW, nodes)),
     };
   }
 

@@ -31,4 +31,11 @@ describe('Task reach by scope (FR-49)', () => {
     expect(inReach('company', viewer, person({ companyId: 'c2' }))).toBe(false);
     expect(inReach('all', viewer, person({ companyId: 'c2' }))).toBe(true);
   });
+
+  it('a depth scope reaches the units that depth gives, besides the direct reports (FR-80)', () => {
+    const deep: TaskViewer = { ...viewer, reachNodes: { 'subtree:1': ['n1', 'n2'] } };
+    expect(inReach('subtree:1', deep, person({ orgNodeId: 'n2' }))).toBe(true);
+    expect(inReach('subtree:1', deep, person({ orgNodeId: 'n3' }))).toBe(false);
+    expect(inReach('subtree:1', deep, person({ managerEmployeeId: 'e-me', orgNodeId: 'n9' }))).toBe(true);
+  });
 });
