@@ -2,6 +2,14 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-02 — Depth of a scope
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 122 | A depth is part of the scope string (`subtree:N`, N 1 to 5) in the existing `scope` varchar columns, ordered between `unit` and `subtree`; no new column on the four grant tables | The owner wants each head role to reach as many levels as it says (a sector head sees its departments only); a string keeps every table, DTO and widest-scope rule working, and the existing `unit` (depth 0) and `subtree` (no limit) stay as they are | A grant needs more than a depth (e.g. a named level or another dimension) |
+| 123 | The units a person reaches are one map (unit → fewest levels below a starting unit) built once per context from the closure table: starting units are where they sit and the units they manage through a head role. `AccessContext.nodesFor(scope)` feeds lists (`= ANY(:scopeNodes)`), record checks, tickets and the tasks reach (`TaskViewer.reachNodes`) | One source for every module; replaces the separate placement/managed lists of decision 118 without changing its meaning | The closure of a very large company makes the per-request load slow (then cache per user) |
+| 124 | `org.view` accepts `unit` and `subtree` (with depths): the tree shows the units the scope reaches and the highest of them as a root (`parentId` null) | A sector head with one level below must see the departments, not the whole company; the web already draws roots from `parentId = null` | The structure page needs to show the path above the reached units |
+
 ## 2026-11-02 — Security advisory
 
 | # | Decision | Why | Revisit when |

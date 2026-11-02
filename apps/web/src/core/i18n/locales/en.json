@@ -161,7 +161,12 @@
     "unit": "Their unit",
     "subtree": "Their unit and below",
     "company": "Their whole company",
-    "all": "All companies"
+    "all": "All companies",
+    "depth1": "Their unit and 1 level below",
+    "depth2": "Their unit and 2 levels below",
+    "depth3": "Their unit and 3 levels below",
+    "depth4": "Their unit and 4 levels below",
+    "depth5": "Their unit and 5 levels below"
   },
   "status": {
     "active": "Active",

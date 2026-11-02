@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { localizedNameSchema } from '../common/localized';
-import { PERMISSION_SCOPES, type PermissionScope } from '../permissions/scope';
+import { permissionScopeSchema, type PermissionScope } from '../permissions/scope';
 
 export const permissionGrantSchema = z.strictObject({
   key: z.string().regex(/^[a-z][a-z0-9_-]*\.[a-z][a-z0-9_-]*$/),
-  scope: z.enum(PERMISSION_SCOPES),
+  scope: permissionScopeSchema,
 });
 
 export const ROLE_ASSIGNMENTS = ['auto', 'manual'] as const;
