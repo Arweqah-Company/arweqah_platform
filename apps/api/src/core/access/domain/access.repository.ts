@@ -48,8 +48,10 @@ export abstract class UserAccessRepository {
   abstract replacePermissions(userId: string, grants: PermissionGrant[], grantedBy: string | null, tx?: TransactionContext): Promise<void>;
   /** Brings the roles the system keeps up to date (who has reports) and the roles of job titles and levels in order; returns how many memberships changed. */
   abstract syncAutoRoles(): Promise<number>;
-  /** The roles a new employee starts with: the Employee role and the role of their job title (the ones that exist). */
-  abstract defaultRoleIdsFor(jobTitleId: string | null): Promise<{ everyoneId: string | null; titleId: string | null }>;
+  /** The roles a new employee starts with: the base role (the Employee role, or the collaborator base for limited access) and the role of their job title (the ones that exist). */
+  abstract defaultRoleIdsFor(jobTitleId: string | null, limitedAccess: boolean): Promise<{ baseId: string | null; titleId: string | null }>;
+  /** Swaps the base role the person holds when their relation changes between employee and limited access; other roles stay. */
+  abstract swapBaseRole(userId: string, limitedAccess: boolean): Promise<void>;
   /** Gives the head role of the level to the employee when they manage an active unit of it, takes it back when they do not. */
   abstract syncHeadRole(levelId: string, employeeId: string): Promise<void>;
 }

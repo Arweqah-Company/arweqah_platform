@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import type {
   ContractTypeLookupDto,
+  RelationTypeLookupDto,
   CountryLookupDto,
   IdTypeLookupDto,
   IdTypeRuleDto,
@@ -51,8 +52,9 @@ export class TypeOrmLookupsRepository extends LookupsRepository {
     return { id: row.id, code: row.code, name: lang === 'en' ? row.nameEn : row.nameAr, nameAr: row.nameAr, nameEn: row.nameEn, sortOrder: Number(row.sortOrder) };
   }
 
-  async relationTypes(lang: Language): Promise<LookupItemDto[]> {
-    return (await this.read('relation_types', 'relation_type_translations', 'relation_type_id')).map((r) => TypeOrmLookupsRepository.item(r, lang));
+  async relationTypes(lang: Language): Promise<RelationTypeLookupDto[]> {
+    const rows = await this.read('relation_types', 'relation_type_translations', 'relation_type_id', { 't.limited_access': 'limitedAccess' });
+    return rows.map((r) => ({ ...TypeOrmLookupsRepository.item(r, lang), limitedAccess: Boolean(r.limitedAccess) }));
   }
 
   async countries(lang: Language): Promise<CountryLookupDto[]> {
@@ -163,5 +165,10 @@ export class TypeOrmLookupsRepository extends LookupsRepository {
   async terminationReasonIsOther(id: string): Promise<boolean | null> {
     const rows: { is_other: boolean }[] = await this.ds.query('SELECT is_other FROM termination_reasons WHERE id = $1', [id]);
     return rows[0] ? rows[0].is_other : null;
+  }
+
+  async relationTypeLimited(id: string): Promise<boolean | null> {
+    const rows: { limited_access: boolean }[] = await this.ds.query('SELECT limited_access FROM relation_types WHERE id = $1', [id]);
+    return rows[0] ? rows[0].limited_access : null;
   }
 }

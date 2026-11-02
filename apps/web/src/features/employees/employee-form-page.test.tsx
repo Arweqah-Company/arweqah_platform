@@ -88,11 +88,11 @@ describe('Employee form (FR-17, FR-18)', () => {
     expect(called).toBe(false);
   });
 
-  it('rejects a work e-mail outside the company domain before it reaches the server', async () => {
+  it('rejects a work e-mail that is not an address before it reaches the server', async () => {
     await open();
-    fireEvent.change(screen.getByLabelText('بريد العمل *'), { target: { value: 'someone@gmail.com' } });
+    fireEvent.change(screen.getByLabelText('بريد العمل *'), { target: { value: 'not an address' } });
     fireEvent.click(screen.getByRole('button', { name: 'حفظ وإرسال الدعوة' }));
-    expect(await screen.findByText(/arweqah\.sa\./)).toBeInTheDocument();
+    expect(await screen.findByText('بريد العمل غير صحيح.')).toBeInTheDocument();
   });
 });
 
@@ -114,10 +114,10 @@ describe('Employee form validation while typing (FR-17, FR-18)', () => {
     expect(screen.queryByText('هذا الحقل مطلوب.')).not.toBeInTheDocument();
     fireEvent.blur(screen.getByLabelText('الرقم الوظيفي *'));
     expect(await screen.findByText('هذا الحقل مطلوب.')).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('بريد العمل *'), { target: { value: 'x@gmail.com' } });
-    expect(await screen.findByText(/arweqah\.sa\./)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('بريد العمل *'), { target: { value: 'x' } });
+    expect(await screen.findByText('بريد العمل غير صحيح.')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('بريد العمل *'), { target: { value: 'x@arweqah.sa' } });
-    await waitFor(() => expect(screen.queryByText(/arweqah\.sa\./)).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText('بريد العمل غير صحيح.')).not.toBeInTheDocument());
   });
 
   it('has two steps only for who may give roles, and stays on the first step while it has mistakes', async () => {

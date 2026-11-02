@@ -208,12 +208,20 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
     return changed;
   }
 
-  async defaultRoleIdsFor(jobTitleId: string | null): Promise<{ everyoneId: string | null; titleId: string | null }> {
+  async defaultRoleIdsFor(jobTitleId: string | null, limitedAccess: boolean): Promise<{ baseId: string | null; titleId: string | null }> {
+    const baseRule = limitedAccess ? 'limited_access' : 'everyone';
     const rows: { id: string; rule: string }[] = await this.roles.manager.query(
-      `SELECT id, auto_rule AS rule FROM roles WHERE auto_rule = 'everyone' OR ($1::uuid IS NOT NULL AND job_title_id = $1::uuid)`,
-      [jobTitleId],
+      `SELECT id, auto_rule AS rule FROM roles WHERE auto_rule = $2 OR ($1::uuid IS NOT NULL AND job_title_id = $1::uuid)`,
+      [jobTitleId, baseRule],
     );
-    return { everyoneId: rows.find((r) => r.rule === 'everyone')?.id ?? null, titleId: rows.find((r) => r.rule === 'job_title')?.id ?? null };
+    return { baseId: rows.find((r) => r.rule === baseRule)?.id ?? null, titleId: rows.find((r) => r.rule === 'job_title')?.id ?? null };
+  }
+
+  async swapBaseRole(userId: string, limitedAccess: boolean): Promise<void> {
+    const [from, to] = limitedAccess ? ['everyone', 'limited_access'] : ['limited_access', 'everyone'];
+    const m = this.userRoles.manager;
+    await m.query(`DELETE FROM user_roles ur USING roles r WHERE ur.user_id = $1 AND ur.role_id = r.id AND r.auto_rule = $2`, [userId, from]);
+    await m.query(`INSERT INTO user_roles (user_id, role_id) SELECT $1, id FROM roles WHERE auto_rule = $2 ON CONFLICT DO NOTHING`, [userId, to]);
   }
 
   async syncHeadRole(levelId: string, employeeId: string): Promise<void> {

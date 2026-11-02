@@ -41,7 +41,7 @@ const item = (code: string, nameAr: string, nameEn: string, sortOrder = 1) => ({
 
 /** A small but realistic set of option lists, with the flags the employee form is built from. */
 export const lookups: LookupsDto = {
-  relationTypes: [item('employee', 'موظف', 'Employee')],
+  relationTypes: [{ ...item('employee', 'موظف', 'Employee'), limitedAccess: false }],
   countries: [{ ...item('SA', 'السعودية', 'Saudi Arabia'), isoCode: 'SA', currencyCode: 'SAR', currencyName: 'ريال سعودي' }],
   maritalStatuses: [item('married', 'متزوج', 'Married')],
   residencyStatuses: [item('citizen', 'مواطن', 'Citizen')],

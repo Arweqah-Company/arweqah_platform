@@ -104,7 +104,7 @@
   "validation": {
     "required": "This field is required.",
     "invalid": "The value is not valid.",
-    "workEmail": "The work email must end with @arweqah.sa.",
+    "workEmail": "The work email is not a valid address.",
     "personalEmail": "Not a valid email, or the same as the work email.",
     "workPhone": "Use the international format, e.g. +966501234567.",
     "personalPhone": "Use the international format, e.g. +966501234567.",

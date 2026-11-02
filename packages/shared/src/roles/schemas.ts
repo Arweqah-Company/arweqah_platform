@@ -14,7 +14,7 @@ export type RoleAssignment = (typeof ROLE_ASSIGNMENTS)[number];
  * Roles the system keeps up to date by itself; nobody assigns them by hand.
  * `job_title`: one role per job title, held by whoever has that title; `node_head`: one role per organization level of a company, held by the managers of its units.
  */
-export const ROLE_AUTO_RULES = ['everyone', 'has_reports', 'job_title', 'node_head'] as const;
+export const ROLE_AUTO_RULES = ['everyone', 'has_reports', 'job_title', 'node_head', 'limited_access'] as const;
 export type RoleAutoRule = (typeof ROLE_AUTO_RULES)[number];
 
 /** Auto roles that follow the organization (created and removed with their job title or level, never edited or assigned by hand). */
