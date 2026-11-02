@@ -1,4 +1,4 @@
-import type { IdTypeLookupDto } from '@arweqah-platform/shared';
+import { CorePermission, type IdTypeLookupDto } from '@arweqah-platform/shared';
 import { useEffect, useMemo } from 'react';
 import { useForm, useWatch, type UseFormReturn } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -6,7 +6,8 @@ import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { ApiError } from '@/core/api/api-client';
 import { errorMessage } from '@/shared/lib/error-message';
-import { useCreateEmployee, useEmployee, useUpdateEmployee } from '../api';
+import { useAssignRoles, useCreateEmployee, useEmployee, useUpdateEmployee } from '../api';
+import { usePermissions } from '@/core/permissions/can';
 import { EMPTY_FORM, employeeResolverWithIdRule, toFormState, toPayload, type FormState } from './form-state';
 
 interface RuleDetails {
@@ -51,6 +52,8 @@ export function useEmployeeForm(id: string | undefined, idTypes: IdTypeLookupDto
   const employee = useEmployee(id);
   const create = useCreateEmployee();
   const update = useUpdateEmployee(id ?? '');
+  const assignRoles = useAssignRoles(id ?? '');
+  const { can } = usePermissions();
   const resolver = useMemo(() => employeeResolverWithIdRule(idTypes, i18n.language), [idTypes, i18n.language]);
   const form = useForm<FormState>({ resolver, defaultValues: EMPTY_FORM, mode: 'all' });
   const editing = !!id;
@@ -66,11 +69,14 @@ export function useEmployeeForm(id: string | undefined, idTypes: IdTypeLookupDto
     if (employee.data) form.reset(toFormState(employee.data));
   }, [employee.data, form]);
 
-  const submit = form.handleSubmit(async (values) => {
+  const save = async (values: FormState) => {
     try {
-      const payload = toPayload(values, editing) as never;
+      const withRoles = can(CorePermission.EmployeesAssignRoles) && can(CorePermission.RolesView);
+      // Without the roles step the server gives the default roles (Employee and the role of the job title).
+      const payload = (editing || withRoles ? toPayload(values, editing) : { ...toPayload(values, false), roleIds: undefined }) as never;
       if (editing) {
         await update.mutateAsync(payload);
+        if (can(CorePermission.EmployeesAssignRoles) && form.formState.dirtyFields.roleIds) await assignRoles.mutateAsync(values.roleIds);
         toast.success(t('saved'));
         navigate(`/employees/${id}`);
       } else {
@@ -80,7 +86,9 @@ export function useEmployeeForm(id: string | undefined, idTypes: IdTypeLookupDto
     } catch (error) {
       fail(error);
     }
-  });
+  };
+  /** Saves the form; `onInvalid` runs when a field of the first step is wrong (the form goes back to it). */
+  const submit = (event: React.BaseSyntheticEvent, onInvalid?: () => void) => form.handleSubmit(save, onInvalid)(event);
 
   return { form, employee, editing, submit };
 }

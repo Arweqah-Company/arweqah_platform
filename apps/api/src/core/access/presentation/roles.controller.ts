@@ -6,6 +6,7 @@ import {
   upsertRoleSchema,
   type PermissionCatalogGroup,
   type RoleDto,
+  type RoleSyncResultDto,
 } from '@arweqah-platform/shared';
 import { CurrentUser } from '../../../common/presentation/current-user.decorator';
 import type { SessionUser } from '../../../common/presentation/request-context';
@@ -42,6 +43,15 @@ export class RolesController {
   @RequirePermission(CorePermission.RolesCreate)
   create(@Body() body: UpsertRoleDto, @CurrentUser() user: SessionUser): Promise<RoleDto> {
     return this.roles.create(body, user.id);
+  }
+
+  @Post('roles/sync-auto')
+  @HttpCode(200)
+  @RequireAdminMode()
+  @HiddenWithPage('roles')
+  @RequirePermission(CorePermission.RolesSyncAuto)
+  syncAuto(@CurrentUser() user: SessionUser): Promise<RoleSyncResultDto> {
+    return this.roles.syncAuto(user.id);
   }
 
   @Put('roles/:id')

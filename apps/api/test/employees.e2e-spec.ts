@@ -267,7 +267,7 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     const small = await t.factories.role([grant(P.AuditView, 'all')]);
     const big = await t.factories.role([grant(P.RolesCreate, 'all')]);
     const assigned = await agent.put(`/api/employees/${target.id}/roles`).send({ roleIds: [small.id] }).expect(200);
-    expect(assigned.body.roles).toHaveLength(1);
+    expect(assigned.body.roles.map((r: { id: string }) => r.id)).toEqual([small.id]);
     const limited = await t.factories.user({ unit: org.unitB, grants: [grant(P.EmployeesView, 'all'), grant(P.EmployeesAssignRoles, 'all'), grant(P.AuditView, 'all')] });
     const session = await t.factories.signIn(limited);
     await session.put(`/api/employees/${target.id}/roles`).send({ roleIds: [big.id] }).expect(403);

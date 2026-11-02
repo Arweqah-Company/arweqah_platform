@@ -23,8 +23,40 @@ describe('AccessContext', () => {
       true,
     );
     expect(ctx.scopeOf('employees.view')).toBe('company');
-    expect(ctx.filterFor('employees.view')).toEqual({ scope: 'company', userId: 'u1', companyId: 'c1', orgNodeId: 'n1' });
+    expect(ctx.filterFor('employees.view')).toEqual({ scope: 'company', userId: 'u1', companyId: 'c1', orgNodeId: 'n1', managedUnitIds: [], managedSubtreeIds: [] });
     expect(ctx.filterFor('roles.manage')).toBeNull();
+  });
+});
+
+describe('AccessContext with managed units (head roles)', () => {
+  const managed = { unitIds: ['m1'], subtreeIds: ['m1', 'm2'] };
+  const ctx = (scope: PermissionScope, p: Placement = placement) => new AccessContext('u1', p, [{ key: 'employees.view', scope }], true, subtree, managed);
+
+  it('adds the managed units to the unit scope beside where the person sits', () => {
+    expect(ctx('unit').nodeScopeOf('employees.view')).toEqual({ kind: 'nodes', ids: ['n1', 'm1'] });
+    expect(ctx('unit', NO_PLACEMENT).nodeScopeOf('employees.view')).toEqual({ kind: 'nodes', ids: ['m1'] });
+  });
+
+  it('adds the managed units and everything below them to the subtree scope', () => {
+    expect(ctx('subtree').subtreeNodeIds).toEqual(['n1', 'n2', 'n3', 'm1', 'm2']);
+    expect(ctx('subtree').reaches('employees.view', { orgNodeId: 'm2', companyId: 'c1' })).toBe(true);
+    expect(ctx('subtree').reaches('employees.view', { orgNodeId: 'x9', companyId: 'c1' })).toBe(false);
+  });
+
+  it('leaves the company and all scopes as they are, and gives a person who manages nothing exactly what they had', () => {
+    expect(ctx('company').nodeScopeOf('employees.view')).toEqual({ kind: 'company', companyId: 'c1' });
+    expect(new AccessContext('u1', placement, [{ key: 'employees.view', scope: 'unit' }], true, subtree).nodeScopeOf('employees.view')).toEqual({ kind: 'nodes', ids: ['n1'] });
+  });
+
+  it('passes the managed units to list queries', () => {
+    expect(ctx('subtree').filterFor('employees.view')).toMatchObject({ managedUnitIds: ['m1'], managedSubtreeIds: ['m1', 'm2'] });
+  });
+
+  it('lets a record check pass inside a managed unit', () => {
+    const factory = new AbilityFactory();
+    expect(factory.can(ctx('unit'), 'employees.view', { orgNodeId: 'm1' })).toBe(true);
+    expect(factory.can(ctx('unit'), 'employees.view', { orgNodeId: 'm2' })).toBe(false);
+    expect(factory.can(ctx('subtree'), 'employees.view', { orgNodeId: 'm2' })).toBe(true);
   });
 });
 

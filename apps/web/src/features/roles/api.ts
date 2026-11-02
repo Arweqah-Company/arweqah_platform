@@ -1,4 +1,4 @@
-import type { PermissionCatalogGroup, RoleDto, UpsertRoleInput } from '@arweqah-platform/shared';
+import type { PermissionCatalogGroup, RoleDto, RoleSyncResultDto, UpsertRoleInput } from '@arweqah-platform/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/core/api/api-client';
 
@@ -21,4 +21,12 @@ export function useSaveRole() {
 export function useDeleteRole() {
   const client = useQueryClient();
   return useMutation({ mutationFn: (id: string) => apiClient.delete(`/roles/${id}`), onSuccess: () => client.invalidateQueries({ queryKey: KEY }) });
+}
+
+export function useSyncAutoRoles() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiClient.post<RoleSyncResultDto>('/roles/sync-auto', {}),
+    onSuccess: () => client.invalidateQueries({ queryKey: KEY }),
+  });
 }

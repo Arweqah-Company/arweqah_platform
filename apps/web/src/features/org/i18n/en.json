@@ -68,7 +68,10 @@
     "nameEn": "English name",
     "add": "Add title",
     "remove": "Remove title",
-    "saved": "Job titles added."
+    "saved": "Job titles added.",
+    "template": "Copy permissions from role",
+    "templateHint": "The role of this title starts with the permissions of this role; you can edit them later on the roles page.",
+    "templateDefault": "Employee role (default)"
   },
   "move": {
     "title": "Move unit",

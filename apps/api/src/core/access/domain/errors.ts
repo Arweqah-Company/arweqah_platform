@@ -68,3 +68,17 @@ export class RolePagesLockedError extends BusinessRuleError {
     super('Pages cannot be hidden from a role that manages page visibility');
   }
 }
+
+export class DerivedRoleError extends BusinessRuleError {
+  override readonly code = 'DERIVED_ROLE';
+  constructor(reason: string) {
+    super(reason);
+  }
+}
+
+export class RoleTemplateError extends BusinessRuleError {
+  override readonly code = 'ROLE_TEMPLATE_INVALID';
+  constructor() {
+    super('A role made for a job title or a level cannot be the template of another');
+  }
+}

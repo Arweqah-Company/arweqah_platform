@@ -1,7 +1,8 @@
-import type { PermissionGrant, PermissionScope, RoleAssignment, RoleAutoRule } from '@arweqah-platform/shared';
-import { Column, Entity, OneToMany, PrimaryColumn, ManyToOne, JoinColumn, type Relation } from 'typeorm';
+import { isDerivedRule, type PermissionGrant, type PermissionScope, type RoleAssignment, type RoleAutoRule } from '@arweqah-platform/shared';
+import { Column, Entity, Index, OneToMany, PrimaryColumn, ManyToOne, JoinColumn, type Relation } from 'typeorm';
 import { NamedEntity } from '../../../common/domain/named.entity';
 import { BusinessRuleError } from '../../../common/domain/domain-error';
+import { DerivedRoleError } from './errors';
 
 @Entity('role_permissions')
 export class RolePermission {
@@ -34,6 +35,24 @@ export class Role extends NamedEntity {
   @Column({ name: 'auto_rule', type: 'varchar', length: 20, nullable: true })
   autoRule: RoleAutoRule | null;
 
+  /** `job_title` roles: the job title the role was made for; the members are the people who hold it. */
+  @Index('UQ_roles_job_title', { unique: true, where: 'job_title_id IS NOT NULL' })
+  @Column({ name: 'job_title_id', type: 'uuid', nullable: true })
+  jobTitleId: string | null;
+
+  /** `node_head` roles: the organization level the role was made for; the members are the managers of its units. */
+  @Index('UQ_roles_org_level', { unique: true, where: 'org_level_id IS NOT NULL' })
+  @Column({ name: 'org_level_id', type: 'uuid', nullable: true })
+  orgLevelId: string | null;
+
+  @ManyToOne('JobTitle', { onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'job_title_id', foreignKeyConstraintName: 'FK_roles_job_title' })
+  private readonly jobTitleFk?: unknown;
+
+  @ManyToOne('OrgLevel', { onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'org_level_id', foreignKeyConstraintName: 'FK_roles_org_level' })
+  private readonly orgLevelFk?: unknown;
+
   @OneToMany(() => RolePermission, (p) => p.role, { cascade: true, eager: true })
   permissions: RolePermission[];
 
@@ -49,7 +68,20 @@ export class Role extends NamedEntity {
     if (this.autoRule && next === 'manual') throw new BusinessRuleError('A role kept up to date by a rule cannot become manual');
   }
 
+  /** A role made for a job title or an organization level follows it: it is removed with it, never by hand. */
+  get isDerived(): boolean {
+    return isDerivedRule(this.autoRule);
+  }
+
+  /** Permissions and description may change; the name and the members follow the job title or level. */
+  assertNameUnchanged(next: { nameAr: string; nameEn: string }): void {
+    if (this.isDerived && (next.nameAr !== this.nameAr || next.nameEn !== this.nameEn)) {
+      throw new DerivedRoleError('The name of this role follows its job title or level');
+    }
+  }
+
   assertDeletable(): void {
     if (this.isSystem) throw new BusinessRuleError('System roles cannot be deleted');
+    if (this.isDerived) throw new DerivedRoleError('This role is removed together with its job title or level');
   }
 }

@@ -81,9 +81,12 @@ export class EmployeesService {
 
   /** Creates the person's record and sign-in account, assigns roles, then e-mails the activation link. */
   async create(ctx: AccessContext, input: CreateEmployeeInput, actorId: string): Promise<CreateEmployeeResultDto> {
-    const { roleIds, ...fields } = input;
+    const { roleIds: chosen, ...fields } = input;
     this.assertInScope(ctx, P.EmployeesCreate, { companyId: input.companyId, orgNodeId: input.orgNodeId });
-    if (roleIds.length) await this.assertCanAssignRoles(ctx, roleIds, { companyId: input.companyId, orgNodeId: input.orgNodeId });
+    const defaults = await this.access.defaultRoleIds(input.jobTitleId);
+    const roleIds = chosen ?? defaults.ids;
+    // The default roles come with the new person whoever adds them; naming roles is the permission to assign them.
+    if (chosen?.length) await this.assertCanAssignRoles(ctx, roleIds, { companyId: input.companyId, orgNodeId: input.orgNodeId }, defaults.ids);
     const { values } = await this.validation.prepare(ctx, fields);
     const userId = await this.identity.createUser({ name: input.fullName, email: input.workEmail, locale: 'ar' });
     let created: Employee;
@@ -146,7 +149,7 @@ export class EmployeesService {
   async assignRoles(ctx: AccessContext, id: string, roleIds: string[], actorId: string): Promise<EmployeeDto> {
     const employee = await this.mustFind(ctx, id, P.EmployeesAssignRoles);
     if (employee.userId === ctx.userId) throw new SelfActionError('You cannot change your own roles');
-    await this.assertCanAssignRoles(ctx, roleIds, { companyId: employee.companyId, orgNodeId: employee.orgNodeId, ownerId: employee.userId });
+    await this.assertCanAssignRoles(ctx, roleIds, { companyId: employee.companyId, orgNodeId: employee.orgNodeId, ownerId: employee.userId }, (await this.access.defaultRoleIds(employee.jobTitleId)).ids);
     await this.tx.run((tx) => this.access.replaceRoles(employee.userId, roleIds, tx));
     await this.events.emitAsync(EMPLOYEES_CHANGED);
     this.audit(actorId, EMPLOYEE_AUDIT.rolesChanged, id, { roleIds });
@@ -195,9 +198,10 @@ export class EmployeesService {
     if (!this.ability.can(ctx, key, resource)) throw new NotFoundError('Org unit', resource.orgNodeId);
   }
 
-  private async assertCanAssignRoles(ctx: AccessContext, roleIds: string[], resource: { companyId: string; orgNodeId: string | null; ownerId?: string }): Promise<void> {
+  /** Nobody gives more than they hold, except the Employee role and the role of the person's own job title (checked when they were made). */
+  private async assertCanAssignRoles(ctx: AccessContext, roleIds: string[], resource: { companyId: string; orgNodeId: string | null; ownerId?: string }, exempt: readonly string[]): Promise<void> {
     if (!this.ability.can(ctx, P.EmployeesAssignRoles, resource)) throw new ForbiddenError();
-    await this.access.assertGrantable(ctx, roleIds);
+    await this.access.assertGrantable(ctx, roleIds, exempt);
   }
 
   private async dto(ctx: AccessContext, employee: Employee): Promise<EmployeeDto> {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import type { PermissionGrant, PermissionScope } from '@arweqah-platform/shared';
+import { LEVEL_HEAD_DEFAULT_PERMISSIONS, type PermissionGrant, type PermissionScope } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../common/application/transaction-runner';
 import { returnedRows } from '../../../common/infrastructure/query-result';
 import { managerOf } from '../../../common/infrastructure/typeorm-transaction-runner';
@@ -22,15 +22,43 @@ const GRANTS_OF_USER = `
   UNION ALL SELECT up.permission_key, up.scope FROM user_group_permissions up JOIN user_group_members m ON m.group_id = up.group_id WHERE m.user_id = $1`;
 
 const WITH_REPORTS = `EXISTS (SELECT 1 FROM employees s WHERE s.manager_id = m.id AND s.deleted_at IS NULL)`;
-/** "everyone": every person with an employee record; "has_reports": exactly the people some employee reports to. */
+/** Only "has_reports" is a fact kept by the system: exactly the people some employee reports to. The other automatic roles are stored choices made on the employee form (and the unit form for the head of a level). */
 const AUTO_ROLE_STATEMENTS = [
-  `INSERT INTO user_roles (user_id, role_id) SELECT m.user_id, r.id FROM employees m JOIN roles r ON r.auto_rule = 'everyone'
-     WHERE m.deleted_at IS NULL ON CONFLICT DO NOTHING RETURNING user_id`,
   `INSERT INTO user_roles (user_id, role_id) SELECT m.user_id, r.id FROM employees m JOIN roles r ON r.auto_rule = 'has_reports'
      WHERE m.deleted_at IS NULL AND ${WITH_REPORTS} ON CONFLICT DO NOTHING RETURNING user_id`,
   `DELETE FROM user_roles ur USING roles r WHERE ur.role_id = r.id AND r.auto_rule = 'has_reports'
      AND NOT EXISTS (SELECT 1 FROM employees m WHERE m.user_id = ur.user_id AND m.deleted_at IS NULL AND ${WITH_REPORTS}) RETURNING ur.user_id`,
 ];
+
+/** Does the employee manage an active unit of the level? */
+const MANAGES_UNIT_OF_LEVEL = `EXISTS (SELECT 1 FROM org_nodes n WHERE n.manager_id = $1 AND n.org_level_id = $2 AND n.deleted_at IS NULL AND n.is_active)`;
+
+const TITLE_NAME = (lang: string) => `(SELECT x.name FROM job_title_translations x WHERE x.job_title_id = t.id AND x.lang = '${lang}')`;
+/** Every live job title has its role (new ones start with the permissions of the Employee role), and a removed title takes its role with it. */
+const ENSURE_JOB_TITLE_ROLES = `
+  WITH template AS (SELECT p.permission_key, p.scope FROM role_permissions p JOIN roles r ON r.id = p.role_id WHERE r.auto_rule = 'everyone'),
+  made AS (
+    INSERT INTO roles (name_ar, name_en, is_system, assignment, auto_rule, job_title_id)
+    SELECT left(coalesce(${TITLE_NAME('ar')}, ${TITLE_NAME('en')}, ''), 120), left(coalesce(${TITLE_NAME('en')}, ${TITLE_NAME('ar')}, ''), 120), false, 'auto', 'job_title', t.id
+    FROM job_titles t WHERE t.deleted_at IS NULL AND NOT EXISTS (SELECT 1 FROM roles r WHERE r.job_title_id = t.id)
+    RETURNING id)
+  INSERT INTO role_permissions (role_id, permission_key, scope) SELECT made.id, template.permission_key, template.scope FROM made CROSS JOIN template`;
+const LEVEL_NAME = (lang: string) => `(SELECT x.name FROM org_level_translations x WHERE x.org_level_id = l.id AND x.lang = '${lang}')`;
+const HEAD_NAME_AR = `left('قائد ' || coalesce(${LEVEL_NAME('ar')}, ${LEVEL_NAME('en')}, ''), 120)`;
+const HEAD_NAME_EN = `left('Head of ' || coalesce(${LEVEL_NAME('en')}, ${LEVEL_NAME('ar')}, ''), 120)`;
+/** Every live level has its head role (new ones start with the default permissions, passed as $1), a removed level takes its role with it, and a renamed level renames it. */
+const ENSURE_LEVEL_HEAD_ROLES = `
+  WITH made AS (
+    INSERT INTO roles (name_ar, name_en, is_system, assignment, auto_rule, org_level_id)
+    SELECT ${HEAD_NAME_AR}, ${HEAD_NAME_EN}, false, 'auto', 'node_head', l.id
+    FROM org_levels l WHERE l.deleted_at IS NULL AND NOT EXISTS (SELECT 1 FROM roles r WHERE r.org_level_id = l.id)
+    RETURNING id)
+  INSERT INTO role_permissions (role_id, permission_key, scope) SELECT made.id, d.key, d.scope FROM made CROSS JOIN jsonb_to_recordset($1::jsonb) AS d(key text, scope text)`;
+const RENAME_LEVEL_HEAD_ROLES = `
+  UPDATE roles r SET name_ar = ${HEAD_NAME_AR}, name_en = ${HEAD_NAME_EN}, updated_at = now()
+  FROM org_levels l WHERE r.org_level_id = l.id AND l.deleted_at IS NULL AND (r.name_ar IS DISTINCT FROM ${HEAD_NAME_AR} OR r.name_en IS DISTINCT FROM ${HEAD_NAME_EN})`;
+const REMOVE_ORPHAN_LEVEL_HEAD_ROLES = `DELETE FROM roles r WHERE r.org_level_id IS NOT NULL AND EXISTS (SELECT 1 FROM org_levels l WHERE l.id = r.org_level_id AND l.deleted_at IS NOT NULL)`;
+const REMOVE_ORPHAN_JOB_TITLE_ROLES = `DELETE FROM roles r WHERE r.job_title_id IS NOT NULL AND EXISTS (SELECT 1 FROM job_titles t WHERE t.id = r.job_title_id AND t.deleted_at IS NOT NULL)`;
 
 interface GrantRow {
   key: string | null;
@@ -71,7 +99,22 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
       grants,
       placement,
       subtreeNodeIds: await this.subtreeOf(placement.orgNodeId),
+      managed: await this.managedUnitsOf(userId),
     };
+  }
+
+  /** The units whose head role the person holds because they manage them, and those units with everything below them. */
+  private async managedUnitsOf(userId: string): Promise<{ unitIds: string[]; subtreeIds: string[] }> {
+    const rows: { unitId: string; nodeId: string; depth: number }[] = await this.userRoles.manager.query(
+      `SELECT DISTINCT n.id AS "unitId", c.descendant_id AS "nodeId", c.depth AS depth
+       FROM employees e JOIN org_nodes n ON n.manager_id = e.id AND n.deleted_at IS NULL AND n.is_active
+       JOIN roles r ON r.auto_rule = 'node_head' AND r.org_level_id = n.org_level_id
+       JOIN user_roles ur ON ur.role_id = r.id AND ur.user_id = e.user_id
+       JOIN org_node_closure c ON c.ancestor_id = n.id
+       WHERE e.user_id = $1 AND e.deleted_at IS NULL`,
+      [userId],
+    );
+    return { unitIds: [...new Set(rows.filter((r) => r.depth === 0).map((r) => r.unitId))], subtreeIds: [...new Set(rows.map((r) => r.nodeId))] };
   }
 
   private async subtreeOf(orgNodeId: string | null): Promise<string[]> {
@@ -137,9 +180,36 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
   }
 
   async syncAutoRoles(): Promise<number> {
+    await this.userRoles.manager.query(REMOVE_ORPHAN_JOB_TITLE_ROLES);
+    await this.userRoles.manager.query(ENSURE_JOB_TITLE_ROLES);
+    await this.userRoles.manager.query(REMOVE_ORPHAN_LEVEL_HEAD_ROLES);
+    await this.userRoles.manager.query(ENSURE_LEVEL_HEAD_ROLES, [JSON.stringify(LEVEL_HEAD_DEFAULT_PERMISSIONS)]);
+    await this.userRoles.manager.query(RENAME_LEVEL_HEAD_ROLES);
     let changed = 0;
     for (const statement of AUTO_ROLE_STATEMENTS) changed += returnedRows<unknown>(await this.userRoles.manager.query(statement)).length;
     return changed;
+  }
+
+  async defaultRoleIdsFor(jobTitleId: string | null): Promise<{ everyoneId: string | null; titleId: string | null }> {
+    const rows: { id: string; rule: string }[] = await this.roles.manager.query(
+      `SELECT id, auto_rule AS rule FROM roles WHERE auto_rule = 'everyone' OR ($1::uuid IS NOT NULL AND job_title_id = $1::uuid)`,
+      [jobTitleId],
+    );
+    return { everyoneId: rows.find((r) => r.rule === 'everyone')?.id ?? null, titleId: rows.find((r) => r.rule === 'job_title')?.id ?? null };
+  }
+
+  async syncHeadRole(levelId: string, employeeId: string): Promise<void> {
+    const m = this.userRoles.manager;
+    await m.query(
+      `INSERT INTO user_roles (user_id, role_id) SELECT e.user_id, r.id FROM employees e JOIN roles r ON r.auto_rule = 'node_head' AND r.org_level_id = $2
+       WHERE e.id = $1 AND e.deleted_at IS NULL AND ${MANAGES_UNIT_OF_LEVEL} ON CONFLICT DO NOTHING`,
+      [employeeId, levelId],
+    );
+    await m.query(
+      `DELETE FROM user_roles ur USING employees e, roles r WHERE e.id = $1 AND ur.user_id = e.user_id AND ur.role_id = r.id AND r.auto_rule = 'node_head' AND r.org_level_id = $2
+       AND NOT ${MANAGES_UNIT_OF_LEVEL}`,
+      [employeeId, levelId],
+    );
   }
 
   /** Placement is read from the employee record (the HR source of truth); the manager is that employee's user id. */

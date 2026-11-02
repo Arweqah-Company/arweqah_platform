@@ -26,7 +26,7 @@ export class AbilityFactory {
 
   /** A unit-based scope without a placement means no unit-wide access, only the user's own records. */
   private ruleFor(ctx: AccessContext, key: string, scope: PermissionScope): Rule | null {
-    const { companyId, orgNodeId } = ctx.placement;
+    const { companyId } = ctx.placement;
     const base = { action: key, subject: 'Record' };
     switch (scope) {
       case 'all':
@@ -36,7 +36,7 @@ export class AbilityFactory {
       case 'subtree':
         return ctx.subtreeNodeIds.length ? { ...base, conditions: { orgNodeId: { $in: [...ctx.subtreeNodeIds] } } } : null;
       case 'unit':
-        return orgNodeId ? { ...base, conditions: { orgNodeId } } : null;
+        return ctx.unitNodeIds.length ? { ...base, conditions: { orgNodeId: { $in: [...ctx.unitNodeIds] } } } : null;
       default:
         return null;
     }

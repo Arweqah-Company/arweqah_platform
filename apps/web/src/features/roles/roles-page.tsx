@@ -1,17 +1,17 @@
 import { CorePermission, type RoleDto } from '@arweqah-platform/shared';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, RefreshCw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Can, usePermissions } from '@/core/permissions/can';
 import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
-import type { ExportColumn } from '@/shared/data-exchange/types';
 import { useListPage } from '@/shared/lib/use-list-page';
-import { matchesText } from '@/shared/lib/text-match';
 import { errorMessage } from '@/shared/lib/error-message';
-import { Badge, Button, DataTable, ListToolbar, PageHeader, RowAction, type FilterField } from '@/shared/ui';
-import { useDeleteRole, useRoles } from './api';
+import { Badge, Button, DataTable, ListToolbar, PageHeader, RowAction } from '@/shared/ui';
+import { useDeleteRole, useRoles, useSyncAutoRoles } from './api';
 import { RoleEditor } from './role-editor';
+import { isDerivedRole, roleKind } from './role-kind';
+import { matchesRoleFilters, roleExportColumns, roleFilterFields, roleOriginLabel } from './roles-list';
 
 export function RolesPage() {
   const { t, i18n } = useTranslation('roles');
@@ -19,30 +19,14 @@ export function RolesPage() {
   const canUpdate = usePermissions().can(CorePermission.RolesUpdate);
   const roles = useRoles();
   const list = useListPage('roles');
-  const fields: FilterField[] = [
-    { id: 'type', label: t('filters.type'), type: 'select', options: [{ value: 'system', label: t('system') }, { value: 'custom', label: t('filters.custom') }] },
-    { id: 'assignment', label: t('assignment.label'), type: 'select', options: [{ value: 'auto', label: t('assignment.auto') }, { value: 'manual', label: t('assignment.manual') }] },
-    { id: 'holders', label: t('holders'), type: 'select', options: [{ value: 'with', label: t('filters.withHolders') }, { value: 'without', label: t('filters.withoutHolders') }] },
-  ];
-  const exportColumns: ExportColumn<RoleDto>[] = [
-    { id: 'nameAr', header: t('nameAr'), value: (r) => r.nameAr },
-    { id: 'nameEn', header: t('nameEn'), value: (r) => r.nameEn },
-    { id: 'description', header: t('descriptionColumn'), value: (r) => r.description },
-    { id: 'assignment', header: t('assignment.label'), value: (r) => t(`assignment.${r.assignment}`) },
-    { id: 'type', header: t('filters.type'), value: (r) => (r.isSystem ? t('system') : t('filters.custom')) },
-    { id: 'permissions', header: t('permissions'), value: (r) => r.permissions.length },
-    { id: 'holders', header: t('holders'), value: (r) => r.usersCount },
-  ];
-  const rows = roles.data?.filter(
-    (r) =>
-      matchesText([r.nameAr, r.nameEn, r.description], list.term) &&
-      (!list.filters.values.type || r.isSystem === (list.filters.values.type === 'system')) &&
-      (!list.filters.values.assignment || r.assignment === list.filters.values.assignment) &&
-      (!list.filters.values.holders || (r.usersCount > 0) === (list.filters.values.holders === 'with')),
-  );
+  const fields = roleFilterFields(t, roles.data ?? [], i18n.language);
+  const exportColumns = roleExportColumns(t, i18n.language);
+  const rows = roles.data?.filter((r) => matchesRoleFilters(r, { term: list.term, filters: list.filters.values, language: i18n.language }));
   const remove = useDeleteRole();
+  const sync = useSyncAutoRoles();
   const [editing, setEditing] = useState<{ role: RoleDto | null } | null>(null);
   const name = (r: RoleDto) => (i18n.language === 'ar' ? r.nameAr : r.nameEn);
+  const originLabel = (r: RoleDto) => roleOriginLabel(r, i18n.language);
 
   const onDelete = async (role: RoleDto) => {
     if (!window.confirm(t('confirmDelete', { name: name(role) }))) return;
@@ -54,12 +38,24 @@ export function RolesPage() {
     }
   };
 
+  const onSync = async () => {
+    try {
+      const { changed } = await sync.mutateAsync();
+      toast.success(changed ? t('sync.done', { count: changed }) : t('sync.unchanged'));
+    } catch (error) {
+      toast.error(errorMessage(tc, error));
+    }
+  };
+
   return (
     <>
       <PageHeader
         title={t('title')}
         description={t('description')}
-        actions={<Can permission={CorePermission.RolesCreate}><Button onClick={() => setEditing({ role: null })}>{t('new')}</Button></Can>}
+        actions={<>
+          <Can permission={CorePermission.RolesSyncAuto}><Button variant="secondary" disabled={sync.isPending} onClick={() => void onSync()}><RefreshCw aria-hidden className="size-4" />{t('sync.button')}</Button></Can>
+          <Can permission={CorePermission.RolesCreate}><Button onClick={() => setEditing({ role: null })}>{t('new')}</Button></Can>
+        </>}
       />
       <DataTable<RoleDto>
         listKey="roles"
@@ -74,14 +70,16 @@ export function RolesPage() {
         actions={(r) => (
           <>
             <Can permission={CorePermission.RolesUpdate}><RowAction label={tc('actions.edit')} icon={Pencil} onClick={() => setEditing({ role: r })} /></Can>
-            {!r.isSystem && <Can permission={CorePermission.RolesDelete}><RowAction label={tc('actions.delete')} icon={Trash2} danger onClick={() => void onDelete(r)} /></Can>}
+            {!r.isSystem && !isDerivedRole(r) && <Can permission={CorePermission.RolesDelete}><RowAction label={tc('actions.delete')} icon={Trash2} danger onClick={() => void onDelete(r)} /></Can>}
           </>
         )}
         columns={[
           { id: 'name', header: t('nameAr'), cell: (r) => <span className="font-medium">{name(r)}</span> },
           { id: 'permissions', header: t('permissions'), cell: (r) => r.permissions.length },
+          { id: 'origin', header: t('origin.label'), cell: (r) => <span className="text-muted">{originLabel(r) || '—'}</span> },
           { id: 'users', header: t('holders'), cell: (r) => <span className="text-muted">{t('users', { count: r.usersCount })}</span> },
           { id: 'assignment', header: t('assignment.label'), cell: (r) => <Badge tone={r.assignment === 'auto' ? 'success' : 'neutral'}>{t(`assignment.${r.assignment}`)}</Badge> },
+          { id: 'kind', header: t('kind.label'), cell: (r) => <Badge tone={roleKind(r) === 'manual' ? 'neutral' : 'info'}>{t(`kind.${roleKind(r)}`)}</Badge> },
           { id: 'type', header: t('system'), hideHeader: true, cell: (r) => (r.isSystem ? <Badge tone="info">{t('system')}</Badge> : null) },
         ]}
       />

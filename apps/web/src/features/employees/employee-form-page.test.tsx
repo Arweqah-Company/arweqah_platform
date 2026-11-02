@@ -119,4 +119,20 @@ describe('Employee form validation while typing (FR-17, FR-18)', () => {
     fireEvent.change(screen.getByLabelText('بريد العمل *'), { target: { value: 'x@arweqah.sa' } });
     await waitFor(() => expect(screen.queryByText(/arweqah\.sa\./)).not.toBeInTheDocument());
   });
+
+  it('has two steps only for who may give roles, and stays on the first step while it has mistakes', async () => {
+    await open(['employees.create', 'employees.assign_roles', 'roles.view']);
+    expect(screen.getByRole('list', { name: 'خطوات النموذج' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'حفظ وإرسال الدعوة' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'التالي: الأدوار' }));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(screen.getByRole('heading', { level: 2, name: 'بيانات العمل' })).toBeInTheDocument();
+    expect(screen.queryByText('أدوار تأتي تلقائيًا')).not.toBeInTheDocument();
+  });
+
+  it('keeps one step without the permission to give roles', async () => {
+    await open(['employees.create']);
+    expect(screen.queryByRole('list', { name: 'خطوات النموذج' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'حفظ وإرسال الدعوة' })).toBeInTheDocument();
+  });
 });
