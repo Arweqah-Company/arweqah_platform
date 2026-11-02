@@ -246,6 +246,18 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     expect(created.id).toBeTruthy();
   });
 
+  it('lets a person change their own roles and groups only in platform admin mode (FR-69)', async () => {
+    const org = await t.factories.org();
+    const me = await t.factories.user({ unit: org.unitA, grants: [grant(P.AdminModeUse, 'all'), grant(P.EmployeesView, 'all'), grant(P.EmployeesAssignRoles, 'all'), grant(P.EmployeesAssignGroups, 'all'), grant(P.RolesView, 'all')] });
+    const plain = await t.factories.signIn(me);
+    expect((await plain.put(`/api/employees/${me.employeeId}/roles`).send({ roleIds: [] }).expect(422)).body.code).toBe('SELF_ACTION');
+    expect((await plain.put(`/api/employees/${me.employeeId}/groups`).send({ groupIds: [] }).expect(422)).body.code).toBe('SELF_ACTION');
+    await t.factories.freshStep(me);
+    const admin = await t.factories.signInAdminMode(me);
+    await admin.put(`/api/employees/${me.employeeId}/groups`).send({ groupIds: [] }).expect(200);
+    await admin.put(`/api/employees/${me.employeeId}/roles`).send({ roleIds: [] }).expect(200);
+  });
+
   it('lists the people with no unit or job title to place, and never asks for a new employee without them (FR-72)', async () => {
     const { org, agent, payload } = await setup();
     const unplaced = await t.factories.user();

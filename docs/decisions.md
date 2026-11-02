@@ -6,6 +6,7 @@ Short records of choices that are not obvious from the code. Newest first.
 
 | # | Decision | Why | Revisit when |
 |---|---|---|---|
+| 151 | A person may change their own roles and groups only while platform admin mode is on (`SELF_ACTION` otherwise); the same checks (grantable by what the actor holds) still apply. Deactivating or ending one's own contract stays forbidden | Owner (2026-11-02): an employee cannot change their own title or roles, an administrator can change anyone's, himself included; changing one's job title in the form swaps the title role | — |
 | 150 | The unit drop-down of the employee form shows the unit's own name (`OrgNodeOptionDto.nameAr/nameEn`), not its full path; the path stays in lists, filters and import templates | Owner (2026-11-02) | Two units with the same name in one company look alike (then show the parent as a hint) |
 | 149 | The breadcrumb of every page (`PageHeader`) is the full trail from the menu: home › menu group › the list (a link, for a page inside it such as an employee or a ticket) › the page; read from the visible menu items (`NavContext`), no per-page setup. The picker dialogs of an employee (roles, groups) have a name search | Owner (2026-11-02) | — |
 | 148 | The permissions page: the drop-down of the chosen role / group / person is searchable (`Select` takes `searchable`), and the permission matrix (permissions page and role editor) has a search box over label, key and module; ticks of hidden rows are kept | Owner (2026-11-02) | — |
