@@ -8,15 +8,15 @@ import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import { errorMessage } from '@/shared/lib/error-message';
 import { useListPage } from '@/shared/lib/use-list-page';
 import { useScopeLabel } from '@/shared/lib/use-scope-label';
-import { Badge, ConfirmDialog, DataTable, ListToolbar, PageHeader, RowAction } from '@/shared/ui';
+import { Badge, ConfirmDialog, DataTable, ListToolbar, RowAction } from '@/shared/ui';
 import { useExceptions, useRevokeException } from './api';
 import { ExpiryDialog } from './expiry-dialog';
 import { daysLeft, exceptionExportColumns, exceptionFilterFields, keyOf, matchesExceptionFilters, refOf, targetName } from './exceptions-list';
 
 type Action = { kind: 'expiry' | 'revoke'; item: AccessExceptionDto };
 
-/** What was given to a person outside what their job title brings, with its last day: change the day, or take it back. */
-export function ExceptionsPage() {
+/** The «Exceptions» tab of the roles page: what was given to a person outside what their job title brings, with its last day: change the day, or take it back. */
+export function ExceptionsTab() {
   const { t, i18n } = useTranslation('exceptions');
   const { t: tc } = useTranslation();
   const scopeLabel = useScopeLabel();
@@ -40,7 +40,7 @@ export function ExceptionsPage() {
 
   return (
     <>
-      <PageHeader title={t('title')} description={t('description')} />
+      <p className="mb-4 max-w-[70ch] text-sm text-muted">{t('description')}</p>
       <DataTable<AccessExceptionDto>
         listKey="exceptions"
         caption={t('title')}
