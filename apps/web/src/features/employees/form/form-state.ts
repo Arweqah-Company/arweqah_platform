@@ -143,14 +143,14 @@ export const employeeResolver: Resolver<FormState> = (values) => {
   const errors: FieldErrors<FormState> = {};
   for (const issue of parsed.error.issues) {
     const field = String(issue.path[0] ?? 'root') as keyof FormState;
-    if (!errors[field]) (errors as Record<string, unknown>)[field] = { type: issue.code, message: isMissing(issue) ? 'required' : field };
+    if (!errors[field]) (errors as Record<string, unknown>)[field] = { type: issue.code, message: isMissing(issue, values[field]) ? 'required' : field };
   }
   return { values: {}, errors };
 };
 
-function isMissing(issue: { code: string; input?: unknown; message: string }): boolean {
-  // A rule that failed on a value that is there (e.g. a wrong e-mail domain) is not "missing".
-  return issue.code !== 'custom' && (issue.code === 'invalid_type' || issue.input === '' || issue.input === undefined);
+function isMissing(issue: { code: string }, value: unknown): boolean {
+  // A rule that failed on a value that is there (a malformed e-mail) is not "missing"; zod does not carry the input in its issues, so the form value says.
+  return issue.code === 'invalid_type' || (issue.code !== 'custom' && (value === '' || value === undefined || value === null));
 }
 
 /** The same ID-number rule as the API (type, and nationality for some types), applied while typing, in the user's language. */

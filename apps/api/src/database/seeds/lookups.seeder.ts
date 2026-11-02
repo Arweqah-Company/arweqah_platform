@@ -30,7 +30,7 @@ export class LookupsSeeder {
 
   async run(): Promise<void> {
     await this.db.transaction(async (m) => {
-      await this.simple(m, spec('relation_types', 'relation_type_translations', 'relation_type_id'), RELATION_TYPES);
+      await this.withFlags(m, spec('relation_types', 'relation_type_translations', 'relation_type_id'), RELATION_TYPES.map((r) => ({ ...r, flags: { limited_access: r.code === 'collaborator' } })));
       await this.simple(m, spec('marital_statuses', 'marital_status_translations', 'marital_status_id'), MARITAL_STATUSES);
       await this.simple(m, spec('residency_statuses', 'residency_status_translations', 'residency_status_id'), RESIDENCY_STATUSES);
       await this.simple(m, spec('gosi_systems', 'gosi_system_translations', 'gosi_system_id'), GOSI_SYSTEMS);

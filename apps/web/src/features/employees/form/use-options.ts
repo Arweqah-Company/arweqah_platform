@@ -38,6 +38,8 @@ export function useEmployeeOptions() {
     terminationReasons: options(data.terminationReasons),
     genders: [{ value: '0', label: t('gender.male') }, { value: '1', label: t('gender.female') }],
     workModes: [{ value: '0', label: t('workMode.onsite') }, { value: '1', label: t('workMode.hybrid') }, { value: '2', label: t('workMode.remote') }],
+    /** A relation with limited access (a collaborator). */
+    relationLimited: (id: string) => data.relationTypes.find((r) => r.id === id)?.limitedAccess === true,
     contractType: (id: string) => data.contractTypes.find((c) => c.id === id),
     terminationReason: (id: string) => data.terminationReasons.find((r) => r.id === id),
     countryById: (id: string) => data.countries.find((c) => c.id === id),
