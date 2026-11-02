@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-02 — Security advisory
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 121 | `follow-redirects` is raised from 1.16.1 to 1.16.2 (transitive: `@sendgrid/mail` → `axios`), installed with `npm update follow-redirects --min-release-age=0`; only `package-lock.json` changes | CVE-2026-116689 (HIGH, cross-origin redirects leak information) made the Security workflow fail on `main` and on pull requests; the project rule takes the fixed version of a high or critical advisory at once | `@sendgrid/mail` or `axios` pins a range that excludes the fixed version |
+
 ## 2026-11-02 — Roles that follow the organization
 
 | # | Decision | Why | Revisit when |
