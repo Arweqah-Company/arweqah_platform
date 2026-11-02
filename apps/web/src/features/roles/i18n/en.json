@@ -63,7 +63,7 @@
     "manual": "Manual",
     "rule": "Automatic (rule)",
     "jobTitle": "Job title",
-    "head": "Level head"
+    "head": "Unit head"
   },
   "sync": {
     "button": "Refresh members now",

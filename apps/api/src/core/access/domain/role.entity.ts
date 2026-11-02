@@ -40,18 +40,18 @@ export class Role extends NamedEntity {
   @Column({ name: 'job_title_id', type: 'uuid', nullable: true })
   jobTitleId: string | null;
 
-  /** `node_head` roles: the organization level the role was made for; the members are the managers of its units. */
-  @Index('UQ_roles_org_level', { unique: true, where: 'org_level_id IS NOT NULL' })
-  @Column({ name: 'org_level_id', type: 'uuid', nullable: true })
-  orgLevelId: string | null;
+  /** `node_head` roles: the organization unit the role was made for; the member is the manager of that unit. */
+  @Index('UQ_roles_org_node', { unique: true, where: 'org_node_id IS NOT NULL' })
+  @Column({ name: 'org_node_id', type: 'uuid', nullable: true })
+  orgNodeId: string | null;
 
   @ManyToOne('JobTitle', { onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'job_title_id', foreignKeyConstraintName: 'FK_roles_job_title' })
   private readonly jobTitleFk?: unknown;
 
-  @ManyToOne('OrgLevel', { onDelete: 'CASCADE', nullable: true })
-  @JoinColumn({ name: 'org_level_id', foreignKeyConstraintName: 'FK_roles_org_level' })
-  private readonly orgLevelFk?: unknown;
+  @ManyToOne('OrgNode', { onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'org_node_id', foreignKeyConstraintName: 'FK_roles_org_node' })
+  private readonly orgNodeFk?: unknown;
 
   @OneToMany(() => RolePermission, (p) => p.role, { cascade: true, eager: true })
   permissions: RolePermission[];

@@ -64,8 +64,9 @@ export class OrgNodesService {
       return nodeId;
     });
     this.audit(actorId, ORG_AUDIT.unitCreated, id, { levelId: level.id, parentId: input.parentId, startDate: input.startDate, jobTitles: input.jobTitles.length });
-    await this.followManagers(level.id, [input.managerId]);
+    // The unit's head role is made by the refresh, so it runs before the manager is given it.
     await this.events.emitAsync(ORG_CHANGED);
+    await this.followManagers(id, [input.managerId]);
     return this.nodeDto(id);
   }
 
@@ -75,7 +76,7 @@ export class OrgNodesService {
     if (input.managerId) await this.assertManager(input.managerId);
     await this.tx.run((tx) => this.repo.updateNode(id, { ...input, managerId: input.managerId ?? null }, tx));
     this.audit(actorId, ORG_AUDIT.unitUpdated, id, { isActive: input.isActive, startDate: input.startDate });
-    if ((input.managerId ?? null) !== node.managerId || input.isActive !== node.isActive) await this.followManagers(node.levelId, [node.managerId, input.managerId]);
+    if ((input.managerId ?? null) !== node.managerId || input.isActive !== node.isActive) await this.followManagers(node.id, [node.managerId, input.managerId]);
     await this.events.emitAsync(ORG_CHANGED);
     return this.nodeDto(id);
   }
@@ -108,7 +109,7 @@ export class OrgNodesService {
       await this.repo.softDeleteNodes([id], tx);
     });
     this.audit(actorId, ORG_AUDIT.unitDeleted, id, { jobTitles: titles.length });
-    await this.followManagers(node.levelId, [node.managerId]);
+    await this.followManagers(node.id, [node.managerId]);
     await this.events.emitAsync(ORG_CHANGED);
   }
 
@@ -167,9 +168,9 @@ export class OrgNodesService {
     }
   }
 
-  /** The head role of the level goes to whoever manages a unit of it and is taken back from whoever no longer does (a person's choice to drop it later is kept until the unit's manager changes again). */
-  private async followManagers(levelId: string, employeeIds: (string | null | undefined)[]): Promise<void> {
-    for (const employeeId of new Set(employeeIds.filter((id): id is string => !!id))) await this.access.syncHeadRole(levelId, employeeId);
+  /** The head role of the unit goes to whoever manages it and is taken back from whoever no longer does (a person's choice to drop it later is kept until the unit's manager changes again). */
+  private async followManagers(nodeId: string, employeeIds: (string | null | undefined)[]): Promise<void> {
+    for (const employeeId of new Set(employeeIds.filter((id): id is string => !!id))) await this.access.syncHeadRole(nodeId, employeeId);
   }
 
   /** Each new job title gets its own role in the same transaction, with the permissions of the chosen template. */

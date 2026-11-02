@@ -52,6 +52,6 @@ export abstract class UserAccessRepository {
   abstract defaultRoleIdsFor(jobTitleId: string | null, limitedAccess: boolean): Promise<{ baseId: string | null; titleId: string | null }>;
   /** Swaps the base role the person holds when their relation changes between employee and limited access; other roles stay. */
   abstract swapBaseRole(userId: string, limitedAccess: boolean): Promise<void>;
-  /** Gives the head role of the level to the employee when they manage an active unit of it, takes it back when they do not. */
-  abstract syncHeadRole(levelId: string, employeeId: string): Promise<void>;
+  /** Gives the head role of the unit to the employee when they manage that active unit, takes it back when they do not. */
+  abstract syncHeadRole(nodeId: string, employeeId: string): Promise<void>;
 }

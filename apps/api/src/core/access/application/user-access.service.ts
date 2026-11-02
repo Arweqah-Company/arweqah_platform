@@ -89,9 +89,9 @@ export class UserAccessService {
     this.events.emit(ACCESS_CHANGED, { userId });
   }
 
-  /** The head role of a level follows who manages its units: given to the manager, taken back from one who no longer manages any unit of the level. */
-  async syncHeadRole(levelId: string, employeeId: string): Promise<void> {
-    await this.access.syncHeadRole(levelId, employeeId);
+  /** The head role of a unit follows who manages it: given to the manager, taken back from one who no longer does. */
+  async syncHeadRole(nodeId: string, employeeId: string): Promise<void> {
+    await this.access.syncHeadRole(nodeId, employeeId);
     this.events.emit(ACCESS_CHANGED, {});
   }
 

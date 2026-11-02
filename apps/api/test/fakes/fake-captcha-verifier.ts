@@ -6,7 +6,7 @@ export class FakeCaptchaVerifier extends CaptchaVerifier {
 
   async verify(secretKey: string, token: string, ip: string | null): Promise<CaptchaVerdict> {
     this.calls.push({ secretKey, token, ip });
-    if (token === 'good') return 'ok';
-    return token === 'down' ? 'unavailable' : 'rejected';
+    const verdicts: Record<string, CaptchaVerdict> = { good: 'ok', down: 'unavailable' };
+    return verdicts[token] ?? 'rejected';
   }
 }

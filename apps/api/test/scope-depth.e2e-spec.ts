@@ -26,11 +26,13 @@ describe('Depth of what a role reaches (FR-80)', () => {
     return org;
   };
   const levelId = async (org: TestOrg, index: number): Promise<string> => ((await admin.get(`/api/org/companies/${org.companyId}/tree`).expect(200)).body.levels as Level[])[index]?.id as string;
-  /** Replaces what the head role of a level holds with these grants. */
+  /** Replaces what the head roles of the units of a level hold with these grants. */
   const giveHeadRole = async (org: TestOrg, index: number, grants: { key: string; scope: string }[]): Promise<void> => {
-    const id = ((await t.db.query(`SELECT id FROM roles WHERE auto_rule = 'node_head' AND org_level_id = $1`, [await levelId(org, index)])) as { id: string }[])[0]?.id as string;
-    await t.db.query('DELETE FROM role_permissions WHERE role_id = $1', [id]);
-    for (const g of grants) await t.db.query('INSERT INTO role_permissions (role_id, permission_key, scope) VALUES ($1, $2, $3)', [id, g.key, g.scope]);
+    const ids = ((await t.db.query(`SELECT r.id FROM roles r JOIN org_nodes n ON n.id = r.org_node_id WHERE r.auto_rule = 'node_head' AND n.org_level_id = $1`, [await levelId(org, index)])) as { id: string }[]).map((r) => r.id);
+    for (const id of ids) {
+      await t.db.query('DELETE FROM role_permissions WHERE role_id = $1', [id]);
+      for (const g of grants) await t.db.query('INSERT INTO role_permissions (role_id, permission_key, scope) VALUES ($1, $2, $3)', [id, g.key, g.scope]);
+    }
   };
   const setManager = async (nodeId: string, managerId: string): Promise<void> => {
     const nodes = (await admin.get(`/api/org/companies/${await t.factories.defaultCompany()}/tree`).expect(200)).body.nodes as { id: string; nameAr: string; nameEn: string; startDate: string; isActive: boolean }[];
