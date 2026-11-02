@@ -3,17 +3,21 @@ import { Pencil, RefreshCw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import { useSearchParams } from 'react-router';
+import { useMe } from '@/core/auth/session';
 import { Can, usePermissions } from '@/core/permissions/can';
+import { ExceptionsTab } from '@/features/exceptions';
 import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import { useListPage } from '@/shared/lib/use-list-page';
 import { errorMessage } from '@/shared/lib/error-message';
-import { Badge, Button, DataTable, ListToolbar, PageHeader, RowAction } from '@/shared/ui';
+import { Alert, Badge, Button, DataTable, ListToolbar, PageHeader, RowAction, Tabs } from '@/shared/ui';
 import { useDeleteRole, useRoles, useSyncAutoRoles } from './api';
 import { RoleEditor } from './role-editor';
 import { isDerivedRole, roleKind } from './role-kind';
 import { matchesRoleFilters, roleExportColumns, roleFilterFields, roleOriginLabel } from './roles-list';
 
-export function RolesPage() {
+/** The roles list: its new-role and refresh buttons sit above the table, and a row opens the editor. */
+function RolesTab() {
   const { t, i18n } = useTranslation('roles');
   const { t: tc } = useTranslation();
   const canUpdate = usePermissions().can(CorePermission.RolesUpdate);
@@ -49,14 +53,10 @@ export function RolesPage() {
 
   return (
     <>
-      <PageHeader
-        title={t('title')}
-        description={t('description')}
-        actions={<>
+      <div className="mb-4 flex flex-wrap justify-end gap-2">
           <Can permission={CorePermission.RolesSyncAuto}><Button variant="secondary" disabled={sync.isPending} onClick={() => void onSync()}><RefreshCw aria-hidden className="size-4" />{t('sync.button')}</Button></Can>
           <Can permission={CorePermission.RolesCreate}><Button onClick={() => setEditing({ role: null })}>{t('new')}</Button></Can>
-        </>}
-      />
+      </div>
       <DataTable<RoleDto>
         listKey="roles"
         caption={t('title')}
@@ -84,6 +84,34 @@ export function RolesPage() {
         ]}
       />
       {editing && <RoleEditor key={editing.role?.id ?? 'new'} role={editing.role} open onOpenChange={(o) => !o && setEditing(null)} />}
+    </>
+  );
+}
+
+const TABS = [
+  { id: 'roles', view: CorePermission.RolesView, page: null, content: <RolesTab /> },
+  { id: 'exceptions', view: CorePermission.ExceptionsView, page: 'exceptions' as const, content: <ExceptionsTab /> },
+];
+
+/** Roles, and next to them the exceptions: what was given outside the job title, with its end date. Each tab shows only to who may view it. */
+export function RolesPage() {
+  const { t } = useTranslation('roles');
+  const { can } = usePermissions();
+  const hidden = useMe().data?.hiddenPages ?? [];
+  const [params, setParams] = useSearchParams();
+  const tabs = TABS.filter((x) => can(x.view) && !(x.page && hidden.includes(x.page)));
+  const current = tabs.find((x) => x.id === params.get('tab')) ?? tabs[0];
+  return (
+    <>
+      <PageHeader title={t('title')} description={t('description')} />
+      {current ? (
+        <>
+          {tabs.length > 1 && <Tabs tabs={tabs.map((x) => ({ id: x.id, label: t(`tabs.${x.id}`) }))} value={current.id} label={t('tabsLabel')} onChange={(id) => setParams({ tab: id }, { replace: true })} />}
+          <div key={current.id}>{current.content}</div>
+        </>
+      ) : (
+        <Alert tone="info">{t('noTabs')}</Alert>
+      )}
     </>
   );
 }

@@ -34,8 +34,7 @@
     "taskPolicies": "Task policies",
     "translationSettings": "Translation settings",
     "emailSettings": "E-mail settings",
-    "serviceSettings": "Settings",
-    "exceptions": "Exceptions"
+    "serviceSettings": "Settings"
   },
   "actions": {
     "save": "Save",

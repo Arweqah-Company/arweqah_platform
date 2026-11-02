@@ -34,8 +34,7 @@
     "taskPolicies": "سياسات المهام",
     "translationSettings": "إعدادات الترجمة",
     "emailSettings": "إعدادات البريد",
-    "serviceSettings": "الإعدادات",
-    "exceptions": "الاستثناءات"
+    "serviceSettings": "الإعدادات"
   },
   "actions": {
     "save": "حفظ",
