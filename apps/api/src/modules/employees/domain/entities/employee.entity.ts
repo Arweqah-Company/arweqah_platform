@@ -111,6 +111,10 @@ export class Employee extends SoftDeletableEntity {
   @Column({ name: 'start_date', type: 'date' })
   startDate: string;
 
+  /** Set when sign-in was ended because the contract ended (the day after the end date); cleared when the end date is removed or moved and access comes back. */
+  @Column({ name: 'access_ended_at', type: 'timestamptz', nullable: true })
+  accessEndedAt: Date | null;
+
   @Index('IDX_employees_end_date')
   @Column({ name: 'end_date', type: 'date', nullable: true })
   endDate: string | null;

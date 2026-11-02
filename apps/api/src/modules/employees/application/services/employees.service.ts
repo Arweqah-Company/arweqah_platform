@@ -117,10 +117,20 @@ export class EmployeesService {
     const fields: EmployeeInput = { ...input, workEmail: existing.workEmail };
     const { values } = await this.validation.prepare(ctx, fields, existing);
     await this.tx.run((tx) => this.repo.update(id, values, tx));
+    await this.restoreAccessIfEndMoved(ctx, existing, values.endDate ?? null, actorId);
     this.events.emit(ACCESS_CHANGED, { userId: existing.userId });
     await this.events.emitAsync(EMPLOYEES_CHANGED);
     this.audit(actorId, EMPLOYEE_AUDIT.updated, id, { fields: changedFields(existing, values) });
     return this.dto(ctx, (await this.repo.findById(id)) as Employee);
+  }
+
+  /** Sign-in ended by the contract coming back when the end date is removed or moved to today or later, for who may switch an account on. */
+  private async restoreAccessIfEndMoved(ctx: AccessContext, existing: Employee, endDate: string | null, actorId: string): Promise<void> {
+    if (!existing.accessEndedAt || (endDate !== null && endDate < todayInRiyadh())) return;
+    if (!this.ability.can(ctx, P.EmployeesDeactivate, { companyId: existing.companyId, orgNodeId: existing.orgNodeId, ownerId: existing.userId })) return;
+    await this.identity.setActive(existing.userId, true);
+    await this.repo.setAccessEnded(existing.id, null);
+    this.audit(actorId, EMPLOYEE_AUDIT.accessRestored, existing.id, { endDate });
   }
 
   async setActive(ctx: AccessContext, id: string, active: boolean, actorId: string): Promise<EmployeeDto> {
@@ -144,7 +154,10 @@ export class EmployeesService {
       await this.repo.update(id, { endDate: input.endDate, terminationReasonId: input.terminationReasonId, terminationReasonOther: isOther ? (input.terminationReasonOther ?? null) : null }, tx);
       await this.outbox.enqueue(EMPLOYEE_TERMINATED_TOPIC, { employeeId: id, userId: employee.userId, endDate: input.endDate }, tx);
     });
-    if (input.endDate < todayIso()) await this.identity.setActive(employee.userId, false);
+    if (input.endDate < todayInRiyadh()) {
+      await this.identity.setActive(employee.userId, false);
+      await this.repo.setAccessEnded(id, new Date());
+    }
     this.audit(actorId, EMPLOYEE_AUDIT.terminated, id, { endDate: input.endDate });
     return this.dto(ctx, (await this.repo.findById(id)) as Employee);
   }

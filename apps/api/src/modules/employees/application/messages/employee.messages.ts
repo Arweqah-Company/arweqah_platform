@@ -10,4 +10,5 @@ export const EMPLOYEE_AUDIT = {
   invited: 'employee.invited',
   profileUpdated: 'profile.updated',
   deactivatedContractEnded: 'employee.deactivated.contract_ended',
+  accessRestored: 'employee.access_restored',
 } as const;

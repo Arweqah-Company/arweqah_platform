@@ -24,4 +24,6 @@ export abstract class EmployeeRepository {
   abstract summary(scope: ScopeFilter, window: { today: string; soonUntil: string }): Promise<EmployeesSummaryDto>;
   /** Employees whose contract ended before `today` and whose account can still sign in. */
   abstract endedStillActive(today: string): Promise<{ id: string; userId: string }[]>;
+  /** Says sign-in ended because the contract ended (`at`), or that it came back (null). */
+  abstract setAccessEnded(id: string, at: Date | null): Promise<void>;
 }
