@@ -5,7 +5,8 @@ import { setupServer } from 'msw/node';
 /** A signed-in employee: the Employee role's own-account and ticket keys, plus what the test adds. */
 const EMPLOYEE_KEYS: MeDto['permissions'] = EMPLOYEE_DEFAULT_PERMISSIONS;
 
-export const me = (permissions: MeDto['permissions'] = []): MeDto => ({
+/** `adminMode`: the session has platform admin mode switched on (the administration buttons of ordinary pages show only then). */
+export const me = (permissions: MeDto['permissions'] = [], options: { adminMode?: boolean } = {}): MeDto => ({
   id: 'u1',
   name: 'سارة أحمد',
   email: 'sara@arweqah.sa',
@@ -14,7 +15,7 @@ export const me = (permissions: MeDto['permissions'] = []): MeDto => ({
   isActive: true,
   authenticatorEnabled: true,
   mfaVerified: true,
-  adminMode: { available: false, active: false, expiresAt: null },
+  adminMode: { available: options.adminMode === true, active: options.adminMode === true, expiresAt: null },
   trustedDevicesEnabled: false,
   roles: [],
   placement: { companyId: null, orgNodeId: null, managerId: null },

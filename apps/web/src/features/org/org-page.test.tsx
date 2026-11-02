@@ -9,14 +9,28 @@ import { OrgPage } from './org-page';
 const level = (id: string, sortOrder: number, names: [string, string], isAssignable = false) => ({ id, companyId: 'c1', sortOrder, nameAr: names[0], nameEn: names[1], isAssignable, templateCode: ['sector', 'department', 'section', 'unit'][sortOrder - 1] ?? null, unitsCount: 0 });
 const emptyTree = { companyId: 'c1', nodes: [], levels: [level('l1', 1, ['قطاع', 'Sector']), level('l2', 2, ['إدارة', 'Department']), level('l3', 3, ['قسم', 'Section']), level('l4', 4, ['وحدة', 'Unit'], true)] };
 
-const open = () => {
+const open = (adminMode = true) => {
   server.use(
-    http.get('*/api/me', () => HttpResponse.json(me(ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const }))))),
+    http.get('*/api/me', () => HttpResponse.json(me(ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const })), { adminMode }))),
     http.get('*/api/lookups/companies', () => HttpResponse.json([{ id: 'c1', code: 'ARW', nameAr: 'أروقة الريادة', nameEn: 'Arweqah Alreyadah' }])),
     http.get('*/api/org/companies/c1/tree', () => HttpResponse.json(emptyTree)),
   );
   renderPage(<OrgPage />);
 };
+
+describe('Structure buttons need platform admin mode (FR-24)', () => {
+  it('hides add unit, add job title and the levels form from a person who holds the keys while admin mode is off', async () => {
+    open(false);
+    await screen.findByText(/قطاع › إدارة › قسم › وحدة/);
+    for (const name of ['إضافة وحدة', 'إضافة مسمى وظيفي', 'تقسيمات الهيكل']) expect(screen.queryByRole('button', { name })).not.toBeInTheDocument();
+  });
+
+  it('shows them while admin mode is on', async () => {
+    open(true);
+    await screen.findByText(/قطاع › إدارة › قسم › وحدة/);
+    for (const name of ['إضافة وحدة', 'إضافة مسمى وظيفي', 'تقسيمات الهيكل']) expect(screen.getByRole('button', { name })).toBeInTheDocument();
+  });
+});
 
 describe('Organization page for a company with no units yet (FR-13)', () => {
   it('shows the company levels and opens the levels form from the button', async () => {
@@ -56,7 +70,7 @@ const filledTree = { ...emptyTree, nodes: [node(U.sector, { parentId: null, leve
 describe('Organization chart and table (FR-31)', () => {
   const openFilled = () => {
     server.use(
-      http.get('*/api/me', () => HttpResponse.json(me(ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const }))))),
+      http.get('*/api/me', () => HttpResponse.json(me(ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const })), { adminMode: true }))),
       http.get('*/api/lookups/companies', () => HttpResponse.json([{ id: 'c1', code: 'ARW', nameAr: 'أروقة الريادة', nameEn: 'Arweqah Alreyadah' }])),
       http.get('*/api/org/companies/c1/tree', () => HttpResponse.json(filledTree)),
     );

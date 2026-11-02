@@ -11,7 +11,7 @@ import { CurrentUser } from '../../../../common/presentation/current-user.decora
 import type { SessionUser } from '../../../../common/presentation/request-context';
 import { IdParam } from '../../../../common/presentation/zod-query';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
-import { Access, HiddenWithPage, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
+import { Access, HiddenWithPage, RequireAdminMode, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
 import { assertCompanyAccess, ORG_LEVELS, ORG_TITLES, ORG_UNIT_CREATE, ORG_UNIT_DELETE, ORG_UNIT_MOVE, ORG_UNIT_UPDATE, ORG_VIEW } from '../../application/policies/org-access.policy';
 import { OrgLevelsService } from '../../application/services/org-levels.service';
 import { OrgNodesService } from '../../application/services/org-nodes.service';
@@ -36,6 +36,7 @@ export class OrgController {
   /** Dry run of the levels form: what would be removed or detached. Nothing changes. */
   @Post('levels/preview')
   @HttpCode(200)
+  @RequireAdminMode()
   @RequirePermission(ORG_LEVELS)
   previewLevels(@Access() ctx: AccessContext, @Body() body: PreviewLevelsBody): Promise<OrgLevelsPreviewDto> {
     assertCompanyAccess(ctx, ORG_LEVELS, body.companyId);
@@ -44,6 +45,7 @@ export class OrgController {
 
   @Post('levels')
   @HttpCode(200)
+  @RequireAdminMode()
   @RequirePermission(ORG_LEVELS)
   saveLevels(@Access() ctx: AccessContext, @Body() body: SaveLevelsBody, @CurrentUser() user: SessionUser): Promise<OrgLevelDto[]> {
     assertCompanyAccess(ctx, ORG_LEVELS, body.companyId);
@@ -52,6 +54,7 @@ export class OrgController {
 
   @Post('levels/copy')
   @HttpCode(200)
+  @RequireAdminMode()
   @RequirePermission(ORG_LEVELS)
   copyLevels(@Access() ctx: AccessContext, @Body() body: CopyLevelsBody, @CurrentUser() user: SessionUser): Promise<OrgLevelDto[]> {
     assertCompanyAccess(ctx, ORG_LEVELS, body.toCompanyId);
@@ -60,12 +63,14 @@ export class OrgController {
   }
 
   @Post('nodes')
+  @RequireAdminMode()
   @RequirePermission(ORG_UNIT_CREATE)
   createNode(@Access() ctx: AccessContext, @Body() body: CreateNodeBody, @CurrentUser() user: SessionUser): Promise<OrgNodeDto> {
     return this.nodes.createNode(ctx, body, user.id);
   }
 
   @Put('nodes/:id')
+  @RequireAdminMode()
   @RequirePermission(ORG_UNIT_UPDATE)
   updateNode(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: UpdateNodeBody, @CurrentUser() user: SessionUser): Promise<OrgNodeDto> {
     return this.nodes.updateNode(ctx, id, body, user.id);
@@ -73,6 +78,7 @@ export class OrgController {
 
   @Post('nodes/:id/move')
   @HttpCode(200)
+  @RequireAdminMode()
   @RequirePermission(ORG_UNIT_MOVE)
   moveNode(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: MoveNodeBody, @CurrentUser() user: SessionUser): Promise<OrgNodeDto> {
     return this.nodes.moveNode(ctx, id, body, user.id);
@@ -80,18 +86,21 @@ export class OrgController {
 
   @Delete('nodes/:id')
   @HttpCode(204)
+  @RequireAdminMode()
   @RequirePermission(ORG_UNIT_DELETE)
   async removeNode(@Access() ctx: AccessContext, @Param() { id }: IdParam, @CurrentUser() user: SessionUser): Promise<void> {
     await this.nodes.removeNode(ctx, id, user.id);
   }
 
   @Post('nodes/:id/job-titles')
+  @RequireAdminMode()
   @RequirePermission(ORG_TITLES)
   addTitles(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: AddTitlesBody, @CurrentUser() user: SessionUser): Promise<JobTitleDto[]> {
     return this.nodes.addTitles(ctx, id, body, user.id);
   }
 
   @Put('job-titles/:id')
+  @RequireAdminMode()
   @RequirePermission(ORG_TITLES)
   updateTitle(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: UpdateTitleBody, @CurrentUser() user: SessionUser): Promise<JobTitleDto> {
     return this.nodes.updateTitle(ctx, id, body, user.id);
@@ -99,6 +108,7 @@ export class OrgController {
 
   @Delete('job-titles/:id')
   @HttpCode(204)
+  @RequireAdminMode()
   @RequirePermission(ORG_TITLES)
   async removeTitle(@Access() ctx: AccessContext, @Param() { id }: IdParam, @CurrentUser() user: SessionUser): Promise<void> {
     await this.nodes.removeTitle(ctx, id, user.id);
