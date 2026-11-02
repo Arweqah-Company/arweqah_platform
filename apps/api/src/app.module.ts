@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { RequestRateGuard } from './core/auth/presentation/request-rate.guard';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -80,6 +81,7 @@ const JSON_LIMIT = '1mb';
   ],
   providers: [
     // Order matters: authenticate first, then authorize.
+    { provide: APP_GUARD, useClass: RequestRateGuard },
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useExisting: PermissionsGuard },
     { provide: APP_FILTER, useClass: DomainExceptionFilter },

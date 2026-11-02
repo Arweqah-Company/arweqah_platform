@@ -14,6 +14,12 @@ import {
 import { describe, expect, it } from 'vitest';
 
 describe('Permission scopes with a depth (FR-06, FR-80)', () => {
+  it('keeps the largest depth the patterns accept (5) in step with MAX_SCOPE_DEPTH', () => {
+    expect(MAX_SCOPE_DEPTH).toBe(5);
+    expect(isPermissionScope(`subtree:${MAX_SCOPE_DEPTH}`)).toBe(true);
+    expect(isPermissionScope(`subtree:${MAX_SCOPE_DEPTH + 1}`)).toBe(false);
+  });
+
   it('orders the scopes from the narrowest to the widest, the depths between the unit and everything below it', () => {
     expect([...SCOPE_ORDER]).toEqual(['own', 'unit', 'subtree:1', 'subtree:2', 'subtree:3', 'subtree:4', 'subtree:5', 'subtree', 'company', 'all']);
     expect(scopeRank('unit')).toBeLessThan(scopeRank('subtree:1'));

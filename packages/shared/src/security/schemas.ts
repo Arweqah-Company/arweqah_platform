@@ -42,3 +42,24 @@ export interface TrustedDeviceDto {
 /** The code step: the six digits, and optionally trusting this browser. */
 export const verifyCodeSchema = authCodeSchema.extend({ rememberDevice: z.boolean().optional() });
 export type VerifyCodeInput = z.infer<typeof verifyCodeSchema>;
+
+/** At least two labels of letters, digits and inner hyphens (each up to 63 characters), the last of letters only. */
+function isDomain(value: string): boolean {
+  const labels = value.split('.');
+  const inner = (l: string) => l.length >= 1 && l.length <= 63 && /^[a-z0-9-]+$/.test(l) && !l.startsWith('-') && !l.endsWith('-');
+  const last = /^[a-z]{2,24}$/;
+  return labels.length >= 2 && labels.slice(0, -1).every(inner) && last.test(labels[labels.length - 1] ?? '');
+}
+
+/** A work-e-mail domain such as `arweqah.sa` (lower case, no `@`). */
+export const emailDomainSchema = z.string().trim().toLowerCase().max(120).refine(isDomain, 'Not a domain');
+
+/** The domains work e-mails may use; an empty list means only the default domain (`DEFAULT_WORK_EMAIL_DOMAIN`). */
+export const allowedEmailDomainsSchema = z.strictObject({ domains: z.array(emailDomainSchema).max(50) });
+export type AllowedEmailDomainsInput = z.infer<typeof allowedEmailDomainsSchema>;
+export interface AllowedEmailDomainsDto {
+  domains: string[];
+}
+
+/** The domain of an address, lower case; empty when it has none. */
+export const emailDomainOf = (email: string): string => email.slice(email.lastIndexOf('@') + 1).trim().toLowerCase();

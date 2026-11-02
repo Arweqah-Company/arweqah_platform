@@ -136,7 +136,8 @@ describe('Sessions, trusted devices and the security settings (FR-73)', () => {
   describe('the settings', () => {
     it('reads the defaults, saves new numbers within their limits, audits it, and answers 403 and 400 where it should', async () => {
       const admin = await t.factories.signInAdminMode(await t.factories.user({ grants: [...SETTINGS, { key: CorePermission.AuditView, scope: ALL }] }));
-      expect((await admin.get('/api/security-settings').expect(200)).body).toEqual({ trustedDeviceDays: 0, requestsPerMinute: 600 });
+      // The tests lift the request limit (100 000); a fresh system has the default of 600.
+      expect((await admin.get('/api/security-settings').expect(200)).body).toEqual({ trustedDeviceDays: 0, requestsPerMinute: 100000 });
       expect((await admin.put('/api/security-settings').send({ trustedDeviceDays: 14, requestsPerMinute: 900 }).expect(200)).body).toEqual({ trustedDeviceDays: 14, requestsPerMinute: 900 });
       expect((await admin.get('/api/security-settings').expect(200)).body).toMatchObject({ trustedDeviceDays: 14 });
       await admin.put('/api/security-settings').send({ trustedDeviceDays: 1000, requestsPerMinute: 900 }).expect(400);
@@ -149,6 +150,35 @@ describe('Sessions, trusted devices and the security settings (FR-73)', () => {
       await viewOnly.put('/api/security-settings').send({ trustedDeviceDays: 1, requestsPerMinute: 900 }).expect(403);
       const plain = await t.factories.signIn(await t.factories.user({ grants: [{ key: CorePermission.SecuritySettingsView, scope: ALL }] }));
       await plain.get('/api/security-settings').expect(403);
+    });
+  });
+
+  describe('the e-mail domains', () => {
+    const payload = (org: Awaited<ReturnType<typeof t.factories.org>>, email: string) => ({
+      companyId: org.unitA.companyId, orgNodeId: org.unitA.id, jobTitleId: org.unitA.titleId, workEmail: email, employeeNumber: `N${Math.random().toString(36).slice(2, 8)}`, fullName: 'موظف جديد', fullNameEn: 'New Employee', startDate: '2025-01-01',
+    });
+
+    it('sets the list, lower-cases and sorts it, refuses what is not a domain, audits it, and keeps it for who may edit', async () => {
+      const admin = await t.factories.signInAdminMode(await t.factories.user({ grants: [...SETTINGS, { key: CorePermission.AuditView, scope: ALL }] }));
+      expect((await admin.get('/api/security-settings/email-domains').expect(200)).body).toEqual({ domains: [] });
+      expect((await admin.put('/api/security-settings/email-domains').send({ domains: ['Arweqah.sa', 'sub.example.com', 'arweqah.sa'] }).expect(200)).body).toEqual({ domains: ['arweqah.sa', 'sub.example.com'] });
+      await admin.put('/api/security-settings/email-domains').send({ domains: ['not a domain'] }).expect(400);
+      await admin.put('/api/security-settings/email-domains').send({ domains: ['@arweqah.sa'] }).expect(400);
+      await admin.put('/api/security-settings/email-domains').send({ domains: [], extra: 1 }).expect(400);
+      expect(((await admin.get('/api/audit-logs').expect(200)).body.items as { action: string }[]).map((l) => l.action)).toContain('security.email_domains_updated');
+      const viewOnly = await t.factories.signInAdminMode(await t.factories.user({ grants: [ADMIN_MODE_GRANT, { key: CorePermission.SecuritySettingsView, scope: ALL }] }));
+      await viewOnly.put('/api/security-settings/email-domains').send({ domains: [] }).expect(403);
+    });
+
+    it('allows only the default domain while the list is empty, and the listed domains once it is set', async () => {
+      const org = await t.factories.org();
+      const hr = await t.factories.signIn(await t.factories.user({ grants: [{ key: CorePermission.EmployeesCreate, scope: ALL }, { key: CorePermission.EmployeesView, scope: ALL }, { key: CorePermission.LookupsView, scope: ALL }] }));
+      await hr.post('/api/employees').send(payload(org, `a${Date.now()}@arweqah.sa`)).expect(201);
+      expect((await hr.post('/api/employees').send(payload(org, `a${Date.now()}@partner.org`)).expect(422)).body).toMatchObject({ code: 'FIELD_RULE', details: { path: 'workEmail' } });
+      const admin = await t.factories.signInAdminMode(await t.factories.user({ grants: SETTINGS }));
+      await admin.put('/api/security-settings/email-domains').send({ domains: ['partner.org'] }).expect(200);
+      await hr.post('/api/employees').send(payload(org, `b${Date.now()}@arweqah.sa`)).expect(422);
+      await hr.post('/api/employees').send(payload(org, `c${Date.now()}@Partner.ORG`)).expect(201);
     });
   });
 });

@@ -37,6 +37,7 @@ export const CorePermission = {
   ListsManage: 'lists.manage',
   AuditView: 'audit.view',
   AuditExport: 'audit.export',
+  AuditVerify: 'audit.verify',
   EmailLogView: 'notifications.email_log',
   EmailLogExport: 'notifications.email_log_export',
   LookupsView: 'lookups.view',

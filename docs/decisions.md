@@ -2,6 +2,14 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-02 — Audit chain, request limit, e-mail domains
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 134 | The audit log is a hash chain (`seq`, `prev_hash`, `hash`) written under an advisory lock, plus a trigger that refuses UPDATE/DELETE | Tamper evidence without an external service; the lock keeps `seq` gapless | Volume makes the single writer lock a bottleneck |
+| 135 | The request limit is the first global guard and reads `requestsPerMinute` from `security_settings`; the in-memory window is per API instance | Owner: numbers from settings, not code; one instance today | More than one API instance (move the window to a shared store) |
+| 136 | The `@arweqah.sa` rule left the shared schema: the form checks the address shape, `AllowedEmailDomainsService` checks the domain (saved list, default when empty) | The allowed domains are data an administrator edits; the web cannot know them | — |
+
 ## 2026-11-02 — Sessions, trusted devices, security settings
 
 | # | Decision | Why | Revisit when |

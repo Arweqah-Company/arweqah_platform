@@ -6,10 +6,13 @@ import { AccountPreferencesService } from './application/account-preferences.ser
 import { AuthenticatorService } from './application/authenticator.service';
 import { IdentityProvider } from './application/identity-provider';
 import { InvitationService } from './application/invitation.service';
+import { AllowedEmailDomainsService } from './application/allowed-email-domains.service';
 import { SecuritySettingsService } from './application/security-settings.service';
 import { SessionsService } from './application/sessions.service';
 import { TrustedDevicesService } from './application/trusted-devices.service';
+import { AllowedEmailDomainsRepository } from './domain/allowed-email-domains.repository';
 import { DeviceSecurityRepository } from './domain/device-security.repository';
+import { TypeOrmAllowedEmailDomainsRepository } from './infrastructure/typeorm-allowed-email-domains.repository';
 import { SecuritySettingsRepository } from './domain/security-settings.repository';
 import { TypeOrmDeviceSecurityRepository } from './infrastructure/typeorm-device-security.repository';
 import { TypeOrmSecuritySettingsRepository } from './infrastructure/typeorm-security-settings.repository';
@@ -47,6 +50,8 @@ import { AUTH_DB_POOL, BETTER_AUTH } from './infrastructure/tokens';
     { provide: AccountPreferencesRepository, useClass: TypeOrmAccountPreferencesRepository },
     { provide: DeviceSecurityRepository, useClass: TypeOrmDeviceSecurityRepository },
     { provide: SecuritySettingsRepository, useClass: TypeOrmSecuritySettingsRepository },
+    { provide: AllowedEmailDomainsRepository, useClass: TypeOrmAllowedEmailDomainsRepository },
+    AllowedEmailDomainsService,
     AccountPreferencesService,
     SecuritySettingsService,
     SessionsService,
@@ -62,7 +67,7 @@ import { AUTH_DB_POOL, BETTER_AUTH } from './infrastructure/tokens';
     { provide: IdentityProvider, useClass: BetterAuthIdentityProvider },
   ],
   controllers: [MfaController, SessionsController, SecuritySettingsController],
-  exports: [BETTER_AUTH, IdentityProvider, AuthenticatorService, InvitationService, AccountPreferencesService, SecuritySettingsService],
+  exports: [BETTER_AUTH, IdentityProvider, AuthenticatorService, InvitationService, AccountPreferencesService, SecuritySettingsService, AllowedEmailDomainsService],
 })
 export class AuthCoreModule implements OnModuleDestroy {
   constructor(@Inject(AUTH_DB_POOL) private readonly pool: Pool) {}
