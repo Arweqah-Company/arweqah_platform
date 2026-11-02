@@ -36,7 +36,10 @@ export class BetterAuthIdentityProvider extends IdentityProvider {
 
   async setActive(userId: string, active: boolean): Promise<void> {
     await this.pool.query('UPDATE users SET is_active = $2, updated_at = now() WHERE id = $1', [userId, active]);
-    if (!active) await this.revokeAllSessions(userId);
+    if (!active) {
+      await this.revokeAllSessions(userId);
+      await this.pool.query('DELETE FROM trusted_devices WHERE user_id = $1', [userId]);
+    }
   }
 
   async deleteUser(userId: string): Promise<void> {

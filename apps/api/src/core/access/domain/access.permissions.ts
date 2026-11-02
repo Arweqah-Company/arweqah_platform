@@ -10,6 +10,8 @@ export const ACCESS_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.RolesDelete, 'حذف دور', 'Delete a role'),
   def(CorePermission.RolesExport, 'تصدير الأدوار', 'Export roles'),
   def(CorePermission.RolesSyncAuto, 'تحديث أعضاء الأدوار التلقائية الآن', 'Refresh the members of the automatic roles now'),
+  def(CorePermission.SecuritySettingsView, 'عرض إعدادات الأمان (الأجهزة الموثوقة وحدود الطلبات)', 'View the security settings (trusted devices and request limits)'),
+  def(CorePermission.SecuritySettingsEdit, 'تعديل إعدادات الأمان', 'Edit the security settings'),
   def(CorePermission.ExceptionsView, 'عرض صفحة الاستثناءات (ما مُنح خارج المسمى)', 'View the exceptions page (what was given outside the job title)'),
   def(CorePermission.ExceptionsUpdate, 'تغيير تاريخ انتهاء استثناء', 'Change the end date of an exception'),
   def(CorePermission.ExceptionsRevoke, 'سحب استثناء', 'Take an exception back'),

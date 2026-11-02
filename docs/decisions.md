@@ -2,6 +2,15 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-02 — Sessions, trusted devices, security settings
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 130 | A trusted device skips only the code step that follows a **Microsoft** sign-in (`POST /mfa/trusted-skip` after the session exists); the e-mail sign-in always asks for the code. FR-13 (the code in every session) therefore changes only there, and only for as many days as the administrator sets (0 = off, the default) | With no password, the e-mail plus the code is the whole proof, so it cannot be skipped; after Microsoft the first factor is already proven | The owner wants it also for e-mail sign-in with a second factor |
+| 131 | The cookie holds a random secret, the database a SHA-256 of it; the device is removed with the authenticator reset or the account's deactivation | A stolen database must not hold usable secrets; a reset means the old app no longer vouches | Devices need to be listed for HR |
+| 132 | «Fresh code before a sensitive action» (plan G6) is not built: platform admin mode already asks for a code that was never used before and expires when idle, and every admin route requires it | A second prompt would repeat the same proof | HR actions outside admin mode (end a contract, give roles) must also ask |
+| 133 | Security numbers live in `security_settings` (key, int value) with limits and defaults in `packages/shared/src/security`; read through a 15-second cache | The owner: no values in the code; one small table for every number of this kind | A number needs more than an integer |
+
 ## 2026-11-02 — Job title for everyone
 
 | # | Decision | Why | Revisit when |

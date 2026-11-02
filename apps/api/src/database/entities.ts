@@ -12,6 +12,8 @@ import { PageVisibilityRule } from '../core/access/domain/page-visibility-rule.e
 import { UserRole } from '../core/access/domain/user-role.entity';
 import { AuditLog } from '../core/audit/domain/audit-log.entity';
 import { Authenticator, AuthenticatorBackupCode, EnrollmentInvite } from '../core/auth/domain/authenticator.entities';
+import { SecuritySetting } from '../core/auth/domain/security-setting.entity';
+import { TrustedDevice } from '../core/auth/domain/trusted-device.entity';
 import { User } from '../core/auth/domain/user.entity';
 import { StoredFile } from '../core/files/domain/stored-file.entity';
 import { OutboxMessage } from '../core/messaging/domain/outbox-message.entity';
@@ -37,6 +39,8 @@ import { TICKET_ENTITIES } from '../modules/tickets/domain/entities/ticket.entit
  */
 export const ENTITIES = [
   User,
+  TrustedDevice,
+  SecuritySetting,
   Authenticator,
   AuthenticatorBackupCode,
   EnrollmentInvite,

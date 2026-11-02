@@ -253,7 +253,7 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     expect(ids.map((e) => e.id)).toContain(unplaced.employeeId);
     expect(ids.map((e) => e.id)).not.toContain(placed.employeeId);
     expect(ids.every((e) => e.needsPlacement)).toBe(true);
-    const { jobTitleId: _title, ...withoutTitle } = payload(org.unitA);
+    const withoutTitle = Object.fromEntries(Object.entries(payload(org.unitA)).filter(([key]) => key !== 'jobTitleId'));
     expect((await agent.post('/api/employees').send(withoutTitle).expect(400)).body.code).toBeDefined();
     expect((await agent.post('/api/employees').send({ ...payload(org.unitA), jobTitleId: null }).expect(400)).body.code).toBeDefined();
   });
@@ -274,7 +274,7 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
   });
 
   it('ends sign-in at once when a contract is ended in the past, and an open session stops working (FR-71)', async () => {
-    const { org, agent, payload, lookups, pick } = await setup();
+    const { org, agent, lookups, pick } = await setup();
     const day = (offset: number): string => new Date(Date.parse(`${todayInRiyadh()}T00:00:00Z`) + offset * 86_400_000).toISOString().slice(0, 10);
     const person = await t.factories.user({ unit: org.unitA });
     const session = await t.factories.signIn(person);
