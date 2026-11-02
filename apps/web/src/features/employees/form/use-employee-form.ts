@@ -8,7 +8,7 @@ import { ApiError } from '@/core/api/api-client';
 import { errorMessage } from '@/shared/lib/error-message';
 import { useAssignRoles, useCreateEmployee, useEmployee, useUpdateEmployee } from '../api';
 import { usePermissions } from '@/core/permissions/can';
-import { EMPTY_FORM, employeeResolverWithIdRule, toFormState, toPayload, type FormState } from './form-state';
+import { EMPTY_FORM, employeeResolverWithIdRule, roleExpiriesToSend, toFormState, toPayload, type FormState } from './form-state';
 
 interface RuleDetails {
   path?: string;
@@ -45,18 +45,51 @@ function useServerErrors(form: UseFormReturn<FormState>) {
   };
 }
 
-/** The form's data and behaviour: load, validate with the shared rules, save, and put API rule errors under their field. */
-export function useEmployeeForm(id: string | undefined, idTypes: IdTypeLookupDto[]) {
-  const { t, i18n } = useTranslation('employees');
+/** The end dates the employee's roles had when the form was opened. */
+const savedExpiries = (employee: { roles: { id: string; expiresAt: string | null }[] } | undefined): Record<string, string> =>
+  Object.fromEntries((employee?.roles ?? []).filter((r) => r.expiresAt).map((r) => [r.id, r.expiresAt as string]));
+
+/** Saving: a new employee is created with the roles of the form; an edited one is updated, and its roles saved when they or their end dates changed. */
+function useSaveEmployee(form: UseFormReturn<FormState>, id: string | undefined, fail: (error: unknown) => void) {
+  const { t } = useTranslation('employees');
   const navigate = useNavigate();
   const employee = useEmployee(id);
   const create = useCreateEmployee();
   const update = useUpdateEmployee(id ?? '');
   const assignRoles = useAssignRoles(id ?? '');
   const { can } = usePermissions();
+  const editing = !!id;
+  const save = async (values: FormState) => {
+    try {
+      const withRoles = can(CorePermission.EmployeesAssignRoles) && can(CorePermission.RolesView);
+      // Without the roles step the server gives the default roles (Employee and the role of the job title).
+      const payload = (editing || withRoles ? toPayload(values, editing) : { ...toPayload(values, false), roleIds: undefined, roleExpiries: undefined }) as never;
+      if (editing) {
+        await update.mutateAsync(payload);
+        const { dirtyFields } = form.formState;
+        if (can(CorePermission.EmployeesAssignRoles) && (dirtyFields.roleIds || dirtyFields.roleExpiries)) {
+          await assignRoles.mutateAsync({ roleIds: values.roleIds, roleExpiries: roleExpiriesToSend(values, savedExpiries(employee.data)) });
+        }
+        toast.success(t('saved'));
+        navigate(`/employees/${id}`);
+      } else {
+        const result = await create.mutateAsync(payload);
+        navigate(`/employees/${result.employee.id}`, { state: { invitation: result.invitation } });
+      }
+    } catch (error) {
+      fail(error);
+    }
+  };
+  /** Saves the form; `onInvalid` runs when a field of the first step is wrong (the form goes back to it). */
+  return (event: React.BaseSyntheticEvent, onInvalid?: () => void) => form.handleSubmit(save, onInvalid)(event);
+}
+
+/** The form's data and behaviour: load, validate with the shared rules, save, and put API rule errors under their field. */
+export function useEmployeeForm(id: string | undefined, idTypes: IdTypeLookupDto[]) {
+  const { i18n } = useTranslation('employees');
+  const employee = useEmployee(id);
   const resolver = useMemo(() => employeeResolverWithIdRule(idTypes, i18n.language), [idTypes, i18n.language]);
   const form = useForm<FormState>({ resolver, defaultValues: EMPTY_FORM, mode: 'all' });
-  const editing = !!id;
   const fail = useServerErrors(form);
   const [idTypeId, nationalityId] = useWatch({ control: form.control, name: ['idTypeId', 'nationalityId'] });
 
@@ -69,26 +102,6 @@ export function useEmployeeForm(id: string | undefined, idTypes: IdTypeLookupDto
     if (employee.data) form.reset(toFormState(employee.data));
   }, [employee.data, form]);
 
-  const save = async (values: FormState) => {
-    try {
-      const withRoles = can(CorePermission.EmployeesAssignRoles) && can(CorePermission.RolesView);
-      // Without the roles step the server gives the default roles (Employee and the role of the job title).
-      const payload = (editing || withRoles ? toPayload(values, editing) : { ...toPayload(values, false), roleIds: undefined }) as never;
-      if (editing) {
-        await update.mutateAsync(payload);
-        if (can(CorePermission.EmployeesAssignRoles) && form.formState.dirtyFields.roleIds) await assignRoles.mutateAsync(values.roleIds);
-        toast.success(t('saved'));
-        navigate(`/employees/${id}`);
-      } else {
-        const result = await create.mutateAsync(payload);
-        navigate(`/employees/${result.employee.id}`, { state: { invitation: result.invitation } });
-      }
-    } catch (error) {
-      fail(error);
-    }
-  };
-  /** Saves the form; `onInvalid` runs when a field of the first step is wrong (the form goes back to it). */
-  const submit = (event: React.BaseSyntheticEvent, onInvalid?: () => void) => form.handleSubmit(save, onInvalid)(event);
-
-  return { form, employee, editing, submit };
+  const submit = useSaveEmployee(form, id, fail);
+  return { form, employee, editing: !!id, submit };
 }

@@ -15,5 +15,5 @@ export abstract class PermissionTargetRepository {
   abstract direct(kind: PermissionTargetKind, id: string): Promise<PermissionGrant[]>;
   /** What reaches it from elsewhere: the roles inside a group, the roles and groups of a person. */
   abstract inherited(kind: PermissionTargetKind, id: string): Promise<PermissionGrant[]>;
-  abstract replace(kind: PermissionTargetKind, id: string, grants: PermissionGrant[]): Promise<void>;
+  abstract replace(kind: PermissionTargetKind, id: string, grants: PermissionGrant[], grantedBy?: string | null): Promise<void>;
 }

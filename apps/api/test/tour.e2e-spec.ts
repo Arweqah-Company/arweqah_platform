@@ -76,6 +76,13 @@ describe('Welcome tour (FR-67)', () => {
       expect(keys(body)).toEqual(['admin-mode']);
     });
 
+    it('shows the exceptions step only to who may see the exceptions page (FR-70, FR-67)', async () => {
+      const withKey = await t.factories.signIn(await t.factories.user({ grants: [ADMIN_MODE_GRANT, grant(CorePermission.ExceptionsView)] }));
+      expect(keys((await withKey.get('/api/me/tour/admin').expect(200)).body)).toEqual(['admin-mode', 'exceptions']);
+      const without = await t.factories.signIn(await t.factories.user({ grants: [ADMIN_MODE_GRANT, grant(CorePermission.RolesView)] }));
+      expect(keys((await without.get('/api/me/tour/admin').expect(200)).body)).not.toContain('exceptions');
+    });
+
     it('refuses an unknown tour (400) and a visitor who is not signed in (401)', async () => {
       const agent = await t.factories.signIn(await t.factories.user());
       await agent.get('/api/me/tour/nowhere').expect(400);

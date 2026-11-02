@@ -82,3 +82,10 @@ export class RoleTemplateError extends BusinessRuleError {
     super('A role made for a job title or a level cannot be the template of another');
   }
 }
+
+export class PastEndDateError extends BusinessRuleError {
+  override readonly code = 'PAST_END_DATE';
+  constructor() {
+    super('The end date cannot be in the past');
+  }
+}

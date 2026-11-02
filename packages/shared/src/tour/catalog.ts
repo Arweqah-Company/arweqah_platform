@@ -46,6 +46,7 @@ export const TOUR_STEPS = [
   { key: 'admin-mode', tour: 'admin', permission: CorePermission.AdminModeUse },
   { key: 'companies', tour: 'admin', permission: CorePermission.CompaniesView, page: 'companies' },
   { key: 'roles', tour: 'admin', permission: CorePermission.RolesView, page: 'roles' },
+  { key: 'exceptions', tour: 'admin', permission: CorePermission.ExceptionsView, page: 'exceptions' },
   { key: 'permissions', tour: 'admin', permission: CorePermission.PermissionsView, page: 'permissions' },
   { key: 'audit', tour: 'admin', permission: CorePermission.AuditView, page: 'audit' },
   { key: 'email-log', tour: 'admin', permission: CorePermission.EmailLogView, page: 'email-log' },

@@ -2,6 +2,14 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-02 — Exceptions
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 125 | An exception is what is given outside the job title: a manual role (auto rule null), a personal permission, a group of roles. The title role, the Employee role and the head role are defaults, not exceptions. End date, who gave it and when are columns on `user_roles`, `user_permissions`, `user_role_groups` (no new table); the last day holds through that day in Riyadh, and a nightly job removes the ended rows and audits them | Owner: no forgotten permission; the list needs the same facts for the three kinds; the rows already exist, so a new table would copy them | Groups of people (`user_group_members`) or role-group membership need end dates too |
+| 126 | Replacing a person's roles, groups or permissions keeps the end date and the giver of a row that stays (upsert, not delete and insert); a role's date is changed only when the request names one (null removes it) | Saving the permissions page or the employee form must not silently erase an end date | The date should reset whenever the scope changes |
+| 127 | Only the employee form (roles) sets an end date when giving; groups of roles and personal permissions get theirs from the exceptions page (change the last day) | Keeps the employee form simple; the page is the one place for the dates | A date is wanted while giving a group or a permission |
+
 ## 2026-11-02 — Depth of a scope
 
 | # | Decision | Why | Revisit when |
