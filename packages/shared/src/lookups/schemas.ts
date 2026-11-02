@@ -66,6 +66,9 @@ export interface OrgNodeOptionDto {
   path: string;
   pathAr: string;
   pathEn: string;
+  /** The unit's own name, for drop-downs that show the name only. */
+  nameAr: string;
+  nameEn: string;
   /** Default direct manager of the unit (employee id) when set, else the nearest ancestor's. */
   defaultManagerId: string | null;
 }
