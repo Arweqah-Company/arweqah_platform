@@ -21,6 +21,8 @@ import {
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
 import { ForbiddenError, NotFoundError } from '../../../../common/domain/domain-error';
 import { AbilityFactory } from '../../../../core/access/application/ability.factory';
+import { AllowedEmailDomainsService } from '../../../../core/auth/application/allowed-email-domains.service';
+import { EmailDomainNotAllowedError } from '../../../../core/auth/domain/errors-email-domain';
 import { todayInRiyadh } from '../../../../common/domain/riyadh-date';
 import { ACCESS_CHANGED, EMPLOYEES_CHANGED } from '../../../../core/access/application/access.events';
 import { UserAccessService } from '../../../../core/access/application/user-access.service';
@@ -58,6 +60,7 @@ export class EmployeesService {
     private readonly tx: TransactionRunner,
     private readonly events: EventEmitter2,
     private readonly outbox: Outbox,
+    private readonly emailDomains: AllowedEmailDomainsService,
   ) {}
 
   async list(ctx: AccessContext, query: EmployeesQuery): Promise<Paginated<EmployeeListItemDto>> {
@@ -85,6 +88,7 @@ export class EmployeesService {
   async create(ctx: AccessContext, input: CreateEmployeeInput, actorId: string): Promise<CreateEmployeeResultDto> {
     const { roleIds: chosen, roleExpiries, ...fields } = input;
     this.assertInScope(ctx, P.EmployeesCreate, { companyId: input.companyId, orgNodeId: input.orgNodeId });
+    await this.assertEmailDomainAllowed(input.workEmail);
     const defaults = await this.access.defaultRoleIds(input.jobTitleId);
     const roleIds = chosen ?? defaults.ids;
     this.assertRoleExpiries(roleIds, roleExpiries);
@@ -214,6 +218,16 @@ export class EmployeesService {
 
   private assertInScope(ctx: AccessContext, key: string, resource: { companyId: string; orgNodeId: string; ownerId?: string }): void {
     if (!this.ability.can(ctx, key, resource)) throw new NotFoundError('Org unit', resource.orgNodeId);
+  }
+
+  /** The work e-mail must use a domain the administrator allows (no rule while the list is empty). */
+  private async assertEmailDomainAllowed(email: string): Promise<void> {
+    try {
+      await this.emailDomains.assertAllowed(email);
+    } catch (error) {
+      if (!(error instanceof EmailDomainNotAllowedError)) throw error;
+      throw new FieldRuleError('workEmail', error.message, { ar: 'نطاق هذا البريد غير مسموح به في المنصة', en: 'The platform does not allow this e-mail domain' });
+    }
   }
 
   /** An end date is for a role the person is given, and is today or later (Riyadh); null removes it. */

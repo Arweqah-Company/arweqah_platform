@@ -1,3 +1,4 @@
+import { SecuritySettingsService } from '../../src/core/auth/application/security-settings.service';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
@@ -69,14 +70,7 @@ export function useTestApp(): TestContext {
     await ctx.app.get(LookupsSeeder).run();
     ctx.factories = new Factories(ctx.app);
   });
-  beforeEach(async () => {
-    ctx.mail.sent.length = 0;
-    ctx.translator.calls.length = 0;
-    ctx.providers.reset();
-    ctx.app.get(ActiveProviders).invalidate('translation');
-    ctx.app.get(ActiveProviders).invalidate('email');
-    await truncateAll(ctx.db);
-  });
+  beforeEach(() => resetBetweenTests(ctx));
   afterAll(async () => {
     await ctx.app?.close();
   });
@@ -87,4 +81,16 @@ async function truncateAll(db: DataSource): Promise<void> {
   const tables: { tablename: string }[] = await db.query(`SELECT tablename FROM pg_tables WHERE schemaname = 'public'`);
   const names = tables.map((t) => t.tablename).filter((name) => !REFERENCE_TABLES.has(name));
   await db.query(`TRUNCATE ${names.map((n) => `"${n}"`).join(', ')} RESTART IDENTITY CASCADE`);
+}
+
+/** Every test starts from empty tables, a quiet mail box and translator, and no request limit (the specs about the limit set their own). */
+async function resetBetweenTests(ctx: TestContext): Promise<void> {
+  ctx.mail.sent.length = 0;
+  ctx.translator.calls.length = 0;
+  ctx.providers.reset();
+  ctx.app.get(ActiveProviders).invalidate('translation');
+  ctx.app.get(ActiveProviders).invalidate('email');
+  await truncateAll(ctx.db);
+  await ctx.db.query(`INSERT INTO security_settings (key, value) VALUES ('requestsPerMinute', 100000)`);
+  ctx.app.get(SecuritySettingsService).invalidate();
 }

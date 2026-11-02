@@ -30,4 +30,17 @@ export class AuditLog {
   @Index()
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
+
+  /** The order entries were written in (the hash chain follows it). */
+  @Index('IDX_audit_logs_seq')
+  @Column({ type: 'bigint', generated: 'identity', generatedIdentity: 'ALWAYS' })
+  seq: string;
+
+  /** The hash of the entry before this one; null for the entry that starts the chain and for entries older than the chain. */
+  @Column({ name: 'prev_hash', type: 'varchar', length: 64, nullable: true })
+  prevHash: string | null;
+
+  /** SHA-256 over this entry and the hash before it; null for entries older than the chain. */
+  @Column({ type: 'varchar', length: 64, nullable: true })
+  hash: string | null;
 }

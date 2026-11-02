@@ -6,6 +6,7 @@ import { usePermissions } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Alert, Button, FormField, Input } from '@/shared/ui';
 import { useSaveSecuritySettings, useSecuritySettings } from './api';
+import { EmailDomainsCard } from './email-domains-card';
 import { SECURITY_SETTINGS_KEYS } from './keys';
 
 /** The security numbers: how long a trusted browser skips the code step after Microsoft sign-in (0 = off), and the request limit. */
@@ -15,7 +16,12 @@ export function SecuritySettingsTab() {
   const settings = useSecuritySettings();
   if (settings.isError) return <Alert>{errorMessage(tc, settings.error)}</Alert>;
   if (!settings.data) return <p role="status" className="mt-4 text-sm text-muted">{t('settings.loading')}</p>;
-  return <SettingsForm initial={settings.data} />;
+  return (
+    <>
+      <SettingsForm initial={settings.data} />
+      <EmailDomainsCard />
+    </>
+  );
 }
 
 type Typed = Record<keyof SecuritySettingsInput, string>;

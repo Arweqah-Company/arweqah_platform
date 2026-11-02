@@ -18,7 +18,8 @@ export const MAX_SCOPE_DEPTH = 5;
 export type DepthScope = `subtree:${number}`;
 export type PermissionScope = BaseScope | DepthScope;
 
-const DEPTH_SCOPE = new RegExp(`^subtree:([1-${MAX_SCOPE_DEPTH}])$`);
+// A literal (not built from MAX_SCOPE_DEPTH) so it can be checked as safe; a test keeps the two in step.
+const DEPTH_SCOPE = /^subtree:([1-5])$/;
 
 export const depthScope = (levels: number): DepthScope => `subtree:${levels}`;
 
@@ -63,5 +64,5 @@ export function offeredScopes(allowed: readonly PermissionScope[]): PermissionSc
 }
 
 /** The same rule as `isPermissionScope`, as a pattern so it can also be described in the API documentation. */
-const SCOPE_PATTERN = new RegExp(`^(${PERMISSION_SCOPES.join('|')}|subtree:[1-${MAX_SCOPE_DEPTH}])$`);
+const SCOPE_PATTERN = /^(own|unit|subtree|company|all|subtree:[1-5])$/;
 export const permissionScopeSchema = z.string().regex(SCOPE_PATTERN, 'Unknown scope') as unknown as z.ZodType<PermissionScope>;
