@@ -6,6 +6,7 @@ Short records of choices that are not obvious from the code. Newest first.
 
 | # | Decision | Why | Revisit when |
 |---|---|---|---|
+| 148 | The permissions page: the drop-down of the chosen role / group / person is searchable (`Select` takes `searchable`), and the permission matrix (permissions page and role editor) has a search box over label, key and module; ticks of hidden rows are kept | Owner (2026-11-02) | — |
 | 147 | `docs/database-design.md` is the full table reference (mermaid ER per area + a description row per table), generated from the live schema; every new table is added to it in the same change as its migration (CLAUDE.md standing rule 11). README §6 stays the short overview | One place answers «what tables exist and what each one is for»; the README diagram omits lookups, translations and messaging tables | The file grows too big for one page (split per area) |
 
 ## 2026-11-02 — Bot protection (Turnstile)

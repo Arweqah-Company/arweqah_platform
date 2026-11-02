@@ -1,4 +1,6 @@
 {
+  "searchPermissions": "Search permissions",
+  "noPermissionMatch": "No permission matches the search.",
   "title": "Roles & permissions",
   "description": "Each role is a set of permissions, and each permission has a scope that decides which records it covers.",
   "new": "New role",

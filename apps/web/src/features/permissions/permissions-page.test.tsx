@@ -27,6 +27,13 @@ function serve(keys: string[]) {
 }
 
 describe('Permissions page (FR-47)', () => {
+  it('offers a search box inside the drop-down of roles', async () => {
+    serve(['permissions.view']);
+    renderPage(<PermissionsPage />);
+    fireEvent.click(await screen.findByLabelText('الدور'));
+    expect(await screen.findByPlaceholderText('ابحث…')).toBeInTheDocument();
+  });
+
   it('places permissions on a role: choose the kind and the role, tick, save', async () => {
     const saved = serve(['permissions.view', 'permissions.role_update']);
     renderPage(<PermissionsPage />);
