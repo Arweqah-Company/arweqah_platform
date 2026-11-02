@@ -7,7 +7,8 @@ import { renderPage } from '../../../test/render';
 import { daysLeft } from './exceptions-list';
 import { ExceptionsTab } from './exceptions-tab';
 
-const day = (offset: number): string => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
+/** A day counted in Riyadh (UTC+3), the clock the screen counts the days left by. */
+const day = (offset: number): string => new Date(Date.now() + 3 * 3_600_000 + offset * 86_400_000).toISOString().slice(0, 10);
 const row = (over: Partial<AccessExceptionDto>): AccessExceptionDto => ({
   kind: 'role', userId: 'u1', userName: 'سارة أحمد', targetId: 'r1', targetNameAr: 'مشرف', targetNameEn: 'Supervisor', scope: null,
   grantedById: 'g1', grantedByName: 'خالد المدير', grantedAt: '2026-10-01T10:00:00', expiresAt: null, ...over,

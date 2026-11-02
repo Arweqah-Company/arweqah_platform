@@ -75,7 +75,8 @@ function useHomeData() {
   const hidden = me?.hiddenPages ?? [];
   const showTasks = can(CorePermission.TasksView) && !hidden.includes('tasks');
   const showTickets = can(CorePermission.TicketsView) && !hidden.includes('tickets');
-  const canSeeEmployees = can(CorePermission.EmployeesView);
+  // The employee counts are about other people: a plain employee (view reaches only their own record) has none.
+  const canSeeEmployees = (me?.permissions ?? []).some((p) => p.key === CorePermission.EmployeesView && p.scope !== 'own');
   const showMatrix = can(CorePermission.TasksMatrixView) && !hidden.includes('tasks-matrix');
   return {
     me,
