@@ -136,7 +136,7 @@ function checkConditionalFields(v: Draft, issue: Issue): void {
 }
 
 export const createEmployeeSchema = z
-  .strictObject({ ...employeeShape, roleIds: z.array(z.uuid()).max(20).default([]) })
+  .strictObject({ ...employeeShape, /** Left out = the default roles (Employee and the role of the job title); an empty list = none. */ roleIds: z.array(z.uuid()).max(20).optional() })
   .superRefine(refineEmployee);
 export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
 

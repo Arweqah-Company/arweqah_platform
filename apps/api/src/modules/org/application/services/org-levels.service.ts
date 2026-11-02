@@ -13,6 +13,7 @@ import type {
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
 import type { TransactionContext } from '../../../../common/domain/transaction-context';
 import { NotFoundError } from '../../../../common/domain/domain-error';
+import { ORG_CHANGED } from '../../../../core/access/application/access.events';
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
 import { OrgNodeDependentsPort } from '../../domain/contracts/org-node-dependents.port';
 import { EmployeePlacementPort } from '../../domain/contracts/employee-placement.port';
@@ -29,6 +30,7 @@ import type { TitleView } from '../../domain/types/org.types';
 import { OrgRepository } from '../../domain/contracts/org.repository';
 import { toLevelDto } from '../transformers/org.transformer';
 import { ORG_AUDIT } from '../messages/org.messages';
+import { JobTitleRolesService } from '../../../../core/access/application/job-title-roles.service';
 
 const MAX_LISTED_UNITS = 50;
 
@@ -51,6 +53,7 @@ export class OrgLevelsService {
     private readonly dependents: OrgNodeDependentsPort,
     private readonly tx: TransactionRunner,
     private readonly events: EventEmitter2,
+    private readonly titleRoles: JobTitleRolesService,
   ) {}
 
   async list(companyId: string): Promise<OrgLevelDto[]> {
@@ -86,6 +89,7 @@ export class OrgLevelsService {
       employeesAffected: analysis.employeesTotal,
       employeesAction: input.confirm?.employees?.action ?? null,
     });
+    await this.events.emitAsync(ORG_CHANGED);
     return this.list(input.companyId);
   }
 
@@ -97,6 +101,7 @@ export class OrgLevelsService {
     const items = source.map((l) => ({ nameAr: l.nameAr, nameEn: l.nameEn, isAssignable: l.isAssignable, sortOrder: l.sortOrder, templateCode: l.templateCode }));
     await this.tx.run((tx) => this.repo.applyLevels(input.toCompanyId, { removeIds: target.map((l) => l.id), items }, tx));
     this.audit(actorId, ORG_AUDIT.levelsCopied, input.toCompanyId, { fromCompanyId: input.fromCompanyId });
+    await this.events.emitAsync(ORG_CHANGED);
     return this.list(input.toCompanyId);
   }
 
@@ -145,6 +150,7 @@ export class OrgLevelsService {
     if ((await this.dependents.unitsInUse(a.removedNodeIds)).length > 0) throw new OrgNodeHasTicketsError();
     const fromNodeIds = [...a.removedNodeIds, ...a.unassignedNodeIds];
     if (a.employeesTotal > 0 && decision) await this.moveOrRemoveEmployees({ a, decision, fromNodeIds, actorId }, tx);
+    await this.titleRoles.remove(a.titles.map((t) => t.id), tx);
     await this.repo.softDeleteTitles(a.titles.map((t) => t.id), tx);
     await this.repo.softDeleteNodes(a.removedNodeIds, tx);
   }

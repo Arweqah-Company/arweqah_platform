@@ -9,6 +9,7 @@ export const ACCESS_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.RolesUpdate, 'تعديل دور وصلاحياته', 'Edit a role and its permissions'),
   def(CorePermission.RolesDelete, 'حذف دور', 'Delete a role'),
   def(CorePermission.RolesExport, 'تصدير الأدوار', 'Export roles'),
+  def(CorePermission.RolesSyncAuto, 'تحديث أعضاء الأدوار التلقائية الآن', 'Refresh the members of the automatic roles now'),
   def(CorePermission.RoleGroupsView, 'عرض مجموعات الأدوار في صفحة الصلاحيات', 'View groups of roles on the permissions page'),
   def(CorePermission.RoleGroupsCreate, 'إضافة مجموعة أدوار', 'Add a role group'),
   def(CorePermission.RoleGroupsUpdate, 'تعديل مجموعة أدوار', 'Edit a role group'),

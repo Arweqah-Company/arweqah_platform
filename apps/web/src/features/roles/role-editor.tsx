@@ -7,6 +7,7 @@ import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { Alert, Button, Dialog, FormField, Input, Select } from '@/shared/ui';
 import { usePermissionCatalog, useSaveRole } from './api';
 import { PermissionMatrix } from './permission-matrix';
+import { isDerivedRole } from './role-kind';
 import { useAutoEnglish } from '@/shared/lib/use-auto-english';
 
 interface Props {
@@ -18,7 +19,7 @@ interface Props {
 const namesOk = (form: UpsertRoleInput) => form.nameAr.trim().length >= 2 && form.nameEn.trim().length >= 2;
 
 /** In their own component so "touched" starts fresh every time the dialog opens. */
-function RoleNames({ form, onChange }: { form: UpsertRoleInput; onChange: (change: Partial<UpsertRoleInput>) => void }) {
+function RoleNames({ form, onChange, locked }: { form: UpsertRoleInput; onChange: (change: Partial<UpsertRoleInput>) => void; locked: boolean }) {
   const { t } = useTranslation('roles');
   const rules = useRules();
   const nameAr = useLiveError(form.nameAr, rules.text(2));
@@ -26,8 +27,8 @@ function RoleNames({ form, onChange }: { form: UpsertRoleInput; onChange: (chang
   useAutoEnglish(form.nameAr, form.nameEn, (nameEn) => onChange({ nameEn }));
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <FormField label={t('nameAr')} error={nameAr.error}>{(p) => <Input {...p} aria-required onBlur={nameAr.onBlur} value={form.nameAr} onChange={(e) => onChange({ nameAr: e.target.value })} />}</FormField>
-      <FormField label={t('nameEn')} error={nameEn.error}>{(p) => <Input {...p} aria-required dir="ltr" onBlur={nameEn.onBlur} value={form.nameEn} onChange={(e) => onChange({ nameEn: e.target.value })} />}</FormField>
+      <FormField label={t('nameAr')} error={nameAr.error}>{(p) => <Input {...p} aria-required disabled={locked} onBlur={nameAr.onBlur} value={form.nameAr} onChange={(e) => onChange({ nameAr: e.target.value })} />}</FormField>
+      <FormField label={t('nameEn')} error={nameEn.error}>{(p) => <Input {...p} aria-required disabled={locked} dir="ltr" onBlur={nameEn.onBlur} value={form.nameEn} onChange={(e) => onChange({ nameEn: e.target.value })} />}</FormField>
     </div>
   );
 }
@@ -55,7 +56,8 @@ export function RoleEditor({ role, open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange} title={role ? t('edit') : t('new')}>
       <form className="flex flex-col gap-4" onSubmit={submit} noValidate>
         {save.isError && <Alert>{errorMessage(tc, save.error)}</Alert>}
-        <RoleNames form={form} onChange={(change) => setForm((f) => ({ ...f, ...change }))} />
+        {isDerivedRole(role) && <Alert tone="info">{t('derivedHint')}</Alert>}
+        <RoleNames form={form} locked={isDerivedRole(role)} onChange={(change) => setForm((f) => ({ ...f, ...change }))} />
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField label={t('roleDescription')}>{(p) => <Input {...p} maxLength={500} value={form.description ?? ''} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />}</FormField>
           <FormField label={t('assignment.label')} hint={role?.autoRule ? t('assignment.ruleHint') : t('assignment.hint')}>

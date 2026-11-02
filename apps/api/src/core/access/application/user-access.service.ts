@@ -65,12 +65,24 @@ export class UserAccessService {
    * Nobody can hand out more than they hold: every permission of the roles must be one the actor has,
    * at the same or a wider scope. Unknown roles are reported as not found.
    */
-  async assertGrantable(actor: AccessContext, roleIds: string[]): Promise<void> {
+  async assertGrantable(actor: AccessContext, roleIds: string[], exempt: readonly string[] = []): Promise<void> {
     const unique = [...new Set(roleIds)];
     const roles = await this.roles.findByIds(unique);
     const missing = unique.find((id) => !roles.some((r) => r.id === id));
     if (missing) throw new NotFoundError('Role', missing);
-    this.assertHolds(actor, roles.flatMap((r) => r.permissions));
+    this.assertHolds(actor, roles.filter((r) => !exempt.includes(r.id)).flatMap((r) => r.permissions));
+  }
+
+  /** The roles a new employee starts with: the Employee role and the role of their job title (those that exist). */
+  async defaultRoleIds(jobTitleId: string | null): Promise<{ everyoneId: string | null; titleId: string | null; ids: string[] }> {
+    const { everyoneId, titleId } = await this.access.defaultRoleIdsFor(jobTitleId);
+    return { everyoneId, titleId, ids: [everyoneId, titleId].filter((id): id is string => !!id) };
+  }
+
+  /** The head role of a level follows who manages its units: given to the manager, taken back from one who no longer manages any unit of the level. */
+  async syncHeadRole(levelId: string, employeeId: string): Promise<void> {
+    await this.access.syncHeadRole(levelId, employeeId);
+    this.events.emit(ACCESS_CHANGED, {});
   }
 
   /** The same rule for groups: every role inside them must be grantable by the actor. */

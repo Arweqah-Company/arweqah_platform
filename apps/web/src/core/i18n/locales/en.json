@@ -73,6 +73,8 @@
     "CONFLICT": "A record with the same details already exists.",
     "INVALID_ORG_HIERARCHY": "The selected placement doesn't match the organization structure.",
     "SCOPE_NOT_ALLOWED": "That scope isn't available for this permission.",
+    "DERIVED_ROLE": "This role follows a job title or a level of the structure, so its name and members are not changed by hand.",
+    "ROLE_TEMPLATE_INVALID": "That template role cannot be used: choose a manual role or the Employee role.",
     "FILE_TYPE_NOT_ALLOWED": "File type not allowed. Use PDF, PNG or JPEG.",
     "INVALID_CODE": "The code is not valid.",
     "AUTHENTICATOR_LOCKED": "Too many attempts. Try again in a moment.",

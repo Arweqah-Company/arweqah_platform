@@ -48,13 +48,31 @@
   "tour": {
     "roles": {
       "title": "Roles",
-      "body": "A role is a set of permissions given to whoever holds it. Here you see the roles, how each is given (by hand or automatically) and how many people hold it, and you can open a role to review its permissions.",
+      "body": "A role is a set of permissions given to whoever holds it. Here you see the roles, how each is given (by hand or automatically) and how many people hold it, and you can open a role to review its permissions. The «Kind» column tells the roles apart: manual, automatic by a rule, a job title role (held by whoever has the title), or a level head role (held by the manager of a unit).",
       "can": {
         "create": "Create a new role with its permissions and scope",
         "update": "Edit an existing role",
         "delete": "Delete a role nobody holds",
-        "export": "Export the list of roles"
+        "export": "Export the list of roles",
+        "sync": "Refresh the members of the automatic roles right away"
       }
     }
+  },
+  "kind": {
+    "label": "Kind",
+    "manual": "Manual",
+    "rule": "Automatic (rule)",
+    "jobTitle": "Job title",
+    "head": "Level head"
+  },
+  "sync": {
+    "button": "Refresh members now",
+    "done": "The members of the automatic roles were refreshed ({{count}} changes).",
+    "unchanged": "Members are up to date, nothing changed."
+  },
+  "derivedHint": "This role’s name and members follow its job title or level, so they cannot change here; only its permissions and description can.",
+  "origin": {
+    "label": "Unit and company",
+    "company": "Company"
   }
 }

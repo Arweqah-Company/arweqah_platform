@@ -61,7 +61,8 @@ export type PreviewOrgLevelsInput = z.infer<typeof previewOrgLevelsSchema>;
 export const copyOrgLevelsSchema = z.strictObject({ fromCompanyId: z.uuid(), toCompanyId: z.uuid() });
 export type CopyOrgLevelsInput = z.infer<typeof copyOrgLevelsSchema>;
 
-export const jobTitleInputSchema = z.strictObject({ ...localizedNameSchema });
+/** `templateRoleId`: the role whose permissions the role of the new job title starts with (left out = the Employee role). */
+export const jobTitleInputSchema = z.strictObject({ ...localizedNameSchema, templateRoleId: z.uuid().optional() });
 export type JobTitleInput = z.infer<typeof jobTitleInputSchema>;
 
 export const createOrgNodeSchema = z.strictObject({

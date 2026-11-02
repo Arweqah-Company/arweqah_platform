@@ -11,6 +11,7 @@ export const CorePermission = {
   RolesUpdate: 'roles.update',
   RolesDelete: 'roles.delete',
   RolesExport: 'roles.export',
+  RolesSyncAuto: 'roles.sync_auto',
   RoleGroupsView: 'role_groups.view',
   RoleGroupsCreate: 'role_groups.create',
   RoleGroupsUpdate: 'role_groups.update',
@@ -171,6 +172,19 @@ export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own
   { key: CorePermission.TicketsReopen, scope: 'all' },
 ];
 
+/**
+ * What the head role of an organization level starts with (the manager of a unit sees and acts on their unit and the units below it).
+ * Copied once when the role is made; an administrator edits it afterwards on the roles page. `org.view` is left out: it reaches a whole company, not a subtree.
+ */
+export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'subtree' }[] = [
+  { key: CorePermission.EmployeesView, scope: 'subtree' },
+  { key: CorePermission.TasksTeamView, scope: 'subtree' },
+  { key: CorePermission.TasksMatrixView, scope: 'subtree' },
+  { key: CorePermission.TasksApprove, scope: 'subtree' },
+  { key: CorePermission.TasksReject, scope: 'subtree' },
+  { key: CorePermission.TicketsFiguresView, scope: 'subtree' },
+];
+
 /** Groups of keys that belong together (used by seeds and tests, and to give an administrator a whole area at once). */
 export const ORG_ADMIN_PERMISSIONS: CorePermissionKey[] = [
   CorePermission.OrgView,
@@ -182,4 +196,4 @@ export const ORG_ADMIN_PERMISSIONS: CorePermissionKey[] = [
   CorePermission.OrgTitlesManage,
 ];
 export const COMPANIES_ADMIN_PERMISSIONS: CorePermissionKey[] = [CorePermission.CompaniesView, CorePermission.CompaniesCreate, CorePermission.CompaniesUpdate, CorePermission.CompaniesDelete];
-export const ROLES_ADMIN_PERMISSIONS: CorePermissionKey[] = [CorePermission.RolesView, CorePermission.RolesCreate, CorePermission.RolesUpdate, CorePermission.RolesDelete];
+export const ROLES_ADMIN_PERMISSIONS: CorePermissionKey[] = [CorePermission.RolesView, CorePermission.RolesCreate, CorePermission.RolesUpdate, CorePermission.RolesDelete, CorePermission.RolesSyncAuto];

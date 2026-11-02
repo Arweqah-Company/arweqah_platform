@@ -1,5 +1,5 @@
 import type { INestApplication } from '@nestjs/common';
-import { CorePermission, EMPLOYEE_DEFAULT_PERMISSIONS, ORG_ADMIN_PERMISSIONS, type PermissionGrant } from '@arweqah-platform/shared';
+import { COMPANIES_ADMIN_PERMISSIONS, CorePermission, EMPLOYEE_DEFAULT_PERMISSIONS, ORG_ADMIN_PERMISSIONS, type PermissionGrant } from '@arweqah-platform/shared';
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
@@ -56,6 +56,13 @@ let ipCounter = 1;
 export const nextIp = (): string => `10.1.${Math.floor(ipCounter / 250)}.${(ipCounter++ % 250) + 1}`;
 
 /** Builders for test data (never copy-pasted objects in specs). */
+/** What an administrator of the organization and the roles is given (admin mode is entered with ADMIN_MODE_GRANT): companies, structure, and seeing the roles. */
+export const ORG_AND_ROLES_ADMIN_GRANTS: PermissionGrant[] = [
+  ...COMPANIES_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const })),
+  ...ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const })),
+  { key: CorePermission.RolesView, scope: 'all' as const },
+];
+
 /** What a desk manager is given to set up the departments they manage and read their figures (admin mode is entered with ADMIN_MODE_GRANT). */
 export const TICKET_DESK_ADMIN_GRANTS: PermissionGrant[] = [
   CorePermission.TicketsSetupView,

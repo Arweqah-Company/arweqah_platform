@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import type {
   AddJobTitlesInput,
+  JobTitleInput,
   CreateOrgNodeInput,
   JobTitleDto,
   MoveOrgNodeInput,
@@ -13,6 +14,7 @@ import type {
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
 import { NotFoundError } from '../../../../common/domain/domain-error';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
+import { ORG_CHANGED } from '../../../../core/access/application/access.events';
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
 import { OrgNodeDependentsPort } from '../../domain/contracts/org-node-dependents.port';
 import { EmployeePlacementPort } from '../../domain/contracts/employee-placement.port';
@@ -22,6 +24,9 @@ import { OrgRepository } from '../../domain/contracts/org.repository';
 import { assertCompanyAccess, ORG_TITLES, ORG_UNIT_CREATE, ORG_UNIT_DELETE, ORG_UNIT_MOVE, ORG_UNIT_UPDATE, ORG_VIEW } from '../policies/org-access.policy';
 import { toLevelDto, toNodeDto, toTitleDto } from '../transformers/org.transformer';
 import { ORG_AUDIT } from '../messages/org.messages';
+import { JobTitleRolesService } from '../../../../core/access/application/job-title-roles.service';
+import { UserAccessService } from '../../../../core/access/application/user-access.service';
+import type { TransactionContext } from '../../../../common/domain/transaction-context';
 
 @Injectable()
 export class OrgNodesService {
@@ -31,6 +36,8 @@ export class OrgNodesService {
     private readonly dependents: OrgNodeDependentsPort,
     private readonly tx: TransactionRunner,
     private readonly events: EventEmitter2,
+    private readonly titleRoles: JobTitleRolesService,
+    private readonly access: UserAccessService,
   ) {}
 
   async tree(ctx: AccessContext, companyId: string): Promise<OrgTreeDto> {
@@ -50,12 +57,15 @@ export class OrgNodesService {
     await this.assertParent(level, input.parentId);
     if (input.managerId) await this.assertManager(input.managerId);
     this.assertTitlesFor(level, input.jobTitles.length);
+    await this.titleRoles.assertTemplates(ctx, input.jobTitles.map((t) => t.templateRoleId));
     const id = await this.tx.run(async (tx) => {
       const nodeId = await this.repo.insertNode({ ...input, companyId: level.companyId, parentId: input.parentId, managerId: input.managerId ?? null, startDate: input.startDate, sortOrder: 0 }, tx);
-      if (input.jobTitles.length) await this.repo.insertTitles(nodeId, input.jobTitles, tx);
+      if (input.jobTitles.length) await this.insertTitlesWithRoles(nodeId, input.jobTitles, tx);
       return nodeId;
     });
     this.audit(actorId, ORG_AUDIT.unitCreated, id, { levelId: level.id, parentId: input.parentId, startDate: input.startDate, jobTitles: input.jobTitles.length });
+    await this.followManagers(level.id, [input.managerId]);
+    await this.events.emitAsync(ORG_CHANGED);
     return this.nodeDto(id);
   }
 
@@ -65,6 +75,8 @@ export class OrgNodesService {
     if (input.managerId) await this.assertManager(input.managerId);
     await this.tx.run((tx) => this.repo.updateNode(id, { ...input, managerId: input.managerId ?? null }, tx));
     this.audit(actorId, ORG_AUDIT.unitUpdated, id, { isActive: input.isActive, startDate: input.startDate });
+    if ((input.managerId ?? null) !== node.managerId || input.isActive !== node.isActive) await this.followManagers(node.levelId, [node.managerId, input.managerId]);
+    await this.events.emitAsync(ORG_CHANGED);
     return this.nodeDto(id);
   }
 
@@ -78,6 +90,7 @@ export class OrgNodesService {
     await this.assertNoTickets(id);
     await this.tx.run((tx) => this.repo.moveNode(id, input.parentId, tx));
     this.audit(actorId, ORG_AUDIT.unitMoved, id, { parentId: input.parentId });
+    await this.events.emitAsync(ORG_CHANGED);
     return this.nodeDto(id);
   }
 
@@ -90,10 +103,13 @@ export class OrgNodesService {
     await this.assertNoTickets(id);
     const titles = await this.repo.titlesOfNodes([id]);
     await this.tx.run(async (tx) => {
+      await this.titleRoles.remove(titles.map((t) => t.id), tx);
       await this.repo.softDeleteTitles(titles.map((t) => t.id), tx);
       await this.repo.softDeleteNodes([id], tx);
     });
     this.audit(actorId, ORG_AUDIT.unitDeleted, id, { jobTitles: titles.length });
+    await this.followManagers(node.levelId, [node.managerId]);
+    await this.events.emitAsync(ORG_CHANGED);
   }
 
   async addTitles(ctx: AccessContext, nodeId: string, input: AddJobTitlesInput, actorId: string): Promise<JobTitleDto[]> {
@@ -101,7 +117,8 @@ export class OrgNodesService {
     assertCompanyAccess(ctx, ORG_TITLES, node.companyId);
     const level = await this.mustLevel(node.levelId);
     if (!level.isAssignable) throw new InvalidOrgHierarchyError('Job titles belong to units of an assignable level');
-    const ids = await this.tx.run((tx) => this.repo.insertTitles(nodeId, input.jobTitles, tx));
+    await this.titleRoles.assertTemplates(ctx, input.jobTitles.map((t) => t.templateRoleId));
+    const ids = await this.tx.run((tx) => this.insertTitlesWithRoles(nodeId, input.jobTitles, tx));
     this.audit(actorId, ORG_AUDIT.jobTitleCreated, nodeId, { count: ids.length });
     return (await this.repo.titlesByIds(ids)).map((t) => toTitleDto(t, 0));
   }
@@ -109,7 +126,10 @@ export class OrgNodesService {
   async updateTitle(ctx: AccessContext, id: string, input: UpdateJobTitleInput, actorId: string): Promise<JobTitleDto> {
     const title = await this.mustTitle(ctx, id);
     if (!input.isActive && title.isActive && (await this.repo.activeTitleCount(title.orgNodeId)) <= 1) throw new LastJobTitleError();
-    await this.tx.run((tx) => this.repo.updateTitle(id, input, tx));
+    await this.tx.run(async (tx) => {
+      await this.repo.updateTitle(id, input, tx);
+      await this.titleRoles.rename(id, input, tx);
+    });
     this.audit(actorId, ORG_AUDIT.jobTitleUpdated, id, { isActive: input.isActive });
     const updated = (await this.repo.titlesByIds([id]))[0] as TitleView;
     return toTitleDto(updated, (await this.employees.countByTitles([id])).get(id) ?? 0);
@@ -119,7 +139,10 @@ export class OrgNodesService {
     const title = await this.mustTitle(ctx, id);
     if (((await this.employees.countByTitles([id])).get(id) ?? 0) > 0) throw new JobTitleInUseError();
     if (title.isActive && (await this.repo.activeTitleCount(title.orgNodeId)) <= 1) throw new LastJobTitleError();
-    await this.tx.run((tx) => this.repo.softDeleteTitles([id], tx));
+    await this.tx.run(async (tx) => {
+      await this.titleRoles.remove([id], tx);
+      await this.repo.softDeleteTitles([id], tx);
+    });
     this.audit(actorId, ORG_AUDIT.jobTitleDeleted, id, {});
   }
 
@@ -142,6 +165,18 @@ export class OrgNodesService {
     if (!parent || parent.companyId !== level.companyId || parent.levelId !== levels[index - 1]?.id || !parent.isActive) {
       throw new InvalidOrgHierarchyError('The parent must be an active unit of the level right above');
     }
+  }
+
+  /** The head role of the level goes to whoever manages a unit of it and is taken back from whoever no longer does (a person's choice to drop it later is kept until the unit's manager changes again). */
+  private async followManagers(levelId: string, employeeIds: (string | null | undefined)[]): Promise<void> {
+    for (const employeeId of new Set(employeeIds.filter((id): id is string => !!id))) await this.access.syncHeadRole(levelId, employeeId);
+  }
+
+  /** Each new job title gets its own role in the same transaction, with the permissions of the chosen template. */
+  private async insertTitlesWithRoles(nodeId: string, titles: JobTitleInput[], tx: TransactionContext): Promise<string[]> {
+    const ids = await this.repo.insertTitles(nodeId, titles, tx);
+    await this.titleRoles.create(titles.map((t, i) => ({ jobTitleId: ids[i] as string, nameAr: t.nameAr, nameEn: t.nameEn, templateRoleId: t.templateRoleId })), tx);
+    return ids;
   }
 
   private assertTitlesFor(level: LevelView, count: number): void {

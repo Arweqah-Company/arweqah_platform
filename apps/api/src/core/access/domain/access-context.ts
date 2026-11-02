@@ -22,7 +22,19 @@ export interface ScopeFilter {
   userId: string;
   companyId: string | null;
   orgNodeId: string | null;
+  /** Units the person manages (they hold the head role of the unit's level): added to the unit and subtree scopes beside where they sit. */
+  managedUnitIds: readonly string[];
+  /** Those units and every unit below them. */
+  managedSubtreeIds: readonly string[];
 }
+
+/** The units a person manages, for the head roles of the levels: the units themselves and everything below them. */
+export interface ManagedUnits {
+  unitIds: readonly string[];
+  subtreeIds: readonly string[];
+}
+
+export const NO_MANAGED_UNITS: ManagedUnits = { unitIds: [], subtreeIds: [] };
 
 /** Where a granted permission reaches in the organization, for lists (SQL) and for records the person did not create. */
 export type NodeScope = { kind: 'none' } | { kind: 'nodes'; ids: readonly string[] } | { kind: 'company'; companyId: string } | { kind: 'all' };
@@ -42,14 +54,27 @@ export class AccessContext {
     readonly placement: Placement,
     grants: PermissionGrant[],
     readonly isActive: boolean,
-    /** The user's org unit and every unit below it, for subtree-scoped record checks. */
-    readonly subtreeNodeIds: readonly string[] = [],
+    /** The user's org unit and every unit below it. */
+    private readonly placementSubtreeNodeIds: readonly string[] = [],
+    /** Units the person manages through a head role (the scope of a head role comes from the units its holder manages, beside where they sit). */
+    private readonly managed: ManagedUnits = NO_MANAGED_UNITS,
   ) {
     const byKey = new Map<string, PermissionScope[]>();
     for (const g of grants) byKey.set(g.key, [...(byKey.get(g.key) ?? []), g.scope]);
     this.scopes = new Map(
       [...byKey].map(([key, list]) => [key, widestScope(list) as PermissionScope]),
     );
+  }
+
+  /** Where the person sits and the units they manage (unit scope). */
+  get unitNodeIds(): readonly string[] {
+    const { orgNodeId } = this.placement;
+    return [...new Set([...(orgNodeId ? [orgNodeId] : []), ...this.managed.unitIds])];
+  }
+
+  /** The units the person sits in or manages, and everything below them (subtree scope). */
+  get subtreeNodeIds(): readonly string[] {
+    return [...new Set([...this.placementSubtreeNodeIds, ...this.managed.subtreeIds])];
   }
 
   has(key: string): boolean {
@@ -66,7 +91,7 @@ export class AccessContext {
 
   /** Where the permission reaches beyond the person's own records: nothing (own), their unit, their unit and below, their company, or everything. */
   nodeScopeOf(key: string): NodeScope {
-    const { orgNodeId, companyId } = this.placement;
+    const { companyId } = this.placement;
     switch (this.scopeOf(key)) {
       case 'all':
         return { kind: 'all' };
@@ -75,7 +100,7 @@ export class AccessContext {
       case 'subtree':
         return this.subtreeNodeIds.length ? { kind: 'nodes', ids: this.subtreeNodeIds } : { kind: 'none' };
       case 'unit':
-        return orgNodeId ? { kind: 'nodes', ids: [orgNodeId] } : { kind: 'none' };
+        return this.unitNodeIds.length ? { kind: 'nodes', ids: this.unitNodeIds } : { kind: 'none' };
       default:
         return { kind: 'none' };
     }
@@ -90,7 +115,7 @@ export class AccessContext {
   filterFor(key: string): ScopeFilter | null {
     const scope = this.scopeOf(key);
     if (!scope) return null;
-    return { scope, userId: this.userId, companyId: this.placement.companyId, orgNodeId: this.placement.orgNodeId };
+    return { scope, userId: this.userId, companyId: this.placement.companyId, orgNodeId: this.placement.orgNodeId, managedUnitIds: this.managed.unitIds, managedSubtreeIds: this.managed.subtreeIds };
   }
 }
 

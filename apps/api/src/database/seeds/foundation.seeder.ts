@@ -94,6 +94,8 @@ export class FoundationSeeder {
     const name = this.config.get('SEED_ADMIN_NAME');
     const userId = await this.identity.createUser({ name, email, locale: 'ar' });
     await this.db.getRepository(UserRole).insert({ userId, roleId: role.id });
+    const employeeRole = await this.db.getRepository(Role).findOne({ where: { nameEn: EMPLOYEE_ROLE, isSystem: true } });
+    if (employeeRole) await this.db.getRepository(UserRole).insert({ userId, roleId: employeeRole.id });
     await this.db.getRepository(Employee).insert({
       userId,
       companyId: company[0]?.id as string,

@@ -199,5 +199,25 @@
         "export": "Export the list of employees"
       }
     }
+  },
+  "steps": {
+    "label": "Form steps",
+    "details": "Employee details",
+    "roles": "Roles"
+  },
+  "next": "Next: roles",
+  "back": "Back to employee details",
+  "rolesStep": {
+    "everyoneBadge": "Everyone",
+    "titleBadge": "Job title role",
+    "titleMissing": "Choose the job title in the first step and its role appears here.",
+    "extra": "Other roles",
+    "extraHint": "Optional. The head roles of the employee's company, the manual roles and what the person already holds; only roles you can give are listed.",
+    "noExtra": "No more roles are available.",
+    "defaults": "Default roles",
+    "defaultsHint": "The Employee role and the role of the job title chosen in the first step are ticked from the start. You can untick either.",
+    "headBadge": "Level head",
+    "computedBadge": "Automatic (has reports)",
+    "everyoneOff": "Without the Employee role the employee will not see their personal pages (my account, security, notifications, tickets)."
   }
 }

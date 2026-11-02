@@ -58,6 +58,7 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
 
   'role.created': a('access', 'أضاف دورًا', 'Added a role'),
   'role.updated': a('access', 'عدّل دورًا', 'Edited a role'),
+  'role.auto_synced': a('access', 'حدّث أعضاء الأدوار التلقائية', 'Refreshed the members of the automatic roles'),
   'role.deleted': a('access', 'حذف دورًا', 'Deleted a role'),
   'role.pages_updated': a('access', 'غيّر الصفحات المخفية عن دور', 'Changed the pages hidden from a role'),
   'role_group.created': a('access', 'أضاف مجموعة أدوار', 'Added a group of roles'),

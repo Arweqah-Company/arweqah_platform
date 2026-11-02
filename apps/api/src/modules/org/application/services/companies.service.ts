@@ -3,6 +3,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { CompanyDto, UpsertCompanyInput } from '@arweqah-platform/shared';
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
 import { NotFoundError } from '../../../../common/domain/domain-error';
+import { ORG_CHANGED } from '../../../../core/access/application/access.events';
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
 import { CompanyCodeTakenError, CompanyInUseError } from '../../domain/errors/org.errors';
 import { EmployeePlacementPort } from '../../domain/contracts/employee-placement.port';
@@ -43,6 +44,7 @@ export class CompaniesService {
       return created;
     });
     this.audit(actorId, ORG_AUDIT.companyCreated, id, { code: input.code });
+    await this.events.emitAsync(ORG_CHANGED);
     return toCompanyDto(await this.get(id), 0);
   }
 
