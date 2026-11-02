@@ -1,7 +1,7 @@
 import type { EmployeeDto } from '@arweqah-platform/shared';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SectionCard } from '@/shared/ui';
+import { Badge, SectionCard } from '@/shared/ui';
 import type { EmployeeOptions } from './form/use-options';
 
 const Row = ({ label, children }: { label: string; children: ReactNode }) => (
@@ -113,6 +113,18 @@ function SalaryDetails({ employee: e, options }: Props) {
   );
 }
 
+function RolesDetails({ employee: e }: { employee: EmployeeDto }) {
+  const { t, i18n } = useTranslation('employees');
+  return (
+    <SectionCard id="roles" title={t('sections.roles')}>
+      <div className="flex flex-wrap gap-2 sm:col-span-2">
+        {e.roles.length === 0 && <span className="text-sm text-muted">—</span>}
+        {e.roles.map((r) => <Badge key={r.id} tone="info">{i18n.language === 'en' ? r.nameEn : r.nameAr}</Badge>)}
+      </div>
+    </SectionCard>
+  );
+}
+
 /** Read-only view of the form, section by section, with every option shown by name. */
 export function DetailsSections({ employee, options }: Props) {
   const { t } = useTranslation('employees');
@@ -121,6 +133,7 @@ export function DetailsSections({ employee, options }: Props) {
       <WorkDetails employee={employee} options={options} />
       <ContactAndPersonalDetails employee={employee} options={options} />
       <ContractDetails employee={employee} options={options} />
+      <RolesDetails employee={employee} />
       {!employee.sensitiveHidden && <SalaryDetails employee={employee} options={options} />}
       {employee.notes && <SectionCard id="notes" title={t('sections.notes')}><p className="text-sm sm:col-span-2">{employee.notes}</p></SectionCard>}
     </div>

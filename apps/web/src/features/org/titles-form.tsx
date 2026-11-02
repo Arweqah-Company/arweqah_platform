@@ -23,7 +23,7 @@ export function TitlesForm({ tree, open, onOpenChange, initialNodeId = null }: P
   const [rows, setRows] = useState<JobTitleInput[]>([{ nameAr: '', nameEn: '' }]);
   const add = useAddTitles(nodeId ?? '');
   const assignable = new Set(tree.levels.filter((l) => l.isAssignable).map((l) => l.id));
-  const options = tree.nodes.filter((n) => assignable.has(n.levelId)).map((n) => ({ value: n.id, label: ar ? n.pathAr : n.pathEn }));
+  const options = tree.nodes.filter((n) => assignable.has(n.levelId)).map((n) => ({ value: n.id, label: ar ? n.nameAr : n.nameEn }));
 
   const submit = async () => {
     try {
