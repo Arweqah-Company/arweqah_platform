@@ -3,6 +3,7 @@ import type { MeDto } from '@arweqah-platform/shared';
 import { NotFoundError } from '../../../common/domain/domain-error';
 import { NO_PLACEMENT, type AccessContext } from '../domain/access-context';
 import { ProfileRepository } from '../domain/profile.repository';
+import { SecuritySettingsService } from '../../auth/application/security-settings.service';
 import { AuthenticatorService } from '../../auth/application/authenticator.service';
 import { AdminModeService } from './admin-mode.service';
 import { ListSettingsService } from '../../lists/application/list-settings.service';
@@ -19,6 +20,7 @@ export class ProfileService {
     private readonly adminMode: AdminModeService,
     private readonly pages: PageVisibilityService,
     private readonly lists: ListSettingsService,
+    private readonly security: SecuritySettingsService,
   ) {}
 
   async me(ctx: AccessContext, session: { mfaVerified: boolean; sessionId: string }): Promise<MeDto> {
@@ -41,6 +43,7 @@ export class ProfileService {
       createdAt: user.createdAt.toISOString(),
       permissions: ctx.grants(),
       hiddenPages: await this.pages.hiddenFor(ctx),
+      trustedDevicesEnabled: (await this.security.get('trustedDeviceDays')) > 0,
       listSettings: await this.lists.all(),
     };
   }

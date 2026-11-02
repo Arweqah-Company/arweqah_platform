@@ -41,4 +41,34 @@ describe('The code step after Microsoft sign-in (FR-13)', () => {
     open();
     expect(await screen.findByText('ربط التطبيق')).toBeInTheDocument();
   });
+
+  it('offers to trust the browser only when the administrator allows it, and sends the choice with the code (FR-73)', async () => {
+    unverified();
+    server.use(http.post('*/api/mfa/trusted-skip', () => HttpResponse.json({ skipped: false })));
+    open();
+    await screen.findByRole('heading', { name: 'التحقق من الهوية' });
+    expect(screen.queryByLabelText('تذكّر هذا الجهاز ولا تطلب الرمز عليه')).not.toBeInTheDocument();
+  });
+
+  it('shows the choice when it is allowed, and sends it with the code', async () => {
+    unverified({ trustedDevicesEnabled: true });
+    let sent: unknown;
+    server.use(
+      http.post('*/api/mfa/trusted-skip', () => HttpResponse.json({ skipped: false })),
+      http.post('*/api/mfa/verify', async ({ request }) => { sent = await request.json(); return new HttpResponse(null, { status: 204 }); }),
+    );
+    open();
+    fireEvent.click(await screen.findByLabelText('تذكّر هذا الجهاز ولا تطلب الرمز عليه'));
+    '123456'.split('').forEach((d, i) => fireEvent.change(screen.getByLabelText(`رمز تطبيق المصادقة ${i + 1}`), { target: { value: d } }));
+    await waitFor(() => expect(sent).toEqual({ code: '123456', rememberDevice: true }));
+  });
+
+  it('skips the step by itself on a trusted browser', async () => {
+    unverified({ trustedDevicesEnabled: true });
+    let skipped = 0;
+    server.use(http.post('*/api/mfa/trusted-skip', () => { skipped += 1; unverified({ mfaVerified: true }); return HttpResponse.json({ skipped: true }); }));
+    open();
+    expect(await screen.findByText('الرئيسية')).toBeInTheDocument();
+    expect(skipped).toBe(1);
+  });
 });

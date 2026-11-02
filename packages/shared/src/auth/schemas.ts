@@ -71,6 +71,8 @@ export interface MeDto extends UserDto {
   /** The code of the authenticator app was entered for this session; every other route is blocked until then. */
   mfaVerified: boolean;
   adminMode: AdminModeDto;
+  /** The administrator allows trusting a browser after the code step that follows a Microsoft sign-in. */
+  trustedDevicesEnabled: boolean;
   permissions: { key: string; scope: PermissionScope }[];
   /** Pages hidden from every role of this person (the menu leaves them out and the API refuses them). */
   hiddenPages: HideablePage[];

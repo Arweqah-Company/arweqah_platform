@@ -6,6 +6,7 @@ export * from './permissions/types';
 export * from './permissions/keys';
 export * from './auth/schemas';
 export * from './exceptions/schemas';
+export * from './security/schemas';
 export * from './roles/schemas';
 export * from './roles/role-groups';
 export * from './roles/user-groups';

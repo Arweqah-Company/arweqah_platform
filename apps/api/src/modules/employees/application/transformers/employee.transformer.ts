@@ -27,6 +27,12 @@ function isWithin(date: string | null, today: string, options: { fromPast: boole
 
 const daysFromToday = (date: string, today: string): number => Math.round((Date.parse(`${date}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000);
 
+const isoOrNull = (date: Date | null): string | null => (date ? date.toISOString() : null);
+
+/** The roles of a person with the last day of each that has one. */
+const roleRefs = (roles: { id: string; nameAr: string; nameEn: string }[] = [], expiries: Map<string, string> = new Map()) =>
+  roles.map((r) => ({ id: r.id, nameAr: r.nameAr, nameEn: r.nameEn, expiresAt: expiries.get(r.id) ?? null }));
+
 /** Turns employee rows into API shapes: names resolved, roles attached, sensitive values decrypted only for those allowed. */
 @Injectable()
 export class EmployeeTransformer {
@@ -55,7 +61,7 @@ export class EmployeeTransformer {
       isActive: view.isActive,
       isSystemAccount: e.isSystemAccount,
       authenticatorEnabled,
-      accessEndedAt: e.accessEndedAt?.toISOString() ?? null,
+      accessEndedAt: isoOrNull(e.accessEndedAt),
       company: companies.get(e.companyId) ?? UNKNOWN,
       relationTypeId: e.relationTypeId,
       orgNode: pick(nodes, e.orgNodeId),
@@ -63,7 +69,7 @@ export class EmployeeTransformer {
       manager: e.managerId ? { id: e.managerId, fullName: managers.get(e.managerId) ?? '' } : null,
       ...this.plainFields(e),
       ...this.sensitiveFields(e, view.sensitive),
-      roles: (roles.get(e.userId) ?? []).map((r) => ({ id: r.id, nameAr: r.nameAr, nameEn: r.nameEn, expiresAt: expiries.get(e.userId)?.get(r.id) ?? null })),
+      roles: roleRefs(roles.get(e.userId), expiries.get(e.userId)),
       groups: groups.get(e.userId) ?? [],
       sensitiveHidden: !view.sensitive,
       createdAt: e.createdAt.toISOString(),

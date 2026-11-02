@@ -12,6 +12,8 @@ export const CorePermission = {
   RolesDelete: 'roles.delete',
   RolesExport: 'roles.export',
   RolesSyncAuto: 'roles.sync_auto',
+  SecuritySettingsView: 'security_settings.view',
+  SecuritySettingsEdit: 'security_settings.edit',
   ExceptionsView: 'exceptions.view',
   ExceptionsUpdate: 'exceptions.update',
   ExceptionsRevoke: 'exceptions.revoke',

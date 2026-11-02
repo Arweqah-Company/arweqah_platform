@@ -6,6 +6,15 @@ import { AccountPreferencesService } from './application/account-preferences.ser
 import { AuthenticatorService } from './application/authenticator.service';
 import { IdentityProvider } from './application/identity-provider';
 import { InvitationService } from './application/invitation.service';
+import { SecuritySettingsService } from './application/security-settings.service';
+import { SessionsService } from './application/sessions.service';
+import { TrustedDevicesService } from './application/trusted-devices.service';
+import { DeviceSecurityRepository } from './domain/device-security.repository';
+import { SecuritySettingsRepository } from './domain/security-settings.repository';
+import { TypeOrmDeviceSecurityRepository } from './infrastructure/typeorm-device-security.repository';
+import { TypeOrmSecuritySettingsRepository } from './infrastructure/typeorm-security-settings.repository';
+import { SecuritySettingsController } from './presentation/security-settings.controller';
+import { SessionsController } from './presentation/sessions.controller';
 import { AccountPreferencesRepository } from './domain/account-preferences.repository';
 import { AuthenticatorRepository } from './domain/authenticator.repository';
 import { PgAuthLifecycle } from './infrastructure/auth-lifecycle';
@@ -36,7 +45,12 @@ import { AUTH_DB_POOL, BETTER_AUTH } from './infrastructure/tokens';
     },
     { provide: AuthenticatorRepository, useClass: TypeOrmAuthenticatorRepository },
     { provide: AccountPreferencesRepository, useClass: TypeOrmAccountPreferencesRepository },
+    { provide: DeviceSecurityRepository, useClass: TypeOrmDeviceSecurityRepository },
+    { provide: SecuritySettingsRepository, useClass: TypeOrmSecuritySettingsRepository },
     AccountPreferencesService,
+    SecuritySettingsService,
+    SessionsService,
+    TrustedDevicesService,
     AuthenticatorService,
     InvitationService,
     {
@@ -47,8 +61,8 @@ import { AUTH_DB_POOL, BETTER_AUTH } from './infrastructure/tokens';
     },
     { provide: IdentityProvider, useClass: BetterAuthIdentityProvider },
   ],
-  controllers: [MfaController],
-  exports: [BETTER_AUTH, IdentityProvider, AuthenticatorService, InvitationService, AccountPreferencesService],
+  controllers: [MfaController, SessionsController, SecuritySettingsController],
+  exports: [BETTER_AUTH, IdentityProvider, AuthenticatorService, InvitationService, AccountPreferencesService, SecuritySettingsService],
 })
 export class AuthCoreModule implements OnModuleDestroy {
   constructor(@Inject(AUTH_DB_POOL) private readonly pool: Pool) {}
