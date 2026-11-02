@@ -1214,3 +1214,9 @@ shared/data-exchange/   export-file · template · read-sheet · csv · mapping 
 - **أين:** `migration CollaboratorBase`، `core/access` (`defaultRoleIdsFor`, `swapBaseRole`)، `modules/lookups`، `modules/employees` (قواعد وخدمة)، `packages/shared` (`COLLABORATOR_BASE_PERMISSIONS`, `RelationTypeLookupDto`)، `features/employees/form/{use-default-roles,contract-section}`.
 - **لم يُبنَ بعد:** شارة «متعاون» في القائمة (الفلتر بنوع العلاقة موجود).
 - **التحقق:** `collaborator-base.e2e-spec` (4)، `employee-flags.rules.spec`، اختبارات نموذج الموظف (34 ناجحة).
+
+### 2026-11-02 — الحماية من الروبوتات Cloudflare Turnstile (المرحلة 4.6 من `docs/plans/phase-4-access.md`، FR-78)
+- **ما تم:** نوع تكامل جديد `captcha` بمزوّد `turnstile` (مفتاح الموقع علني، والسري مشفّر ولا يُرجَع). تبويب «الحماية من الروبوتات» في الإعدادات بنفس قائمة الخدمات (بحث وفلاتر وجدول/بطاقات وتصدير ونافذة مساعدة)، ولا يُفعَّل إلا بعد نجاح تجربة بالأداة الحقيقية بالمفاتيح نفسها. صفحة الدخول تعرض الأداة عند وجود مزوّد مفعَّل (`GET /captcha/config` بالمفتاح العلني فقط) و`POST /mfa/identify` يتحقق من الإجابة عبر Cloudflare (422 `CAPTCHA_FAILED` موحّد). بلا مزوّد مفعَّل لا فحص، وعند سقوط Cloudflare يُسمح بالدخول ويُدوَّن `captcha.unavailable` في التدقيق. خطوة جولة الإدارة `captcha-settings`، وCSP في nginx يسمح بـ`challenges.cloudflare.com`.
+- **أين:** `core/integrations` (`captcha.service`، `captcha-probe`، `turnstile.verifier`، `captcha.controller`، صلاحيات `integrations.captcha_*`)، `core/auth/presentation/mfa.controller`، `packages/shared/src/integrations`، `shared/ui/turnstile.tsx`، `features/integrations` (التبويب ونافذة التجربة)، `features/auth/pages/login-page.tsx`، `docker/nginx/web.conf`.
+- **التحقق:** `captcha.e2e-spec` (6)، `login-bot-check.test` (3)، `test-dialog.test` (+2)، Playwright `captcha.spec` و`tour.spec` و`exceptions.spec` ناجحة.
+- **ملاحظة:** خطوة تسجيل الدخول بالرمز (`/auth/totp/sign-in`) لا تحمل الفحص؛ تحميها خطوة الرمز نفسها وحدّ الطلبات.

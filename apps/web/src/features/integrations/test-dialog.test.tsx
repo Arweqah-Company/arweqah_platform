@@ -83,3 +83,25 @@ describe('E-mail try-out popup (FR-60)', () => {
     expect(screen.getByRole('button', { name: 'إرسال رسالة تجريبية' })).toBeDisabled();
   });
 });
+
+describe('Bot protection try-out popup (FR-78)', () => {
+  it('shows the real check with the site key and sends its answer with the keys in the form', async () => {
+    const sent: unknown[] = [];
+    window.turnstile = { render: (_el, options) => { (options.callback as (token: string) => void)('solved'); return 'w1'; }, remove: () => undefined };
+    server.use(http.post('*/api/integrations/captcha/turnstile/test', async ({ request }) => { sent.push(await request.json()); return HttpResponse.json({ ok: true, message: null, text: null }); }));
+    renderPage(<TestDialog kind="captcha" providerKey="turnstile" providerName="Cloudflare Turnstile" values={{ siteKey: '0x4site', secretKey: 'secret-1234' }} onClose={() => undefined} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'تحقق من الإجابة' }));
+    expect(await screen.findByText('نجحت التجربة: المفتاحان من الأداة نفسها.')).toBeInTheDocument();
+    expect(sent).toEqual([{ values: { siteKey: '0x4site', secretKey: 'secret-1234' }, captchaToken: 'solved' }]);
+    delete window.turnstile;
+  });
+
+  it('shows what Cloudflare said when the keys do not match', async () => {
+    window.turnstile = { render: (_el, options) => { (options.callback as (token: string) => void)('solved'); return 'w1'; }, remove: () => undefined };
+    server.use(http.post('*/api/integrations/captcha/turnstile/test', () => HttpResponse.json({ ok: false, message: 'Cloudflare rejected the answer', text: null })));
+    renderPage(<TestDialog kind="captcha" providerKey="turnstile" providerName="Cloudflare Turnstile" values={{ siteKey: '0x4site' }} onClose={() => undefined} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'تحقق من الإجابة' }));
+    expect(await screen.findByText('Cloudflare rejected the answer')).toBeInTheDocument();
+    delete window.turnstile;
+  });
+});

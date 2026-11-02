@@ -14,6 +14,8 @@ import { Translator } from '../../src/core/translation/domain/contracts/translat
 import { LookupsSeeder } from '../../src/database/seeds/lookups.seeder';
 import { Factories } from '../factories/factories';
 import { AdminModeProbeController } from '../fakes/admin-mode-probe.controller';
+import { CaptchaVerifier } from '../../src/core/integrations/domain/contracts/captcha-verifier';
+import { FakeCaptchaVerifier } from '../fakes/fake-captcha-verifier';
 import { FakeMailSender } from '../fakes/fake-mail-sender';
 import { FakeMailTransportFactory, FakeProviders, FakeTranslatorFactory } from '../fakes/fake-provider-factories';
 import { FakeTranslator } from '../fakes/fake-translator';
@@ -38,6 +40,7 @@ export interface TestContext {
   mail: FakeMailSender;
   translator: FakeTranslator;
   providers: FakeProviders;
+  captcha: FakeCaptchaVerifier;
 }
 
 /**
@@ -50,6 +53,7 @@ export function useTestApp(): TestContext {
     ctx.mail = new FakeMailSender();
     ctx.translator = new FakeTranslator();
     ctx.providers = new FakeProviders();
+    ctx.captcha = new FakeCaptchaVerifier();
     const moduleRef = await Test.createTestingModule({ imports: [AppModule], controllers: [AdminModeProbeController] })
       .overrideProvider(MailSender)
       .useValue(ctx.mail)
@@ -57,6 +61,8 @@ export function useTestApp(): TestContext {
       .useValue(ctx.translator)
       .overrideProvider(TranslatorFactory)
       .useValue(new FakeTranslatorFactory(ctx.providers))
+      .overrideProvider(CaptchaVerifier)
+      .useValue(ctx.captcha)
       .overrideProvider(MailTransportFactory)
       .useValue(new FakeMailTransportFactory(ctx.providers))
       .compile();
@@ -88,6 +94,8 @@ async function resetBetweenTests(ctx: TestContext): Promise<void> {
   ctx.mail.sent.length = 0;
   ctx.translator.calls.length = 0;
   ctx.providers.reset();
+  ctx.captcha.calls.length = 0;
+  ctx.app.get(ActiveProviders).invalidate('captcha');
   ctx.app.get(ActiveProviders).invalidate('translation');
   ctx.app.get(ActiveProviders).invalidate('email');
   await truncateAll(ctx.db);

@@ -29,6 +29,7 @@
     "email-settings": "إعدادات البريد الإلكتروني",
     "email-templates": "قوالب البريد الإلكتروني",
     "notification-templates": "قوالب الإشعارات",
-    "tour-settings": "جولة الترحيب"
+    "tour-settings": "جولة الترحيب",
+    "captcha-settings": "الحماية من الروبوتات"
   }
 }

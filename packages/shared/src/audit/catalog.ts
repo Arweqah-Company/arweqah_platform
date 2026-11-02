@@ -121,6 +121,7 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'integration.saved': a('settings', 'حفظ بيانات خدمة (ترجمة أو بريد)', 'Saved a service’s data (translation or e-mail)'),
   'integration.tested': a('settings', 'جرّب خدمة (ترجمة أو بريد)', 'Tried a service (translation or e-mail)'),
   'integration.activated': a('settings', 'فعّل خدمة (ترجمة أو بريد)', 'Switched a service on (translation or e-mail)'),
+  'captcha.unavailable': a('settings', 'تعذّر الوصول إلى خدمة الحماية من الروبوتات فسُمح بالدخول', 'The bot protection service was unreachable and sign-in was allowed'),
   'integration.deactivated': a('settings', 'أوقف خدمة (ترجمة أو بريد)', 'Switched a service off (translation or e-mail)'),
   'template.saved': a('settings', 'عدّل صياغة رسالة (بريد أو إشعار)', 'Edited the wording of a message (e-mail or notification)'),
   'template.submitted': a('settings', 'قدّم تعديل رسالة للاعتماد', 'Submitted a message change for approval'),

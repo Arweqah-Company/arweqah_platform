@@ -20,6 +20,7 @@ export const LIST_CATALOG = {
   'email-log': { columns: ['when', 'to', 'subject', 'purpose', 'status', 'details'], filters: ['status', 'purpose', 'to', 'from', 'until'] },
   'translation-providers': { columns: ['provider', 'status', 'tested', 'active'], filters: ['status', 'active'] },
   'email-providers': { columns: ['provider', 'status', 'tested', 'active'], filters: ['status', 'active'] },
+  'captcha-providers': { columns: ['provider', 'status', 'tested', 'active'], filters: ['status', 'active'] },
   'email-templates': { columns: ['template', 'area', 'status', 'updated'], filters: ['area', 'status'] },
   'notification-templates': { columns: ['template', 'area', 'status', 'updated'], filters: ['area', 'status'] },
   'tour-steps': { columns: ['title', 'order', 'tour', 'status', 'updated'], filters: ['tour', 'status', 'customised'] },
