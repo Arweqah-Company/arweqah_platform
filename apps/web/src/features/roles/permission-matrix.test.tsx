@@ -19,6 +19,20 @@ function Harness({ onChange }: { onChange: (grants: PermissionGrant[]) => void }
 }
 
 describe('Permission matrix (FR-47)', () => {
+  it('searches the permissions by label, key or module and keeps the ticks of what is hidden', () => {
+    render(<Harness onChange={() => undefined} />);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'عرض الموظفين' }));
+    fireEvent.change(screen.getByRole('searchbox', { name: 'ابحث في الصلاحيات' }), { target: { value: 'التدقيق' } });
+    expect(screen.queryByRole('checkbox', { name: 'عرض الموظفين' })).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'عرض سجل التدقيق' })).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('searchbox', { name: 'ابحث في الصلاحيات' }), { target: { value: 'employees.create' } });
+    expect(screen.getByRole('checkbox', { name: 'إضافة موظفين' })).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('searchbox', { name: 'ابحث في الصلاحيات' }), { target: { value: 'zzz' } });
+    expect(screen.getByText('لا صلاحيات مطابقة للبحث.')).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('searchbox', { name: 'ابحث في الصلاحيات' }), { target: { value: '' } });
+    expect(screen.getByRole('checkbox', { name: 'عرض الموظفين' })).toBeChecked();
+  });
+
   it('selects every permission at its widest scope, and clears them all again', () => {
     let latest: PermissionGrant[] = [];
     render(<Harness onChange={(g) => { latest = g; }} />);

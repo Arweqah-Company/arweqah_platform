@@ -36,7 +36,7 @@ export function PermissionsPage() {
           {kind === 'user' && <FormField label={t('searchPerson')} hint={t('searchHint')}>{(p) => <Input {...p} value={search} onChange={(e) => setSearch(e.target.value)} />}</FormField>}
           <FormField label={t(`target.${kind}`)}>
             {(p) => (
-              <Select {...p} value={id} onChange={(e) => setId(e.target.value)}>
+              <Select {...p} searchable value={id} onChange={(e) => setId(e.target.value)}>
                 <option value="">{t('choose')}</option>
                 {(options.data ?? []).map((o) => <option key={o.id} value={o.id}>{name(o)}</option>)}
               </Select>
