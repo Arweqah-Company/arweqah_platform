@@ -164,6 +164,10 @@
     "azure": {
       "region": "The region of the Translator resource, as shown with its keys.",
       "endpoint": "Usually the default."
+    },
+    "turnstile": {
+      "siteKey": "Cloudflare dashboard → Turnstile → your widget → «Site key». A public key shown on the sign-in page.",
+      "secretKey": "From the same widget → «Secret key». It is not shown after saving, and must belong to the widget that owns the site key."
     }
   },
   "tabs": {

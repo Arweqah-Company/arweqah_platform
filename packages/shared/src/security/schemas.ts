@@ -6,7 +6,7 @@ export const SECURITY_SETTINGS = {
   /** Days a device stays trusted after the code step that follows a Microsoft sign-in (0 = the choice is switched off). */
   trustedDeviceDays: { default: 0, min: 0, max: 365 },
   /** How many requests one address may make in a minute before it is told to wait (the sign-in routes have their own, stricter limit). */
-  requestsPerMinute: { default: 600, min: 30, max: 100_000 },
+  requestsPerMinute: { default: 600, min: 120, max: 100_000 },
 } as const;
 export type SecuritySettingKey = keyof typeof SECURITY_SETTINGS;
 export const SECURITY_SETTING_KEYS = Object.keys(SECURITY_SETTINGS) as SecuritySettingKey[];

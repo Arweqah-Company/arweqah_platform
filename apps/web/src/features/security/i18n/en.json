@@ -34,7 +34,7 @@
     "trustedDeviceDays": "Days a device stays trusted",
     "trustedDeviceDaysHint": "How long the code is skipped on a trusted browser after a Microsoft sign-in. 0 switches the choice off (at most {{max}}).",
     "requestsPerMinute": "Requests per minute",
-    "requestsPerMinuteHint": "How many requests one address may send in a minute before it is told to wait. Sign-in has its own, stricter limit.",
+    "requestsPerMinuteHint": "How many requests one address may send a minute before it is told to wait. One page load sends dozens of requests, so a low value stops the whole platform (minimum 120, default 600). Sign-in has its own stricter limit.",
     "range": "Enter a whole number between {{min}} and {{max}}.",
     "saved": "The security settings were saved.",
     "loading": "Loading…"
