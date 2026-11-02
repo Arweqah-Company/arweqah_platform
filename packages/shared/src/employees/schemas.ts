@@ -8,7 +8,6 @@ import {
   isE164Phone,
   isEnglishName,
   isValidSaudiIban,
-  isWorkEmail,
   normalizeIban,
   todayIso,
   yearsBetween,
@@ -37,8 +36,8 @@ const employeeShape = {
   workEmail: z
     .email()
     .max(255)
-    .transform((e) => e.toLowerCase())
-    .refine(isWorkEmail, 'Work email must end with @arweqah.sa'),
+    // The domain is checked by the API against the allowed domains (Security settings); the form only checks the shape.
+    .transform((e) => e.toLowerCase()),
   personalEmail: z.email().max(255).nullable().optional(),
   workPhone: phone,
   personalPhone: phone,

@@ -74,12 +74,13 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     for (const secret of ['1087654321', '9876.54', 'SA0380000000608010167519']) expect(audit).not.toContain(secret);
   });
 
-  it('validates the form (400): domain, IBAN, age, dates, pairs and conditional fields', async () => {
+  it('validates the form (400, or 422 for a domain that is not allowed): domain, IBAN, age, dates, pairs and conditional fields', async () => {
     const { agent, payload, org, lookups, pick } = await setup();
     const bad = async (overrides: Record<string, unknown>) => (await agent.post('/api/employees').send(payload(org.unitA, overrides))).status;
-    expect(await bad({ workEmail: 'someone@gmail.com' })).toBe(400);
-    expect(await bad({ workEmail: 'someone@sub.arweqah.sa' })).toBe(400);
-    expect(await bad({ workEmail: 'someone@arweqah.sa.evil.com' })).toBe(400);
+    expect(await bad({ workEmail: 'someone@gmail.com' })).toBe(422);
+    expect(await bad({ workEmail: 'someone@sub.arweqah.sa' })).toBe(422);
+    expect(await bad({ workEmail: 'someone@arweqah.sa.evil.com' })).toBe(422);
+    expect(await bad({ workEmail: 'not an address' })).toBe(400);
     expect(await bad({ iban: 'SA0000000000000000000000' })).toBe(400);
     expect(await bad({ iban: 'GB82WEST12345698765432' })).toBe(400);
     expect(await bad({ birthDate: '2015-01-01' })).toBe(400);

@@ -1,10 +1,11 @@
-import type { SecuritySettingsDto, SecuritySettingsInput, SessionDto, TrustedDeviceDto } from '@arweqah-platform/shared';
+import type { AllowedEmailDomainsDto, SecuritySettingsDto, SecuritySettingsInput, SessionDto, TrustedDeviceDto } from '@arweqah-platform/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/core/api/api-client';
 
 const SESSIONS = ['my-sessions'];
 const DEVICES = ['my-trusted-devices'];
 const SETTINGS = ['security-settings'];
+const DOMAINS = ['security-email-domains'];
 
 export const useSessions = () => useQuery({ queryKey: SESSIONS, queryFn: () => apiClient.get<SessionDto[]>('/me/sessions') });
 export const useTrustedDevices = () => useQuery({ queryKey: DEVICES, queryFn: () => apiClient.get<TrustedDeviceDto[]>('/me/trusted-devices') });
@@ -19,3 +20,6 @@ export const useEndSession = () => useChange<string>(SESSIONS, (id) => apiClient
 export const useEndOtherSessions = () => useChange<void>(SESSIONS, () => apiClient.delete('/me/sessions'));
 export const useRemoveTrustedDevice = () => useChange<string>(DEVICES, (id) => apiClient.delete(`/me/trusted-devices/${id}`));
 export const useSaveSecuritySettings = () => useChange<SecuritySettingsInput>(SETTINGS, (input) => apiClient.put<SecuritySettingsDto>('/security-settings', input));
+
+export const useEmailDomains = () => useQuery({ queryKey: DOMAINS, queryFn: () => apiClient.get<AllowedEmailDomainsDto>('/security-settings/email-domains') });
+export const useSaveEmailDomains = () => useChange<string[]>(DOMAINS, (domains) => apiClient.put<AllowedEmailDomainsDto>('/security-settings/email-domains', { domains }));

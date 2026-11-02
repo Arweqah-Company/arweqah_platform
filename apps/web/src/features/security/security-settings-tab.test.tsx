@@ -15,8 +15,8 @@ const open = (keys = ['security_settings.view', 'security_settings.edit']) => {
 
 describe('Security settings tab (FR-73, FR-76)', () => {
   it('shows the numbers, checks their range, and saves them', async () => {
-    let saved: unknown;
-    server.use(http.put('*/api/security-settings', async ({ request }) => { saved = await request.json(); return HttpResponse.json(saved); }));
+    let saved: Record<string, number> | undefined;
+    server.use(http.put('*/api/security-settings', async ({ request }) => { saved = (await request.json()) as Record<string, number>; return HttpResponse.json(saved); }));
     open();
     const days = await screen.findByLabelText('أيام الجهاز الموثوق');
     expect(days).toHaveValue(0);
@@ -32,5 +32,25 @@ describe('Security settings tab (FR-73, FR-76)', () => {
     open(['security_settings.view']);
     expect(await screen.findByLabelText('أيام الجهاز الموثوق')).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'حفظ' })).not.toBeInTheDocument();
+  });
+});
+
+describe('Allowed e-mail domains (FR-77)', () => {
+  it('shows the list one domain per line, names what is not a domain, and saves the rest lower-cased', async () => {
+    let saved: unknown;
+    server.use(
+      http.get('*/api/security-settings/email-domains', () => HttpResponse.json({ domains: ['arweqah.sa'] })),
+      http.put('*/api/security-settings/email-domains', async ({ request }) => { saved = await request.json(); return HttpResponse.json(saved as Record<string, string[]>); }),
+    );
+    open();
+    const box = await screen.findByLabelText('نطاقات البريد المسموحة');
+    expect(box).toHaveValue('arweqah.sa');
+    fireEvent.change(box, { target: { value: 'arweqah.sa\nPartner.ORG\nnot a domain' } });
+    expect(await screen.findByText('ليست نطاقات صحيحة: not a domain')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'حفظ' }).at(-1)).toBeDisabled();
+    fireEvent.change(box, { target: { value: 'arweqah.sa\nPartner.ORG' } });
+    const buttons = screen.getAllByRole('button', { name: 'حفظ' });
+    fireEvent.click(buttons[buttons.length - 1] as HTMLElement);
+    await waitFor(() => expect(saved).toEqual({ domains: ['arweqah.sa', 'partner.org'] }));
   });
 });

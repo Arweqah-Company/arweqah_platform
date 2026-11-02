@@ -38,5 +38,11 @@
     "range": "Enter a whole number between {{min}} and {{max}}.",
     "saved": "The security settings were saved.",
     "loading": "Loading…"
+  },
+  "domains": {
+    "label": "Allowed e-mail domains",
+    "hint": "One domain per line (like partner.org). An employee cannot be added with an address outside them. Left empty, only the default domain {{default}} is allowed.",
+    "bad": "Not valid domains: {{list}}",
+    "saved": "The allowed domains were saved."
   }
 }

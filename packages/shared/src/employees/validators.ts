@@ -1,6 +1,7 @@
 /** Rules shared by the API (final authority) and the web form (early feedback). */
 
-export const WORK_EMAIL_DOMAIN = 'arweqah.sa';
+/** The domain work e-mails use until an administrator lists the allowed domains (Security settings). */
+export const DEFAULT_WORK_EMAIL_DOMAIN = 'arweqah.sa';
 export const MIN_EMPLOYEE_AGE = 18;
 export const MAX_EMPLOYEE_AGE = 70;
 
@@ -8,7 +9,8 @@ const E164 = /^\+[1-9]\d{6,14}$/;
 const ENGLISH_NAME = /^[A-Za-z][A-Za-z '-]*$/;
 const DOUBLE_SEPARATOR = /[ '-]{2}/;
 
-export const isWorkEmail = (email: string): boolean => email.toLowerCase().endsWith(`@${WORK_EMAIL_DOMAIN}`);
+/** Does the address end with one of these domains (exactly, any letter case)? */
+export const isWorkEmail = (email: string, domains: readonly string[] = [DEFAULT_WORK_EMAIL_DOMAIN]): boolean => domains.some((domain) => email.toLowerCase().endsWith(`@${domain.toLowerCase()}`));
 export const isE164Phone = (phone: string): boolean => E164.test(phone);
 /** English letters and spaces (a hyphen or apostrophe inside a name is allowed), no doubled separators. */
 export const isEnglishName = (name: string): boolean => ENGLISH_NAME.test(name) && !DOUBLE_SEPARATOR.test(name);
