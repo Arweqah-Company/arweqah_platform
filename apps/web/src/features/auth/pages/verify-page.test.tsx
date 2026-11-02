@@ -63,6 +63,15 @@ describe('The code step after Microsoft sign-in (FR-13)', () => {
     await waitFor(() => expect(sent).toEqual({ code: '123456', rememberDevice: true }));
   });
 
+  it('shows the choice above the code boxes: the code submits by itself at the sixth digit, so a box below it could never be ticked in time (FR-73)', async () => {
+    unverified({ trustedDevicesEnabled: true });
+    server.use(http.post('*/api/mfa/trusted-skip', () => HttpResponse.json({ skipped: false })));
+    open();
+    const choice = await screen.findByLabelText('تذكّر هذا الجهاز ولا تطلب الرمز عليه');
+    const firstBox = screen.getByLabelText('رمز تطبيق المصادقة 1');
+    expect(choice.compareDocumentPosition(firstBox) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('skips the step by itself on a trusted browser', async () => {
     unverified({ trustedDevicesEnabled: true });
     let skipped = 0;

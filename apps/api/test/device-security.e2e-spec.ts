@@ -120,6 +120,31 @@ describe('Sessions, trusted devices and the security settings (FR-73)', () => {
       expect(await t.db.query('SELECT 1 FROM trusted_devices WHERE user_id = $1', [user.id])).toHaveLength(0);
     });
 
+    it('FR-73 journey: Microsoft sign-in, code + "remember this device", sign out, Microsoft sign-in again in the same browser: no code is asked', async () => {
+      await setDays(5);
+      const user = await t.factories.user();
+      // Day 1: the browser (one cookie jar) signs in with Microsoft and the person enters the code and ticks "remember this device".
+      const browser = await t.factories.signIn(user);
+      await t.factories.forgetCode(user);
+      expect(((await browser.get('/api/me').expect(200)).body as { mfaVerified: boolean; trustedDevicesEnabled: boolean })).toMatchObject({ mfaVerified: false, trustedDevicesEnabled: true });
+      const verified = await codeStep(user, browser, true);
+      expect(verified.status).toBe(204);
+      expect(String(verified.headers['set-cookie'])).toMatch(/arweqah_device=.+Max-Age=432000.+HttpOnly/i);
+      // The person signs out: the session ends, the device cookie stays in the browser.
+      await browser.post('/api/auth/sign-out').set('origin', 'http://localhost').expect(200);
+      await browser.get('/api/me').expect(401);
+      // Day 2: Microsoft creates a new session (no code yet); the code page asks the server to skip, with the same browser's cookie.
+      await signInAgain(user, browser);
+      await t.factories.forgetCode(user);
+      expect(((await browser.get('/api/me').expect(200)).body as { mfaVerified: boolean }).mfaVerified).toBe(false);
+      expect((await browser.post('/api/mfa/trusted-skip').expect(200)).body).toEqual({ skipped: true });
+      expect(((await browser.get('/api/me').expect(200)).body as { mfaVerified: boolean }).mfaVerified).toBe(true);
+      // A browser that never ticked the box still gets the code step.
+      const stranger = await signInAgain(user);
+      await t.factories.forgetCode(user);
+      expect((await stranger.post('/api/mfa/trusted-skip').expect(200)).body).toEqual({ skipped: false });
+    });
+
     it('lets the person take a trusted browser off their list, and not someone else\'s', async () => {
       await setDays(30);
       const user = await t.factories.user();
@@ -142,6 +167,8 @@ describe('Sessions, trusted devices and the security settings (FR-73)', () => {
       expect((await admin.get('/api/security-settings').expect(200)).body).toMatchObject({ trustedDeviceDays: 14 });
       await admin.put('/api/security-settings').send({ trustedDeviceDays: 1000, requestsPerMinute: 900 }).expect(400);
       await admin.put('/api/security-settings').send({ trustedDeviceDays: 14, requestsPerMinute: 5 }).expect(400);
+      // A page load sends dozens of requests: a limit that low would stop the whole platform for one person.
+      await admin.put('/api/security-settings').send({ trustedDeviceDays: 14, requestsPerMinute: 30 }).expect(400);
       await admin.put('/api/security-settings').send({ trustedDeviceDays: 14, requestsPerMinute: 900, extra: 1 }).expect(400);
       const log = (await admin.get('/api/audit-logs').expect(200)).body.items as { action: string }[];
       expect(log.map((l) => l.action)).toContain('security.settings_updated');
