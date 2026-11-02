@@ -107,7 +107,7 @@ describe('Tickets: the whole cycle (FR-36 … FR-41)', () => {
     expect((await alice.agent.get('/api/tickets?tab=mine').expect(403)).body.code).toBe('PAGE_HIDDEN');
     await platform.put(`/api/page-visibility/roles/${aliceRole.id}`).send({ hiddenPages: [] }).expect(200);
     await alice.agent.get('/api/tickets?tab=mine').expect(200);
-    const orgAdmin = await t.factories.signIn(await t.factories.user({ grants: ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const })) }));
+    const orgAdmin = await t.factories.signInAdminMode(await t.factories.user({ grants: [ADMIN_MODE_GRANT, ...ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const }))] }));
     const parent = ((await t.db.query<{ parent_id: string }[]>('SELECT parent_id FROM org_nodes WHERE id = $1', [org.department]))[0] as { parent_id: string }).parent_id;
     expect((await orgAdmin.post(`/api/org/nodes/${org.department}/move`).send({ parentId: parent }).expect(422)).body.code).toBe('ORG_NODE_HAS_TICKETS');
   });

@@ -8,6 +8,9 @@ export function usePermissions() {
   return { can: (key: string) => keys.has(key), ready: !!me.data };
 }
 
-export function Can({ permission, children, fallback = null }: { permission: string; children: ReactNode; fallback?: ReactNode }) {
-  return <>{usePermissions().can(permission) ? children : fallback}</>;
+/** `adminMode`: an administration action of an ordinary page (editing the structure): shown only while platform admin mode is on, like the admin pages. */
+export function Can({ permission, adminMode = false, children, fallback = null }: { permission: string; adminMode?: boolean; children: ReactNode; fallback?: ReactNode }) {
+  const me = useMe();
+  const allowed = usePermissions().can(permission) && (!adminMode || me.data?.adminMode.active === true);
+  return <>{allowed ? children : fallback}</>;
 }

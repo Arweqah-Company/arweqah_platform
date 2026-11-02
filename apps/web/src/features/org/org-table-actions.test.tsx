@@ -10,7 +10,7 @@ import { OrgPage } from './org-page';
 const open = (keys: string[]) => {
   window.localStorage.setItem('view:org', 'table');
   server.use(
-    http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'all' as const }))))),
+    http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'all' as const })), { adminMode: true }))),
     http.get('*/api/lookups/companies', () => HttpResponse.json([{ id: 'c1', code: 'ARW', nameAr: 'أروقة الريادة', nameEn: 'Arweqah Alreyadah' }])),
     http.get('*/api/org/companies/c1/tree', () => HttpResponse.json(tree)),
     http.get('*/api/employees/managers', () => HttpResponse.json([])),
@@ -54,7 +54,7 @@ describe('Organization table: every action on a unit is on its row, as icons (FR
 
 const openIcicle = async () => {
   server.use(
-    http.get('*/api/me', () => HttpResponse.json(me(ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const }))))),
+    http.get('*/api/me', () => HttpResponse.json(me(ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const })), { adminMode: true }))),
     http.get('*/api/lookups/companies', () => HttpResponse.json([{ id: 'c1', code: 'ARW', nameAr: 'أروقة الريادة', nameEn: 'Arweqah Alreyadah' }])),
     http.get('*/api/org/companies/c1/tree', () => HttpResponse.json(tree)),
   );

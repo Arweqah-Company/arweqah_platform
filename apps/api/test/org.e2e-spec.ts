@@ -56,7 +56,7 @@ describe('Org structure built by forms (FR-24)', () => {
 
   async function admin(): Promise<{ agent: TestAgent; user: TestUser }> {
     const user = await t.factories.user({ grants: orgAdminGrants });
-    return { agent: await t.factories.signIn(user), user };
+    return { agent: await t.factories.signInAdminMode(user), user };
   }
 
   const levelsOf = async (agent: TestAgent, companyId: string): Promise<Level[]> => (await agent.get(`/api/org/companies/${companyId}/tree`).expect(200)).body.levels;
@@ -159,14 +159,32 @@ describe('Org structure built by forms (FR-24)', () => {
     await agent.delete(`/api/org/nodes/${org.unitC.id}`).expect(204);
   });
 
+  it('FR-24: reading the structure is open to who may view it, but every change needs platform admin mode (403 ADMIN_MODE_REQUIRED)', async () => {
+    const org = await t.factories.org();
+    const user = await t.factories.user({ grants: orgAdminGrants });
+    const outside = await t.factories.signIn(user);
+    await outside.get(`/api/org/companies/${org.companyId}/tree`).expect(200);
+    const levels = await levelsOf(outside, org.companyId);
+    const calls = [
+      () => outside.post('/api/org/levels/preview').send({ companyId: org.companyId, levels }),
+      () => outside.post('/api/org/levels').send({ companyId: org.companyId, levels }),
+      () => outside.post('/api/org/nodes').send({ startDate: '2024-01-01', levelId: levels[0]?.id, parentId: null, nameAr: 'قطاع', nameEn: 'S' }),
+      () => outside.put(`/api/org/nodes/${org.sectionAB}`).send({ startDate: '2024-01-01', nameAr: 'ق', nameEn: 'S', isActive: true }),
+      () => outside.post(`/api/org/nodes/${org.unitA.id}/move`).send({ parentId: org.sectionC }),
+      () => outside.delete(`/api/org/nodes/${org.unitC.id}`),
+      () => outside.post(`/api/org/nodes/${org.unitC.id}/job-titles`).send({ jobTitles: [{ nameAr: 'م', nameEn: 'T' }] }),
+    ];
+    for (const call of calls) expect((await call().expect(403)).body.code).toBe('ADMIN_MODE_REQUIRED');
+  });
+
   it('hides another company\'s structure from a user whose org permission reaches only their own company (404)', async () => {
     const org = await t.factories.org();
-    const user = await t.factories.user({ unit: org.unitA, grants: ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'company' as const })) });
-    const agent = await t.factories.signIn(user);
+    const user = await t.factories.user({ unit: org.unitA, grants: [ADMIN_MODE_GRANT, ...ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'company' as const }))] });
+    const agent = await t.factories.signInAdminMode(user);
     await agent.get(`/api/org/companies/${org.companyId}/tree`).expect(200);
     await agent.get(`/api/org/companies/${org.otherCompanyId}/tree`).expect(404);
     await agent.post(`/api/org/nodes/${org.unitOther.id}/move`).send({ parentId: null }).expect(404);
-    const otherLevels = await levelsOf(await t.factories.signIn(await t.factories.user({ grants: orgAdminGrants })), org.otherCompanyId);
+    const otherLevels = await levelsOf(await t.factories.signInAdminMode(await t.factories.user({ grants: orgAdminGrants })), org.otherCompanyId);
     await agent.post('/api/org/nodes').send({ startDate: '2024-01-01', levelId: otherLevels[0]?.id, parentId: null, nameAr: 'قطاع', nameEn: 'Xx' }).expect(404);
   });
 
