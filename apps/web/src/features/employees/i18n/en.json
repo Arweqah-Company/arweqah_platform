@@ -26,6 +26,7 @@
   "saveAndInvite": "Save and send invitation",
   "saved": "Changes saved.",
   "sections": {
+    "roles": "Roles",
     "work": "Work",
     "contact": "Contact",
     "personal": "Personal",
