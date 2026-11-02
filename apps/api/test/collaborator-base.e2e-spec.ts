@@ -8,13 +8,10 @@ describe('Collaborator base (FR-79)', () => {
   const t = useTestApp();
   const ids = async (sql: string, args: unknown[] = []) => ((await t.db.query(sql, args)) as { id: string }[]).map((r) => r.id);
 
-  /** A relation with limited access (the seeded collaborator), the Employee role and the collaborator base: each made when the test database has none. */
+  /** The seeded collaborator and employee relations, and the Employee role and the collaborator base (made when the test database has none). */
   async function setup() {
-    let [relation] = await ids(`SELECT id FROM relation_types WHERE limited_access LIMIT 1`);
-    if (!relation) {
-      [relation] = await ids(`INSERT INTO relation_types (code, sort_order, is_active, limited_access) VALUES ('collab-test', 90, true, true) RETURNING id`);
-    }
-    const [employeeRelation] = await ids(`INSERT INTO relation_types (code, sort_order, is_active, limited_access) VALUES ('emp-' || substr(md5(random()::text), 1, 6), 91, true, false) RETURNING id`);
+    const [relation] = await ids(`SELECT id FROM relation_types WHERE code = 'collaborator'`);
+    const [employeeRelation] = await ids(`SELECT id FROM relation_types WHERE code = 'employee'`);
     const role = async (rule: 'everyone' | 'limited_access') => {
       const [found] = await ids(`SELECT id FROM roles WHERE auto_rule = $1`, [rule]);
       if (found) return found;

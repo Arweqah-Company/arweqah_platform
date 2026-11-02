@@ -5,11 +5,20 @@ import { returnedRows } from '../../../common/infrastructure/query-result';
 import { AccessExceptionRepository, type AccessExceptionRow } from '../domain/access-exception.repository';
 
 /** Where each kind of exception lives: its table, the column that names the target, and what a row of the list is made of. */
-const TABLES: Record<ExceptionKind, { table: string; target: string }> = {
+const SOURCES: Record<ExceptionKind, { table: string; target: string }> = {
   role: { table: 'user_roles', target: 'role_id' },
   permission: { table: 'user_permissions', target: 'permission_key' },
   'role-group': { table: 'user_role_groups', target: 'group_id' },
 };
+
+/** The statements of each kind, written out once from the constants above (nothing from a request is ever part of them). */
+const TABLES = Object.fromEntries(
+  (Object.entries(SOURCES) as [ExceptionKind, { table: string; target: string }][]).map(([kind, { table, target }]) => [kind, {
+    remove: `DELETE FROM ${table} WHERE user_id = $1 AND ${target}::text = $2 RETURNING user_id`,
+    setExpiry: `UPDATE ${table} SET expires_at = $3 WHERE user_id = $1 AND ${target}::text = $2 RETURNING user_id`,
+    removeEnded: `DELETE FROM ${table} WHERE expires_at < $1 RETURNING user_id AS "userId", ${target}::text AS "targetId"`,
+  }]),
+) as Record<ExceptionKind, { remove: string; setExpiry: string; removeEnded: string }>;
 
 const TODAY = `(now() AT TIME ZONE 'Asia/Riyadh')::date`;
 const COMMON = (alias: string) => `${alias}.user_id AS "userId", COALESCE(e.full_name, u.name) AS "userName", ${alias}.granted_by AS "grantedById", g.name AS "grantedByName",
@@ -37,19 +46,17 @@ export class TypeOrmAccessExceptionRepository extends AccessExceptionRepository 
   }
 
   async remove(ref: ExceptionRef): Promise<boolean> {
-    const { table, target } = TABLES[ref.kind];
-    return returnedRows(await this.ds.query(`DELETE FROM ${table} WHERE user_id = $1 AND ${target}::text = $2 RETURNING user_id`, [ref.userId, ref.targetId])).length > 0;
+    return returnedRows(await this.ds.query(TABLES[ref.kind].remove, [ref.userId, ref.targetId])).length > 0;
   }
 
   async setExpiry(ref: ExceptionRef, expiresAt: string | null): Promise<boolean> {
-    const { table, target } = TABLES[ref.kind];
-    return returnedRows(await this.ds.query(`UPDATE ${table} SET expires_at = $3 WHERE user_id = $1 AND ${target}::text = $2 RETURNING user_id`, [ref.userId, ref.targetId, expiresAt])).length > 0;
+    return returnedRows(await this.ds.query(TABLES[ref.kind].setExpiry, [ref.userId, ref.targetId, expiresAt])).length > 0;
   }
 
   async removeEnded(today: string): Promise<ExceptionRef[]> {
     const removed: ExceptionRef[] = [];
-    for (const [kind, { table, target }] of Object.entries(TABLES) as [ExceptionKind, { table: string; target: string }][]) {
-      const rows = returnedRows<{ userId: string; targetId: string }>(await this.ds.query(`DELETE FROM ${table} WHERE expires_at < $1 RETURNING user_id AS "userId", ${target}::text AS "targetId"`, [today]));
+    for (const [kind, sql] of Object.entries(TABLES) as [ExceptionKind, { removeEnded: string }][]) {
+      const rows = returnedRows<{ userId: string; targetId: string }>(await this.ds.query(sql.removeEnded, [today]));
       for (const row of rows) removed.push({ kind, userId: row.userId, targetId: row.targetId });
     }
     return removed;

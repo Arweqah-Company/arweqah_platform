@@ -24,7 +24,7 @@ export function applyFlagRules(input: EmployeeInput, lookups: RuleLookups): Empl
   const contract = contractFields(input, lookups);
   const termination = terminationFields(input, lookups);
   assertIdNumber(input, lookups);
-  if (lookups.relationLimited && !input.endDate) fail('endDate', 'A collaborator needs the end date of the contract', 'المتعاون يلزمه تاريخ نهاية التعاقد');
+  assertCollaboratorEnd(input, lookups);
   return {
     ...input,
     ...contract,
@@ -34,6 +34,10 @@ export function applyFlagRules(input: EmployeeInput, lookups: RuleLookups): Empl
     gosiSystemId: input.isGosiRegistered ? (input.gosiSystemId ?? null) : null,
     healthInsuranceCompanyId: input.hasMedicalInsurance ? (input.healthInsuranceCompanyId ?? null) : null,
   };
+}
+
+function assertCollaboratorEnd(input: EmployeeInput, lookups: RuleLookups): void {
+  if (lookups.relationLimited && !input.endDate) fail('endDate', 'A collaborator needs the end date of the contract', 'المتعاون يلزمه تاريخ نهاية التعاقد');
 }
 
 function contractFields(input: EmployeeInput, lookups: RuleLookups): Pick<EmployeeInput, 'contractTypeOther'> {

@@ -16,6 +16,8 @@ const TODAY = `(now() AT TIME ZONE 'Asia/Riyadh')::date`;
 /** The row has no end date, or its last day has not passed. */
 const holds = (alias: string): string => `(${alias}.expires_at IS NULL OR ${alias}.expires_at >= ${TODAY})`;
 
+const PERMISSIONS_OF_USER = `SELECT up.permission_key AS key, up.scope FROM user_permissions up WHERE up.user_id = $1 AND ${holds('up')} ORDER BY up.permission_key`;
+
 const GRANTS_OF_USER = `
   SELECT rp.permission_key AS key, rp.scope AS scope FROM role_permissions rp
   WHERE rp.role_id IN (
@@ -145,7 +147,7 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
   }
 
   async permissionsOf(userId: string): Promise<PermissionGrant[]> {
-    const rows: { key: string; scope: PermissionScope }[] = await this.userRoles.manager.query(`SELECT up.permission_key AS key, up.scope FROM user_permissions up WHERE up.user_id = $1 AND ${holds('up')} ORDER BY up.permission_key`, [userId]);
+    const rows: { key: string; scope: PermissionScope }[] = await this.userRoles.manager.query(PERMISSIONS_OF_USER, [userId]);
     return rows;
   }
 
