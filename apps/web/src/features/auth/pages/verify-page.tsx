@@ -48,18 +48,18 @@ function VerifyForm({ trusting }: { trusting: boolean }) {
   return (
     <form className="flex flex-col gap-4" onSubmit={(e) => void step.submit(e)} noValidate>
       {step.error && <Alert>{step.error}</Alert>}
+      {trusting && (
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" className="size-4 accent-petrol-800" checked={step.remember} onChange={(e) => step.setRemember(e.target.checked)} />
+          {t('verify.remember')}
+        </label>
+      )}
       {useBackup ? (
         <FormField label={t('verify.backupLabel')}>
           {(p) => <Input {...p} dir="ltr" autoComplete="off" placeholder="XXXXX-XXXXX" value={step.code} onChange={(e) => step.setCode(e.target.value)} />}
         </FormField>
       ) : (
         <CodeInput label={t('code')} value={step.code} onChange={step.setCode} onComplete={(full) => void step.submit(undefined, full)} invalid={!!step.error} disabled={step.busy} autoFocus />
-      )}
-      {trusting && (
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" className="size-4 accent-petrol-800" checked={step.remember} onChange={(e) => step.setRemember(e.target.checked)} />
-          {t('verify.remember')}
-        </label>
       )}
       <Button type="submit" disabled={step.busy || step.code.length < 6}>{t('verify.submit')}</Button>
       <div className="flex items-center justify-between text-sm">
