@@ -27,7 +27,7 @@ export function WorkSection({ options, currentManager, employeeId }: Props) {
   const titles = useJobTitleOptions(orgNodeId || undefined);
   const managers = useManagerSearch(search, employeeId);
 
-  const nodeOptions = useMemo(() => (nodes.data ?? []).map((n) => ({ value: n.id, label: i18n.language === 'en' ? n.pathEn : n.pathAr })), [nodes.data, i18n.language]);
+  const nodeOptions = useMemo(() => (nodes.data ?? []).map((n) => ({ value: n.id, label: i18n.language === 'en' ? n.nameEn : n.nameAr })), [nodes.data, i18n.language]);
   const titleOptions = (titles.data ?? []).map((x) => ({ value: x.id, label: i18n.language === 'en' ? x.nameEn : x.nameAr }));
   const managerOptions = useMemo(() => {
     const found = (managers.data ?? []).map((m) => ({ value: m.id, label: m.fullName, hint: m.employeeNumber }));

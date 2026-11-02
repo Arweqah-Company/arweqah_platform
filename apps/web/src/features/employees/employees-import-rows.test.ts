@@ -6,8 +6,8 @@ import { server } from '../../../test/msw';
 import { prepareEmployeeRows, type EmployeeImportContext } from './employees-import-rows';
 
 const reference: OrgReferenceDto[] = [
-  { companyId: '11111111-1111-4111-8111-111111111111', units: [{ id: '33333333-3333-4333-8333-333333333333', path: 'a', pathAr: 'قطاع › وحدة', pathEn: 'Sector › Unit', defaultManagerId: null, titles: [{ id: '55555555-5555-4555-8555-555555555555', name: 'مطور', nameAr: 'مطور', nameEn: 'Developer' }] }] },
-  { companyId: '22222222-2222-4222-8222-222222222222', units: [{ id: '44444444-4444-4444-8444-444444444444', path: 'b', pathAr: 'قطاع آخر › وحدة', pathEn: 'Other › Unit', defaultManagerId: null, titles: [{ id: '66666666-6666-4666-8666-666666666666', name: 'محاسب', nameAr: 'محاسب', nameEn: 'Accountant' }] }] },
+  { companyId: '11111111-1111-4111-8111-111111111111', units: [{ id: '33333333-3333-4333-8333-333333333333', path: 'a', pathAr: 'قطاع › وحدة', pathEn: 'Sector › Unit', nameAr: 'وحدة', nameEn: 'Unit', defaultManagerId: null, titles: [{ id: '55555555-5555-4555-8555-555555555555', name: 'مطور', nameAr: 'مطور', nameEn: 'Developer' }] }] },
+  { companyId: '22222222-2222-4222-8222-222222222222', units: [{ id: '44444444-4444-4444-8444-444444444444', path: 'b', pathAr: 'قطاع آخر › وحدة', pathEn: 'Other › Unit', nameAr: 'وحدة', nameEn: 'Unit', defaultManagerId: null, titles: [{ id: '66666666-6666-4666-8666-666666666666', name: 'محاسب', nameAr: 'محاسب', nameEn: 'Accountant' }] }] },
 ];
 const ctx: EmployeeImportContext = {
   lists: { companyId: [{ id: '11111111-1111-4111-8111-111111111111', labels: ['شركة أ', 'Company A'] }, { id: '22222222-2222-4222-8222-222222222222', labels: ['شركة ب', 'Company B'] }], gender: [{ id: '0', labels: ['ذكر', 'Male'] }, { id: '1', labels: ['أنثى', 'Female'] }], workMode: [] },
