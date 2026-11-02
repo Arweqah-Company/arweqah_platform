@@ -9,7 +9,7 @@ import { chooseOption } from '../../../test/select';
 const withPermissions = (keys: string[]) =>
   server.use(
     http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'all' as const }))))),
-    http.get('*/api/lookups/org-nodes', () => HttpResponse.json([{ id: 'node-1', path: 'قطاع › وحدة', pathAr: 'قطاع › وحدة', pathEn: 'Sector › Unit', defaultManagerId: 'boss-1' }])),
+    http.get('*/api/lookups/org-nodes', () => HttpResponse.json([{ id: 'node-1', path: 'قطاع › وحدة', pathAr: 'قطاع › وحدة', pathEn: 'Sector › Unit', nameAr: 'وحدة', nameEn: 'Unit', defaultManagerId: 'boss-1' }])),
     http.get('*/api/lookups/job-titles', () => HttpResponse.json([{ id: 'title-1', name: 'مطور', nameAr: 'مطور', nameEn: 'Developer' }])),
     http.get('*/api/employees/managers', () => HttpResponse.json([{ id: 'boss-1', employeeNumber: 'N1', fullName: 'خالد المدير' }])),
   );
@@ -74,7 +74,7 @@ describe('Employee form (FR-17, FR-18)', () => {
     fireEvent.click(await screen.findByText('أروقة الريادة'));
     await waitFor(() => expect(screen.getByRole('combobox', { name: 'الوحدة' })).toBeEnabled());
     fireEvent.click(screen.getByRole('combobox', { name: 'الوحدة' }));
-    fireEvent.click(await screen.findByText('قطاع › وحدة'));
+    fireEvent.click(await screen.findByText('وحدة'));
     expect(await screen.findByRole('option', { name: /مطور/ }, { timeout: 4000 }).catch(() => null)).toBeDefined();
     await waitFor(() => expect(within(screen.getByRole('combobox', { name: 'المدير المباشر' })).getByText('خالد المدير')).toBeInTheDocument());
   });
