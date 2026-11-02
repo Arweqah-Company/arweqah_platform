@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post, Put, Query, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   CorePermission,
@@ -11,9 +11,10 @@ import {
   type Paginated,
 } from '@arweqah-platform/shared';
 import { CurrentUser } from '../../../../common/presentation/current-user.decorator';
-import type { SessionUser } from '../../../../common/presentation/request-context';
+import type { AuthenticatedRequest, SessionUser } from '../../../../common/presentation/request-context';
 import { IdParam } from '../../../../common/presentation/zod-query';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
+import { AdminModeService } from '../../../../core/access/application/admin-mode.service';
 import { Access, HiddenWithPage, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
 import { EmployeesService } from '../../application/services/employees.service';
 import { AssignGroupsDto, AssignRolesDto, CreateEmployeeDto, EmployeesQueryDto, ManagerSearchDto, TerminateEmployeeDto, UpdateEmployeeDto } from '../dtos/employee.dtos';
@@ -25,7 +26,10 @@ const P = CorePermission;
 @Controller('employees')
 @HiddenWithPage('employees')
 export class EmployeesController {
-  constructor(private readonly employees: EmployeesService) {}
+  constructor(
+    private readonly employees: EmployeesService,
+    private readonly adminMode: AdminModeService,
+  ) {}
 
   @Get()
   @RequirePermission(P.EmployeesView)
@@ -87,14 +91,14 @@ export class EmployeesController {
 
   @Put(':id/roles')
   @RequirePermission(P.EmployeesAssignRoles)
-  assignRoles(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: AssignRolesDto, @CurrentUser() user: SessionUser): Promise<EmployeeDto> {
-    return this.employees.assignRoles(ctx, id, body, user.id);
+  async assignRoles(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: AssignRolesDto, @Req() req: AuthenticatedRequest): Promise<EmployeeDto> {
+    return this.employees.assignRoles(ctx, id, body, { id: ctx.userId, adminMode: await this.adminMode.isActive(ctx, req.session?.session.id ?? '') });
   }
 
   @Put(':id/groups')
   @RequirePermission(P.EmployeesAssignGroups)
-  assignGroups(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: AssignGroupsDto, @CurrentUser() user: SessionUser): Promise<EmployeeDto> {
-    return this.employees.assignGroups(ctx, id, body.groupIds, user.id);
+  async assignGroups(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: AssignGroupsDto, @Req() req: AuthenticatedRequest): Promise<EmployeeDto> {
+    return this.employees.assignGroups(ctx, id, body.groupIds, { id: ctx.userId, adminMode: await this.adminMode.isActive(ctx, req.session?.session.id ?? '') });
   }
 
   @Post(':id/resend-invite')
