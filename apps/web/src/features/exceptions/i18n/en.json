@@ -1,0 +1,44 @@
+{
+  "title": "Exceptions",
+  "description": "Everything given to a person outside what their job title brings: manual roles, personal permissions and groups of roles, each with its last day. Change the day or take back what is no longer needed.",
+  "person": "Person",
+  "kind": {
+    "label": "Kind",
+    "role": "Role",
+    "permission": "Personal permission",
+    "role-group": "Group of roles"
+  },
+  "target": "Given",
+  "scope": "Scope",
+  "grantedBy": "Given by",
+  "grantedAt": "Given on",
+  "expires": "Ends on",
+  "noEnd": "No end date",
+  "endsOn": "{{date}} (in {{days}} days)",
+  "expiring": {
+    "label": "Ending",
+    "within": "Ends within {{days}} days",
+    "none": "No end date"
+  },
+  "searchLabel": "Search the exceptions",
+  "searchPlaceholder": "Search by person, what was given or who gave it",
+  "changeEnd": "Change the end date",
+  "revoke": "Take it back",
+  "revoked": "The exception was taken back.",
+  "confirmRevoke": "Take “{{target}}” back from {{person}}? They lose what it gives at once.",
+  "expiryTitle": "End date of the exception",
+  "expiryHint": "The last day it holds. After it, it is taken back by itself.",
+  "expirySaved": "The end date was saved.",
+  "removeEnd": "Remove the end date",
+  "tour": {
+    "exceptions": {
+      "title": "Exceptions",
+      "body": "Here you see what was given to people outside what their job titles bring, and when each ends, so no permission is forgotten.",
+      "can": {
+        "update": "Change the last day an exception holds",
+        "revoke": "Take an exception back at once",
+        "export": "Export the list of exceptions"
+      }
+    }
+  }
+}

@@ -18,7 +18,7 @@ test.describe('Page visibility (FR-42)', () => {
     await adminModeOnViaApi(page);
     await page.goto('/page-visibility');
     await expect(page.getByRole('heading', { level: 1, name: 'ظهور الصفحات' })).toBeVisible();
-    await choose(page.getByLabel('الدور', { exact: true }), 'موظف');
+    await choose(page.getByLabel('الدور', { exact: true }), /^موظف$/);
     const companies = page.getByRole('checkbox', { name: 'الشركات' });
     await expect(companies).toBeChecked();
     await companies.uncheck();
@@ -27,7 +27,7 @@ test.describe('Page visibility (FR-42)', () => {
     await settled(page);
     await new Screen(page).expectNoSeriousA11yIssues();
     await page.reload();
-    await choose(page.getByLabel('الدور', { exact: true }), 'موظف');
+    await choose(page.getByLabel('الدور', { exact: true }), /^موظف$/);
     await expect(page.getByRole('checkbox', { name: 'الشركات' })).not.toBeChecked();
     await page.getByRole('checkbox', { name: 'الشركات' }).check();
     await page.getByRole('button', { name: 'حفظ', exact: true }).click();

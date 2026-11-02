@@ -58,6 +58,9 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
 
   'role.created': a('access', 'أضاف دورًا', 'Added a role'),
   'role.updated': a('access', 'عدّل دورًا', 'Edited a role'),
+  'access.exception_revoked': a('access', 'سحب استثناءً', 'Took an exception back'),
+  'access.exception_expiry_changed': a('access', 'غيّر تاريخ انتهاء استثناء', 'Changed the end date of an exception'),
+  'access.exception_expired': a('access', 'انتهى استثناء وسُحب تلقائيًا', 'An exception ended and was taken back'),
   'role.auto_synced': a('access', 'حدّث أعضاء الأدوار التلقائية', 'Refreshed the members of the automatic roles'),
   'role.deleted': a('access', 'حذف دورًا', 'Deleted a role'),
   'role.pages_updated': a('access', 'غيّر الصفحات المخفية عن دور', 'Changed the pages hidden from a role'),

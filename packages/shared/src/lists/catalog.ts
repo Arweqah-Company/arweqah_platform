@@ -15,6 +15,7 @@ export const LIST_CATALOG = {
   org: { columns: ['name', 'level', 'manager', 'employees', 'titles', 'status'], filters: ['level', 'status', 'employees', 'manager'] },
   companies: { columns: ['code', 'name', 'employees', 'status'], filters: ['status', 'employees'] },
   roles: { columns: ['name', 'origin', 'permissions', 'users', 'assignment', 'kind', 'type'], filters: ['type', 'assignment', 'kind', 'company', 'holders'] },
+  exceptions: { columns: ['person', 'kind', 'target', 'scope', 'grantedBy', 'grantedAt', 'expires'], filters: ['kind', 'person', 'grantedBy', 'expiring'] },
   audit: { columns: ['when', 'actor', 'category', 'action'], filters: ['category', 'action', 'actor', 'from', 'to'] },
   'email-log': { columns: ['when', 'to', 'subject', 'purpose', 'status', 'details'], filters: ['status', 'purpose', 'to', 'from', 'until'] },
   'translation-providers': { columns: ['provider', 'status', 'tested', 'active'], filters: ['status', 'active'] },

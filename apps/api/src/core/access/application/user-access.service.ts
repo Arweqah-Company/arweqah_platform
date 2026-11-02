@@ -37,27 +37,31 @@ export class UserAccessService {
     return this.access.permissionsOf(userId);
   }
 
-  async replaceGroups(userId: string, groupIds: string[], tx?: TransactionContext): Promise<void> {
+  roleExpiriesOf(userIds: string[]): Promise<Map<string, Map<string, string>>> {
+    return this.access.roleExpiriesOf(userIds);
+  }
+
+  async replaceGroups(userId: string, groupIds: string[], grantedBy: string | null = null, tx?: TransactionContext): Promise<void> {
     const unique = [...new Set(groupIds)];
     const known = await this.groups.all();
     const missing = unique.find((id) => !known.some((g) => g.id === id));
     if (missing) throw new NotFoundError('Role group', missing);
-    await this.access.replaceGroups(userId, unique, tx);
+    await this.access.replaceGroups(userId, unique, grantedBy, tx);
     this.events.emit(ACCESS_CHANGED, { userId });
   }
 
-  async replacePermissions(userId: string, grants: PermissionGrant[], tx?: TransactionContext): Promise<void> {
+  async replacePermissions(userId: string, grants: PermissionGrant[], grantedBy: string | null = null, tx?: TransactionContext): Promise<void> {
     this.catalog.assertValid(grants);
-    await this.access.replacePermissions(userId, grants, tx);
+    await this.access.replacePermissions(userId, grants, grantedBy, tx);
     this.events.emit(ACCESS_CHANGED, { userId });
   }
 
-  async replaceRoles(userId: string, roleIds: string[], tx?: TransactionContext): Promise<void> {
+  async replaceRoles(userId: string, roleIds: string[], options: { expiries?: Record<string, string | null>; grantedBy?: string | null } = {}, tx?: TransactionContext): Promise<void> {
     const unique = [...new Set(roleIds)];
     const found = await this.roles.findByIds(unique);
     const missing = unique.find((id) => !found.some((r) => r.id === id));
     if (missing) throw new NotFoundError('Role', missing);
-    await this.access.replaceRoles(userId, unique, tx);
+    await this.access.replaceRoles(userId, unique, options, tx);
     this.events.emit(ACCESS_CHANGED, { userId });
   }
 

@@ -88,7 +88,7 @@ export class EmployeesController {
   @Put(':id/roles')
   @RequirePermission(P.EmployeesAssignRoles)
   assignRoles(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: AssignRolesDto, @CurrentUser() user: SessionUser): Promise<EmployeeDto> {
-    return this.employees.assignRoles(ctx, id, body.roleIds, user.id);
+    return this.employees.assignRoles(ctx, id, body, user.id);
   }
 
   @Put(':id/groups')

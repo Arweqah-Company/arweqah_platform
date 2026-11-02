@@ -16,5 +16,5 @@ export function RolesDialog({ employee, open, onOpenChange }: Props) {
   const roles = useRoles();
   const assign = useAssignRoles(employee.id);
   const options = (roles.data ?? []).filter((r) => !r.autoRule).map((r) => ({ id: r.id, label: i18n.language === 'en' ? r.nameEn : r.nameAr }));
-  return <PickDialog title={t('rolesDialog.title')} description={t('rolesDialog.description')} options={options} initial={employee.roles.map((r) => r.id)} save={(ids) => assign.mutateAsync(ids)} savedText={t('rolesSaved')} open={open} onOpenChange={onOpenChange} />;
+  return <PickDialog title={t('rolesDialog.title')} description={t('rolesDialog.description')} options={options} initial={employee.roles.map((r) => r.id)} save={(ids) => assign.mutateAsync({ roleIds: ids })} savedText={t('rolesSaved')} open={open} onOpenChange={onOpenChange} />;
 }
