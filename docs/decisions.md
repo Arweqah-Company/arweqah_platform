@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-02 — Database design reference
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 147 | `docs/database-design.md` is the full table reference (mermaid ER per area + a description row per table), generated from the live schema; every new table is added to it in the same change as its migration (CLAUDE.md standing rule 11). README §6 stays the short overview | One place answers «what tables exist and what each one is for»; the README diagram omits lookups, translations and messaging tables | The file grows too big for one page (split per area) |
+
 ## 2026-11-02 — Bot protection (Turnstile)
 
 | # | Decision | Why | Revisit when |
@@ -11,6 +17,7 @@ Short records of choices that are not obvious from the code. Newest first.
 | 141 | The check guards `identify` (the step that can e-mail an enrollment link); the Microsoft sign-in and the code step stay free of it. The nginx CSP allows `challenges.cloudflare.com` for scripts and frames permanently (nginx cannot know which provider is active), but the page loads the script only when a provider is active | The plan wanted the CSP only while active; a static header cannot do that, the web loads the script on demand | The CSP moves to a server that can render it per request |
 | 143 | `requestsPerMinute` has a minimum of 120 (default 600); the «remember this device» choice sits above the code boxes | Found while testing the remember-device journey: a limit of 30 made one page load hit 429 and broke every call, including the trusted-device skip; the code submits by itself at the sixth digit, so a checkbox below could not be ticked in time | — |
 | 144 | The exceptions list is a tab of the roles page (`/roles?tab=exceptions`), not a page with its own menu item; `/exceptions` redirects; its keys, page key `exceptions` and tour step stay | Owner: no separate page; the vision file asks for a permanent list, not a page of its own | — |
+| 146 | Changing the organization structure (levels, units, moves, deletes, job titles) needs platform admin mode, like the admin pages: the routes carry `@RequireAdminMode()` (reading the tree does not) and the web shows the buttons only while the mode is on (`<Can adminMode>`). The tour steps for the levels and add-unit buttons moved to the administration tour | Owner: a person with the keys but outside admin mode still saw the add buttons; the vision file says the structure is edited from a protected area asking for extra verification | — |
 | 145 | The head role is per **unit** (`roles.org_node_id`), not per level of each company; the migration made one per live unit with the permissions of its level's old role and gave it to the unit's manager | Owner: «قائد قطاع التشغيل وتقديم الخدمات» is one role, not split by company (Arweqah, Tadween…); the old per-level roles repeated «قائد قطاع» once per company | The structure is made company-independent (the vision file: units are not tied to companies) |
 | 146 | The Employee role and the collaborator base hold none of `org.unit_*`, `org.levels_manage`, `org.titles_manage` (adding, editing a unit and adding a job title are for HR and the platform administrator), pinned by a unit test | Owner's answer: keep the structure keys for administration only | — |
 | 142 | A failed check answers 422 (a business rule), not 400 | One error family for every business refusal in the API | — |
