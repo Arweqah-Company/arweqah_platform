@@ -11,6 +11,7 @@ const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnim
 
 test.describe('Exceptions tab of the roles page (FR-70)', () => {
   test('shows the list of what was given outside the job title, with its search and filters, and is accessible', async ({ page }) => {
+    test.setTimeout(90_000); // admin mode needs a fresh code, which may mean waiting for the next 30-second step
     await adminModeOnViaApi(page);
     await page.goto('/exceptions');
     await expect(page).toHaveURL(/\/roles\?tab=exceptions/);
