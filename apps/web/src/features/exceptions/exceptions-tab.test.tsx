@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { me, server } from '../../../test/msw';
 import { renderPage } from '../../../test/render';
 import { daysLeft } from './exceptions-list';
-import { ExceptionsPage } from './exceptions-page';
+import { ExceptionsTab } from './exceptions-tab';
 
 const day = (offset: number): string => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
 const row = (over: Partial<AccessExceptionDto>): AccessExceptionDto => ({
@@ -23,10 +23,10 @@ const open = (keys = ['exceptions.view', 'exceptions.update', 'exceptions.revoke
     http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'all' as const }))))),
     http.get('*/api/access/exceptions', () => HttpResponse.json(ROWS)),
   );
-  renderPage(<ExceptionsPage />);
+  renderPage(<ExceptionsTab />);
 };
 
-describe('Exceptions page (FR-70)', () => {
+describe('Exceptions tab (FR-70)', () => {
   it('lists what was given outside the job title, with the kind, the scope in words and the end date', async () => {
     open();
     expect(await screen.findByText('علي حسن')).toBeInTheDocument();

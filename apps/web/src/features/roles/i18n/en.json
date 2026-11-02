@@ -74,5 +74,11 @@
   "origin": {
     "label": "Unit and company",
     "company": "Company"
-  }
+  },
+  "tabs": {
+    "roles": "Roles",
+    "exceptions": "Exceptions"
+  },
+  "tabsLabel": "Roles and exceptions",
+  "noTabs": "You have no permission on any tab here."
 }

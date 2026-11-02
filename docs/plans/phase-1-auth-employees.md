@@ -1220,3 +1220,8 @@ shared/data-exchange/   export-file · template · read-sheet · csv · mapping 
 - **أين:** `core/integrations` (`captcha.service`، `captcha-probe`، `turnstile.verifier`، `captcha.controller`، صلاحيات `integrations.captcha_*`)، `core/auth/presentation/mfa.controller`، `packages/shared/src/integrations`، `shared/ui/turnstile.tsx`، `features/integrations` (التبويب ونافذة التجربة)، `features/auth/pages/login-page.tsx`، `docker/nginx/web.conf`.
 - **التحقق:** `captcha.e2e-spec` (6)، `login-bot-check.test` (3)، `test-dialog.test` (+2)، Playwright `captcha.spec` و`tour.spec` و`exceptions.spec` ناجحة.
 - **ملاحظة:** خطوة تسجيل الدخول بالرمز (`/auth/totp/sign-in`) لا تحمل الفحص؛ تحميها خطوة الرمز نفسها وحدّ الطلبات.
+
+### 2026-11-02 — الاستثناءات تبويبًا في صفحة الأدوار (FR-70)
+- **ما تم:** صفحة الاستثناءات صارت تبويبًا «الاستثناءات» بجانب «الأدوار» في `/roles` (`?tab=exceptions`)، يظهر لمن يملك `exceptions.view` ولم تُخفَ الصفحة عنه، و`/exceptions` تعيد التوجيه إليه. أُزيل عنصر القائمة. بقيت المفاتيح ومفتاح الظهور وخطوة الجولة (تفتح التبويب).
+- **أين:** `features/roles/roles-page.tsx`، `features/exceptions/{exceptions-tab,index}`، اختبار `exceptions-tab.test`، وPlaywright `exceptions.spec`.
+- **التحقق:** اختبارات الويب 341 ناجحة، وPlaywright (أدناه).
