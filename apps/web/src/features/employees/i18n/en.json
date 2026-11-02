@@ -1,4 +1,5 @@
 {
+  "pick": { "search": "Search by name", "empty": "No matches." },
   "title": "Employees",
   "description": "Employee records and their sign-in accounts, within your permissions.",
   "add": "Add employee",
