@@ -280,6 +280,8 @@ export interface EmployeeListItemDto {
   needsPlacement: boolean;
   idExpiresSoon: boolean;
   contractEndsSoon: boolean;
+  /** The signed-in person's own record (the only one a plain employee may open for editing). */
+  isOwn: boolean;
 }
 
 export type EmployeesPage = Paginated<EmployeeListItemDto>;
@@ -314,3 +316,6 @@ export interface CreateEmployeeResultDto {
   employee: EmployeeDto;
   invitation: InviteResultDto;
 }
+
+/** The only fields of their own record a person may change when "edit employees" reaches them at scope `own` only (a plain employee); everything else is for HR and administrators. */
+export const SELF_EDITABLE_EMPLOYEE_FIELDS = ['workPhone', 'personalPhone', 'personalEmail', 'fullNameEn'] as const;

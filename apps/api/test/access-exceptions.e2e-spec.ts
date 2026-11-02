@@ -9,7 +9,8 @@ const ALL = 'all' as const;
 const keys = (list: string[]) => list.map((key) => ({ key, scope: ALL }));
 const VIEWER = [ADMIN_MODE_GRANT, ...keys([CorePermission.ExceptionsView, CorePermission.ExceptionsUpdate, CorePermission.ExceptionsRevoke, CorePermission.AuditView])];
 const HR = keys([CorePermission.EmployeesView, CorePermission.EmployeesAssignRoles, CorePermission.RolesView, CorePermission.AuditView]);
-const day = (offset: number): string => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
+/** A day counted in Riyadh (UTC+3), the clock the platform uses for end dates. */
+const day = (offset: number): string => new Date(Date.now() + 3 * 3_600_000 + offset * 86_400_000).toISOString().slice(0, 10);
 
 interface Row {
   kind: string;

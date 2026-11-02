@@ -5,6 +5,7 @@ import {
   EMPLOYEE_TERMINATED_TOPIC,
   todayIso,
   type AssignEmployeeRolesInput,
+  SELF_EDITABLE_EMPLOYEE_FIELDS,
   type CreateEmployeeInput,
   type CreateEmployeeResultDto,
   type EmployeeDto,
@@ -35,7 +36,7 @@ import { InvitationService } from '../../../../core/auth/application/invitation.
 import { LookupsService } from '../../../lookups/application/services/lookups.service';
 import type { Employee } from '../../domain/entities/employee.entity';
 import { EmployeeRepository } from '../../domain/contracts/employee.repository';
-import { FieldRuleError, SelfActionError } from '../../domain/errors/employee.errors';
+import { FieldNotEditableError, FieldRuleError, SelfActionError } from '../../domain/errors/employee.errors';
 import { EmployeeTransformer } from '../transformers/employee.transformer';
 import type { EmployeeInput } from '../../domain/rules/employee-flags.rules';
 import { EmployeeValidationService } from './employee-validation.service';
@@ -74,7 +75,7 @@ export class EmployeesService {
     if (!scope) throw new ForbiddenError();
     const { items, total } = await this.repo.list(query, scope);
     const states = await this.repo.activeStates(items.map((e) => e.userId));
-    return { items: await this.transformer.toListItems(items, states), total, page: query.page, pageSize: query.pageSize };
+    return { items: await this.transformer.toListItems(items, states, ctx.userId), total, page: query.page, pageSize: query.pageSize };
   }
 
   /** Dashboard counts for the employees the viewer may see. Documents and contracts count as "soon" within 30 days. */
@@ -126,6 +127,7 @@ export class EmployeesService {
     this.assertInScope(ctx, P.EmployeesUpdate, { companyId: input.companyId, orgNodeId: input.orgNodeId, ownerId: existing.userId });
     const fields: EmployeeInput = { ...input, workEmail: existing.workEmail };
     const { values } = await this.validation.prepare(ctx, fields, existing);
+    this.assertSelfServiceFields(ctx, existing, values);
     await this.tx.run((tx) => this.repo.update(id, values, tx));
     await this.restoreAccessIfEndMoved(ctx, existing, values.endDate ?? null, actorId);
     await this.swapBaseRoleIfRelationChanged(existing, values.relationTypeId ?? null);
@@ -133,6 +135,14 @@ export class EmployeesService {
     await this.events.emitAsync(EMPLOYEES_CHANGED);
     this.audit(actorId, EMPLOYEE_AUDIT.updated, id, { fields: changedFields(existing, values) });
     return this.dto(ctx, (await this.repo.findById(id)) as Employee);
+  }
+
+  /** A person whose "edit employees" reaches only their own record changes just the self-service fields of it. */
+  private assertSelfServiceFields(ctx: AccessContext, existing: Employee, values: Record<string, unknown>): void {
+    if (existing.userId !== ctx.userId || ctx.scopeOf(P.EmployeesUpdate) !== 'own') return;
+    const allowed: readonly string[] = SELF_EDITABLE_EMPLOYEE_FIELDS;
+    const blocked = changedFields(existing, values).filter((field) => !allowed.includes(field));
+    if (blocked.length) throw new FieldNotEditableError(blocked);
   }
 
   private async isLimited(relationTypeId: string | null | undefined): Promise<boolean> {

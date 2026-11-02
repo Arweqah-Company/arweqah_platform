@@ -90,6 +90,7 @@
     "remote": "Remote"
   },
   "hints": {
+    "hrOnly": "Changed by HR or the platform administrator.",
     "pickCompanyFirst": "Choose the company first.",
     "pickUnitFirst": "Choose the unit first.",
     "managerDefault": "The unit's manager is proposed for a new employee; you can change it or clear it. A direct manager is not required.",
