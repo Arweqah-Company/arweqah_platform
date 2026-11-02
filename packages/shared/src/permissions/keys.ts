@@ -183,6 +183,15 @@ export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own
  * What the head role of an organization level starts with (the manager of a unit sees and acts on their unit and the units below it).
  * Copied once when the role is made; an administrator edits it afterwards on the roles page. `org.view` is left out: it reaches a whole company, not a subtree.
  */
+/** What the «collaborator base» role starts with: the person's own account and notifications, nothing of the company's data (a job title role adds the rest). */
+export const COLLABORATOR_BASE_PERMISSIONS: { key: CorePermissionKey; scope: 'own' | 'all' }[] = [
+  { key: CorePermission.ProfileView, scope: 'all' },
+  { key: CorePermission.ProfileUpdate, scope: 'all' },
+  { key: CorePermission.SecurityView, scope: 'all' },
+  { key: CorePermission.NotificationsView, scope: 'all' },
+  { key: CorePermission.NotificationsMarkRead, scope: 'all' },
+];
+
 export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'subtree' }[] = [
   { key: CorePermission.EmployeesView, scope: 'subtree' },
   { key: CorePermission.TasksTeamView, scope: 'subtree' },

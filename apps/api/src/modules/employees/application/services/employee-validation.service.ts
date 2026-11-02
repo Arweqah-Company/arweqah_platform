@@ -51,15 +51,17 @@ export class EmployeeValidationService {
   }
 
   private async ruleLookups(input: EmployeeInput): Promise<RuleLookups> {
-    const [contractType, idType, terminationReasonIsOther] = await Promise.all([
+    const [contractType, idType, terminationReasonIsOther, relationLimited] = await Promise.all([
       input.contractTypeId ? this.lookups.contractTypeRule(input.contractTypeId) : null,
       input.idTypeId ? this.lookups.idTypeRules(input.idTypeId) : null,
       input.terminationReasonId ? this.lookups.terminationReasonIsOther(input.terminationReasonId) : null,
+      input.relationTypeId ? this.lookups.relationTypeLimited(input.relationTypeId) : null,
     ]);
     this.assertKnown(input.contractTypeId, contractType, 'contractTypeId');
     this.assertKnown(input.idTypeId, idType, 'idTypeId');
     this.assertKnown(input.terminationReasonId, terminationReasonIsOther, 'terminationReasonId');
-    return { contractType, idType, terminationReasonIsOther };
+    this.assertKnown(input.relationTypeId, relationLimited, 'relationTypeId');
+    return { contractType, idType, terminationReasonIsOther, relationLimited };
   }
 
   private assertKnown(id: string | null | undefined, found: unknown, path: string): void {

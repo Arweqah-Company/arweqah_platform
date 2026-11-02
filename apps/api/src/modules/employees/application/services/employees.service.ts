@@ -89,7 +89,7 @@ export class EmployeesService {
     const { roleIds: chosen, roleExpiries, ...fields } = input;
     this.assertInScope(ctx, P.EmployeesCreate, { companyId: input.companyId, orgNodeId: input.orgNodeId });
     await this.assertEmailDomainAllowed(input.workEmail);
-    const defaults = await this.access.defaultRoleIds(input.jobTitleId);
+    const defaults = await this.access.defaultRoleIds(input.jobTitleId, await this.isLimited(input.relationTypeId));
     const roleIds = chosen ?? defaults.ids;
     this.assertRoleExpiries(roleIds, roleExpiries);
     // The default roles come with the new person whoever adds them; naming roles is the permission to assign them.
@@ -122,10 +122,22 @@ export class EmployeesService {
     const { values } = await this.validation.prepare(ctx, fields, existing);
     await this.tx.run((tx) => this.repo.update(id, values, tx));
     await this.restoreAccessIfEndMoved(ctx, existing, values.endDate ?? null, actorId);
+    await this.swapBaseRoleIfRelationChanged(existing, values.relationTypeId ?? null);
     this.events.emit(ACCESS_CHANGED, { userId: existing.userId });
     await this.events.emitAsync(EMPLOYEES_CHANGED);
     this.audit(actorId, EMPLOYEE_AUDIT.updated, id, { fields: changedFields(existing, values) });
     return this.dto(ctx, (await this.repo.findById(id)) as Employee);
+  }
+
+  private async isLimited(relationTypeId: string | null | undefined): Promise<boolean> {
+    return relationTypeId ? (await this.lookups.relationTypeLimited(relationTypeId)) === true : false;
+  }
+
+  /** Becoming a collaborator (or an employee again) changes the base role: Employee ↔ collaborator base. */
+  private async swapBaseRoleIfRelationChanged(existing: Employee, relationTypeId: string | null): Promise<void> {
+    if (relationTypeId === existing.relationTypeId) return;
+    const [was, is] = await Promise.all([this.isLimited(existing.relationTypeId), this.isLimited(relationTypeId)]);
+    if (was !== is) await this.access.swapBaseRole(existing.userId, is);
   }
 
   /** Sign-in ended by the contract coming back when the end date is removed or moved to today or later, for who may switch an account on. */
@@ -171,7 +183,7 @@ export class EmployeesService {
     this.assertRoleExpiries(roleIds, roleExpiries);
     const employee = await this.mustFind(ctx, id, P.EmployeesAssignRoles);
     if (employee.userId === ctx.userId) throw new SelfActionError('You cannot change your own roles');
-    await this.assertCanAssignRoles(ctx, roleIds, { companyId: employee.companyId, orgNodeId: employee.orgNodeId, ownerId: employee.userId }, (await this.access.defaultRoleIds(employee.jobTitleId)).ids);
+    await this.assertCanAssignRoles(ctx, roleIds, { companyId: employee.companyId, orgNodeId: employee.orgNodeId, ownerId: employee.userId }, (await this.access.defaultRoleIds(employee.jobTitleId, await this.isLimited(employee.relationTypeId))).ids);
     await this.tx.run((tx) => this.access.replaceRoles(employee.userId, roleIds, { expiries: roleExpiries, grantedBy: actorId }, tx));
     await this.events.emitAsync(EMPLOYEES_CHANGED);
     this.audit(actorId, EMPLOYEE_AUDIT.rolesChanged, id, { roleIds, withEndDate: Object.keys(roleExpiries ?? {}).length });

@@ -67,6 +67,10 @@ export class LookupsService {
   terminationReasonIsOther(id: string): Promise<boolean | null> {
     return this.repo.terminationReasonIsOther(id);
   }
+
+  relationTypeLimited(id: string): Promise<boolean | null> {
+    return this.repo.relationTypeLimited(id);
+  }
 }
 
 export type { ManagerOptionDto };

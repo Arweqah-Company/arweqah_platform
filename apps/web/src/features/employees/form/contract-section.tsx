@@ -61,12 +61,14 @@ function TerminationFields({ options }: { options: EmployeeOptions }) {
 /** Fields appear only when the options chosen above ask for them. */
 export function ContractSection({ options }: { options: EmployeeOptions }) {
   const { t } = useTranslation('employees');
-  const contract = options.contractType(useFormContext<FormState>().watch('contractTypeId'));
+  const { watch } = useFormContext<FormState>();
+  const contract = options.contractType(watch('contractTypeId'));
+  const endRequired = contract?.requiresEndDate || options.relationLimited(watch('relationTypeId'));
   useClearWhenHidden(!!contract?.isOther, 'contractTypeOther');
   return (
     <SectionCard id="contract" title={t('sections.contract')}>
       <TextField name="startDate" label={t('fields.startDate')} type="date" required />
-      <TextField name="endDate" label={contract?.requiresEndDate ? `${t('fields.endDate')} *` : t('fields.endDate')} type="date" />
+      <TextField name="endDate" label={endRequired ? `${t('fields.endDate')} *` : t('fields.endDate')} type="date" />
       <SelectField name="contractTypeId" label={t('fields.contractTypeId')} options={options.contractTypes} />
       {contract?.isOther && <TextField name="contractTypeOther" label={t('fields.contractTypeOther')} required />}
       <ComboField name="contractCompanyId" label={t('fields.contractCompanyId')} options={options.companies} clearable />

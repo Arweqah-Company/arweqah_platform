@@ -1,5 +1,6 @@
 import type {
   ContractTypeLookupDto,
+  RelationTypeLookupDto,
   CountryLookupDto,
   IdTypeLookupDto,
   IdTypeRules,
@@ -16,7 +17,7 @@ export interface ContractTypeRule {
 
 /** Reads the seeded option tables with their translations. `lang` only decides `name`; both languages are always returned. */
 export abstract class LookupsRepository {
-  abstract relationTypes(lang: Language): Promise<LookupItemDto[]>;
+  abstract relationTypes(lang: Language): Promise<RelationTypeLookupDto[]>;
   abstract countries(lang: Language): Promise<CountryLookupDto[]>;
   abstract maritalStatuses(lang: Language): Promise<LookupItemDto[]>;
   abstract residencyStatuses(lang: Language): Promise<LookupItemDto[]>;
@@ -27,4 +28,6 @@ export abstract class LookupsRepository {
   abstract contractTypeRule(id: string): Promise<ContractTypeRule | null>;
   abstract idTypeRules(id: string): Promise<IdTypeRules | null>;
   abstract terminationReasonIsOther(id: string): Promise<boolean | null>;
+  /** Whether people of this relation have limited access (collaborators); null when the option does not exist. */
+  abstract relationTypeLimited(id: string): Promise<boolean | null>;
 }

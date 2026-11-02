@@ -2,6 +2,13 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-02 — Collaborator base
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 137 | «Limited access» is a flag on the relation type (`relation_types.limited_access`), not a hard-coded code; the base role is the auto role `limited_access`, and the end date is required for such relations by the same flag rules as the contract type | Owner: lists and flags are data an administrator edits; the collaborators module (phase 2) will reuse the flag | A second kind of limited relation needs a different base role (then the flag becomes a role link) |
+| 138 | Changing an employee's relation swaps only the base role (Employee ↔ collaborator base) in `user_roles`; hand-picked roles stay | Roles are stored choices (decision 117); a relation change must not undo what HR chose | — |
+
 ## 2026-11-02 — Audit chain, request limit, e-mail domains
 
 | # | Decision | Why | Revisit when |

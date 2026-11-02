@@ -77,10 +77,16 @@ export class UserAccessService {
     this.assertHolds(actor, roles.filter((r) => !exempt.includes(r.id)).flatMap((r) => r.permissions));
   }
 
-  /** The roles a new employee starts with: the Employee role and the role of their job title (those that exist). */
-  async defaultRoleIds(jobTitleId: string | null): Promise<{ everyoneId: string | null; titleId: string | null; ids: string[] }> {
-    const { everyoneId, titleId } = await this.access.defaultRoleIdsFor(jobTitleId);
-    return { everyoneId, titleId, ids: [everyoneId, titleId].filter((id): id is string => !!id) };
+  /** The roles a new employee starts with: the base role (Employee, or the collaborator base) and the role of their job title (those that exist). */
+  async defaultRoleIds(jobTitleId: string | null, limitedAccess = false): Promise<{ baseId: string | null; titleId: string | null; ids: string[] }> {
+    const { baseId, titleId } = await this.access.defaultRoleIdsFor(jobTitleId, limitedAccess);
+    return { baseId, titleId, ids: [baseId, titleId].filter((id): id is string => !!id) };
+  }
+
+  /** A change of relation (employee ↔ collaborator) changes the base role only; the roles chosen by hand stay. */
+  async swapBaseRole(userId: string, limitedAccess: boolean): Promise<void> {
+    await this.access.swapBaseRole(userId, limitedAccess);
+    this.events.emit(ACCESS_CHANGED, { userId });
   }
 
   /** The head role of a level follows who manages its units: given to the manager, taken back from one who no longer manages any unit of the level. */
