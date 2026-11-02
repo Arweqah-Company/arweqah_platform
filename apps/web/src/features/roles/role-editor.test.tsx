@@ -26,7 +26,7 @@ describe('RoleEditor', () => {
   });
 
   it('keeps the name of a job title role read-only and says why', async () => {
-    const role: RoleDto = { id: 'r9', nameAr: 'محاسب', nameEn: 'Accountant', description: null, isSystem: false, assignment: 'auto', autoRule: 'job_title', jobTitleId: 't1', orgLevelId: null, origin: null, permissions: [], usersCount: 2 };
+    const role: RoleDto = { id: 'r9', nameAr: 'محاسب', nameEn: 'Accountant', description: null, isSystem: false, assignment: 'auto', autoRule: 'job_title', jobTitleId: 't1', orgNodeId: null, origin: null, permissions: [], usersCount: 2 };
     renderPage(<RoleEditor role={role} open onOpenChange={() => undefined} />);
     expect(await screen.findByText(/يتبعان المسمى الوظيفي أو المستوى/)).toBeInTheDocument();
     expect(screen.getByLabelText('الاسم بالعربية')).toBeDisabled();

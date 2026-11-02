@@ -51,8 +51,8 @@ export interface RoleDto {
   autoRule: RoleAutoRule | null;
   /** The job title this role belongs to (`job_title` roles only). */
   jobTitleId: string | null;
-  /** The organization level this role belongs to (`node_head` roles only). */
-  orgLevelId: string | null;
+  /** The organization unit this role belongs to (`node_head` roles only): one head role per unit, whichever company it sits in. */
+  orgNodeId: string | null;
   /** The unit and company of a job title role; null for the other roles. */
   origin: RoleOriginDto | null;
   permissions: { key: string; scope: PermissionScope }[];

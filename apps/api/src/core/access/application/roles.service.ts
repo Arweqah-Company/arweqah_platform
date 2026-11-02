@@ -35,7 +35,7 @@ export class RolesService {
       assignment: input.assignment ?? 'manual',
       autoRule: null,
       jobTitleId: null,
-      orgLevelId: null,
+      orgNodeId: null,
       permissions: [],
     });
     role.replacePermissions(input.permissions);
@@ -94,7 +94,7 @@ export function toRoleDto(role: Role, usersCount: number, origin: RoleOriginDto 
     assignment: role.assignment,
     autoRule: role.autoRule,
     jobTitleId: role.jobTitleId,
-    orgLevelId: role.orgLevelId,
+    orgNodeId: role.orgNodeId,
     origin,
     permissions: (role.permissions ?? []).map((p) => ({ key: p.key, scope: p.scope })),
     usersCount,
