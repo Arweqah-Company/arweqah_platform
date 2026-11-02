@@ -33,6 +33,7 @@ export function useEmployeeFilterFields(values: FilterValues): FilterField[] {
     { id: 'startTo', label: t('filters.startTo'), type: 'date' },
     { id: 'idExpiring', label: t('flags.idExpiring'), type: 'toggle' },
     { id: 'contractEnding', label: t('flags.contractEnding'), type: 'toggle' },
+    { id: 'needsPlacement', label: t('flags.needsPlacement'), type: 'toggle' },
   ];
 }
 
@@ -56,5 +57,6 @@ export function toEmployeesQuery(values: FilterValues): Partial<EmployeesQuery> 
     startTo: text('startTo'),
     idExpiring: values.idExpiring === 'true' ? true : undefined,
     contractEnding: values.contractEnding === 'true' ? true : undefined,
+    needsPlacement: values.needsPlacement === 'true' ? true : undefined,
   };
 }

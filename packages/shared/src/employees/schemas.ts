@@ -193,6 +193,8 @@ export const employeesQuerySchema = paginationQuerySchema.extend({
   /** Documents or contracts that need attention within 30 days (an expired ID counts). */
   idExpiring: z.stringbool().optional(),
   contractEnding: z.stringbool().optional(),
+  /** People with no unit or no job title (the system account is left out): they must be placed before their role and reach can be right. */
+  needsPlacement: z.stringbool().optional(),
 });
 export type EmployeesQuery = z.infer<typeof employeesQuerySchema>;
 

@@ -9,7 +9,7 @@ export const LIST_CATALOG = {
     columns: ['number', 'name', 'company', 'unit', 'title', 'status'],
     filters: [
       'companyId', 'status', 'relationTypeId', 'orgNodeId', 'jobTitleId', 'contractTypeId', 'nationalityId', 'gender', 'workMode',
-      'maritalStatusId', 'residencyStatusId', 'startFrom', 'startTo', 'idExpiring', 'contractEnding',
+      'maritalStatusId', 'residencyStatusId', 'startFrom', 'startTo', 'idExpiring', 'contractEnding', 'needsPlacement',
     ],
   },
   org: { columns: ['name', 'level', 'manager', 'employees', 'titles', 'status'], filters: ['level', 'status', 'employees', 'manager'] },
