@@ -34,7 +34,7 @@ export class PermissionTargetsService {
     await this.mustFind(kind, id);
     this.catalog.assertValid(grants);
     this.access.assertPermissionsGrantable(actor, grants);
-    await this.targets.replace(kind, id, grants);
+    await this.targets.replace(kind, id, grants, actor.userId);
     this.events.emit(ACCESS_CHANGED, {});
     const event: AuditEvent = { actorId: actor.userId, action: 'permissions.updated', entityType: kind, entityId: id, changes: { keys: grants.map((g) => g.key) } };
     this.events.emit(AUDIT_EVENT, event);

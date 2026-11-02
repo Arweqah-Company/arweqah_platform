@@ -39,7 +39,7 @@ export class EmployeeTransformer {
   ) {}
 
   async toDto(e: Employee, view: { isActive: boolean; sensitive: boolean }): Promise<EmployeeDto> {
-    const [companies, nodes, titles, managers, roles, groups, authenticatorEnabled] = await Promise.all([
+    const [companies, nodes, titles, managers, roles, groups, authenticatorEnabled, expiries] = await Promise.all([
       this.org.describeCompanies([e.companyId]),
       this.org.describeNodes(e.orgNodeId ? [e.orgNodeId] : []),
       this.org.describeTitles(e.jobTitleId ? [e.jobTitleId] : []),
@@ -47,6 +47,7 @@ export class EmployeeTransformer {
       this.access.rolesOf([e.userId]),
       this.access.groupsOf([e.userId]),
       this.authenticator.isEnabled(e.userId),
+      this.access.roleExpiriesOf([e.userId]),
     ]);
     return {
       id: e.id,
@@ -61,7 +62,7 @@ export class EmployeeTransformer {
       manager: e.managerId ? { id: e.managerId, fullName: managers.get(e.managerId) ?? '' } : null,
       ...this.plainFields(e),
       ...this.sensitiveFields(e, view.sensitive),
-      roles: (roles.get(e.userId) ?? []).map((r) => ({ id: r.id, nameAr: r.nameAr, nameEn: r.nameEn })),
+      roles: (roles.get(e.userId) ?? []).map((r) => ({ id: r.id, nameAr: r.nameAr, nameEn: r.nameEn, expiresAt: expiries.get(e.userId)?.get(r.id) ?? null })),
       groups: groups.get(e.userId) ?? [],
       sensitiveHidden: !view.sensitive,
       createdAt: e.createdAt.toISOString(),

@@ -34,7 +34,8 @@
     "taskPolicies": "سياسات المهام",
     "translationSettings": "إعدادات الترجمة",
     "emailSettings": "إعدادات البريد",
-    "serviceSettings": "الإعدادات"
+    "serviceSettings": "الإعدادات",
+    "exceptions": "الاستثناءات"
   },
   "actions": {
     "save": "حفظ",
@@ -73,6 +74,7 @@
     "CONFLICT": "يوجد سجل بنفس البيانات.",
     "INVALID_ORG_HIERARCHY": "الموقع المختار غير متسق مع الهيكل التنظيمي.",
     "SCOPE_NOT_ALLOWED": "النطاق المختار غير متاح لهذه الصلاحية.",
+    "PAST_END_DATE": "تاريخ الانتهاء لا يكون في الماضي.",
     "DERIVED_ROLE": "هذا الدور يتبع مسمى وظيفيًا أو مستوى في الهيكل، فاسمه وأعضاؤه لا يتغيّران يدويًا.",
     "ROLE_TEMPLATE_INVALID": "دور القالب غير صالح: اختر دورًا يدويًا أو دور «موظف».",
     "FILE_TYPE_NOT_ALLOWED": "نوع الملف غير مسموح. المسموح: PDF و PNG و JPEG.",

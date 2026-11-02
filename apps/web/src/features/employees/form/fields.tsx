@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Combobox, FormField, Input, Select, Textarea, type ComboboxOption } from '@/shared/ui';
 import type { FormState } from './form-state';
 
-type TextName = Exclude<keyof FormState, 'isGosiRegistered' | 'isQiwaContract' | 'hasMedicalInsurance' | 'roleIds'>;
+type TextName = Exclude<keyof FormState, 'isGosiRegistered' | 'isQiwaContract' | 'hasMedicalInsurance' | 'roleIds' | 'roleExpiries'>;
 type BooleanName = 'isGosiRegistered' | 'isQiwaContract' | 'hasMedicalInsurance';
 
 /** The error text under a field: a rule's own words when the API sent them, otherwise a message per field. */

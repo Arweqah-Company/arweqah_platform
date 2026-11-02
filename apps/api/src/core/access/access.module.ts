@@ -1,6 +1,7 @@
 import { Global, Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AbilityFactory } from './application/ability.factory';
+import { AccessExceptionsService } from './application/access-exceptions.service';
 import { AutoRolesService } from './application/auto-roles.service';
 import { JobTitleRolesService } from './application/job-title-roles.service';
 import { AdminModeEligibility } from './application/admin-mode-eligibility';
@@ -35,18 +36,21 @@ import { TypeOrmAdminModeRepository } from './infrastructure/typeorm-admin-mode.
 import { TypeOrmPageVisibilityRepository } from './infrastructure/typeorm-page-visibility.repository';
 import { TypeOrmProfileRepository } from './infrastructure/typeorm-profile.repository';
 import { TypeOrmRoleRepository } from './infrastructure/typeorm-role.repository';
+import { TypeOrmAccessExceptionRepository } from './infrastructure/typeorm-access-exception.repository';
+import { AccessExceptionRepository } from './domain/access-exception.repository';
 import { TypeOrmUserAccessRepository } from './infrastructure/typeorm-user-access.repository';
 import { AdminModeController } from './presentation/admin-mode.controller';
 import { MeController } from './presentation/me.controller';
 import { PageVisibilityController } from './presentation/page-visibility.controller';
 import { PermissionsGuard } from './presentation/permissions.guard';
+import { AccessExceptionsController } from './presentation/access-exceptions.controller';
 import { RolesController } from './presentation/roles.controller';
 
 /** Dynamic roles, scoped permissions and the guard that enforces them. */
 @Global()
 @Module({
   imports: [TypeOrmModule.forFeature([Role, RolePermission, UserRole, User])],
-  controllers: [RolesController, RoleGroupsController, UserGroupsController, PermissionTargetsController, MeController, AdminModeController, PageVisibilityController],
+  controllers: [RolesController, AccessExceptionsController, RoleGroupsController, UserGroupsController, PermissionTargetsController, MeController, AdminModeController, PageVisibilityController],
   providers: [
     PermissionCatalog,
     AccessContextService,
@@ -61,10 +65,12 @@ import { RolesController } from './presentation/roles.controller';
     AdminModeEligibility,
     PageVisibilityService,
     AutoRolesService,
+    AccessExceptionsService,
     JobTitleRolesService,
     PermissionsGuard,
     { provide: AdminModeRepository, useClass: TypeOrmAdminModeRepository },
     { provide: RoleRepository, useClass: TypeOrmRoleRepository },
+    { provide: AccessExceptionRepository, useClass: TypeOrmAccessExceptionRepository },
     { provide: RoleGroupRepository, useClass: TypeOrmRoleGroupRepository },
     { provide: UserGroupRepository, useClass: TypeOrmUserGroupRepository },
     { provide: PermissionTargetRepository, useClass: TypeOrmPermissionTargetRepository },

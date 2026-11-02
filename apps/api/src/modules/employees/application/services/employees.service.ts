@@ -4,6 +4,7 @@ import {
   CorePermission,
   EMPLOYEE_TERMINATED_TOPIC,
   todayIso,
+  type AssignEmployeeRolesInput,
   type CreateEmployeeInput,
   type CreateEmployeeResultDto,
   type EmployeeDto,
@@ -20,6 +21,7 @@ import {
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
 import { ForbiddenError, NotFoundError } from '../../../../common/domain/domain-error';
 import { AbilityFactory } from '../../../../core/access/application/ability.factory';
+import { todayInRiyadh } from '../../../../common/domain/riyadh-date';
 import { ACCESS_CHANGED, EMPLOYEES_CHANGED } from '../../../../core/access/application/access.events';
 import { UserAccessService } from '../../../../core/access/application/user-access.service';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
@@ -81,10 +83,11 @@ export class EmployeesService {
 
   /** Creates the person's record and sign-in account, assigns roles, then e-mails the activation link. */
   async create(ctx: AccessContext, input: CreateEmployeeInput, actorId: string): Promise<CreateEmployeeResultDto> {
-    const { roleIds: chosen, ...fields } = input;
+    const { roleIds: chosen, roleExpiries, ...fields } = input;
     this.assertInScope(ctx, P.EmployeesCreate, { companyId: input.companyId, orgNodeId: input.orgNodeId });
     const defaults = await this.access.defaultRoleIds(input.jobTitleId);
     const roleIds = chosen ?? defaults.ids;
+    this.assertRoleExpiries(roleIds, roleExpiries);
     // The default roles come with the new person whoever adds them; naming roles is the permission to assign them.
     if (chosen?.length) await this.assertCanAssignRoles(ctx, roleIds, { companyId: input.companyId, orgNodeId: input.orgNodeId }, defaults.ids);
     const { values } = await this.validation.prepare(ctx, fields);
@@ -93,7 +96,7 @@ export class EmployeesService {
     try {
       created = await this.tx.run(async (tx) => {
         const row = await this.repo.insert({ ...values, userId, createdBy: actorId }, tx);
-        if (roleIds.length) await this.access.replaceRoles(userId, roleIds, tx);
+        if (roleIds.length) await this.access.replaceRoles(userId, roleIds, { expiries: roleExpiries, grantedBy: actorId }, tx);
         return row;
       });
     } catch (error) {
@@ -146,13 +149,15 @@ export class EmployeesService {
     return this.dto(ctx, (await this.repo.findById(id)) as Employee);
   }
 
-  async assignRoles(ctx: AccessContext, id: string, roleIds: string[], actorId: string): Promise<EmployeeDto> {
+  async assignRoles(ctx: AccessContext, id: string, input: AssignEmployeeRolesInput, actorId: string): Promise<EmployeeDto> {
+    const { roleIds, roleExpiries } = input;
+    this.assertRoleExpiries(roleIds, roleExpiries);
     const employee = await this.mustFind(ctx, id, P.EmployeesAssignRoles);
     if (employee.userId === ctx.userId) throw new SelfActionError('You cannot change your own roles');
     await this.assertCanAssignRoles(ctx, roleIds, { companyId: employee.companyId, orgNodeId: employee.orgNodeId, ownerId: employee.userId }, (await this.access.defaultRoleIds(employee.jobTitleId)).ids);
-    await this.tx.run((tx) => this.access.replaceRoles(employee.userId, roleIds, tx));
+    await this.tx.run((tx) => this.access.replaceRoles(employee.userId, roleIds, { expiries: roleExpiries, grantedBy: actorId }, tx));
     await this.events.emitAsync(EMPLOYEES_CHANGED);
-    this.audit(actorId, EMPLOYEE_AUDIT.rolesChanged, id, { roleIds });
+    this.audit(actorId, EMPLOYEE_AUDIT.rolesChanged, id, { roleIds, withEndDate: Object.keys(roleExpiries ?? {}).length });
     return this.dto(ctx, employee);
   }
 
@@ -161,7 +166,7 @@ export class EmployeesService {
     if (employee.userId === ctx.userId) throw new SelfActionError('You cannot change your own groups');
     if (!this.ability.can(ctx, P.EmployeesAssignGroups, { companyId: employee.companyId, orgNodeId: employee.orgNodeId, ownerId: employee.userId })) throw new ForbiddenError();
     await this.access.assertGroupsGrantable(ctx, groupIds);
-    await this.tx.run((tx) => this.access.replaceGroups(employee.userId, groupIds, tx));
+    await this.tx.run((tx) => this.access.replaceGroups(employee.userId, groupIds, actorId, tx));
     this.audit(actorId, EMPLOYEE_AUDIT.groupsChanged, id, { groupIds });
     return this.dto(ctx, employee);
   }
@@ -196,6 +201,15 @@ export class EmployeesService {
 
   private assertInScope(ctx: AccessContext, key: string, resource: { companyId: string; orgNodeId: string; ownerId?: string }): void {
     if (!this.ability.can(ctx, key, resource)) throw new NotFoundError('Org unit', resource.orgNodeId);
+  }
+
+  /** An end date is for a role the person is given, and is today or later (Riyadh); null removes it. */
+  private assertRoleExpiries(roleIds: string[], expiries: Record<string, string | null> | undefined): void {
+    const today = todayInRiyadh();
+    for (const [roleId, day] of Object.entries(expiries ?? {})) {
+      if (!roleIds.includes(roleId)) throw new FieldRuleError('roleExpiries', 'An end date is for a role the person is given', { ar: 'تاريخ الانتهاء لدور يُمنح للموظف فقط', en: 'An end date is for a role the person is given' });
+      if (day !== null && day < today) throw new FieldRuleError('roleExpiries', 'The end date cannot be in the past', { ar: 'تاريخ الانتهاء لا يكون في الماضي', en: 'The end date cannot be in the past' });
+    }
   }
 
   /** Nobody gives more than they hold, except the Employee role and the role of the person's own job title (checked when they were made). */

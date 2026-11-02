@@ -35,14 +35,17 @@ export abstract class RoleRepository {
 export abstract class UserAccessRepository {
   abstract loadAccess(userId: string): Promise<UserAccessRecord | null>;
   abstract rolesOf(userIds: string[]): Promise<Map<string, Role[]>>;
-  abstract replaceRoles(userId: string, roleIds: string[], tx?: TransactionContext): Promise<void>;
+  /** Replaces the roles of a person; a role already held keeps its end date unless `expiries` names a new one (null = no end date). */
+  abstract replaceRoles(userId: string, roleIds: string[], options?: { expiries?: Record<string, string | null>; grantedBy?: string | null }, tx?: TransactionContext): Promise<void>;
+  /** The end dates of the roles each person holds (only the roles that have one). */
+  abstract roleExpiriesOf(userIds: string[]): Promise<Map<string, Map<string, string>>>;
   abstract placementsOf(userIds: string[]): Promise<Map<string, Placement>>;
   /** The groups of roles each person was given. */
   abstract groupsOf(userIds: string[]): Promise<Map<string, { id: string; nameAr: string; nameEn: string }[]>>;
-  abstract replaceGroups(userId: string, groupIds: string[], tx?: TransactionContext): Promise<void>;
+  abstract replaceGroups(userId: string, groupIds: string[], grantedBy: string | null, tx?: TransactionContext): Promise<void>;
   /** Permissions given to one person alone. */
   abstract permissionsOf(userId: string): Promise<PermissionGrant[]>;
-  abstract replacePermissions(userId: string, grants: PermissionGrant[], tx?: TransactionContext): Promise<void>;
+  abstract replacePermissions(userId: string, grants: PermissionGrant[], grantedBy: string | null, tx?: TransactionContext): Promise<void>;
   /** Brings the roles the system keeps up to date (who has reports) and the roles of job titles and levels in order; returns how many memberships changed. */
   abstract syncAutoRoles(): Promise<number>;
   /** The roles a new employee starts with: the Employee role and the role of their job title (the ones that exist). */

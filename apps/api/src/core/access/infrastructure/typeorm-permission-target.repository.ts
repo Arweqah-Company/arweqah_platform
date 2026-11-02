@@ -77,11 +77,22 @@ export class TypeOrmPermissionTargetRepository extends PermissionTargetRepositor
     return sql ? (await this.ds.query<GrantRow[]>(sql, [id])).map((r) => ({ key: r.key, scope: r.scope })) : [];
   }
 
-  async replace(kind: PermissionTargetKind, id: string, grants: PermissionGrant[]): Promise<void> {
+  async replace(kind: PermissionTargetKind, id: string, grants: PermissionGrant[], grantedBy: string | null = null): Promise<void> {
     const unique = [...new Map(grants.map((g) => [g.key, g.scope])).entries()];
+    if (kind === 'user') return this.replacePersonal(id, unique, grantedBy);
     await this.ds.transaction(async (m) => {
       await m.query(KINDS[kind].clear, [id]);
       for (const [key, scope] of unique) await m.query(KINDS[kind].insert, [id, key, scope]);
+    });
+  }
+
+  /** A person's own permissions keep their end date and who gave them; only the scope follows the new list. */
+  private async replacePersonal(userId: string, grants: [string, PermissionScope][], grantedBy: string | null): Promise<void> {
+    await this.ds.transaction(async (m) => {
+      await m.query('DELETE FROM user_permissions WHERE user_id = $1 AND NOT (permission_key = ANY($2::text[]))', [userId, grants.map(([key]) => key)]);
+      for (const [key, scope] of grants) {
+        await m.query('INSERT INTO user_permissions (user_id, permission_key, scope, granted_by) VALUES ($1, $2, $3, $4) ON CONFLICT (user_id, permission_key) DO UPDATE SET scope = EXCLUDED.scope', [userId, key, scope, grantedBy]);
+      }
     });
   }
 }

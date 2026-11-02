@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { roleExpiriesSchema } from '../exceptions/schemas';
 import { paginationQuerySchema, type Paginated } from '../common/pagination';
 import {
   MAX_EMPLOYEE_AGE,
@@ -136,7 +137,7 @@ function checkConditionalFields(v: Draft, issue: Issue): void {
 }
 
 export const createEmployeeSchema = z
-  .strictObject({ ...employeeShape, /** Left out = the default roles (Employee and the role of the job title); an empty list = none. */ roleIds: z.array(z.uuid()).max(20).optional() })
+  .strictObject({ ...employeeShape, /** Left out = the default roles (Employee and the role of the job title); an empty list = none. */ roleIds: z.array(z.uuid()).max(20).optional(), roleExpiries: roleExpiriesSchema.optional() })
   .superRefine(refineEmployee);
 export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
 
@@ -147,7 +148,7 @@ export const updateEmployeeSchema = z
   .superRefine(refineEmployee);
 export type UpdateEmployeeInput = z.infer<typeof updateEmployeeSchema>;
 
-export const assignEmployeeRolesSchema = z.strictObject({ roleIds: z.array(z.uuid()).max(20) });
+export const assignEmployeeRolesSchema = z.strictObject({ roleIds: z.array(z.uuid()).max(20), roleExpiries: roleExpiriesSchema.optional() });
 export type AssignEmployeeRolesInput = z.infer<typeof assignEmployeeRolesSchema>;
 
 export const terminateEmployeeSchema = z
@@ -256,7 +257,7 @@ export interface EmployeeDto {
   salaryCurrencyCountryId: string | null;
   iban: string | null;
   notes: string | null;
-  roles: NamedRef[];
+  roles: (NamedRef & { expiresAt: string | null })[];
   /** Groups of roles the person was given (their roles come on top of the ones above). */
   groups: NamedRef[];
   sensitiveHidden: boolean;

@@ -5,21 +5,25 @@ import { LEVEL_HEAD_DEFAULT_PERMISSIONS, type PermissionGrant, type PermissionSc
 import type { TransactionContext } from '../../../common/application/transaction-runner';
 import { returnedRows } from '../../../common/infrastructure/query-result';
 import { managerOf } from '../../../common/infrastructure/typeorm-transaction-runner';
+import { todayInRiyadh } from '../../../common/domain/riyadh-date';
 import { NO_PLACEMENT, reachFrom, type Placement, type UnitReach } from '../domain/access-context';
 import { UserAccessRepository, type UserAccessRecord } from '../domain/access.repository';
 import { Role } from '../domain/role.entity';
-import { UserPermission } from '../domain/user-permission.entity';
-import { UserRoleGroup } from '../domain/user-role-group.entity';
 import { UserRole } from '../domain/user-role.entity';
+
+/** Today in Riyadh: what is given "until" a day still holds through that day. */
+const TODAY = `(now() AT TIME ZONE 'Asia/Riyadh')::date`;
+/** The row has no end date, or its last day has not passed. */
+const holds = (alias: string): string => `(${alias}.expires_at IS NULL OR ${alias}.expires_at >= ${TODAY})`;
 
 const GRANTS_OF_USER = `
   SELECT rp.permission_key AS key, rp.scope AS scope FROM role_permissions rp
   WHERE rp.role_id IN (
-    SELECT role_id FROM user_roles WHERE user_id = $1
-    UNION SELECT gr.role_id FROM user_role_groups ug JOIN role_group_roles gr ON gr.group_id = ug.group_id WHERE ug.user_id = $1)
-  UNION ALL SELECT gp.permission_key, gp.scope FROM role_group_permissions gp JOIN user_role_groups ug ON ug.group_id = gp.group_id WHERE ug.user_id = $1
-  UNION ALL SELECT permission_key, scope FROM user_permissions WHERE user_id = $1
-  UNION ALL SELECT up.permission_key, up.scope FROM user_group_permissions up JOIN user_group_members m ON m.group_id = up.group_id WHERE m.user_id = $1`;
+    SELECT ur.role_id FROM user_roles ur WHERE ur.user_id = $1 AND ${holds('ur')}
+    UNION SELECT gr.role_id FROM user_role_groups ug JOIN role_group_roles gr ON gr.group_id = ug.group_id WHERE ug.user_id = $1 AND ${holds('ug')})
+  UNION ALL SELECT gp.permission_key, gp.scope FROM role_group_permissions gp JOIN user_role_groups ug ON ug.group_id = gp.group_id WHERE ug.user_id = $1 AND ${holds('ug')}
+  UNION ALL SELECT up.permission_key, up.scope FROM user_permissions up WHERE up.user_id = $1 AND ${holds('up')}
+  UNION ALL SELECT ugp.permission_key, ugp.scope FROM user_group_permissions ugp JOIN user_group_members m ON m.group_id = ugp.group_id WHERE m.user_id = $1`;
 
 const WITH_REPORTS = `EXISTS (SELECT 1 FROM employees s WHERE s.manager_id = m.id AND s.deleted_at IS NULL)`;
 /** Only "has_reports" is a fact kept by the system: exactly the people some employee reports to. The other automatic roles are stored choices made on the employee form (and the unit form for the head of a level). */
@@ -109,7 +113,7 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
        UNION ALL
        SELECT c.descendant_id, c.depth FROM employees e JOIN org_nodes n ON n.manager_id = e.id AND n.deleted_at IS NULL AND n.is_active
        JOIN roles r ON r.auto_rule = 'node_head' AND r.org_level_id = n.org_level_id
-       JOIN user_roles ur ON ur.role_id = r.id AND ur.user_id = e.user_id
+       JOIN user_roles ur ON ur.role_id = r.id AND ur.user_id = e.user_id AND ${holds('ur')}
        JOIN org_node_closure c ON c.ancestor_id = n.id
        WHERE e.user_id = $1 AND e.deleted_at IS NULL`,
       [userId, orgNodeId],
@@ -126,35 +130,39 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
     const result = new Map<string, { id: string; nameAr: string; nameEn: string }[]>(userIds.map((id) => [id, []]));
     if (!userIds.length) return result;
     const rows: { userId: string; id: string; nameAr: string; nameEn: string }[] = await this.userRoles.manager.query(
-      `SELECT ug.user_id AS "userId", g.id, g.name_ar AS "nameAr", g.name_en AS "nameEn" FROM user_role_groups ug JOIN role_groups g ON g.id = ug.group_id WHERE ug.user_id = ANY($1) ORDER BY g.name_ar`,
+      `SELECT ug.user_id AS "userId", g.id, g.name_ar AS "nameAr", g.name_en AS "nameEn" FROM user_role_groups ug JOIN role_groups g ON g.id = ug.group_id WHERE ug.user_id = ANY($1) AND ${holds('ug')} ORDER BY g.name_ar`,
       [userIds],
     );
     for (const row of rows) result.get(row.userId)?.push({ id: row.id, nameAr: row.nameAr, nameEn: row.nameEn });
     return result;
   }
 
-  async replaceGroups(userId: string, groupIds: string[], tx?: TransactionContext): Promise<void> {
+  async replaceGroups(userId: string, groupIds: string[], grantedBy: string | null, tx?: TransactionContext): Promise<void> {
     const m = managerOf(tx, this.userRoles.manager);
-    await m.delete(UserRoleGroup, { userId });
-    if (groupIds.length) await m.insert(UserRoleGroup, [...new Set(groupIds)].map((groupId) => ({ userId, groupId })));
+    const unique = [...new Set(groupIds)];
+    await m.query('DELETE FROM user_role_groups WHERE user_id = $1 AND NOT (group_id = ANY($2::uuid[]))', [userId, unique]);
+    for (const groupId of unique) await m.query('INSERT INTO user_role_groups (user_id, group_id, granted_by) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING', [userId, groupId, grantedBy]);
   }
 
   async permissionsOf(userId: string): Promise<PermissionGrant[]> {
-    const rows: { key: string; scope: PermissionScope }[] = await this.userRoles.manager.query('SELECT permission_key AS key, scope FROM user_permissions WHERE user_id = $1 ORDER BY permission_key', [userId]);
+    const rows: { key: string; scope: PermissionScope }[] = await this.userRoles.manager.query(`SELECT up.permission_key AS key, up.scope FROM user_permissions up WHERE up.user_id = $1 AND ${holds('up')} ORDER BY up.permission_key`, [userId]);
     return rows;
   }
 
-  async replacePermissions(userId: string, grants: PermissionGrant[], tx?: TransactionContext): Promise<void> {
+  async replacePermissions(userId: string, grants: PermissionGrant[], grantedBy: string | null, tx?: TransactionContext): Promise<void> {
     const m = managerOf(tx, this.userRoles.manager);
-    await m.delete(UserPermission, { userId });
     const unique = [...new Map(grants.map((g) => [g.key, g.scope])).entries()];
-    if (unique.length) await m.insert(UserPermission, unique.map(([key, scope]) => ({ userId, key, scope })));
+    await m.query('DELETE FROM user_permissions WHERE user_id = $1 AND NOT (permission_key = ANY($2::text[]))', [userId, unique.map(([key]) => key)]);
+    // A permission already held keeps its end date and who gave it; only its scope follows the new list.
+    for (const [key, scope] of unique) {
+      await m.query('INSERT INTO user_permissions (user_id, permission_key, scope, granted_by) VALUES ($1, $2, $3, $4) ON CONFLICT (user_id, permission_key) DO UPDATE SET scope = EXCLUDED.scope', [userId, key, scope, grantedBy]);
+    }
   }
 
   async rolesOf(userIds: string[]): Promise<Map<string, Role[]>> {
     const result = new Map<string, Role[]>(userIds.map((id) => [id, []]));
     if (!userIds.length) return result;
-    const links = await this.userRoles.find({ where: { userId: In(userIds) } });
+    const links = (await this.userRoles.find({ where: { userId: In(userIds) } })).filter((l) => !l.expiresAt || l.expiresAt >= todayInRiyadh());
     const roles = await this.roles.find({ where: { id: In([...new Set(links.map((l) => l.roleId))]) } });
     const byId = new Map(roles.map((r) => [r.id, r]));
     for (const link of links) {
@@ -164,10 +172,29 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
     return result;
   }
 
-  async replaceRoles(userId: string, roleIds: string[], tx?: TransactionContext): Promise<void> {
+  async replaceRoles(userId: string, roleIds: string[], options: { expiries?: Record<string, string | null>; grantedBy?: string | null } = {}, tx?: TransactionContext): Promise<void> {
     const m = managerOf(tx, this.userRoles.manager);
-    await m.delete(UserRole, { userId });
-    if (roleIds.length) await m.insert(UserRole, roleIds.map((roleId) => ({ userId, roleId })));
+    await m.query('DELETE FROM user_roles WHERE user_id = $1 AND NOT (role_id = ANY($2::uuid[]))', [userId, roleIds]);
+    for (const roleId of roleIds) {
+      const expiry = options.expiries?.[roleId];
+      // A role already held keeps its end date and who gave it unless a new end date is named.
+      await m.query(
+        `INSERT INTO user_roles (user_id, role_id, expires_at, granted_by) VALUES ($1, $2, $3, $4)
+         ON CONFLICT (user_id, role_id) DO UPDATE SET expires_at = CASE WHEN $5::boolean THEN EXCLUDED.expires_at ELSE user_roles.expires_at END`,
+        [userId, roleId, expiry ?? null, options.grantedBy ?? null, expiry !== undefined],
+      );
+    }
+  }
+
+  async roleExpiriesOf(userIds: string[]): Promise<Map<string, Map<string, string>>> {
+    const result = new Map<string, Map<string, string>>();
+    if (!userIds.length) return result;
+    const rows: { userId: string; roleId: string; expiresAt: string }[] = await this.userRoles.manager.query(
+      `SELECT ur.user_id AS "userId", ur.role_id AS "roleId", to_char(ur.expires_at, 'YYYY-MM-DD') AS "expiresAt" FROM user_roles ur WHERE ur.user_id = ANY($1) AND ur.expires_at IS NOT NULL`,
+      [userIds],
+    );
+    for (const row of rows) result.set(row.userId, (result.get(row.userId) ?? new Map<string, string>()).set(row.roleId, row.expiresAt));
+    return result;
   }
 
   async syncAutoRoles(): Promise<number> {

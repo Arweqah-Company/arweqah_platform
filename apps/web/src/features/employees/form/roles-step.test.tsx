@@ -6,7 +6,7 @@ import { FormProvider, useForm, useWatch, type UseFormReturn } from 'react-hook-
 import { describe, expect, it } from 'vitest';
 import { roles as baseRoles, server } from '../../../../test/msw';
 import { renderPage } from '../../../../test/render';
-import { EMPTY_FORM, type FormState } from './form-state';
+import { EMPTY_FORM, roleExpiriesToSend, type FormState } from './form-state';
 import { RolesStep, roleGroups } from './roles-step';
 import { useDefaultRoles } from './use-default-roles';
 
@@ -83,5 +83,25 @@ describe('RolesStep and the roles ticked from the start (second step of the empl
   it('works out the groups of roles', () => {
     const g = roleGroups(ROLES, { jobTitleId: 't-b', companyId: 'c1', heldIds: ['r-ta', 'r-rep'] });
     expect(g).toMatchObject({ everyone, title: titleB, heads: [head], manual: [supervisor], held: [titleA], computed: [reports] });
+  });
+
+  it('lets a last day be set for a role that is ticked, but not for the Employee role or the title role (FR-70)', async () => {
+    serve();
+    renderPage(<Harness values={{ companyId: 'c1', jobTitleId: 't-a', roleIds: ['r-all', 'r-ta', 'r-sup'] }} editing savedTitleId="t-a" />);
+    const date = await screen.findByLabelText('ينتهي في (اختياري): مشرف');
+    expect(screen.queryByLabelText(/ينتهي في \(اختياري\): موظف/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/ينتهي في \(اختياري\): مطور/)).not.toBeInTheDocument();
+    fireEvent.change(date, { target: { value: '2027-03-01' } });
+    await waitFor(() => expect(formRef?.getValues('roleExpiries')).toEqual({ 'r-sup': '2027-03-01' }));
+    fireEvent.click(screen.getByLabelText(/^مشرف/));
+    expect(screen.queryByLabelText('ينتهي في (اختياري): مشرف')).not.toBeInTheDocument();
+  });
+
+  it('sends the end dates of the ticked roles, and null for a role that lost its date', () => {
+    const form = { roleIds: ['a', 'b', 'c'], roleExpiries: { a: '2027-01-01', c: '' } };
+    expect(roleExpiriesToSend(form, {})).toEqual({ a: '2027-01-01' });
+    expect(roleExpiriesToSend(form, { c: '2026-12-31' })).toEqual({ a: '2027-01-01', c: null });
+    expect(roleExpiriesToSend({ roleIds: ['a'], roleExpiries: {} }, {})).toBeUndefined();
+    expect(roleExpiriesToSend({ roleIds: ['a'], roleExpiries: { z: '2027-01-01' } }, {})).toBeUndefined();
   });
 });
