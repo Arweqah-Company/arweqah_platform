@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-02 — Sign-in after the contract
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 128 | The cut-off job runs at 00:05 Asia/Riyadh with Riyadh's date, deactivates employees whose end date is before today and records `employees.access_ended_at`; moving the end date to today or later (or removing it) gives sign-in back only if `access_ended_at` is set and the actor holds `employees.deactivate` | The owner's rule (the day after the end date) was already coded with the server's UTC clock; the marker tells an account ended by the contract from one switched off by hand, so only the first comes back on its own | An exit request has to keep sign-in open for one screen (requests module) |
+
 ## 2026-11-02 — Exceptions
 
 | # | Decision | Why | Revisit when |

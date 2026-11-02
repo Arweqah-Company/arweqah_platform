@@ -133,7 +133,8 @@
     "idExpiring": "هوية تنتهي قريبًا",
     "contractEnding": "عقد ينتهي قريبًا",
     "appLinked": "تطبيق المصادقة مربوط",
-    "appNotLinked": "لم يربط التطبيق بعد"
+    "appNotLinked": "لم يربط التطبيق بعد",
+    "accessEnded": "دخوله مغلق لانتهاء التعاقد منذ {{date}}"
   },
   "actions": {
     "roles": "الأدوار",

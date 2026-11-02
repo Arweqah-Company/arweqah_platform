@@ -32,7 +32,7 @@ export function HeaderActions({ employee: e, onDialog, onActivate }: Props) {
 
 /** Status badges and the secondary actions (invitation, authenticator reset, end of contract). */
 export function StatusRow({ employee: e, onDialog, onResend }: Omit<Props, 'onActivate'>) {
-  const { t } = useTranslation('employees');
+  const { t, i18n } = useTranslation('employees');
   const { t: tc } = useTranslation();
   const unplaced = !e.isSystemAccount && (!e.orgNode || !e.jobTitle);
   return (
@@ -40,6 +40,7 @@ export function StatusRow({ employee: e, onDialog, onResend }: Omit<Props, 'onAc
       <Badge tone={e.isActive ? 'success' : 'neutral'}>{tc(e.isActive ? 'status.active' : 'status.inactive')}</Badge>
       <Badge tone={e.authenticatorEnabled ? 'success' : 'warning'}>{e.authenticatorEnabled ? t('flags.appLinked') : t('flags.appNotLinked')}</Badge>
       {unplaced && <Badge tone="warning">{t('flags.needsPlacement')}</Badge>}
+      {e.accessEndedAt && <Badge tone="warning">{t('flags.accessEnded', { date: new Date(e.accessEndedAt).toLocaleDateString(i18n.language) })}</Badge>}
       <Can permission={P.EmployeesResendInvite}><Button size="sm" variant="ghost" onClick={onResend}>{t('actions.resendInvite')}</Button></Can>
       <Can permission={P.EmployeesResetAuthenticator}><Button size="sm" variant="ghost" onClick={() => onDialog('reset')}>{t('actions.resetAuthenticator')}</Button></Can>
       <Can permission={P.EmployeesTerminate}><Button size="sm" variant="ghost" onClick={() => onDialog('terminate')}>{t('actions.terminate')}</Button></Can>

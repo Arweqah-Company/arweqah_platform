@@ -215,6 +215,8 @@ export interface EmployeeDto {
   isActive: boolean;
   isSystemAccount: boolean;
   authenticatorEnabled: boolean;
+  /** When sign-in ended because the contract ended; null while it has not (or it came back). */
+  accessEndedAt: string | null;
   company: NamedRef;
   relationTypeId: string | null;
   orgNode: (NamedRef & { pathAr: string; pathEn: string }) | null;

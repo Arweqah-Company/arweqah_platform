@@ -133,7 +133,8 @@
     "idExpiring": "ID expiring soon",
     "contractEnding": "Contract ending soon",
     "appLinked": "Authenticator app linked",
-    "appNotLinked": "App not linked yet"
+    "appNotLinked": "App not linked yet",
+    "accessEnded": "Sign-in ended with the contract on {{date}}"
   },
   "actions": {
     "roles": "Roles",
