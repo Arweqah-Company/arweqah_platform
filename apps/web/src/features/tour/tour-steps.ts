@@ -13,5 +13,6 @@ export const SHELL_STEPS: TourStepUi[] = [
   { key: 'sidebar', target: '[data-tour="sidebar"]', placement: 'end', menu: 'drawer' },
   { key: 'finish', target: 'body', placement: 'center' },
   { key: 'admin-mode', target: '[data-tour="admin-mode"]', placement: 'bottom' },
+  { key: 'captcha-settings', target: PAGE_TITLE_TARGET, route: '/service-settings?tab=captcha', placement: 'bottom', can: [{ id: 'edit', permission: CorePermission.IntegrationsCaptchaEdit }, { id: 'test', permission: CorePermission.IntegrationsCaptchaTest }, { id: 'activate', permission: CorePermission.IntegrationsCaptchaActivate }, { id: 'export', permission: CorePermission.IntegrationsCaptchaExport }] },
   { key: 'tour-settings', target: PAGE_TITLE_TARGET, route: '/service-settings?tab=tour-settings', placement: 'bottom', can: [{ id: 'edit', permission: CorePermission.TourSettingsEdit }, { id: 'reorder', permission: CorePermission.TourSettingsReorder }, { id: 'reset', permission: CorePermission.TourSettingsReset }, { id: 'export', permission: CorePermission.TourSettingsExport }] },
 ];

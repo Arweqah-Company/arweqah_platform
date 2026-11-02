@@ -13,6 +13,8 @@ export const testProviderInputSchema = z.strictObject({
   values: valuesSchema.optional(),
   text: z.string().trim().min(1).max(TRANSLATE_MAX_CHARS).optional(),
   to: z.email().max(254).optional(),
+  /** The answer of the Turnstile widget shown in the test window (captcha). */
+  captchaToken: z.string().trim().min(1).max(4096).optional(),
 });
 export type TestProviderInput = z.infer<typeof testProviderInputSchema>;
 
@@ -47,4 +49,10 @@ export interface TestResultDto {
   message: string | null;
   /** The translation, for a translation test. */
   text: string | null;
+}
+
+/** What the sign-in page needs to show the bot check: the public site key, or nothing when no provider is active. */
+export interface CaptchaConfigDto {
+  provider: 'turnstile' | null;
+  siteKey: string | null;
 }

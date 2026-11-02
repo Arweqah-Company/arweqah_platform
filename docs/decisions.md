@@ -2,6 +2,15 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-02 — Bot protection (Turnstile)
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 139 | Turnstile is an integration kind (`captcha`) reusing the provider framework: encrypted secret, activation only after a passing test, a probe that runs the real widget; no active provider means no check | Same rule as e-mail and translation (owner: keys from the dashboard, not `.env`); sign-in must keep working before any key exists | A second bot-check provider is wanted |
+| 140 | Cloudflare unreachable (timeout 4 s or a 5xx) lets the person in and writes `captcha.unavailable` to the audit (fail-open); a wrong or missing answer is always refused with the single `CAPTCHA_FAILED` | An outage of a third party must not lock the company out; the e-mail step is also behind the request limit and the code check | The audit shows abuse during outages (then make it a setting) |
+| 141 | The check guards `identify` (the step that can e-mail an enrollment link); the Microsoft sign-in and the code step stay free of it. The nginx CSP allows `challenges.cloudflare.com` for scripts and frames permanently (nginx cannot know which provider is active), but the page loads the script only when a provider is active | The plan wanted the CSP only while active; a static header cannot do that, the web loads the script on demand | The CSP moves to a server that can render it per request |
+| 142 | A failed check answers 422 (a business rule), not 400 | One error family for every business refusal in the API | — |
+
 ## 2026-11-02 — Collaborator base
 
 | # | Decision | Why | Revisit when |

@@ -14,3 +14,10 @@ export const EmailProvidersController = integrationsController('email', 'email-s
   test: CorePermission.IntegrationsEmailTest,
   activate: CorePermission.IntegrationsEmailActivate,
 });
+
+export const CaptchaProvidersController = integrationsController('captcha', 'captcha-settings', {
+  view: CorePermission.IntegrationsCaptchaView,
+  edit: CorePermission.IntegrationsCaptchaEdit,
+  test: CorePermission.IntegrationsCaptchaTest,
+  activate: CorePermission.IntegrationsCaptchaActivate,
+});

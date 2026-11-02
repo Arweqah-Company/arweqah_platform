@@ -3,8 +3,8 @@ import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/lib/error-message';
-import { Alert, Button, Dialog, FormField, Input, Textarea } from '@/shared/ui';
-import { useTestProvider, type SentValues } from './api';
+import { Alert, Button, Dialog, FormField, Input, Textarea, Turnstile } from '@/shared/ui';
+import { useProviders, useTestProvider, type SentValues } from './api';
 import { useTryTranslation } from './use-try-translation';
 
 interface Props {
@@ -67,9 +67,44 @@ function EmailTest({ kind, providerKey, values }: Omit<Props, 'onClose' | 'provi
   );
 }
 
+/** The site key of the form, or the saved one when the form was not touched. */
+function useSiteKey(kind: IntegrationKind, providerKey: ProviderKey, values?: SentValues): string {
+  const saved = useProviders(kind).data?.providers.find((p) => p.providerKey === providerKey)?.values.siteKey;
+  const key = values?.siteKey ?? saved;
+  return typeof key === 'string' ? key : '';
+}
+
+function CaptchaResult({ result }: { result?: { ok: boolean; message: string | null } }) {
+  const { t } = useTranslation('integrations');
+  if (!result) return null;
+  if (result.ok) return <Alert tone="success">{t('test.captchaWorks')}</Alert>;
+  return <Alert>{t('test.problem')}: <span dir="auto" className="break-words">{result.message || t('test.failed')}</span></Alert>;
+}
+
+/** The real widget, shown with the site key in the form; its answer is verified with the secret key in the form. */
+function CaptchaTest({ kind, providerKey, values }: Omit<Props, 'onClose' | 'providerName'>) {
+  const { t } = useTranslation('integrations');
+  const test = useTestProvider(kind);
+  const [token, setToken] = useState<string | null>(null);
+  const [round, setRound] = useState(0);
+  const siteKey = useSiteKey(kind, providerKey, values);
+  const run = () => test.mutate({ providerKey, values, captchaToken: token ?? undefined }, { onSettled: () => setRound((r) => r + 1) });
+  return (
+    <div className="flex flex-col gap-4">
+      {siteKey ? <Turnstile siteKey={siteKey} onToken={setToken} resetKey={round} /> : <Alert tone="info">{t('test.captchaNeedsForm')}</Alert>}
+      <div className="flex justify-end">
+        <Button disabled={!token || test.isPending} onClick={run}>{test.isPending ? t('test.checking') : t('test.check')}</Button>
+      </div>
+      <CaptchaResult result={test.data} />
+    </div>
+  );
+}
+
+const BODIES = { translation: TranslationTest, email: EmailTest, captcha: CaptchaTest } as const;
+
 export function TestDialog({ kind, providerKey, providerName, values, onClose }: Props) {
   const { t } = useTranslation('integrations');
-  const Body = kind === 'translation' ? TranslationTest : EmailTest;
+  const Body = BODIES[kind];
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()} title={t('test.title', { name: providerName })} description={t(`test.description.${kind}`)}>
       <Body kind={kind} providerKey={providerKey} values={values} />

@@ -8,6 +8,7 @@ import { authCodeSchema, verifyCodeSchema, type BackupCodesDto, type EnrollmentS
 import { CurrentUser } from '../../../common/presentation/current-user.decorator';
 import type { AuthenticatedRequest, SessionUser } from '../../../common/presentation/request-context';
 import { AllowBeforeMfa } from '../../access/presentation/require-permission.decorator';
+import { CaptchaService } from '../../integrations/application/services/captcha.service';
 import { AppConfig } from '../../../config/app-config.service';
 import { AuthenticatorService } from '../application/authenticator.service';
 import { TrustedDevicesService } from '../application/trusted-devices.service';
@@ -17,7 +18,7 @@ import { AuthenticatorLockedError, InvalidCodeError } from '../domain/errors';
 
 class CodeBody extends createZodDto(authCodeSchema) {}
 class VerifyBody extends createZodDto(verifyCodeSchema) {}
-class EmailBody extends createZodDto(z.strictObject({ email: z.email().max(254) })) {}
+class EmailBody extends createZodDto(z.strictObject({ email: z.email().max(254), captchaToken: z.string().max(4096).optional() })) {}
 class TokenParam extends createZodDto(z.strictObject({ token: z.string().min(20).max(100) })) {}
 
 /**
@@ -32,6 +33,7 @@ export class MfaController {
     private readonly authenticator: AuthenticatorService,
     private readonly invitations: InvitationService,
     private readonly trusted: TrustedDevicesService,
+    private readonly captcha: CaptchaService,
     private readonly config: AppConfig,
   ) {}
 
@@ -39,7 +41,8 @@ export class MfaController {
   @Post('identify')
   @HttpCode(200)
   @AllowAnonymous()
-  identify(@Body() { email }: EmailBody): Promise<{ firstTime: boolean }> {
+  async identify(@Body() { email, captchaToken }: EmailBody, @Req() req: AuthenticatedRequest): Promise<{ firstTime: boolean }> {
+    await this.captcha.assert(captchaToken, req.ip ?? null);
     return this.invitations.identify(email);
   }
 

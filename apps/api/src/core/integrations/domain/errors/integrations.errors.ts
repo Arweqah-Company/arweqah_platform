@@ -16,7 +16,7 @@ export class ProviderNotTestedError extends BusinessRuleError {
 
 export class ProviderTestInputError extends BusinessRuleError {
   override readonly code = 'PROVIDER_TEST_INPUT';
-  constructor(what: 'text' | 'to') {
+  constructor(what: 'text' | 'to' | 'captchaToken') {
     super(`The test needs "${what}"`);
   }
 }
@@ -25,5 +25,13 @@ export class ProviderTestRateLimitedError extends BusinessRuleError {
   override readonly code = 'PROVIDER_TEST_RATE_LIMITED';
   constructor() {
     super('Too many provider tests, try again in a minute');
+  }
+}
+
+/** One message for every reason (missing, wrong, used, expired): it never tells a bot which part failed. */
+export class CaptchaFailedError extends BusinessRuleError {
+  override readonly code = 'CAPTCHA_FAILED';
+  constructor() {
+    super('The bot check failed, try again');
   }
 }

@@ -7,7 +7,7 @@ class Screen extends BasePage {}
 test.use({ storageState: ADMIN_STATE });
 test.afterEach(async ({ page }) => adminModeOffViaApi(page));
 
-const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
+const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished.catch(() => undefined))));
 
 test.describe('Exceptions page (FR-70)', () => {
   test('shows the list of what was given outside the job title, with its search and filters, and is accessible', async ({ page }) => {

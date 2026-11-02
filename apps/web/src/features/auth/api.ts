@@ -1,4 +1,5 @@
-import type { BackupCodesDto, EnrollmentStartDto } from '@arweqah-platform/shared';
+import { useQuery } from '@tanstack/react-query';
+import type { BackupCodesDto, CaptchaConfigDto, EnrollmentStartDto } from '@arweqah-platform/shared';
 import { apiClient } from '@/core/api/api-client';
 
 /** E-mail + code of the authenticator app. A 401 always means "e-mail or code is not valid". */
@@ -17,4 +18,7 @@ export const startEnrollment = () => apiClient.post<EnrollmentStartDto>('/mfa/en
 export const confirmEnrollment = (code: string) => apiClient.post<BackupCodesDto>('/mfa/enroll/confirm', { code });
 
 /** Sign-in step 1: says whether this is a first sign-in (the server then e-mails the QR link). */
-export const identifyEmail = (email: string) => apiClient.post<{ firstTime: boolean }>('/mfa/identify', { email });
+export const identifyEmail = (email: string, captchaToken?: string) => apiClient.post<{ firstTime: boolean }>('/mfa/identify', { email, ...(captchaToken ? { captchaToken } : {}) });
+
+/** Which bot check the sign-in page shows (none until an administrator switches one on). */
+export const useCaptchaConfig = () => useQuery({ queryKey: ['captcha-config'], queryFn: () => apiClient.get<CaptchaConfigDto>('/captcha/config'), staleTime: 60_000 });
