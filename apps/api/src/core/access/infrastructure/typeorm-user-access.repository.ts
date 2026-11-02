@@ -5,7 +5,7 @@ import { LEVEL_HEAD_DEFAULT_PERMISSIONS, type PermissionGrant, type PermissionSc
 import type { TransactionContext } from '../../../common/application/transaction-runner';
 import { returnedRows } from '../../../common/infrastructure/query-result';
 import { managerOf } from '../../../common/infrastructure/typeorm-transaction-runner';
-import { NO_PLACEMENT, type Placement } from '../domain/access-context';
+import { NO_PLACEMENT, reachFrom, type Placement, type UnitReach } from '../domain/access-context';
 import { UserAccessRepository, type UserAccessRecord } from '../domain/access.repository';
 import { Role } from '../domain/role.entity';
 import { UserPermission } from '../domain/user-permission.entity';
@@ -98,32 +98,23 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
       isActive: user.isActive,
       grants,
       placement,
-      subtreeNodeIds: await this.subtreeOf(placement.orgNodeId),
-      managed: await this.managedUnitsOf(userId),
+      reach: await this.reachOf(userId, placement.orgNodeId),
     };
   }
 
-  /** The units whose head role the person holds because they manage them, and those units with everything below them. */
-  private async managedUnitsOf(userId: string): Promise<{ unitIds: string[]; subtreeIds: string[] }> {
-    const rows: { unitId: string; nodeId: string; depth: number }[] = await this.userRoles.manager.query(
-      `SELECT DISTINCT n.id AS "unitId", c.descendant_id AS "nodeId", c.depth AS depth
-       FROM employees e JOIN org_nodes n ON n.manager_id = e.id AND n.deleted_at IS NULL AND n.is_active
+  /** The units the person reaches: where they sit and the units whose head role they hold because they manage them, each with the levels below it. */
+  private async reachOf(userId: string, orgNodeId: string | null): Promise<UnitReach> {
+    const rows: { nodeId: string; depth: number }[] = await this.userRoles.manager.query(
+      `SELECT c.descendant_id AS "nodeId", c.depth AS depth FROM org_node_closure c WHERE c.ancestor_id = $2::uuid
+       UNION ALL
+       SELECT c.descendant_id, c.depth FROM employees e JOIN org_nodes n ON n.manager_id = e.id AND n.deleted_at IS NULL AND n.is_active
        JOIN roles r ON r.auto_rule = 'node_head' AND r.org_level_id = n.org_level_id
        JOIN user_roles ur ON ur.role_id = r.id AND ur.user_id = e.user_id
        JOIN org_node_closure c ON c.ancestor_id = n.id
        WHERE e.user_id = $1 AND e.deleted_at IS NULL`,
-      [userId],
+      [userId, orgNodeId],
     );
-    return { unitIds: [...new Set(rows.filter((r) => r.depth === 0).map((r) => r.unitId))], subtreeIds: [...new Set(rows.map((r) => r.nodeId))] };
-  }
-
-  private async subtreeOf(orgNodeId: string | null): Promise<string[]> {
-    if (!orgNodeId) return [];
-    const rows: { id: string }[] = await this.userRoles.manager.query(
-      'SELECT descendant_id AS id FROM org_node_closure WHERE ancestor_id = $1',
-      [orgNodeId],
-    );
-    return rows.map((r) => r.id);
+    return reachFrom(rows);
   }
 
   /** What a person holds: the permissions of their roles, of the roles inside their groups, and their own. */
