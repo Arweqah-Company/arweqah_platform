@@ -70,6 +70,16 @@
         "reset": "Reset a step to its original wording",
         "export": "Export the list of steps"
       }
+    },
+    "captcha-settings": {
+      "title": "Bot protection",
+      "body": "Switch on the Cloudflare Turnstile check on the sign-in page: enter the site key and the secret key, try them, and it can be activated only after the test passes. With no active provider no check is asked.",
+      "can": {
+        "edit": "Edit the service keys",
+        "test": "Try the keys with the real widget",
+        "activate": "Switch the check on and off",
+        "export": "Export the list of providers"
+      }
     }
   },
   "settings": {

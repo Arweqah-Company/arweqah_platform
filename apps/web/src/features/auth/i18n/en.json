@@ -47,5 +47,6 @@
   "next": "Continue",
   "failed": "Could not continue. Try again.",
   "changeEmail": "Change e-mail",
-  "firstTimeSent": "This is your first sign-in. We e-mailed you a link with a QR code: open it, scan the code with your authenticator app, then enter the code shown in the app here."
+  "firstTimeSent": "This is your first sign-in. We e-mailed you a link with a QR code: open it, scan the code with your authenticator app, then enter the code shown in the app here.",
+  "botCheckFailed": "The protection check did not pass, try again."
 }

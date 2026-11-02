@@ -5,11 +5,25 @@ import { useLocation, useNavigate } from 'react-router';
 import { ApiError } from '@/core/api/api-client';
 import { authClient } from '@/core/auth/auth-client';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
-import { Alert, Button, CodeInput, FormField, Input } from '@/shared/ui';
-import { identifyEmail, signInWithCode } from '../api';
+import { Alert, Button, CodeInput, FormField, Input, Turnstile } from '@/shared/ui';
+import { identifyEmail, signInWithCode, useCaptchaConfig } from '../api';
 import { AuthShell } from './auth-shell';
 
 type Step = 'email' | 'code';
+
+/** The bot check of the e-mail step: shown only while an administrator has one switched on; the button waits for its answer, and each request needs a fresh one. */
+function useBotCheck() {
+  const siteKey = useCaptchaConfig().data?.siteKey ?? null;
+  const [token, setToken] = useState<string | null>(null);
+  const [round, setRound] = useState(0);
+  return { siteKey, token, setToken, round, ready: !siteKey || !!token, refresh: () => setRound((r) => r + 1) };
+}
+
+function identifyFailure(failure: unknown, t: (key: string) => string): string {
+  if (!(failure instanceof ApiError)) return t('failed');
+  if (failure.status === 429) return t('tooMany');
+  return failure.code === 'CAPTCHA_FAILED' ? t('botCheckFailed') : t('failed');
+}
 
 export function LoginPage() {
   const { t } = useTranslation('auth');
@@ -22,6 +36,7 @@ export function LoginPage() {
   const [firstTime, setFirstTime] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const bot = useBotCheck();
   const rules = useRules();
   const emailLive = useLiveError(email, rules.email);
   const target = (location.state as { from?: string } | null)?.from ?? '/';
@@ -34,14 +49,15 @@ export function LoginPage() {
 
   const next = async (event: FormEvent) => {
     event.preventDefault();
-    if (busy || !email) return;
+    if (busy || !email || !bot.ready) return;
     setBusy(true);
     setError(null);
     try {
-      setFirstTime((await identifyEmail(email)).firstTime);
+      setFirstTime((await identifyEmail(email, bot.token ?? undefined)).firstTime);
       setStep('code');
     } catch (failure) {
-      setError(failure instanceof ApiError && failure.status === 429 ? t('tooMany') : t('failed'));
+      setError(identifyFailure(failure, t));
+      bot.refresh();
     } finally {
       setBusy(false);
     }
@@ -84,7 +100,8 @@ export function LoginPage() {
           <FormField label={t('email')} error={emailLive.error}>
             {(p) => <Input {...p} type="email" autoComplete="username" dir="ltr" placeholder="name@arweqah.sa" onBlur={emailLive.onBlur} value={email} onChange={(e) => setEmail(e.target.value)} required />}
           </FormField>
-          <Button type="submit" disabled={busy || !email}>{t('next')}</Button>
+          {bot.siteKey && <Turnstile siteKey={bot.siteKey} onToken={bot.setToken} resetKey={bot.round} />}
+          <Button type="submit" disabled={busy || !email || !bot.ready}>{t('next')}</Button>
         </form>
       ) : (
         <CodeStep email={email} firstTime={firstTime} error={error} code={code} busy={busy} onCode={setCode} onSubmit={(e, full) => void submit(e, full)} onBack={back} />

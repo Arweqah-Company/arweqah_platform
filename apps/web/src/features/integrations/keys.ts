@@ -27,4 +27,12 @@ export const KIND_SETTINGS: Record<IntegrationKind, KindSettings> = {
     exportKey: CorePermission.IntegrationsEmailExport,
     listKey: 'email-providers',
   },
+  captcha: {
+    view: CorePermission.IntegrationsCaptchaView,
+    edit: CorePermission.IntegrationsCaptchaEdit,
+    test: CorePermission.IntegrationsCaptchaTest,
+    activate: CorePermission.IntegrationsCaptchaActivate,
+    exportKey: CorePermission.IntegrationsCaptchaExport,
+    listKey: 'captcha-providers',
+  },
 };

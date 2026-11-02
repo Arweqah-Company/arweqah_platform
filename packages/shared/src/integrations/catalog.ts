@@ -3,15 +3,17 @@
  * drives the API (what is required, what is secret, what is valid) and the web (which fields the form shows), so a
  * provider is added here once. Secrets are stored encrypted and never sent back to the browser.
  */
-export const INTEGRATION_KINDS = ['translation', 'email'] as const;
+export const INTEGRATION_KINDS = ['translation', 'email', 'captcha'] as const;
 export type IntegrationKind = (typeof INTEGRATION_KINDS)[number];
 
 export const TRANSLATION_PROVIDERS = ['aws', 'google', 'azure'] as const;
 export const EMAIL_PROVIDERS = ['smtp', 'ses', 'sendgrid', 'graph'] as const;
-export const PROVIDERS_OF = { translation: TRANSLATION_PROVIDERS, email: EMAIL_PROVIDERS } as const;
+export const CAPTCHA_PROVIDERS = ['turnstile'] as const;
+export const PROVIDERS_OF = { translation: TRANSLATION_PROVIDERS, email: EMAIL_PROVIDERS, captcha: CAPTCHA_PROVIDERS } as const;
 export type TranslationProviderKey = (typeof TRANSLATION_PROVIDERS)[number];
 export type EmailProviderKey = (typeof EMAIL_PROVIDERS)[number];
-export type ProviderKey = TranslationProviderKey | EmailProviderKey;
+export type CaptchaProviderKey = (typeof CAPTCHA_PROVIDERS)[number];
+export type ProviderKey = TranslationProviderKey | EmailProviderKey | CaptchaProviderKey;
 
 /** How a value is checked beyond "not empty". */
 export type FieldFormat = 'sender' | 'email' | 'url' | 'service-account-json';
@@ -47,6 +49,8 @@ export const PROVIDER_FIELDS: Record<ProviderKey, ProviderField[]> = {
   ],
   ses: [text('accessKeyId'), secret('secretAccessKey'), text('region', { defaultValue: 'me-south-1' }), sender()],
   sendgrid: [secret('apiKey'), sender()],
+  // The site key is public (the sign-in page needs it); the secret key never leaves the server.
+  turnstile: [text('siteKey'), secret('secretKey')],
   graph: [text('tenantId'), text('clientId'), secret('clientSecret'), text('sender', { format: 'email' })],
 };
 
