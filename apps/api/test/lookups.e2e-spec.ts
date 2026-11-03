@@ -69,7 +69,7 @@ describe('Lookups and translations (FR-22)', () => {
   });
 
   it('answers 403 without lookups.view and 400 for a malformed query', async () => {
-    const plain = await t.factories.signIn(await t.factories.user());
+    const plain = await t.factories.signIn(await t.factories.user({ without: ['lookups.'] }));
     for (const path of ['/api/lookups', '/api/lookups/companies', '/api/lookups/org-nodes', '/api/lookups/job-titles', '/api/lookups/org-reference']) await plain.get(path).expect(403);
     const agent = await t.factories.signIn(await t.factories.user({ grants: viewer }));
     await agent.get('/api/lookups/org-nodes').query({ companyId: 'not-a-uuid' }).expect(400);

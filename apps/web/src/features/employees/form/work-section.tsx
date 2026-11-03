@@ -3,7 +3,7 @@ import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { SectionCard } from '@/shared/ui';
 import { useJobTitleOptions, useManagerSearch, useOrgNodeOptions } from '../api';
-import { ComboField, SelectField, TextField } from './fields';
+import { ComboField, SelectField, TextField, useLock } from './fields';
 import type { FormState } from './form-state';
 import type { EmployeeOptions } from './use-options';
 
@@ -25,7 +25,7 @@ export function WorkSection({ options, currentManager, employeeId }: Props) {
   const orgNodeId = watch('orgNodeId');
   const nodes = useOrgNodeOptions(companyId || undefined);
   const titles = useJobTitleOptions(orgNodeId || undefined);
-  const managers = useManagerSearch(search, employeeId);
+  const managers = useManagerSearch(search, employeeId, !useLock('managerId').locked);
 
   const nodeOptions = useMemo(() => (nodes.data ?? []).map((n) => ({ value: n.id, label: i18n.language === 'en' ? n.nameEn : n.nameAr })), [nodes.data, i18n.language]);
   const titleOptions = (titles.data ?? []).map((x) => ({ value: x.id, label: i18n.language === 'en' ? x.nameEn : x.nameAr }));

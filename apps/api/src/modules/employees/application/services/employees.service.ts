@@ -231,7 +231,10 @@ export class EmployeesService {
     return this.invite(employee.userId);
   }
 
-  managers(query: ManagerSearchQuery): Promise<ManagerOptionDto[]> {
+  /** Names and numbers of the whole company: only who adds people or edits more than their own record picks a manager (a plain employee's manager field is locked). */
+  managers(ctx: AccessContext, query: ManagerSearchQuery): Promise<ManagerOptionDto[]> {
+    const widerThanOwn = ctx.has(CorePermission.EmployeesCreate) || (ctx.scopeOf(CorePermission.EmployeesUpdate) ?? 'own') !== 'own';
+    if (!widerThanOwn) throw new ForbiddenError();
     return this.repo.searchManagers(query.search, query.excludeId);
   }
 

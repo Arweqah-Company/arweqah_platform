@@ -10,7 +10,7 @@ const SelfServiceContext = createContext(false);
 export const SelfServiceProvider = SelfServiceContext.Provider;
 
 /** Is this field locked for the person filling the form, and the hint that says why. */
-function useLock(name: string): { locked: boolean; hint?: string } {
+export function useLock(name: string): { locked: boolean; hint?: string } {
   const { t } = useTranslation('employees');
   const selfService = useContext(SelfServiceContext);
   const locked = selfService && !(SELF_EDITABLE_EMPLOYEE_FIELDS as readonly string[]).includes(name);

@@ -37,6 +37,22 @@ describe('A plain employee sees and edits only their own account (FR-83)', () =>
     await agent.get('/api/lookups/org-reference').expect(200);
   });
 
+  it('opens their own record with the names of every looked-up value, without holding the drop-down lists (FR-87)', async () => {
+    const org = await t.factories.org();
+    const me = await t.factories.user({ unit: org.unitA, without: ['lookups.'] });
+    const agent = await t.factories.signIn(me);
+    await agent.get('/api/lookups').expect(403);
+    const { names } = await own(agent, me);
+    expect(names).toBeDefined();
+    expect(Object.keys(names).sort()).toEqual(['contractCompany', 'contractType', 'gosiCompany', 'gosiSystem', 'healthInsuranceCompany', 'idType', 'maritalStatus', 'nationality', 'relationType', 'residencyStatus', 'salaryCurrency', 'terminationReason', 'workCountry']);
+  });
+
+  it('cannot list the people of the company: the manager picker and the group names are not theirs to read (FR-87)', async () => {
+    const { agent } = await setup();
+    await agent.get('/api/employees/managers').expect(403);
+    await agent.get('/api/lookups/role-groups').expect(403);
+  });
+
   it('cannot add, deactivate, end the contract of, import, export or give roles to anyone, themselves included', async () => {
     const { me, colleague, agent } = await setup();
     await agent.post('/api/employees').send({}).expect(403);

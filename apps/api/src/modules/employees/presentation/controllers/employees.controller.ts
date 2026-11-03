@@ -40,8 +40,8 @@ export class EmployeesController {
   /** Minimal employee list for the "direct manager" picker: any employee, only name and number. */
   @Get('managers')
   @RequirePermission(P.LookupsView)
-  managers(@Query() query: ManagerSearchDto): Promise<ManagerOptionDto[]> {
-    return this.employees.managers(query);
+  managers(@Access() ctx: AccessContext, @Query() query: ManagerSearchDto): Promise<ManagerOptionDto[]> {
+    return this.employees.managers(ctx, query);
   }
 
   @Get('summary')
