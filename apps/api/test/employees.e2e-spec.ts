@@ -1,5 +1,6 @@
 import { CorePermission, type LookupsDto, type PermissionGrant } from '@arweqah-platform/shared';
 import { describe, expect, it } from 'vitest';
+import { todayInRiyadh } from '../src/common/domain/riyadh-date';
 import { EmployeeLifecycleJob } from '../src/modules/employees/infrastructure/jobs/employee-lifecycle.job';
 import type { TestAgent, TestOrg, TestUnit, TestUser } from './factories/factories';
 import { codeFor } from './helpers/totp';
@@ -73,12 +74,13 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     for (const secret of ['1087654321', '9876.54', 'SA0380000000608010167519']) expect(audit).not.toContain(secret);
   });
 
-  it('validates the form (400): domain, IBAN, age, dates, pairs and conditional fields', async () => {
+  it('validates the form (400, or 422 for a domain that is not allowed): domain, IBAN, age, dates, pairs and conditional fields', async () => {
     const { agent, payload, org, lookups, pick } = await setup();
     const bad = async (overrides: Record<string, unknown>) => (await agent.post('/api/employees').send(payload(org.unitA, overrides))).status;
-    expect(await bad({ workEmail: 'someone@gmail.com' })).toBe(400);
-    expect(await bad({ workEmail: 'someone@sub.arweqah.sa' })).toBe(400);
-    expect(await bad({ workEmail: 'someone@arweqah.sa.evil.com' })).toBe(400);
+    expect(await bad({ workEmail: 'someone@gmail.com' })).toBe(422);
+    expect(await bad({ workEmail: 'someone@sub.arweqah.sa' })).toBe(422);
+    expect(await bad({ workEmail: 'someone@arweqah.sa.evil.com' })).toBe(422);
+    expect(await bad({ workEmail: 'not an address' })).toBe(400);
     expect(await bad({ iban: 'SA0000000000000000000000' })).toBe(400);
     expect(await bad({ iban: 'GB82WEST12345698765432' })).toBe(400);
     expect(await bad({ birthDate: '2015-01-01' })).toBe(400);
@@ -216,7 +218,7 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
 
   it('returns 403 to each role without the permission', async () => {
     const { org, payload } = await setup();
-    const none = await t.factories.signIn(await t.factories.user());
+    const none = await t.factories.signIn(await t.factories.user({ bare: true }));
     await none.get('/api/employees').expect(403);
     await none.post('/api/employees').send(payload(org.unitA)).expect(403);
     const viewer = await t.factories.signIn(await t.factories.user({ grants: [grant(P.EmployeesView, 'all')] }));
@@ -242,6 +244,83 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     const mine = (await t.db.query('SELECT id FROM employees WHERE user_id = $1', [self.body.id]))[0];
     expect((await agent.post(`/api/employees/${mine.id}/deactivate`).expect(422)).body.code).toBe('SELF_ACTION');
     expect(created.id).toBeTruthy();
+  });
+
+  it('lets a person change their own roles and groups only in platform admin mode (FR-69)', async () => {
+    const org = await t.factories.org();
+    const me = await t.factories.user({ unit: org.unitA, grants: [grant(P.AdminModeUse, 'all'), grant(P.EmployeesView, 'all'), grant(P.EmployeesAssignRoles, 'all'), grant(P.EmployeesAssignGroups, 'all'), grant(P.RolesView, 'all')] });
+    const plain = await t.factories.signIn(me);
+    // Outside the mode the administrative grants are off (FR-84), so giving roles is refused before the self check.
+    expect((await plain.put(`/api/employees/${me.employeeId}/roles`).send({ roleIds: [] }).expect(403)).body.code).toBe('ADMIN_MODE_REQUIRED');
+    expect((await plain.put(`/api/employees/${me.employeeId}/groups`).send({ groupIds: [] }).expect(403)).body.code).toBe('ADMIN_MODE_REQUIRED');
+    await t.factories.freshStep(me);
+    const admin = await t.factories.signInAdminMode(me);
+    await admin.put(`/api/employees/${me.employeeId}/groups`).send({ groupIds: [] }).expect(200);
+    await admin.put(`/api/employees/${me.employeeId}/roles`).send({ roleIds: [] }).expect(200);
+  });
+
+  it('lists the people with no unit or job title to place, and never asks for a new employee without them (FR-72)', async () => {
+    const { org, agent, payload } = await setup();
+    const unplaced = await t.factories.user();
+    const placed = await t.factories.user({ unit: org.unitA });
+    const ids = ((await agent.get('/api/employees').query({ needsPlacement: 'true', pageSize: 100 }).expect(200)).body.items as { id: string; needsPlacement: boolean }[]);
+    expect(ids.map((e) => e.id)).toContain(unplaced.employeeId);
+    expect(ids.map((e) => e.id)).not.toContain(placed.employeeId);
+    expect(ids.every((e) => e.needsPlacement)).toBe(true);
+    const withoutTitle = Object.fromEntries(Object.entries(payload(org.unitA)).filter(([key]) => key !== 'jobTitleId'));
+    expect((await agent.post('/api/employees').send(withoutTitle).expect(400)).body.code).toBeDefined();
+    expect((await agent.post('/api/employees').send({ ...payload(org.unitA), jobTitleId: null }).expect(400)).body.code).toBeDefined();
+  });
+
+  it('cuts sign-in the day after the end date (Riyadh), keeps it through the end date, and says so on the employee (FR-71)', async () => {
+    const { org, agent, payload } = await setup();
+    const day = (offset: number): string => new Date(Date.parse(`${todayInRiyadh()}T00:00:00Z`) + offset * 86_400_000).toISOString().slice(0, 10);
+    const ended = (await agent.post('/api/employees').send(payload(org.unitA)).expect(201)).body.employee;
+    const lastDay = (await agent.post('/api/employees').send(payload(org.unitA)).expect(201)).body.employee;
+    await t.db.query('UPDATE employees SET end_date = $2 WHERE id = $1', [ended.id, day(-1)]);
+    await t.db.query('UPDATE employees SET end_date = $2 WHERE id = $1', [lastDay.id, day(0)]);
+    const job = t.app.get(EmployeeLifecycleJob);
+    expect(await job.deactivateEnded()).toBe(1);
+    expect(await job.deactivateEnded()).toBe(0);
+    expect((await agent.get(`/api/employees/${ended.id}`).expect(200)).body).toMatchObject({ isActive: false, accessEndedAt: expect.any(String) });
+    expect((await agent.get(`/api/employees/${lastDay.id}`).expect(200)).body).toMatchObject({ isActive: true, accessEndedAt: null });
+    expect(await job.deactivateEnded(day(1))).toBe(1);
+  });
+
+  it('ends sign-in at once when a contract is ended in the past, and an open session stops working (FR-71)', async () => {
+    const { org, agent, lookups, pick } = await setup();
+    const day = (offset: number): string => new Date(Date.parse(`${todayInRiyadh()}T00:00:00Z`) + offset * 86_400_000).toISOString().slice(0, 10);
+    const person = await t.factories.user({ unit: org.unitA });
+    const session = await t.factories.signIn(person);
+    await session.get('/api/me').expect(200);
+    await agent.post(`/api/employees/${person.employeeId}/terminate`).send({ endDate: day(-1), terminationReasonId: pick(lookups.terminationReasons, 'resignation') }).expect(200);
+    expect((await t.db.query('SELECT access_ended_at FROM employees WHERE id = $1', [person.employeeId]))[0].access_ended_at).not.toBeNull();
+    await session.get('/api/me').expect(401);
+  });
+
+  it('gives sign-in back when the end date is removed or moved out, only to who may switch accounts on, and not while the date is still past (FR-71)', async () => {
+    const { org, agent, payload } = await setup();
+    const day = (offset: number): string => new Date(Date.parse(`${todayInRiyadh()}T00:00:00Z`) + offset * 86_400_000).toISOString().slice(0, 10);
+    const make = async () => {
+      const e = (await agent.post('/api/employees').send(payload(org.unitA)).expect(201)).body.employee;
+      await t.db.query('UPDATE employees SET end_date = $2 WHERE id = $1', [e.id, day(-3)]);
+      await t.app.get(EmployeeLifecycleJob).deactivateEnded();
+      return (await agent.get(`/api/employees/${e.id}`).expect(200)).body;
+    };
+    const active = async (id: string) => (await agent.get(`/api/employees/${id}`).expect(200)).body;
+    const moved = await make();
+    await agent.put(`/api/employees/${moved.id}`).send({ ...asUpdate(moved), endDate: day(30) }).expect(200);
+    expect(await active(moved.id)).toMatchObject({ isActive: true, accessEndedAt: null, endDate: day(30) });
+    const removed = await make();
+    await agent.put(`/api/employees/${removed.id}`).send({ ...asUpdate(removed), endDate: null }).expect(200);
+    expect(await active(removed.id)).toMatchObject({ isActive: true, accessEndedAt: null });
+    const stillPast = await make();
+    await agent.put(`/api/employees/${stillPast.id}`).send({ ...asUpdate(stillPast), endDate: day(-1) }).expect(200);
+    expect(await active(stillPast.id)).toMatchObject({ isActive: false, accessEndedAt: expect.any(String) });
+    const noSwitch = await t.factories.signIn(await t.factories.user({ grants: hr.filter((g) => g.key !== P.EmployeesDeactivate) }));
+    const another = await make();
+    await noSwitch.put(`/api/employees/${another.id}`).send({ ...asUpdate(another), endDate: day(30) }).expect(200);
+    expect(await active(another.id)).toMatchObject({ isActive: false, endDate: day(30) });
   });
 
   it('ends a contract with a reason, and the account stops working after the end date (job is idempotent)', async () => {
@@ -360,7 +439,7 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     expect(summary).toMatchObject({ total: 4, active: 4, inactive: 0, contractEnding: 1, idExpiring: 0, needsPlacement: 1 });
     const unitViewer = await t.factories.signIn(await t.factories.user({ unit: org.unitA, grants: [grant(P.EmployeesView, 'unit')] }));
     expect((await unitViewer.get('/api/employees/summary').expect(200)).body.total).toBe(2);
-    const plain = await t.factories.signIn(await t.factories.user());
+    const plain = await t.factories.signIn(await t.factories.user({ bare: true }));
     await plain.get('/api/employees/summary').expect(403);
   });
 
@@ -377,8 +456,8 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
 
 /** The editable fields of an employee as the form would send them back. */
 function asUpdate(e: Record<string, unknown> & { orgNode?: { id: string } | null; jobTitle?: { id: string } | null; company?: { id: string } }): Record<string, unknown> {
-  const { id, userId, isActive, isSystemAccount, authenticatorEnabled, company, orgNode, jobTitle, manager, roles, groups, sensitiveHidden, createdAt, updatedAt, ...rest } = e as Record<string, unknown>;
-  void [id, userId, isActive, isSystemAccount, authenticatorEnabled, roles, groups, sensitiveHidden, createdAt, updatedAt];
+  const { id, userId, isActive, isSystemAccount, authenticatorEnabled, accessEndedAt, company, orgNode, jobTitle, manager, roles, groups, sensitiveHidden, createdAt, updatedAt, ...rest } = e as Record<string, unknown>;
+  void [id, userId, isActive, isSystemAccount, authenticatorEnabled, accessEndedAt, roles, groups, sensitiveHidden, createdAt, updatedAt];
   const clean = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== null));
   return { ...clean, companyId: (company as { id: string }).id, orgNodeId: (orgNode as { id: string }).id, jobTitleId: (jobTitle as { id: string }).id, managerId: (manager as { id: string } | null)?.id ?? null };
 }

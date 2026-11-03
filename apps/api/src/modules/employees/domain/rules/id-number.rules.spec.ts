@@ -38,10 +38,16 @@ describe('Work e-mail domain (FR-17)', () => {
     for (const bad of ['a@gmail.com', 'a@sub.arweqah.sa', 'a@arweqah.sa.evil.com', 'a@arweqah.com', 'a@xarweqah.sa', 'arweqah.sa']) expect(isWorkEmail(bad), bad).toBe(false);
   });
 
-  it('the form schema rejects other domains and stores the address in lower case', () => {
+  it('takes the domains it is given, and the default one when it is given none', () => {
+    expect(isWorkEmail('a@partner.org', ['partner.org', 'arweqah.sa'])).toBe(true);
+    expect(isWorkEmail('a@arweqah.sa', ['partner.org'])).toBe(false);
+    expect(isWorkEmail('a@arweqah.sa')).toBe(true);
+  });
+
+  it('the form schema checks the shape of the address and stores it in lower case (the domain is the API\'s to check)', () => {
     const base = { companyId: crypto.randomUUID(), orgNodeId: crypto.randomUUID(), jobTitleId: crypto.randomUUID(), employeeNumber: 'E1', fullName: 'Test', startDate: '2026-01-01' };
-    expect(createEmployeeSchema.safeParse({ ...base, workEmail: 'someone@gmail.com' }).success).toBe(false);
-    expect(createEmployeeSchema.safeParse({ ...base, workEmail: 'a@arweqah.sa@gmail.com' }).success).toBe(false);
+    expect(createEmployeeSchema.safeParse({ ...base, workEmail: 'not an address' }).success).toBe(false);
+    expect(createEmployeeSchema.safeParse({ ...base, workEmail: 'someone@gmail.com' }).success).toBe(true);
     const ok = createEmployeeSchema.safeParse({ ...base, workEmail: 'Some.One@Arweqah.SA' });
     expect(ok.success && ok.data.workEmail).toBe('some.one@arweqah.sa');
   });

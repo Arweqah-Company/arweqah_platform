@@ -29,7 +29,7 @@ describe('Roles contract (FR-05, FR-43, FR-46, FR-47, FR-68, FR-69)', () => {
 
   it('knows how roles are assigned and which automatic rules follow the organization', () => {
     expect([...ROLE_ASSIGNMENTS]).toEqual(['auto', 'manual']);
-    expect([...ROLE_AUTO_RULES]).toEqual(['everyone', 'has_reports', 'job_title', 'node_head']);
+    expect([...ROLE_AUTO_RULES]).toEqual(['everyone', 'has_reports', 'job_title', 'node_head', 'limited_access']);
     expect([...DERIVED_ROLE_RULES]).toEqual(['job_title', 'node_head']);
     expect(isDerivedRule('job_title')).toBe(true);
     expect(isDerivedRule('node_head')).toBe(true);

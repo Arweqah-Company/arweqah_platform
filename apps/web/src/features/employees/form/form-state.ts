@@ -46,6 +46,8 @@ export interface FormState {
   iban: string;
   notes: string;
   roleIds: string[];
+  /** The last day of a role, by role id (a role with no end date is not in it). */
+  roleExpiries: Record<string, string>;
 }
 
 const TEXT_KEYS = [
@@ -60,7 +62,7 @@ export const EMPTY_FORM: FormState = {
   workPhone: '', personalPhone: '', employeeNumber: '', fullName: '', fullNameEn: '', gender: '', birthDate: '', nationalityId: '', maritalStatusId: '',
   residencyStatusId: '', idTypeId: '', idNumber: '', idExpiryDate: '', startDate: '', endDate: '', contractTypeId: '', contractTypeOther: '', contractCompanyId: '',
   gosiCompanyId: '', healthInsuranceCompanyId: '', isGosiRegistered: false, gosiRegistrationDate: '', gosiSystemId: '', profession: '', isQiwaContract: false,
-  hasMedicalInsurance: false, terminationReasonId: '', terminationReasonOther: '', monthlyGrossSalary: '', salaryCurrencyCountryId: '', iban: '', notes: '', roleIds: [],
+  hasMedicalInsurance: false, terminationReasonId: '', terminationReasonOther: '', monthlyGrossSalary: '', salaryCurrencyCountryId: '', iban: '', notes: '', roleIds: [], roleExpiries: {},
 };
 
 const blank = (value: string): string | null => (value.trim() === '' ? null : value.trim());
@@ -68,7 +70,20 @@ const blank = (value: string): string | null => (value.trim() === '' ? null : va
 /** The API payload; roles are given when an employee is added (later changes use the roles dialog, and the update refuses the key). */
 export function toPayload(form: FormState, editing = false): Record<string, unknown> {
   const { roleIds, ...rest } = payloadFields(form);
-  return editing ? rest : { ...rest, roleIds };
+  return editing ? rest : { ...rest, roleIds, roleExpiries: roleExpiriesToSend(form, {}) };
+}
+
+/**
+ * The end dates to send with the roles: those typed for a role that is ticked; a role that had a date and lost it is sent as null (no end date).
+ * Nothing when there is nothing to say, so the server keeps the dates it has.
+ */
+export function roleExpiriesToSend(form: Pick<FormState, 'roleIds' | 'roleExpiries'>, saved: Record<string, string>): Record<string, string | null> | undefined {
+  const entries = form.roleIds.flatMap((id): [string, string | null][] => {
+    const day = form.roleExpiries[id];
+    if (day) return [[id, day]];
+    return saved[id] ? [[id, null]] : [];
+  });
+  return entries.length ? Object.fromEntries(entries) : undefined;
 }
 
 /** Empty inputs become null, numbers become numbers; unknown to the API: nothing. */
@@ -110,6 +125,7 @@ function structuralState(e: EmployeeDto): Partial<FormState> {
     hasMedicalInsurance: e.hasMedicalInsurance,
     monthlyGrossSalary: e.monthlyGrossSalary === null ? '' : String(e.monthlyGrossSalary),
     roleIds: e.roles.map((r) => r.id),
+    roleExpiries: Object.fromEntries(e.roles.filter((r) => r.expiresAt).map((r) => [r.id, r.expiresAt as string])),
   };
 }
 
@@ -127,14 +143,14 @@ export const employeeResolver: Resolver<FormState> = (values) => {
   const errors: FieldErrors<FormState> = {};
   for (const issue of parsed.error.issues) {
     const field = String(issue.path[0] ?? 'root') as keyof FormState;
-    if (!errors[field]) (errors as Record<string, unknown>)[field] = { type: issue.code, message: isMissing(issue) ? 'required' : field };
+    if (!errors[field]) (errors as Record<string, unknown>)[field] = { type: issue.code, message: isMissing(issue, values[field]) ? 'required' : field };
   }
   return { values: {}, errors };
 };
 
-function isMissing(issue: { code: string; input?: unknown; message: string }): boolean {
-  // A rule that failed on a value that is there (e.g. a wrong e-mail domain) is not "missing".
-  return issue.code !== 'custom' && (issue.code === 'invalid_type' || issue.input === '' || issue.input === undefined);
+function isMissing(issue: { code: string }, value: unknown): boolean {
+  // A rule that failed on a value that is there (a malformed e-mail) is not "missing"; zod does not carry the input in its issues, so the form value says.
+  return issue.code === 'invalid_type' || (issue.code !== 'custom' && (value === '' || value === undefined || value === null));
 }
 
 /** The same ID-number rule as the API (type, and nationality for some types), applied while typing, in the user's language. */

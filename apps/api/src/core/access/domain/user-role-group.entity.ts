@@ -1,8 +1,9 @@
 import { Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import { GrantStamp } from './grant-stamp.entity';
 
 /** One group given to one person. */
 @Entity('user_role_groups')
-export class UserRoleGroup {
+export class UserRoleGroup extends GrantStamp {
   @PrimaryColumn({ name: 'user_id', type: 'uuid' })
   userId: string;
 
@@ -17,4 +18,8 @@ export class UserRoleGroup {
   @ManyToOne('RoleGroup', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'group_id', foreignKeyConstraintName: 'FK_user_role_groups_group' })
   private readonly groupFk?: unknown;
+
+  @ManyToOne('User', { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'granted_by', foreignKeyConstraintName: 'FK_user_role_groups_granted_by' })
+  private readonly grantedByFk?: unknown;
 }

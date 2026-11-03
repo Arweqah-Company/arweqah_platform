@@ -1,3 +1,4 @@
+import { SecuritySettingsService } from '../../src/core/auth/application/security-settings.service';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
@@ -13,6 +14,8 @@ import { Translator } from '../../src/core/translation/domain/contracts/translat
 import { LookupsSeeder } from '../../src/database/seeds/lookups.seeder';
 import { Factories } from '../factories/factories';
 import { AdminModeProbeController } from '../fakes/admin-mode-probe.controller';
+import { CaptchaVerifier } from '../../src/core/integrations/domain/contracts/captcha-verifier';
+import { FakeCaptchaVerifier } from '../fakes/fake-captcha-verifier';
 import { FakeMailSender } from '../fakes/fake-mail-sender';
 import { FakeMailTransportFactory, FakeProviders, FakeTranslatorFactory } from '../fakes/fake-provider-factories';
 import { FakeTranslator } from '../fakes/fake-translator';
@@ -37,6 +40,7 @@ export interface TestContext {
   mail: FakeMailSender;
   translator: FakeTranslator;
   providers: FakeProviders;
+  captcha: FakeCaptchaVerifier;
 }
 
 /**
@@ -49,6 +53,7 @@ export function useTestApp(): TestContext {
     ctx.mail = new FakeMailSender();
     ctx.translator = new FakeTranslator();
     ctx.providers = new FakeProviders();
+    ctx.captcha = new FakeCaptchaVerifier();
     const moduleRef = await Test.createTestingModule({ imports: [AppModule], controllers: [AdminModeProbeController] })
       .overrideProvider(MailSender)
       .useValue(ctx.mail)
@@ -56,6 +61,8 @@ export function useTestApp(): TestContext {
       .useValue(ctx.translator)
       .overrideProvider(TranslatorFactory)
       .useValue(new FakeTranslatorFactory(ctx.providers))
+      .overrideProvider(CaptchaVerifier)
+      .useValue(ctx.captcha)
       .overrideProvider(MailTransportFactory)
       .useValue(new FakeMailTransportFactory(ctx.providers))
       .compile();
@@ -69,14 +76,7 @@ export function useTestApp(): TestContext {
     await ctx.app.get(LookupsSeeder).run();
     ctx.factories = new Factories(ctx.app);
   });
-  beforeEach(async () => {
-    ctx.mail.sent.length = 0;
-    ctx.translator.calls.length = 0;
-    ctx.providers.reset();
-    ctx.app.get(ActiveProviders).invalidate('translation');
-    ctx.app.get(ActiveProviders).invalidate('email');
-    await truncateAll(ctx.db);
-  });
+  beforeEach(() => resetBetweenTests(ctx));
   afterAll(async () => {
     await ctx.app?.close();
   });
@@ -87,4 +87,18 @@ async function truncateAll(db: DataSource): Promise<void> {
   const tables: { tablename: string }[] = await db.query(`SELECT tablename FROM pg_tables WHERE schemaname = 'public'`);
   const names = tables.map((t) => t.tablename).filter((name) => !REFERENCE_TABLES.has(name));
   await db.query(`TRUNCATE ${names.map((n) => `"${n}"`).join(', ')} RESTART IDENTITY CASCADE`);
+}
+
+/** Every test starts from empty tables, a quiet mail box and translator, and no request limit (the specs about the limit set their own). */
+async function resetBetweenTests(ctx: TestContext): Promise<void> {
+  ctx.mail.sent.length = 0;
+  ctx.translator.calls.length = 0;
+  ctx.providers.reset();
+  ctx.captcha.calls.length = 0;
+  ctx.app.get(ActiveProviders).invalidate('captcha');
+  ctx.app.get(ActiveProviders).invalidate('translation');
+  ctx.app.get(ActiveProviders).invalidate('email');
+  await truncateAll(ctx.db);
+  await ctx.db.query(`INSERT INTO security_settings (key, value) VALUES ('requestsPerMinute', 100000)`);
+  ctx.app.get(SecuritySettingsService).invalidate();
 }

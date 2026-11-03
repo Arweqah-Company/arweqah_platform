@@ -39,13 +39,18 @@ export interface ContractTypeLookupDto extends LookupItemDto {
   isOther: boolean;
 }
 
+/** A relation with limited access (a collaborator): the Employee role is replaced by the collaborator base and the contract end date is required. */
+export interface RelationTypeLookupDto extends LookupItemDto {
+  limitedAccess: boolean;
+}
+
 export interface OtherFlagLookupDto extends LookupItemDto {
   isOther: boolean;
 }
 
 /** Everything the employee form needs in one response: flags and rules come from here, not from code. */
 export interface LookupsDto {
-  relationTypes: LookupItemDto[];
+  relationTypes: RelationTypeLookupDto[];
   countries: CountryLookupDto[];
   maritalStatuses: LookupItemDto[];
   residencyStatuses: LookupItemDto[];
@@ -61,6 +66,9 @@ export interface OrgNodeOptionDto {
   path: string;
   pathAr: string;
   pathEn: string;
+  /** The unit's own name, for drop-downs that show the name only. */
+  nameAr: string;
+  nameEn: string;
   /** Default direct manager of the unit (employee id) when set, else the nearest ancestor's. */
   defaultManagerId: string | null;
 }

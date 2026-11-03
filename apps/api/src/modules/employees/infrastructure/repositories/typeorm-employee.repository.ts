@@ -69,6 +69,7 @@ export class TypeOrmEmployeeRepository extends EmployeeRepository {
     const today = new Date().toISOString().slice(0, 10);
     const soon = new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
     if (query.idExpiring) qb.andWhere('e.id_expiry_date IS NOT NULL AND e.id_expiry_date <= :soon', { soon });
+    if (query.needsPlacement) qb.andWhere('e.is_system_account = false AND (e.org_node_id IS NULL OR e.job_title_id IS NULL)');
     if (query.contractEnding) qb.andWhere('e.end_date IS NOT NULL AND e.end_date BETWEEN :today AND :soon', { today, soon });
   }
 
@@ -155,6 +156,10 @@ export class TypeOrmEmployeeRepository extends EmployeeRepository {
 
   async exists(id: string): Promise<boolean> {
     return (await this.repo.count({ where: { id } })) > 0;
+  }
+
+  async setAccessEnded(id: string, at: Date | null): Promise<void> {
+    await this.ds.query('UPDATE employees SET access_ended_at = $2, updated_at = now() WHERE id = $1', [id, at]);
   }
 
   async endedStillActive(today: string): Promise<{ id: string; userId: string }[]> {

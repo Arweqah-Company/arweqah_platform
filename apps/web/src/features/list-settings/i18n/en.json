@@ -235,6 +235,19 @@
         "status": "State",
         "customised": "Changed from the original"
       }
+    },
+    "captcha-providers": {
+      "name": "Bot protection services",
+      "columns": {
+        "provider": "Service",
+        "status": "Status",
+        "tested": "Last test",
+        "active": "In use"
+      },
+      "filters": {
+        "status": "Status",
+        "active": "In use"
+      }
     }
   },
   "listHint": "The first column (the name) always stays.",

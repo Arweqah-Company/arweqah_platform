@@ -1,4 +1,5 @@
 {
+  "pick": { "search": "Search by name", "empty": "No matches." },
   "title": "Employees",
   "description": "Employee records and their sign-in accounts, within your permissions.",
   "add": "Add employee",
@@ -26,6 +27,7 @@
   "saveAndInvite": "Save and send invitation",
   "saved": "Changes saved.",
   "sections": {
+    "roles": "Roles",
     "work": "Work",
     "contact": "Contact",
     "personal": "Personal",
@@ -88,6 +90,7 @@
     "remote": "Remote"
   },
   "hints": {
+    "hrOnly": "Changed by HR or the platform administrator.",
     "pickCompanyFirst": "Choose the company first.",
     "pickUnitFirst": "Choose the unit first.",
     "managerDefault": "The unit's manager is proposed for a new employee; you can change it or clear it. A direct manager is not required.",
@@ -104,7 +107,7 @@
   "validation": {
     "required": "This field is required.",
     "invalid": "The value is not valid.",
-    "workEmail": "The work email must end with @arweqah.sa.",
+    "workEmail": "The work email is not a valid address.",
     "personalEmail": "Not a valid email, or the same as the work email.",
     "workPhone": "Use the international format, e.g. +966501234567.",
     "personalPhone": "Use the international format, e.g. +966501234567.",
@@ -133,7 +136,8 @@
     "idExpiring": "ID expiring soon",
     "contractEnding": "Contract ending soon",
     "appLinked": "Authenticator app linked",
-    "appNotLinked": "App not linked yet"
+    "appNotLinked": "App not linked yet",
+    "accessEnded": "Sign-in ended with the contract on {{date}}"
   },
   "actions": {
     "roles": "Roles",
@@ -196,7 +200,8 @@
         "deactivate": "Deactivate an account or end an employee’s service",
         "sensitive": "See national ID, IBAN and salary",
         "import": "Import employees from a file",
-        "export": "Export the list of employees"
+        "export": "Export the list of employees",
+        "impersonate": "Sign in as an employee to see what they see (when it is switched on in the security settings)"
       }
     }
   },
@@ -212,12 +217,13 @@
     "titleBadge": "Job title role",
     "titleMissing": "Choose the job title in the first step and its role appears here.",
     "extra": "Other roles",
-    "extraHint": "Optional. The head roles of the employee's company, the manual roles and what the person already holds; only roles you can give are listed.",
+    "extraHint": "Optional. The head roles of the employee's company, the manual roles and what the person already holds; only roles you can give are listed. A last day can be set for each role.",
     "noExtra": "No more roles are available.",
     "defaults": "Default roles",
     "defaultsHint": "The Employee role and the role of the job title chosen in the first step are ticked from the start. You can untick either.",
     "headBadge": "Level head",
     "computedBadge": "Automatic (has reports)",
-    "everyoneOff": "Without the Employee role the employee will not see their personal pages (my account, security, notifications, tickets)."
+    "everyoneOff": "Without the Employee role the employee will not see their personal pages (my account, security, notifications, tickets).",
+    "endDate": "Ends on (optional): {{role}}"
   }
 }

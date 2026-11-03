@@ -82,3 +82,50 @@ export class RoleTemplateError extends BusinessRuleError {
     super('A role made for a job title or a level cannot be the template of another');
   }
 }
+
+export class PastEndDateError extends BusinessRuleError {
+  override readonly code = 'PAST_END_DATE';
+  constructor() {
+    super('The end date cannot be in the past');
+  }
+}
+
+/** «Sign in as» is switched off in the security settings. */
+export class ImpersonationDisabledError extends BusinessRuleError {
+  override readonly code = 'IMPERSONATION_DISABLED';
+  constructor() {
+    super('Signing in as another employee is switched off');
+  }
+}
+
+/** The person cannot be signed in as: themselves, or an account that is not active. */
+export class ImpersonationTargetError extends BusinessRuleError {
+  override readonly code = 'IMPERSONATION_TARGET_INVALID';
+  constructor() {
+    super('You cannot sign in as this account');
+  }
+}
+
+/** Already working as someone else: go back to your own account first. */
+export class ImpersonationNestedError extends BusinessRuleError {
+  override readonly code = 'IMPERSONATION_NESTED';
+  constructor() {
+    super('Go back to your own account before signing in as someone else');
+  }
+}
+
+/** The action is not allowed while working as another employee (roles, security, the person's own sign-in). */
+export class ImpersonationForbiddenError extends ForbiddenError {
+  override readonly code = 'IMPERSONATION_FORBIDDEN';
+  constructor() {
+    super('This action is not allowed while you are signed in as another employee');
+  }
+}
+
+/** The «sign in as» session ran out (idle) or the feature was switched off: only going back to your own account works. */
+export class ImpersonationEndedError extends ForbiddenError {
+  override readonly code = 'IMPERSONATION_ENDED';
+  constructor() {
+    super('This session ended. Go back to your own account');
+  }
+}

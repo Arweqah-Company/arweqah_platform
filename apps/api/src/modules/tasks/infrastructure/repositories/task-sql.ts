@@ -53,5 +53,5 @@ export function reachSql(scope: PermissionScope | null, viewer: TaskViewer, empl
   if (scope === 'company') return viewer.companyId ? `${employee}.company_id = ${bind(viewer.companyId)}` : 'FALSE';
   const direct = viewer.employeeId ? `${employee}.manager_id = ${bind(viewer.employeeId)}` : 'FALSE';
   if (scope === 'unit') return direct;
-  return `(${direct} OR ${employee}.org_node_id = ANY(${bind([...viewer.subtreeNodeIds])}))`;
+  return `(${direct} OR ${employee}.org_node_id = ANY(${bind([...(viewer.reachNodes?.[scope] ?? viewer.subtreeNodeIds)])}))`;
 }

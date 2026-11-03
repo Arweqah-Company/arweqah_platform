@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { CorePermission, HIDEABLE_PAGES, type HideablePage, type PageVisibilityDto, type RolePagesInput } from '@arweqah-platform/shared';
+import { CorePermission, HIDEABLE_PAGES, type HideablePage, type PageVisibilityDto, type RoleOriginDto, type RolePagesInput } from '@arweqah-platform/shared';
 import { NotFoundError } from '../../../common/domain/domain-error';
 import { AUDIT_EVENT, type AuditEvent } from '../../audit/application/audit.events';
 import type { AccessContext } from '../domain/access-context';
@@ -13,6 +13,14 @@ import { ACCESS_CHANGED } from './access.events';
 const CACHE_TTL_MS = 30_000;
 const isPage = (key: string): key is HideablePage => (HIDEABLE_PAGES as readonly string[]).includes(key);
 const isLocked = (role: Role): boolean => role.permissions.some((p) => p.key === CorePermission.PagesManage);
+
+/** Many job title roles share a name, so a picker shows where a title role belongs: «Accountant (Unit · Company)». */
+function withOrigin(name: string, origin: RoleOriginDto | null, language: 'ar' | 'en'): string {
+  if (!origin) return name;
+  const unit = language === 'ar' ? origin.unitNameAr : origin.unitNameEn;
+  const company = language === 'ar' ? origin.companyNameAr : origin.companyNameEn;
+  return `${name} (${unit ? `${unit} · ` : ''}${company})`;
+}
 
 /** Which pages are hidden from which roles, and what that means for one person (hidden only when every one of their roles hides it). */
 @Injectable()
@@ -39,7 +47,7 @@ export class PageVisibilityService {
     const [roles, rules] = await Promise.all([this.roles.findAll(), this.rules.allRules()]);
     return {
       pages: [...HIDEABLE_PAGES],
-      roles: roles.map((r) => ({ id: r.id, nameAr: r.nameAr, nameEn: r.nameEn, locked: isLocked(r), hiddenPages: (rules.get(r.id) ?? []).filter(isPage) })),
+      roles: roles.map((r) => ({ id: r.id, nameAr: withOrigin(r.nameAr, r.origin, 'ar'), nameEn: withOrigin(r.nameEn, r.origin, 'en'), locked: isLocked(r), hiddenPages: (rules.get(r.id) ?? []).filter(isPage) })),
     };
   }
 

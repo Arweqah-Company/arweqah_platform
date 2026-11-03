@@ -1178,3 +1178,125 @@ shared/data-exchange/   export-file · template · read-sheet · csv · mapping 
 - **ما تم:** حُذفت عبارات المزامنة لأدوار «الجميع» والمسمى والقائد (بقي `has_reports` وصيانة أدوار المسميات والمستويات)؛ إنشاء الموظف بلا `roleIds` (الاستيراد/الـAPI) يعطيه دور «موظف» ودور مسماه، وإرسال قائمة يعطي ما فيها فقط؛ منح الأدوار مقيّد بما يملكه المانح إلا «موظف» ودور مسمى الشخص نفسه؛ دور القائد يُعطى لمدير الوحدة عند إنشاء الوحدة أو تغيير مديرها أو حالتها (`syncHeadRole` من `OrgNodesService`) ويُسحب ممن لم يعد يدير وحدة نشطة في المستوى؛ مُنح دور «موظف» للأدمن الأول عند إنشائه. الفورم: دور «موظف» ودور المسمى معلّمان من البداية (ويتبدّل دور المسمى عند تغيير المسمى) ويمكن إلغاؤهما، مع تنبيه عند إلغاء «موظف»، وأدوار قيادة شركة الموظف والأدوار اليدوية وما يحمله الموظف أصلًا ظاهرة للاختيار، و«مدير مباشر» مقفل. لا يُرسل الفورم `roleIds` لمن لا يملك خطوة الأدوار فيأخذ الموظف الافتراضيين.
 - **أين:** `core/access/{application/user-access.service,infrastructure/typeorm-user-access.repository,domain/access.repository}`، `modules/employees/application/services/employees.service.ts`، `modules/org/application/services/org-nodes.service.ts`، `database/seeds/foundation.seeder.ts`، `packages/shared/src/employees/schemas.ts`، `features/employees/{employee-form-page.tsx,form/{roles-step,use-default-roles,use-employee-form}}`.
 - **التحقق:** `auto-roles.e2e-spec.ts` و`level-head-roles.e2e-spec.ts` وبقية الأدوار (43 اختبارًا لهذا الجزء) واختبارات المكوّن (30 بمجلد الموظفين).
+
+### 2026-11-02 — عمق رؤية الصلاحية (المرحلة 4.1-د من `docs/plans/phase-4-access.md`، FR-80)
+- **ما تم:** نطاق جديد `subtree:N` (الوحدة وN مستويات تحتها، N من 1 إلى 5) لكل صلاحية تسمح بـ`subtree`، فيحدد مدير المنصة لكل دور قائد (ولكل دور ومجموعة وشخص) عمق رؤيته بحرية: قائد القطاع يرى الإدارات فقط، وقائد القسم كل ما تحته. مجموعة وحدات الشخص خريطة واحدة (وحدة ← أقل عمق) من مكان تسكينه والوحدات التي يديرها (`AccessContext.nodesFor`)، تغذي القوائم (`applyScope`) وفحص السجل (`AbilityFactory`) والتذاكر وامتداد المهام (`TaskViewer.reachNodes`). `org.view` صار يقبل نطاقي الوحدة والشجرة: الهيكل يعرض الوحدات التي يطالها النطاق فقط وأعلاها كجذر. قائمة النطاق في مصفوفة الأدوار تعرض خيارات العمق بالعربية والإنجليزية. تسميات النطاق في `useScopeLabel`.
+- **أين:** `packages/shared/src/permissions/scope.ts`، `core/access/{domain/access-context,infrastructure/{scope-query,typeorm-user-access.repository},application/{ability.factory,permission-catalog}}`، `modules/{org,tasks}`، `features/roles/permission-matrix.tsx`، `shared/lib/use-scope-label.ts`.
+- **التحقق:** `scope-depth.e2e-spec.ts` (5: شجرة الهيكل بعمق 1 و2 والتحقق من الشركة الأخرى، الموظفون بحسب العمق، رفض عمق خارج المدى أو لصلاحية لا تسمح، منع منح عمق أوسع)، و16 اختبار وحدة (ترتيب النطاقات، `nodesFor`، `applyScope`، المهام، الكتالوج)، واختباران لمصفوفة الأدوار.
+
+### 2026-11-02 — الاستثناءات بتاريخ انتهاء وقائمتها (المرحلة 4.2 من `docs/plans/phase-4-access.md`، FR-70)
+- **ما تم:** أعمدة `expires_at` و`granted_by` و`granted_at` على `user_roles` و`user_permissions` و`user_role_groups` (migration `AccessExceptions`)؛ الدور أو الصلاحية الشخصية أو مجموعة الأدوار تسري **حتى** آخر يوم (بتوقيت الرياض) ثم تسقط فورًا، ومهمة ليلية (03:10) تحذف المنتهي وتكتبه في التدقيق (`access.exception_expired`)؛ استبدال الأدوار أو المجموعات أو الصلاحيات يحفظ تاريخ ما بقي؛ فورم الموظف (الخطوة 2) فيه حقل «ينتهي في» لكل دور معلَّم (غير «موظف» ودور المسمى)، والـAPI يرفض تاريخًا ماضيًا أو لدور غير ممنوح. صفحة **الاستثناءات** (`/exceptions`، وضع المدير، `exceptions.view`): قائمة بالشخص والنوع والممنوح والنطاق بالكلمات ومن منحه ومتى وآخر يوم، بحث وفلاتر (النوع، من منح، ينتهي خلال 7/14/30/60 يومًا، بلا انتهاء) وجدول/بطاقات وتصدير، وإجراءان على الصف: تغيير التاريخ وسحب الاستثناء؛ المفاتيح `exceptions.view/update/revoke/export` في `keys.ts` و`access.permissions.ts` وإخفاء الصفحة (`HIDEABLE_PAGES`) وكتالوج القوائم وخطوة جولة الترحيب. كذلك أُصلح `e2e/tests/page-visibility.spec.ts` (أدوار المسميات صارت كثيرة بنفس الاسم) وصار منتقي الأدوار في إخفاء الصفحات يعرض «الدور (الوحدة · الشركة)».
+- **أين:** `core/access/{domain,application/access-exceptions.service,infrastructure/typeorm-access-exception.repository,presentation/access-exceptions.controller}`، `packages/shared/src/exceptions`، `modules/employees` (تواريخ الأدوار)، `features/exceptions`، `features/employees/form/{roles-step,form-state,use-employee-form}`، `common/domain/riyadh-date.ts`.
+- **التحقق:** `access-exceptions.e2e-spec.ts` (7) و`tour.e2e-spec.ts` (+1)، واختبارات مكوّن (صفحة الاستثناءات 5، خطوة الأدوار +2)، واختبار `todayInRiyadh`، وPlaywright `exceptions.spec.ts` (لم يُشغَّل محليًا).
+
+### 2026-11-02 — سحب الدخول في اليوم التالي لتاريخ الخروج (المرحلة 4.3 من `docs/plans/phase-4-access.md`، FR-71)
+- **ما تم:** كانت مهمة يومية تعطّل الحساب بعد تاريخ الإنهاء موجودة لكنها تحسب اليوم بتوقيت UTC؛ صارت تعمل 00:05 بتوقيت الرياض وبتاريخها، وتسجّل `employees.access_ended_at`؛ إنهاء التعاقد بتاريخ ماضٍ يعطّل فورًا (وتنتهي الجلسة المفتوحة)؛ إزالة تاريخ النهاية أو نقله إلى اليوم أو بعده يعيد الدخول لمن يملك `employees.deactivate` (ولا يعيده بدونه ولا مع بقاء التاريخ ماضيًا)؛ صفحة الموظف تعرض «دخوله مغلق لانتهاء التعاقد منذ…»؛ تدقيق `employee.access_restored`. استثناء «متابعة طلب الخروج» ونسخة البريد مؤجلان لوحدة الطلبات.
+- **أين:** `modules/employees/{application/services/employees.service,infrastructure/jobs/employee-lifecycle.job,infrastructure/repositories,domain/entities}`، migration `EmployeeAccessEnded`، `features/employees/employee-actions.tsx`.
+- **التحقق:** 3 اختبارات جديدة في `employees.e2e-spec.ts` (الإغلاق في اليوم التالي بتوقيت الرياض، الإغلاق الفوري وانتهاء الجلسة، الاستعادة بالشروط).
+
+### 2026-11-02 — المسمى الوظيفي لكل شخص (المرحلة 4.4 من `docs/plans/phase-4-access.md`، FR-72)
+- **ما تم:** المسمى (والوحدة) كان مطلوبًا أصلًا عند إضافة موظف أو تعديله ويرفضه الـAPI بلا مسمى أو بمسمى null، وعدّاد «بحاجة لتسكين» على الرئيسية؛ أُضيف فلتر «بحاجة لتسكين» (`needsPlacement`) في قائمة الموظفين (أي شخص بلا وحدة أو مسمى، دون حساب النظام) لتصفية الموجودين. **لم يُضف قيد قاعدة البيانات** (قرار 129): كل مصانع اختبارات الـAPI تنشئ أشخاصًا بلا وحدة فسيفشل القيد فيها، وحساب النظام بلا مسمى؛ يُضاف بعد تعديل المصانع وتصفية الموجودين.
+- **أين:** `packages/shared/src/employees/schemas.ts`، `typeorm-employee.repository.ts`، `features/employees/employees-filters.ts`، كتالوج القوائم.
+- **التحقق:** اختبار API جديد (الفلتر ورفض الإنشاء بلا مسمى) واختبار وحدة للفلتر.
+
+### 2026-11-02 — الجلسات والأجهزة الموثوقة وإعدادات الأمان (المرحلة 4.5 من `docs/plans/phase-4-access.md`، FR-73 وFR-74)
+- **ما تم:** صفحة الأمان تعرض جلسات الشخص (المتصفح والنظام، العنوان مخفي آخره، آخر نشاط، الحالية معلَّمة) مع إنهاء جلسة أو كل الأخرى؛ «تذكّر هذا الجهاز» في خطوة الرمز بعد الدخول بمايكروسوفت (يظهر إن حدد المدير أيامًا فوق 0): كوكي HttpOnly بسرّ يُحفظ له hash في `trusted_devices`، فتُتخطى خطوة الرمز على هذا المتصفح في الدخول التالي بمايكروسوفت حتى انتهاء المدة (الدخول بالبريد لا يُتخطى)، وقائمة الأجهزة الموثوقة بإلغاء لكل جهاز، وتُلغى كلها عند إعادة ضبط المصادق أو تعطيل الحساب. تبويب «الأمان» في الإعدادات: `trustedDeviceDays` و`requestsPerMinute` (جدول `security_settings`)، بمفاتيح `security_settings.view/edit` وإخفاء الصفحة. **المناطق المحمية (G6) لم تُبنَ** لأن وضع مدير المنصة يطلب رمزًا جديدًا غير مستعمل (قرار 132).
+- **أين:** `core/auth/{application/{sessions,trusted-devices,security-settings}.service,infrastructure,presentation/{sessions,security-settings}.controller+device-cookie,domain}`، `packages/shared/src/security`، migration `SecuritySettingsAndTrustedDevices`، `features/security`، `features/auth/pages/verify-page.tsx`، `features/integrations/settings-page.tsx`.
+- **التحقق:** `device-security.e2e-spec.ts` (7) و`device-description.spec.ts` واختبارات مكوّن (صفحة الأمان 4، التبويب 2، خطوة الرمز +3).
+
+### 2026-11-02 — سلامة السجل، حدّ الطلبات، نطاقات البريد (FR-75…77)
+- **ما تم:** سجل التدقيق صار سلسلة تجزئة (`seq/prev_hash/hash`) تُكتب بقفل استشاري، مع trigger يمنع التعديل والحذف، ومسار `GET /audit-logs/verify` ومهمة أسبوعية للفحص. حدّ الطلبات في الدقيقة صار من الإعدادات (guard أول). نطاقات البريد المسموحة قائمة يحررها المدير في تبويب «الأمان» (الافتراضي `arweqah.sa` عند الفراغ) والتحقق في الـAPI لا في المخطط المشترك.
+- **أين:** `core/audit` (`audit-chain`، المستودع، الخدمة)، `common/application/rate-window`، `core/auth/application/allowed-email-domains.service`، migrations `AuditHashChain` و`AllowedEmailDomains`، `features/security/email-domains-card.tsx`.
+- **التحقق:** `audit-chain.e2e-spec` (6)، `request-rate.e2e-spec` (3)، `device-security` و`employees` e2e (33)، `audit-chain.spec` و`rate-window.spec`، اختبار مكوّن لقائمة النطاقات (صفحة الأمان 7 ناجحة).
+
+### 2026-11-02 — أساس المتعاون (المرحلة 4.7 من `docs/plans/phase-4-access.md`، FR-79)
+- **ما تم:** عمود `relation_types.limited_access` (يُعلَّم به «متعاون»)، ودور تلقائي «أساس المتعاون» (`auto_rule = limited_access`) بصلاحيات حسابه الشخصي والأمان والإشعارات فقط. المتعاون الجديد يأخذ هذا الدور بدل دور الموظف مع دور مسماه، ويُرفض بلا تاريخ نهاية (422)، وتغيير العلاقة يبدّل الدور الأساسي فقط. نموذج الموظف يطبّق التحديد نفسه ويعلّم تاريخ النهاية إلزاميًا. سحب الدخول بعد التاريخ يعمل بالمهمة الليلية القائمة (FR-71). أُصلح أيضًا: رسالة بريد العمل في النموذج (لا قاعدة نطاق في المخطط المشترك) وتمييز «ناقص» عن «غير صحيح».
+- **أين:** `migration CollaboratorBase`، `core/access` (`defaultRoleIdsFor`, `swapBaseRole`)، `modules/lookups`، `modules/employees` (قواعد وخدمة)، `packages/shared` (`COLLABORATOR_BASE_PERMISSIONS`, `RelationTypeLookupDto`)، `features/employees/form/{use-default-roles,contract-section}`.
+- **لم يُبنَ بعد:** شارة «متعاون» في القائمة (الفلتر بنوع العلاقة موجود).
+- **التحقق:** `collaborator-base.e2e-spec` (4)، `employee-flags.rules.spec`، اختبارات نموذج الموظف (34 ناجحة).
+
+### 2026-11-02 — الحماية من الروبوتات Cloudflare Turnstile (المرحلة 4.6 من `docs/plans/phase-4-access.md`، FR-78)
+- **ما تم:** نوع تكامل جديد `captcha` بمزوّد `turnstile` (مفتاح الموقع علني، والسري مشفّر ولا يُرجَع). تبويب «الحماية من الروبوتات» في الإعدادات بنفس قائمة الخدمات (بحث وفلاتر وجدول/بطاقات وتصدير ونافذة مساعدة)، ولا يُفعَّل إلا بعد نجاح تجربة بالأداة الحقيقية بالمفاتيح نفسها. صفحة الدخول تعرض الأداة عند وجود مزوّد مفعَّل (`GET /captcha/config` بالمفتاح العلني فقط) و`POST /mfa/identify` يتحقق من الإجابة عبر Cloudflare (422 `CAPTCHA_FAILED` موحّد). بلا مزوّد مفعَّل لا فحص، وعند سقوط Cloudflare يُسمح بالدخول ويُدوَّن `captcha.unavailable` في التدقيق. خطوة جولة الإدارة `captcha-settings`، وCSP في nginx يسمح بـ`challenges.cloudflare.com`.
+- **أين:** `core/integrations` (`captcha.service`، `captcha-probe`، `turnstile.verifier`، `captcha.controller`، صلاحيات `integrations.captcha_*`)، `core/auth/presentation/mfa.controller`، `packages/shared/src/integrations`، `shared/ui/turnstile.tsx`، `features/integrations` (التبويب ونافذة التجربة)، `features/auth/pages/login-page.tsx`، `docker/nginx/web.conf`.
+- **التحقق:** `captcha.e2e-spec` (6)، `login-bot-check.test` (3)، `test-dialog.test` (+2)، Playwright `captcha.spec` و`tour.spec` و`exceptions.spec` ناجحة.
+- **ملاحظة:** خطوة تسجيل الدخول بالرمز (`/auth/totp/sign-in`) لا تحمل الفحص؛ تحميها خطوة الرمز نفسها وحدّ الطلبات.
+
+### 2026-11-02 — الاستثناءات تبويبًا في صفحة الأدوار (FR-70)
+- **ما تم:** صفحة الاستثناءات صارت تبويبًا «الاستثناءات» بجانب «الأدوار» في `/roles` (`?tab=exceptions`)، يظهر لمن يملك `exceptions.view` ولم تُخفَ الصفحة عنه، و`/exceptions` تعيد التوجيه إليه. أُزيل عنصر القائمة. بقيت المفاتيح ومفتاح الظهور وخطوة الجولة (تفتح التبويب).
+- **أين:** `features/roles/roles-page.tsx`، `features/exceptions/{exceptions-tab,index}`، اختبار `exceptions-tab.test`، وPlaywright `exceptions.spec`.
+- **التحقق:** اختبارات الويب 341 ناجحة، وPlaywright (أدناه).
+
+### 2026-11-02 — دور قائد لكل وحدة بدل كل مستوى في كل شركة (FR-69)
+- **ما تم:** دور «قائد {الوحدة}» لكل قطاع وإدارة وقسم ووحدة (مثل «قائد قطاع التشغيل وتقديم الخدمات») بدل دور لكل مستوى في كل شركة؛ العمود `roles.org_node_id` بدل `org_level_id`. الـmigration `NodeHeadRoles` أنشأ دورًا لكل وحدة حيّة بصلاحيات دور مستواها القديم وأعطاه لمدير الوحدة وحذف أدوار المستويات. الدور يُنشأ ويُعاد تسميته ويُحذف مع الوحدة. أُثبت باختبار أن دور الموظف لا يملك مفاتيح إضافة/تعديل الوحدة أو إضافة المسمى.
+- **أين:** `core/access` (الكيان والمستودعان والخدمة)، `modules/org/application/services/org-nodes.service`، migration `NodeHeadRoles`، `RoleDto.orgNodeId`، اختبارات `node-head-roles.e2e-spec` و`scope-depth` و`employee-default-permissions.spec`.
+- **التحقق:** 26 اختبار e2e للأدوار والنطاق والبذور، واختبار الوحدة الجديد، واختبارات الأدوار في الويب.
+
+### 2026-11-02 — دور قائد لكل وحدة بدل كل مستوى (FR-69)
+- **ما تم:** دور القائد صار لكل وحدة هيكلية (قطاع/إدارة/قسم/وحدة) باسمها، مثل «قائد قطاع التشغيل وتقديم الخدمات»، لا لكل مستوى في كل شركة (`roles.org_node_id` بدل `org_level_id`). يحمله مدير الوحدة، ويُسمّى ويُحذف مع وحدته، وتبدأ صلاحياته بما كان لدور مستواها (ترحيل `NodeHeadRoles` على كل الوحدات القائمة). إضافة الوحدات وتعديلها وتقسيمات الهيكل وإضافة المسمى تبقى للإدارة فقط، واختبار وحدة يثبت أن دور الموظف وأساس المتعاون لا يحملان مفاتيحها.
+- **أين:** `core/access` (الكيان والمستودع والخدمة)، `modules/org/application/services/org-nodes.service` (يمنح الدور بعد صنعه)، الترحيل، `features/roles` (وسم «قائد وحدة»).
+- **التحقق:** `node-head-roles.e2e-spec` و`scope-depth` و`auto-roles` و`seeds` (26 ناجحًا)، و`employee-default-permissions.spec`، واختبارات الويب.
+
+### 2026-11-02 — مرجع تصميم قاعدة البيانات (`docs/database-design.md`)
+- **ما تم:** ملف جديد فيه مخططات mermaid لكل الجداول الـ84 مقسّمة إلى 9 مجالات (الهوية، الصلاحيات، الهيكل، القوائم، الموظفون، التذاكر، المهام، محادثات المهام، خدمات المنصة) بأعمدتها والعلاقات، ثم جداول تصف عمل كل جدول. أُضيفت القاعدة 11 إلى `CLAUDE.md`: كل جدول جديد يُضاف إلى هذا الملف مع الترحيل نفسه. أُضيف رابط في README §6 والقرار 147 في `docs/decisions.md`.
+- **أين:** `docs/database-design.md`، `CLAUDE.md`، `README.md` §6، `docs/decisions.md`.
+- **التحقق:** المخطط مولَّد من قاعدة البيانات الحية (84 جدولًا، 106 مفتاحًا أجنبيًا) ومقارنة أسماء الأعمدة بالأوصاف؛ تغيير وثائق فقط بلا كود.
+
+### 2026-11-02 — مراجعة `docs/microsoft-sign-in.md` على الكود
+- **ما تم:** طابقت الملف بالكود (`env.schema`، `better-auth.factory`، `mfa.controller`، `check-microsoft.mjs`، `bootstrap.sh`، `deploy.yml`) وأضفت ما ينقص: متغيرات اختيارية (`SIGN_IN_RATE_LIMIT`، بذرة المدير)، قواعد رفض الإقلاع، خطوات الخادم (نسخ المفتاح)، «تذكّر هذا المتصفح» بعد Microsoft، التدقيق وحدّ المحاولات، ربط الحساب بالبريد، أن Microsoft خارج فحص Turnstile، رموز أخطاء إضافية، وقسم بريد Graph كإعداد منفصل.
+- **أين:** `docs/microsoft-sign-in.md`.
+- **التحقق:** مراجعة يدوية للكود المذكور؛ تغيير وثائق فقط.
+
+### 2026-11-02 — تعديل الهيكل يحتاج وضع مدير المنصة (FR-24)
+- **ما تم:** إضافة الوحدات وتعديلها ونقلها وحذفها وتقسيمات الهيكل وإضافة المسميات صارت تحتاج وضع مدير المنصة (`@RequireAdminMode()` على مسارات `/org` المعدِّلة، والقراءة مفتوحة لمن يملك `org.view`). أزرارها في صفحة الهيكل لا تظهر إلا والوضع مفعّل (`<Can adminMode>`). خطوتا الجولة «تقسيمات الهيكل» و«إضافة وحدة» انتقلتا إلى جولة الإدارة.
+- **التحقق:** اختبار API يثبت 403 `ADMIN_MODE_REQUIRED` لسبع عمليات، اختبارا مكوّن لإخفاء الأزرار وإظهارها، وPlaywright `org.spec` و`tour.spec`، وتحديث الاختبارات القديمة لتدخل وضع المدير.
+
+### 2026-11-02 — أدوار الموظف ظاهرة في صفحته، واسم الوحدة فقط في إضافة المسميات (FR-69)
+- **ما تم:** صفحة الموظف صار فيها قسم «الأدوار» (يظهر دور قائد الوحدة)، ونافذة الأدوار تعرض الأدوار التلقائية التي يحملها الشخص مؤشَّرة وأدوار قادة وحدات شركته، وقائمة الوحدة في «إضافة مسميات» تعرض اسم الوحدة فقط بدل المسار الكامل. التفاصيل في `docs/decisions.md` القرار 147.
+- **التحقق:** اختبار مكوّن `details-roles.test.tsx`، وtypecheck وlint واختبارات الموظفين والهيكل نجحت.
+
+### 2026-11-02 — بحث في قائمة الدور وفي الصلاحيات (FR-47)
+- **ما تم:** قائمة اختيار الدور/المجموعة في صفحة الصلاحيات فيها بحث (`Select` يقبل `searchable`)، ومصفوفة الصلاحيات (صفحة الصلاحيات ومحرر الدور) فوقها خانة بحث بالاسم أو المفتاح أو الوحدة؛ العلامات على الصفوف المخفية تبقى. القرار 148.
+- **التحقق:** اختبارا مكوّن (`permission-matrix.test.tsx`، `permissions-page.test.tsx`)، وverify السريع.
+
+### 2026-11-02 — مسار التنقل الكامل وبحث في نافذة أدوار الموظف
+- **ما تم:** مسار التنقل في كل صفحة صار: الرئيسية › مجموعة القائمة › القائمة (رابط، للصفحات الداخلية كالموظف والتذكرة) › الصفحة، يُقرأ من عناصر القائمة الظاهرة بدون إعداد لكل صفحة (`shared/ui/page-header.tsx`). نافذتا أدوار الموظف ومجموعاته فيهما بحث بالاسم (`pick-dialog.tsx`). القرار 149.
+- **التحقق:** اختبارات مكوّن (`page-header.test.tsx`، `pick-dialog.test.tsx`)، وكل اختبارات الواجهة نجحت، وverify السريع.
+
+### 2026-11-02 — قائمة الوحدة في نموذج الموظف تعرض الاسم فقط
+- **ما تم:** `OrgNodeOptionDto` فيه `nameAr/nameEn`، وقائمة الوحدة في إضافة الموظف وتعديله تعرض اسم الوحدة بدل المسار الكامل (المسار باقٍ في القوائم والفلاتر وقوالب الاستيراد). القرار 150.
+- **التحقق:** اختبارات نموذج الموظف، وtypecheck.
+
+### 2026-11-02 — تعديل الأدوار والمجموعات لحساب الشخص نفسه في وضع مدير المنصة، وهامش خطوات نموذج الموظف
+- **ما تم:** `PUT /employees/:id/roles` و`/groups` على حساب الشخص نفسه يُسمح بهما في وضع مدير المنصة فقط (خارجه `SELF_ACTION`)، فتعديل مسمى حسابك مع تبديل دور المسمى لا يُرفض عند المدير. شريط خطوات النموذج صار له هامش سفلي ولا يلتصق بالنموذج. القرار 151.
+- **التحقق:** اختبار API في `employees.e2e-spec.ts` (422 خارج وضع المدير، 200 داخله)، واختبارات نموذج الموظف.
+
+### 2026-11-02 — الموظف العادي يرى حسابه ويعدّل الحقول الذاتية فقط (FR-83)
+- **ما تم:** دور «موظف» وأدوار المسميات صار فيها `employees.view` و`employees.update` بنطاق `own` (migration `1793628000000`)؛ الخادم يرفض تغيير غير الحقول الذاتية (جوال العمل، الجوال الشخصي، البريد الشخصي، الاسم الإنجليزي) بـ422 `FIELD_NOT_EDITABLE`، والراتب والعملة والآيبان والهوية لا تُكتب أصلًا بلا `view_sensitive`؛ النموذج يقفل الحقول المحمية مع تلميح، وزر «تعديل» لا يظهر إلا في صف الشخص نفسه (`isOwn`). التفاصيل في G13 (`docs/plans/phase-4-access.md`) والقرار 152.
+- **التحقق:** `employee-self-service.e2e-spec.ts` (6 اختبارات)، واختبارا مكوّن (النموذج والقائمة)، و`npm run verify`.
+
+### 2026-11-03 — قاعدة الوصول إلى البيانات (SQL خام للمعقّد فقط)
+- **ما تم:** كُتبت القاعدة: العمليات البسيطة (جلب بالمفتاح، حفظ، حذف، فلاتر عادية) عبر TypeORM، والاستعلامات المعقدة فقط (union، `ON CONFLICT … RETURNING`، `DELETE … USING`، CTE، المرور على جدول الإغلاق، فلاتر النطاق على صفوف كثيرة، التقارير) SQL خام داخل `infrastructure/repositories` بمعاملات دائمًا ومغطّاة باختبار e2e على PostgreSQL حقيقية.
+- **أين:** `CLAUDE.md` (قاعدة «Data access» في قواعد المعمارية)، `docs/decisions.md` القرار 153.
+- **ملاحظة:** لم يُعدَّل أي كود؛ الملفات القائمة التي تستخدم SQL خام لأمر بسيط تُراجع عند المرور عليها، ولم أجرِ مسحًا لها الآن.
+
+### 2026-11-03 — خطة «دخول كـ» لمدير النظام (G15، FR-85) — خطة فقط
+- **ما تم:** كُتبت الخطة كاملة في `docs/plans/phase-4-access.md` (القسم G15 والمرحلة 4.12): القاعدة، البيانات (3 أعمدة على `auth_sessions` ومفتاحا إعدادات)، الـAPI، الصلاحية `impersonation.start`، الويب والشريط، التدقيق المزدوج، الإشعار، الإعدادات، الجولة، والاختبارات. **لم يُكتب أي كود.**
+- **أين:** `docs/plans/phase-4-access.md`.
+- **المتبقي:** موافقة المالك على الافتراضات المفتوحة ثم البناء.
+
+### 2026-11-03 — «دخول كـ» لمدير النظام (المرحلة 4.12 من `docs/plans/phase-4-access.md`، G15، FR-85)
+- **ما تم:** مدير النظام (مفتاح `impersonation.start` + وضع مدير النظام مفعّل + الميزة مشغّلة في الإعدادات) يعمل بحساب أي موظف نشط آخر بصلاحياته ونطاقه ودون رمز، ثم يعود لحسابه. الجلسة جلسة الموظف نفسه موسومة بالمدير (3 أعمدة على `auth_sessions`) ينشئها endpointان خادميان فقط في Better Auth. ممنوع داخلها: وضع المدير، التداخل، مصادق الموظف وأجهزته وجلساته وملفه، أدواره ومجموعاته وصلاحياته وحالة حسابه، وإعدادات الأمان. التدقيق مزدوج (`changes.impersonatedBy` + `impersonation.started/ended`)، وإشعار للموظف بعد الانتهاء. تنتهي بالعودة أو الخمول (30 د افتراضيًا) أو إيقاف الميزة. الإعدادان في تبويب الأمان (مُوقَفة افتراضيًا). في الويب: أيقونة في صف الموظف وزر في صفحته وشريط ثابت «العودة لحسابي».
+- **أين:** `core/access` (`impersonation.service`، `impersonation.rules`، المستودع والمحوّل، المتحكم، المعترِض، تعديل `permissions.guard` و`profile.service`)، `core/auth/infrastructure/impersonation.plugin.ts` و`better-auth.factory`، `core/audit` (`impersonation-stamp`)، migration `Impersonation`، `packages/shared` (مفاتيح، إعدادات، `MeDto`، `EmployeeListItemDto.userId`، التدقيق)، `apps/web/src/core/impersonation`، تبويب الأمان، صف الموظف وصفحته، `docs/database-design.md`، README (FR-85، مخطط §8، §12)، `docs/decisions.md` 161–166.
+- **التحقق:** API e2e `impersonation.e2e-spec` (14 اختبارًا: معطّلة افتراضيًا، 403 بلا مفتاح وخارج وضع المدير، البدء والعودة دون رمز، النفس/المجهول/المعطّل، مدير آخر دون وضع المدير، المحظورات، التدقيق بالاسمين، الخمول، الإيقاف أثناء الجلسة، سقوط جلسة المدير، endpoints غير قابلة للوصول عبر HTTP، الإعدادات)، واختبارات وحدة (`impersonation.rules`، ختم التدقيق)، واختبارات المكوّن (الشريط والزر وتبويب الإعدادات و`RequireAuth`)، وPlaywright `impersonation.spec` مع axe.
+
+### 2026-11-03 — إصلاح اختبارات Playwright بعد FR-84 (اختبارات فقط)
+- **ما تم:** (1) `e2e/global-setup.ts` صار يفعّل وضع مدير النظام قبل تخطّي الجولتين ثم يوقفه؛ كانت الجولة الإدارية تُتخطّى خارج الوضع فتظهر خطواتها «جديدة» عند أول تفعيل، وتظهر نافذة «أُضيفت 11 خطوة جديدة» فوق الصفحة وتعترض النقرات (أسقطت اختبارات القوائم والتنقل وظهور الصفحات والصلاحيات و«دخول كـ»). (2) `admin-mode.spec` يتوقع الآن صفحة 403 «ليس لديك صلاحية للدخول إلى هذه الصفحة» لصفحة إدارية خارج الوضع بدل الرسالة القديمة (قاعدة FR-84).
+- **ملاحظة تشغيل:** كل تشغيل e2e يستعمل قاعدة `arweqah_platform_test`؛ تشغيلان في وقت واحد (جلستان أو طرفيتان) يمسحان جداول بعضهما ويسببان فشلًا وهميًا وقفلًا ميتًا. للتشغيل المعزول: `CREATE DATABASE <name>_test`، ثم `DB_NAME=<name>_test NODE_ENV=test npm run migration:run -w @arweqah-platform/api` (يجب أن يسبق Playwright لأنه يشغّل الخادم قبل التهيئة)، ثم `DB_NAME=<name>_test npx playwright test`؛ الاسم يجب أن ينتهي بـ`_test`.
+- **التحقق:** حزمة سطح المكتب على قاعدة معزولة: 57 ناجحًا و7 فاشلة، ثم الملفات الثمانية المتأثرة (21 اختبارًا) كلها ناجحة بعد الإصلاحين.
+
+
+### 2026-11-03 — صلاحيات دور الإدارة داخل وضع مدير النظام فقط (FR-84) ودور «موظف» الواحد (FR-86)
+- **ما تم:** (1) خارج وضع مدير النظام لا تعمل صلاحيات الأدوار التي تحمل `admin_mode.use`؛ يبقى `admin_mode.use` فقط، وتعود الصلاحيات في جلسة الوضع (`AccessContext.elevate()`، `AdminModeService.effective`، الحارس)، والرد `ADMIN_MODE_REQUIRED` بدل 403 لما يملكه الشخص عبر الدور الإداري، والواجهة تعيد قراءة كل القوائم عند التبديل. (2) دور «موظف» العام (`everyone`) هو الأساس الوحيد لكل الناس: أضيف له الهيكل (`org.view`) والمهام الذاتية ومحادثاتها (هجرة `1793630000000-EmployeeRoleDefaults` + `EMPLOYEE_DEFAULT_PERMISSIONS`)؛ أدوار المسميات صارت تُسمّى «المسمى — الوحدة» وتبدأ فارغة (`RENAME_JOB_TITLE_ROLES`، `defaultTemplatePermissions` فارغ).
+- **أين:** `apps/api/src/core/access/*` (السياق، الحارس، الخدمة، المستودع)، `packages/shared/src/permissions/keys.ts`، الهجرة، `use-admin-mode.ts`؛ الخطة G14 وG16، README FR-84/FR-86، القرارات 154 و155.
+- **الاختبارات:** `admin-role-gating.e2e-spec.ts`، وحدات `access.spec.ts` و`employee-default-permissions.spec.ts`؛ خيار `without` في `factories.user` و`me()` للاختبارات عن شخص يفتقد المفاتيح؛ تعديل اختبارات API e2e وPlaywright التي كانت تعتمد على صلاحيات المدير خارج الوضع (الأخيرة تفعّل الوضع في `beforeEach`).
+- **ملاحظة:** دور المسمى الذي عدّله المالك بالخطأ (`Employee` للوحدة) يحمل صلاحيات إضافية (سجل البريد والتصدير)؛ بانتظار قرار حذفها.

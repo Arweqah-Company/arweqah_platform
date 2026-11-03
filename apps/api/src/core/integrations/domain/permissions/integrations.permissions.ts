@@ -13,4 +13,9 @@ export const INTEGRATIONS_PERMISSIONS: PermissionDefinition[] = [
   { key: CorePermission.IntegrationsEmailTest, module: MODULE, labelAr: 'إرسال بريد تجريبي بمزود البريد', labelEn: 'Send a test e-mail with an e-mail provider', scopes: ['all'] },
   { key: CorePermission.IntegrationsEmailActivate, module: MODULE, labelAr: 'تفعيل مزود البريد الإلكتروني وإيقافه', labelEn: 'Activate and switch off an e-mail provider', scopes: ['all'] },
   { key: CorePermission.IntegrationsEmailExport, module: MODULE, labelAr: 'تصدير قائمة مزودي البريد الإلكتروني', labelEn: 'Export the list of e-mail providers', scopes: ['all'] },
+  { key: CorePermission.IntegrationsCaptchaView, module: MODULE, labelAr: 'عرض صفحة الحماية من الروبوتات', labelEn: 'View the bot protection page', scopes: ['all'] },
+  { key: CorePermission.IntegrationsCaptchaEdit, module: MODULE, labelAr: 'تعديل مفاتيح الحماية من الروبوتات', labelEn: 'Edit the bot protection keys', scopes: ['all'] },
+  { key: CorePermission.IntegrationsCaptchaTest, module: MODULE, labelAr: 'تجربة مفاتيح الحماية من الروبوتات', labelEn: 'Try the bot protection keys', scopes: ['all'] },
+  { key: CorePermission.IntegrationsCaptchaActivate, module: MODULE, labelAr: 'تفعيل الحماية من الروبوتات وإيقافها', labelEn: 'Switch the bot protection on and off', scopes: ['all'] },
+  { key: CorePermission.IntegrationsCaptchaExport, module: MODULE, labelAr: 'تصدير قائمة مزودي الحماية من الروبوتات', labelEn: 'Export the list of bot protection providers', scopes: ['all'] },
 ];

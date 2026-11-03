@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { createMongoAbility, subject, type MongoAbility, type RawRuleOf } from '@casl/ability';
-import type { PermissionScope } from '@arweqah-platform/shared';
+import { isTreeScope, type PermissionScope } from '@arweqah-platform/shared';
 import type { AccessContext, ScopedResource } from '../domain/access-context';
 import { ForbiddenError } from '../../../common/domain/domain-error';
 
@@ -33,12 +33,10 @@ export class AbilityFactory {
         return base;
       case 'company':
         return companyId ? { ...base, conditions: { companyId } } : null;
-      case 'subtree':
-        return ctx.subtreeNodeIds.length ? { ...base, conditions: { orgNodeId: { $in: [...ctx.subtreeNodeIds] } } } : null;
-      case 'unit':
-        return ctx.unitNodeIds.length ? { ...base, conditions: { orgNodeId: { $in: [...ctx.unitNodeIds] } } } : null;
-      default:
-        return null;
+      default: {
+        const ids = ctx.nodesFor(scope);
+        return isTreeScope(scope) && ids.length ? { ...base, conditions: { orgNodeId: { $in: [...ids] } } } : null;
+      }
     }
   }
 

@@ -4,7 +4,7 @@ export interface RoleSeed {
   en: string;
   assignment: 'auto' | 'manual';
   note?: string;
-  autoRule?: 'everyone' | 'has_reports';
+  autoRule?: 'everyone' | 'has_reports' | 'limited_access';
 }
 
 const auto = (ar: string, en: string, extra: Partial<RoleSeed> = {}): RoleSeed => ({ ar, en, assignment: 'auto', ...extra });

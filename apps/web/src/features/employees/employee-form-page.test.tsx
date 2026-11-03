@@ -9,7 +9,7 @@ import { chooseOption } from '../../../test/select';
 const withPermissions = (keys: string[]) =>
   server.use(
     http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'all' as const }))))),
-    http.get('*/api/lookups/org-nodes', () => HttpResponse.json([{ id: 'node-1', path: 'قطاع › وحدة', pathAr: 'قطاع › وحدة', pathEn: 'Sector › Unit', defaultManagerId: 'boss-1' }])),
+    http.get('*/api/lookups/org-nodes', () => HttpResponse.json([{ id: 'node-1', path: 'قطاع › وحدة', pathAr: 'قطاع › وحدة', pathEn: 'Sector › Unit', nameAr: 'وحدة', nameEn: 'Unit', defaultManagerId: 'boss-1' }])),
     http.get('*/api/lookups/job-titles', () => HttpResponse.json([{ id: 'title-1', name: 'مطور', nameAr: 'مطور', nameEn: 'Developer' }])),
     http.get('*/api/employees/managers', () => HttpResponse.json([{ id: 'boss-1', employeeNumber: 'N1', fullName: 'خالد المدير' }])),
   );
@@ -74,7 +74,7 @@ describe('Employee form (FR-17, FR-18)', () => {
     fireEvent.click(await screen.findByText('أروقة الريادة'));
     await waitFor(() => expect(screen.getByRole('combobox', { name: 'الوحدة' })).toBeEnabled());
     fireEvent.click(screen.getByRole('combobox', { name: 'الوحدة' }));
-    fireEvent.click(await screen.findByText('قطاع › وحدة'));
+    fireEvent.click(await screen.findByText('وحدة'));
     expect(await screen.findByRole('option', { name: /مطور/ }, { timeout: 4000 }).catch(() => null)).toBeDefined();
     await waitFor(() => expect(within(screen.getByRole('combobox', { name: 'المدير المباشر' })).getByText('خالد المدير')).toBeInTheDocument());
   });
@@ -88,11 +88,11 @@ describe('Employee form (FR-17, FR-18)', () => {
     expect(called).toBe(false);
   });
 
-  it('rejects a work e-mail outside the company domain before it reaches the server', async () => {
+  it('rejects a work e-mail that is not an address before it reaches the server', async () => {
     await open();
-    fireEvent.change(screen.getByLabelText('بريد العمل *'), { target: { value: 'someone@gmail.com' } });
+    fireEvent.change(screen.getByLabelText('بريد العمل *'), { target: { value: 'not an address' } });
     fireEvent.click(screen.getByRole('button', { name: 'حفظ وإرسال الدعوة' }));
-    expect(await screen.findByText(/arweqah\.sa\./)).toBeInTheDocument();
+    expect(await screen.findByText('بريد العمل غير صحيح.')).toBeInTheDocument();
   });
 });
 
@@ -114,10 +114,10 @@ describe('Employee form validation while typing (FR-17, FR-18)', () => {
     expect(screen.queryByText('هذا الحقل مطلوب.')).not.toBeInTheDocument();
     fireEvent.blur(screen.getByLabelText('الرقم الوظيفي *'));
     expect(await screen.findByText('هذا الحقل مطلوب.')).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('بريد العمل *'), { target: { value: 'x@gmail.com' } });
-    expect(await screen.findByText(/arweqah\.sa\./)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('بريد العمل *'), { target: { value: 'x' } });
+    expect(await screen.findByText('بريد العمل غير صحيح.')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('بريد العمل *'), { target: { value: 'x@arweqah.sa' } });
-    await waitFor(() => expect(screen.queryByText(/arweqah\.sa\./)).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText('بريد العمل غير صحيح.')).not.toBeInTheDocument());
   });
 
   it('has two steps only for who may give roles, and stays on the first step while it has mistakes', async () => {

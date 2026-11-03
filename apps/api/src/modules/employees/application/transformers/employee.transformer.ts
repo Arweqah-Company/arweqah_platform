@@ -27,6 +27,12 @@ function isWithin(date: string | null, today: string, options: { fromPast: boole
 
 const daysFromToday = (date: string, today: string): number => Math.round((Date.parse(`${date}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000);
 
+const isoOrNull = (date: Date | null): string | null => (date ? date.toISOString() : null);
+
+/** The roles of a person with the last day of each that has one. */
+const roleRefs = (roles: { id: string; nameAr: string; nameEn: string }[] = [], expiries: Map<string, string> = new Map()) =>
+  roles.map((r) => ({ id: r.id, nameAr: r.nameAr, nameEn: r.nameEn, expiresAt: expiries.get(r.id) ?? null }));
+
 /** Turns employee rows into API shapes: names resolved, roles attached, sensitive values decrypted only for those allowed. */
 @Injectable()
 export class EmployeeTransformer {
@@ -39,7 +45,7 @@ export class EmployeeTransformer {
   ) {}
 
   async toDto(e: Employee, view: { isActive: boolean; sensitive: boolean }): Promise<EmployeeDto> {
-    const [companies, nodes, titles, managers, roles, groups, authenticatorEnabled] = await Promise.all([
+    const [companies, nodes, titles, managers, roles, groups, authenticatorEnabled, expiries] = await Promise.all([
       this.org.describeCompanies([e.companyId]),
       this.org.describeNodes(e.orgNodeId ? [e.orgNodeId] : []),
       this.org.describeTitles(e.jobTitleId ? [e.jobTitleId] : []),
@@ -47,6 +53,7 @@ export class EmployeeTransformer {
       this.access.rolesOf([e.userId]),
       this.access.groupsOf([e.userId]),
       this.authenticator.isEnabled(e.userId),
+      this.access.roleExpiriesOf([e.userId]),
     ]);
     return {
       id: e.id,
@@ -54,6 +61,7 @@ export class EmployeeTransformer {
       isActive: view.isActive,
       isSystemAccount: e.isSystemAccount,
       authenticatorEnabled,
+      accessEndedAt: isoOrNull(e.accessEndedAt),
       company: companies.get(e.companyId) ?? UNKNOWN,
       relationTypeId: e.relationTypeId,
       orgNode: pick(nodes, e.orgNodeId),
@@ -61,7 +69,7 @@ export class EmployeeTransformer {
       manager: e.managerId ? { id: e.managerId, fullName: managers.get(e.managerId) ?? '' } : null,
       ...this.plainFields(e),
       ...this.sensitiveFields(e, view.sensitive),
-      roles: (roles.get(e.userId) ?? []).map((r) => ({ id: r.id, nameAr: r.nameAr, nameEn: r.nameEn })),
+      roles: roleRefs(roles.get(e.userId), expiries.get(e.userId)),
       groups: groups.get(e.userId) ?? [],
       sensitiveHidden: !view.sensitive,
       createdAt: e.createdAt.toISOString(),
@@ -69,7 +77,7 @@ export class EmployeeTransformer {
     };
   }
 
-  async toListItems(items: Employee[], states: Map<string, boolean>): Promise<EmployeeListItemDto[]> {
+  async toListItems(items: Employee[], states: Map<string, boolean>, viewerId: string): Promise<EmployeeListItemDto[]> {
     const [companies, nodes, titles] = await Promise.all([
       this.org.describeCompanies([...new Set(items.map((e) => e.companyId))]),
       this.org.describeNodes(items.flatMap((e) => (e.orgNodeId ? [e.orgNodeId] : []))),
@@ -78,6 +86,7 @@ export class EmployeeTransformer {
     const today = todayIso();
     return items.map((e) => ({
       id: e.id,
+      userId: e.userId,
       employeeNumber: e.employeeNumber,
       fullName: e.fullName,
       workEmail: e.workEmail,
@@ -88,6 +97,7 @@ export class EmployeeTransformer {
       needsPlacement: needsPlacement(e),
       idExpiresSoon: isWithin(e.idExpiryDate, today, { fromPast: true }),
       contractEndsSoon: isWithin(e.endDate, today, { fromPast: false }),
+      isOwn: e.userId === viewerId,
     }));
   }
 

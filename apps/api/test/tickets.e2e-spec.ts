@@ -122,7 +122,7 @@ describe('Tickets (FR-36 … FR-41)', () => {
     it('keeps a department whose desk takes tickets (or has open tickets) where it is, in the structure', async () => {
       const w = await world();
       const parentId = ((await t.db.query<{ parent_id: string }[]>('SELECT parent_id FROM org_nodes WHERE id = $1', [w.desk]))[0] as { parent_id: string }).parent_id;
-      const orgAdmin = await t.factories.signIn(await t.factories.user({ grants: ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const })) }));
+      const orgAdmin = await t.factories.signInAdminMode(await t.factories.user({ grants: [ADMIN_MODE_GRANT_FOR_SCOPES, ...ORG_ADMIN_PERMISSIONS.map((key) => ({ key, scope: 'all' as const }))] }));
       await setupDesk(w.agents.manager, w.desk).expect(200);
       const move = () => orgAdmin.post(`/api/org/nodes/${w.desk}/move`).send({ parentId });
       expect((await move().expect(422)).body.code).toBe('ORG_NODE_HAS_TICKETS');

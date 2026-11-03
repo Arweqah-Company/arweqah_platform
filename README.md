@@ -103,7 +103,24 @@ Bring employee, project and request management into one secure platform that spe
 | FR-66 | **Task comments (`docs/plans/phase-3-tasks.md` §14):** every task has a conversation: plain-text comments with paragraphs, up to 5 files each, one level of replies and **`@` mentions** (any active employee of the company; typing `@` opens a list, the name is stored as `{{mention:id}}`; the mentioned person joins the conversation as «mentioned» — not as a follower of the task, so the task itself stays hidden from them — and is notified, e-mail never carries the text). Who may read and write is **dynamic**: an action passes when the person's role holds the key **and** a cell of a per-company matrix (relation × action, edited in Task policies) is on for one of their relations: assignee, assigner, approver («responsible»), reviewer, follower, manager in scope, **colleague with an open task of the same category**, mentioned. A person who is not a party (colleague, mentioned) sees only the task number, title and the conversation. Edit and delete of one's own comment within 15 minutes (a number in the policies), an «edited» mark, a soft delete that leaves «this comment was deleted» with its replies; deleting another's comment needs its own key. Comments stay open after «done», read-only once archived, optional lock after X days (0 = never). Notices (editable in Settings → Notification templates, variable `@commenter`): the mentioned (also by e-mail), whoever a reply answers, the assignee and whoever gave the task, and the followers once while an earlier notice of the thread is still unread; nobody is told of their own comment. Keys: `tasks.comment_view/add/reply/upload/mention/edit/delete/delete_any`, `tasks.comment_rules_view/edit` (admin mode, the matrix is a section of the Task policies page). A conversation has no list, so it has no export. Audit: `task.comment_added/edited/deleted`, `task.comment_rules_changed` (ids only, never the text). | Employees, managers, platform administrator | Must | `apps/api/test/task-comments.e2e-spec.ts`, `apps/api/src/modules/tasks/domain/rules/task-comment-access.rules.spec.ts`, `apps/web/src/features/tasks/comments/*.test.ts*`, `e2e/tests/task-comments.spec.ts` |
 | FR-67 | **Welcome tour (`docs/plans/welcome-tour.md`):** the first time a person signs in, a guided tour dims the screen and highlights the real elements one by one with a bubble (title, text, next / back / skip; Esc skips, arrows move): their account menu (profile, security, sign-out, restart), language and theme, notifications, the side menu, then the home page, and for each page (tickets, tasks and «new task», employees, the organization) **first its link in the side menu** (the tour opens the menu that holds it) and then the steps inside the page, each only if the person holds the page's key and no role hides the page. Every page step says in a few lines what the feature is for and then **what this person can do there**, one line for each permission they hold (e.g. send a ticket, approve tasks, export), so two people see different lists. How it ended (finished or skipped) is saved **on the account**, so it never returns from another device; «Restart the tour» is in the account menu and the profile page. An administrator who switches admin mode on for the first time gets a separate **administration tour** (admin mode, companies, roles, permissions, audit log, e-mail log, settings, and the tour settings; pages with no link in the side menu, such as page visibility and list management, have no step); both are 404 to anyone who may not use admin mode. After a release adds steps, a person who already finished is offered a small «what’s new» card with only the new steps (start or later). The steps and what they highlight live in the code (each feature declares those of its pages: `FeatureModule.tour`, catalog `packages/shared/src/tour/catalog.ts`); an administrator edits each step's wording in Arabic and English, switches it off and reorders it in **Settings → Welcome tour** (a list with table / cards, search, filters by tour, state and «changed», export; keys `tour.settings_view`, `_edit`, `_reorder`, `_reset`, `_export`; admin mode; the page can be hidden). The bubble is built from the design system (`Button`, `Badge`, semantic colors, `--tour-overlay`) and works in light and dark, Arabic and English, desktop and phone, with focus kept inside it. Every new feature adds the steps of its pages (standing rule 9). Tests: API e2e `tour.e2e-spec.ts` (own progress, permission-based steps, hidden pages, what's new, admin tour 404, settings edit / order / reset, 400/422, 403 per key, audit without wording), unit (step order rules, play steps, auto start, tooltip), component (settings tab), Playwright + axe (`tour.spec.ts`, desktop and phone, Arabic / English / dark). |
 | FR-68 | **A role for every job title and an employee form in two steps (`docs/plans/phase-4-access.md` G1):** each job title owns one role in the `roles` table (auto rule `job_title`, `job_title_id`), made in the same transaction as the title, named after it (renaming the title renames the role) and removed with it (also with its unit or level; a title people hold cannot be removed). Its permissions start as a **copy of a template role chosen when the title is created** (the Employee role when none is chosen; only a role the creator could hand out, never another title or level role) and are edited afterwards on the roles page. **Roles are stored choices, not a rule:** a person holds the roles ticked on the employee form (`user_roles`, many per person); the form has two steps (details, then roles) for who holds `employees.assign_roles` and `roles.view` (one step otherwise); in the roles step the **Employee role** is ticked for a new employee and the **role of the chosen job title** is ticked (and swapped when the title changes), both can be unticked, and any other role the actor can give may be ticked (the head roles of the employee's company, the manual roles, what the person already holds). An employee created without naming roles (the import, the API) gets the Employee role and the role of their title; naming roles gives exactly those. Giving a role needs the actor to hold its permissions except for the Employee role and the role of the person's own title. The name and deletion of a title role cannot be edited by hand (`DERIVED_ROLE`, 422). The roles page shows the kind (manual / rule / job title / level head), the unit and company of a title role, filters by kind and company, and has «Refresh members now» (key `roles.sync_auto`: it keeps the roles of titles and levels in order and the direct manager role). | Platform admin, org admin, HR | Must | `apps/api/test/job-title-roles.e2e-spec.ts`, `apps/api/test/auto-roles.e2e-spec.ts`, `apps/web/src/features/employees/form/roles-step.test.tsx`, `apps/web/src/features/employees/employee-form-page.test.tsx`, `apps/web/src/features/org/job-title-rows.test.tsx` |
-| FR-69 | **A head role for every organization level (`docs/plans/phase-4-access.md` G1b):** each level of a company (sector, department, section, unit…) owns a role «Head of {level}» (auto rule `node_head`, `org_level_id`), made with the level (also with a new company's default levels), renamed with it and removed with it. It starts with `LEVEL_HEAD_DEFAULT_PERMISSIONS` (employees, team tasks, task matrix, approve and reject tasks, ticket figures — all at the subtree scope; `org.view` is company-wide only, so it is not included) and an administrator edits it on the roles page. **Who holds it:** the role goes to the person chosen as manager of a unit of that level **when the unit is created or its manager or status is changed** (and is taken back from a manager who no longer manages an active unit of the level); it is then an ordinary stored role that can be unticked on the employee form, and nothing gives it back until the unit's manager changes again. **Reach:** the unit and subtree scopes of a person who holds a head role also cover **the units they manage and everything below them**, beside where they sit (employees list and records, task reach, tickets, record checks); company and all are unchanged. Name, members and deletion follow FR-68's guard (`DERIVED_ROLE`). | Platform admin, org admin | Must | `apps/api/test/level-head-roles.e2e-spec.ts`, `apps/api/src/core/access/application/access.spec.ts`, `apps/web/src/features/roles/role-kind.test.ts` |
+| FR-69 | **A head role for every organization unit (`docs/plans/phase-4-access.md` G1b):** each unit (sector, department, section, unit…) owns a role «Head of {unit}», e.g. «قائد قطاع التشغيل وتقديم الخدمات» (auto rule `node_head`, `org_node_id`), not one per level or per company: made with the unit, renamed with it and removed with it. It starts with `LEVEL_HEAD_DEFAULT_PERMISSIONS` (employees, team tasks, task matrix, approve and reject tasks, ticket figures — all at the subtree scope; `org.view` is company-wide only, so it is not included) and an administrator edits it on the roles page. **Who holds it:** the role goes to the person chosen as manager of a unit of that level **when the unit is created or its manager or status is changed** (and is taken back from a manager who no longer manages an active unit of the level); it is then an ordinary stored role that can be unticked on the employee form, and nothing gives it back until the unit's manager changes again. **Reach:** the unit and subtree scopes of a person who holds a head role also cover **the units they manage and everything below them**, beside where they sit (employees list and records, task reach, tickets, record checks); company and all are unchanged. Name, members and deletion follow FR-68's guard (`DERIVED_ROLE`). | Platform admin, org admin | Must | `apps/api/test/level-head-roles.e2e-spec.ts`, `apps/api/src/core/access/application/access.spec.ts`, `apps/web/src/features/roles/role-kind.test.ts` |
+| FR-70 | **Exceptions with an end date (`docs/plans/phase-4-access.md` G2):** what a person was given outside their job title, the Employee role and their place — a **manual role**, a **personal permission** or a **group of roles** — has a **last day** (`expires_at`, with who gave it and when: `granted_by`, `granted_at`, on `user_roles`, `user_permissions` and `user_role_groups`). It holds **through** that day (Riyadh); after it the permission is gone at once and a nightly job (03:10) takes the row back and writes `access.exception_expired` to the audit log. The last day is set when the roles are given (a date beside each ticked role on the employee form; roles saved again keep their dates; a date cannot be in the past, `FIELD_RULE` / `PAST_END_DATE`) and can be changed or removed from the list. Saving a person's permissions keeps the dates of the permissions that stay. The **Exceptions tab of the roles page** (`/roles?tab=exceptions`; `/exceptions` redirects there; platform admin mode, `exceptions.view`) lists them (person, kind, what, scope in words, who gave it, when, last day) with search, filters (kind, who gave it, ends within 7/14/30/60 days, no end date), table/cards and export (`exceptions.export`), and a row action to change the last day (`exceptions.update`) or take it back (`exceptions.revoke`). The roles that come with the title (Employee, title, head) are not exceptions. | Platform admin | Must | `apps/api/test/access-exceptions.e2e-spec.ts`, `apps/api/src/common/domain/riyadh-date.spec.ts`, `apps/web/src/features/exceptions/exceptions-tab.test.tsx`, `apps/web/src/features/employees/form/roles-step.test.tsx`, `e2e/tests/exceptions.spec.ts` |
+| FR-71 | **Sign-in ends the day after the end date (`docs/plans/phase-4-access.md` G3):** an employee whose contract ends keeps signing in **through** the end date and loses it the next day: a daily job (00:05 Asia/Riyadh, idempotent) deactivates every ended account (sessions end) and records `access_ended_at`; ending a contract with a past date does it at once. The employee page says «sign-in ended with the contract on …». When the end date is **removed or moved to today or later** on the employee form, sign-in comes back (and `access_ended_at` clears) for who holds `employees.deactivate`; without that key the date is saved and the account stays off (switch it on with the activate action); a date that is still in the past changes nothing. The audit log records `employee.deactivated.contract_ended` and `employee.access_restored`. Following an exit request after the date and mailing the employee a copy wait for the requests module. | HR | Must | `apps/api/test/employees.e2e-spec.ts` |
+| FR-72 | **A job title for every person (`docs/plans/phase-4-access.md` G4):** adding or editing an employee requires a unit and a job title (the API refuses a missing or null `jobTitleId`, so nobody new can be added without one); the list has a **«needs placement»** filter (people with no unit or no job title, the system account left out) and the home page counts them, so the people already there are placed by HR. Signing in does not wait for the title. The database does not yet refuse a null `job_title_id` (see decision 129). | HR | Must | `apps/api/test/employees.e2e-spec.ts`, `apps/web/src/features/employees/employees-filters.test.ts` |
+| FR-73 | **Sessions and trusted devices (`docs/plans/phase-4-access.md` G5):** the Security page lists the person's own sign-ins (browser and system read from the browser, the address with its last part hidden, last activity, the current one marked) with «end this session» and «end all the others» (`GET/DELETE /me/sessions`, audited). **Trusted device:** after a Microsoft sign-in the code step offers «remember this device» when the administrator set `trustedDeviceDays` above 0; the server keeps a hash of a secret held in an HttpOnly cookie (`trusted_devices`), and the next Microsoft sign-in on that browser skips the code step (`POST /mfa/trusted-skip`) until the days end. The e-mail sign-in is never skipped (the code is its only proof). Trusted devices are listed and removable on the Security page and are all removed when the authenticator is reset or the account is deactivated; using one is audited. | Every signed-in person | Should | `apps/api/test/device-security.e2e-spec.ts`, `apps/api/src/core/auth/domain/device-description.spec.ts`, `apps/web/src/features/security/security-page.test.tsx`, `apps/web/src/features/auth/pages/verify-page.test.tsx` |
+| FR-74 | **Security settings (Settings → «Security» tab, platform admin mode):** the security numbers are settings, not code — `trustedDeviceDays` (0 = off, 0 to 365) and `requestsPerMinute` (30 to 100 000) — stored in `security_settings` (a key with no row has its default in `SECURITY_SETTINGS`), edited with `security_settings.edit`, read with `security_settings.view`, hideable as page `security-settings`, audited as `security.settings_updated`. **Protected actions:** the sensitive admin actions already ask for a fresh code through platform admin mode (FR-34), so no second prompt is added. | Platform admin | Should | `apps/api/test/device-security.e2e-spec.ts`, `apps/web/src/features/security/security-settings-tab.test.tsx` |
+| FR-75 | **Tamper-evident audit trail (`docs/plans/phase-4-access.md` G7):** every audit row carries `seq`, `prev_hash` and `hash` (SHA-256 over the row and the previous hash), appended inside one transaction under an advisory lock so the chain has no gaps; a database trigger refuses UPDATE and DELETE on `audit_logs`. `GET /audit-logs/verify` (key `audit.verify`) walks the chain and names the first broken row; a weekly job runs the same check and audits a failure. | Platform administrator | Should | `apps/api/test/audit-chain.e2e-spec.ts`, `apps/api/src/core/audit/domain/audit-chain.spec.ts` |
+| FR-76 | **Global request limit from settings:** `requestsPerMinute` (Security settings tab) caps the requests per minute per client; the guard runs before every other guard, answers `429 TOO_MANY_REQUESTS` with `Retry-After`, and the number is read through the settings cache (no value in the code). | Platform administrator | Should | `apps/api/test/request-rate.e2e-spec.ts`, `apps/api/src/common/application/rate-window.spec.ts` |
+| FR-77 | **Allowed work e-mail domains:** Settings → «Security» keeps the list of domains a new employee's work e-mail may use (`GET/PUT /security-settings/email-domains`, keys `security_settings.view/edit`, table `allowed_email_domains`); while the list is empty only the default `arweqah.sa` is allowed. The shared form schema checks only the shape of the address; the API refuses another domain with `422 FIELD_RULE`. | Platform administrator | Should | `apps/api/test/device-security.e2e-spec.ts`, `apps/api/test/employees.e2e-spec.ts`, `apps/web/src/features/security/security-settings-tab.test.tsx` |
+| FR-78 | **Bot protection with Cloudflare Turnstile (`docs/plans/phase-4-access.md` G10):** a new integration kind `captcha` with the provider `turnstile` (site key, and the secret key stored encrypted and never returned), set up in Settings → «Bot protection» like the translation and e-mail services (list with search, filters, table / cards, export; help window; keys `integrations.captcha_view/edit/test/activate/export`; page `captcha-settings`). It is switched on only after a test with the real widget passes with exactly the saved keys (`PROVIDER_NOT_TESTED`), and changing the keys of the active one switches it off. While one is active the e-mail step of the sign-in page shows the widget (`GET /captcha/config` returns the public site key only) and `POST /mfa/identify` verifies its answer with Cloudflare before anything is sent (`422 CAPTCHA_FAILED`, one message for every reason). **No active provider: no check.** If Cloudflare cannot be reached within 4 s the person is let in and the audit records `captcha.unavailable`. The Microsoft sign-in and the code step are not behind it. | Platform administrator | Should | `apps/api/test/captcha.e2e-spec.ts`, `apps/web/src/features/auth/pages/login-bot-check.test.tsx`, `apps/web/src/features/integrations/test-dialog.test.tsx`, `e2e/tests/captcha.spec.ts` |
+| FR-79 | **Collaborator base (`docs/plans/phase-4-access.md` G11):** a relation type can carry `limited_access` (the seeded «Collaborator» does; `relation_types.limited_access`). A person of such a relation starts with the **collaborator base** role (auto rule `limited_access`: own profile, security page and notifications only) instead of the Employee role, plus the role of their job title; their contract **end date is required** (`422 FIELD_RULE` on `endDate`), and the nightly sign-in cutoff (FR-71) ends their access the day after it. Changing the relation swaps only the base role (Employee ↔ collaborator base); roles chosen by hand stay. The employee form does the same ticks and marks the end date as required. | HR | Should | `apps/api/test/collaborator-base.e2e-spec.ts`, `apps/api/src/modules/employees/domain/rules/employee-flags.rules.spec.ts`, `apps/web/src/features/employees/employee-form-page.test.tsx` |
+| FR-80 | **Depth of what a role reaches (`docs/plans/phase-4-access.md` G1c):** besides `own`, `unit`, `subtree` (the unit and everything below), `company` and `all`, a permission can be granted at **`subtree:N`: the unit and N levels of units below it** (N from 1 to 5), for every permission that allows `subtree`. The unit-based scopes start from where the person sits **and the units they manage** (head roles, FR-69), and the depth counts levels from each of those; a unit reached twice counts at the smaller depth. The scope is stored in the existing `scope` column (`subtree:2`); a role editor, the permissions page and a person's grants offer «their unit», «their unit and 1 … 5 levels below», «their unit and below», «their company», «all»; the widest scope wins when a person holds the same key several times, and nobody gives a wider depth than they hold. Lists, records, task reach, tickets and record checks all take the units from one place (`AccessContext.nodesFor`). **`org.view` accepts the unit-based scopes**: the structure shows only the units the scope reaches and the highest of them as the top (e.g. the head of a sector with one level below sees the departments). So each head role has its own permissions with its own depth. | Platform admin | Must | `apps/api/test/scope-depth.e2e-spec.ts`, `apps/api/src/core/access/application/{access.spec,permission-scope.spec}.ts`, `apps/api/src/core/access/infrastructure/scope-query.spec.ts`, `apps/api/src/modules/tasks/domain/rules/task-reach.rules.spec.ts`, `apps/web/src/features/roles/permission-matrix.test.tsx` |
+| FR-81 | **Permission dependencies and job-title roles in the roles dialog (`docs/plans/phase-4-access.md` G12 ج، د — planned):** ticking an action ticks and locks the `view` it needs (rule by key prefix + exceptions table); saving a set with a missing dependency answers 422; a migration closes the stored sets; the employee roles dialog and form step offer the job-title roles of the employee's company | Admin | Must | spec `docs/superpowers/specs/2026-11-02-permission-dependencies-design.md` |
+| FR-82 | **Review refinements (`docs/plans/phase-4-access.md` G12 أ، ب):** roles section on the employee page; name search in the employee roles / groups dialogs; search in the role drop-down and over the permissions; full breadcrumb on every page; unit drop-downs show the unit name only; a person may change their own roles and groups only in platform admin mode; steps header spacing in the employee form | Admin / HR | Should | `apps/api/test/employees.e2e-spec.ts`, `apps/web/src/shared/ui/page-header.test.tsx` |
+| FR-83 | **A plain employee sees and edits only their own account (`docs/plans/phase-4-access.md` G13):** the Employee role holds `employees.view` and `employees.update` at scope `own` (no add, no deactivate, no delete); editing one's own account with scope `own` changes only `workPhone`, `personalPhone`, `personalEmail`, `fullNameEn` — anything else answers 422 `FIELD_NOT_EDITABLE` (title, manager, contract dates, salary, currency…); HR and the platform admin (wider scope) edit everything | Employee | Must | `apps/api/test/employee-self-service.e2e-spec.ts` |
+| FR-84 | **The grants of an administrative role work only in platform admin mode (`docs/plans/phase-4-access.md` G14):** a role that holds `admin_mode.use` (System Admin) gives nothing outside the mode except `admin_mode.use` itself; the person works with their other roles (employee, title, head, HR); turning the mode on (fresh authenticator code) brings the administrative grants back for that session, turning it off or 30 minutes idle removes them; `GET /me` lists the grants in force; a key held only through the administrative role answers 403 `ADMIN_MODE_REQUIRED` | Platform administrator | Must | `apps/api/test/admin-role-gating.e2e-spec.ts` |
+| FR-86 | **One Employee role gives every person the baseline (`docs/plans/phase-4-access.md` G16):** own profile, security, home, own tickets (send, follow, reply), own employee record (view and edit a few fields), the structure page, and own tasks with their conversations; the list is `EMPLOYEE_DEFAULT_PERMISSIONS` and grows as modules arrive | Employee | Must | `apps/api/src/core/access/application/employee-default-permissions.spec.ts` |
+| FR-85 | **Sign in as another employee (`docs/plans/phase-4-access.md` G15):** a platform administrator (`impersonation.start`, platform admin mode on) works as any other active employee, with that person's permissions and scope, without their code; off by default, switched on in Settings → Security (`impersonationEnabled`, `impersonationIdleMinutes`, 5–240, default 30). The session is the employee's own, marked with the administrator (`auth_sessions.impersonated_by_user_id`, `impersonator_session_id`, `impersonation_last_activity_at`); it has no admin mode; it ends by «Back to my account», after the idle minutes, or when the feature is switched off (the next request answers 403 `IMPERSONATION_ENDED` and only `POST /impersonation/stop` works). Refused: oneself, an inactive account, nesting, and (`IMPERSONATION_FORBIDDEN`) turning on admin mode, the person's own sign-in (authenticator, trusted devices, sessions, profile), their roles, groups and access, their account status, and the security settings. Every audit entry written inside it names the administrator (`changes.impersonatedBy`), plus `impersonation.started` / `impersonation.ended`; the employee gets an in-app notice afterwards. The web shows the icon on the employees list and a button on the employee's page, and a fixed bar «You are working as … — Back to my account». |
 
 Every test suite names the requirement IDs it covers in its `describe(...)` title.
 
@@ -124,382 +141,7 @@ Every test suite names the requirement IDs it covers in its `describe(...)` titl
 
 ## 6. ERD
 
-Tables from the migrations in `apps/api/src/database/migrations`. Translated names live in `*_translations` tables (`lang` = `ar` | `en`; one per entity and per lookup) and the lookup tables (countries, marital / residency statuses, id types and rules, contract types, GOSI systems, termination reasons, relation types) are omitted from the diagram for readability. Messaging tables (`outbox_messages`, `scheduled_jobs`, `processed_messages`) have no foreign keys and are omitted too.
-
-```mermaid
-erDiagram
-  users {
-    uuid id PK
-    varchar name
-    varchar email UK
-    varchar locale
-    varchar theme
-    bool is_active
-  }
-  auth_accounts {
-    uuid id PK
-    uuid user_id FK
-    text provider_id
-    text account_id
-  }
-  auth_sessions {
-    uuid id PK
-    uuid user_id FK
-    text token UK
-    timestamptz expires_at
-    timestamptz mfa_verified_at
-    timestamptz admin_mode_enabled_at
-    timestamptz admin_mode_last_activity_at
-  }
-  authenticators {
-    uuid user_id PK
-    text secret_enc
-    timestamptz enabled_at
-    bigint last_used_step
-    int failed_count
-    timestamptz locked_until
-  }
-  authenticator_backup_codes {
-    uuid id PK
-    uuid user_id FK
-    varchar code_hash
-    timestamptz used_at
-  }
-  enrollment_invites {
-    uuid id PK
-    uuid user_id FK
-    varchar token_hash
-    timestamptz expires_at
-    timestamptz used_at
-  }
-  roles {
-    uuid id PK
-    varchar name_ar
-    varchar name_en
-    bool is_system
-    varchar assignment
-    varchar auto_rule
-    uuid job_title_id FK
-    uuid org_level_id FK
-  }
-  role_permissions {
-    uuid role_id PK
-    varchar permission_key PK
-    varchar scope
-  }
-  user_roles {
-    uuid user_id PK
-    uuid role_id PK
-  }
-  companies {
-    uuid id PK
-    varchar code UK
-    bool is_active
-  }
-  org_levels {
-    uuid id PK
-    uuid company_id FK
-    int sort_order
-    bool is_assignable
-    text template_code
-  }
-  org_nodes {
-    uuid id PK
-    uuid company_id FK
-    uuid org_level_id FK
-    uuid parent_id FK
-    uuid manager_id FK
-    date start_date
-  }
-  org_node_closure {
-    uuid ancestor_id PK
-    uuid descendant_id PK
-    int depth
-  }
-  job_titles {
-    uuid id PK
-    uuid org_node_id FK
-    bool is_active
-  }
-  employees {
-    uuid id PK
-    uuid user_id FK
-    uuid company_id FK
-    uuid org_node_id FK
-    uuid job_title_id FK
-    uuid manager_id FK
-    varchar employee_number UK
-    varchar work_email UK
-    text id_number_enc
-    varchar id_number_hash
-    text iban_enc
-    text monthly_gross_salary_enc
-  }
-  email_logs {
-    uuid id PK
-    varchar to_email
-    varchar subject
-    varchar purpose
-    varchar status
-    text error
-  }
-  notifications {
-    uuid id PK
-    uuid user_id FK
-    varchar title_ar
-    varchar title_en
-    timestamptz read_at
-  }
-  files {
-    uuid id PK
-    uuid owner_id FK
-    varchar storage_key UK
-    varchar content_type
-    int size
-  }
-  audit_logs {
-    uuid id PK
-    uuid actor_id
-    varchar action
-    varchar entity_type
-    jsonb changes
-  }
-  role_groups {
-    uuid id PK
-    varchar name_ar
-    varchar name_en
-  }
-  role_group_roles {
-    uuid group_id PK
-    uuid role_id PK
-  }
-  role_group_permissions {
-    uuid group_id PK
-    varchar permission_key PK
-    varchar scope
-  }
-  user_role_groups {
-    uuid user_id PK
-    uuid group_id PK
-  }
-  user_groups {
-    uuid id PK
-    varchar name_ar
-    varchar name_en
-  }
-  user_group_members {
-    uuid group_id PK
-    uuid user_id PK
-  }
-  user_group_permissions {
-    uuid group_id PK
-    varchar permission_key PK
-    varchar scope
-  }
-  user_permissions {
-    uuid user_id PK
-    varchar permission_key PK
-    varchar scope
-  }
-  integration_providers {
-    uuid id PK
-    varchar kind "translation or email"
-    varchar provider_key "aws, google, azure, smtp, ses, sendgrid, graph"
-    jsonb config "secret fields encrypted"
-    varchar verified_hash "fingerprint of the data that passed a test"
-    timestamptz verified_at
-    boolean is_active "one per kind"
-  }
-  list_settings {
-    varchar list_key PK
-    jsonb hidden_columns
-    jsonb hidden_filters
-  }
-  page_visibility_rules {
-    uuid role_id PK
-    varchar page_key PK
-  }
-  workflow_instances {
-    uuid id PK
-    varchar definition_key
-    uuid entity_id
-    varchar state
-    int revision
-  }
-  workflow_transitions {
-    uuid id PK
-    uuid instance_id FK
-    varchar event
-    varchar to_state
-  }
-  tasks {
-    uuid id PK
-    bigint number UK
-    uuid company_id FK
-    uuid assignee_user_id FK
-    uuid creator_user_id FK
-    uuid reviewer_user_id FK
-    uuid approver_user_id FK
-    varchar status
-    varchar priority
-    date due_date
-    int estimate_minutes
-    uuid tag_id FK
-    bool urgent_manual
-    bool needs_review
-    varchar recurrence
-    varchar source
-    uuid project_id
-    uuid ticket_id FK
-    timestamptz last_activity_at
-    timestamptz archived_at
-    int revision
-  }
-  task_events {
-    uuid id PK
-    uuid task_id FK
-    varchar type
-    uuid actor_user_id FK
-    varchar from_status
-    varchar to_status
-  }
-  task_followers {
-    uuid task_id PK
-    uuid user_id PK
-  }
-  task_objections {
-    uuid id PK
-    uuid task_id FK
-    varchar reason_code
-    timestamptz expires_at
-    varchar status
-  }
-  task_time_entries {
-    uuid id PK
-    uuid task_id FK
-    int minutes
-    date worked_on
-  }
-  user_tour_progress {
-    uuid id PK
-    uuid user_id FK
-    string tour "general or admin"
-    string status "completed or skipped"
-    text[] seen_steps
-  }
-  tour_step_settings {
-    uuid id PK
-    string step_key UK "declared in code"
-    bool enabled
-    int sort_order
-    string title_ar
-    string title_en
-    string body_ar
-    string body_en
-    uuid updated_by
-  }
-  task_tags {
-    uuid id PK
-    uuid org_node_id FK
-    varchar name_ar
-    varchar name_en
-    bool is_active
-  }
-  task_policies {
-    uuid company_id PK
-    int objection_working_days
-    int stale_days
-    int backdate_days
-    int urgent_days
-    int reminder_days_before
-    int digest_weekday
-    int standalone_retention_days
-  }
-  ticket_desks {
-    uuid org_node_id PK
-    varchar reception_status
-    uuid manager_id FK
-    date start_date
-  }
-  ticket_types {
-    uuid id PK
-    uuid desk_id FK
-    boolean is_personal
-    int due_days
-  }
-  tickets {
-    uuid id PK
-    bigint number
-    uuid type_id FK
-    uuid sender_id FK
-    uuid assignee_id FK
-    varchar status
-    int revision
-  }
-  ticket_events {
-    uuid id PK
-    uuid ticket_id FK
-    varchar kind
-  }
-  ticket_attachments {
-    uuid id PK
-    uuid ticket_id FK
-    uuid file_id FK
-  }
-  users ||--o{ auth_accounts : "signs in with"
-  users ||--o{ auth_sessions : has
-  users ||--o| authenticators : "links one app"
-  users ||--o{ authenticator_backup_codes : holds
-  users ||--o{ enrollment_invites : "invited by link"
-  users ||--o{ user_roles : holds
-  roles ||--o{ page_visibility_rules : "hides pages from"
-  role_groups ||--o{ role_group_roles : bundles
-  roles ||--o{ role_group_roles : "inside"
-  role_groups ||--o{ role_group_permissions : holds
-  users ||--o{ user_role_groups : "is given"
-  role_groups ||--o{ user_role_groups : "given to"
-  user_groups ||--o{ user_group_members : has
-  users ||--o{ user_group_members : "member of"
-  user_groups ||--o{ user_group_permissions : holds
-  users ||--o{ user_permissions : "holds alone"
-  roles ||--o{ user_roles : "granted via"
-  roles ||--o{ role_permissions : contains
-  job_titles |o--o| roles : "owns a role (auto rule job_title)"
-  org_levels |o--o| roles : "owns a head role (auto rule node_head)"
-  companies ||--o{ org_levels : defines
-  companies ||--o{ org_nodes : owns
-  org_levels ||--o{ org_nodes : "level of"
-  org_nodes ||--o{ org_nodes : "parent of"
-  org_nodes ||--o{ org_node_closure : "ancestor of"
-  org_nodes ||--o{ job_titles : offers
-  users ||--o| employees : "is"
-  companies ||--o{ employees : employs
-  org_nodes ||--o{ employees : "placed in"
-  job_titles ||--o{ employees : "holds title"
-  employees ||--o{ employees : "manages"
-  users ||--o{ notifications : receives
-  users ||--o{ files : owns
-  workflow_instances ||--o{ workflow_transitions : records
-  org_nodes ||--o| ticket_desks : "can be a desk"
-  ticket_desks ||--o{ ticket_types : takes
-  ticket_types ||--o{ tickets : "kind of"
-  users ||--o{ tickets : sends
-  tickets ||--o{ ticket_events : records
-  tickets ||--o{ ticket_attachments : holds
-  files ||--o{ ticket_attachments : "stored as"
-  users ||--o{ tasks : "does or gives"
-  companies ||--o{ tasks : owns
-  companies ||--|| task_policies : "has the rules of"
-  org_nodes ||--o{ task_tags : "keeps"
-  task_tags ||--o{ tasks : labels
-  tasks ||--o{ tasks : "next repeat"
-  tickets ||--o{ tasks : "may link"
-  tasks ||--o{ task_events : history
-  tasks ||--o{ task_followers : "followed by"
-  tasks ||--o{ task_objections : "objected to"
-  tasks ||--o{ task_time_entries : "time logged"
-  users ||--o{ user_tour_progress : "how far in a tour"
-```
+The database design (every table with its columns and relations in mermaid diagrams, one per area, and what each table does) lives in [docs/database-design.md](docs/database-design.md). Every new table is added there, not here.
 
 ## 7. Flowcharts
 
@@ -878,6 +520,28 @@ sequenceDiagram
   A-->>W: 200 (otherwise 403 ADMIN_MODE_REQUIRED and the mode is switched off, audited)
 ```
 
+### Sign in as another employee (FR-85)
+
+```mermaid
+sequenceDiagram
+  actor A as Platform administrator (admin mode on)
+  participant W as Web
+  participant API as API (PermissionsGuard)
+  participant L as Better Auth (server-only endpoints)
+  participant DB as PostgreSQL (auth_sessions)
+  A->>W: «Sign in as this employee» on a row, confirm
+  W->>API: POST /impersonation/:userId
+  API->>API: impersonation.start + admin mode, feature on, not nested, target active and not oneself
+  API->>L: open session for the employee (code-verified, marked with the administrator)
+  L->>DB: new auth_sessions row (impersonated_by_user_id, impersonator_session_id)
+  API-->>W: 204 + Set-Cookie of the employee's session; audit impersonation.started
+  W->>API: every request: forbidden routes refused, idle or switched off = 403 IMPERSONATION_ENDED, else last activity = now
+  A->>W: «Back to my account» (or the 403 above)
+  W->>API: POST /impersonation/stop
+  API->>DB: delete the employee's session; read the administrator's own session token
+  API-->>W: 204 + Set-Cookie of the administrator's session; audit impersonation.ended; notice to the employee
+```
+
 ## 9. Stack
 
 | Layer | Technology | Reason / change from team default |
@@ -968,6 +632,7 @@ Requirement traceability: each `describe` title lists the FR/NFR IDs it covers, 
 | HR (custom role) | Create and update employees, place them in units, assign the roles they hold, resend activation links | Act outside their scope (gets 404), see salary / ID / IBAN without `employees.view_sensitive`, assign more than they hold, change their own roles |
 | Line manager (custom role) | What the role grants, limited to their unit or subtree | Act outside their scope |
 | System Admin (system role) | Every permission at the widest scope: translation and e-mail services (data, try-out, switch on), companies, levels, units, job titles, roles (with how each is assigned), page visibility per role, list management, audit log, e-mail log, and may switch **platform admin mode** on (`admin_mode.use`) | Delete system roles; use anything before linking the authenticator |
+| Platform administrator with `impersonation.start` | In admin mode and when switched on in Settings → Security, work as any other active employee (their permissions and scope, no code) and go back; everything done is recorded under the employee's name with the administrator's beside it | Sign in as oneself or an inactive account, nest, change the employee's roles, groups, sign-in, account status or the security settings while inside |
 | Desk manager (named in a desk's setup) | Switch admin mode on, set up the desk, see its tickets (not personal ones), answer, reassign, read its figures | See personal tickets, act on other desks |
 | Administrator with the tour keys (`tour.settings_*`) | In admin mode, reword, switch off and reorder the welcome-tour steps (Settings → Welcome tour), reset a step to the code's wording | Add or remove steps (they come with the code), read anyone's progress |
 | Auditor (custom role with `audit.view`) | Read the audit log | See secrets (redacted) |
@@ -975,7 +640,7 @@ Requirement traceability: each `describe` title lists the FR/NFR IDs it covers, 
 | Translation and e-mail services (AWS, Google, Azure, SMTP, SES, SendGrid, Microsoft 365) / SMS provider | Translate text, deliver messages | Read any data beyond the message |
 | GitHub Actions | Build, test, deploy | Read production secrets (they live on the server) |
 
-Permission catalog (one key for every **page** (view) and every **button or action**; the API refuses an action without its key and the web hides the button): admin mode `admin_mode.use`; roles `roles.view/create/update/delete/export`; groups of roles `role_groups.view/create/update/delete`; groups of people `user_groups.view/create/update/delete`; the permissions page `permissions.view`, `permissions.role_update/role_group_update/user_update/user_group_update`; pages `pages.view/manage`; lists `lists.view/manage`; audit `audit.view/export`; e-mail log `notifications.email_log`, `notifications.email_log_export`; `lookups.view`; own account `profile.view/update`, `security.view`, `notifications.view/mark_read/export`; companies `companies.view/create/update/delete/export/import`; organization `org.view`, `org.unit_create/update/move/delete`, `org.levels_manage`, `org.titles_manage`, `org.export`; employees `employees.view/create/update/deactivate/terminate/assign_roles/view_sensitive/resend_invite/reset_authenticator/export/import`; tickets `tickets.view/create/reply/request_close/confirm_close` (approve) `/decline_close` (reject) `/close_without_execution/reopen`, `tickets.setup_view/setup_edit/type_create/type_update/type_delete/figures_view`, `tickets.administer` (every department). The **Employee** role starts with the own-account and ticket keys (`EMPLOYEE_DEFAULT_PERMISSIONS`); everything else is given by an administrator from the roles page. Each feature module adds its own keys the same way. Welcome tour settings `tour.settings_view`, `tour.settings_edit`, `tour.settings_reorder`, `tour.settings_reset`, `tour.settings_export` (the tour itself needs no key).
+Permission scopes: `own`, `unit`, `subtree:1` to `subtree:5`, `subtree`, `company`, `all` (FR-80). Permission catalog (one key for every **page** (view) and every **button or action**; the API refuses an action without its key and the web hides the button): admin mode `admin_mode.use`; roles `roles.view/create/update/delete/export`; groups of roles `role_groups.view/create/update/delete`; groups of people `user_groups.view/create/update/delete`; the permissions page `permissions.view`, `permissions.role_update/role_group_update/user_update/user_group_update`; pages `pages.view/manage`; lists `lists.view/manage`; audit `audit.view/export`; e-mail log `notifications.email_log`, `notifications.email_log_export`; `lookups.view`; own account `profile.view/update`, `security.view`, `notifications.view/mark_read/export`; companies `companies.view/create/update/delete/export/import`; organization `org.view`, `org.unit_create/update/move/delete`, `org.levels_manage`, `org.titles_manage`, `org.export`; employees `employees.view/create/update/deactivate/terminate/assign_roles/view_sensitive/resend_invite/reset_authenticator/export/import`; tickets `tickets.view/create/reply/request_close/confirm_close` (approve) `/decline_close` (reject) `/close_without_execution/reopen`, `tickets.setup_view/setup_edit/type_create/type_update/type_delete/figures_view`, `tickets.administer` (every department). The **Employee** role starts with the own-account and ticket keys (`EMPLOYEE_DEFAULT_PERMISSIONS`); everything else is given by an administrator from the roles page. Each feature module adds its own keys the same way. Welcome tour settings `tour.settings_view`, `tour.settings_edit`, `tour.settings_reorder`, `tour.settings_reset`, `tour.settings_export` (the tour itself needs no key).
 
 ## 13. Constraints
 

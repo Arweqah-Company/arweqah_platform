@@ -1,9 +1,11 @@
 import { expect, test } from '@playwright/test';
 import { ListPage } from '../pages/list.page';
+import { adminModeOffViaApi, adminModeOnViaApi } from '../support/admin-mode';
 import { ADMIN_STATE } from '../support/fixtures';
 import { choose } from '../support/select';
 
 test.use({ storageState: ADMIN_STATE });
+test.beforeEach(async ({ page }) => adminModeOnViaApi(page));
 
 test.describe('Organization: chart or table, per company (FR-31)', () => {
   test('shows the company as a chart of its units, opens everything, and finds a unit', async ({ page }) => {
@@ -34,7 +36,20 @@ test.describe('Organization: chart or table, per company (FR-31)', () => {
     await list.expectNoSeriousA11yIssues();
   });
 
+  test('the structure buttons show only while platform admin mode is on (FR-24)', async ({ page }) => {
+    test.setTimeout(90_000);
+    await adminModeOffViaApi(page);
+    await page.goto('/org');
+    await expect(page.getByRole('heading', { level: 1, name: 'الهيكل التنظيمي' })).toBeVisible();
+    for (const name of ['إضافة وحدة', 'إضافة مسمى وظيفي', 'تقسيمات الهيكل']) await expect(page.getByRole('button', { name })).toHaveCount(0);
+    await adminModeOnViaApi(page);
+    await page.reload();
+    for (const name of ['إضافة وحدة', 'إضافة مسمى وظيفي', 'تقسيمات الهيكل']) await expect(page.getByRole('button', { name })).toBeVisible();
+  });
+
   test('picks a level and a parent unit from the drop-downs inside the add-unit dialog', async ({ page }) => {
+    test.setTimeout(90_000); // turning admin mode on needs a code the previous test has not used, which may mean waiting for the next 30-second step
+    await adminModeOnViaApi(page);
     await page.goto('/org');
     await page.getByRole('button', { name: 'إضافة وحدة' }).click();
     const dialog = page.getByRole('dialog', { name: 'إضافة وحدة' });

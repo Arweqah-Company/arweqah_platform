@@ -19,7 +19,7 @@ export const useSaveProvider = (kind: IntegrationKind) =>
   useProviderMutation(kind, ({ providerKey, values }: { providerKey: string; values: SentValues }) => apiClient.put<ProviderDto>(path(kind, `/${providerKey}`), { values }));
 
 export const useTestProvider = (kind: IntegrationKind) =>
-  useProviderMutation(kind, ({ providerKey, ...body }: { providerKey: string; values?: SentValues; text?: string; to?: string }) => apiClient.post<TestResultDto>(path(kind, `/${providerKey}/test`), body));
+  useProviderMutation(kind, ({ providerKey, ...body }: { providerKey: string; values?: SentValues; text?: string; to?: string; captchaToken?: string }) => apiClient.post<TestResultDto>(path(kind, `/${providerKey}/test`), body));
 
 export const useActivateProvider = (kind: IntegrationKind) => useProviderMutation(kind, (providerKey: string) => apiClient.post<IntegrationCatalogDto>(path(kind, `/${providerKey}/activate`)));
 

@@ -14,6 +14,7 @@ import { listSettingsFeature } from '@/features/list-settings';
 import { orgFeature } from '@/features/org';
 import { permissionsFeature } from '@/features/permissions';
 import { pageVisibilityFeature } from '@/features/page-visibility';
+import { exceptionsFeature } from '@/features/exceptions';
 import { rolesFeature } from '@/features/roles';
 import { securityFeature } from '@/features/security';
 import { tasksFeature } from '@/features/tasks';
@@ -30,6 +31,7 @@ export const FEATURES: FeatureModule[] = [
   tasksFeature,
   ticketsFeature,
   rolesFeature,
+  exceptionsFeature,
   permissionsFeature,
   pageVisibilityFeature,
   listSettingsFeature,

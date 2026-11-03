@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import type { PermissionGrant, PermissionScope, RoleOriginDto } from '@arweqah-platform/shared';
+import type { PermissionGrant, RoleOriginDto } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../common/application/transaction-runner';
 import { managerOf } from '../../../common/infrastructure/typeorm-transaction-runner';
 import { Role } from '../domain/role.entity';
@@ -38,13 +38,14 @@ export class TypeOrmRoleRepository extends RoleRepository {
        LEFT JOIN org_node_translations nta ON nta.org_node_id = n.id AND nta.lang = 'ar' LEFT JOIN org_node_translations nte ON nte.org_node_id = n.id AND nte.lang = 'en'
        WHERE r.auto_rule = 'job_title'`,
     );
-    const levelRows: { roleId: string; companyId: string; companyAr: string | null; companyEn: string | null }[] = await this.repo.manager.query(
-      `SELECT r.id AS "roleId", l.company_id AS "companyId", cta.name AS "companyAr", cte.name AS "companyEn"
-       FROM roles r JOIN org_levels l ON l.id = r.org_level_id
-       LEFT JOIN company_translations cta ON cta.company_id = l.company_id AND cta.lang = 'ar' LEFT JOIN company_translations cte ON cte.company_id = l.company_id AND cte.lang = 'en'
+    const headRows: { roleId: string; companyId: string; companyAr: string | null; companyEn: string | null; unitAr: string | null; unitEn: string | null }[] = await this.repo.manager.query(
+      `SELECT r.id AS "roleId", n.company_id AS "companyId", cta.name AS "companyAr", cte.name AS "companyEn", nta.name AS "unitAr", nte.name AS "unitEn"
+       FROM roles r JOIN org_nodes n ON n.id = r.org_node_id
+       LEFT JOIN company_translations cta ON cta.company_id = n.company_id AND cta.lang = 'ar' LEFT JOIN company_translations cte ON cte.company_id = n.company_id AND cte.lang = 'en'
+       LEFT JOIN org_node_translations nta ON nta.org_node_id = n.id AND nta.lang = 'ar' LEFT JOIN org_node_translations nte ON nte.org_node_id = n.id AND nte.lang = 'en'
        WHERE r.auto_rule = 'node_head'`,
     );
-    const heads = levelRows.map((x): [string, RoleOriginDto] => [x.roleId, { companyId: x.companyId, companyNameAr: x.companyAr ?? x.companyEn ?? '', companyNameEn: x.companyEn ?? x.companyAr ?? '', unitNameAr: '', unitNameEn: '' }]);
+    const heads = headRows.map((x): [string, RoleOriginDto] => [x.roleId, { companyId: x.companyId, companyNameAr: x.companyAr ?? x.companyEn ?? '', companyNameEn: x.companyEn ?? x.companyAr ?? '', unitNameAr: x.unitAr ?? x.unitEn ?? '', unitNameEn: x.unitEn ?? x.unitAr ?? '' }]);
     return new Map([...heads, ...rows.map((x) => [x.roleId, { companyId: x.companyId, companyNameAr: x.companyAr ?? x.companyEn ?? '', companyNameEn: x.companyEn ?? x.companyAr ?? '', unitNameAr: x.unitAr ?? x.unitEn ?? '', unitNameEn: x.unitEn ?? x.unitAr ?? '' }] as [string, RoleOriginDto])]);
   }
 
@@ -68,11 +69,9 @@ export class TypeOrmRoleRepository extends RoleRepository {
     await this.repo.remove(role);
   }
 
+  /** A new job title role starts empty: every person already holds the Employee role, so a title adds only what it needs. */
   async defaultTemplatePermissions(): Promise<PermissionGrant[]> {
-    const rows: { key: string; scope: PermissionScope }[] = await this.repo.manager.query(
-      `SELECT p.permission_key AS key, p.scope AS scope FROM role_permissions p JOIN roles r ON r.id = p.role_id WHERE r.auto_rule = 'everyone'`,
-    );
-    return rows;
+    return [];
   }
 
   async insertJobTitleRoles(seeds: JobTitleRoleSeed[], tx: TransactionContext): Promise<void> {

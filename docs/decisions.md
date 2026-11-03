@@ -2,6 +2,103 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-03 — Sign in as another employee
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 161 | «Sign in as» is a real session of the employee marked with the administrator: three columns on `auth_sessions` (`impersonated_by_user_id`, `impersonator_session_id`, `impersonation_last_activity_at`), no table. The session is created by two server-only Better Auth endpoints (`/impersonation/open`, `/return`, `SERVER_ONLY`) that the Nest service calls in-process and whose `Set-Cookie` it forwards | Every guard, scope check and audit keeps working unchanged because the request really is the employee's; the permission, admin-mode and feature checks stay in Nest, not in the library; the administrator's own session stays untouched for the way back, and deleting it deletes the dependent session (FK `ON DELETE CASCADE`) | Better Auth ships a supported impersonation that keeps admin mode and the dual audit |
+| 162 | Off by default; `impersonationEnabled` (0/1) and `impersonationIdleMinutes` (5–240, default 30) live in `security_settings` with the other security numbers. Ending is decided per request by the guard (idle, or switched off): the session answers 403 `IMPERSONATION_ENDED` and only `POST /impersonation/stop` works, which the web calls by itself | No job and no bulk delete to keep consistent; the cache of the settings (15 s) is the only delay; the web always lands back in the administrator's own account | A reason appears to end sessions with no browser open |
+| 163 | What a «sign in as» session may not do is one pure list of method + path patterns (`impersonation.rules.ts`), checked by the guard, not a decorator on every route | One reviewable list with a unit test; later routes under the same prefixes are covered without remembering a decorator; the list: admin-mode activation, nesting, authenticator enrollment, `/me/{sessions,trusted-devices,profile}` writes, employee status / roles / groups / authenticator routes, roles, role and user groups, permission targets, exceptions, page visibility and the security settings | A new area holds the same kind of action |
+| 164 | Dual audit: an interceptor (after the guards) runs the request inside an `AsyncLocalStorage` stamp and `AuditService` adds `impersonatedBy` to the `changes` of every entry; the employee's session writes no `auth.sign_in`; `impersonation.started` / `.ended` are written under the administrator with the employee as the entity (`ended` carries the reason `manual`/`idle`/`disabled` and the minutes) | `changes` is already inside the hash chain (FR-75), so the stamp cannot be edited later, and no column or signature of the 40 emitters changes | Audit gets its own `via_user_id` column |
+| 165 | The employee is told only after it ends (in-app notice with the administrator's name, the start time and the minutes); no e-mail; the administrator can sign in as another administrator, but the session has no admin mode (decision 154) | Owner's answers; a notice during the session would be noise for a support look | Owner asks for an immediate notice |
+| 166 | The route key is `impersonation.start` (an administrative key: works only in admin mode through decision 154); starting also carries `@RequireAdminMode()`. The settings use the existing `security_settings.edit` | Admin mode is the fresh-code proof the owner chose as the entry condition | — |
+
+## 2026-11-03 — Data access
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 155 | One Employee role (rule `everyone`) is the baseline of every person and grows with the project: it now also holds the structure page (`org.view`) and the person's own tasks with their conversations, next to the own account, security, own tickets and own employee record. Its list is `EMPLOYEE_DEFAULT_PERMISSIONS` (one source for seeds and tests); a new key goes in that list and in a migration that inserts it into the role. Job-title roles are not the baseline: they hold what the title adds | Owner (2026-11-03): one role named Employee with the automatic permissions for everybody, more to be added as the project grows (the earlier reading, deleting this role, was wrong) | — (the title roles are named «title — unit» and start empty, done) |
+| 154 | Grants that come from an administrative role (a role holding `admin_mode.use`, e.g. System Admin) count only while platform admin mode is on for the session; outside it the person has their other roles and `admin_mode.use` itself. `AccessContext` keeps them apart (`elevatedGrants`, `elevate()`), the guard builds the effective context per request (`AdminModeService.effective`), and a key that only the administrative role holds answers `ADMIN_MODE_REQUIRED` | Owner (2026-11-03): without admin mode the administrator must see nothing of the administration, not full lists and add buttons; before, the mode guarded only `@RequireAdminMode` routes (decision 49) | A second kind of elevated role, or elevation per permission instead of per role |
+| 153 | TypeORM for simple reads and writes; raw SQL only for complex queries (unions, `ON CONFLICT … RETURNING`, `DELETE … USING`, CTEs, closure-table walks, scope filters over many rows, reports), only in `infrastructure/repositories`, always parameterized, always covered by an API e2e test on real PostgreSQL. CLAUDE.md «Data access» | Complex set-based work runs as one statement instead of loading objects into memory, which matters at 1,000–5,000 employees with a permission check on every request; the simple cases keep the type safety and the entity mapping. Raw SQL has no compile-time check of column names, so the e2e tests are its safety net | A query builder or a typed SQL layer is adopted, or a column rename shows the strings are too costly to maintain |
+
+## 2026-11-02 — Database design reference
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 152 | The Employee role (and the job-title roles copied from it) holds `employees.view` and `employees.update` at scope `own`; a person whose edit reaches only their own record changes just `SELF_EDITABLE_EMPLOYEE_FIELDS` (work and personal phone, personal e-mail, English name): other changed fields answer 422 `FIELD_NOT_EDITABLE`, sensitive fields (salary, currency, IBAN, ID) are never written without `view_sensitive`. Wider scope (HR, platform admin) edits everything. The list marks the person's own row (`isOwn`) and the edit button follows it | Owner (2026-11-02): a plain employee cannot add, edit others or delete; sees and edits their own account but not title, manager, contract dates, salary, currency | The self-editable list is short on purpose: widen the constant when HR agrees |
+| 151 | A person may change their own roles and groups only while platform admin mode is on (`SELF_ACTION` otherwise); the same checks (grantable by what the actor holds) still apply. Deactivating or ending one's own contract stays forbidden | Owner (2026-11-02): an employee cannot change their own title or roles, an administrator can change anyone's, himself included; changing one's job title in the form swaps the title role | — |
+| 150 | The unit drop-down of the employee form shows the unit's own name (`OrgNodeOptionDto.nameAr/nameEn`), not its full path; the path stays in lists, filters and import templates | Owner (2026-11-02) | Two units with the same name in one company look alike (then show the parent as a hint) |
+| 149 | The breadcrumb of every page (`PageHeader`) is the full trail from the menu: home › menu group › the list (a link, for a page inside it such as an employee or a ticket) › the page; read from the visible menu items (`NavContext`), no per-page setup. The picker dialogs of an employee (roles, groups) have a name search | Owner (2026-11-02) | — |
+| 148 | The permissions page: the drop-down of the chosen role / group / person is searchable (`Select` takes `searchable`), and the permission matrix (permissions page and role editor) has a search box over label, key and module; ticks of hidden rows are kept | Owner (2026-11-02) | — |
+| 147 | `docs/database-design.md` is the full table reference (mermaid ER per area + a description row per table), generated from the live schema; every new table is added to it in the same change as its migration (CLAUDE.md standing rule 11). README §6 stays the short overview | One place answers «what tables exist and what each one is for»; the README diagram omits lookups, translations and messaging tables | The file grows too big for one page (split per area) |
+
+## 2026-11-02 — Bot protection (Turnstile)
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 139 | Turnstile is an integration kind (`captcha`) reusing the provider framework: encrypted secret, activation only after a passing test, a probe that runs the real widget; no active provider means no check | Same rule as e-mail and translation (owner: keys from the dashboard, not `.env`); sign-in must keep working before any key exists | A second bot-check provider is wanted |
+| 140 | Cloudflare unreachable (timeout 4 s or a 5xx) lets the person in and writes `captcha.unavailable` to the audit (fail-open); a wrong or missing answer is always refused with the single `CAPTCHA_FAILED` | An outage of a third party must not lock the company out; the e-mail step is also behind the request limit and the code check | The audit shows abuse during outages (then make it a setting) |
+| 141 | The check guards `identify` (the step that can e-mail an enrollment link); the Microsoft sign-in and the code step stay free of it. The nginx CSP allows `challenges.cloudflare.com` for scripts and frames permanently (nginx cannot know which provider is active), but the page loads the script only when a provider is active | The plan wanted the CSP only while active; a static header cannot do that, the web loads the script on demand | The CSP moves to a server that can render it per request |
+| 143 | `requestsPerMinute` has a minimum of 120 (default 600); the «remember this device» choice sits above the code boxes | Found while testing the remember-device journey: a limit of 30 made one page load hit 429 and broke every call, including the trusted-device skip; the code submits by itself at the sixth digit, so a checkbox below could not be ticked in time | — |
+| 144 | The exceptions list is a tab of the roles page (`/roles?tab=exceptions`), not a page with its own menu item; `/exceptions` redirects; its keys, page key `exceptions` and tour step stay | Owner: no separate page; the vision file asks for a permanent list, not a page of its own | — |
+| 147 | The employee page lists the roles the person holds (head role of a unit included), and the roles dialog shows the held automatic roles ticked plus the head roles of the person's company; the add-titles unit picker shows the unit name, not its full path | Owner (2026-11-02): the head role was not visible on the employee page or in the roles picker | — |
+| 146 | Changing the organization structure (levels, units, moves, deletes, job titles) needs platform admin mode, like the admin pages: the routes carry `@RequireAdminMode()` (reading the tree does not) and the web shows the buttons only while the mode is on (`<Can adminMode>`). The tour steps for the levels and add-unit buttons moved to the administration tour | Owner: a person with the keys but outside admin mode still saw the add buttons; the vision file says the structure is edited from a protected area asking for extra verification | — |
+| 145 | The head role is per **unit** (`roles.org_node_id`), not per level of each company; the migration made one per live unit with the permissions of its level's old role and gave it to the unit's manager | Owner: «قائد قطاع التشغيل وتقديم الخدمات» is one role, not split by company (Arweqah, Tadween…); the old per-level roles repeated «قائد قطاع» once per company | The structure is made company-independent (the vision file: units are not tied to companies) |
+| 146 | The Employee role and the collaborator base hold none of `org.unit_*`, `org.levels_manage`, `org.titles_manage` (adding, editing a unit and adding a job title are for HR and the platform administrator), pinned by a unit test | Owner's answer: keep the structure keys for administration only | — |
+| 142 | A failed check answers 422 (a business rule), not 400 | One error family for every business refusal in the API | — |
+
+## 2026-11-02 — Collaborator base
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 137 | «Limited access» is a flag on the relation type (`relation_types.limited_access`), not a hard-coded code; the base role is the auto role `limited_access`, and the end date is required for such relations by the same flag rules as the contract type | Owner: lists and flags are data an administrator edits; the collaborators module (phase 2) will reuse the flag | A second kind of limited relation needs a different base role (then the flag becomes a role link) |
+| 138 | Changing an employee's relation swaps only the base role (Employee ↔ collaborator base) in `user_roles`; hand-picked roles stay | Roles are stored choices (decision 117); a relation change must not undo what HR chose | — |
+
+## 2026-11-02 — Audit chain, request limit, e-mail domains
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 134 | The audit log is a hash chain (`seq`, `prev_hash`, `hash`) written under an advisory lock, plus a trigger that refuses UPDATE/DELETE | Tamper evidence without an external service; the lock keeps `seq` gapless | Volume makes the single writer lock a bottleneck |
+| 135 | The request limit is the first global guard and reads `requestsPerMinute` from `security_settings`; the in-memory window is per API instance | Owner: numbers from settings, not code; one instance today | More than one API instance (move the window to a shared store) |
+| 136 | The `@arweqah.sa` rule left the shared schema: the form checks the address shape, `AllowedEmailDomainsService` checks the domain (saved list, default when empty) | The allowed domains are data an administrator edits; the web cannot know them | — |
+
+## 2026-11-02 — Sessions, trusted devices, security settings
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 130 | A trusted device skips only the code step that follows a **Microsoft** sign-in (`POST /mfa/trusted-skip` after the session exists); the e-mail sign-in always asks for the code. FR-13 (the code in every session) therefore changes only there, and only for as many days as the administrator sets (0 = off, the default) | With no password, the e-mail plus the code is the whole proof, so it cannot be skipped; after Microsoft the first factor is already proven | The owner wants it also for e-mail sign-in with a second factor |
+| 131 | The cookie holds a random secret, the database a SHA-256 of it; the device is removed with the authenticator reset or the account's deactivation | A stolen database must not hold usable secrets; a reset means the old app no longer vouches | Devices need to be listed for HR |
+| 132 | «Fresh code before a sensitive action» (plan G6) is not built: platform admin mode already asks for a code that was never used before and expires when idle, and every admin route requires it | A second prompt would repeat the same proof | HR actions outside admin mode (end a contract, give roles) must also ask |
+| 133 | Security numbers live in `security_settings` (key, int value) with limits and defaults in `packages/shared/src/security`; read through a 15-second cache | The owner: no values in the code; one small table for every number of this kind | A number needs more than an integer |
+
+## 2026-11-02 — Job title for everyone
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 129 | The job title is required by the API (create and update) and flagged («needs placement» filter, home count); **no `NOT NULL`/CHECK on `employees.job_title_id` yet** | Every API e2e factory adds a person without a unit, so a database rule would fail them all; the system account has no title by design; the owner's existing employees are test data to be placed from the filter | The factories give every person a title; then add `CHECK (is_system_account OR job_title_id IS NOT NULL) NOT VALID` and validate it after the cleanup |
+
+## 2026-11-02 — Sign-in after the contract
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 128 | The cut-off job runs at 00:05 Asia/Riyadh with Riyadh's date, deactivates employees whose end date is before today and records `employees.access_ended_at`; moving the end date to today or later (or removing it) gives sign-in back only if `access_ended_at` is set and the actor holds `employees.deactivate` | The owner's rule (the day after the end date) was already coded with the server's UTC clock; the marker tells an account ended by the contract from one switched off by hand, so only the first comes back on its own | An exit request has to keep sign-in open for one screen (requests module) |
+
+## 2026-11-02 — Exceptions
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 125 | An exception is what is given outside the job title: a manual role (auto rule null), a personal permission, a group of roles. The title role, the Employee role and the head role are defaults, not exceptions. End date, who gave it and when are columns on `user_roles`, `user_permissions`, `user_role_groups` (no new table); the last day holds through that day in Riyadh, and a nightly job removes the ended rows and audits them | Owner: no forgotten permission; the list needs the same facts for the three kinds; the rows already exist, so a new table would copy them | Groups of people (`user_group_members`) or role-group membership need end dates too |
+| 126 | Replacing a person's roles, groups or permissions keeps the end date and the giver of a row that stays (upsert, not delete and insert); a role's date is changed only when the request names one (null removes it) | Saving the permissions page or the employee form must not silently erase an end date | The date should reset whenever the scope changes |
+| 127 | Only the employee form (roles) sets an end date when giving; groups of roles and personal permissions get theirs from the exceptions page (change the last day) | Keeps the employee form simple; the page is the one place for the dates | A date is wanted while giving a group or a permission |
+
+## 2026-11-02 — Depth of a scope
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 122 | A depth is part of the scope string (`subtree:N`, N 1 to 5) in the existing `scope` varchar columns, ordered between `unit` and `subtree`; no new column on the four grant tables | The owner wants each head role to reach as many levels as it says (a sector head sees its departments only); a string keeps every table, DTO and widest-scope rule working, and the existing `unit` (depth 0) and `subtree` (no limit) stay as they are | A grant needs more than a depth (e.g. a named level or another dimension) |
+| 123 | The units a person reaches are one map (unit → fewest levels below a starting unit) built once per context from the closure table: starting units are where they sit and the units they manage through a head role. `AccessContext.nodesFor(scope)` feeds lists (`= ANY(:scopeNodes)`), record checks, tickets and the tasks reach (`TaskViewer.reachNodes`) | One source for every module; replaces the separate placement/managed lists of decision 118 without changing its meaning | The closure of a very large company makes the per-request load slow (then cache per user) |
+| 124 | `org.view` accepts `unit` and `subtree` (with depths): the tree shows the units the scope reaches and the highest of them as a root (`parentId` null) | A sector head with one level below must see the departments, not the whole company; the web already draws roots from `parentId = null` | The structure page needs to show the path above the reached units |
+
 ## 2026-11-02 — Security advisory
 
 | # | Decision | Why | Revisit when |

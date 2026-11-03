@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { localizedNameSchema } from '../common/localized';
-import { PERMISSION_SCOPES, type PermissionScope } from '../permissions/scope';
+import { permissionScopeSchema, type PermissionScope } from '../permissions/scope';
 
 export const permissionGrantSchema = z.strictObject({
   key: z.string().regex(/^[a-z][a-z0-9_-]*\.[a-z][a-z0-9_-]*$/),
-  scope: z.enum(PERMISSION_SCOPES),
+  scope: permissionScopeSchema,
 });
 
 export const ROLE_ASSIGNMENTS = ['auto', 'manual'] as const;
@@ -14,7 +14,7 @@ export type RoleAssignment = (typeof ROLE_ASSIGNMENTS)[number];
  * Roles the system keeps up to date by itself; nobody assigns them by hand.
  * `job_title`: one role per job title, held by whoever has that title; `node_head`: one role per organization level of a company, held by the managers of its units.
  */
-export const ROLE_AUTO_RULES = ['everyone', 'has_reports', 'job_title', 'node_head'] as const;
+export const ROLE_AUTO_RULES = ['everyone', 'has_reports', 'job_title', 'node_head', 'limited_access'] as const;
 export type RoleAutoRule = (typeof ROLE_AUTO_RULES)[number];
 
 /** Auto roles that follow the organization (created and removed with their job title or level, never edited or assigned by hand). */
@@ -51,8 +51,8 @@ export interface RoleDto {
   autoRule: RoleAutoRule | null;
   /** The job title this role belongs to (`job_title` roles only). */
   jobTitleId: string | null;
-  /** The organization level this role belongs to (`node_head` roles only). */
-  orgLevelId: string | null;
+  /** The organization unit this role belongs to (`node_head` roles only): one head role per unit, whichever company it sits in. */
+  orgNodeId: string | null;
   /** The unit and company of a job title role; null for the other roles. */
   origin: RoleOriginDto | null;
   permissions: { key: string; scope: PermissionScope }[];

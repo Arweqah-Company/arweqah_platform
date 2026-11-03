@@ -7,7 +7,11 @@ import { LookupEntity, TranslationEntity } from '../../../../common/domain/looku
  */
 
 @Entity('relation_types')
-export class RelationType extends LookupEntity {}
+export class RelationType extends LookupEntity {
+  /** A person of this relation (a collaborator) gets the collaborator base role instead of the Employee role, and must have an end date. */
+  @Column({ name: 'limited_access', type: 'boolean', default: false })
+  limitedAccess: boolean;
+}
 
 @Entity('relation_type_translations')
 @Unique('UQ_relation_type_translations', ['relationTypeId', 'lang'])

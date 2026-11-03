@@ -37,27 +37,31 @@ export class UserAccessService {
     return this.access.permissionsOf(userId);
   }
 
-  async replaceGroups(userId: string, groupIds: string[], tx?: TransactionContext): Promise<void> {
+  roleExpiriesOf(userIds: string[]): Promise<Map<string, Map<string, string>>> {
+    return this.access.roleExpiriesOf(userIds);
+  }
+
+  async replaceGroups(userId: string, groupIds: string[], grantedBy: string | null = null, tx?: TransactionContext): Promise<void> {
     const unique = [...new Set(groupIds)];
     const known = await this.groups.all();
     const missing = unique.find((id) => !known.some((g) => g.id === id));
     if (missing) throw new NotFoundError('Role group', missing);
-    await this.access.replaceGroups(userId, unique, tx);
+    await this.access.replaceGroups(userId, unique, grantedBy, tx);
     this.events.emit(ACCESS_CHANGED, { userId });
   }
 
-  async replacePermissions(userId: string, grants: PermissionGrant[], tx?: TransactionContext): Promise<void> {
+  async replacePermissions(userId: string, grants: PermissionGrant[], grantedBy: string | null = null, tx?: TransactionContext): Promise<void> {
     this.catalog.assertValid(grants);
-    await this.access.replacePermissions(userId, grants, tx);
+    await this.access.replacePermissions(userId, grants, grantedBy, tx);
     this.events.emit(ACCESS_CHANGED, { userId });
   }
 
-  async replaceRoles(userId: string, roleIds: string[], tx?: TransactionContext): Promise<void> {
+  async replaceRoles(userId: string, roleIds: string[], options: { expiries?: Record<string, string | null>; grantedBy?: string | null } = {}, tx?: TransactionContext): Promise<void> {
     const unique = [...new Set(roleIds)];
     const found = await this.roles.findByIds(unique);
     const missing = unique.find((id) => !found.some((r) => r.id === id));
     if (missing) throw new NotFoundError('Role', missing);
-    await this.access.replaceRoles(userId, unique, tx);
+    await this.access.replaceRoles(userId, unique, options, tx);
     this.events.emit(ACCESS_CHANGED, { userId });
   }
 
@@ -73,15 +77,21 @@ export class UserAccessService {
     this.assertHolds(actor, roles.filter((r) => !exempt.includes(r.id)).flatMap((r) => r.permissions));
   }
 
-  /** The roles a new employee starts with: the Employee role and the role of their job title (those that exist). */
-  async defaultRoleIds(jobTitleId: string | null): Promise<{ everyoneId: string | null; titleId: string | null; ids: string[] }> {
-    const { everyoneId, titleId } = await this.access.defaultRoleIdsFor(jobTitleId);
-    return { everyoneId, titleId, ids: [everyoneId, titleId].filter((id): id is string => !!id) };
+  /** The roles a new employee starts with: the base role (Employee, or the collaborator base) and the role of their job title (those that exist). */
+  async defaultRoleIds(jobTitleId: string | null, limitedAccess = false): Promise<{ baseId: string | null; titleId: string | null; ids: string[] }> {
+    const { baseId, titleId } = await this.access.defaultRoleIdsFor(jobTitleId, limitedAccess);
+    return { baseId, titleId, ids: [baseId, titleId].filter((id): id is string => !!id) };
   }
 
-  /** The head role of a level follows who manages its units: given to the manager, taken back from one who no longer manages any unit of the level. */
-  async syncHeadRole(levelId: string, employeeId: string): Promise<void> {
-    await this.access.syncHeadRole(levelId, employeeId);
+  /** A change of relation (employee ↔ collaborator) changes the base role only; the roles chosen by hand stay. */
+  async swapBaseRole(userId: string, limitedAccess: boolean): Promise<void> {
+    await this.access.swapBaseRole(userId, limitedAccess);
+    this.events.emit(ACCESS_CHANGED, { userId });
+  }
+
+  /** The head role of a unit follows who manages it: given to the manager, taken back from one who no longer does. */
+  async syncHeadRole(nodeId: string, employeeId: string): Promise<void> {
+    await this.access.syncHeadRole(nodeId, employeeId);
     this.events.emit(ACCESS_CHANGED, {});
   }
 

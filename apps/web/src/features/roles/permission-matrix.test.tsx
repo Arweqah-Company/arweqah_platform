@@ -1,7 +1,8 @@
 import type { PermissionCatalogGroup, PermissionGrant } from '@arweqah-platform/shared';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
+import { chooseOption, optionLabels } from '../../../test/select';
 import { PermissionMatrix } from './permission-matrix';
 
 const catalog: PermissionCatalogGroup[] = [
@@ -18,6 +19,20 @@ function Harness({ onChange }: { onChange: (grants: PermissionGrant[]) => void }
 }
 
 describe('Permission matrix (FR-47)', () => {
+  it('searches the permissions by label, key or module and keeps the ticks of what is hidden', () => {
+    render(<Harness onChange={() => undefined} />);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'عرض الموظفين' }));
+    fireEvent.change(screen.getByRole('searchbox', { name: 'ابحث في الصلاحيات' }), { target: { value: 'التدقيق' } });
+    expect(screen.queryByRole('checkbox', { name: 'عرض الموظفين' })).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: 'عرض سجل التدقيق' })).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('searchbox', { name: 'ابحث في الصلاحيات' }), { target: { value: 'employees.create' } });
+    expect(screen.getByRole('checkbox', { name: 'إضافة موظفين' })).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('searchbox', { name: 'ابحث في الصلاحيات' }), { target: { value: 'zzz' } });
+    expect(screen.getByText('لا صلاحيات مطابقة للبحث.')).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('searchbox', { name: 'ابحث في الصلاحيات' }), { target: { value: '' } });
+    expect(screen.getByRole('checkbox', { name: 'عرض الموظفين' })).toBeChecked();
+  });
+
   it('selects every permission at its widest scope, and clears them all again', () => {
     let latest: PermissionGrant[] = [];
     render(<Harness onChange={(g) => { latest = g; }} />);
@@ -32,5 +47,27 @@ describe('Permission matrix (FR-47)', () => {
   it('offers no select-all when the matrix is read-only', () => {
     render(<PermissionMatrix catalog={catalog} grants={[]} onChange={() => undefined} disabled />);
     expect(screen.queryByRole('button', { name: 'تحديد كل الصلاحيات' })).not.toBeInTheDocument();
+  });
+
+  it('offers how many levels of units below the permission reaches, for a permission that allows subtree (FR-80)', async () => {
+    render(<PermissionMatrix catalog={catalog} grants={[{ key: 'employees.view', scope: 'unit' }]} onChange={() => undefined} />);
+    const labels = await optionLabels(screen.getByLabelText(/النطاق: عرض الموظفين/));
+    expect(labels).toEqual(['سجله فقط', 'وحدته', 'وحدته ومستوى واحد تحتها', 'وحدته ومستويان تحتها', 'وحدته وثلاثة مستويات تحتها', 'وحدته وأربعة مستويات تحتها', 'وحدته وخمسة مستويات تحتها', 'وحدته وما تحتها', 'شركته كاملة', 'كل الشركات']);
+  });
+
+  it('gives no depth for a permission that does not allow subtree, and sends the depth chosen', async () => {
+    let latest: PermissionGrant[] = [];
+    const depthCatalog: PermissionCatalogGroup[] = [{ module: 'org', permissions: [
+      { key: 'org.view', module: 'org', labelAr: 'عرض الهيكل', labelEn: 'View structure', scopes: ['unit', 'subtree', 'company', 'all'] },
+      { key: 'org.edit', module: 'org', labelAr: 'تعديل الهيكل', labelEn: 'Edit structure', scopes: ['unit', 'company'] },
+    ] }];
+    function Both() {
+      const [grants, setGrants] = useState<PermissionGrant[]>([{ key: 'org.view', scope: 'unit' }, { key: 'org.edit', scope: 'unit' }]);
+      return <PermissionMatrix catalog={depthCatalog} grants={grants} onChange={(g) => { setGrants(g); latest = g; }} />;
+    }
+    render(<Both />);
+    expect(await optionLabels(screen.getByLabelText(/النطاق: تعديل الهيكل/))).toEqual(['وحدته', 'شركته كاملة']);
+    await chooseOption(screen.getByLabelText(/النطاق: عرض الهيكل/), 'subtree:1');
+    await waitFor(() => expect(latest).toContainEqual({ key: 'org.view', scope: 'subtree:1' }));
   });
 });

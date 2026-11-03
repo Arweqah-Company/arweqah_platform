@@ -29,6 +29,7 @@
     "email-settings": "E-mail settings",
     "email-templates": "E-mail templates",
     "notification-templates": "Notification templates",
-    "tour-settings": "Welcome tour"
+    "tour-settings": "Welcome tour",
+    "captcha-settings": "Bot protection"
   }
 }

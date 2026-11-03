@@ -8,13 +8,22 @@ export class RateWindow {
   ) {}
 
   /** Records a turn and answers true, or answers false (without recording) when the key used all of its turns. */
-  take(key: string, now = Date.now()): boolean {
+  take(key: string, now = Date.now(), limit = this.limit): boolean {
     const inWindow = (this.turns.get(key) ?? []).filter((at) => now - at < this.windowMs);
-    if (inWindow.length >= this.limit) {
+    if (inWindow.length >= limit) {
       this.turns.set(key, inWindow);
       return false;
     }
     this.turns.set(key, [...inWindow, now]);
     return true;
+  }
+
+  /** Forgets the keys that have no turn left in the window, so the map does not grow with every address ever seen. */
+  prune(now = Date.now()): void {
+    for (const [key, turns] of this.turns) if (!turns.some((at) => now - at < this.windowMs)) this.turns.delete(key);
+  }
+
+  get size(): number {
+    return this.turns.size;
   }
 }

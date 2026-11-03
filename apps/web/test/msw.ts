@@ -5,7 +5,8 @@ import { setupServer } from 'msw/node';
 /** A signed-in employee: the Employee role's own-account and ticket keys, plus what the test adds. */
 const EMPLOYEE_KEYS: MeDto['permissions'] = EMPLOYEE_DEFAULT_PERMISSIONS;
 
-export const me = (permissions: MeDto['permissions'] = []): MeDto => ({
+/** `adminMode`: the session has platform admin mode switched on (the administration buttons of ordinary pages show only then); `without`: key prefixes (such as `tasks.`) taken out of the Employee baseline. */
+export const me = (permissions: MeDto['permissions'] = [], options: { adminMode?: boolean; without?: string[] } = {}): MeDto => ({
   id: 'u1',
   name: 'سارة أحمد',
   email: 'sara@arweqah.sa',
@@ -14,11 +15,14 @@ export const me = (permissions: MeDto['permissions'] = []): MeDto => ({
   isActive: true,
   authenticatorEnabled: true,
   mfaVerified: true,
-  adminMode: { available: false, active: false, expiresAt: null },
+  impersonation: null,
+  impersonationEnabled: false,
+  adminMode: { available: options.adminMode === true, active: options.adminMode === true, expiresAt: null },
+  trustedDevicesEnabled: false,
   roles: [],
   placement: { companyId: null, orgNodeId: null, managerId: null },
   createdAt: new Date(0).toISOString(),
-  permissions: [...EMPLOYEE_KEYS, ...permissions],
+  permissions: [...EMPLOYEE_KEYS.filter((p) => !options.without?.some((prefix) => p.key.startsWith(prefix))), ...permissions],
   hiddenPages: [],
   listSettings: {},
 });
@@ -33,14 +37,14 @@ export const catalog: PermissionCatalogGroup[] = [
 ];
 
 export const roles: RoleDto[] = [
-  { id: 'r1', nameAr: 'مدير النظام', nameEn: 'System Admin', description: null, isSystem: true, assignment: 'manual', autoRule: null, jobTitleId: null, orgLevelId: null, origin: null, permissions: [], usersCount: 1 },
+  { id: 'r1', nameAr: 'مدير النظام', nameEn: 'System Admin', description: null, isSystem: true, assignment: 'manual', autoRule: null, jobTitleId: null, orgNodeId: null, origin: null, permissions: [], usersCount: 1 },
 ];
 
 const item = (code: string, nameAr: string, nameEn: string, sortOrder = 1) => ({ id: `id-${code}`, code, name: nameAr, nameAr, nameEn, sortOrder });
 
 /** A small but realistic set of option lists, with the flags the employee form is built from. */
 export const lookups: LookupsDto = {
-  relationTypes: [item('employee', 'موظف', 'Employee')],
+  relationTypes: [{ ...item('employee', 'موظف', 'Employee'), limitedAccess: false }],
   countries: [{ ...item('SA', 'السعودية', 'Saudi Arabia'), isoCode: 'SA', currencyCode: 'SAR', currencyName: 'ريال سعودي' }],
   maritalStatuses: [item('married', 'متزوج', 'Married')],
   residencyStatuses: [item('citizen', 'مواطن', 'Citizen')],

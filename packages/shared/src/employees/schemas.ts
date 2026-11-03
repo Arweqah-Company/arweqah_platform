@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { roleExpiriesSchema } from '../exceptions/schemas';
 import { paginationQuerySchema, type Paginated } from '../common/pagination';
 import {
   MAX_EMPLOYEE_AGE,
@@ -7,7 +8,6 @@ import {
   isE164Phone,
   isEnglishName,
   isValidSaudiIban,
-  isWorkEmail,
   normalizeIban,
   todayIso,
   yearsBetween,
@@ -36,8 +36,8 @@ const employeeShape = {
   workEmail: z
     .email()
     .max(255)
-    .transform((e) => e.toLowerCase())
-    .refine(isWorkEmail, 'Work email must end with @arweqah.sa'),
+    // The domain is checked by the API against the allowed domains (Security settings); the form only checks the shape.
+    .transform((e) => e.toLowerCase()),
   personalEmail: z.email().max(255).nullable().optional(),
   workPhone: phone,
   personalPhone: phone,
@@ -136,7 +136,7 @@ function checkConditionalFields(v: Draft, issue: Issue): void {
 }
 
 export const createEmployeeSchema = z
-  .strictObject({ ...employeeShape, /** Left out = the default roles (Employee and the role of the job title); an empty list = none. */ roleIds: z.array(z.uuid()).max(20).optional() })
+  .strictObject({ ...employeeShape, /** Left out = the default roles (Employee and the role of the job title); an empty list = none. */ roleIds: z.array(z.uuid()).max(20).optional(), roleExpiries: roleExpiriesSchema.optional() })
   .superRefine(refineEmployee);
 export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
 
@@ -147,7 +147,7 @@ export const updateEmployeeSchema = z
   .superRefine(refineEmployee);
 export type UpdateEmployeeInput = z.infer<typeof updateEmployeeSchema>;
 
-export const assignEmployeeRolesSchema = z.strictObject({ roleIds: z.array(z.uuid()).max(20) });
+export const assignEmployeeRolesSchema = z.strictObject({ roleIds: z.array(z.uuid()).max(20), roleExpiries: roleExpiriesSchema.optional() });
 export type AssignEmployeeRolesInput = z.infer<typeof assignEmployeeRolesSchema>;
 
 export const terminateEmployeeSchema = z
@@ -192,6 +192,8 @@ export const employeesQuerySchema = paginationQuerySchema.extend({
   /** Documents or contracts that need attention within 30 days (an expired ID counts). */
   idExpiring: z.stringbool().optional(),
   contractEnding: z.stringbool().optional(),
+  /** People with no unit or no job title (the system account is left out): they must be placed before their role and reach can be right. */
+  needsPlacement: z.stringbool().optional(),
 });
 export type EmployeesQuery = z.infer<typeof employeesQuerySchema>;
 
@@ -214,6 +216,8 @@ export interface EmployeeDto {
   isActive: boolean;
   isSystemAccount: boolean;
   authenticatorEnabled: boolean;
+  /** When sign-in ended because the contract ended; null while it has not (or it came back). */
+  accessEndedAt: string | null;
   company: NamedRef;
   relationTypeId: string | null;
   orgNode: (NamedRef & { pathAr: string; pathEn: string }) | null;
@@ -256,7 +260,7 @@ export interface EmployeeDto {
   salaryCurrencyCountryId: string | null;
   iban: string | null;
   notes: string | null;
-  roles: NamedRef[];
+  roles: (NamedRef & { expiresAt: string | null })[];
   /** Groups of roles the person was given (their roles come on top of the ones above). */
   groups: NamedRef[];
   sensitiveHidden: boolean;
@@ -266,6 +270,8 @@ export interface EmployeeDto {
 
 export interface EmployeeListItemDto {
   id: string;
+  /** The sign-in account of this employee (what «sign in as» is started with). */
+  userId: string;
   employeeNumber: string;
   fullName: string;
   workEmail: string;
@@ -276,6 +282,8 @@ export interface EmployeeListItemDto {
   needsPlacement: boolean;
   idExpiresSoon: boolean;
   contractEndsSoon: boolean;
+  /** The signed-in person's own record (the only one a plain employee may open for editing). */
+  isOwn: boolean;
 }
 
 export type EmployeesPage = Paginated<EmployeeListItemDto>;
@@ -310,3 +318,6 @@ export interface CreateEmployeeResultDto {
   employee: EmployeeDto;
   invitation: InviteResultDto;
 }
+
+/** The only fields of their own record a person may change when "edit employees" reaches them at scope `own` only (a plain employee); everything else is for HR and administrators. */
+export const SELF_EDITABLE_EMPLOYEE_FIELDS = ['workPhone', 'personalPhone', 'personalEmail', 'fullNameEn'] as const;

@@ -6,7 +6,7 @@ import { RoleTemplateError } from '../domain/errors';
 import { RoleRepository } from '../domain/access.repository';
 import { UserAccessService } from './user-access.service';
 
-/** A job title that needs its role: the role copies its permissions from `templateRoleId`, or from the Employee role when none is chosen. */
+/** A job title that needs its role: the role copies its permissions from `templateRoleId`, or starts empty when none is chosen (the Employee role gives the baseline). */
 export interface JobTitleRoleRequest {
   jobTitleId: string;
   nameAr: string;

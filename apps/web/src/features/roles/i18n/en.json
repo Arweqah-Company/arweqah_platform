@@ -1,4 +1,6 @@
 {
+  "searchPermissions": "Search permissions",
+  "noPermissionMatch": "No permission matches the search.",
   "title": "Roles & permissions",
   "description": "Each role is a set of permissions, and each permission has a scope that decides which records it covers.",
   "new": "New role",
@@ -63,7 +65,7 @@
     "manual": "Manual",
     "rule": "Automatic (rule)",
     "jobTitle": "Job title",
-    "head": "Level head"
+    "head": "Unit head"
   },
   "sync": {
     "button": "Refresh members now",
@@ -74,5 +76,11 @@
   "origin": {
     "label": "Unit and company",
     "company": "Company"
-  }
+  },
+  "tabs": {
+    "roles": "Roles",
+    "exceptions": "Exceptions"
+  },
+  "tabsLabel": "Roles and exceptions",
+  "noTabs": "You have no permission on any tab here."
 }

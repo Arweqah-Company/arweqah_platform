@@ -5,6 +5,8 @@ type SelectProps = Omit<SelectHTMLAttributes<HTMLSelectElement>, 'onChange' | 'v
   value?: string;
   onChange?: (event: Pick<ChangeEvent<HTMLSelectElement>, 'target'>) => void;
   children: ReactNode;
+  /** Shows the search box in the popup, for a long list. */
+  searchable?: boolean;
 };
 
 function optionsOf(children: ReactNode): ComboboxOption[] {
@@ -14,10 +16,10 @@ function optionsOf(children: ReactNode): ComboboxOption[] {
 }
 
 /**
- * The form select: the same popup as `Combobox` (rounded, petrol selection, check mark) without the search box.
+ * The form select: the same popup as `Combobox` (rounded, petrol selection, check mark), with the search box only when `searchable`.
  * Keeps the native API (`<option>` children, `onChange(e)` with `e.target.value`) so call sites stay simple.
  */
-export function Select({ value = '', onChange, children, id, className, disabled, 'aria-label': label, ...rest }: SelectProps) {
+export function Select({ value = '', onChange, children, id, className, disabled, searchable = false, 'aria-label': label, ...rest }: SelectProps) {
   return (
     <Combobox
       id={id}
@@ -25,7 +27,7 @@ export function Select({ value = '', onChange, children, id, className, disabled
       className={className}
       value={value}
       disabled={disabled}
-      searchable={false}
+      searchable={searchable}
       options={optionsOf(children)}
       invalid={rest['aria-invalid'] === true || rest['aria-invalid'] === 'true'}
       aria-describedby={rest['aria-describedby']}

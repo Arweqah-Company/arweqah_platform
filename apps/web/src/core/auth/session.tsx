@@ -26,6 +26,15 @@ export function useSignOut() {
   };
 }
 
+/** A «sign in as» session ran out (idle, or the feature was switched off): go back to the administrator's own account. */
+async function endImpersonation(): Promise<void> {
+  try {
+    await apiClient.post<void>('/impersonation/stop');
+  } finally {
+    window.location.assign('/');
+  }
+}
+
 /** Sends the user to sign-in on 401 and to the code step when the session is not code-verified. */
 export function SessionWatcher(): null {
   const navigate = useNavigate();
@@ -37,6 +46,7 @@ export function SessionWatcher(): null {
           void client.invalidateQueries({ queryKey: ME_KEY });
           navigate('/login/verify');
         }
+        else if (error.code === 'IMPERSONATION_ENDED') void endImpersonation();
         else if (error.code === 'ADMIN_MODE_REQUIRED') void client.invalidateQueries({ queryKey: ME_KEY });
         else if (error.status === 401) {
           // Someone who was signed in lost the session: say so (401 page). A visitor without a session just signs in.
@@ -55,8 +65,8 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   const location = useLocation();
   if (me.isPending) return <FullPageSpinner />;
   if (me.isError) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
-  // Every session ends at the code step; someone without an app linked yet enrolls first.
-  if (!me.data.authenticatorEnabled) return <Navigate to="/enroll" replace />;
+  // Every session ends at the code step; someone without an app linked yet enrolls first. A «sign in as» session needs neither: it is the administrator's.
+  if (!me.data.authenticatorEnabled && !me.data.impersonation) return <Navigate to="/enroll" replace />;
   if (!me.data.mfaVerified) return <Navigate to="/login/verify" replace state={{ from: location.pathname }} />;
   return <>{children}</>;
 }

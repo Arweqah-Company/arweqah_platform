@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { useMe } from '@/core/auth/session';
 import { Alert, PageHeader } from '@/shared/ui';
+import { SessionsSection } from './sessions-section';
+import { TrustedDevicesSection } from './trusted-devices-section';
 
 /** Where a person sees how their sign-in is protected. There is no password; the authenticator app is the key. */
 export function SecurityPage() {
@@ -19,6 +21,8 @@ export function SecurityPage() {
             <li>{t('howSessions')}</li>
           </ul>
         </section>
+        <SessionsSection />
+        <TrustedDevicesSection />
         <section>
           <h2 className="text-lg font-bold">{t('lostTitle')}</h2>
           <p className="mt-2 text-sm leading-7">{t('lostBody')}</p>

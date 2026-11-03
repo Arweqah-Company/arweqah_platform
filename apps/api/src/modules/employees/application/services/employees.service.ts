@@ -4,6 +4,8 @@ import {
   CorePermission,
   EMPLOYEE_TERMINATED_TOPIC,
   todayIso,
+  type AssignEmployeeRolesInput,
+  SELF_EDITABLE_EMPLOYEE_FIELDS,
   type CreateEmployeeInput,
   type CreateEmployeeResultDto,
   type EmployeeDto,
@@ -20,6 +22,9 @@ import {
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
 import { ForbiddenError, NotFoundError } from '../../../../common/domain/domain-error';
 import { AbilityFactory } from '../../../../core/access/application/ability.factory';
+import { AllowedEmailDomainsService } from '../../../../core/auth/application/allowed-email-domains.service';
+import { EmailDomainNotAllowedError } from '../../../../core/auth/domain/errors-email-domain';
+import { todayInRiyadh } from '../../../../common/domain/riyadh-date';
 import { ACCESS_CHANGED, EMPLOYEES_CHANGED } from '../../../../core/access/application/access.events';
 import { UserAccessService } from '../../../../core/access/application/user-access.service';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
@@ -31,13 +36,19 @@ import { InvitationService } from '../../../../core/auth/application/invitation.
 import { LookupsService } from '../../../lookups/application/services/lookups.service';
 import type { Employee } from '../../domain/entities/employee.entity';
 import { EmployeeRepository } from '../../domain/contracts/employee.repository';
-import { FieldRuleError, SelfActionError } from '../../domain/errors/employee.errors';
+import { FieldNotEditableError, FieldRuleError, SelfActionError } from '../../domain/errors/employee.errors';
 import { EmployeeTransformer } from '../transformers/employee.transformer';
 import type { EmployeeInput } from '../../domain/rules/employee-flags.rules';
 import { EmployeeValidationService } from './employee-validation.service';
 import { EMPLOYEE_AUDIT } from '../messages/employee.messages';
 
 const P = CorePermission;
+
+/** Who acts, and whether platform admin mode is on for them: in admin mode a person may change their own roles and groups. */
+export interface Actor {
+  id: string;
+  adminMode: boolean;
+}
 
 @Injectable()
 export class EmployeesService {
@@ -56,6 +67,7 @@ export class EmployeesService {
     private readonly tx: TransactionRunner,
     private readonly events: EventEmitter2,
     private readonly outbox: Outbox,
+    private readonly emailDomains: AllowedEmailDomainsService,
   ) {}
 
   async list(ctx: AccessContext, query: EmployeesQuery): Promise<Paginated<EmployeeListItemDto>> {
@@ -63,7 +75,7 @@ export class EmployeesService {
     if (!scope) throw new ForbiddenError();
     const { items, total } = await this.repo.list(query, scope);
     const states = await this.repo.activeStates(items.map((e) => e.userId));
-    return { items: await this.transformer.toListItems(items, states), total, page: query.page, pageSize: query.pageSize };
+    return { items: await this.transformer.toListItems(items, states, ctx.userId), total, page: query.page, pageSize: query.pageSize };
   }
 
   /** Dashboard counts for the employees the viewer may see. Documents and contracts count as "soon" within 30 days. */
@@ -81,10 +93,12 @@ export class EmployeesService {
 
   /** Creates the person's record and sign-in account, assigns roles, then e-mails the activation link. */
   async create(ctx: AccessContext, input: CreateEmployeeInput, actorId: string): Promise<CreateEmployeeResultDto> {
-    const { roleIds: chosen, ...fields } = input;
+    const { roleIds: chosen, roleExpiries, ...fields } = input;
     this.assertInScope(ctx, P.EmployeesCreate, { companyId: input.companyId, orgNodeId: input.orgNodeId });
-    const defaults = await this.access.defaultRoleIds(input.jobTitleId);
+    await this.assertEmailDomainAllowed(input.workEmail);
+    const defaults = await this.access.defaultRoleIds(input.jobTitleId, await this.isLimited(input.relationTypeId));
     const roleIds = chosen ?? defaults.ids;
+    this.assertRoleExpiries(roleIds, roleExpiries);
     // The default roles come with the new person whoever adds them; naming roles is the permission to assign them.
     if (chosen?.length) await this.assertCanAssignRoles(ctx, roleIds, { companyId: input.companyId, orgNodeId: input.orgNodeId }, defaults.ids);
     const { values } = await this.validation.prepare(ctx, fields);
@@ -93,7 +107,7 @@ export class EmployeesService {
     try {
       created = await this.tx.run(async (tx) => {
         const row = await this.repo.insert({ ...values, userId, createdBy: actorId }, tx);
-        if (roleIds.length) await this.access.replaceRoles(userId, roleIds, tx);
+        if (roleIds.length) await this.access.replaceRoles(userId, roleIds, { expiries: roleExpiries, grantedBy: actorId }, tx);
         return row;
       });
     } catch (error) {
@@ -113,11 +127,42 @@ export class EmployeesService {
     this.assertInScope(ctx, P.EmployeesUpdate, { companyId: input.companyId, orgNodeId: input.orgNodeId, ownerId: existing.userId });
     const fields: EmployeeInput = { ...input, workEmail: existing.workEmail };
     const { values } = await this.validation.prepare(ctx, fields, existing);
+    this.assertSelfServiceFields(ctx, existing, values);
     await this.tx.run((tx) => this.repo.update(id, values, tx));
+    await this.restoreAccessIfEndMoved(ctx, existing, values.endDate ?? null, actorId);
+    await this.swapBaseRoleIfRelationChanged(existing, values.relationTypeId ?? null);
     this.events.emit(ACCESS_CHANGED, { userId: existing.userId });
     await this.events.emitAsync(EMPLOYEES_CHANGED);
     this.audit(actorId, EMPLOYEE_AUDIT.updated, id, { fields: changedFields(existing, values) });
     return this.dto(ctx, (await this.repo.findById(id)) as Employee);
+  }
+
+  /** A person whose "edit employees" reaches only their own record changes just the self-service fields of it. */
+  private assertSelfServiceFields(ctx: AccessContext, existing: Employee, values: Record<string, unknown>): void {
+    if (existing.userId !== ctx.userId || ctx.scopeOf(P.EmployeesUpdate) !== 'own') return;
+    const allowed: readonly string[] = SELF_EDITABLE_EMPLOYEE_FIELDS;
+    const blocked = changedFields(existing, values).filter((field) => !allowed.includes(field));
+    if (blocked.length) throw new FieldNotEditableError(blocked);
+  }
+
+  private async isLimited(relationTypeId: string | null | undefined): Promise<boolean> {
+    return relationTypeId ? (await this.lookups.relationTypeLimited(relationTypeId)) === true : false;
+  }
+
+  /** Becoming a collaborator (or an employee again) changes the base role: Employee ↔ collaborator base. */
+  private async swapBaseRoleIfRelationChanged(existing: Employee, relationTypeId: string | null): Promise<void> {
+    if (relationTypeId === existing.relationTypeId) return;
+    const [was, is] = await Promise.all([this.isLimited(existing.relationTypeId), this.isLimited(relationTypeId)]);
+    if (was !== is) await this.access.swapBaseRole(existing.userId, is);
+  }
+
+  /** Sign-in ended by the contract coming back when the end date is removed or moved to today or later, for who may switch an account on. */
+  private async restoreAccessIfEndMoved(ctx: AccessContext, existing: Employee, endDate: string | null, actorId: string): Promise<void> {
+    if (!existing.accessEndedAt || (endDate !== null && endDate < todayInRiyadh())) return;
+    if (!this.ability.can(ctx, P.EmployeesDeactivate, { companyId: existing.companyId, orgNodeId: existing.orgNodeId, ownerId: existing.userId })) return;
+    await this.identity.setActive(existing.userId, true);
+    await this.repo.setAccessEnded(existing.id, null);
+    this.audit(actorId, EMPLOYEE_AUDIT.accessRestored, existing.id, { endDate });
   }
 
   async setActive(ctx: AccessContext, id: string, active: boolean, actorId: string): Promise<EmployeeDto> {
@@ -141,28 +186,33 @@ export class EmployeesService {
       await this.repo.update(id, { endDate: input.endDate, terminationReasonId: input.terminationReasonId, terminationReasonOther: isOther ? (input.terminationReasonOther ?? null) : null }, tx);
       await this.outbox.enqueue(EMPLOYEE_TERMINATED_TOPIC, { employeeId: id, userId: employee.userId, endDate: input.endDate }, tx);
     });
-    if (input.endDate < todayIso()) await this.identity.setActive(employee.userId, false);
+    if (input.endDate < todayInRiyadh()) {
+      await this.identity.setActive(employee.userId, false);
+      await this.repo.setAccessEnded(id, new Date());
+    }
     this.audit(actorId, EMPLOYEE_AUDIT.terminated, id, { endDate: input.endDate });
     return this.dto(ctx, (await this.repo.findById(id)) as Employee);
   }
 
-  async assignRoles(ctx: AccessContext, id: string, roleIds: string[], actorId: string): Promise<EmployeeDto> {
+  async assignRoles(ctx: AccessContext, id: string, input: AssignEmployeeRolesInput, actor: Actor): Promise<EmployeeDto> {
+    const { roleIds, roleExpiries } = input;
+    this.assertRoleExpiries(roleIds, roleExpiries);
     const employee = await this.mustFind(ctx, id, P.EmployeesAssignRoles);
-    if (employee.userId === ctx.userId) throw new SelfActionError('You cannot change your own roles');
-    await this.assertCanAssignRoles(ctx, roleIds, { companyId: employee.companyId, orgNodeId: employee.orgNodeId, ownerId: employee.userId }, (await this.access.defaultRoleIds(employee.jobTitleId)).ids);
-    await this.tx.run((tx) => this.access.replaceRoles(employee.userId, roleIds, tx));
+    if (employee.userId === ctx.userId && !actor.adminMode) throw new SelfActionError('You cannot change your own roles');
+    await this.assertCanAssignRoles(ctx, roleIds, { companyId: employee.companyId, orgNodeId: employee.orgNodeId, ownerId: employee.userId }, (await this.access.defaultRoleIds(employee.jobTitleId, await this.isLimited(employee.relationTypeId))).ids);
+    await this.tx.run((tx) => this.access.replaceRoles(employee.userId, roleIds, { expiries: roleExpiries, grantedBy: actor.id }, tx));
     await this.events.emitAsync(EMPLOYEES_CHANGED);
-    this.audit(actorId, EMPLOYEE_AUDIT.rolesChanged, id, { roleIds });
+    this.audit(actor.id, EMPLOYEE_AUDIT.rolesChanged, id, { roleIds, withEndDate: Object.keys(roleExpiries ?? {}).length });
     return this.dto(ctx, employee);
   }
 
-  async assignGroups(ctx: AccessContext, id: string, groupIds: string[], actorId: string): Promise<EmployeeDto> {
+  async assignGroups(ctx: AccessContext, id: string, groupIds: string[], actor: Actor): Promise<EmployeeDto> {
     const employee = await this.mustFind(ctx, id, P.EmployeesAssignGroups);
-    if (employee.userId === ctx.userId) throw new SelfActionError('You cannot change your own groups');
+    if (employee.userId === ctx.userId && !actor.adminMode) throw new SelfActionError('You cannot change your own groups');
     if (!this.ability.can(ctx, P.EmployeesAssignGroups, { companyId: employee.companyId, orgNodeId: employee.orgNodeId, ownerId: employee.userId })) throw new ForbiddenError();
     await this.access.assertGroupsGrantable(ctx, groupIds);
-    await this.tx.run((tx) => this.access.replaceGroups(employee.userId, groupIds, tx));
-    this.audit(actorId, EMPLOYEE_AUDIT.groupsChanged, id, { groupIds });
+    await this.tx.run((tx) => this.access.replaceGroups(employee.userId, groupIds, actor.id, tx));
+    this.audit(actor.id, EMPLOYEE_AUDIT.groupsChanged, id, { groupIds });
     return this.dto(ctx, employee);
   }
 
@@ -196,6 +246,25 @@ export class EmployeesService {
 
   private assertInScope(ctx: AccessContext, key: string, resource: { companyId: string; orgNodeId: string; ownerId?: string }): void {
     if (!this.ability.can(ctx, key, resource)) throw new NotFoundError('Org unit', resource.orgNodeId);
+  }
+
+  /** The work e-mail must use a domain the administrator allows (no rule while the list is empty). */
+  private async assertEmailDomainAllowed(email: string): Promise<void> {
+    try {
+      await this.emailDomains.assertAllowed(email);
+    } catch (error) {
+      if (!(error instanceof EmailDomainNotAllowedError)) throw error;
+      throw new FieldRuleError('workEmail', error.message, { ar: 'نطاق هذا البريد غير مسموح به في المنصة', en: 'The platform does not allow this e-mail domain' });
+    }
+  }
+
+  /** An end date is for a role the person is given, and is today or later (Riyadh); null removes it. */
+  private assertRoleExpiries(roleIds: string[], expiries: Record<string, string | null> | undefined): void {
+    const today = todayInRiyadh();
+    for (const [roleId, day] of Object.entries(expiries ?? {})) {
+      if (!roleIds.includes(roleId)) throw new FieldRuleError('roleExpiries', 'An end date is for a role the person is given', { ar: 'تاريخ الانتهاء لدور يُمنح للموظف فقط', en: 'An end date is for a role the person is given' });
+      if (day !== null && day < today) throw new FieldRuleError('roleExpiries', 'The end date cannot be in the past', { ar: 'تاريخ الانتهاء لا يكون في الماضي', en: 'The end date cannot be in the past' });
+    }
   }
 
   /** Nobody gives more than they hold, except the Employee role and the role of the person's own job title (checked when they were made). */

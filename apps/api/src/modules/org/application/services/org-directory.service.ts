@@ -68,6 +68,8 @@ export class OrgDirectoryService {
         path: paths.get(n.id)?.pathAr ?? n.nameAr,
         pathAr: paths.get(n.id)?.pathAr ?? n.nameAr,
         pathEn: paths.get(n.id)?.pathEn ?? n.nameEn,
+        nameAr: n.nameAr,
+        nameEn: n.nameEn,
         defaultManagerId: defaultManager(n, byId),
       }))
       .sort((a, b) => a.pathAr.localeCompare(b.pathAr, 'ar'));

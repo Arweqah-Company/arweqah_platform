@@ -1,13 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
 import { BasePage } from '../pages/base.page';
 import { ListPage } from '../pages/list.page';
-import { adminModeOffViaApi, adminModeOnViaApi } from '../support/admin-mode';
+import { adminModeOnViaApi } from '../support/admin-mode';
 import { ADMIN_STATE } from '../support/fixtures';
 
 class Screen extends BasePage {}
 test.use({ storageState: ADMIN_STATE });
 
-const GENERAL = ['أهلًا بك في منصة أروقة', 'حسابك', 'ملفي الشخصي', 'الأمان', 'تسجيل الخروج', 'اللغة والمظهر', 'الإشعارات', 'القائمة الجانبية', 'الصفحة الرئيسية', 'التذاكر', 'التذاكر', 'تذكرة جديدة', 'طرق عرض التذاكر', 'مهامي', 'المهام', 'مهمة جديدة', 'جدول أم لوحة Kanban', 'افتح المهمة وعدّلها', 'الموظفون', 'الموظفون', 'الهيكل التنظيمي', 'الهيكل التنظيمي', 'طرق عرض الهيكل', 'تقسيمات الهيكل', 'إضافة وحدة', 'انتهت الجولة'];
+const GENERAL = ['أهلًا بك في منصة أروقة', 'حسابك', 'ملفي الشخصي', 'الأمان', 'تسجيل الخروج', 'اللغة والمظهر', 'الإشعارات', 'القائمة الجانبية', 'الصفحة الرئيسية', 'التذاكر', 'التذاكر', 'تذكرة جديدة', 'طرق عرض التذاكر', 'مهامي', 'المهام', 'مهمة جديدة', 'جدول أم لوحة Kanban', 'افتح المهمة وعدّلها', 'الموظفون', 'الموظفون', 'الهيكل التنظيمي', 'الهيكل التنظيمي', 'طرق عرض الهيكل', 'انتهت الجولة'];
 const bubble = (page: Page) => page.getByRole('alertdialog');
 const title = (page: Page) => bubble(page).getByRole('heading', { level: 2 });
 const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))));
@@ -19,7 +19,6 @@ async function setTour(page: Page, tour: 'general' | 'admin', action: 'skip' | '
 }
 
 test.afterEach(async ({ page }) => {
-  await adminModeOffViaApi(page);
   await setTour(page, 'general', 'skip');
   await setTour(page, 'admin', 'skip');
 });

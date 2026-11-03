@@ -6,12 +6,19 @@
 export const CorePermission = {
   // Platform administration
   AdminModeUse: 'admin_mode.use',
+  ImpersonationStart: 'impersonation.start',
   RolesView: 'roles.view',
   RolesCreate: 'roles.create',
   RolesUpdate: 'roles.update',
   RolesDelete: 'roles.delete',
   RolesExport: 'roles.export',
   RolesSyncAuto: 'roles.sync_auto',
+  SecuritySettingsView: 'security_settings.view',
+  SecuritySettingsEdit: 'security_settings.edit',
+  ExceptionsView: 'exceptions.view',
+  ExceptionsUpdate: 'exceptions.update',
+  ExceptionsRevoke: 'exceptions.revoke',
+  ExceptionsExport: 'exceptions.export',
   RoleGroupsView: 'role_groups.view',
   RoleGroupsCreate: 'role_groups.create',
   RoleGroupsUpdate: 'role_groups.update',
@@ -31,6 +38,7 @@ export const CorePermission = {
   ListsManage: 'lists.manage',
   AuditView: 'audit.view',
   AuditExport: 'audit.export',
+  AuditVerify: 'audit.verify',
   EmailLogView: 'notifications.email_log',
   EmailLogExport: 'notifications.email_log_export',
   LookupsView: 'lookups.view',
@@ -44,6 +52,11 @@ export const CorePermission = {
   IntegrationsEmailTest: 'integrations.email_test',
   IntegrationsEmailActivate: 'integrations.email_activate',
   IntegrationsEmailExport: 'integrations.email_export',
+  IntegrationsCaptchaView: 'integrations.captcha_view',
+  IntegrationsCaptchaEdit: 'integrations.captcha_edit',
+  IntegrationsCaptchaTest: 'integrations.captcha_test',
+  IntegrationsCaptchaActivate: 'integrations.captcha_activate',
+  IntegrationsCaptchaExport: 'integrations.captcha_export',
   TemplatesEmailView: 'templates.email_view',
   TemplatesEmailEdit: 'templates.email_edit',
   TemplatesEmailReset: 'templates.email_reset',
@@ -153,7 +166,8 @@ export const CorePermission = {
 export type CorePermissionKey = (typeof CorePermission)[keyof typeof CorePermission];
 
 /**
- * What every employee holds from the start (the "Employee" role): own-account pages and sending and following tickets.
+ * What every employee holds from the start (the "Employee" role): own-account pages (seeing their own employee record and editing a few fields of it), sending and following tickets, the structure page (`org.view`) and their own tasks with their conversations (view, add, edit, move on, comment).
+ * The role grows as modules arrive: add the key here and in a migration that inserts it into the `everyone` role (decision 155).
  * Tickets are seen and answered at the narrowest scope ("own": the ones the person sent or handles); wider scopes are given on the permissions page.
  */
 export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own' | 'all' }[] = [
@@ -162,6 +176,8 @@ export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own
   { key: CorePermission.SecurityView, scope: 'all' },
   { key: CorePermission.NotificationsView, scope: 'all' },
   { key: CorePermission.NotificationsMarkRead, scope: 'all' },
+  { key: CorePermission.EmployeesView, scope: 'own' },
+  { key: CorePermission.EmployeesUpdate, scope: 'own' },
   { key: CorePermission.TicketsView, scope: 'own' },
   { key: CorePermission.TicketsCreate, scope: 'all' },
   { key: CorePermission.TicketsReply, scope: 'own' },
@@ -170,12 +186,32 @@ export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own
   { key: CorePermission.TicketsDeclineClose, scope: 'all' },
   { key: CorePermission.TicketsCloseWithoutExecution, scope: 'all' },
   { key: CorePermission.TicketsReopen, scope: 'all' },
+  { key: CorePermission.OrgView, scope: 'all' },
+  { key: CorePermission.TasksView, scope: 'own' },
+  { key: CorePermission.TasksCreate, scope: 'all' },
+  { key: CorePermission.TasksUpdate, scope: 'own' },
+  { key: CorePermission.TasksChangeStatus, scope: 'own' },
+  { key: CorePermission.TasksCommentView, scope: 'all' },
+  { key: CorePermission.TasksCommentAdd, scope: 'all' },
+  { key: CorePermission.TasksCommentReply, scope: 'all' },
+  { key: CorePermission.TasksCommentMention, scope: 'all' },
+  { key: CorePermission.TasksCommentEdit, scope: 'all' },
+  { key: CorePermission.TasksCommentDelete, scope: 'all' },
 ];
 
 /**
  * What the head role of an organization level starts with (the manager of a unit sees and acts on their unit and the units below it).
  * Copied once when the role is made; an administrator edits it afterwards on the roles page. `org.view` is left out: it reaches a whole company, not a subtree.
  */
+/** What the «collaborator base» role starts with: the person's own account and notifications, nothing of the company's data (a job title role adds the rest). */
+export const COLLABORATOR_BASE_PERMISSIONS: { key: CorePermissionKey; scope: 'own' | 'all' }[] = [
+  { key: CorePermission.ProfileView, scope: 'all' },
+  { key: CorePermission.ProfileUpdate, scope: 'all' },
+  { key: CorePermission.SecurityView, scope: 'all' },
+  { key: CorePermission.NotificationsView, scope: 'all' },
+  { key: CorePermission.NotificationsMarkRead, scope: 'all' },
+];
+
 export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'subtree' }[] = [
   { key: CorePermission.EmployeesView, scope: 'subtree' },
   { key: CorePermission.TasksTeamView, scope: 'subtree' },

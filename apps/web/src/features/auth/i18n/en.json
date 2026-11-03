@@ -18,7 +18,8 @@
     "backupLabel": "Backup code",
     "invalid": "The code is not valid.",
     "locked": "Too many attempts. Try again in a moment.",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "remember": "Remember this device and do not ask for the code there"
   },
   "enroll": {
     "title": "Link your authenticator app",
@@ -46,5 +47,6 @@
   "next": "Continue",
   "failed": "Could not continue. Try again.",
   "changeEmail": "Change e-mail",
-  "firstTimeSent": "This is your first sign-in. We e-mailed you a link with a QR code: open it, scan the code with your authenticator app, then enter the code shown in the app here."
+  "firstTimeSent": "This is your first sign-in. We e-mailed you a link with a QR code: open it, scan the code with your authenticator app, then enter the code shown in the app here.",
+  "botCheckFailed": "The protection check did not pass, try again."
 }

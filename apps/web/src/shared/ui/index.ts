@@ -25,3 +25,4 @@ export { RowAction } from './row-action';
 export { Icicle } from './icicle';
 export { KanbanColumn } from './kanban-column';
 export { Tabs, type TabItem } from './tabs';
+export { Turnstile } from './turnstile';

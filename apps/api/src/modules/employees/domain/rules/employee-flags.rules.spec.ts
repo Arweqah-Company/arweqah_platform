@@ -7,7 +7,7 @@ const base = {
   isGosiRegistered: false, isQiwaContract: false, hasMedicalInsurance: false,
 } as EmployeeInput;
 
-const none: RuleLookups = { contractType: null, idType: null, terminationReasonIsOther: null };
+const none: RuleLookups = { contractType: null, idType: null, terminationReasonIsOther: null, relationLimited: null };
 
 describe('applyFlagRules (FR-17, FR-18)', () => {
   it('requires an end date when the contract type asks for one', () => {
@@ -44,5 +44,13 @@ describe('applyFlagRules (FR-17, FR-18)', () => {
   it('requires the text of an "other" termination reason', () => {
     const lookups = { ...none, terminationReasonIsOther: true };
     expect(() => applyFlagRules({ ...base, terminationReasonId: 'r', endDate: '2027-01-01' }, lookups)).toThrow(/reason/);
+  });
+});
+
+describe('Collaborator end date (FR-79)', () => {
+  const input = { ...base, endDate: null };
+  it('a relation with limited access needs the end date; an ordinary one does not', () => {
+    expect(() => applyFlagRules(input, { ...none, relationLimited: true })).toThrow(/end date of the contract/);
+    expect(() => applyFlagRules(input, { ...none, relationLimited: false })).not.toThrow();
   });
 });

@@ -30,10 +30,10 @@ function UnitRowActions({ node, lastLevelId, label, onSelect, onAction, onAddChi
   return (
     <>
       <RowAction label={`${tc('actions.view')}: ${label}`} icon={Eye} onClick={() => onSelect(node.id)} />
-      <Can permission={CorePermission.OrgUnitUpdate}><RowAction label={`${tc('actions.edit')}: ${label}`} icon={Pencil} onClick={() => onAction(node, 'edit')} /></Can>
-      {node.levelId !== lastLevelId && <Can permission={CorePermission.OrgUnitCreate}><RowAction label={`${t('details.addChild')}: ${label}`} icon={Plus} onClick={() => onAddChild(node)} /></Can>}
-      {node.parentId && <Can permission={CorePermission.OrgUnitMove}><RowAction label={`${t('details.move')}: ${label}`} icon={ArrowRightLeft} onClick={() => onAction(node, 'move')} /></Can>}
-      <Can permission={CorePermission.OrgUnitDelete}><RowAction label={`${tc('actions.delete')}: ${label}`} icon={Trash2} danger onClick={() => onAction(node, 'delete')} /></Can>
+      <Can adminMode permission={CorePermission.OrgUnitUpdate}><RowAction label={`${tc('actions.edit')}: ${label}`} icon={Pencil} onClick={() => onAction(node, 'edit')} /></Can>
+      {node.levelId !== lastLevelId && <Can adminMode permission={CorePermission.OrgUnitCreate}><RowAction label={`${t('details.addChild')}: ${label}`} icon={Plus} onClick={() => onAddChild(node)} /></Can>}
+      {node.parentId && <Can adminMode permission={CorePermission.OrgUnitMove}><RowAction label={`${t('details.move')}: ${label}`} icon={ArrowRightLeft} onClick={() => onAction(node, 'move')} /></Can>}
+      <Can adminMode permission={CorePermission.OrgUnitDelete}><RowAction label={`${tc('actions.delete')}: ${label}`} icon={Trash2} danger onClick={() => onAction(node, 'delete')} /></Can>
     </>
   );
 }

@@ -1,10 +1,23 @@
-import type { ReactNode } from 'react';
+import { SELF_EDITABLE_EMPLOYEE_FIELDS } from '@arweqah-platform/shared';
+import { createContext, useContext, type ReactNode } from 'react';
 import { Controller, useFormContext, type ControllerRenderProps } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Combobox, FormField, Input, Select, Textarea, type ComboboxOption } from '@/shared/ui';
 import type { FormState } from './form-state';
 
-type TextName = Exclude<keyof FormState, 'isGosiRegistered' | 'isQiwaContract' | 'hasMedicalInsurance' | 'roleIds'>;
+/** True inside the form of a plain employee editing their own record: only the self-service fields stay open, the rest is for HR (the API refuses it too). */
+const SelfServiceContext = createContext(false);
+export const SelfServiceProvider = SelfServiceContext.Provider;
+
+/** Is this field locked for the person filling the form, and the hint that says why. */
+function useLock(name: string): { locked: boolean; hint?: string } {
+  const { t } = useTranslation('employees');
+  const selfService = useContext(SelfServiceContext);
+  const locked = selfService && !(SELF_EDITABLE_EMPLOYEE_FIELDS as readonly string[]).includes(name);
+  return { locked, hint: locked ? t('hints.hrOnly') : undefined };
+}
+
+type TextName = Exclude<keyof FormState, 'isGosiRegistered' | 'isQiwaContract' | 'hasMedicalInsurance' | 'roleIds' | 'roleExpiries'>;
 type BooleanName = 'isGosiRegistered' | 'isQiwaContract' | 'hasMedicalInsurance';
 
 /** The error text under a field: a rule's own words when the API sent them, otherwise a message per field. */
@@ -30,19 +43,21 @@ const withStar = (label: string, required?: boolean) => (required ? `${label} *`
 export function TextField({ name, label, required, hint, type = 'text', ltr, readOnly }: BaseProps & { type?: 'text' | 'email' | 'tel' | 'date' | 'number'; ltr?: boolean; readOnly?: boolean }) {
   const { register } = useFormContext<FormState>();
   const error = useFieldError(name);
+  const lock = useLock(name);
   return (
-    <FormField label={withStar(label, required)} hint={hint} error={error}>
-      {(p) => <Input {...p} type={type} readOnly={readOnly} aria-required={required} dir={ltr || type !== 'text' ? 'ltr' : undefined} step={type === 'number' ? '0.01' : undefined} min={type === 'number' ? 0 : undefined} {...register(name)} />}
+    <FormField label={withStar(label, required)} hint={lock.hint ?? hint} error={error}>
+      {(p) => <Input {...p} type={type} readOnly={readOnly || lock.locked} aria-required={required} dir={ltr || type !== 'text' ? 'ltr' : undefined} step={type === 'number' ? '0.01' : undefined} min={type === 'number' ? 0 : undefined} {...register(name)} />}
     </FormField>
   );
 }
 
 export function TextAreaField({ name, label }: { name: TextName; label: string }) {
   const { register } = useFormContext<FormState>();
+  const { locked } = useLock(name);
   return (
     <div className="flex flex-col gap-1.5 sm:col-span-2">
       <label htmlFor={name} className="text-sm font-medium">{label}</label>
-      <Textarea id={name} rows={3} maxLength={2000} {...register(name)} />
+      <Textarea id={name} rows={3} maxLength={2000} readOnly={locked} {...register(name)} />
     </div>
   );
 }
@@ -62,10 +77,11 @@ function ControlledField({ name, label, required, hint, children }: BaseProps & 
 
 export function SelectField({ name, label, options, required, hint }: BaseProps & { options: { value: string; label: string }[] }) {
   const { t } = useTranslation('employees');
+  const { locked } = useLock(name);
   return (
     <ControlledField name={name} label={label} required={required} hint={hint}>
       {(p, field) => (
-        <Select {...p} aria-required={required} value={String(field.value ?? '')} onBlur={field.onBlur} onChange={(e) => field.onChange(e.target.value)}>
+        <Select {...p} disabled={locked} aria-required={required} value={String(field.value ?? '')} onBlur={field.onBlur} onChange={(e) => field.onChange(e.target.value)}>
           <option value="">{t('choose')}</option>
           {options.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
@@ -77,10 +93,11 @@ export function SelectField({ name, label, options, required, hint }: BaseProps 
 }
 
 export function ComboField({ name, label, options, required, hint, disabled, onSearch, onPick, clearable }: BaseProps & { options: ComboboxOption[]; disabled?: boolean; onSearch?: (q: string) => void; onPick?: (value: string | null) => void; clearable?: boolean }) {
+  const lock = useLock(name);
   return (
-    <ControlledField name={name} label={label} required={required} hint={hint}>
+    <ControlledField name={name} label={label} required={required} hint={lock.hint ?? hint}>
       {(p, field) => (
-        <Combobox id={p.id} label={label} value={field.value as string} options={options} disabled={disabled} invalid={p['aria-invalid']} clearable={clearable} onSearch={onSearch} onChange={(v) => { field.onChange(v ?? ''); onPick?.(v); }} />
+        <Combobox id={p.id} label={label} value={field.value as string} options={options} disabled={disabled || lock.locked} invalid={p['aria-invalid']} clearable={clearable} onSearch={onSearch} onChange={(v) => { field.onChange(v ?? ''); onPick?.(v); }} />
       )}
     </ControlledField>
   );
@@ -88,9 +105,10 @@ export function ComboField({ name, label, options, required, hint, disabled, onS
 
 export function CheckField({ name, label }: { name: BooleanName; label: string }) {
   const { register } = useFormContext<FormState>();
+  const { locked } = useLock(name);
   return (
     <label className="flex items-center gap-2 self-end pb-2 text-sm">
-      <input type="checkbox" className="size-4 accent-petrol-800" {...register(name)} />
+      <input type="checkbox" className="size-4 accent-petrol-800" disabled={locked} {...register(name)} />
       {label}
     </label>
   );

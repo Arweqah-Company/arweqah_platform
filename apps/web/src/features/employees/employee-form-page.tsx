@@ -7,6 +7,7 @@ import { usePermissions } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Alert, Button, PageHeader } from '@/shared/ui';
 import { cn } from '@/shared/lib/cn';
+import { SelfServiceProvider } from './form/fields';
 import { ContactSection } from './form/contact-section';
 import { ContractSection } from './form/contract-section';
 import { NotesSection } from './form/notes-section';
@@ -16,6 +17,7 @@ import { SalarySection } from './form/salary-section';
 import { useDefaultRoles } from './form/use-default-roles';
 import { useEmployeeForm } from './form/use-employee-form';
 import { useEmployeeOptions } from './form/use-options';
+import { useIsSelfService } from './form/use-self-service';
 import { SectionsNav } from './form/sections-nav';
 import { WorkSection } from './form/work-section';
 
@@ -24,7 +26,7 @@ type Step = 'details' | 'roles';
 function StepsHeader({ step, steps }: { step: Step; steps: Step[] }) {
   const { t } = useTranslation('employees');
   return (
-    <ol aria-label={t('steps.label')} className="flex items-center gap-2 text-sm">
+    <ol aria-label={t('steps.label')} className="mb-6 flex flex-wrap items-center gap-2 text-sm">
       {steps.map((s, index) => (
         <li key={s} aria-current={step === s ? 'step' : undefined} className={cn('flex items-center gap-2 rounded-full border px-3 py-1.5', step === s ? 'border-transparent bg-primary font-medium text-on-primary' : 'border-neutral-200 text-muted')}>
           <span aria-hidden className="font-medium">{index + 1}</span>
@@ -93,22 +95,30 @@ function DetailsStep({ id, options, state, sensitive }: { id?: string; options: 
   );
 }
 
+/** The sensitive sections (ID, salary) show for a new employee when the person may handle them, and for an edited one when the API sent them. */
+function showsSensitive(editing: boolean, employee: { sensitiveHidden: boolean } | undefined, can: (key: string) => boolean): boolean {
+  return editing ? employee?.sensitiveHidden === false : can(CorePermission.EmployeesViewSensitive);
+}
+
 function FormBody({ id, options, state }: { id?: string; options: ReturnType<typeof useEmployeeOptions>; state: ReturnType<typeof useEmployeeForm> }) {
   const { t } = useTranslation('employees');
   const { can } = usePermissions();
   const { form, employee, editing } = state;
-  const sensitive = editing ? employee.data?.sensitiveHidden === false : can(CorePermission.EmployeesViewSensitive);
+  const sensitive = showsSensitive(editing, employee.data, can);
   const twoSteps = can(CorePermission.EmployeesAssignRoles) && can(CorePermission.RolesView);
+  const selfService = useIsSelfService(editing ? employee.data : undefined);
   const flow = useStepFlow(state, twoSteps);
   useDefaultRoles(form, { editing, savedTitleId: employee.data?.jobTitle?.id ?? '', enabled: twoSteps });
   return (
     <FormProvider {...form}>
+      <SelfServiceProvider value={selfService}>
       <PageHeader title={editing ? t('editTitle') : t('newTitle')} description={t('formIntro')} />
       {twoSteps && <StepsHeader step={flow.step} steps={['details', 'roles']} />}
       <form onSubmit={flow.onSubmit} noValidate className="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)]">
         {flow.step === 'details' ? <DetailsStep id={id} options={options} state={state} sensitive={sensitive} /> : <div className="lg:col-span-2"><RolesStep /></div>}
         <SaveBar editing={editing} id={id} busy={form.formState.isSubmitting} step={flow.step} twoSteps={twoSteps} onNext={() => void flow.next()} onBack={() => flow.setStep('details')} />
       </form>
+      </SelfServiceProvider>
     </FormProvider>
   );
 }

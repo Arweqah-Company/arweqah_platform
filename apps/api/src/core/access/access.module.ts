@@ -1,10 +1,17 @@
 import { Global, Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AbilityFactory } from './application/ability.factory';
+import { AccessExceptionsService } from './application/access-exceptions.service';
 import { AutoRolesService } from './application/auto-roles.service';
 import { JobTitleRolesService } from './application/job-title-roles.service';
 import { AdminModeEligibility } from './application/admin-mode-eligibility';
 import { AdminModeService } from './application/admin-mode.service';
+import { ImpersonationService } from './application/impersonation.service';
+import { ImpersonationRepository } from './domain/impersonation.repository';
+import { SessionSwitcher } from './domain/session-switcher';
+import { BetterAuthSessionSwitcher } from './infrastructure/better-auth-session-switcher';
+import { TypeOrmImpersonationRepository } from './infrastructure/typeorm-impersonation.repository';
+import { ImpersonationController } from './presentation/impersonation.controller';
 import { AccessContextService } from './application/access-context.service';
 import { PageVisibilityService } from './application/page-visibility.service';
 import { ProfileService } from './application/profile.service';
@@ -35,18 +42,21 @@ import { TypeOrmAdminModeRepository } from './infrastructure/typeorm-admin-mode.
 import { TypeOrmPageVisibilityRepository } from './infrastructure/typeorm-page-visibility.repository';
 import { TypeOrmProfileRepository } from './infrastructure/typeorm-profile.repository';
 import { TypeOrmRoleRepository } from './infrastructure/typeorm-role.repository';
+import { TypeOrmAccessExceptionRepository } from './infrastructure/typeorm-access-exception.repository';
+import { AccessExceptionRepository } from './domain/access-exception.repository';
 import { TypeOrmUserAccessRepository } from './infrastructure/typeorm-user-access.repository';
 import { AdminModeController } from './presentation/admin-mode.controller';
 import { MeController } from './presentation/me.controller';
 import { PageVisibilityController } from './presentation/page-visibility.controller';
 import { PermissionsGuard } from './presentation/permissions.guard';
+import { AccessExceptionsController } from './presentation/access-exceptions.controller';
 import { RolesController } from './presentation/roles.controller';
 
 /** Dynamic roles, scoped permissions and the guard that enforces them. */
 @Global()
 @Module({
   imports: [TypeOrmModule.forFeature([Role, RolePermission, UserRole, User])],
-  controllers: [RolesController, RoleGroupsController, UserGroupsController, PermissionTargetsController, MeController, AdminModeController, PageVisibilityController],
+  controllers: [RolesController, AccessExceptionsController, RoleGroupsController, UserGroupsController, PermissionTargetsController, MeController, AdminModeController, ImpersonationController, PageVisibilityController],
   providers: [
     PermissionCatalog,
     AccessContextService,
@@ -58,13 +68,18 @@ import { RolesController } from './presentation/roles.controller';
     UserAccessService,
     ProfileService,
     AdminModeService,
+    ImpersonationService,
     AdminModeEligibility,
     PageVisibilityService,
     AutoRolesService,
+    AccessExceptionsService,
     JobTitleRolesService,
     PermissionsGuard,
     { provide: AdminModeRepository, useClass: TypeOrmAdminModeRepository },
+    { provide: ImpersonationRepository, useClass: TypeOrmImpersonationRepository },
+    { provide: SessionSwitcher, useClass: BetterAuthSessionSwitcher },
     { provide: RoleRepository, useClass: TypeOrmRoleRepository },
+    { provide: AccessExceptionRepository, useClass: TypeOrmAccessExceptionRepository },
     { provide: RoleGroupRepository, useClass: TypeOrmRoleGroupRepository },
     { provide: UserGroupRepository, useClass: TypeOrmUserGroupRepository },
     { provide: PermissionTargetRepository, useClass: TypeOrmPermissionTargetRepository },
@@ -72,7 +87,7 @@ import { RolesController } from './presentation/roles.controller';
     { provide: ProfileRepository, useClass: TypeOrmProfileRepository },
     { provide: UserAccessRepository, useClass: TypeOrmUserAccessRepository },
   ],
-  exports: [PermissionCatalog, PageVisibilityService, RoleGroupsService, AutoRolesService, JobTitleRolesService, AccessContextService, AbilityFactory, PermissionsGuard, UserAccessService, AdminModeService, AdminModeEligibility],
+  exports: [PermissionCatalog, PageVisibilityService, RoleGroupsService, AutoRolesService, JobTitleRolesService, AccessContextService, AbilityFactory, PermissionsGuard, UserAccessService, AdminModeService, AdminModeEligibility, ImpersonationService],
 })
 export class AccessModule implements OnModuleInit {
   constructor(private readonly catalog: PermissionCatalog) {}

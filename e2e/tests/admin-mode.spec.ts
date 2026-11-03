@@ -27,16 +27,20 @@ const settled = (page: Page) =>
     ),
   );
 
+test.beforeEach(async ({ page }) => {
+  await page.request.post('/api/admin-mode/deactivate', { headers: { origin: 'http://localhost:4173' } });
+});
 test.afterEach(async ({ page }) => {
   await page.request.post('/api/admin-mode/deactivate', { headers: { origin: 'http://localhost:4173' } });
 });
 
 test.describe('Platform admin mode (FR-34)', () => {
-  test('the admin pages (roles, companies, audit log, e-mail log) are hidden and say so until the mode is on', async ({ page }) => {
+  test('the admin pages (roles, companies, audit log, e-mail log) are hidden and closed until the mode is on', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('link', { name: 'سجل البريد' })).toHaveCount(0);
     await page.goto('/audit');
-    await expect(page.getByText('هذه الصفحة تعمل في وضع مدير المنصة.')).toBeVisible();
+    // The administrative grants count only inside the mode (FR-84): outside it the page is simply not the person's.
+    await expect(page.getByText('ليس لديك صلاحية للدخول إلى هذه الصفحة')).toBeVisible();
     await expect(page.getByRole('table')).toHaveCount(0);
   });
 

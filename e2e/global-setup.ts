@@ -31,7 +31,13 @@ export default async function globalSetup(): Promise<void> {
   });
   const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join('; ');
   // The welcome tour would cover every screen the other specs click through: the administrator has already seen it.
-  for (const tour of ['general', 'admin']) await fetch(`${API}/me/tour/${tour}/skip`, { method: 'POST', headers: { cookie: cookieHeader, origin: WEB } });
+  // The administrative steps belong to the person only while admin mode is on (FR-84), so the tours are skipped inside it; skipped outside, the
+  // steps would count as «new» the first time a spec switches the mode on and a prompt would cover the page.
+  const headers = { cookie: cookieHeader, origin: WEB, 'content-type': 'application/json' };
+  const on = await fetch(`${API}/admin-mode/activate`, { method: 'POST', headers, body: JSON.stringify({ code: await freshCode(adminTotpUri) }) });
+  if (!on.ok) throw new Error(`admin mode was not switched on: ${on.status} ${await on.text()}`);
+  for (const tour of ['general', 'admin']) await fetch(`${API}/me/tour/${tour}/skip`, { method: 'POST', headers });
+  await fetch(`${API}/admin-mode/deactivate`, { method: 'POST', headers });
   mkdirSync(AUTH_DIRECTORY, { recursive: true });
   writeFileSync(ADMIN_STATE, JSON.stringify({ cookies, origins: [] }));
 }
