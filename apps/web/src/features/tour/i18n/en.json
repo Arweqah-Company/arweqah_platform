@@ -29,6 +29,13 @@
         "update": "Edit your phone, personal e-mail and English name"
       }
     },
+    "my-access": {
+      "title": "My access",
+      "body": "See what you may do on the platform and which role or group gives you each permission.",
+      "can": {
+        "export": "Export your permissions to a file"
+      }
+    },
     "security": {
       "title": "Security",
       "body": "The authenticator app you sign in with, your open sessions, and how to keep your account safe."

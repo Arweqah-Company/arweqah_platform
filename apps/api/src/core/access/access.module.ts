@@ -14,6 +14,7 @@ import { TypeOrmImpersonationRepository } from './infrastructure/typeorm-imperso
 import { ImpersonationController } from './presentation/impersonation.controller';
 import { AccessContextService } from './application/access-context.service';
 import { PageVisibilityService } from './application/page-visibility.service';
+import { MyAccessService } from './application/my-access.service';
 import { ProfileService } from './application/profile.service';
 import { PermissionCatalog } from './application/permission-catalog';
 import { PermissionTargetsService } from './application/permission-targets.service';
@@ -67,6 +68,7 @@ import { RolesController } from './presentation/roles.controller';
     PermissionTargetsService,
     UserAccessService,
     ProfileService,
+    MyAccessService,
     AdminModeService,
     ImpersonationService,
     AdminModeEligibility,

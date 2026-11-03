@@ -11,7 +11,7 @@ import { ListSettingsService } from '../../lists/application/list-settings.servi
 import { PageVisibilityService } from './page-visibility.service';
 import { UserAccessService } from './user-access.service';
 
-/** The signed-in user's own profile (GET /api/me): identity, roles, placement and permissions. */
+/** The signed-in user's own profile (GET /api/me): identity, roles, placement and settings (the permissions are `GET /api/me/access`). */
 @Injectable()
 export class ProfileService {
   constructor(
@@ -46,7 +46,6 @@ export class ProfileService {
       roles: (roles.get(user.id) ?? []).map((r) => ({ id: r.id, nameAr: r.nameAr, nameEn: r.nameEn })),
       placement: placements.get(user.id) ?? NO_PLACEMENT,
       createdAt: user.createdAt.toISOString(),
-      permissions: ctx.grants(),
       hiddenPages: await this.pages.hiddenFor(ctx),
       trustedDevicesEnabled: (await this.security.get('trustedDeviceDays')) > 0,
       listSettings: await this.lists.all(),

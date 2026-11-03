@@ -18,7 +18,7 @@ describe('List management page (FR-44)', () => {
     renderPage(<ListSettingsPage />);
     const company = (await screen.findAllByRole('checkbox', { name: 'الشركة' }))[0] as HTMLElement; // the column (the filter has the same name)
     expect(screen.getAllByRole('checkbox', { name: 'رقم الموظف' })[0]).toBeDisabled();
-    const save = screen.getByRole('button', { name: 'حفظ' });
+    const save = await screen.findByRole('button', { name: 'حفظ' });
     expect(save).toBeDisabled();
     fireEvent.click(company);
     fireEvent.click(save);

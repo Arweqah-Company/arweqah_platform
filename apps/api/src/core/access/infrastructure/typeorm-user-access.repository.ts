@@ -7,7 +7,7 @@ import { returnedRows } from '../../../common/infrastructure/query-result';
 import { managerOf } from '../../../common/infrastructure/typeorm-transaction-runner';
 import { todayInRiyadh } from '../../../common/domain/riyadh-date';
 import { NO_PLACEMENT, reachFrom, type Placement, type UnitReach } from '../domain/access-context';
-import { UserAccessRepository, type UserAccessRecord } from '../domain/access.repository';
+import { UserAccessRepository, type GrantSourceRow, type UserAccessRecord } from '../domain/access.repository';
 import { Role } from '../domain/role.entity';
 import { UserRole } from '../domain/user-role.entity';
 
@@ -29,6 +29,18 @@ const GRANTS_OF_USER = `
   UNION ALL SELECT gp.permission_key, gp.scope, false FROM role_group_permissions gp JOIN user_role_groups ug ON ug.group_id = gp.group_id WHERE ug.user_id = $1 AND ${holds('ug')}
   UNION ALL SELECT up.permission_key, up.scope, false FROM user_permissions up WHERE up.user_id = $1 AND ${holds('up')}
   UNION ALL SELECT ugp.permission_key, ugp.scope, false FROM user_group_permissions ugp JOIN user_group_members m ON m.group_id = ugp.group_id WHERE m.user_id = $1`;
+
+/** The same grants as `GRANTS_OF_USER`, one row per source with its name, so a person can see where each permission comes from. */
+const GRANT_SOURCES_OF_USER = `
+  SELECT rp.permission_key AS key, rp.scope, 'role' AS kind, r.name_ar AS "nameAr", r.name_en AS "nameEn", ${IS_ADMIN_ROLE} AS elevated
+    FROM user_roles ur JOIN roles r ON r.id = ur.role_id JOIN role_permissions rp ON rp.role_id = r.id WHERE ur.user_id = $1 AND ${holds('ur')}
+  UNION ALL SELECT rp.permission_key, rp.scope, 'role_group', g.name_ar, g.name_en, ${IS_ADMIN_ROLE}
+    FROM user_role_groups ug JOIN role_groups g ON g.id = ug.group_id JOIN role_group_roles gr ON gr.group_id = g.id JOIN role_permissions rp ON rp.role_id = gr.role_id WHERE ug.user_id = $1 AND ${holds('ug')}
+  UNION ALL SELECT gp.permission_key, gp.scope, 'role_group', g.name_ar, g.name_en, false
+    FROM user_role_groups ug JOIN role_groups g ON g.id = ug.group_id JOIN role_group_permissions gp ON gp.group_id = g.id WHERE ug.user_id = $1 AND ${holds('ug')}
+  UNION ALL SELECT up.permission_key, up.scope, 'direct', '', '', false FROM user_permissions up WHERE up.user_id = $1 AND ${holds('up')}
+  UNION ALL SELECT ugp.permission_key, ugp.scope, 'user_group', g.name_ar, g.name_en, false
+    FROM user_group_members m JOIN user_groups g ON g.id = m.group_id JOIN user_group_permissions ugp ON ugp.group_id = g.id WHERE m.user_id = $1`;
 
 const WITH_REPORTS = `EXISTS (SELECT 1 FROM employees s WHERE s.manager_id = m.id AND s.deleted_at IS NULL)`;
 /** Only "has_reports" is a fact kept by the system: exactly the people some employee reports to. The other automatic roles are stored choices made on the employee form (and the unit form for the head of a level). */
@@ -135,6 +147,10 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
   /** What a person holds: the permissions of their roles, of the roles inside their groups, and their own. */
   private grantRows(userId: string): Promise<GrantRow[]> {
     return this.userRoles.manager.query(GRANTS_OF_USER, [userId]);
+  }
+
+  grantSourcesOf(userId: string): Promise<GrantSourceRow[]> {
+    return this.userRoles.manager.query(GRANT_SOURCES_OF_USER, [userId]);
   }
 
   async groupsOf(userIds: string[]): Promise<Map<string, { id: string; nameAr: string; nameEn: string }[]>> {

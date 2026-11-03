@@ -27,7 +27,7 @@ describe('The grants of an administrative role work only in platform admin mode 
     expect(list.map((e) => e.id)).toEqual([user.employeeId]);
     await agent.get(`/api/employees/${other.employeeId}`).expect(404);
     await agent.post('/api/employees').send({}).expect(403);
-    const keys = ((await agent.get('/api/me').expect(200)).body.permissions as PermissionGrant[]).map((p) => p.key);
+    const keys = ((await agent.get('/api/me/access').expect(200)).body.grants as PermissionGrant[]).map((p) => p.key);
     expect(keys).toContain(P.AdminModeUse);
     expect(keys).not.toContain(P.EmployeesCreate);
   });
@@ -37,7 +37,7 @@ describe('The grants of an administrative role work only in platform admin mode 
     await agent.post('/api/admin-mode/activate').send({ code: codeFor(user.secret, Date.now() + 30_000) }).expect(200);
     const list = (await agent.get('/api/employees').query({ pageSize: 100 }).expect(200)).body.items as { id: string }[];
     expect(list.map((e) => e.id)).toEqual(expect.arrayContaining([user.employeeId, other.employeeId]));
-    expect(((await agent.get('/api/me').expect(200)).body.permissions as PermissionGrant[]).map((p) => p.key)).toContain(P.EmployeesCreate);
+    expect(((await agent.get('/api/me/access').expect(200)).body.grants as PermissionGrant[]).map((p) => p.key)).toContain(P.EmployeesCreate);
     await agent.post('/api/admin-mode/deactivate').expect(204);
     await agent.get(`/api/employees/${other.employeeId}`).expect(404);
   });

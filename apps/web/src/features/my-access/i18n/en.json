@@ -1,0 +1,19 @@
+{
+  "title": "My access",
+  "description": "What you may do on the platform right now, and which role or group gives you each permission. Only you see this page.",
+  "roles": "My roles",
+  "assignment": { "auto": "by the system", "manual": "given to you" },
+  "adminHidden": "The permissions of your administrative role are hidden until you turn on platform admin mode.",
+  "permission": "What you may do",
+  "module": "Area",
+  "scope": "Reach",
+  "source": "Comes from",
+  "sourceKind": {
+    "role": "A role",
+    "role_group": "A group of roles",
+    "user_group": "A group of people",
+    "direct": "Given to you directly"
+  },
+  "searchLabel": "Search my permissions",
+  "searchPlaceholder": "Search by permission, area or where it comes from"
+}

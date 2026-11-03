@@ -1,5 +1,6 @@
 import type { RoleGroupDto, RoleGroupInput } from '@arweqah-platform/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { refreshAccess } from '@/core/permissions/access-key';
 import { apiClient } from '@/core/api/api-client';
 
 const KEY = ['role-groups'];
@@ -10,7 +11,7 @@ export function useSaveRoleGroup() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: ({ id, input }: { id?: string; input: RoleGroupInput }) => (id ? apiClient.put<RoleGroupDto>(`/role-groups/${id}`, input) : apiClient.post<RoleGroupDto>('/role-groups', input)),
-    onSuccess: () => Promise.all([client.invalidateQueries({ queryKey: KEY }), client.invalidateQueries({ queryKey: ['permission-targets', 'list'] })]),
+    onSuccess: () => Promise.all([client.invalidateQueries({ queryKey: KEY }), client.invalidateQueries({ queryKey: ['permission-targets', 'list'] }), refreshAccess(client)]),
   });
 }
 
@@ -21,7 +22,7 @@ export function useDeleteRoleGroup() {
     onSuccess: (_, id) => {
       // The deleted group's own permissions are gone: forget them instead of asking again (that would be a 404 with retries).
       client.removeQueries({ queryKey: ['permission-targets', 'one', 'role-group', id] });
-      return Promise.all([client.invalidateQueries({ queryKey: KEY }), client.invalidateQueries({ queryKey: ['permission-targets', 'list'] })]);
+      return Promise.all([client.invalidateQueries({ queryKey: KEY }), client.invalidateQueries({ queryKey: ['permission-targets', 'list'] }), refreshAccess(client)]);
     },
   });
 }

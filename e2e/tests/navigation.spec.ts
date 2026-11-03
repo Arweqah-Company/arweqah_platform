@@ -8,7 +8,7 @@ test.use({ storageState: ADMIN_STATE });
 
 const limitedMe = {
   id: 'u1', name: 'موظف', email: 'e@arweqah.sa', locale: 'ar', isActive: true, authenticatorEnabled: true, mfaVerified: true, adminMode: { available: false, active: false, expiresAt: null }, roles: [],
-  placement: { companyId: null, orgNodeId: null, managerId: null }, permissions: [], hiddenPages: [], listSettings: {}, createdAt: new Date().toISOString(),
+  placement: { companyId: null, orgNodeId: null, managerId: null }, hiddenPages: [], listSettings: {}, createdAt: new Date().toISOString(),
 };
 
 test.beforeEach(async ({ page }) => adminModeOnViaApi(page));
@@ -48,6 +48,7 @@ test.describe('Sidebar menus and the 401, 403, 404 pages (FR-30)', () => {
 
   test('403: a page the person has no permission for shows the no-permission page', async ({ page }) => {
     await page.route('**/api/me', (route) => route.fulfill({ json: limitedMe }));
+    await page.route('**/api/me/access', (route) => route.fulfill({ json: { roles: [], grants: [], adminRolesHidden: false } }));
     await page.goto('/roles');
     await expect(page.getByRole('heading', { level: 1, name: 'ليس لديك صلاحية للدخول إلى هذه الصفحة' })).toBeVisible();
     await new Page(page).expectNoSeriousA11yIssues();

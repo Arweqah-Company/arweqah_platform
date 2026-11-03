@@ -52,12 +52,12 @@ for (const file of walk(ROOT).filter((f) => /\.(tsx?|mjs|json|ya?ml|env\.example
   }
 }
 
-// Every controller route must be guarded: @RequirePermission or an explicit @Public / @AllowBeforeMfa decision.
+// Every controller route must be guarded: @RequirePermission or an explicit @Public / @AllowBeforeMfa / @OwnData decision.
 for (const file of walk(join(ROOT, 'apps/api/src')).filter((f) => f.endsWith('.controller.ts'))) {
   const text = readFileSync(file, 'utf8');
   if (/security:\s*self-scoped/.test(text)) continue;
   const routes = text.match(/@(Get|Post|Put|Patch|Delete)\(/g)?.length ?? 0;
-  const guards = text.match(/@(RequirePermission|AllowBeforeMfa|AllowAnonymous|Public|OptionalAuth)\(/g)?.length ?? 0;
+  const guards = text.match(/@(RequirePermission|AllowBeforeMfa|AllowAnonymous|Public|OptionalAuth|OwnData)\(/g)?.length ?? 0;
   if (routes > guards) problems.push(`${relative(ROOT, file)}: ${routes} route(s) but ${guards} guard decorator(s); every route needs @RequirePermission or an explicit public/allow decorator`);
 }
 

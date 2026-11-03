@@ -40,7 +40,7 @@ describe('Permissions page (FR-47)', () => {
     expect(await screen.findByLabelText('أضع الصلاحيات على')).toHaveTextContent('دور');
     await chooseOption((await screen.findByLabelText('الدور')), 'r1');
     const box = await screen.findByRole('checkbox', { name: 'عرض الموظفين' });
-    const save = screen.getByRole('button', { name: 'حفظ' });
+    const save = await screen.findByRole('button', { name: 'حفظ' });
     expect(save).toBeDisabled();
     fireEvent.click(box);
     fireEvent.click(save);

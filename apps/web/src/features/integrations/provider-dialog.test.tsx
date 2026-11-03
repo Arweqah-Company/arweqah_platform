@@ -35,7 +35,7 @@ describe('Provider dialog (FR-59)', () => {
     open(aws({ status: 'incomplete', values: {}, secretsSet: [], missing: ['accessKeyId', 'secretAccessKey'] }));
     expect(await screen.findByText(/أكمل: معرّف مفتاح الوصول و/)).toBeInTheDocument();
     expect(await screen.findByRole('button', { name: 'تجربة' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'تفعيل' })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'تفعيل' })).toBeDisabled();
   });
 
   it('after an edit, asks to save first; the saved body leaves a blank secret out and sends a typed one', async () => {
@@ -43,7 +43,7 @@ describe('Provider dialog (FR-59)', () => {
     server.use(http.put('*/api/integrations/translation/aws', async ({ request }) => { bodies.push(await request.json()); return HttpResponse.json(aws({ status: 'untested' })); }));
     open(aws());
     fireEvent.change(await screen.findByLabelText('المنطقة *'), { target: { value: 'eu-west-1' } });
-    expect(screen.getByRole('button', { name: 'تفعيل' })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'تفعيل' })).toBeDisabled();
     expect(screen.getByText(/غيّرت البيانات/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
     await waitFor(() => expect(bodies).toHaveLength(1));

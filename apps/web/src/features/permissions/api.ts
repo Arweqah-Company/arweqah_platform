@@ -1,7 +1,7 @@
 import type { PermissionGrant, PermissionTargetDto, PermissionTargetKind } from '@arweqah-platform/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { refreshAccess } from '@/core/permissions/access-key';
 import { apiClient } from '@/core/api/api-client';
-import { ME_KEY } from '@/core/auth/session';
 
 export interface TargetOption {
   id: string;
@@ -28,7 +28,7 @@ export function useSaveTarget(kind: PermissionTargetKind, id: string) {
     mutationFn: (permissions: PermissionGrant[]) => apiClient.put<PermissionTargetDto>(`/permission-targets/${kind}/${id}`, { permissions }),
     onSuccess: (target) => {
       client.setQueryData([...KEY, 'one', kind, id], target);
-      void client.invalidateQueries({ queryKey: ME_KEY });
+      void refreshAccess(client);
       void client.invalidateQueries({ queryKey: ['roles'] });
     },
   });

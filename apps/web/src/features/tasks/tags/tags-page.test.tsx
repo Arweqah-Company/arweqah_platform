@@ -27,7 +27,7 @@ describe('Task tags page (FR-54)', () => {
     renderPage(<TagsPage />);
     expect(await screen.findByText('تقارير')).toBeInTheDocument();
     expect(screen.getByText('إدارة المبيعات')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'إضافة فئة' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'إضافة فئة' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'تعديل' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'حذف' })).not.toBeInTheDocument();
   });

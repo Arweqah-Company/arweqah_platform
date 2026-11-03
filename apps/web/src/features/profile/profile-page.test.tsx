@@ -1,8 +1,8 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import type { EmployeeDto, OwnProfileDto } from '@arweqah-platform/shared';
-import { me, server } from '../../../test/msw';
+import { access, me, server } from '../../../test/msw';
 import { renderPage } from '../../../test/render';
 import { ProfilePage } from './profile-page';
 
@@ -60,8 +60,13 @@ describe('Profile page (FR-33)', () => {
   it('choosing a theme saves it on the account', async () => {
     let body: unknown;
     server.use(http.put('*/api/me/profile', async ({ request }) => { body = await request.json(); return HttpResponse.json(profile()); }));
+    // Saving needs `profile.update`, which arrives with the permissions a moment after the page: wait for them before choosing.
+    const permissionsRead = new Promise<void>((resolve) => server.use(http.get('*/api/me/access', () => { resolve(); return HttpResponse.json(access()); })));
     open();
-    fireEvent.click(await screen.findByRole('radio', { name: 'داكن' }));
+    const dark = await screen.findByRole('radio', { name: 'داكن' });
+    await permissionsRead;
+    await act(async () => undefined);
+    fireEvent.click(dark);
     await waitFor(() => expect(body).toEqual({ theme: 'dark' }));
   });
 });

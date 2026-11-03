@@ -2,6 +2,15 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-03 — My access page; the permissions apart from `/me`
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 167 | The signed-in person's permissions are not part of `GET /me`: `MeDto.permissions` is gone and `GET /me/access` (`MyAccessDto`: roles, grants with reach and sources, `adminRolesHidden`) carries them. The route needs no permission key (it is the person's own gate data; a key for it could shut the person out of everything), but it needs the verified code | One answer feeds the menu, the buttons and the «My access» page, so there is no second copy; `/me` stays light and is not read just for gates | The payload grows enough to ask only for the keys |
+| 168 | The web reads `/me/access` once after the code is verified and keeps it for the session (`staleTime: Infinity`, key `['access']`); `refreshAccess` reads it again when platform admin mode is turned on or off (the mode already invalidates every query), on `ADMIN_MODE_REQUIRED`, and after a role, group or permission is edited. `RequireAuth` waits for it, so the menu does not flash | Owner (2026-11-03): read at sign-in, kept, read again only when admin mode changes | A server push when someone else changes the person's roles |
+| 169 | «My access» shows only what is in force: while admin mode is off an administrative role's permissions are not listed at all, only `adminRolesHidden` says one exists (no names, no count). The source of each permission comes from one query (`GRANT_SOURCES_OF_USER`, the same union as `GRANTS_OF_USER`, one row per source) | Decision 154 (the administrator sees nothing of the administration outside the mode) | The owner wants the hidden grants listed greyed |
+| 170 | The page has no page-visibility key (like profile and security, an account page an administrator cannot hide) and its list is in the list catalog (`my-access`) | The person must always see their own access | — |
+
 ## 2026-11-03 — Sign in as another employee
 
 | # | Decision | Why | Revisit when |
