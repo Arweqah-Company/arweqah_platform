@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useMe } from '@/core/auth/session';
+import { useReach } from '@/core/permissions/use-access';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Alert, FormField, Select } from '@/shared/ui';
 import { CorePermission } from '@arweqah-platform/shared';
@@ -27,7 +27,7 @@ export function MatrixSection() {
   const { t } = useTranslation('tasks');
   const { t: tc } = useTranslation();
   const [scope, setScope] = useState<'mine' | 'team'>('mine');
-  const reach = useMe().data?.permissions.find((p) => p.key === CorePermission.TasksMatrixView)?.scope;
+  const reach = useReach(CorePermission.TasksMatrixView);
   const query = useMatrix(scope);
   return (
     <section aria-labelledby="home-matrix" className="mt-8">

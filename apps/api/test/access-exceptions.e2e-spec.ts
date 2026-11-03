@@ -63,11 +63,11 @@ describe('What was given outside the job title: end dates, the list and taking b
     const personAgent = await t.factories.signIn(person);
     const role = await t.factories.role(keys([CorePermission.AuditView]));
     await giveRole(hr, person.employeeId, role.id, day(0)).then((r) => expect(r.status).toBe(200));
-    expect(((await personAgent.get('/api/me').expect(200)).body.permissions as { key: string }[]).map((p) => p.key)).toContain('audit.view');
+    expect(((await personAgent.get('/api/me/access').expect(200)).body.grants as { key: string }[]).map((p) => p.key)).toContain('audit.view');
     await t.db.query('UPDATE user_roles SET expires_at = $2 WHERE user_id = $1', [person.id, day(-1)]);
     // Access is kept for a short time: tell it something changed.
     await t.app.get(UserAccessService).replaceGroups(person.id, []);
-    expect(((await personAgent.get('/api/me').expect(200)).body.permissions as { key: string }[]).map((p) => p.key)).not.toContain('audit.view');
+    expect(((await personAgent.get('/api/me/access').expect(200)).body.grants as { key: string }[]).map((p) => p.key)).not.toContain('audit.view');
     expect(await roleIdsOf(person.id)).toEqual([]);
     const job = t.app.get(AccessExceptionsService);
     expect(await job.removeEnded()).toBe(1);

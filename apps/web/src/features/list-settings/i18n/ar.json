@@ -129,6 +129,20 @@
         "status": "الحالة"
       }
     },
+    "my-access": {
+      "name": "صلاحياتي",
+      "columns": {
+        "permission": "ما يمكنك فعله",
+        "module": "المجال",
+        "scope": "المدى",
+        "source": "مصدرها"
+      },
+      "filters": {
+        "module": "المجال",
+        "scope": "المدى",
+        "source": "مصدرها"
+      }
+    },
     "notifications": {
       "name": "الإشعارات",
       "columns": {},

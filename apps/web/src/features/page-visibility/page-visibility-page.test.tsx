@@ -34,7 +34,7 @@ describe('Page visibility page (FR-42)', () => {
     renderPage(<PageVisibilityPage />);
     expect(await screen.findByRole('checkbox', { name: 'الموظفون' })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: 'الهيكل التنظيمي' })).not.toBeChecked();
-    const save = screen.getByRole('button', { name: 'حفظ' });
+    const save = await screen.findByRole('button', { name: 'حفظ' });
     expect(save).toBeDisabled();
     fireEvent.click(screen.getByRole('checkbox', { name: 'الموظفون' }));
     fireEvent.click(save);

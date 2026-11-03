@@ -22,9 +22,9 @@ describe('Security settings tab (FR-73, FR-76)', () => {
     expect(days).toHaveValue(0);
     fireEvent.change(days, { target: { value: '400' } });
     expect(await screen.findByText('أدخل رقمًا صحيحًا بين 0 و365.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'حفظ' })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'حفظ' })).toBeDisabled();
     fireEvent.change(days, { target: { value: '30' } });
-    fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
     await waitFor(() => expect(saved).toEqual({ trustedDeviceDays: 30, requestsPerMinute: 600, impersonationEnabled: 0, impersonationIdleMinutes: 30 }));
   });
 
@@ -39,9 +39,9 @@ describe('Security settings tab (FR-73, FR-76)', () => {
     expect(minutes).toHaveValue(30);
     fireEvent.change(minutes, { target: { value: '2' } });
     expect(await screen.findByText('أدخل رقمًا صحيحًا بين 5 و240.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'حفظ' })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'حفظ' })).toBeDisabled();
     fireEvent.change(minutes, { target: { value: '45' } });
-    fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
     await waitFor(() => expect(saved).toEqual({ trustedDeviceDays: 0, requestsPerMinute: 600, impersonationEnabled: 1, impersonationIdleMinutes: 45 }));
   });
 

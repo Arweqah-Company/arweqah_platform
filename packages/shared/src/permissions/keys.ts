@@ -80,6 +80,8 @@ export const CorePermission = {
   ProfileView: 'profile.view',
   ProfileUpdate: 'profile.update',
   SecurityView: 'security.view',
+  MyAccessView: 'my_access.view',
+  MyAccessExport: 'my_access.export',
   NotificationsView: 'notifications.view',
   NotificationsMarkRead: 'notifications.mark_read',
   NotificationsExport: 'notifications.export',
@@ -165,17 +167,24 @@ export const CorePermission = {
 } as const;
 export type CorePermissionKey = (typeof CorePermission)[keyof typeof CorePermission];
 
+/** The person's own account: profile, security, their own access and notifications (the Employee role and the collaborator base both start with it). */
+const OWN_ACCOUNT_PERMISSIONS: { key: CorePermissionKey; scope: 'all' }[] = [
+  { key: CorePermission.ProfileView, scope: 'all' },
+  { key: CorePermission.ProfileUpdate, scope: 'all' },
+  { key: CorePermission.SecurityView, scope: 'all' },
+  { key: CorePermission.MyAccessView, scope: 'all' },
+  { key: CorePermission.MyAccessExport, scope: 'all' },
+  { key: CorePermission.NotificationsView, scope: 'all' },
+  { key: CorePermission.NotificationsMarkRead, scope: 'all' },
+];
+
 /**
- * What every employee holds from the start (the "Employee" role): own-account pages (seeing their own employee record and editing a few fields of it), sending and following tickets, the structure page (`org.view`) and their own tasks with their conversations (view, add, edit, move on, comment).
+ * What every employee holds from the start (the "Employee" role): own-account pages (seeing their own employee record and editing a few fields of it), sending and following tickets, the drop-down lists the pages read (`lookups.view`: the employee page needs them to name a person's company, relation and the like), the structure page (`org.view`) and their own tasks with their conversations (view, add, edit, move on, comment).
  * The role grows as modules arrive: add the key here and in a migration that inserts it into the `everyone` role (decision 155).
  * Tickets are seen and answered at the narrowest scope ("own": the ones the person sent or handles); wider scopes are given on the permissions page.
  */
 export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own' | 'all' }[] = [
-  { key: CorePermission.ProfileView, scope: 'all' },
-  { key: CorePermission.ProfileUpdate, scope: 'all' },
-  { key: CorePermission.SecurityView, scope: 'all' },
-  { key: CorePermission.NotificationsView, scope: 'all' },
-  { key: CorePermission.NotificationsMarkRead, scope: 'all' },
+  ...OWN_ACCOUNT_PERMISSIONS,
   { key: CorePermission.EmployeesView, scope: 'own' },
   { key: CorePermission.EmployeesUpdate, scope: 'own' },
   { key: CorePermission.TicketsView, scope: 'own' },
@@ -186,6 +195,7 @@ export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own
   { key: CorePermission.TicketsDeclineClose, scope: 'all' },
   { key: CorePermission.TicketsCloseWithoutExecution, scope: 'all' },
   { key: CorePermission.TicketsReopen, scope: 'all' },
+  { key: CorePermission.LookupsView, scope: 'all' },
   { key: CorePermission.OrgView, scope: 'all' },
   { key: CorePermission.TasksView, scope: 'own' },
   { key: CorePermission.TasksCreate, scope: 'all' },
@@ -205,11 +215,7 @@ export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own
  */
 /** What the «collaborator base» role starts with: the person's own account and notifications, nothing of the company's data (a job title role adds the rest). */
 export const COLLABORATOR_BASE_PERMISSIONS: { key: CorePermissionKey; scope: 'own' | 'all' }[] = [
-  { key: CorePermission.ProfileView, scope: 'all' },
-  { key: CorePermission.ProfileUpdate, scope: 'all' },
-  { key: CorePermission.SecurityView, scope: 'all' },
-  { key: CorePermission.NotificationsView, scope: 'all' },
-  { key: CorePermission.NotificationsMarkRead, scope: 'all' },
+  ...OWN_ACCOUNT_PERMISSIONS,
 ];
 
 export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'subtree' }[] = [

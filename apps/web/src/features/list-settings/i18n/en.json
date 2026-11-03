@@ -129,6 +129,20 @@
         "status": "Status"
       }
     },
+    "my-access": {
+      "name": "My access",
+      "columns": {
+        "permission": "What you may do",
+        "module": "Area",
+        "scope": "Reach",
+        "source": "Comes from"
+      },
+      "filters": {
+        "module": "Area",
+        "scope": "Reach",
+        "source": "Comes from"
+      }
+    },
     "notifications": {
       "name": "Notifications",
       "columns": {},

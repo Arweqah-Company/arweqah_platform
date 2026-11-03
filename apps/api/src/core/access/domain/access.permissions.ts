@@ -36,4 +36,6 @@ export const ACCESS_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.ProfileView, 'عرض الملف الشخصي', 'View my profile'),
   def(CorePermission.ProfileUpdate, 'تعديل بياناتي الشخصية والتفضيلات', 'Edit my contact details and preferences'),
   def(CorePermission.SecurityView, 'عرض صفحة الأمان', 'View the security page'),
+  def(CorePermission.MyAccessView, 'عرض صفحة صلاحياتي', 'View my access page'),
+  def(CorePermission.MyAccessExport, 'تصدير صلاحياتي', 'Export my access'),
 ];

@@ -6,6 +6,7 @@ import { apiClient } from '@/core/api/api-client';
 import { useMe } from '@/core/auth/session';
 import { useNavItems } from '@/core/navigation';
 import { usePermissions } from '@/core/permissions/can';
+import { useReach } from '@/core/permissions/use-access';
 import { StatTile } from '@/shared/ui';
 import { MatrixSection, MyTasksPanel, useTaskSummary } from '@/features/tasks';
 import { useEmployeesSummary } from '../employees/api';
@@ -76,7 +77,8 @@ function useHomeData() {
   const showTasks = can(CorePermission.TasksView) && !hidden.includes('tasks');
   const showTickets = can(CorePermission.TicketsView) && !hidden.includes('tickets');
   // The employee counts are about other people: a plain employee (view reaches only their own record) has none.
-  const canSeeEmployees = (me?.permissions ?? []).some((p) => p.key === CorePermission.EmployeesView && p.scope !== 'own');
+  const employeesReach = useReach(CorePermission.EmployeesView);
+  const canSeeEmployees = !!employeesReach && employeesReach !== 'own';
   const showMatrix = can(CorePermission.TasksMatrixView) && !hidden.includes('tasks-matrix');
   return {
     me,

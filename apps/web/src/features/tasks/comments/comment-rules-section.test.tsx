@@ -35,7 +35,7 @@ describe('Comment rules matrix (FR-66)', () => {
     const saved = serve(true);
     renderPage(<CommentRulesSection companyId="company-1" />);
     fireEvent.click(await screen.findByRole('checkbox', { name: 'المتابع · صلاحية كتابة تعليق' }));
-    fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
     await waitFor(() => expect(saved).toHaveLength(1));
     const sent = saved[0] as { rules: ReturnType<typeof defaultCommentMatrix> };
     expect(sent.rules.follower.write).toBe(false);

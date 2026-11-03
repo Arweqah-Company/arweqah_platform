@@ -7,6 +7,7 @@ export const REQUIRED_PERMISSION = 'required_permission';
 export const ALLOW_BEFORE_MFA = 'allow_before_mfa';
 export const REQUIRE_ADMIN_MODE = 'require_admin_mode';
 export const PAGE_KEY = 'page_key';
+export const OWN_DATA = 'own_data';
 
 /** The caller needs this permission at any scope; services narrow by scope. */
 export const RequirePermission = (key: string) => SetMetadata(REQUIRED_PERMISSION, key);
@@ -19,6 +20,9 @@ export const HiddenWithPage = (page: HideablePage) => SetMetadata(PAGE_KEY, page
 
 /** For routes reachable before the one-time code is verified (profile, entering the code, enrolling the app). */
 export const AllowBeforeMfa = () => SetMetadata(ALLOW_BEFORE_MFA, true);
+
+/** An explicit decision: the route answers only about the signed-in person (their own data), so it needs no key; the guard still requires a verified session. */
+export const OwnData = () => SetMetadata(OWN_DATA, true);
 
 export interface RequestWithAccess extends Request {
   access?: AccessContext;

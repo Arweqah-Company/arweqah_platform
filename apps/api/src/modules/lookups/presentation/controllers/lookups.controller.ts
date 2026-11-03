@@ -41,7 +41,7 @@ export class LookupsController {
 
   /** The role groups to choose from when giving a person groups (HR does not need the admin page for it). */
   @Get('role-groups')
-  @RequirePermission(CorePermission.LookupsView)
+  @RequirePermission(CorePermission.EmployeesAssignGroups)
   async roleGroupOptions(): Promise<{ id: string; nameAr: string; nameEn: string }[]> {
     return (await this.roleGroups.list()).map((g) => ({ id: g.id, nameAr: g.nameAr, nameEn: g.nameEn }));
   }

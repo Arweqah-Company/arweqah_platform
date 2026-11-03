@@ -40,7 +40,7 @@ describe('Translation settings page (FR-59)', () => {
     serve(catalog([PROVIDERS[1]!, provider({ providerKey: 'aws', status: 'tested', missing: [] }), PROVIDERS[2]!]));
     renderPage(<ProvidersPage kind="translation" />);
     await screen.findByText('ترجمة جوجل كلاود (Google Cloud Translation)');
-    expect(screen.getAllByRole('button', { name: 'تفعيل' })).toHaveLength(1);
+    expect(await screen.findAllByRole('button', { name: 'تفعيل' })).toHaveLength(1);
     expect(screen.getAllByRole('button', { name: 'تجربة' })).toHaveLength(2);
     expect(screen.queryByRole('button', { name: 'إيقاف' })).not.toBeInTheDocument();
   });

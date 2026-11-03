@@ -13,7 +13,7 @@ const without = (ids: string[], id: string | undefined): string[] => ids.filter(
  * They are ordinary ticks on the roles step; whatever is unticked stays unticked.
  */
 export function useDefaultRoles(form: UseFormReturn<FormState>, options: { editing: boolean; savedTitleId: string; enabled: boolean }): void {
-  const roles = useRoles();
+  const roles = useRoles(options.enabled);
   const relations = useLookups().data?.relationTypes;
   const relationTypeId = useWatch({ control: form.control, name: 'relationTypeId' });
   const limited = relations?.find((r) => r.id === relationTypeId)?.limitedAccess === true;

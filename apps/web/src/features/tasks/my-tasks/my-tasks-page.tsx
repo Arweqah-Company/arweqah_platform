@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import { useMe } from '@/core/auth/session';
 import { Can, usePermissions } from '@/core/permissions/can';
+import { useReach } from '@/core/permissions/use-access';
 import { Button, PageHeader } from '@/shared/ui';
 import { NewTaskDialog } from '../new-task/new-task-dialog';
 import { TaskListView, TasksEmpty } from './task-list-view';
@@ -21,7 +22,7 @@ const START_TABS: TasksTab[] = [...TASK_TABS, 'team'];
 /** My team: only for those whose team key reaches beyond themselves, and unless an administrator hid it. */
 function useTeamTab(): boolean {
   const me = useMe().data;
-  const reach = me?.permissions.find((p) => p.key === CorePermission.TasksTeamView)?.scope;
+  const reach = useReach(CorePermission.TasksTeamView);
   return !!reach && reach !== 'own' && !me?.hiddenPages.includes('tasks-team');
 }
 

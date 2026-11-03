@@ -38,7 +38,7 @@ describe('E-mail templates tab (FR-64)', () => {
     renderPage(<TemplatesTab kind="email" />);
     await screen.findByText('دعوة تفعيل الحساب');
     expect(within(rowOf(/دعوة تفعيل الحساب/)).queryByRole('button', { name: 'العودة للأصل' })).not.toBeInTheDocument();
-    expect(within(rowOf(/نسخة الإشعار/)).getByRole('button', { name: 'العودة للأصل' })).toBeInTheDocument();
+    expect(await within(rowOf(/نسخة الإشعار/)).findByRole('button', { name: 'العودة للأصل' })).toBeInTheDocument();
   });
 
   it('opens the wording in both languages with the variables the code fills and a preview', async () => {

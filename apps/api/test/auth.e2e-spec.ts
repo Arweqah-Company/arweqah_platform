@@ -11,12 +11,14 @@ describe('Sign-in with e-mail and authenticator code (FR-01, FR-23)', () => {
   const signIn = (email: string, code: string, ip = nextIp()) =>
     request(t.app.getHttpServer()).post('/api/auth/totp/sign-in').set('x-forwarded-for', ip).send({ email, code });
 
-  it('signs in with the e-mail and the app code, and returns the profile with permissions', async () => {
+  it('signs in with the e-mail and the app code, and returns the profile, and the permissions are read apart (FR-88)', async () => {
     const user = await t.factories.user({ grants: [{ key: DEMO_PERMISSION, scope: 'company' }] });
     const agent = await t.factories.signIn(user);
     const me = await agent.get('/api/me').expect(200);
     expect(me.body).toMatchObject({ email: user.email, authenticatorEnabled: true, mfaVerified: true });
-    expect(me.body.permissions).toEqual(expect.arrayContaining([{ key: DEMO_PERMISSION, scope: 'company' }]));
+    expect(me.body.permissions).toBeUndefined();
+    const access = await agent.get('/api/me/access').expect(200);
+    expect(access.body.grants).toEqual(expect.arrayContaining([expect.objectContaining({ key: DEMO_PERMISSION, scope: 'company' })]));
   });
 
   it('sets the session cookie as HttpOnly and SameSite=Lax', async () => {

@@ -1,4 +1,4 @@
-import type { PermissionGrant, RoleOriginDto } from '@arweqah-platform/shared';
+import type { AccessSourceKind, PermissionGrant, PermissionScope, RoleOriginDto } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../common/domain/transaction-context';
 import type { Role } from './role.entity';
 import type { Placement, UnitReach } from './access-context';
@@ -34,9 +34,23 @@ export abstract class RoleRepository {
   abstract removeJobTitleRoles(jobTitleIds: string[], tx: TransactionContext): Promise<void>;
 }
 
+/** One permission a person holds and the role, group or personal grant it comes from. */
+export interface GrantSourceRow {
+  key: string;
+  scope: PermissionScope;
+  kind: AccessSourceKind;
+  /** Empty for a personal grant (it has no name of its own). */
+  nameAr: string;
+  nameEn: string;
+  /** Comes from an administrative role: counts only while platform admin mode is on. */
+  elevated: boolean;
+}
+
 export abstract class UserAccessRepository {
   abstract loadAccess(userId: string): Promise<UserAccessRecord | null>;
   abstract rolesOf(userIds: string[]): Promise<Map<string, Role[]>>;
+  /** Every permission the person holds, one row per source (a role, a group of roles, a group of people, or the person alone). */
+  abstract grantSourcesOf(userId: string): Promise<GrantSourceRow[]>;
   /** Replaces the roles of a person; a role already held keeps its end date unless `expiries` names a new one (null = no end date). */
   abstract replaceRoles(userId: string, roleIds: string[], options?: { expiries?: Record<string, string | null>; grantedBy?: string | null }, tx?: TransactionContext): Promise<void>;
   /** The end dates of the roles each person holds (only the roles that have one). */

@@ -38,14 +38,14 @@ describe('Task policies page (FR-54)', () => {
     const stale = await screen.findByLabelText('راكدة بعد عدم الحركة لمدة (أيام)');
     fireEvent.change(stale, { target: { value: '3' } });
     expect(await screen.findByText('استعمل عددًا صحيحًا من 7 إلى 180.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'حفظ' })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'حفظ' })).toBeDisabled();
   });
 
   it('saves the numbers as numbers', async () => {
     const saved = serve();
     renderPage(<PoliciesPage />);
     fireEvent.change(await screen.findByLabelText('راكدة بعد عدم الحركة لمدة (أيام)'), { target: { value: '45' } });
-    fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
     await waitFor(() => expect(saved).toHaveLength(1));
     expect(saved[0]).toEqual({ ...TASK_POLICY_DEFAULTS, staleDays: 45 });
   });

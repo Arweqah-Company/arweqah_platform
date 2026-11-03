@@ -2,9 +2,10 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { me, server } from '../../../test/msw';
+import { access, me, server } from '../../../test/msw';
 import { ThemeToggle } from '@/shared/ui';
 import { ME_KEY } from '../auth/session';
+import { ACCESS_KEY } from '../permissions/access-key';
 import { ThemeProvider, useTheme } from './theme';
 
 const html = () => document.documentElement.getAttribute('data-theme');
@@ -17,6 +18,7 @@ function Probe() {
 
 function setup(saved?: 'light' | 'dark' | 'system') {
   const client = new QueryClient();
+  client.setQueryData(ACCESS_KEY, access());
   client.setQueryData(ME_KEY, { ...me(), theme: saved ?? 'system' }); // the signed-in person (saving the choice needs the profile.update key)
   return render(
     <QueryClientProvider client={client}>

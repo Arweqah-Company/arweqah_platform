@@ -2,7 +2,7 @@ import { CorePermission as P, type EmployeeListItemDto } from '@arweqah-platform
 import { fireEvent, screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
-import { me, server } from '../../../test/msw';
+import { access, me, server } from '../../../test/msw';
 import { renderRoute } from '../../../test/render';
 import { EmployeesPage } from './employees-page';
 
@@ -30,16 +30,16 @@ describe('Employees list: row click and the actions column (FR-17)', () => {
     const row = (await screen.findByText('N1')).closest('tr') as HTMLElement;
     expect(screen.getAllByRole('columnheader').at(-1)).toHaveTextContent('الإجراءات');
     expect(within(row).getByRole('link', { name: 'عرض' })).toHaveAttribute('href', '/employees/e1');
-    expect(within(row).getByRole('link', { name: 'تعديل' })).toHaveAttribute('href', '/employees/e1/edit');
+    expect(await within(row).findByRole('link', { name: 'تعديل' })).toHaveAttribute('href', '/employees/e1/edit');
     expect(within(row).getByRole('button', { name: 'تعطيل' })).toBeInTheDocument();
   });
 
   it('offers a plain employee (edit reaches only their own record) the edit of their own row alone', async () => {
     serve([], [person({ id: 'e1', employeeNumber: 'N1', isOwn: true }), person({ id: 'e2', employeeNumber: 'N2', isOwn: false })]);
-    server.use(http.get('*/api/me', () => HttpResponse.json({ ...me(), permissions: [{ key: P.EmployeesView, scope: 'subtree' as const }, { key: P.EmployeesUpdate, scope: 'own' as const }] })));
+    server.use(http.get('*/api/me/access', () => HttpResponse.json(access([{ key: P.EmployeesView, scope: 'subtree' as const }, { key: P.EmployeesUpdate, scope: 'own' as const }]))));
     const mine = (await screen.findByText('N1')).closest('tr') as HTMLElement;
     const other = screen.getByText('N2').closest('tr') as HTMLElement;
-    expect(within(mine).getByRole('link', { name: 'تعديل' })).toBeInTheDocument();
+    expect(await within(mine).findByRole('link', { name: 'تعديل' })).toBeInTheDocument();
     expect(within(other).queryByRole('link', { name: 'تعديل' })).not.toBeInTheDocument();
   });
 

@@ -1,12 +1,29 @@
-import { EMPLOYEE_DEFAULT_PERMISSIONS, type LookupsDto, type MeDto, type PermissionCatalogGroup, type RoleDto } from '@arweqah-platform/shared';
+import { EMPLOYEE_DEFAULT_PERMISSIONS, type LookupsDto, type MeDto, type MyAccessDto, type PermissionCatalogGroup, type PermissionGrant, type RoleDto, widestScope } from '@arweqah-platform/shared';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 
 /** A signed-in employee: the Employee role's own-account and ticket keys, plus what the test adds. */
-const EMPLOYEE_KEYS: MeDto['permissions'] = EMPLOYEE_DEFAULT_PERMISSIONS;
+const EMPLOYEE_KEYS: PermissionGrant[] = EMPLOYEE_DEFAULT_PERMISSIONS;
+
+/** What `/api/me/access` answers: the grants of the last `me(...)` a test built, unless a test serves its own `access(...)`. */
+let granted: PermissionGrant[] = EMPLOYEE_KEYS;
+
+/** The answer of `GET /me/access` for these grants (labels are the keys; no roles, nothing hidden). */
+export const access = (grants: PermissionGrant[] = granted): MyAccessDto => {
+  // Like the API, one entry per key at the widest scope the person holds it at.
+  const scopes = new Map<string, PermissionGrant['scope'][]>();
+  for (const g of grants) scopes.set(g.key, [...(scopes.get(g.key) ?? []), g.scope]);
+  return {
+    roles: [],
+    adminRolesHidden: false,
+    grants: [...scopes].map(([key, list]) => ({ key, module: key.split('.')[0] ?? key, labelAr: key, labelEn: key, scope: widestScope(list) as PermissionGrant['scope'], sources: [] })),
+  };
+};
 
 /** `adminMode`: the session has platform admin mode switched on (the administration buttons of ordinary pages show only then); `without`: key prefixes (such as `tasks.`) taken out of the Employee baseline. */
-export const me = (permissions: MeDto['permissions'] = [], options: { adminMode?: boolean; without?: string[] } = {}): MeDto => ({
+export const me = (permissions: PermissionGrant[] = [], options: { adminMode?: boolean; without?: string[] } = {}): MeDto => {
+  granted = [...EMPLOYEE_KEYS.filter((p) => !options.without?.some((prefix) => p.key.startsWith(prefix))), ...permissions];
+  return {
   id: 'u1',
   name: 'سارة أحمد',
   email: 'sara@arweqah.sa',
@@ -22,10 +39,10 @@ export const me = (permissions: MeDto['permissions'] = [], options: { adminMode?
   roles: [],
   placement: { companyId: null, orgNodeId: null, managerId: null },
   createdAt: new Date(0).toISOString(),
-  permissions: [...EMPLOYEE_KEYS.filter((p) => !options.without?.some((prefix) => p.key.startsWith(prefix))), ...permissions],
   hiddenPages: [],
   listSettings: {},
-});
+  };
+};
 
 export const catalog: PermissionCatalogGroup[] = [
   {
@@ -62,6 +79,7 @@ export const companyOptions = [{ id: 'company-1', code: 'ARW', nameAr: 'أروق
 /** Handlers shared by component tests; individual tests override with server.use(...). */
 export const server = setupServer(
   http.get('*/api/me', () => HttpResponse.json(me())),
+  http.get('*/api/me/access', () => HttpResponse.json(access())),
   http.get('*/api/permissions/catalog', () => HttpResponse.json(catalog)),
   http.get('*/api/roles', () => HttpResponse.json(roles)),
   http.get('*/api/lookups', () => HttpResponse.json(lookups)),

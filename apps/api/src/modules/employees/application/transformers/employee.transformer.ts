@@ -4,9 +4,11 @@ import { todayIso } from '@arweqah-platform/shared';
 import { FieldCipher } from '../../../../common/application/field-cipher';
 import { UserAccessService } from '../../../../core/access/application/user-access.service';
 import { AuthenticatorService } from '../../../../core/auth/application/authenticator.service';
+import { LookupsService } from '../../../lookups/application/services/lookups.service';
 import { OrgDirectoryService, type NamedRef } from '../../../org/application/services/org-directory.service';
 import { EmployeePlacementPort } from '../../../org/domain/contracts/employee-placement.port';
 import type { Employee } from '../../domain/entities/employee.entity';
+import { employeeNames } from './employee-names';
 
 const SOON_DAYS = 30;
 const UNKNOWN: NamedRef = { id: '', nameAr: '', nameEn: '' };
@@ -42,11 +44,14 @@ export class EmployeeTransformer {
     private readonly authenticator: AuthenticatorService,
     private readonly placement: EmployeePlacementPort,
     private readonly cipher: FieldCipher,
+    private readonly lookups: LookupsService,
   ) {}
 
   async toDto(e: Employee, view: { isActive: boolean; sensitive: boolean }): Promise<EmployeeDto> {
-    const [companies, nodes, titles, managers, roles, groups, authenticatorEnabled, expiries] = await Promise.all([
-      this.org.describeCompanies([e.companyId]),
+    const companyIds = [e.companyId, e.contractCompanyId, e.gosiCompanyId, e.healthInsuranceCompanyId].filter((id): id is string => !!id);
+    const [companies, lookups, nodes, titles, managers, roles, groups, authenticatorEnabled, expiries] = await Promise.all([
+      this.org.describeCompanies(companyIds),
+      this.lookups.all('ar'),
       this.org.describeNodes(e.orgNodeId ? [e.orgNodeId] : []),
       this.org.describeTitles(e.jobTitleId ? [e.jobTitleId] : []),
       this.placement.namesOf(e.managerId ? [e.managerId] : []),
@@ -71,6 +76,7 @@ export class EmployeeTransformer {
       ...this.sensitiveFields(e, view.sensitive),
       roles: roleRefs(roles.get(e.userId), expiries.get(e.userId)),
       groups: groups.get(e.userId) ?? [],
+      names: employeeNames(e, lookups, companies),
       sensitiveHidden: !view.sensitive,
       createdAt: e.createdAt.toISOString(),
       updatedAt: e.updatedAt.toISOString(),

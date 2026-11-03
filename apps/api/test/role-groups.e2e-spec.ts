@@ -12,7 +12,7 @@ const HR = keys([CorePermission.EmployeesView, CorePermission.EmployeesAssignGro
 describe('Groups of roles, groups of people and the permissions page (FR-46, FR-47)', () => {
   const t = useTestApp();
   const admin = async (grants = GROUPS_ADMIN): Promise<TestAgent> => t.factories.signInAdminMode(await t.factories.user({ grants }));
-  const permissionsOf = async (agent: TestAgent) => ((await agent.get('/api/me').expect(200)).body.permissions as { key: string }[]).map((p) => p.key);
+  const permissionsOf = async (agent: TestAgent) => ((await agent.get('/api/me/access').expect(200)).body.grants as { key: string }[]).map((p) => p.key);
 
   it('creates, lists, edits and deletes a group of roles', async () => {
     const agent = await admin();

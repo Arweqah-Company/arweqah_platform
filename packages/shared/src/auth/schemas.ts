@@ -1,7 +1,6 @@
 import type { ListSettingsDto } from '../lists/catalog';
 import type { HideablePage } from '../pages/schemas';
 import { z } from 'zod';
-import type { PermissionScope } from '../permissions/scope';
 
 /** Where the signed-in user sits: company, org unit and direct manager (from the employee record). */
 export const placementSchema = z.strictObject({
@@ -84,7 +83,6 @@ export interface MeDto extends UserDto {
   impersonationEnabled: boolean;
   /** The administrator allows trusting a browser after the code step that follows a Microsoft sign-in. */
   trustedDevicesEnabled: boolean;
-  permissions: { key: string; scope: PermissionScope }[];
   /** Pages hidden from every role of this person (the menu leaves them out and the API refuses them). */
   hiddenPages: HideablePage[];
   /** What an administrator hid in the lists (columns and filters); one setting for everyone. */

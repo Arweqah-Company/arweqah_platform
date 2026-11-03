@@ -4,6 +4,7 @@ export * from './common/localized';
 export * from './permissions/scope';
 export * from './permissions/types';
 export * from './permissions/keys';
+export * from './permissions/my-access';
 export * from './auth/schemas';
 export * from './exceptions/schemas';
 export * from './security/schemas';

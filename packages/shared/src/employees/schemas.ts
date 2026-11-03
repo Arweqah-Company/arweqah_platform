@@ -209,6 +209,29 @@ interface NamedRef {
   nameEn: string;
 }
 
+/** A looked-up value with both spellings, so the view page needs no drop-down list. */
+export interface BilingualName {
+  nameAr: string;
+  nameEn: string;
+}
+
+/** The names behind the ids of an employee (null where the employee has no such value). */
+export interface EmployeeNamesDto {
+  relationType: BilingualName | null;
+  workCountry: BilingualName | null;
+  nationality: BilingualName | null;
+  maritalStatus: BilingualName | null;
+  residencyStatus: BilingualName | null;
+  idType: BilingualName | null;
+  contractType: BilingualName | null;
+  contractCompany: BilingualName | null;
+  gosiCompany: BilingualName | null;
+  healthInsuranceCompany: BilingualName | null;
+  gosiSystem: BilingualName | null;
+  terminationReason: BilingualName | null;
+  salaryCurrency: (BilingualName & { currencyCode: string; currencyName: string }) | null;
+}
+
 /** Sensitive values are null (and `sensitiveHidden` true) unless the viewer holds employees.view_sensitive. */
 export interface EmployeeDto {
   id: string;
@@ -263,6 +286,8 @@ export interface EmployeeDto {
   roles: (NamedRef & { expiresAt: string | null })[];
   /** Groups of roles the person was given (their roles come on top of the ones above). */
   groups: NamedRef[];
+  /** The names behind the ids above: the view page reads them from here instead of loading the drop-down lists. */
+  names: EmployeeNamesDto;
   sensitiveHidden: boolean;
   createdAt: string;
   updatedAt: string;
