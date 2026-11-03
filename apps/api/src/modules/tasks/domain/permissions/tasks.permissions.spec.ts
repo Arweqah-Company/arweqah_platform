@@ -15,8 +15,13 @@ describe('Task permissions (FR-48, FR-54)', () => {
     }
   });
 
-  it('gives none of them to the Employee role, so the feature stays hidden', () => {
-    const given = EMPLOYEE_DEFAULT_PERMISSIONS.map((p) => p.key as string);
-    expect(TASK_KEYS.filter((key) => given.includes(key))).toEqual([]);
+  it('gives the Employee role only the keys of the person\'s own tasks and conversations, never the team, approval, policy or export keys (decision 155)', () => {
+    const given = new Set(EMPLOYEE_DEFAULT_PERMISSIONS.map((p) => p.key as string));
+    const P = CorePermission;
+    const own = [P.TasksView, P.TasksCreate, P.TasksUpdate, P.TasksChangeStatus, P.TasksCommentView, P.TasksCommentAdd, P.TasksCommentReply, P.TasksCommentMention, P.TasksCommentEdit, P.TasksCommentDelete];
+    expect(TASK_KEYS.filter((key) => given.has(key)).sort()).toEqual([...own].sort());
+    for (const key of [P.TasksTeamView, P.TasksMatrixView, P.TasksAssign, P.TasksApprove, P.TasksReject, P.TasksReview, P.TasksPoliciesView, P.TasksPoliciesEdit, P.TasksExport, P.TasksCommentDeleteAny, P.TasksCommentRulesEdit]) {
+      expect(given.has(key), key).toBe(false);
+    }
   });
 });
