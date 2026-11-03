@@ -14,7 +14,7 @@ describe('The Employee role does not manage the structure (FR-69)', () => {
 describe('The Employee role gives every person the baseline (FR-86)', () => {
   it('holds the structure page and the own-task keys, and the own record only at scope own', () => {
     const keys = EMPLOYEE_DEFAULT_PERMISSIONS.map((p) => p.key);
-    expect(keys).toEqual(expect.arrayContaining([CorePermission.OrgView, CorePermission.TasksView, CorePermission.TasksCreate, CorePermission.TasksUpdate, CorePermission.TasksCommentAdd]));
+    expect(keys).toEqual(expect.arrayContaining([CorePermission.LookupsView, CorePermission.OrgView, CorePermission.TasksView, CorePermission.TasksCreate, CorePermission.TasksUpdate, CorePermission.TasksCommentAdd]));
     const scope = (key: string) => EMPLOYEE_DEFAULT_PERMISSIONS.find((p) => p.key === key)?.scope;
     expect(scope(CorePermission.EmployeesView)).toBe('own');
     expect(scope(CorePermission.TasksView)).toBe('own');
