@@ -34,6 +34,7 @@ describe('A plain employee sees and edits only their own account (FR-83)', () =>
     // The page of the record is built from the drop-down lists (company, relation, titles…).
     await agent.get('/api/lookups').expect(200);
     await agent.get('/api/lookups/companies').expect(200);
+    await agent.get('/api/lookups/org-reference').expect(200);
   });
 
   it('cannot add, deactivate, end the contract of, import, export or give roles to anyone, themselves included', async () => {
