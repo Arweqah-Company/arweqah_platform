@@ -35,17 +35,17 @@ describe('A role for every job title (FR-68)', () => {
     agent = await t.factories.signInAdminMode(await t.factories.user({ grants }));
   };
 
-  it('makes a role with each job title of a new unit, named after it and starting with the Employee role permissions', async () => {
+  it('makes a role with each job title of a new unit, named «title — unit» and starting empty (the Employee role gives the baseline)', async () => {
     await employeeRole([CorePermission.ProfileView, CorePermission.TicketsView]);
     const org = await t.factories.org();
     await setup();
     const role = await roleOfTitle(org.unitA.titleId);
-    expect(role).toMatchObject({ nameEn: 'Title Unit A', assignment: 'auto', autoRule: 'job_title', usersCount: 0 });
-    expect(role?.permissions.map((p) => p.key).sort()).toEqual([CorePermission.ProfileView, CorePermission.TicketsView].sort());
+    expect(role).toMatchObject({ nameEn: 'Title Unit A — Unit A', assignment: 'auto', autoRule: 'job_title', usersCount: 0 });
+    expect(role?.permissions).toEqual([]);
     expect(role?.origin).toMatchObject({ unitNameEn: 'Unit A', companyId: org.companyId });
   });
 
-  it('copies the permissions of the template chosen for a title added later, and the Employee role when none is chosen', async () => {
+  it('copies the permissions of the template chosen for a title added later, and nothing when none is chosen', async () => {
     await employeeRole([CorePermission.ProfileView]);
     const org = await t.factories.org();
     await setup([...ORG_ADMIN, { key: CorePermission.AuditView, scope: ALL }]);
@@ -54,7 +54,7 @@ describe('A role for every job title (FR-68)', () => {
     // The response is not in the order of the request.
     const idOf = (nameEn: string) => added.find((x) => x.nameEn === nameEn)?.id as string;
     expect((await roleOfTitle(idOf('Auditor')))?.permissions.map((p) => p.key)).toEqual([CorePermission.AuditView]);
-    expect((await roleOfTitle(idOf('Analyst')))?.permissions.map((p) => p.key)).toEqual([CorePermission.ProfileView]);
+    expect((await roleOfTitle(idOf('Analyst')))?.permissions).toEqual([]);
     const copy = await roleOfTitle(idOf('Auditor'));
     await t.db.query('DELETE FROM role_permissions WHERE role_id = $1', [template.id]);
     expect((await roleOfTitle(copy?.jobTitleId as string))?.permissions).toHaveLength(1);
@@ -104,7 +104,7 @@ describe('A role for every job title (FR-68)', () => {
     const raw = ((await t.db.query('SELECT id FROM job_titles WHERE id NOT IN (SELECT job_title_id FROM roles WHERE job_title_id IS NOT NULL) AND deleted_at IS NULL')) as { id: string }[])[0]?.id as string;
     await t.db.query(`INSERT INTO job_title_translations (job_title_id, lang, name) VALUES ($1, 'ar', 'مسمى خام'), ($1, 'en', 'Raw title')`, [raw]);
     await t.app.get(AutoRolesService).sync();
-    expect(await roleOfTitle(raw)).toMatchObject({ nameEn: 'Raw title', permissions: [{ key: CorePermission.ProfileView, scope: ALL }] });
+    expect(await roleOfTitle(raw)).toMatchObject({ nameEn: 'Raw title — Unit A', permissions: [] });
     await t.db.query('UPDATE job_titles SET deleted_at = now() WHERE id = $1', [raw]);
     await t.app.get(AutoRolesService).sync();
     expect(await roleOfTitle(raw)).toBeUndefined();
