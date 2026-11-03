@@ -118,6 +118,9 @@ Bring employee, project and request management into one secure platform that spe
 | FR-81 | **Permission dependencies and job-title roles in the roles dialog (`docs/plans/phase-4-access.md` G12 ج، د — planned):** ticking an action ticks and locks the `view` it needs (rule by key prefix + exceptions table); saving a set with a missing dependency answers 422; a migration closes the stored sets; the employee roles dialog and form step offer the job-title roles of the employee's company | Admin | Must | spec `docs/superpowers/specs/2026-11-02-permission-dependencies-design.md` |
 | FR-82 | **Review refinements (`docs/plans/phase-4-access.md` G12 أ، ب):** roles section on the employee page; name search in the employee roles / groups dialogs; search in the role drop-down and over the permissions; full breadcrumb on every page; unit drop-downs show the unit name only; a person may change their own roles and groups only in platform admin mode; steps header spacing in the employee form | Admin / HR | Should | `apps/api/test/employees.e2e-spec.ts`, `apps/web/src/shared/ui/page-header.test.tsx` |
 | FR-83 | **A plain employee sees and edits only their own account (`docs/plans/phase-4-access.md` G13):** the Employee role holds `employees.view` and `employees.update` at scope `own` (no add, no deactivate, no delete); editing one's own account with scope `own` changes only `workPhone`, `personalPhone`, `personalEmail`, `fullNameEn` — anything else answers 422 `FIELD_NOT_EDITABLE` (title, manager, contract dates, salary, currency…); HR and the platform admin (wider scope) edit everything | Employee | Must | `apps/api/test/employee-self-service.e2e-spec.ts` |
+| FR-84 | **The grants of an administrative role work only in platform admin mode (`docs/plans/phase-4-access.md` G14):** a role that holds `admin_mode.use` (System Admin) gives nothing outside the mode except `admin_mode.use` itself; the person works with their other roles (employee, title, head, HR); turning the mode on (fresh authenticator code) brings the administrative grants back for that session, turning it off or 30 minutes idle removes them; `GET /me` lists the grants in force; a key held only through the administrative role answers 403 `ADMIN_MODE_REQUIRED` | Platform administrator | Must | `apps/api/test/admin-role-gating.e2e-spec.ts` |
+| FR-86 | **One Employee role gives every person the baseline (`docs/plans/phase-4-access.md` G16):** own profile, security, home, own tickets (send, follow, reply), own employee record (view and edit a few fields), the structure page, and own tasks with their conversations; the list is `EMPLOYEE_DEFAULT_PERMISSIONS` and grows as modules arrive | Employee | Must | `apps/api/src/core/access/application/employee-default-permissions.spec.ts` |
+| FR-85 | **Sign in as another employee (`docs/plans/phase-4-access.md` G15):** a platform administrator (`impersonation.start`, platform admin mode on) works as any other active employee, with that person's permissions and scope, without their code; off by default, switched on in Settings → Security (`impersonationEnabled`, `impersonationIdleMinutes`, 5–240, default 30). The session is the employee's own, marked with the administrator (`auth_sessions.impersonated_by_user_id`, `impersonator_session_id`, `impersonation_last_activity_at`); it has no admin mode; it ends by «Back to my account», after the idle minutes, or when the feature is switched off (the next request answers 403 `IMPERSONATION_ENDED` and only `POST /impersonation/stop` works). Refused: oneself, an inactive account, nesting, and (`IMPERSONATION_FORBIDDEN`) turning on admin mode, the person's own sign-in (authenticator, trusted devices, sessions, profile), their roles, groups and access, their account status, and the security settings. Every audit entry written inside it names the administrator (`changes.impersonatedBy`), plus `impersonation.started` / `impersonation.ended`; the employee gets an in-app notice afterwards. The web shows the icon on the employees list and a button on the employee's page, and a fixed bar «You are working as … — Back to my account». |
 
 Every test suite names the requirement IDs it covers in its `describe(...)` title.
 
@@ -517,6 +520,28 @@ sequenceDiagram
   A-->>W: 200 (otherwise 403 ADMIN_MODE_REQUIRED and the mode is switched off, audited)
 ```
 
+### Sign in as another employee (FR-85)
+
+```mermaid
+sequenceDiagram
+  actor A as Platform administrator (admin mode on)
+  participant W as Web
+  participant API as API (PermissionsGuard)
+  participant L as Better Auth (server-only endpoints)
+  participant DB as PostgreSQL (auth_sessions)
+  A->>W: «Sign in as this employee» on a row, confirm
+  W->>API: POST /impersonation/:userId
+  API->>API: impersonation.start + admin mode, feature on, not nested, target active and not oneself
+  API->>L: open session for the employee (code-verified, marked with the administrator)
+  L->>DB: new auth_sessions row (impersonated_by_user_id, impersonator_session_id)
+  API-->>W: 204 + Set-Cookie of the employee's session; audit impersonation.started
+  W->>API: every request: forbidden routes refused, idle or switched off = 403 IMPERSONATION_ENDED, else last activity = now
+  A->>W: «Back to my account» (or the 403 above)
+  W->>API: POST /impersonation/stop
+  API->>DB: delete the employee's session; read the administrator's own session token
+  API-->>W: 204 + Set-Cookie of the administrator's session; audit impersonation.ended; notice to the employee
+```
+
 ## 9. Stack
 
 | Layer | Technology | Reason / change from team default |
@@ -607,6 +632,7 @@ Requirement traceability: each `describe` title lists the FR/NFR IDs it covers, 
 | HR (custom role) | Create and update employees, place them in units, assign the roles they hold, resend activation links | Act outside their scope (gets 404), see salary / ID / IBAN without `employees.view_sensitive`, assign more than they hold, change their own roles |
 | Line manager (custom role) | What the role grants, limited to their unit or subtree | Act outside their scope |
 | System Admin (system role) | Every permission at the widest scope: translation and e-mail services (data, try-out, switch on), companies, levels, units, job titles, roles (with how each is assigned), page visibility per role, list management, audit log, e-mail log, and may switch **platform admin mode** on (`admin_mode.use`) | Delete system roles; use anything before linking the authenticator |
+| Platform administrator with `impersonation.start` | In admin mode and when switched on in Settings → Security, work as any other active employee (their permissions and scope, no code) and go back; everything done is recorded under the employee's name with the administrator's beside it | Sign in as oneself or an inactive account, nest, change the employee's roles, groups, sign-in, account status or the security settings while inside |
 | Desk manager (named in a desk's setup) | Switch admin mode on, set up the desk, see its tickets (not personal ones), answer, reassign, read its figures | See personal tickets, act on other desks |
 | Administrator with the tour keys (`tour.settings_*`) | In admin mode, reword, switch off and reorder the welcome-tour steps (Settings → Welcome tour), reset a step to the code's wording | Add or remove steps (they come with the code), read anyone's progress |
 | Auditor (custom role with `audit.view`) | Read the audit log | See secrets (redacted) |

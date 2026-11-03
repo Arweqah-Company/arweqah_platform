@@ -96,7 +96,7 @@ describe('Task comments, replies, files and mentions (FR-66)', () => {
 
     it('is closed to a person without the keys (403) while the task stays visible to them', async () => {
       const w = await world();
-      const bare = await t.factories.user({ unit: w.org.unitA, grants: [{ key: P.TasksView, scope: 'own' }] });
+      const bare = await t.factories.user({ unit: w.org.unitA, without: ['tasks.comment'], grants: [{ key: P.TasksView, scope: 'own' }] });
       const agent = await t.factories.signIn(bare);
       await agent.get(url(w)).expect(403);
       await agent.post(url(w)).send({ body: 'hi' }).expect(403);
@@ -227,7 +227,7 @@ describe('Task comments, replies, files and mentions (FR-66)', () => {
 
     it('needs the key as well as the cell: the matrix alone grants nothing', async () => {
       const w = await world();
-      const noWrite = await t.factories.user({ unit: w.org.unitA, grants: [...TASK_COMMENT_GRANTS.filter((g) => g.key !== P.TasksCommentAdd)] });
+      const noWrite = await t.factories.user({ unit: w.org.unitA, without: ['tasks.comment_add'], grants: [...TASK_COMMENT_GRANTS.filter((g) => g.key !== P.TasksCommentAdd)] });
       await t.db.query('INSERT INTO task_followers (task_id, user_id) VALUES ($1, $2)', [w.task.id, noWrite.id]);
       const agent = await t.factories.signIn(noWrite);
       await read(agent, w);

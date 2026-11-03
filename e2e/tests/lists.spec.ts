@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { readFileSync, statSync } from 'node:fs';
 import { ListPage } from '../pages/list.page';
-import { adminModeOffViaApi, adminModeOnViaApi } from '../support/admin-mode';
+import { adminModeOnViaApi } from '../support/admin-mode';
 import { ADMIN_STATE } from '../support/fixtures';
 import { choose } from '../support/select';
 
 test.use({ storageState: ADMIN_STATE });
-test.afterEach(async ({ page }) => adminModeOffViaApi(page));
+test.beforeEach(async ({ page }) => adminModeOnViaApi(page));
 
 test.describe('Lists: search, filters, table or cards, export and import (FR-27, FR-28, FR-29)', () => {
   test('search narrows the list and filters show as chips that can be removed', async ({ page }) => {

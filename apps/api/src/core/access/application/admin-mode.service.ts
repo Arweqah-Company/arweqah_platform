@@ -38,6 +38,12 @@ export class AdminModeService {
     return (await this.status(ctx, sessionId)).active;
   }
 
+  /** What the person may do in this session: the grants of their administrative roles count only while the mode is on. */
+  async effective(ctx: AccessContext, sessionId: string): Promise<AccessContext> {
+    if (!ctx.hasElevatedGrants) return ctx;
+    return (await this.isActive(ctx, sessionId)) ? ctx.elevate() : ctx;
+  }
+
   /** Needs a code that was never used before, so every activation is a fresh proof. */
   async activate(ctx: AccessContext, sessionId: string, code: string): Promise<AdminModeDto> {
     if (!(await this.eligibility.isEligible(ctx))) throw new AdminModeNotAllowedError();

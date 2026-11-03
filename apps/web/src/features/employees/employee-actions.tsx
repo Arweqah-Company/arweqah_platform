@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { useMe } from '@/core/auth/session';
 import { useCanEditEmployee } from './form/use-self-service';
+import { ImpersonateAction } from '@/core/impersonation/impersonate-action';
 import { Can } from '@/core/permissions/can';
 import { Badge, Button } from '@/shared/ui';
 
@@ -25,6 +26,7 @@ export function HeaderActions({ employee: e, onDialog, onActivate }: Props) {
   return (
     <>
       {canEdit(e.userId === me?.id) && <Button asChild variant="secondary"><Link to={`/employees/${e.id}/edit`}>{tc('actions.edit')}</Link></Button>}
+      <ImpersonateAction as="button" userId={e.userId} name={e.fullName} isActive={e.isActive} />
       <Can permission={P.EmployeesAssignRoles}><Button variant="secondary" onClick={() => onDialog('roles')}>{t('actions.roles')}</Button></Can>
       <Can permission={P.EmployeesAssignGroups}><Button variant="secondary" onClick={() => onDialog('groups')}>{t('actions.groups')}</Button></Can>
       <Can permission={P.EmployeesDeactivate}>

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import { LEVEL_HEAD_DEFAULT_PERMISSIONS, type PermissionGrant, type PermissionScope } from '@arweqah-platform/shared';
+import { CorePermission, LEVEL_HEAD_DEFAULT_PERMISSIONS, type PermissionGrant, type PermissionScope } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../common/application/transaction-runner';
 import { returnedRows } from '../../../common/infrastructure/query-result';
 import { managerOf } from '../../../common/infrastructure/typeorm-transaction-runner';
@@ -18,14 +18,17 @@ const holds = (alias: string): string => `(${alias}.expires_at IS NULL OR ${alia
 
 const PERMISSIONS_OF_USER = `SELECT up.permission_key AS key, up.scope FROM user_permissions up WHERE up.user_id = $1 AND ${holds('up')} ORDER BY up.permission_key`;
 
+/** A role that holds `admin_mode.use` is an administrative role: its grants work only in platform admin mode. */
+const IS_ADMIN_ROLE = `EXISTS (SELECT 1 FROM role_permissions a WHERE a.role_id = rp.role_id AND a.permission_key = '${CorePermission.AdminModeUse}')`;
+
 const GRANTS_OF_USER = `
-  SELECT rp.permission_key AS key, rp.scope AS scope FROM role_permissions rp
+  SELECT rp.permission_key AS key, rp.scope AS scope, ${IS_ADMIN_ROLE} AS elevated FROM role_permissions rp
   WHERE rp.role_id IN (
     SELECT ur.role_id FROM user_roles ur WHERE ur.user_id = $1 AND ${holds('ur')}
     UNION SELECT gr.role_id FROM user_role_groups ug JOIN role_group_roles gr ON gr.group_id = ug.group_id WHERE ug.user_id = $1 AND ${holds('ug')})
-  UNION ALL SELECT gp.permission_key, gp.scope FROM role_group_permissions gp JOIN user_role_groups ug ON ug.group_id = gp.group_id WHERE ug.user_id = $1 AND ${holds('ug')}
-  UNION ALL SELECT up.permission_key, up.scope FROM user_permissions up WHERE up.user_id = $1 AND ${holds('up')}
-  UNION ALL SELECT ugp.permission_key, ugp.scope FROM user_group_permissions ugp JOIN user_group_members m ON m.group_id = ugp.group_id WHERE m.user_id = $1`;
+  UNION ALL SELECT gp.permission_key, gp.scope, false FROM role_group_permissions gp JOIN user_role_groups ug ON ug.group_id = gp.group_id WHERE ug.user_id = $1 AND ${holds('ug')}
+  UNION ALL SELECT up.permission_key, up.scope, false FROM user_permissions up WHERE up.user_id = $1 AND ${holds('up')}
+  UNION ALL SELECT ugp.permission_key, ugp.scope, false FROM user_group_permissions ugp JOIN user_group_members m ON m.group_id = ugp.group_id WHERE m.user_id = $1`;
 
 const WITH_REPORTS = `EXISTS (SELECT 1 FROM employees s WHERE s.manager_id = m.id AND s.deleted_at IS NULL)`;
 /** Only "has_reports" is a fact kept by the system: exactly the people some employee reports to. The other automatic roles are stored choices made on the employee form (and the unit form for the head of a level). */
@@ -40,15 +43,17 @@ const AUTO_ROLE_STATEMENTS = [
 const MANAGES_UNIT = `EXISTS (SELECT 1 FROM org_nodes n WHERE n.manager_id = $1 AND n.id = $2 AND n.deleted_at IS NULL AND n.is_active)`;
 
 const TITLE_NAME = (lang: string) => `(SELECT x.name FROM job_title_translations x WHERE x.job_title_id = t.id AND x.lang = '${lang}')`;
-/** Every live job title has its role (new ones start with the permissions of the Employee role), and a removed title takes its role with it. */
+const TITLE_UNIT = (lang: string) => `(SELECT x.name FROM org_node_translations x WHERE x.org_node_id = t.org_node_id AND x.lang = '${lang}')`;
+/** The role of a job title is named «title — unit», so the many titles called "Employee" are told apart and only the Employee role itself carries that bare name. */
+const TITLE_ROLE_NAME = (lang: string) => `left(coalesce(${TITLE_NAME(lang)}, ${TITLE_NAME(lang === 'ar' ? 'en' : 'ar')}, '') || ' — ' || coalesce(${TITLE_UNIT(lang)}, ${TITLE_UNIT(lang === 'ar' ? 'en' : 'ar')}, ''), 120)`;
+/** Every live job title has its role (new ones start empty: the baseline comes from the Employee role, and the creator may pick a template), and a removed title takes its role with it. */
 const ENSURE_JOB_TITLE_ROLES = `
-  WITH template AS (SELECT p.permission_key, p.scope FROM role_permissions p JOIN roles r ON r.id = p.role_id WHERE r.auto_rule = 'everyone'),
-  made AS (
-    INSERT INTO roles (name_ar, name_en, is_system, assignment, auto_rule, job_title_id)
-    SELECT left(coalesce(${TITLE_NAME('ar')}, ${TITLE_NAME('en')}, ''), 120), left(coalesce(${TITLE_NAME('en')}, ${TITLE_NAME('ar')}, ''), 120), false, 'auto', 'job_title', t.id
-    FROM job_titles t WHERE t.deleted_at IS NULL AND NOT EXISTS (SELECT 1 FROM roles r WHERE r.job_title_id = t.id)
-    RETURNING id)
-  INSERT INTO role_permissions (role_id, permission_key, scope) SELECT made.id, template.permission_key, template.scope FROM made CROSS JOIN template`;
+  INSERT INTO roles (name_ar, name_en, is_system, assignment, auto_rule, job_title_id)
+  SELECT ${TITLE_ROLE_NAME('ar')}, ${TITLE_ROLE_NAME('en')}, false, 'auto', 'job_title', t.id
+  FROM job_titles t WHERE t.deleted_at IS NULL AND NOT EXISTS (SELECT 1 FROM roles r WHERE r.job_title_id = t.id)`;
+const RENAME_JOB_TITLE_ROLES = `
+  UPDATE roles r SET name_ar = ${TITLE_ROLE_NAME('ar')}, name_en = ${TITLE_ROLE_NAME('en')}, updated_at = now()
+  FROM job_titles t WHERE r.job_title_id = t.id AND t.deleted_at IS NULL AND (r.name_ar IS DISTINCT FROM ${TITLE_ROLE_NAME('ar')} OR r.name_en IS DISTINCT FROM ${TITLE_ROLE_NAME('en')})`;
 const NODE_NAME = (lang: string) => `(SELECT x.name FROM org_node_translations x WHERE x.org_node_id = n.id AND x.lang = '${lang}')`;
 const HEAD_NAME_AR = `left('قائد ' || coalesce(${NODE_NAME('ar')}, ${NODE_NAME('en')}, ''), 120)`;
 const HEAD_NAME_EN = `left('Head of ' || coalesce(${NODE_NAME('en')}, ${NODE_NAME('ar')}, ''), 120)`;
@@ -69,6 +74,7 @@ const REMOVE_ORPHAN_JOB_TITLE_ROLES = `DELETE FROM roles r WHERE r.job_title_id 
 interface GrantRow {
   key: string | null;
   scope: PermissionScope | null;
+  elevated: boolean;
 }
 
 interface PlacementRow {
@@ -96,13 +102,16 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
       .getRawOne<{ isActive: boolean }>();
     if (!user) return null;
     const rows = await this.grantRows(userId);
-    const grants: PermissionGrant[] = rows
-      .filter((r): r is GrantRow & { key: string; scope: PermissionScope } => !!r.key && !!r.scope)
-      .map((r) => ({ key: r.key, scope: r.scope }));
+    const valid = rows.filter((r): r is GrantRow & { key: string; scope: PermissionScope } => !!r.key && !!r.scope);
+    const toGrant = (r: { key: string; scope: PermissionScope }): PermissionGrant => ({ key: r.key, scope: r.scope });
+    const waits = (r: GrantRow & { key: string }): boolean => r.elevated && r.key !== CorePermission.AdminModeUse;
+    const grants = valid.filter((r) => !waits(r)).map(toGrant);
+    const elevatedGrants = valid.filter(waits).map(toGrant);
     const placement = (await this.placementsOf([userId])).get(userId) ?? NO_PLACEMENT;
     return {
       isActive: user.isActive,
       grants,
+      elevatedGrants,
       placement,
       reach: await this.reachOf(userId, placement.orgNodeId),
     };
@@ -202,6 +211,7 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
   async syncAutoRoles(): Promise<number> {
     await this.userRoles.manager.query(REMOVE_ORPHAN_JOB_TITLE_ROLES);
     await this.userRoles.manager.query(ENSURE_JOB_TITLE_ROLES);
+    await this.userRoles.manager.query(RENAME_JOB_TITLE_ROLES);
     await this.userRoles.manager.query(REMOVE_ORPHAN_NODE_HEAD_ROLES);
     await this.userRoles.manager.query(ENSURE_NODE_HEAD_ROLES, [JSON.stringify(LEVEL_HEAD_DEFAULT_PERMISSIONS)]);
     await this.userRoles.manager.query(RENAME_NODE_HEAD_ROLES);

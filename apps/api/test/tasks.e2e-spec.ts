@@ -97,12 +97,12 @@ describe('Tasks: my tasks, creating and assigning (FR-48), my team and the matri
 
     it('is closed to people without the keys and to the page being hidden from them', async () => {
       const w = await world();
-      const plain = await t.factories.signIn(await t.factories.user({ unit: w.org.unitA }));
+      const plain = await t.factories.signIn(await t.factories.user({ unit: w.org.unitA, without: ['tasks.'] }));
       await plain.get('/api/tasks').expect(403);
       await create(plain).expect(403);
       const bare = await t.factories.signIn(await t.factories.user({ unit: w.org.unitA, bare: true }));
       await create(bare).expect(403);
-      await t.factories.signIn(await t.factories.user({ unit: w.org.unitA, grants: TASK_VIEW_ONLY })).then((a) => create(a).expect(403));
+      await t.factories.signIn(await t.factories.user({ unit: w.org.unitA, without: ['tasks.'], grants: TASK_VIEW_ONLY })).then((a) => create(a).expect(403));
     });
   });
 
@@ -187,7 +187,7 @@ describe('Tasks: my tasks, creating and assigning (FR-48), my team and the matri
       const w = await world();
       const task = await made(w.agents.manager, { assigneeUserId: w.report.id });
       await w.agents.peer.patch(`/api/tasks/${task.id}`).send({ title: 'x', revision: 1 }).expect(404);
-      const readOnly = await t.factories.signIn(await t.factories.user({ unit: w.org.unitA, grants: TASK_VIEW_ONLY }));
+      const readOnly = await t.factories.signIn(await t.factories.user({ unit: w.org.unitA, without: ['tasks.'], grants: TASK_VIEW_ONLY }));
       await readOnly.patch(`/api/tasks/${task.id}`).send({ title: 'x', revision: 1 }).expect(403);
     });
   });

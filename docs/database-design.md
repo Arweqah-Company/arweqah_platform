@@ -52,6 +52,9 @@ erDiagram
     timestamp_with_time_zone mfa_verified_at
     timestamp_with_time_zone admin_mode_enabled_at
     timestamp_with_time_zone admin_mode_last_activity_at
+    uuid impersonated_by_user_id FK
+    uuid impersonator_session_id FK
+    timestamp_with_time_zone impersonation_last_activity_at
   }
   auth_verifications {
     uuid id PK
@@ -107,6 +110,8 @@ erDiagram
     timestamp_with_time_zone created_at
   }
   users ||--o{ auth_sessions : "user_id"
+  users ||--o{ auth_sessions : "impersonated_by_user_id"
+  auth_sessions ||--o{ auth_sessions : "impersonator_session_id"
   users ||--o{ auth_accounts : "user_id"
   users ||--o{ authenticators : "user_id"
   users ||--o{ authenticator_backup_codes : "user_id"
@@ -968,7 +973,7 @@ erDiagram
 |---|---|
 | `users` | One row per person who can sign in: name, e-mail, language, theme, active flag. The root of almost every relation. |
 | `auth_accounts` | Better Auth link between a user and a sign-in provider (Microsoft Entra or work e-mail). |
-| `auth_sessions` | Active login sessions: token, expiry, when the authenticator code was verified, platform-admin-mode timestamps. |
+| `auth_sessions` | Active login sessions: token, expiry, when the authenticator code was verified, platform-admin-mode timestamps, and (for «sign in as») the administrator working as the user, the administrator's own session to go back to, and the last activity. |
 | `auth_verifications` | Short-lived Better Auth tokens (e-mail verification, sign-in links). |
 | `authenticators` | The user's authenticator-app secret (encrypted), replay guard (`last_used_step`), failed-attempt counter and lock time. |
 | `authenticator_backup_codes` | One-time backup codes for a user who lost the authenticator app. |

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { BasePage } from '../pages/base.page';
-import { adminModeOffViaApi, adminModeOnViaApi } from '../support/admin-mode';
+import { adminModeOnViaApi } from '../support/admin-mode';
 import { ADMIN_STATE } from '../support/fixtures';
 
 class Page extends BasePage {}
@@ -11,7 +11,7 @@ const limitedMe = {
   placement: { companyId: null, orgNodeId: null, managerId: null }, permissions: [], hiddenPages: [], listSettings: {}, createdAt: new Date().toISOString(),
 };
 
-test.afterEach(async ({ page }) => adminModeOffViaApi(page));
+test.beforeEach(async ({ page }) => adminModeOnViaApi(page));
 
 test.describe('Sidebar menus and the 401, 403, 404 pages (FR-30)', () => {
   test('the sidebar groups links in menus; the menu of the current page is open', async ({ page }) => {

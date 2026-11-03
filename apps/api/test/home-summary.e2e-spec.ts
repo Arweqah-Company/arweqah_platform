@@ -82,7 +82,7 @@ describe('Home page: my numbers, my current tasks and my tickets (FR-57)', () =>
 
     it('is closed without the tasks key and answers only for the caller', async () => {
       const w = await world();
-      const plain = await t.factories.signIn(await t.factories.user({ unit: w.org.unitA }));
+      const plain = await t.factories.signIn(await t.factories.user({ unit: w.org.unitA, without: ['tasks.'] }));
       await plain.get('/api/tasks/summary').expect(403);
       await w.given();
       const asked = (await w.agents.stranger.get(`/api/tasks/summary?userId=${w.report.id}`).expect(200)).body as TaskSummaryDto;

@@ -162,19 +162,19 @@ describe('Sessions, trusted devices and the security settings (FR-73)', () => {
     it('reads the defaults, saves new numbers within their limits, audits it, and answers 403 and 400 where it should', async () => {
       const admin = await t.factories.signInAdminMode(await t.factories.user({ grants: [...SETTINGS, { key: CorePermission.AuditView, scope: ALL }] }));
       // The tests lift the request limit (100 000); a fresh system has the default of 600.
-      expect((await admin.get('/api/security-settings').expect(200)).body).toEqual({ trustedDeviceDays: 0, requestsPerMinute: 100000 });
-      expect((await admin.put('/api/security-settings').send({ trustedDeviceDays: 14, requestsPerMinute: 900 }).expect(200)).body).toEqual({ trustedDeviceDays: 14, requestsPerMinute: 900 });
+      expect((await admin.get('/api/security-settings').expect(200)).body).toEqual({ trustedDeviceDays: 0, requestsPerMinute: 100000, impersonationEnabled: 0, impersonationIdleMinutes: 30 });
+      expect((await admin.put('/api/security-settings').send({ trustedDeviceDays: 14, requestsPerMinute: 900, impersonationEnabled: 0, impersonationIdleMinutes: 30 }).expect(200)).body).toEqual({ trustedDeviceDays: 14, requestsPerMinute: 900, impersonationEnabled: 0, impersonationIdleMinutes: 30 });
       expect((await admin.get('/api/security-settings').expect(200)).body).toMatchObject({ trustedDeviceDays: 14 });
-      await admin.put('/api/security-settings').send({ trustedDeviceDays: 1000, requestsPerMinute: 900 }).expect(400);
-      await admin.put('/api/security-settings').send({ trustedDeviceDays: 14, requestsPerMinute: 5 }).expect(400);
+      await admin.put('/api/security-settings').send({ trustedDeviceDays: 1000, requestsPerMinute: 900, impersonationEnabled: 0, impersonationIdleMinutes: 30 }).expect(400);
+      await admin.put('/api/security-settings').send({ trustedDeviceDays: 14, requestsPerMinute: 5, impersonationEnabled: 0, impersonationIdleMinutes: 30 }).expect(400);
       // A page load sends dozens of requests: a limit that low would stop the whole platform for one person.
-      await admin.put('/api/security-settings').send({ trustedDeviceDays: 14, requestsPerMinute: 30 }).expect(400);
-      await admin.put('/api/security-settings').send({ trustedDeviceDays: 14, requestsPerMinute: 900, extra: 1 }).expect(400);
+      await admin.put('/api/security-settings').send({ trustedDeviceDays: 14, requestsPerMinute: 30, impersonationEnabled: 0, impersonationIdleMinutes: 30 }).expect(400);
+      await admin.put('/api/security-settings').send({ trustedDeviceDays: 14, requestsPerMinute: 900, impersonationEnabled: 0, impersonationIdleMinutes: 30, extra: 1 }).expect(400);
       const log = (await admin.get('/api/audit-logs').expect(200)).body.items as { action: string }[];
       expect(log.map((l) => l.action)).toContain('security.settings_updated');
       const viewOnly = await t.factories.signInAdminMode(await t.factories.user({ grants: [ADMIN_MODE_GRANT, { key: CorePermission.SecuritySettingsView, scope: ALL }] }));
       await viewOnly.get('/api/security-settings').expect(200);
-      await viewOnly.put('/api/security-settings').send({ trustedDeviceDays: 1, requestsPerMinute: 900 }).expect(403);
+      await viewOnly.put('/api/security-settings').send({ trustedDeviceDays: 1, requestsPerMinute: 900, impersonationEnabled: 0, impersonationIdleMinutes: 30 }).expect(403);
       const plain = await t.factories.signIn(await t.factories.user({ grants: [{ key: CorePermission.SecuritySettingsView, scope: ALL }] }));
       await plain.get('/api/security-settings').expect(403);
     });

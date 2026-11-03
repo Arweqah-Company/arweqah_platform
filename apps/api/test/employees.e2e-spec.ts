@@ -250,8 +250,9 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     const org = await t.factories.org();
     const me = await t.factories.user({ unit: org.unitA, grants: [grant(P.AdminModeUse, 'all'), grant(P.EmployeesView, 'all'), grant(P.EmployeesAssignRoles, 'all'), grant(P.EmployeesAssignGroups, 'all'), grant(P.RolesView, 'all')] });
     const plain = await t.factories.signIn(me);
-    expect((await plain.put(`/api/employees/${me.employeeId}/roles`).send({ roleIds: [] }).expect(422)).body.code).toBe('SELF_ACTION');
-    expect((await plain.put(`/api/employees/${me.employeeId}/groups`).send({ groupIds: [] }).expect(422)).body.code).toBe('SELF_ACTION');
+    // Outside the mode the administrative grants are off (FR-84), so giving roles is refused before the self check.
+    expect((await plain.put(`/api/employees/${me.employeeId}/roles`).send({ roleIds: [] }).expect(403)).body.code).toBe('ADMIN_MODE_REQUIRED');
+    expect((await plain.put(`/api/employees/${me.employeeId}/groups`).send({ groupIds: [] }).expect(403)).body.code).toBe('ADMIN_MODE_REQUIRED');
     await t.factories.freshStep(me);
     const admin = await t.factories.signInAdminMode(me);
     await admin.put(`/api/employees/${me.employeeId}/groups`).send({ groupIds: [] }).expect(200);

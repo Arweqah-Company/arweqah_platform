@@ -60,12 +60,24 @@ export class AccessContext {
     readonly isActive: boolean,
     /** The units the person reaches and how deep (their own unit and the units they manage, then those below). */
     private readonly reach: UnitReach = NO_REACH,
+    /** Grants of administrative roles: they count only after `elevate()`, i.e. while platform admin mode is on. */
+    private readonly elevatedGrants: PermissionGrant[] = [],
   ) {
     const byKey = new Map<string, PermissionScope[]>();
     for (const g of grants) byKey.set(g.key, [...(byKey.get(g.key) ?? []), g.scope]);
     this.scopes = new Map(
       [...byKey].map(([key, list]) => [key, widestScope(list) as PermissionScope]),
     );
+  }
+
+  /** Does the person hold an administrative role whose grants wait for platform admin mode? */
+  get hasElevatedGrants(): boolean {
+    return this.elevatedGrants.length > 0;
+  }
+
+  /** The same person with the grants of their administrative roles switched on (platform admin mode is on). */
+  elevate(): AccessContext {
+    return new AccessContext(this.userId, this.placement, [...this.grants(), ...this.elevatedGrants], this.isActive, this.reach);
   }
 
   /** The units a unit-based scope reaches: the person's own unit and the units they manage, and as many levels below them as the scope allows. */

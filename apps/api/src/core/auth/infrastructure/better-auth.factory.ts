@@ -3,6 +3,7 @@ import type { Pool } from 'pg';
 import type { AppConfig } from '../../../config/app-config.service';
 import type { AuthLifecycle } from '../application/identity-provider';
 import { createMicrosoftCertificateAssertion } from './microsoft-certificate-assertion';
+import { impersonationSessions } from './impersonation.plugin';
 import { totpSignIn, type TotpSignInDeps } from './totp-sign-in.plugin';
 
 const TWELVE_HOURS = 60 * 60 * 12;
@@ -65,10 +66,16 @@ export function createBetterAuth(config: AppConfig, pool: Pool, lifecycle: AuthL
       updateAge: 60 * 60,
       fields: { ...timestamps, expiresAt: 'expires_at', ipAddress: 'ip_address', userAgent: 'user_agent', userId: 'user_id' },
       // Set when the code of the authenticator app was entered. Every route is blocked until it is set.
-      additionalFields: { mfaVerifiedAt: { type: 'date', required: false, input: false, fieldName: 'mfa_verified_at' } },
+      additionalFields: {
+        mfaVerifiedAt: { type: 'date', required: false, input: false, fieldName: 'mfa_verified_at' },
+        // «Sign in as»: set only on the session of a platform administrator working as this person.
+        impersonatedByUserId: { type: 'string', required: false, input: false, fieldName: 'impersonated_by_user_id' },
+        impersonatorSessionId: { type: 'string', required: false, input: false, fieldName: 'impersonator_session_id' },
+        impersonationLastActivityAt: { type: 'date', required: false, input: false, fieldName: 'impersonation_last_activity_at' },
+      },
     },
     verification: { modelName: 'auth_verifications', fields: { ...timestamps, expiresAt: 'expires_at' } },
-    plugins: [totpSignIn(totp, signInLimit.max)],
+    plugins: [totpSignIn(totp, signInLimit.max), impersonationSessions()],
     rateLimit: {
       enabled: true,
       storage: 'memory',
@@ -82,7 +89,10 @@ export function createBetterAuth(config: AppConfig, pool: Pool, lifecycle: AuthL
         create: {
           // Deactivated users cannot start a session, whatever the sign-in method.
           before: async (session) => (await lifecycle.isActive(String(session.userId))) ? undefined : false,
-          after: async (session) => lifecycle.onSignIn(String(session.userId), (session.ipAddress as string) ?? null),
+          // Working as someone else is not that person signing in: it has its own audit entries.
+          after: async (session) => {
+            if (!session.impersonatedByUserId) lifecycle.onSignIn(String(session.userId), (session.ipAddress as string) ?? null);
+          },
         },
       },
     },

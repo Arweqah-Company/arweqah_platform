@@ -61,11 +61,11 @@ describe('Roles and permissions (FR-05)', () => {
 
   it('keeps role changes behind platform admin mode (403 ADMIN_MODE_REQUIRED)', async () => {
     const agent = await t.factories.signIn(await t.factories.user({ grants: rolesManager }));
-    await agent.get('/api/roles').expect(200);
-    const res = await agent.post('/api/roles').send({ nameAr: 'دور', nameEn: 'Role', permissions: [] });
-    expect(res.status).toBe(403);
-    expect(res.body.code).toBe('ADMIN_MODE_REQUIRED');
-    await agent.get('/api/permissions/catalog').expect(200); // the pickers of roles, groups and personal permissions read it
+    // The grants of the administrative role wait for the mode (FR-84): reading and changing both ask for it.
+    for (const res of [await agent.get('/api/roles'), await agent.post('/api/roles').send({ nameAr: 'دور', nameEn: 'Role', permissions: [] })]) {
+      expect(res.status).toBe(403);
+      expect(res.body.code).toBe('ADMIN_MODE_REQUIRED');
+    }
   });
 
   it('applies a role change to signed-in users immediately', async () => {

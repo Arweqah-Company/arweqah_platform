@@ -7,7 +7,7 @@ import { renderRoute } from '../../../test/render';
 import { EmployeesPage } from './employees-page';
 
 const ref = { id: 'c1', nameAr: 'أروقة الريادة', nameEn: 'Arweqah' };
-const person = (over: Partial<EmployeeListItemDto> = {}): EmployeeListItemDto => ({ id: 'e1', employeeNumber: 'N1', fullName: 'خالد المدير', workEmail: 'k@arweqah.sa', company: ref, orgNode: null, jobTitle: null, isActive: true, needsPlacement: false, idExpiresSoon: false, contractEndsSoon: false, isOwn: false, ...over });
+const person = (over: Partial<EmployeeListItemDto> = {}): EmployeeListItemDto => ({ id: 'e1', userId: 'u1', employeeNumber: 'N1', fullName: 'خالد المدير', workEmail: 'k@arweqah.sa', company: ref, orgNode: null, jobTitle: null, isActive: true, needsPlacement: false, idExpiresSoon: false, contractEndsSoon: false, isOwn: false, ...over });
 
 function serve(keys: string[], items = [person()]) {
   server.use(

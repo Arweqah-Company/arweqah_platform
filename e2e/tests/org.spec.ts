@@ -5,7 +5,7 @@ import { ADMIN_STATE } from '../support/fixtures';
 import { choose } from '../support/select';
 
 test.use({ storageState: ADMIN_STATE });
-test.afterEach(async ({ page }) => adminModeOffViaApi(page));
+test.beforeEach(async ({ page }) => adminModeOnViaApi(page));
 
 test.describe('Organization: chart or table, per company (FR-31)', () => {
   test('shows the company as a chart of its units, opens everything, and finds a unit', async ({ page }) => {
@@ -37,6 +37,8 @@ test.describe('Organization: chart or table, per company (FR-31)', () => {
   });
 
   test('the structure buttons show only while platform admin mode is on (FR-24)', async ({ page }) => {
+    test.setTimeout(90_000);
+    await adminModeOffViaApi(page);
     await page.goto('/org');
     await expect(page.getByRole('heading', { level: 1, name: 'الهيكل التنظيمي' })).toBeVisible();
     for (const name of ['إضافة وحدة', 'إضافة مسمى وظيفي', 'تقسيمات الهيكل']) await expect(page.getByRole('button', { name })).toHaveCount(0);

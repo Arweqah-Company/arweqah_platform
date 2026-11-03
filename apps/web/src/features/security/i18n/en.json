@@ -35,6 +35,11 @@
     "trustedDeviceDaysHint": "How long the code is skipped on a trusted browser after a Microsoft sign-in. 0 switches the choice off (at most {{max}}).",
     "requestsPerMinute": "Requests per minute",
     "requestsPerMinuteHint": "How many requests one address may send a minute before it is told to wait. One page load sends dozens of requests, so a low value stops the whole platform (minimum 120, default 600). Sign-in has its own stricter limit.",
+    "impersonationGroup": "Sign in as another employee",
+    "impersonationEnabled": "Let platform administrators sign in as another employee",
+    "impersonationEnabledHint": "Off by default. When on, an administrator in admin mode can open any active employee's account from the employees list; the employee is told afterwards, and everything done is recorded under their name with the administrator's beside it.",
+    "impersonationIdleMinutes": "Minutes without activity before it ends",
+    "impersonationIdleMinutesHint": "A session of this kind ends by itself after this many minutes without a request.",
     "range": "Enter a whole number between {{min}} and {{max}}.",
     "saved": "The security settings were saved.",
     "loading": "Loading…"

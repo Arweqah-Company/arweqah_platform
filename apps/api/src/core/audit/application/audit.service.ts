@@ -5,6 +5,14 @@ import type { AuditLogDto, AuditQuery, Paginated } from '@arweqah-platform/share
 import type { ChainCheck } from '../domain/audit-chain';
 import { AuditLogRepository } from '../domain/audit-log.repository';
 import { AUDIT_EVENT, type AuditEvent } from './audit.events';
+import { impersonationStamp } from './impersonation-stamp';
+
+/** The changes of an entry, redacted, with the administrator's id added when the request is a «sign in as». */
+function stamped(changes: Record<string, unknown> | null | undefined): Record<string, unknown> | null {
+  const by = impersonationStamp.getStore()?.impersonatedBy;
+  const clean = changes ? redact(changes) : null;
+  return by ? { ...(clean ?? {}), impersonatedBy: by } : clean;
+}
 
 const REDACTED_KEYS = /password|secret|token|national.?id|iban/i;
 
@@ -22,7 +30,7 @@ export class AuditService {
         action: event.action,
         entityType: event.entityType,
         entityId: event.entityId ?? null,
-        changes: event.changes ? redact(event.changes) : null,
+        changes: stamped(event.changes),
         ip: event.ip ?? null,
       });
     } catch (error) {

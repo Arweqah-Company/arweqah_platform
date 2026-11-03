@@ -10,10 +10,8 @@ test.use({ storageState: ADMIN_STATE });
 const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))));
 const TITLE = 'تجهيز عرض المشروع';
 
-/** The browser session is shared by every spec: leave admin mode off whatever a test did. */
-test.afterEach(async ({ page }) => {
-  await adminModeOffViaApi(page);
-});
+/** The browser session is shared by every spec: the administrator\'s grants work in admin mode only (FR-84), so it starts on; a test about the plain view switches it off. */
+test.beforeEach(async ({ page }) => adminModeOnViaApi(page));
 
 test.describe('Tasks (FR-48, FR-49, FR-50, FR-51)', () => {
   test('creates a task, works it, logs time, moves it on the board and finishes it', async ({ page }) => {
@@ -130,6 +128,7 @@ test.describe('Task tags and policies (FR-54)', () => {
   });
 
   test('keeps the policies page out of reach without platform admin mode', async ({ page }) => {
+    await adminModeOffViaApi(page);
     await page.goto('/tasks');
     await expect(page.getByRole('heading', { level: 1, name: 'مهامي' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'سياسات المهام' })).toHaveCount(0);

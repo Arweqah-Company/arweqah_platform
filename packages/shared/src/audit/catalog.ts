@@ -68,6 +68,8 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'auth.trusted_device.removed': a('sign_in', 'ألغى توثيق جهاز', 'Stopped trusting a device'),
   'auth.trusted_device.used': a('sign_in', 'دخل من جهاز موثوق دون رمز', 'Skipped the code on a trusted device'),
   'security.email_domains_updated': a('settings', 'عدّل نطاقات البريد المسموحة', 'Edited the allowed e-mail domains'),
+  'impersonation.started': a('sign_in', 'دخل بحساب موظف آخر (دخول كـ)', 'Signed in as another employee'),
+  'impersonation.ended': a('sign_in', 'أنهى الدخول بحساب موظف آخر', 'Ended signing in as another employee'),
   'security.settings_updated': a('settings', 'عدّل إعدادات الأمان', 'Edited the security settings'),
   'audit.chain_broken': a('other', 'اكتُشف عبث في سجل التدقيق', 'Tampering with the audit log was found'),
   'role.auto_synced': a('access', 'حدّث أعضاء الأدوار التلقائية', 'Refreshed the members of the automatic roles'),

@@ -77,6 +77,9 @@ export const TICKET_DESK_ADMIN_GRANTS: PermissionGrant[] = [
 export const TICKET_PLATFORM_ADMIN_GRANTS: PermissionGrant[] = TICKET_DESK_ADMIN_GRANTS.map((g) => ({ key: g.key, scope: 'all' as const }));
 
 /** Grant that lets a test user switch platform admin mode on. */
+/** What `factories.user` takes: `without` lists key prefixes (such as `tasks.`) taken out of the Employee role's baseline, for tests about a person who lacks them. */
+export interface UserOptions { grants?: PermissionGrant[]; unit?: TestUnit; enrolled?: boolean; active?: boolean; bare?: boolean; without?: string[] }
+
 export const ADMIN_MODE_GRANT: PermissionGrant = { key: CorePermission.AdminModeUse, scope: 'all' };
 
 export class Factories {
@@ -142,7 +145,7 @@ export class Factories {
   }
 
   /** A person with a sign-in account, an enrolled authenticator app and an employee record placed in `unit`. */
-  async user(options: { grants?: PermissionGrant[]; unit?: TestUnit; enrolled?: boolean; active?: boolean; bare?: boolean } = {}): Promise<TestUser> {
+  async user(options: UserOptions = {}): Promise<TestUser> {
     const email = `user-${randomUUID().slice(0, 8)}@arweqah.sa`;
     const id = await this.app.get(IdentityProvider).createUser({ name: `User ${email}`, email, locale: 'ar' });
     const secret = generateSecret();
@@ -151,12 +154,12 @@ export class Factories {
     return { id, email, secret, employeeId: employee.id };
   }
 
-  private async prepareAccount(id: string, options: { secret: string; grants?: PermissionGrant[]; enrolled?: boolean; active?: boolean; bare?: boolean }): Promise<void> {
+  private async prepareAccount(id: string, options: UserOptions & { secret: string }): Promise<void> {
     if (options.enrolled !== false) await this.app.get(AuthenticatorService).enableWithSecret(id, options.secret);
     if (options.active === false) await this.db.query('UPDATE users SET is_active = false WHERE id = $1', [id]);
     // Like the real Employee role, everyone starts with the own-account and ticket keys; `grants` add to them; `bare` gives a person with no role at all.
     if (options.bare) return;
-    const defaults = EMPLOYEE_DEFAULT_PERMISSIONS;
+    const defaults = EMPLOYEE_DEFAULT_PERMISSIONS.filter((p) => !options.without?.some((prefix) => p.key.startsWith(prefix)));
     await this.app.get(UserAccessService).replaceRoles(id, [(await this.role([...defaults, ...(options.grants ?? [])])).id]);
   }
 

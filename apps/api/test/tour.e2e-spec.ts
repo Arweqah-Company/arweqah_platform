@@ -15,11 +15,11 @@ describe('Welcome tour (FR-67)', () => {
   const keys = (body: { steps: { key: string }[] }) => body.steps.map((s) => s.key);
 
   describe('a person’s own tour', () => {
-    it('starts as «none», lists only the steps their permissions allow (an Employee holds tickets, not tasks), and remembers finishing in their account', async () => {
+    it('starts as «none», lists only the steps their permissions allow (an Employee holds tickets, tasks and the structure), and remembers finishing in their account', async () => {
       const agent = await t.factories.signIn(await t.factories.user());
       const first = (await agent.get('/api/me/tour/general').expect(200)).body;
       expect(first).toMatchObject({ tour: 'general', status: 'none', newSteps: [] });
-      expect(keys(first)).toEqual(['welcome', 'account-menu', 'profile', 'security', 'sign-out', 'language-theme', 'notifications', 'sidebar', 'home', 'tickets', 'ticket-new', 'ticket-views', 'employees', 'finish']);
+      expect(keys(first)).toEqual(['welcome', 'account-menu', 'profile', 'security', 'sign-out', 'language-theme', 'notifications', 'sidebar', 'home', 'tickets', 'ticket-new', 'ticket-views', 'tasks', 'task-new', 'task-views', 'task-open', 'employees', 'org', 'org-views', 'finish']);
 
       expect((await agent.post('/api/me/tour/general/complete').expect(200)).body.status).toBe('completed');
       expect((await agent.get('/api/me/tour/general').expect(200)).body).toMatchObject({ status: 'completed', newSteps: [] });
@@ -77,9 +77,9 @@ describe('Welcome tour (FR-67)', () => {
     });
 
     it('shows the exceptions step only to who may see the exceptions page (FR-70, FR-67)', async () => {
-      const withKey = await t.factories.signIn(await t.factories.user({ grants: [ADMIN_MODE_GRANT, grant(CorePermission.ExceptionsView)] }));
+      const withKey = await t.factories.signInAdminMode(await t.factories.user({ grants: [ADMIN_MODE_GRANT, grant(CorePermission.ExceptionsView)] }));
       expect(keys((await withKey.get('/api/me/tour/admin').expect(200)).body)).toEqual(['admin-mode', 'exceptions']);
-      const without = await t.factories.signIn(await t.factories.user({ grants: [ADMIN_MODE_GRANT, grant(CorePermission.RolesView)] }));
+      const without = await t.factories.signInAdminMode(await t.factories.user({ grants: [ADMIN_MODE_GRANT, grant(CorePermission.RolesView)] }));
       expect(keys((await without.get('/api/me/tour/admin').expect(200)).body)).not.toContain('exceptions');
     });
 

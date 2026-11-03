@@ -7,6 +7,10 @@ export const SECURITY_SETTINGS = {
   trustedDeviceDays: { default: 0, min: 0, max: 365 },
   /** How many requests one address may make in a minute before it is told to wait (the sign-in routes have their own, stricter limit). */
   requestsPerMinute: { default: 600, min: 120, max: 100_000 },
+  /** 1 lets a platform administrator sign in as another employee («sign in as»); 0 hides the feature and refuses it. */
+  impersonationEnabled: { default: 0, min: 0, max: 1 },
+  /** Minutes without a request after which a «sign in as» session ends by itself. */
+  impersonationIdleMinutes: { default: 30, min: 5, max: 240 },
 } as const;
 export type SecuritySettingKey = keyof typeof SECURITY_SETTINGS;
 export const SECURITY_SETTING_KEYS = Object.keys(SECURITY_SETTINGS) as SecuritySettingKey[];
@@ -14,7 +18,12 @@ export const SECURITY_SETTING_KEYS = Object.keys(SECURITY_SETTINGS) as SecurityS
 export type SecuritySettingsDto = Record<SecuritySettingKey, number>;
 
 const field = (key: SecuritySettingKey) => z.number().int().min(SECURITY_SETTINGS[key].min).max(SECURITY_SETTINGS[key].max);
-export const securitySettingsSchema = z.strictObject({ trustedDeviceDays: field('trustedDeviceDays'), requestsPerMinute: field('requestsPerMinute') });
+export const securitySettingsSchema = z.strictObject({
+  trustedDeviceDays: field('trustedDeviceDays'),
+  requestsPerMinute: field('requestsPerMinute'),
+  impersonationEnabled: field('impersonationEnabled'),
+  impersonationIdleMinutes: field('impersonationIdleMinutes'),
+});
 export type SecuritySettingsInput = z.infer<typeof securitySettingsSchema>;
 
 /** One sign-in of the person, as the security page shows it. */
