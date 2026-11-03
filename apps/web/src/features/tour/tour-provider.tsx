@@ -35,6 +35,9 @@ function useTourKeys(active: boolean, player: TourPlayer, rtl: boolean): void {
 }
 
 /** Runs the welcome tours of the signed-in layout: starts them, shows the current step, and records how each one ended. */
+/** No tour is offered while one plays, nor to someone working as another employee (their tour is theirs, and that session cannot save its progress). */
+const holdsOffers = (run: unknown, me: { impersonation?: unknown } | undefined): boolean => !!run || !!me?.impersonation;
+
 export function TourProvider({ features, setDrawer, children }: Props) {
   const { t, i18n } = useTranslation();
   const me = useMe().data;
@@ -52,7 +55,7 @@ export function TourProvider({ features, setDrawer, children }: Props) {
   const admin = useTourQuery('admin', adminOn);
 
   const begin = useCallback((tour: TourId, dto: TourDto, onlyNew: boolean) => runner.start(tour, playSteps(dto, owners, { onlyNew, lang: i18n.language, t, allowed: can, navLabel: (route) => (navLabels.has(route) ? t(navLabels.get(route)!) : undefined) })), [runner.start, owners, navLabels, can, i18n.language, t]); // eslint-disable-line react-hooks/exhaustive-deps
-  const offer = useAutoStart({ data: { general: general.data, admin: admin.data }, running: !!runner.run, begin, dismiss: (tour) => void record(tour, 'skip') });
+  const offer = useAutoStart({ data: { general: general.data, admin: admin.data }, running: holdsOffers(runner.run, me), begin, dismiss: (tour) => void record(tour, 'skip') });
   const restart = useCallback(async (tour: TourId) => begin(tour, await record(tour, 'restart'), false), [begin, record]);
 
   const player: TourPlayer = { index: runner.run?.index ?? 0, total: runner.run?.steps.length ?? 0, next: runner.next, back: runner.back, skip: runner.skip };

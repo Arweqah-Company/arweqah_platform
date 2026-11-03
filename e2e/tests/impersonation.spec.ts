@@ -72,6 +72,8 @@ test.describe('Sign in as another employee (FR-85)', () => {
 
     const bar = page.getByRole('status').filter({ hasText: `أنت تعمل الآن بحساب ${employee.name}` });
     await expect(bar).toBeVisible();
+    // The employee's own welcome tour never starts for someone working as them (the session cannot save its progress).
+    await expect(page.getByRole('button', { name: 'إغلاق الجولة' })).toHaveCount(0);
     await expect(bar.getByRole('button', { name: 'العودة لحسابي' })).toBeVisible();
     await new Screen(page).expectNoSeriousA11yIssues();
     await bar.getByRole('button', { name: 'العودة لحسابي' }).click();
