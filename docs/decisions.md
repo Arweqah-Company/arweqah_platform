@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-03 — Remember this device on the e-mail code step
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 171 | `POST /auth/totp/sign-in` takes an optional `rememberDevice`; `/mfa/identify` also returns `trustedDevicesEnabled` so the code step shows the checkbox only while trusted devices are on. The e-mail sign-in itself is still never skipped | Same checkbox and same `arweqah_device` cookie as after Microsoft; the e-mail code is the only proof of identity, so the trust helps the next Microsoft sign-in | The owner wants the e-mail code skipped too |
+
 ## 2026-11-03 — My access page; the permissions apart from `/me`
 
 | # | Decision | Why | Revisit when |

@@ -30,7 +30,7 @@ export interface AdminModeDto {
 }
 
 /** Sign in with a work e-mail and an authenticator code (no password). */
-export const totpSignInSchema = z.strictObject({ email: z.email().max(254), code: z.string().trim().min(6).max(12) });
+export const totpSignInSchema = z.strictObject({ email: z.email().max(254), code: z.string().trim().min(6).max(12), rememberDevice: z.boolean().optional() });
 export type TotpSignInInput = z.infer<typeof totpSignInSchema>;
 
 /** What the QR code of an enrollment carries. */

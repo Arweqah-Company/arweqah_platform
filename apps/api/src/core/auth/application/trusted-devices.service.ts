@@ -23,6 +23,11 @@ export class TrustedDevicesService {
     private readonly events: EventEmitter2,
   ) {}
 
+  /** Does the administrator allow trusting a browser (days above 0)? */
+  async enabled(): Promise<boolean> {
+    return (await this.settings.get('trustedDeviceDays')) > 0;
+  }
+
   /** Trusts this browser when the administrator allows it (days above 0); returns the secret for the cookie and how long it lasts, or null. */
   async trust(userId: string, userAgent: string | null): Promise<{ secret: string; days: number } | null> {
     const days = await this.settings.get('trustedDeviceDays');

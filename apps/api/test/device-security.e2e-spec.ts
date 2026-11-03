@@ -83,6 +83,21 @@ describe('Sessions, trusted devices and the security settings (FR-73)', () => {
       expect(((await agent.get('/api/me/trusted-devices').expect(200)).body as { current: boolean }[])).toHaveLength(1);
     });
 
+    it('FR-73: e-mail + code with "remember this device" trusts the browser only when the administrator allows it', async () => {
+      const user = await t.factories.user();
+      const send = async () => {
+        await t.factories.freshStep(user);
+        return request(t.app.getHttpServer()).post('/api/auth/totp/sign-in').set('x-forwarded-for', nextIp()).send({ email: user.email, code: codeFor(user.secret, Date.now() + 30_000), rememberDevice: true });
+      };
+      const off = await send();
+      expect(off.status).toBe(200);
+      expect(String(off.headers['set-cookie'])).not.toMatch(/arweqah_device/);
+      await setDays(30);
+      const on = await send();
+      expect(String(on.headers['set-cookie'])).toMatch(/arweqah_device=.+HttpOnly/i);
+      expect(await t.db.query('SELECT 1 FROM trusted_devices WHERE user_id = $1', [user.id])).toHaveLength(1);
+    });
+
     it('skips the code step on a trusted browser, but not on another one, and stops after the days end or when it is taken off', async () => {
       await setDays(30);
       const user = await t.factories.user();

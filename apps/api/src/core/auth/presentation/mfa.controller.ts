@@ -41,9 +41,9 @@ export class MfaController {
   @Post('identify')
   @HttpCode(200)
   @AllowAnonymous()
-  async identify(@Body() { email, captchaToken }: EmailBody, @Req() req: AuthenticatedRequest): Promise<{ firstTime: boolean }> {
+  async identify(@Body() { email, captchaToken }: EmailBody, @Req() req: AuthenticatedRequest): Promise<{ firstTime: boolean; trustedDevicesEnabled: boolean }> {
     await this.captcha.assert(captchaToken, req.ip ?? null);
-    return this.invitations.identify(email);
+    return { ...(await this.invitations.identify(email)), trustedDevicesEnabled: await this.trusted.enabled() };
   }
 
   @Get('enrollment/:token')

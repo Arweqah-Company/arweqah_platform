@@ -34,6 +34,8 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [firstTime, setFirstTime] = useState(false);
+  const [canRemember, setCanRemember] = useState(false);
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const bot = useBotCheck();
@@ -53,7 +55,9 @@ export function LoginPage() {
     setBusy(true);
     setError(null);
     try {
-      setFirstTime((await identifyEmail(email, bot.token ?? undefined)).firstTime);
+      const identified = await identifyEmail(email, bot.token ?? undefined);
+      setFirstTime(identified.firstTime);
+      setCanRemember(identified.trustedDevicesEnabled);
       setStep('code');
     } catch (failure) {
       setError(identifyFailure(failure, t));
@@ -69,7 +73,7 @@ export function LoginPage() {
     setBusy(true);
     setError(null);
     try {
-      await signInWithCode({ email, code: finalCode });
+      await signInWithCode({ email, code: finalCode, ...(remember ? { rememberDevice: true } : {}) });
       await client.invalidateQueries();
       navigate(target, { replace: true });
     } catch (failure) {
@@ -104,7 +108,7 @@ export function LoginPage() {
           <Button type="submit" disabled={busy || !email || !bot.ready}>{t('next')}</Button>
         </form>
       ) : (
-        <CodeStep email={email} firstTime={firstTime} error={error} code={code} busy={busy} onCode={setCode} onSubmit={(e, full) => void submit(e, full)} onBack={back} />
+        <CodeStep email={email} firstTime={firstTime} remember={canRemember ? { checked: remember, onChange: setRemember } : null} error={error} code={code} busy={busy} onCode={setCode} onSubmit={(e, full) => void submit(e, full)} onBack={back} />
       )}
     </AuthShell>
   );
@@ -113,6 +117,7 @@ export function LoginPage() {
 interface CodeStepProps {
   email: string;
   firstTime: boolean;
+  remember: { checked: boolean; onChange: (value: boolean) => void } | null;
   error: string | null;
   code: string;
   busy: boolean;
@@ -121,13 +126,19 @@ interface CodeStepProps {
   onBack: () => void;
 }
 
-function CodeStep({ email, firstTime, error, code, busy, onCode, onSubmit, onBack }: CodeStepProps) {
+function CodeStep({ email, firstTime, remember, error, code, busy, onCode, onSubmit, onBack }: CodeStepProps) {
   const { t } = useTranslation('auth');
   return (
     <form className="flex flex-col gap-4" onSubmit={(e) => onSubmit(e)} noValidate>
       <p dir="ltr" className="text-sm font-medium">{email}</p>
       {firstTime && <Alert tone="info">{t('firstTimeSent')}</Alert>}
       {error && <Alert>{error}</Alert>}
+      {remember && (
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" className="size-4 accent-petrol-800" checked={remember.checked} onChange={(e) => remember.onChange(e.target.checked)} />
+          {t('verify.remember')}
+        </label>
+      )}
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium text-fg" id="code-label">{t('code')}</span>
         <CodeInput label={t('code')} value={code} onChange={onCode} onComplete={(full) => onSubmit(undefined, full)} invalid={!!error} disabled={busy} />

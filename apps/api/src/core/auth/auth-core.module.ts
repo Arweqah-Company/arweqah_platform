@@ -5,6 +5,8 @@ import { AppConfig } from '../../config/app-config.service';
 import { AccountPreferencesService } from './application/account-preferences.service';
 import { AuthenticatorService } from './application/authenticator.service';
 import { IdentityProvider } from './application/identity-provider';
+import type { TotpSignInDeps } from './infrastructure/totp-sign-in.plugin';
+import { DEVICE_COOKIE } from './presentation/device-cookie';
 import { InvitationService } from './application/invitation.service';
 import { AllowedEmailDomainsService } from './application/allowed-email-domains.service';
 import { SecuritySettingsService } from './application/security-settings.service';
@@ -26,7 +28,7 @@ import { BetterAuthIdentityProvider } from './infrastructure/better-auth.identit
 import { TypeOrmAccountPreferencesRepository } from './infrastructure/typeorm-account-preferences.repository';
 import { TypeOrmAuthenticatorRepository } from './infrastructure/typeorm-authenticator.repository';
 import { MfaController } from './presentation/mfa.controller';
-import { AUTH_DB_POOL, BETTER_AUTH } from './infrastructure/tokens';
+import { AUTH_DB_POOL, BETTER_AUTH, TOTP_SIGN_IN_DEPS } from './infrastructure/tokens';
 
 /** Builds the Better Auth instance once; AuthModule (the Nest integration) consumes it. */
 @Global()
@@ -59,10 +61,18 @@ import { AUTH_DB_POOL, BETTER_AUTH } from './infrastructure/tokens';
     AuthenticatorService,
     InvitationService,
     {
+      provide: TOTP_SIGN_IN_DEPS,
+      inject: [AppConfig, AuthenticatorService, TrustedDevicesService],
+      useFactory: (c: AppConfig, authenticator: AuthenticatorService, trusted: TrustedDevicesService): TotpSignInDeps => ({
+        verifySignIn: (email, code) => authenticator.verifySignIn(email, code),
+        trustDevice: (userId, userAgent) => trusted.trust(userId, userAgent),
+        deviceCookie: { name: DEVICE_COOKIE, secure: c.isProduction },
+      }),
+    },
+    {
       provide: BETTER_AUTH,
-      inject: [AppConfig, AUTH_DB_POOL, EventEmitter2, AuthenticatorService],
-      useFactory: (c: AppConfig, pool: Pool, events: EventEmitter2, authenticator: AuthenticatorService) =>
-        createBetterAuth(c, pool, new PgAuthLifecycle(pool, events), { verifySignIn: (email, code) => authenticator.verifySignIn(email, code) }),
+      inject: [AppConfig, AUTH_DB_POOL, EventEmitter2, TOTP_SIGN_IN_DEPS],
+      useFactory: (c: AppConfig, pool: Pool, events: EventEmitter2, totp: TotpSignInDeps) => createBetterAuth(c, pool, new PgAuthLifecycle(pool, events), totp),
     },
     { provide: IdentityProvider, useClass: BetterAuthIdentityProvider },
   ],

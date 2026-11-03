@@ -85,11 +85,11 @@ describe('Invitation and enrollment of the authenticator app (FR-16)', () => {
     const enrolled = await t.factories.user();
     t.mail.sent.length = 0;
     const post = (email: string) => request(server()).post('/api/mfa/identify').send({ email });
-    expect((await post(fresh.email).expect(200)).body).toEqual({ firstTime: true });
-    expect((await post(enrolled.email).expect(200)).body).toEqual({ firstTime: false });
-    expect((await post('nobody@arweqah.sa').expect(200)).body).toEqual({ firstTime: false });
+    expect((await post(fresh.email).expect(200)).body).toEqual({ firstTime: true, trustedDevicesEnabled: false });
+    expect((await post(enrolled.email).expect(200)).body).toEqual({ firstTime: false, trustedDevicesEnabled: false });
+    expect((await post('nobody@arweqah.sa').expect(200)).body).toEqual({ firstTime: false, trustedDevicesEnabled: false });
     expect(t.mail.sent.map((m) => m.to)).toEqual([fresh.email]);
-    expect((await post(fresh.email).expect(200)).body).toEqual({ firstTime: true });
+    expect((await post(fresh.email).expect(200)).body).toEqual({ firstTime: true, trustedDevicesEnabled: false });
     expect(t.mail.sent).toHaveLength(1);
     await post('not-an-email').expect(400);
   });

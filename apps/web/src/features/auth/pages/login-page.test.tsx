@@ -6,7 +6,7 @@ import { renderRoute } from '../../../../test/render';
 import { LoginPage } from './login-page';
 
 const open = () => renderRoute([{ path: '/login', element: <LoginPage /> }, { path: '/', element: <p>الرئيسية</p> }], '/login');
-const identify = (firstTime: boolean) => server.use(http.post('*/api/mfa/identify', () => HttpResponse.json({ firstTime })));
+const identify = (firstTime: boolean) => server.use(http.post('*/api/mfa/identify', () => HttpResponse.json({ firstTime, trustedDevicesEnabled: true })));
 const enterEmail = async () => {
   fireEvent.change(screen.getByLabelText('بريد العمل'), { target: { value: 'sara@arweqah.sa' } });
   fireEvent.click(screen.getByRole('button', { name: 'متابعة' }));
@@ -27,6 +27,17 @@ describe('Sign-in page (FR-01, FR-23)', () => {
     await enterEmail();
     expect(screen.queryByLabelText(/كلمة المرور|password/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/نسيت|تسجيل جديد|إنشاء حساب/)).not.toBeInTheDocument();
+  });
+
+  it('offers "remember this device" on the code step and sends it with the sign-in (FR-23)', async () => {
+    let body: unknown;
+    server.use(http.post('*/api/auth/totp/sign-in', async ({ request }) => { body = await request.json(); return HttpResponse.json({ user: { id: 'u1' } }); }));
+    open();
+    identify(false);
+    await enterEmail();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'تذكّر هذا الجهاز ولا تطلب الرمز عليه' }));
+    '123456'.split('').forEach((digit, i) => fireEvent.change(screen.getByLabelText(`رمز تطبيق المصادقة ${i + 1}`), { target: { value: digit } }));
+    await waitFor(() => expect(body).toMatchObject({ email: 'sara@arweqah.sa', code: '123456', rememberDevice: true }));
   });
 
   it('tells the person while typing that the e-mail is not valid, and stops once it is', async () => {
