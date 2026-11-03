@@ -5,7 +5,10 @@ import { ADMIN_STATE } from '../support/fixtures';
 
 class Page extends BasePage {}
 test.use({ storageState: ADMIN_STATE });
-test.beforeEach(async ({ page }) => adminModeOnViaApi(page));
+test.beforeEach(async ({ page }) => {
+  test.setTimeout(90_000); // switching admin mode on may wait for the next 30-second code
+  await adminModeOnViaApi(page);
+});
 
 test.describe('Forms validate while typing and when leaving a field (FR-17)', () => {
   test('the employee form explains a field without pressing save, and stays accessible', async ({ page }) => {
