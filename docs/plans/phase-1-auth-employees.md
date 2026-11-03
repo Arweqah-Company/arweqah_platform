@@ -1311,3 +1311,9 @@ shared/data-exchange/   export-file · template · read-sheet · csv · mapping 
 - **ما تم:** خطوة الرمز في صفحة الدخول بالبريد صار فيها نفس خانة «تذكّر هذا الجهاز ولا تطلب الرمز عليه» كما في خطوة الرمز بعد مايكروسوفت. تظهر فقط حين يسمح المسؤول بأيام الأجهزة الموثوقة (`/mfa/identify` يرجع `trustedDevicesEnabled`). عند التفعيل يثبّت `/auth/totp/sign-in` الجهاز بنفس الكوكي (`arweqah_device`، HttpOnly) ومدته من إعدادات الأمان. الدخول بالبريد نفسه لا يُتخطّى (الرمز هو إثباته الوحيد)؛ الفائدة أن الدخول التالي بمايكروسوفت من نفس المتصفح لا يطلب الرمز.
 - **أين:** `totp-sign-in.plugin.ts` (`rememberDevice`، `trustDevice`)، `auth-core.module.ts` (مزوّد `TOTP_SIGN_IN_DEPS`)، `TrustedDevicesService.enabled()`، `mfa.controller.ts`، `packages/shared` (`totpSignInSchema`)، `login-page.tsx`.
 - **كيف تحقّقنا:** e2e في `device-security.e2e-spec.ts` (لا كوكي والأيام 0، كوكي وصف في `trusted_devices` عند السماح)، `mfa.e2e-spec.ts`، واختبار مكوّن في `login-page.test.tsx`؛ lint وtypecheck نظيفان.
+
+### 2026-11-03 — تسريع فحص ZAP API في CI بتقسيمه إلى 4 أجزاء متوازية
+- **ما تم:** خطوة «ZAP API scan» كانت تأخذ نحو 18 دقيقة متتابعة (أغلب وقت فحص `security / dast`). صار الفحص 4 مهام متوازية، كل واحدة تفحص مسارات موديولات محددة من ملف OpenAPI؛ المهمة 1 تشغّل أيضًا فحص baseline. مهمة `dast` تبقى باسمها وتفشل إن فشل أي جزء. لا سقف زمني ولا قاعدة معطّلة، فالتغطية كاملة.
+- **أين:** `.github/workflows/security.yml` (`dast-scan` بمصفوفة `shard`، ثم `dast`)، `scripts/zap-shard.mjs`، قرار 172 في `docs/decisions.md`، سطر الأمان في README §10.
+- **كيف تحقّقنا:** تجربة محلية للتقسيم (كل مسار في جزء واحد بالضبط والأحجام متقاربة)؛ التشغيل الفعلي لـZAP يُتحقق منه في CI لهذا الفرع.
+

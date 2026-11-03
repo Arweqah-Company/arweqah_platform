@@ -71,11 +71,18 @@ jobs:
           ignore-unfixed: true
           exit-code: "1"
 
-  dast:
+  # The API scan is split by module into parallel shards (scripts/zap-shard.mjs); shard 1 also runs the passive baseline.
+  dast-scan:
     # Inputs exist only when called from CI; schedule/manual runs skip DAST here
     if: inputs.start_command != ''
+    name: dast shard ${{ matrix.shard }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     env:
+      SHARDS: 4
       NODE_ENV: test
       APP_URL: http://localhost:4173
       API_URL: http://localhost:4173
@@ -108,25 +115,41 @@ jobs:
           eval "$START_COMMAND"
           for i in $(seq 1 60); do curl -fsS "$TARGET_URL" >/dev/null && break; sleep 3; done
       - name: ZAP baseline (passive)
+        if: matrix.shard == 1
         env:
           TARGET_URL: ${{ inputs.target_url }}
         run: |
           chmod a+w .
           docker run --rm --network host -v "$PWD:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py -I -t "$TARGET_URL" -c .zap/rules.tsv -r zap-baseline.html
-      - name: ZAP API scan
+      - name: ZAP API scan (this shard's paths)
         if: inputs.openapi_url != ''
         env:
           OPENAPI_URL: ${{ inputs.openapi_url }}
+          SHARD: ${{ matrix.shard }}
         run: |
+          chmod a+w .
+          curl -fsS "$OPENAPI_URL" -o openapi-full.json
+          node scripts/zap-shard.mjs openapi-full.json "$SHARD" "$SHARDS" openapi-shard.json
           docker run --rm --network host -v "$PWD:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
-            zap-api-scan.py -I -t "$OPENAPI_URL" -f openapi -c .zap/rules.tsv -r zap-api.html
+            zap-api-scan.py -I -t openapi-shard.json -O "${OPENAPI_URL%/api/docs/openapi.json}" -f openapi -c .zap/rules.tsv -r "zap-api-$SHARD.html"
       - if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: zap-reports
+          name: zap-reports-${{ matrix.shard }}
           path: "*.html"
           retention-days: 14
+
+  # One stable check name for the whole scan: fails when any shard failed or was cancelled.
+  dast:
+    if: always() && inputs.start_command != ''
+    needs: dast-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every shard passed
+        env:
+          RESULT: ${{ needs.dast-scan.result }}
+        run: '[ "$RESULT" = "success" ]'
 
   full-active-scan:
     if: github.event_name == 'workflow_dispatch'

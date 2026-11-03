@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-03 — ZAP API scan in four parallel shards
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 172 | The `security` workflow's DAST runs as a matrix of four jobs (`dast-scan`, shard 1…4); `scripts/zap-shard.mjs` splits the OpenAPI document by module (first tag, else first path segment) and packs the groups by operation count, so every path is scanned in exactly one shard; shard 1 also runs the passive baseline. A `dast` job keeps the single check name and fails if any shard failed | One sequential API scan took about 18 of the 21 minutes of the check and grows with every endpoint; coverage stays complete (no time cap, no rule disabled) | A shard passes about 10 minutes (raise the shard count in `SHARDS` and the matrix) |
+
 ## 2026-11-03 — Remember this device on the e-mail code step
 
 | # | Decision | Why | Revisit when |
