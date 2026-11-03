@@ -6,6 +6,8 @@ import type { Placement, UnitReach } from './access-context';
 export interface UserAccessRecord {
   isActive: boolean;
   grants: PermissionGrant[];
+  /** Grants that come from an administrative role (one holding `admin_mode.use`): they work only while platform admin mode is on. */
+  elevatedGrants: PermissionGrant[];
   placement: Placement;
   /** The units the person reaches and how deep: the unit they sit in and the units they manage through a head role, then the units below them. */
   reach: UnitReach;
@@ -25,7 +27,7 @@ export abstract class RoleRepository {
   abstract findByIds(ids: string[]): Promise<Role[]>;
   abstract save(role: Role): Promise<Role>;
   abstract remove(role: Role): Promise<void>;
-  /** The permissions of the "everyone" role (the Employee role): what a new job title role starts with when no template is chosen. */
+  /** What a new job title role starts with when no template is chosen: nothing (the Employee role gives the baseline). */
   abstract defaultTemplatePermissions(): Promise<PermissionGrant[]>;
   abstract insertJobTitleRoles(seeds: JobTitleRoleSeed[], tx: TransactionContext): Promise<void>;
   abstract renameJobTitleRole(jobTitleId: string, names: { nameAr: string; nameEn: string }, tx: TransactionContext): Promise<void>;

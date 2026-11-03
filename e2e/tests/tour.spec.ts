@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { BasePage } from '../pages/base.page';
 import { ListPage } from '../pages/list.page';
-import { adminModeOffViaApi, adminModeOnViaApi } from '../support/admin-mode';
+import { adminModeOnViaApi } from '../support/admin-mode';
 import { ADMIN_STATE } from '../support/fixtures';
 
 class Screen extends BasePage {}
@@ -19,7 +19,6 @@ async function setTour(page: Page, tour: 'general' | 'admin', action: 'skip' | '
 }
 
 test.afterEach(async ({ page }) => {
-  await adminModeOffViaApi(page);
   await setTour(page, 'general', 'skip');
   await setTour(page, 'admin', 'skip');
 });

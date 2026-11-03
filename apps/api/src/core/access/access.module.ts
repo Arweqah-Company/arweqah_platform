@@ -6,6 +6,12 @@ import { AutoRolesService } from './application/auto-roles.service';
 import { JobTitleRolesService } from './application/job-title-roles.service';
 import { AdminModeEligibility } from './application/admin-mode-eligibility';
 import { AdminModeService } from './application/admin-mode.service';
+import { ImpersonationService } from './application/impersonation.service';
+import { ImpersonationRepository } from './domain/impersonation.repository';
+import { SessionSwitcher } from './domain/session-switcher';
+import { BetterAuthSessionSwitcher } from './infrastructure/better-auth-session-switcher';
+import { TypeOrmImpersonationRepository } from './infrastructure/typeorm-impersonation.repository';
+import { ImpersonationController } from './presentation/impersonation.controller';
 import { AccessContextService } from './application/access-context.service';
 import { PageVisibilityService } from './application/page-visibility.service';
 import { ProfileService } from './application/profile.service';
@@ -50,7 +56,7 @@ import { RolesController } from './presentation/roles.controller';
 @Global()
 @Module({
   imports: [TypeOrmModule.forFeature([Role, RolePermission, UserRole, User])],
-  controllers: [RolesController, AccessExceptionsController, RoleGroupsController, UserGroupsController, PermissionTargetsController, MeController, AdminModeController, PageVisibilityController],
+  controllers: [RolesController, AccessExceptionsController, RoleGroupsController, UserGroupsController, PermissionTargetsController, MeController, AdminModeController, ImpersonationController, PageVisibilityController],
   providers: [
     PermissionCatalog,
     AccessContextService,
@@ -62,6 +68,7 @@ import { RolesController } from './presentation/roles.controller';
     UserAccessService,
     ProfileService,
     AdminModeService,
+    ImpersonationService,
     AdminModeEligibility,
     PageVisibilityService,
     AutoRolesService,
@@ -69,6 +76,8 @@ import { RolesController } from './presentation/roles.controller';
     JobTitleRolesService,
     PermissionsGuard,
     { provide: AdminModeRepository, useClass: TypeOrmAdminModeRepository },
+    { provide: ImpersonationRepository, useClass: TypeOrmImpersonationRepository },
+    { provide: SessionSwitcher, useClass: BetterAuthSessionSwitcher },
     { provide: RoleRepository, useClass: TypeOrmRoleRepository },
     { provide: AccessExceptionRepository, useClass: TypeOrmAccessExceptionRepository },
     { provide: RoleGroupRepository, useClass: TypeOrmRoleGroupRepository },
@@ -78,7 +87,7 @@ import { RolesController } from './presentation/roles.controller';
     { provide: ProfileRepository, useClass: TypeOrmProfileRepository },
     { provide: UserAccessRepository, useClass: TypeOrmUserAccessRepository },
   ],
-  exports: [PermissionCatalog, PageVisibilityService, RoleGroupsService, AutoRolesService, JobTitleRolesService, AccessContextService, AbilityFactory, PermissionsGuard, UserAccessService, AdminModeService, AdminModeEligibility],
+  exports: [PermissionCatalog, PageVisibilityService, RoleGroupsService, AutoRolesService, JobTitleRolesService, AccessContextService, AbilityFactory, PermissionsGuard, UserAccessService, AdminModeService, AdminModeEligibility, ImpersonationService],
 })
 export class AccessModule implements OnModuleInit {
   constructor(private readonly catalog: PermissionCatalog) {}

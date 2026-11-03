@@ -27,6 +27,9 @@ const settled = (page: Page) =>
     ),
   );
 
+test.beforeEach(async ({ page }) => {
+  await page.request.post('/api/admin-mode/deactivate', { headers: { origin: 'http://localhost:4173' } });
+});
 test.afterEach(async ({ page }) => {
   await page.request.post('/api/admin-mode/deactivate', { headers: { origin: 'http://localhost:4173' } });
 });

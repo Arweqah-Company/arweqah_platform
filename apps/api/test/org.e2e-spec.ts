@@ -163,8 +163,8 @@ describe('Org structure built by forms (FR-24)', () => {
     const org = await t.factories.org();
     const user = await t.factories.user({ grants: orgAdminGrants });
     const outside = await t.factories.signIn(user);
-    await outside.get(`/api/org/companies/${org.companyId}/tree`).expect(200);
-    const levels = await levelsOf(outside, org.companyId);
+    expect((await outside.get(`/api/org/companies/${org.companyId}/tree`).expect(403)).body.code).toBe('ADMIN_MODE_REQUIRED');
+    const levels = await levelsOf(await t.factories.signInAdminMode(await t.factories.user({ grants: orgAdminGrants })), org.companyId);
     const calls = [
       () => outside.post('/api/org/levels/preview').send({ companyId: org.companyId, levels }),
       () => outside.post('/api/org/levels').send({ companyId: org.companyId, levels }),

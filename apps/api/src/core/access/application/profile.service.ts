@@ -6,6 +6,7 @@ import { ProfileRepository } from '../domain/profile.repository';
 import { SecuritySettingsService } from '../../auth/application/security-settings.service';
 import { AuthenticatorService } from '../../auth/application/authenticator.service';
 import { AdminModeService } from './admin-mode.service';
+import { ImpersonationService, type SessionFacts } from './impersonation.service';
 import { ListSettingsService } from '../../lists/application/list-settings.service';
 import { PageVisibilityService } from './page-visibility.service';
 import { UserAccessService } from './user-access.service';
@@ -21,12 +22,14 @@ export class ProfileService {
     private readonly pages: PageVisibilityService,
     private readonly lists: ListSettingsService,
     private readonly security: SecuritySettingsService,
+    private readonly impersonation: ImpersonationService,
   ) {}
 
-  async me(ctx: AccessContext, session: { mfaVerified: boolean; sessionId: string }): Promise<MeDto> {
+  async me(ctx: AccessContext, session: { mfaVerified: boolean; sessionId: string; facts?: SessionFacts & { createdAt?: Date | string } }): Promise<MeDto> {
     const user = await this.profiles.findUser(ctx.userId);
     if (!user) throw new NotFoundError('User', ctx.userId);
     const [roles, placements] = await Promise.all([this.access.rolesOf([user.id]), this.access.placementsOf([user.id])]);
+    const impersonation = session.facts ? await this.impersonation.describe(session.facts) : null;
     return {
       id: user.id,
       name: user.name,
@@ -36,8 +39,10 @@ export class ProfileService {
       isActive: user.isActive,
       authenticatorEnabled: await this.authenticator.isEnabled(user.id),
       mfaVerified: session.mfaVerified,
-      // Before the code is verified nothing administrative is on offer.
-      adminMode: session.mfaVerified ? await this.adminMode.status(ctx, session.sessionId) : { available: false, active: false, expiresAt: null },
+      // Before the code is verified, and while working as someone else, nothing administrative is on offer.
+      adminMode: session.mfaVerified && !impersonation ? await this.adminMode.status(ctx, session.sessionId) : { available: false, active: false, expiresAt: null },
+      impersonation,
+      impersonationEnabled: await this.impersonation.isEnabled(),
       roles: (roles.get(user.id) ?? []).map((r) => ({ id: r.id, nameAr: r.nameAr, nameEn: r.nameEn })),
       placement: placements.get(user.id) ?? NO_PLACEMENT,
       createdAt: user.createdAt.toISOString(),

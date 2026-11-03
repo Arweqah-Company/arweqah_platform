@@ -16,7 +16,7 @@ export const employeesFeature: FeatureModule = {
   ],
   nav: [{ to: '/employees', labelKey: 'nav.employees', icon: Users, group: 'people', permission: CorePermission.EmployeesView, pageKey: 'employees' }],
   tour: [
-    { key: 'employees', target: PAGE_TITLE_TARGET, route: '/employees', placement: 'bottom', can: [{ id: 'create', permission: CorePermission.EmployeesCreate }, { id: 'update', permission: CorePermission.EmployeesUpdate }, { id: 'roles', permission: CorePermission.EmployeesAssignRoles }, { id: 'deactivate', permission: CorePermission.EmployeesDeactivate }, { id: 'sensitive', permission: CorePermission.EmployeesViewSensitive }, { id: 'import', permission: CorePermission.EmployeesImport }, { id: 'export', permission: CorePermission.EmployeesExport }] },
+    { key: 'employees', target: PAGE_TITLE_TARGET, route: '/employees', placement: 'bottom', can: [{ id: 'create', permission: CorePermission.EmployeesCreate }, { id: 'update', permission: CorePermission.EmployeesUpdate }, { id: 'roles', permission: CorePermission.EmployeesAssignRoles }, { id: 'deactivate', permission: CorePermission.EmployeesDeactivate }, { id: 'sensitive', permission: CorePermission.EmployeesViewSensitive }, { id: 'import', permission: CorePermission.EmployeesImport }, { id: 'export', permission: CorePermission.EmployeesExport }, { id: 'impersonate', permission: CorePermission.ImpersonationStart }] },
   ],
   i18n: { ar, en },
 };

@@ -270,6 +270,8 @@ export interface EmployeeDto {
 
 export interface EmployeeListItemDto {
   id: string;
+  /** The sign-in account of this employee (what «sign in as» is started with). */
+  userId: string;
   employeeNumber: string;
   fullName: string;
   workEmail: string;

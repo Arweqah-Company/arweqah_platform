@@ -25,7 +25,18 @@ export function SecuritySettingsTab() {
 }
 
 type Typed = Record<keyof SecuritySettingsInput, string>;
-const asText = (values: SecuritySettingsInput): Typed => ({ trustedDeviceDays: String(values.trustedDeviceDays), requestsPerMinute: String(values.requestsPerMinute) });
+const asText = (values: SecuritySettingsInput): Typed => ({
+  trustedDeviceDays: String(values.trustedDeviceDays),
+  requestsPerMinute: String(values.requestsPerMinute),
+  impersonationEnabled: String(values.impersonationEnabled),
+  impersonationIdleMinutes: String(values.impersonationIdleMinutes),
+});
+const asNumbers = (form: Typed): SecuritySettingsInput => ({
+  trustedDeviceDays: Number(form.trustedDeviceDays),
+  requestsPerMinute: Number(form.requestsPerMinute),
+  impersonationEnabled: Number(form.impersonationEnabled),
+  impersonationIdleMinutes: Number(form.impersonationIdleMinutes),
+});
 
 function SettingsForm({ initial }: { initial: SecuritySettingsInput }) {
   const { t } = useTranslation('security');
@@ -37,11 +48,11 @@ function SettingsForm({ initial }: { initial: SecuritySettingsInput }) {
     const value = Number(form[key]);
     return form[key] !== '' && Number.isInteger(value) && value >= SECURITY_SETTINGS[key].min && value <= SECURITY_SETTINGS[key].max;
   };
-  const valid = inRange('trustedDeviceDays') && inRange('requestsPerMinute');
+  const valid = (['trustedDeviceDays', 'requestsPerMinute', 'impersonationEnabled', 'impersonationIdleMinutes'] as const).every(inRange);
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     try {
-      await save.mutateAsync({ trustedDeviceDays: Number(form.trustedDeviceDays), requestsPerMinute: Number(form.requestsPerMinute) });
+      await save.mutateAsync(asNumbers(form));
       toast.success(t('settings.saved'));
     } catch {
       /* shown below */
@@ -56,7 +67,41 @@ function SettingsForm({ initial }: { initial: SecuritySettingsInput }) {
       <FormField label={t('settings.requestsPerMinute')} hint={t('settings.requestsPerMinuteHint')} error={inRange('requestsPerMinute') ? undefined : t('settings.range', SECURITY_SETTINGS.requestsPerMinute)}>
         {(p) => <Input {...p} type="number" dir="ltr" inputMode="numeric" disabled={!canEdit} value={form.requestsPerMinute} onChange={(e) => setForm((f) => ({ ...f, requestsPerMinute: e.target.value }))} />}
       </FormField>
+      <ImpersonationFields form={form} setForm={setForm} disabled={!canEdit} inRange={inRange} />
       {canEdit && <div className="flex justify-end"><Button type="submit" disabled={!valid || save.isPending}>{tc('actions.save')}</Button></div>}
     </form>
+  );
+}
+
+interface FieldsProps {
+  form: Typed;
+  setForm: (update: (form: Typed) => Typed) => void;
+  disabled: boolean;
+  inRange: (key: keyof SecuritySettingsInput) => boolean;
+}
+
+/** «Sign in as»: a switch (off by default) and the idle minutes after which that session ends. */
+function ImpersonationFields({ form, setForm, disabled, inRange }: FieldsProps) {
+  const { t } = useTranslation('security');
+  return (
+    <fieldset className="flex flex-col gap-4 border-t border-neutral-200 pt-4" data-tour="impersonation-settings">
+      <legend className="sr-only">{t('settings.impersonationGroup')}</legend>
+      <label className="flex items-start gap-3 text-sm">
+        <input
+          type="checkbox"
+          className="mt-0.5 size-5 accent-petrol-800"
+          disabled={disabled}
+          checked={form.impersonationEnabled === '1'}
+          onChange={(e) => setForm((f) => ({ ...f, impersonationEnabled: e.target.checked ? '1' : '0' }))}
+        />
+        <span>
+          <span className="block font-medium text-fg">{t('settings.impersonationEnabled')}</span>
+          <span className="block text-muted">{t('settings.impersonationEnabledHint')}</span>
+        </span>
+      </label>
+      <FormField label={t('settings.impersonationIdleMinutes')} hint={t('settings.impersonationIdleMinutesHint')} error={inRange('impersonationIdleMinutes') ? undefined : t('settings.range', SECURITY_SETTINGS.impersonationIdleMinutes)}>
+        {(p) => <Input {...p} type="number" dir="ltr" inputMode="numeric" disabled={disabled} value={form.impersonationIdleMinutes} onChange={(e) => setForm((f) => ({ ...f, impersonationIdleMinutes: e.target.value }))} />}
+      </FormField>
+    </fieldset>
   );
 }

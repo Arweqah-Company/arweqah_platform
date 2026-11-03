@@ -200,7 +200,8 @@
         "deactivate": "Deactivate an account or end an employee’s service",
         "sensitive": "See national ID, IBAN and salary",
         "import": "Import employees from a file",
-        "export": "Export the list of employees"
+        "export": "Export the list of employees",
+        "impersonate": "Sign in as an employee to see what they see (when it is switched on in the security settings)"
       }
     }
   },

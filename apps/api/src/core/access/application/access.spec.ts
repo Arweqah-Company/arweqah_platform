@@ -35,6 +35,22 @@ describe('AccessContext', () => {
   });
 });
 
+describe('AccessContext: grants of an administrative role (FR-84)', () => {
+  const ctx = new AccessContext('u1', placement, [{ key: 'employees.view', scope: 'own' }], true, reachFrom(SITS), [
+    { key: 'employees.view', scope: 'all' },
+    { key: 'employees.create', scope: 'all' },
+  ]);
+
+  it('leaves them out until the mode is on, then adds them to the ordinary grants', () => {
+    expect(ctx.hasElevatedGrants).toBe(true);
+    expect(ctx.scopeOf('employees.view')).toBe('own');
+    expect(ctx.has('employees.create')).toBe(false);
+    const on = ctx.elevate();
+    expect(on.scopeOf('employees.view')).toBe('all');
+    expect(on.has('employees.create')).toBe(true);
+  });
+});
+
 describe('AccessContext: how far a unit-based scope reaches (FR-80)', () => {
   const reach = (scope: PermissionScope, rows = [...SITS, ...MANAGES]) => [...context(scope, placement, rows).nodesFor(scope)].sort();
 

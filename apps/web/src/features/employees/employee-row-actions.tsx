@@ -7,6 +7,7 @@ import { Can } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Eye, Pencil, Power, PowerOff } from 'lucide-react';
 import { ConfirmDialog, RowAction } from '@/shared/ui';
+import { ImpersonateAction } from '@/core/impersonation/impersonate-action';
 import { useSetActive } from './api';
 
 /** Every action on an employee row: open, edit, and (de)activate; the rest (roles, groups, end of contract) are on the employee's page. */
@@ -30,6 +31,7 @@ export function EmployeeRowActions({ employee: e }: { employee: EmployeeListItem
     <>
       <RowAction label={tc('actions.view')} icon={Eye} to={`/employees/${e.id}`} />
       {canEdit(e.isOwn) && <RowAction label={tc('actions.edit')} icon={Pencil} to={`/employees/${e.id}/edit`} />}
+      <ImpersonateAction as="row" userId={e.userId} name={e.fullName} isActive={e.isActive} />
       <Can permission={P.EmployeesDeactivate}>
         {e.isActive ? (
           <RowAction label={t('actions.deactivate')} icon={PowerOff} danger onClick={() => setAsking(true)} />

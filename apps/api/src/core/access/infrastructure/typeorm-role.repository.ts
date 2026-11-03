@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import type { PermissionGrant, PermissionScope, RoleOriginDto } from '@arweqah-platform/shared';
+import type { PermissionGrant, RoleOriginDto } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../common/application/transaction-runner';
 import { managerOf } from '../../../common/infrastructure/typeorm-transaction-runner';
 import { Role } from '../domain/role.entity';
@@ -69,11 +69,9 @@ export class TypeOrmRoleRepository extends RoleRepository {
     await this.repo.remove(role);
   }
 
+  /** A new job title role starts empty: every person already holds the Employee role, so a title adds only what it needs. */
   async defaultTemplatePermissions(): Promise<PermissionGrant[]> {
-    const rows: { key: string; scope: PermissionScope }[] = await this.repo.manager.query(
-      `SELECT p.permission_key AS key, p.scope AS scope FROM role_permissions p JOIN roles r ON r.id = p.role_id WHERE r.auto_rule = 'everyone'`,
-    );
-    return rows;
+    return [];
   }
 
   async insertJobTitleRoles(seeds: JobTitleRoleSeed[], tx: TransactionContext): Promise<void> {

@@ -4,6 +4,7 @@ import { TourProvider } from '@/features/tour';
 import { ListSettingsProvider } from '@/shared/lib/list-settings';
 import { NavContext } from '@/core/navigation';
 import { usePermissions } from '@/core/permissions/can';
+import { ImpersonationBar } from '@/core/impersonation/impersonation-bar';
 import { AppHeader } from './app-header';
 import { AppSidebar } from './app-sidebar';
 import { FEATURES } from './features';
@@ -28,6 +29,7 @@ export function AppLayout() {
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:start-2 focus:top-2 focus:z-50 focus:bg-cream focus:p-2">
         Skip to content
       </a>
+      <ImpersonationBar />
       <div className="flex min-h-screen items-start gap-4 bg-neutral-50 p-3 lg:p-4">
         <AppSidebar items={sidebarItems} open={open} collapsed={collapsed} onToggleCollapsed={() => setCollapsed(!collapsed)} onNavigate={() => setOpen(false)} onSignOut={() => void signOut()} />
         {open && <div className="fixed inset-0 z-20 bg-ink/40 lg:hidden" onClick={() => setOpen(false)} aria-hidden />}

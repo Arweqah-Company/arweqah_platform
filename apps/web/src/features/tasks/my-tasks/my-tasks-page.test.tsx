@@ -14,7 +14,7 @@ const options = { assignees: [{ id: 'u1', name: 'سارة أحمد', isSelf: tru
 function serve(items = [taskItem(), taskItem({ id: 't2', number: 'TSK-000002', title: 'مراجعة العقد', status: 'in_progress', priority: 'high', flags: { urgent: true, overdue: true, stale: false, objected: false } })], keys: string[] = [P.TasksView, P.TasksCreate]) {
   const queries: URLSearchParams[] = [];
   server.use(
-    http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'own' as const }))))),
+    http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'own' as const })), { without: ['tasks.'] }))),
     http.get('*/api/tasks/options', () => HttpResponse.json(options)),
     http.get('*/api/tasks', ({ request }) => {
       queries.push(new URL(request.url).searchParams);

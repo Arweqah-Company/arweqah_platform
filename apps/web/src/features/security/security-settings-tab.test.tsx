@@ -8,7 +8,7 @@ import { SecuritySettingsTab } from './security-settings-tab';
 const open = (keys = ['security_settings.view', 'security_settings.edit']) => {
   server.use(
     http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'all' as const }))))),
-    http.get('*/api/security-settings', () => HttpResponse.json({ trustedDeviceDays: 0, requestsPerMinute: 600 })),
+    http.get('*/api/security-settings', () => HttpResponse.json({ trustedDeviceDays: 0, requestsPerMinute: 600, impersonationEnabled: 0, impersonationIdleMinutes: 30 })),
   );
   renderPage(<SecuritySettingsTab />);
 };
@@ -25,12 +25,30 @@ describe('Security settings tab (FR-73, FR-76)', () => {
     expect(screen.getByRole('button', { name: 'حفظ' })).toBeDisabled();
     fireEvent.change(days, { target: { value: '30' } });
     fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
-    await waitFor(() => expect(saved).toEqual({ trustedDeviceDays: 30, requestsPerMinute: 600 }));
+    await waitFor(() => expect(saved).toEqual({ trustedDeviceDays: 30, requestsPerMinute: 600, impersonationEnabled: 0, impersonationIdleMinutes: 30 }));
+  });
+
+  it('switches «sign in as» on, checks its idle minutes, and saves both (FR-85)', async () => {
+    let saved: Record<string, number> | undefined;
+    server.use(http.put('*/api/security-settings', async ({ request }) => { saved = (await request.json()) as Record<string, number>; return HttpResponse.json(saved); }));
+    open();
+    const switcher = await screen.findByLabelText('السماح لمديري النظام بالدخول بحساب موظف آخر', { exact: false });
+    expect(switcher).not.toBeChecked();
+    fireEvent.click(switcher);
+    const minutes = screen.getByLabelText('الدقائق بلا نشاط قبل انتهاء الجلسة');
+    expect(minutes).toHaveValue(30);
+    fireEvent.change(minutes, { target: { value: '2' } });
+    expect(await screen.findByText('أدخل رقمًا صحيحًا بين 5 و240.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'حفظ' })).toBeDisabled();
+    fireEvent.change(minutes, { target: { value: '45' } });
+    fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
+    await waitFor(() => expect(saved).toEqual({ trustedDeviceDays: 0, requestsPerMinute: 600, impersonationEnabled: 1, impersonationIdleMinutes: 45 }));
   });
 
   it('is read-only without the edit key', async () => {
     open(['security_settings.view']);
     expect(await screen.findByLabelText('أيام الجهاز الموثوق')).toBeDisabled();
+    expect(screen.getByLabelText('السماح لمديري النظام بالدخول بحساب موظف آخر', { exact: false })).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'حفظ' })).not.toBeInTheDocument();
   });
 });

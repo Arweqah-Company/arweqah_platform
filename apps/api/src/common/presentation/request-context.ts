@@ -9,5 +9,16 @@ export interface SessionUser {
 
 export interface AuthenticatedRequest extends Request {
   user?: SessionUser;
-  session?: { session: { id: string; mfaVerifiedAt?: Date | string | null }; user: SessionUser };
+  session?: {
+    session: {
+      id: string;
+      mfaVerifiedAt?: Date | string | null;
+      /** Set when a platform administrator is working as this person («sign in as»). */
+      impersonatedByUserId?: string | null;
+      impersonatorSessionId?: string | null;
+      impersonationLastActivityAt?: Date | string | null;
+      createdAt?: Date | string;
+    };
+    user: SessionUser;
+  };
 }

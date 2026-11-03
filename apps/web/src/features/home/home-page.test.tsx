@@ -25,7 +25,7 @@ const tickets = (over: Partial<TicketSummaryDto> = {}): TicketSummaryDto => ({
 function serve(keys: string[], extra: { tasks?: TaskSummaryDto; tickets?: TicketSummaryDto; hiddenPages?: MeDto['hiddenPages'] } = {}) {
   const asked: string[] = [];
   server.use(
-    http.get('*/api/me', () => HttpResponse.json({ ...me(keys.map((key) => ({ key, scope: 'own' as const }))), hiddenPages: extra.hiddenPages ?? [] })),
+    http.get('*/api/me', () => HttpResponse.json({ ...me(keys.map((key) => ({ key, scope: 'own' as const })), { without: ['tasks.'] }), hiddenPages: extra.hiddenPages ?? [] })),
     http.get('*/api/tasks/summary', () => {
       asked.push('tasks');
       return HttpResponse.json(extra.tasks ?? tasks());

@@ -1,9 +1,11 @@
 import { expect, test } from '@playwright/test';
 import { BasePage } from '../pages/base.page';
+import { adminModeOnViaApi } from '../support/admin-mode';
 import { ADMIN_STATE } from '../support/fixtures';
 
 class Page extends BasePage {}
 test.use({ storageState: ADMIN_STATE });
+test.beforeEach(async ({ page }) => adminModeOnViaApi(page));
 
 test.describe('Forms validate while typing and when leaving a field (FR-17)', () => {
   test('the employee form explains a field without pressing save, and stays accessible', async ({ page }) => {

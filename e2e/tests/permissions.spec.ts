@@ -1,12 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 import { BasePage } from '../pages/base.page';
-import { adminModeOffViaApi, adminModeOnViaApi } from '../support/admin-mode';
+import { adminModeOnViaApi } from '../support/admin-mode';
 import { ADMIN_STATE } from '../support/fixtures';
 import { choose } from '../support/select';
 
 class Screen extends BasePage {}
 test.use({ storageState: ADMIN_STATE });
-test.afterEach(async ({ page }) => adminModeOffViaApi(page));
+test.beforeEach(async ({ page }) => adminModeOnViaApi(page));
 
 const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
 

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { BasePage } from '../pages/base.page';
-import { adminModeOffViaApi, adminModeOnViaApi } from '../support/admin-mode';
+import { adminModeOnViaApi } from '../support/admin-mode';
 import { ADMIN_STATE } from '../support/fixtures';
 
 class Screen extends BasePage {}
@@ -8,10 +8,8 @@ test.use({ storageState: ADMIN_STATE });
 
 const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))));
 
-/** The browser session is shared by every spec: leave admin mode off whatever a test did. */
-test.afterEach(async ({ page }) => {
-  await adminModeOffViaApi(page);
-});
+/** The administrator\'s grants work in admin mode only (FR-84), so every test starts with it on. */
+test.beforeEach(async ({ page }) => adminModeOnViaApi(page));
 
 async function newTask(page: Page, title: string): Promise<void> {
   await page.goto('/tasks');

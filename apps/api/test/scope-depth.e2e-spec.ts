@@ -42,7 +42,7 @@ describe('Depth of what a role reaches (FR-80)', () => {
   /** A person placed nowhere who manages the department of the test organization. */
   const departmentHead = async (org: TestOrg, grants: { key: string; scope: string }[]) => {
     await giveHeadRole(org, 1, grants);
-    const head = await t.factories.user();
+    const head = await t.factories.user({ without: ['org.view'] }); // the Employee role's own org.view (all) would hide the depth under test
     await setManager(org.department, head.employeeId);
     return t.factories.signIn(head);
   };
@@ -62,7 +62,7 @@ describe('Depth of what a role reaches (FR-80)', () => {
     const org = await setup();
     const two = await departmentHead(org, [{ key: CorePermission.OrgView, scope: 'subtree:2' }]);
     expect((await treeOf(two, org)).map((n) => n.nameEn).sort()).toEqual(['Department', 'Section AB', 'Section C', 'Unit A', 'Unit B', 'Unit C']);
-    const none = await t.factories.signIn(await t.factories.user({ grants: [{ key: CorePermission.OrgView, scope: 'subtree:2' }] }));
+    const none = await t.factories.signIn(await t.factories.user({ without: ['org.view'], grants: [{ key: CorePermission.OrgView, scope: 'subtree:2' }] }));
     await none.get(`/api/org/companies/${org.otherCompanyId}/tree`).expect(404);
     await two.get(`/api/org/companies/${org.otherCompanyId}/tree`).expect(404);
   });

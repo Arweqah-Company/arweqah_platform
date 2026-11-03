@@ -86,6 +86,7 @@ export class EmployeeTransformer {
     const today = todayIso();
     return items.map((e) => ({
       id: e.id,
+      userId: e.userId,
       employeeNumber: e.employeeNumber,
       fullName: e.fullName,
       workEmail: e.workEmail,

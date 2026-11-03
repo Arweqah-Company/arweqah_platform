@@ -67,10 +67,21 @@ export interface UserDto {
   createdAt: string;
 }
 
+/** The session is a «sign in as»: a platform administrator working as this person. */
+export interface ImpersonationDto {
+  by: { id: string; name: string };
+  startedAt: string;
+  idleMinutes: number;
+}
+
 export interface MeDto extends UserDto {
   /** The code of the authenticator app was entered for this session; every other route is blocked until then. */
   mfaVerified: boolean;
   adminMode: AdminModeDto;
+  /** Set only inside a «sign in as» session; null for a normal sign-in. */
+  impersonation: ImpersonationDto | null;
+  /** The administrator switched «sign in as» on in the security settings (the button shows only for those who hold its key). */
+  impersonationEnabled: boolean;
   /** The administrator allows trusting a browser after the code step that follows a Microsoft sign-in. */
   trustedDevicesEnabled: boolean;
   permissions: { key: string; scope: PermissionScope }[];
