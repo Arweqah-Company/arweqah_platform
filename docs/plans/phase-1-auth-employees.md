@@ -1389,3 +1389,7 @@ shared/data-exchange/   export-file · template · read-sheet · csv · mapping 
 - **ما تم:** القرار 184 وskill التصميم محدّثان.
 - **أين:** `apps/web/src/app/{app-header,app-sidebar,sidebar-nav,account-menu}.tsx`، `shared/ui/{button,tabs}.tsx`، `notification-bell.tsx`، `core/theme.css`، `e2e/pages/base.page.ts`.
 - **كيف تحقّقنا:** اختبار `app-layout.test.tsx` (آخر زر في الشريط هو «حسابي» ولا زر خروج فيه)؛ وPlaywright على الشاشتين (دخول وخروج وقائمة الحساب وaxe) ولقطات حقيقية بالعربية؛ و`design:check` و`i18n:check` نظيفان.
+
+### 2026-11-04 — تحديث حالات خطة المرحلة 5 بعد تنفيذ المرحلة 1
+- **ما تم:** في `docs/plans/phase-5-people-structure-profile.md` صارت حالات صفوف جدول «ما هو موجود» (مو-01 و02 و06 و08 و09 و11 وسر-03 وصلاحيات الحقول) ✅ بأدلتها (FR-89 إلى FR-95)، وعناوين 1.1 إلى 1.7 تحمل علامة ✅ وتاريخ التنفيذ، ومعايير القبول مُلاحَظ تحقّقها، وفقرتا 11.5 القديمتان مُوسومتان بأنهما حالة وقتها.
+- **كيف تحقّقنا:** مراجعة الملف مقابل §11.6 و§12 و§14 وسجل التنفيذ؛ تعديل توثيقي فقط بلا كود.
