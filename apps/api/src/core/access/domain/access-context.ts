@@ -52,6 +52,8 @@ export interface OrgPlace {
 /** Immutable snapshot of what a user may do, built once per request. */
 export class AccessContext {
   private readonly scopes: Map<string, PermissionScope>;
+  /** Every grant the person holds, kept apart even when two give the same key (their fields, and the reach of each, matter to `employees.update`). */
+  private readonly all: PermissionGrant[];
 
   constructor(
     readonly userId: string,
@@ -63,6 +65,7 @@ export class AccessContext {
     /** Grants of administrative roles: they count only after `elevate()`, i.e. while platform admin mode is on. */
     private readonly elevatedGrants: PermissionGrant[] = [],
   ) {
+    this.all = grants;
     const byKey = new Map<string, PermissionScope[]>();
     for (const g of grants) byKey.set(g.key, [...(byKey.get(g.key) ?? []), g.scope]);
     this.scopes = new Map(
@@ -77,7 +80,7 @@ export class AccessContext {
 
   /** The same person with the grants of their administrative roles switched on (platform admin mode is on). */
   elevate(): AccessContext {
-    return new AccessContext(this.userId, this.placement, [...this.grants(), ...this.elevatedGrants], this.isActive, this.reach);
+    return new AccessContext(this.userId, this.placement, [...this.all, ...this.elevatedGrants], this.isActive, this.reach);
   }
 
   /** The units a unit-based scope reaches: the person's own unit and the units they manage, and as many levels below them as the scope allows. */
@@ -102,6 +105,11 @@ export class AccessContext {
 
   grants(): PermissionGrant[] {
     return [...this.scopes].map(([key, scope]) => ({ key, scope }));
+  }
+
+  /** Every grant of one permission, each with its own scope and fields (`grants()` keeps only the widest scope of a key). */
+  grantsOf(key: string): PermissionGrant[] {
+    return this.all.filter((g) => g.key === key);
   }
 
   /** Where the permission reaches beyond the person's own records: nothing (own), their unit, their unit and below, their company, or everything. */

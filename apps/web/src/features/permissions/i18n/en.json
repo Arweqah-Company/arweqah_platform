@@ -16,13 +16,11 @@
     "user-group": "Group of people"
   },
   "choose": "Choose…",
-  "searchPerson": "Search for the person",
-  "searchHint": "Type at least two letters of the name or e-mail.",
   "loading": "Loading…",
   "matrixTitle": "Permissions",
   "matrixHint": {
     "role": "Apply to everyone who holds this role.",
-    "role-group": "Apply to everyone the group is given to, on top of the permissions of its roles.",
+    "role-group": "Apply to everyone the group is given to and to everyone who holds one of its roles, on top of the permissions of its roles.",
     "user": "Belong to this person alone, on top of what their roles and groups give.",
     "user-group": "Apply to every member of the group."
   },
@@ -40,7 +38,16 @@
     "deleteTitle": "Delete the group of roles?",
     "deleteBody": "The group \"{{name}}\" is deleted and the people it was given to lose the permissions of its roles that came through it.",
     "deleted": "Group deleted.",
-    "saved": "Group saved."
+    "saved": "Group saved.",
+    "addRole": "Add a role to the group",
+    "addRoleHint": "Choose from the existing roles; search by name.",
+    "pickRole": "Choose a role…",
+    "chosenRoles": "Roles in the group ({{count}})",
+    "noRolesYet": "No roles in this group yet.",
+    "removeRole": "Take {{name}} out of the group",
+    "rolesTitle": "Roles in the group",
+    "rolesHint": "Everyone who holds one of these roles gets the permissions placed on the group, with the same scope and list of fields.",
+    "rolesSaved": "The roles of the group were saved."
   },
   "userGroups": {
     "title": "Groups of people",
@@ -53,7 +60,7 @@
     "count_one": "One member",
     "count_other": "{{count}} members",
     "searchPerson": "Search for a person to add",
-    "searchHint": "Type at least two letters of the name or e-mail.",
+    "searchHint": "Type the first letter of the name or e-mail to see matching people.",
     "results": "Results",
     "removeMember": "Remove {{name}} from the group",
     "searchLabel": "Search groups of people",
@@ -76,7 +83,7 @@
   "tour": {
     "permissions": {
       "title": "Permissions",
-      "body": "Every page and button has a permission key. This page shows what each role, group and person holds, and at which scope (all, the unit, or only their own).",
+      "body": "Every page and button has a permission key. This page shows what each role, group and person holds, and at which scope (all, the unit, or only their own). Beside «Edit employees» a button chooses which fields its holder may change and which not.",
       "can": {
         "role": "Change a role’s permissions",
         "group": "Change a group of roles",
@@ -84,5 +91,13 @@
         "usergroup": "Change a group of people’s permissions"
       }
     }
+  },
+  "noTargets": {
+    "role-group": "No groups of roles yet. Create the first with the «New group of roles» button below.",
+    "user-group": "No groups of people yet. Create the first with the button below.",
+    "role": "No roles."
+  },
+  "targetHint": {
+    "user": "Open the list for the first names, or type a letter of the name or e-mail to narrow it."
   }
 }

@@ -30,20 +30,6 @@
         "contractEnding": "Contract ending soon"
       }
     },
-    "employee-fields": {
-      "name": "Employee field permissions",
-      "columns": {
-        "field": "Field",
-        "group": "Group",
-        "self": "The employee changes it",
-        "hr": "HR changes it"
-      },
-      "filters": {
-        "group": "Group",
-        "self": "The employee changes it",
-        "hr": "HR changes it"
-      }
-    },
     "directory": {
       "name": "My team",
       "columns": {

@@ -6,7 +6,7 @@ import { RoleRepository, UserAccessRepository } from '../domain/access.repositor
 import type { Role } from '../domain/role.entity';
 import { RoleGroupRepository } from '../domain/role-group.repository';
 import { PermissionCatalog } from './permission-catalog';
-import { scopeRank, type PermissionGrant } from '@arweqah-platform/shared';
+import { carriesFields, fieldsOfGrant, scopeRank, type PermissionGrant } from '@arweqah-platform/shared';
 import { ForbiddenError, NotFoundError } from '../../../common/domain/domain-error';
 import { ACCESS_CHANGED } from './access.events';
 
@@ -113,6 +113,14 @@ export class UserAccessService {
     for (const grant of grants) {
       const own = actor.scopeOf(grant.key);
       if (!own || scopeRank(own) < scopeRank(grant.scope)) throw new ForbiddenError('You cannot assign more than you hold');
+      this.assertHoldsFields(actor, grant);
     }
+  }
+
+  /** Nobody gives a field to change that they cannot change themselves: the fields of a grant stay inside the union of the fields the giver holds. */
+  private assertHoldsFields(actor: AccessContext, grant: PermissionGrant): void {
+    if (!carriesFields(grant.key)) return;
+    const held = new Set(actor.grantsOf(grant.key).flatMap((g) => fieldsOfGrant(g)));
+    if (fieldsOfGrant(grant).some((field) => !held.has(field))) throw new ForbiddenError('You cannot assign more than you hold');
   }
 }

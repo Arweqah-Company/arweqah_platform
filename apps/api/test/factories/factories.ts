@@ -1,5 +1,5 @@
 import type { INestApplication } from '@nestjs/common';
-import { COMPANIES_ADMIN_PERMISSIONS, CorePermission, EMPLOYEE_DEFAULT_PERMISSIONS, ORG_ADMIN_PERMISSIONS, type PermissionGrant } from '@arweqah-platform/shared';
+import { ALL_EDITABLE_FIELDS, COMPANIES_ADMIN_PERMISSIONS, CorePermission, EMPLOYEE_DEFAULT_PERMISSIONS, ORG_ADMIN_PERMISSIONS, type PermissionGrant } from '@arweqah-platform/shared';
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
@@ -77,6 +77,9 @@ export const TICKET_DESK_ADMIN_GRANTS: PermissionGrant[] = [
 export const TICKET_PLATFORM_ADMIN_GRANTS: PermissionGrant[] = TICKET_DESK_ADMIN_GRANTS.map((g) => ({ key: g.key, scope: 'all' as const }));
 
 /** Grant that lets a test user switch platform admin mode on. */
+/** A test grant of «edit employees» that does not say which fields lets its holder change them all, so specs about other things need not list fields; the specs about the lists pass `fields` themselves. */
+const editsEverything = (g: PermissionGrant): PermissionGrant => (g.key === CorePermission.EmployeesUpdate && !g.fields ? { ...g, fields: [...ALL_EDITABLE_FIELDS] } : g);
+
 /** What `factories.user` takes: `without` lists key prefixes (such as `tasks.`) taken out of the Employee role's baseline, for tests about a person who lacks them. */
 export interface UserOptions { grants?: PermissionGrant[]; unit?: TestUnit; enrolled?: boolean; active?: boolean; bare?: boolean; without?: string[] }
 
@@ -160,7 +163,7 @@ export class Factories {
     // Like the real Employee role, everyone starts with the own-account and ticket keys; `grants` add to them; `bare` gives a person with no role at all.
     if (options.bare) return;
     const defaults = EMPLOYEE_DEFAULT_PERMISSIONS.filter((p) => !options.without?.some((prefix) => p.key.startsWith(prefix)));
-    await this.app.get(UserAccessService).replaceRoles(id, [(await this.role([...defaults, ...(options.grants ?? [])])).id]);
+    await this.app.get(UserAccessService).replaceRoles(id, [(await this.role([...defaults, ...(options.grants ?? []).map(editsEverything)])).id]);
   }
 
   private async employeeFor(userId: string, email: string, unit?: TestUnit): Promise<Employee> {

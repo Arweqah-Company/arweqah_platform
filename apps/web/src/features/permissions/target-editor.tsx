@@ -16,7 +16,9 @@ const UPDATE_KEY: Record<PermissionTargetKind, string> = {
   'user-group': CorePermission.PermissionsUserGroupUpdate,
 };
 
-const same = (a: PermissionGrant[], b: PermissionGrant[]) => a.length === b.length && a.every((x) => b.some((y) => y.key === x.key && y.scope === x.scope));
+const sameFields = (a?: string[] | null, b?: string[] | null) => (a ?? []).length === (b ?? []).length && (a ?? []).every((f) => (b ?? []).includes(f));
+/** Two lists of grants are the same when each key has the same reach and the same list of fields. */
+const same = (a: PermissionGrant[], b: PermissionGrant[]) => a.length === b.length && a.every((x) => b.some((y) => y.key === x.key && y.scope === x.scope && sameFields(x.fields, y.fields)));
 
 /** The permissions of one chosen target, with what reaches it from elsewhere shown beside them. */
 export function TargetEditor({ kind, id }: { kind: PermissionTargetKind; id: string }) {

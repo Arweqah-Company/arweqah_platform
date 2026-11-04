@@ -1,3 +1,4 @@
+import { LEGACY_SELF_EDITABLE_FIELDS } from '../employees/field-rules';
 /**
  * Permission keys of the platform: one for every page (view) and one for every button or action (add, edit, delete, move,
  * approve, reject, export, import…). A page needs its view key; a button shows only for people who hold its key, and the
@@ -113,9 +114,6 @@ export const CorePermission = {
   EmployeesHistoryView: 'employees.history_view',
   EmployeesPhotoUpdate: 'employees.photo_update',
   EmployeesBulkUpdate: 'employees.bulk_update',
-  EmployeeFieldsView: 'employee_fields.view',
-  EmployeeFieldsEdit: 'employee_fields.edit',
-  EmployeeFieldsExport: 'employee_fields.export',
   DirectoryView: 'directory.view',
   DirectoryExport: 'directory.export',
   EmployeesResendInvite: 'employees.resend_invite',
@@ -192,13 +190,13 @@ const OWN_ACCOUNT_PERMISSIONS: { key: CorePermissionKey; scope: 'all' }[] = [
  * The role grows as modules arrive: add the key here and in a migration that inserts it into the `everyone` role (decision 155).
  * Tickets are seen and answered at the narrowest scope ("own": the ones the person sent or handles); wider scopes are given on the permissions page.
  */
-export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own' | 'all' }[] = [
+export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own' | 'all'; fields?: string[] }[] = [
   ...OWN_ACCOUNT_PERMISSIONS,
   { key: CorePermission.EmployeesView, scope: 'own' },
   { key: CorePermission.EmployeesHistoryView, scope: 'own' },
   { key: CorePermission.EmployeesPhotoUpdate, scope: 'own' },
   { key: CorePermission.DirectoryView, scope: 'all' },
-  { key: CorePermission.EmployeesUpdate, scope: 'own' },
+  { key: CorePermission.EmployeesUpdate, scope: 'own', fields: LEGACY_SELF_EDITABLE_FIELDS },
   { key: CorePermission.TicketsView, scope: 'own' },
   { key: CorePermission.TicketsCreate, scope: 'all' },
   { key: CorePermission.TicketsReply, scope: 'own' },

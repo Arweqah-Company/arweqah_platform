@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { createMongoAbility, subject, type MongoAbility, type RawRuleOf } from '@casl/ability';
-import { isTreeScope, type PermissionScope } from '@arweqah-platform/shared';
+import { fieldsOfGrant, isTreeScope, type PermissionScope } from '@arweqah-platform/shared';
 import type { AccessContext, ScopedResource } from '../domain/access-context';
 import { ForbiddenError } from '../../../common/domain/domain-error';
 
@@ -42,6 +42,25 @@ export class AbilityFactory {
 
   can(ctx: AccessContext, key: string, resource: ScopedResource): boolean {
     return this.build(ctx).can(key, subject('Record', { ...resource }));
+  }
+
+  /**
+   * The fields a person may change of one record (FR-94): the union of the fields of every grant of the permission whose reach includes the record.
+   * Like every grant, each one includes the person's own record.
+   */
+  fieldsFor(ctx: AccessContext, key: string, resource: ScopedResource): string[] {
+    const fields = new Set<string>();
+    for (const grant of ctx.grantsOf(key)) {
+      if (this.reaches(ctx, key, grant.scope, resource)) for (const field of fieldsOfGrant(grant)) fields.add(field);
+    }
+    return [...fields];
+  }
+
+  /** Does this one grant (by its own scope) reach the record? */
+  private reaches(ctx: AccessContext, key: string, scope: PermissionScope, resource: ScopedResource): boolean {
+    const rule = this.ruleFor(ctx, key, scope);
+    const rules: Rule[] = [...(rule ? [rule] : []), { action: key, subject: 'Record', conditions: { ownerId: ctx.userId } }];
+    return createMongoAbility(rules).can(key, subject('Record', { ...resource }));
   }
 
   assertCan(ctx: AccessContext, key: string, resource: ScopedResource): void {
