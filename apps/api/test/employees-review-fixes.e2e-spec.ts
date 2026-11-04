@@ -69,6 +69,19 @@ describe('Review fixes of the employees phase (FR-89, FR-91, FR-92, FR-93)', () 
       expect(after.workLocation).not.toBe('Raced place');
       expect(after.orgNode?.id).toBe(org.unitA.id);
     });
+    it('refuses a placement that changes nothing together with its plain values, and saves none of them', async () => {
+      const org = await t.factories.org();
+      const agent = await t.factories.signIn(await t.factories.user({ grants: [...HR_GRANTS, grant(P.EmployeesBulkUpdate, 'all')] }));
+      const person = await t.factories.user({ unit: org.unitA });
+      const before = (await agent.get(`/api/employees/${person.employeeId}`).expect(200)).body as EmployeeDto;
+      // The unit and title the person already has: the placement part changes nothing and is refused.
+      const body = { employeeIds: [person.employeeId], workLocation: 'No-op place', orgNodeId: org.unitA.id, jobTitleId: org.unitA.titleId, validFrom: todayInRiyadh(), reason: 'Nothing to move' };
+      const preview = (await agent.post('/api/employees/bulk-update').send({ ...body, dryRun: true }).expect(200)).body as BulkUpdateResultDto;
+      const real = (await agent.post('/api/employees/bulk-update').send(body).expect(200)).body as BulkUpdateResultDto;
+      expect(real.rejected).toEqual([expect.objectContaining({ id: person.employeeId, code: 'ASSIGNMENT_NO_CHANGE' })]);
+      expect(real.rejected).toEqual(preview.rejected);
+      expect(((await agent.get(`/api/employees/${person.employeeId}`).expect(200)).body as EmployeeDto).workLocation).toBe(before.workLocation);
+    });
   });
 
   describe('cancelling a pending change (FR-89)', () => {

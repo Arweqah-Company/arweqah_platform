@@ -92,10 +92,12 @@ export class EmployeeAssignmentsService {
       await this.repo.lockEmployee(employee.id, tx);
       await this.assertValid(employee, change, await this.repo.history(employee.id, undefined, tx));
       await how.alongside?.(tx);
-      return this.recordAndApply(employee, change, { validFrom: input.validFrom, reason: input.reason, actorId }, tx);
+      const result = await this.recordAndApply(employee, change, { validFrom: input.validFrom, reason: input.reason, actorId }, tx);
+      // Refused inside the transaction, so the `alongside` work is rolled back with it.
+      if (!result.recorded.length) throw new AssignmentNoChangeError();
+      return result;
     };
     const recorded = dryRun ? await rehearse(this.tx, run) : await this.tx.run(run);
-    if (!recorded.recorded.length) throw new AssignmentNoChangeError();
     if (dryRun) return recorded.recorded;
     if (how.announce !== false) await this.announce(employee.userId, Object.keys(recorded.appliedNow).length > 0);
     this.auditor.record(actorId, EMPLOYEE_AUDIT.assignmentChanged, employee.id, { fields: recorded.recorded, validFrom: input.validFrom });
