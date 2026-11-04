@@ -82,12 +82,18 @@ export class EmployeeAssignmentsService {
   /**
    * Records a change for an employee already found and allowed. With `dryRun` it is written and rolled back, so the answer (refused or not) is the real one;
    * nothing is announced or audited then. `announce: false` leaves telling the rest of the platform to the caller (a bulk edit does it once). Returns the columns the change touches.
+   * The employee is locked and the history read again inside the transaction before the change is checked, so a change made at the same time cannot slip in between the check and the write.
+   * `alongside` is more work for the same employee that must stand or fall with the placement (a bulk edit's plain fields): it runs in this transaction, after the check.
    */
-  async apply(employee: Employee, input: ChangeAssignmentsInput, how: { actorId: string; dryRun: boolean; announce?: boolean }): Promise<AssignmentColumn[]> {
+  async apply(employee: Employee, input: ChangeAssignmentsInput, how: { actorId: string; dryRun: boolean; announce?: boolean; alongside?: (tx: TransactionContext) => Promise<void> }): Promise<AssignmentColumn[]> {
     const { actorId, dryRun } = how;
     const change = placementOf(input);
-    await this.assertValid(employee, change, await this.repo.history(employee.id));
-    const run = (tx: TransactionContext) => this.recordAndApply(employee, change, { validFrom: input.validFrom, reason: input.reason, actorId }, tx);
+    const run = async (tx: TransactionContext) => {
+      await this.repo.lockEmployee(employee.id, tx);
+      await this.assertValid(employee, change, await this.repo.history(employee.id, undefined, tx));
+      await how.alongside?.(tx);
+      return this.recordAndApply(employee, change, { validFrom: input.validFrom, reason: input.reason, actorId }, tx);
+    };
     const recorded = dryRun ? await rehearse(this.tx, run) : await this.tx.run(run);
     if (!recorded.recorded.length) throw new AssignmentNoChangeError();
     if (dryRun) return recorded.recorded;
@@ -157,7 +163,7 @@ export class EmployeeAssignmentsService {
         await this.applyOne(row);
         applied += 1;
       } catch (error) {
-        // One failing row must not stall the rows behind it: it stays due and is tried again at the next run.
+        // One failing row must not stall the rows behind it: a row whose transaction failed stays due and is tried again at the next run.
         this.logger.error(`Placement change ${row.id} could not be applied: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
@@ -171,9 +177,14 @@ export class EmployeeAssignmentsService {
       await this.employees.update(row.employeeId, { [column]: valueOf(row) }, tx);
       await this.repo.markApplied(row.id, new Date(), tx);
     });
-    const employee = await this.employees.findById(row.employeeId);
-    if (employee) await this.announce(employee.userId, true);
+    // The change is in force from here and the row is no longer due: the audit entry comes first, and telling the platform may fail without losing it (nothing would retry it).
     this.auditor.record(null, EMPLOYEE_AUDIT.assignmentApplied, row.employeeId, { field: row.field, validFrom: row.validFrom });
+    try {
+      const employee = await this.employees.findById(row.employeeId);
+      if (employee) await this.announce(employee.userId, true);
+    } catch (error) {
+      this.logger.warn(`Placement change ${row.id} was applied but the platform could not be told: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   // ------------------------------------------------------------------ helpers

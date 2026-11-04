@@ -83,17 +83,24 @@ export class EmployeeBulkService {
     const plain = plainValues(input);
     const employee = await this.reach.find(ctx, id, placement ? P.EmployeesAssignChange : P.EmployeesUpdate);
     if (placement && Object.keys(plain).length && !this.reach.can(ctx, P.EmployeesUpdate, employee)) throw new NotFoundError('Employee', id);
-    // A refused placement must leave the plain values untouched: in a real run it is tried first, and rolled back, before anything is saved.
-    if (placement && !input.dryRun) await this.assignments.apply(employee, placementInput(input), { actorId, dryRun: true, announce: false });
-    if (Object.keys(plain).length) await this.applyPlain(employee, plain, input.dryRun, actorId);
-    if (placement) await this.assignments.apply(employee, placementInput(input), { actorId, dryRun: input.dryRun, announce: false });
+    await this.save(employee, input, plain, actorId);
     return employee.userId;
   }
 
-  private async applyPlain(employee: Employee, values: Record<string, unknown>, dryRun: boolean, actorId: string): Promise<void> {
-    const write = (tx: TransactionContext) => this.employees.update(employee.id, values, tx);
-    if (dryRun) return rehearse(this.tx, write);
-    await this.tx.run(write);
+  /** Saves the placement and the plain fields of one employee together: if the placement is refused nothing of them is saved (and the preview rolls both back). */
+  private async save(employee: Employee, input: BulkUpdateInput, plain: Record<string, unknown>, actorId: string): Promise<void> {
+    const hasPlain = Object.keys(plain).length > 0;
+    const write = (tx: TransactionContext) => this.employees.update(employee.id, plain, tx);
+    if (BULK_PLACEMENT_FIELDS.some((f) => input[f] !== undefined)) {
+      await this.assignments.apply(employee, placementInput(input), { actorId, dryRun: input.dryRun, announce: false, alongside: hasPlain ? write : undefined });
+    } else if (hasPlain) {
+      await (input.dryRun ? rehearse(this.tx, write) : this.tx.run(write));
+    }
+    if (hasPlain && !input.dryRun) await this.afterPlain(employee, plain, actorId);
+  }
+
+  /** What follows saving the plain fields: the base role follows the relation type, and the change is audited (field names only). */
+  private async afterPlain(employee: Employee, values: Record<string, unknown>, actorId: string): Promise<void> {
     if ('relationTypeId' in values) await this.employeesService.swapBaseRoleIfRelationChanged(employee, (values.relationTypeId as string | null) ?? null);
     this.auditor.record(actorId, EMPLOYEE_AUDIT.updated, employee.id, { fields: Object.keys(values) });
   }

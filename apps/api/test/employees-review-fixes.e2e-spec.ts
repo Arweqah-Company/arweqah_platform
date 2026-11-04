@@ -1,8 +1,11 @@
 import { CorePermission, type BulkUpdateResultDto, type DirectoryProfileDto, type EmployeeAssignmentDto, type EmployeeDto } from '@arweqah-platform/shared';
 import { describe, expect, it, vi } from 'vitest';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { todayInRiyadh } from '../src/common/domain/riyadh-date';
+import { EMPLOYEES_CHANGED } from '../src/core/access/application/access.events';
 import { EmployeeRepository } from '../src/modules/employees/domain/contracts/employee.repository';
 import { EmployeeAssignmentsService } from '../src/modules/employees/application/services/employee-assignments.service';
+import { AssignmentNoChangeError } from '../src/modules/employees/domain/errors/assignment.errors';
 import { dayBefore } from '../src/modules/employees/domain/rules/assignment.rules';
 import { dayFromToday, grant, HR_GRANTS, hrScenario, of } from './helpers/hr-scenario';
 import { useTestApp } from './setup/test-app';
@@ -40,6 +43,31 @@ describe('Review fixes of the employees phase (FR-89, FR-91, FR-92, FR-93)', () 
       expect(real.rejected).toEqual(preview.rejected);
       const after = (await agent.get(`/api/employees/${person.employeeId}`).expect(200)).body as EmployeeDto;
       expect(after.workLocation).toBe(before.workLocation);
+    });
+    it('saves the plain values and the placement of one employee together: a placement that fails at the real write takes the plain values back too', async () => {
+      const org = await t.factories.org();
+      const agent = await t.factories.signIn(await t.factories.user({ grants: [...HR_GRANTS, grant(P.EmployeesBulkUpdate, 'all')] }));
+      const person = await t.factories.user({ unit: org.unitA });
+      // What a change made at the same time does: the check passes, the write then finds the placement refused.
+      const employees = t.app.get(EmployeeRepository);
+      const write = employees.update.bind(employees);
+      let plainSaved = false;
+      const racing = vi.spyOn(employees, 'update').mockImplementation(async (id, values, tx) => {
+        if ('orgNodeId' in values && plainSaved) throw new AssignmentNoChangeError();
+        const saved = await write(id, values, tx);
+        if ('workLocation' in values) plainSaved = true;
+        return saved;
+      });
+      let real: BulkUpdateResultDto;
+      try {
+        real = (await agent.post('/api/employees/bulk-update').send({ employeeIds: [person.employeeId], workLocation: 'Raced place', orgNodeId: org.unitB.id, jobTitleId: org.unitB.titleId, validFrom: todayInRiyadh(), reason: 'Reorganisation' }).expect(200)).body as BulkUpdateResultDto;
+      } finally {
+        racing.mockRestore();
+      }
+      expect(real.rejected.map((r) => r.id)).toEqual([person.employeeId]);
+      const after = (await agent.get(`/api/employees/${person.employeeId}`).expect(200)).body as EmployeeDto;
+      expect(after.workLocation).not.toBe('Raced place');
+      expect(after.orgNode?.id).toBe(org.unitA.id);
     });
   });
 
@@ -84,6 +112,26 @@ describe('Review fixes of the employees phase (FR-89, FR-91, FR-92, FR-93)', () 
       expect(worked.manager?.id).toBe(boss.employeeId);
       const stuck = await t.db.query(`SELECT applied_at FROM employee_assignments WHERE employee_id = $1 AND field = 'org_node' AND valid_from = $2`, [person.employeeId, day]);
       expect(stuck[0].applied_at).toBeNull();
+    });
+    it('writes the audit entry of an applied change even when telling the platform fails afterwards, and counts the change as applied', async () => {
+      const { agent, person, boss } = await hrScenario(t, HR_GRANTS);
+      const day = dayFromToday(3);
+      await agent.post(`/api/employees/${person.employeeId}/assignments`).send({ managerId: boss.employeeId, validFrom: day, reason: 'Will be announced badly' }).expect(201);
+      const events = t.app.get(EventEmitter2);
+      const emit = events.emitAsync.bind(events);
+      const failing = vi.spyOn(events, 'emitAsync').mockImplementation((name, ...args) => (name === EMPLOYEES_CHANGED ? Promise.reject(new Error('a listener failed')) : emit(name, ...args)));
+      let applied: number;
+      try {
+        applied = await t.app.get(EmployeeAssignmentsService).applyDue(day);
+      } finally {
+        failing.mockRestore();
+      }
+      expect(applied).toBe(1);
+      expect(((await agent.get(`/api/employees/${person.employeeId}`).expect(200)).body as EmployeeDto).manager?.id).toBe(boss.employeeId);
+      await vi.waitFor(async () => {
+        const audit = await t.db.query(`SELECT count(*) FROM audit_logs WHERE action = 'employee.assignment.applied' AND entity_id = $1`, [person.employeeId]);
+        expect(Number(audit[0].count)).toBe(1);
+      });
     });
   });
 
