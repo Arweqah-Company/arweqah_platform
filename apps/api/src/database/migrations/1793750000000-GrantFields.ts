@@ -1,6 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-const TABLES = ['role_permissions', 'role_group_permissions', 'user_group_permissions', 'user_permissions'];
+/** Each table of grants and the column that says who holds the grant. */
+const TABLES: Record<string, string> = { role_permissions: 'role_id', role_group_permissions: 'group_id', user_group_permissions: 'group_id', user_permissions: 'user_id' };
 /** The details of the structure group: they were HR's, so every grant that reaches beyond the person's own record keeps them. */
 const STRUCTURE = ['companyId', 'orgNodeId', 'jobTitleId', 'managerId', 'relationTypeId', 'startDate', 'endDate', 'terminationReasonId', 'terminationReasonOther', 'employeeNumber'];
 
@@ -13,13 +14,19 @@ export class GrantFields1793750000000 implements MigrationInterface {
     name = 'GrantFields1793750000000'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        for (const table of TABLES) {
+        for (const [table, holder] of Object.entries(TABLES)) {
             await queryRunner.query(`ALTER TABLE "${table}" ADD "fields" text array`);
             await queryRunner.query(`
                 UPDATE "${table}" SET "fields" = CASE WHEN "scope" = 'own'
                     THEN ARRAY(SELECT "field" FROM "employee_field_rules" WHERE "editable_by_self" ORDER BY "field")
                     ELSE ARRAY(SELECT "field" FROM "employee_field_rules" WHERE "editable_by_hr" ORDER BY "field") || $1::text[] END
                 WHERE "permission_key" = 'employees.update'`, [STRUCTURE]);
+            // Whoever could choose who changes each field (the old key «employee_fields.edit») was never held back by the HR rules:
+            // their wider grant of «edit employees» now lists every field.
+            await queryRunner.query(`
+                UPDATE "${table}" t SET "fields" = ARRAY(SELECT "field" FROM "employee_field_rules") || $1::text[]
+                WHERE t."permission_key" = 'employees.update' AND t."scope" <> 'own'
+                  AND EXISTS (SELECT 1 FROM "${table}" e WHERE e."${holder}" = t."${holder}" AND e."permission_key" = 'employee_fields.edit')`, [STRUCTURE]);
             await queryRunner.query(`DELETE FROM "${table}" WHERE "permission_key" IN ('employee_fields.view', 'employee_fields.edit', 'employee_fields.export')`);
         }
         await queryRunner.query(`DELETE FROM "page_visibility_rules" WHERE "page_key" = 'employee-fields'`);
@@ -35,7 +42,7 @@ export class GrantFields1793750000000 implements MigrationInterface {
             ('fullName', false), ('idTypeId', false), ('idNumber', false), ('idExpiryDate', false), ('contractTypeId', false), ('contractTypeOther', false), ('contractCompanyId', false),
             ('isGosiRegistered', false), ('gosiCompanyId', false), ('gosiRegistrationDate', false), ('gosiSystemId', false), ('isQiwaContract', false), ('hasMedicalInsurance', false),
             ('healthInsuranceCompanyId', false), ('monthlyGrossSalary', false), ('salaryCurrencyCountryId', false), ('iban', false), ('notes', false)`);
-        for (const table of TABLES) await queryRunner.query(`ALTER TABLE "${table}" DROP COLUMN "fields"`);
+        for (const table of Object.keys(TABLES)) await queryRunner.query(`ALTER TABLE "${table}" DROP COLUMN "fields"`);
     }
 
 }

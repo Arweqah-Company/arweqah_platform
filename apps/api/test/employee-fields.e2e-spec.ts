@@ -133,7 +133,7 @@ describe('The fields a holder of «edit employees» may change belong to each gr
     await give(grant(P.EmployeesUpdate, 'own', ['iban'])).expect(200);
   });
 
-  it('does not count an unchanged ID number, IBAN or salary as a change just because it is stored with a new random IV (CodeRabbit PR 50)', async () => {
+  it('does not count an unchanged IBAN as a change just because it is stored with a new random IV (the ID number and salary go through the same loop) (CodeRabbit PR 50)', async () => {
     const { org, colleague } = await setup();
     const view = [grant(P.EmployeesView, 'all'), grant(P.EmployeesViewSensitive, 'all')];
     const finance = await t.factories.signIn(await t.factories.user({ unit: org.unitA, grants: [...view, grant(P.EmployeesUpdate, 'all', ['iban'])] }));

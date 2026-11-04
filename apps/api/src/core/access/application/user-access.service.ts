@@ -67,14 +67,17 @@ export class UserAccessService {
 
   /**
    * Nobody can hand out more than they hold: every permission of the roles must be one the actor has,
-   * at the same or a wider scope. Unknown roles are reported as not found.
+   * at the same or a wider scope, those of the groups the roles sit in included. Unknown roles are reported as not found.
    */
   async assertGrantable(actor: AccessContext, roleIds: string[], exempt: readonly string[] = []): Promise<void> {
     const unique = [...new Set(roleIds)];
     const roles = await this.roles.findByIds(unique);
     const missing = unique.find((id) => !roles.some((r) => r.id === id));
     if (missing) throw new NotFoundError('Role', missing);
-    this.assertHolds(actor, roles.filter((r) => !exempt.includes(r.id)).flatMap((r) => r.permissions));
+    const given = roles.filter((r) => !exempt.includes(r.id));
+    this.assertHolds(actor, given.flatMap((r) => r.permissions));
+    // A role also brings what the groups it sits in carry (decision 195).
+    this.assertHolds(actor, await this.groups.grantsOfGroupsHolding(given.map((r) => r.id)));
   }
 
   /** The roles a new employee starts with: the base role (Employee, or the collaborator base) and the role of their job title (those that exist). */
