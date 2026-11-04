@@ -31,7 +31,7 @@ export function ReplyBox({ ticketId }: { ticketId: string }) {
     <form className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-4" onSubmit={(e) => { e.preventDefault(); void send(); }} onKeyDown={onKeyDown} noValidate>
       {reply.isError && <Alert>{errorMessage(tc, reply.error)}</Alert>}
       <FormField label={t('reply.label')}>{(p) => <Textarea {...p} rows={3} maxLength={MAX_TICKET_TEXT} value={body} onChange={(e) => setBody(e.target.value)} />}</FormField>
-      <FileAttachments files={files} onChange={setFiles} max={MAX_TICKET_FILES} label={t('details.attachments')} />
+      <FileAttachments compact files={files} onChange={setFiles} max={MAX_TICKET_FILES} label={t('details.attachments')} />
       <div className="flex items-center justify-between gap-3">
         <span className="text-xs text-muted">{t('details.shortcut')}</span>
         <Button type="submit" disabled={reply.isPending || !body.trim()}>{t('reply.send')}</Button>

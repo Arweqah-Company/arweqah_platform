@@ -6,6 +6,7 @@ import { authFeature } from '@/features/auth';
 import { companiesFeature } from '@/features/companies';
 import { integrationsFeature } from '@/features/integrations';
 import { templatesFeature } from '@/features/templates';
+import { employeeFieldsFeature } from '@/features/employee-fields';
 import { employeesFeature } from '@/features/employees';
 import { homeFeature } from '@/features/home';
 import { myAccessFeature } from '@/features/my-access';
@@ -27,6 +28,7 @@ export const FEATURES: FeatureModule[] = [
   authFeature,
   homeFeature,
   employeesFeature,
+  employeeFieldsFeature,
   orgFeature,
   companiesFeature,
   tasksFeature,

@@ -1,4 +1,4 @@
-import { EMPLOYEE_DEFAULT_PERMISSIONS } from '@arweqah-platform/shared';
+import { EMPLOYEE_DEFAULT_PERMISSIONS, EMPLOYEE_FIELD_KEYS, SELF_EDITABLE_EMPLOYEE_FIELDS } from '@arweqah-platform/shared';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AppConfig } from '../../config/app-config.service';
@@ -10,6 +10,7 @@ import { AuthenticatorService } from '../../core/auth/application/authenticator.
 import { IdentityProvider } from '../../core/auth/application/identity-provider';
 import { User } from '../../core/auth/domain/user.entity';
 import { Employee } from '../../modules/employees/domain/entities/employee.entity';
+import { EmployeeFieldRule } from '../../modules/employees/domain/entities/employee-field-rule.entity';
 import { CompaniesSeeder } from './companies.seeder';
 import { DEFAULT_COMPANY_CODE } from './data/lookups.data';
 import { LookupsSeeder } from './lookups.seeder';
@@ -48,9 +49,16 @@ export class FoundationSeeder {
     await this.lookups.run();
     await this.companies.run();
     await this.demo.run();
+    await this.employeeFieldRules();
     await this.firstAdmin(admin);
     await this.ticketsDemo.run(await this.adminUserId());
     await this.autoRoles.sync();
+  }
+
+  /** Who may change each employee field (FR-94): a field with no row yet starts as the rule the platform always had; rows an administrator changed are left alone. */
+  private async employeeFieldRules(): Promise<void> {
+    const self: readonly string[] = SELF_EDITABLE_EMPLOYEE_FIELDS;
+    await this.db.getRepository(EmployeeFieldRule).createQueryBuilder().insert().values(EMPLOYEE_FIELD_KEYS.map((field) => ({ field, editableBySelf: self.includes(field), editableByHr: true }))).orIgnore().execute();
   }
 
   private async adminUserId(): Promise<string | null> {

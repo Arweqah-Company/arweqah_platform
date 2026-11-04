@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { Badge, SectionCard } from '@/shared/ui';
 
 const Row = ({ label, children }: { label: string; children: ReactNode }) => (
-  <div>
+  <dl>
     <dt className="text-xs text-muted">{label}</dt>
     <dd className="mt-0.5 min-h-6 text-sm">{children || <span className="text-muted">—</span>}</dd>
-  </div>
+  </dl>
 );
 
 const ltr = (value: string | number | null | undefined) => (value === null || value === undefined || value === '' ? null : <span dir="ltr">{value}</span>);

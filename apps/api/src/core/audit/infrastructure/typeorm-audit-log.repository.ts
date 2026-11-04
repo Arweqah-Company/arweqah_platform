@@ -55,6 +55,7 @@ export class TypeOrmAuditLogRepository extends AuditLogRepository {
     if (query.action) qb.andWhere('a.action = :action', { action: query.action });
     if (query.actorId) qb.andWhere('a.actor_id = :actorId', { actorId: query.actorId });
     if (query.entityType) qb.andWhere('a.entity_type = :entityType', { entityType: query.entityType });
+    if (query.entityId) qb.andWhere('a.entity_id = :entityId', { entityId: query.entityId });
     if (query.category) filterByCategory(qb, query.category);
     if (query.search) searchText(qb, query.search);
     if (query.actor) qb.andWhere('(u.name ILIKE :actor OR u.email ILIKE :actor)', { actor: `%${escapeLike(query.actor)}%` });

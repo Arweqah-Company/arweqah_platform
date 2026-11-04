@@ -143,7 +143,13 @@ export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
 /** The work email is the sign-in identity and cannot change here. */
 const { workEmail, ...updatableShape } = employeeShape;
 export const updateEmployeeSchema = z
-  .strictObject({ ...updatableShape, workEmail: workEmail.optional() })
+  .strictObject({
+    ...updatableShape,
+    workEmail: workEmail.optional(),
+    /** The day a change of unit, job title or manager starts (left out = today) and why (FR-89). */
+    effectiveFrom: isoDate.optional(),
+    changeReason: text(500).optional(),
+  })
   .superRefine(refineEmployee);
 export type UpdateEmployeeInput = z.infer<typeof updateEmployeeSchema>;
 
@@ -194,6 +200,13 @@ export const employeesQuerySchema = paginationQuerySchema.extend({
   contractEnding: z.stringbool().optional(),
   /** People with no unit or no job title (the system account is left out): they must be placed before their role and reach can be right. */
   needsPlacement: z.stringbool().optional(),
+  /** Employee numbers, comma separated (at most 100): the import's update mode finds the people a file names. */
+  employeeNumbers: z
+    .string()
+    .max(2000)
+    .transform((v) => v.split(',').map((n) => n.trim()).filter(Boolean))
+    .pipe(z.array(z.string().max(50)).min(1).max(100))
+    .optional(),
 });
 export type EmployeesQuery = z.infer<typeof employeesQuerySchema>;
 
@@ -233,8 +246,14 @@ export interface EmployeeNamesDto {
 }
 
 /** Sensitive values are null (and `sensitiveHidden` true) unless the viewer holds employees.view_sensitive. */
+/** The profile photo: JPEG or PNG, at most 2 MB (the browser crops it square first). */
+export const EMPLOYEE_PHOTO_MAX_BYTES = 2 * 1024 * 1024;
+export const EMPLOYEE_PHOTO_TYPES = ['image/jpeg', 'image/png'] as const;
+
 export interface EmployeeDto {
   id: string;
+  /** The stored photo (read with `GET /employees/:id/photo`); null when there is none. */
+  photoFileId: string | null;
   userId: string;
   isActive: boolean;
   isSystemAccount: boolean;
@@ -295,6 +314,7 @@ export interface EmployeeDto {
 
 export interface EmployeeListItemDto {
   id: string;
+  photoFileId: string | null;
   /** The sign-in account of this employee (what «sign in as» is started with). */
   userId: string;
   employeeNumber: string;
@@ -344,5 +364,3 @@ export interface CreateEmployeeResultDto {
   invitation: InviteResultDto;
 }
 
-/** The only fields of their own record a person may change when "edit employees" reaches them at scope `own` only (a plain employee); everything else is for HR and administrators. */
-export const SELF_EDITABLE_EMPLOYEE_FIELDS = ['workPhone', 'personalPhone', 'personalEmail', 'fullNameEn'] as const;

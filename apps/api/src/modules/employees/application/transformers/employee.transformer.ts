@@ -101,6 +101,7 @@ export class EmployeeTransformer {
       jobTitle: pick(titles, e.jobTitleId),
       isActive: states.get(e.userId) ?? false,
       needsPlacement: needsPlacement(e),
+      photoFileId: e.photoFileId,
       idExpiresSoon: isWithin(e.idExpiryDate, today, { fromPast: true }),
       contractEndsSoon: isWithin(e.endDate, today, { fromPast: false }),
       isOwn: e.userId === viewerId,
@@ -116,6 +117,7 @@ export class EmployeeTransformer {
 
   private plainFields(e: Employee) {
     return {
+      photoFileId: e.photoFileId,
       workLocation: e.workLocation,
       workCountryId: e.workCountryId,
       workMode: e.workMode as 0 | 1 | 2 | null,

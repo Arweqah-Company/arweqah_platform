@@ -52,3 +52,15 @@ export class InvalidReferenceError extends BusinessRuleError {
 export class SelfActionError extends BusinessRuleError {
   override readonly code = 'SELF_ACTION';
 }
+
+/** A field that can never be changed by the person themselves was switched on for them. */
+export class FieldNeverSelfEditableError extends BusinessRuleError {
+  override readonly code = 'FIELD_NEVER_SELF_EDITABLE';
+  constructor(fields: string[]) {
+    super('These details can never be changed by the employee themselves', {
+      fields,
+      messageAr: 'هذه البيانات (هوية أو عقد أو راتب أو الاسم) لا يمكن أن يعدّلها الموظف بنفسه',
+      messageEn: 'These details (identity, contract, pay or the name) can never be changed by the employee themselves',
+    });
+  }
+}

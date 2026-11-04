@@ -30,7 +30,7 @@ const REFERENCE_TABLES = new Set([
   'marital_statuses', 'marital_status_translations', 'residency_statuses', 'residency_status_translations',
   'id_types', 'id_type_translations', 'id_type_rules', 'id_type_rule_translations',
   'contract_types', 'contract_type_translations', 'gosi_systems', 'gosi_system_translations',
-  'termination_reasons', 'termination_reason_translations', 'org_level_templates', 'org_level_template_translations',
+  'termination_reasons', 'termination_reason_translations', 'org_level_templates', 'org_level_template_translations', 'employee_field_rules',
 ]);
 
 export interface TestContext {

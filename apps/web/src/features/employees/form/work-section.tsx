@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, useFormState } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { SectionCard } from '@/shared/ui';
 import { useJobTitleOptions, useManagerSearch, useOrgNodeOptions } from '../api';
@@ -12,6 +12,30 @@ interface Props {
   /** The current manager of an employee being edited, so the picker can show their name before any search. */
   currentManager?: { id: string; fullName: string } | null;
   employeeId?: string;
+}
+
+const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
+
+/** When the unit, the title or the manager of an employee being edited is changed: from which day, and why (kept in the history). */
+function PlacementChangeFields() {
+  const { t } = useTranslation('employees');
+  const { setValue, getValues } = useFormContext<FormState>();
+  const { dirtyFields } = useFormState<FormState>();
+  const changed = !!(dirtyFields.orgNodeId || dirtyFields.jobTitleId || dirtyFields.managerId);
+  useEffect(() => {
+    if (changed && !getValues('effectiveFrom')) setValue('effectiveFrom', today());
+    if (!changed) {
+      setValue('effectiveFrom', '');
+      setValue('changeReason', '');
+    }
+  }, [changed, getValues, setValue]);
+  if (!changed) return null;
+  return (
+    <>
+      <TextField name="effectiveFrom" label={t('placementChange.effectiveFrom')} type="date" required hint={t('placementChange.effectiveFromHint')} />
+      <TextField name="changeReason" label={t('placementChange.changeReason')} required hint={t('placementChange.changeReasonHint')} />
+    </>
+  );
 }
 
 /** Company → unit → job title → direct manager: each choice narrows the next, and the manager defaults from the unit. */
@@ -54,6 +78,7 @@ export function WorkSection({ options, currentManager, employeeId }: Props) {
       <ComboField name="orgNodeId" label={t('fields.orgNodeId')} options={nodeOptions} required disabled={!companyId} hint={companyId ? undefined : t('hints.pickCompanyFirst')} onPick={() => setValue('jobTitleId', '')} />
       <SelectField name="jobTitleId" label={t('fields.jobTitleId')} options={titleOptions} required hint={orgNodeId ? undefined : t('hints.pickUnitFirst')} />
       <ComboField name="managerId" label={t('fields.managerId')} options={managerOptions} onSearch={setSearch} onPick={() => setChosenByHand(true)} clearable hint={t('hints.managerDefault')} />
+      {employeeId && <PlacementChangeFields />}
       <TextField name="workLocation" label={t('fields.workLocation')} />
       <ComboField name="workCountryId" label={t('fields.workCountryId')} options={options.countries} clearable onPick={(v) => v && !getValues('salaryCurrencyCountryId') && setValue('salaryCurrencyCountryId', v)} />
       <SelectField name="workMode" label={t('fields.workMode')} options={options.workModes} />

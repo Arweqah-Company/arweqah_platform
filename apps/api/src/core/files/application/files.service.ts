@@ -14,6 +14,12 @@ export interface IncomingFile {
   size: number;
 }
 
+/** Stricter limits than the default (a profile photo: images only, small). */
+export interface UploadRules {
+  maxBytes: number;
+  types: readonly string[];
+}
+
 @Injectable()
 export class FilesService {
   constructor(
@@ -22,10 +28,10 @@ export class FilesService {
     private readonly repo: FileRepository,
   ) {}
 
-  async upload(ownerId: string, file: IncomingFile): Promise<FileDto> {
-    if (file.size > MAX_UPLOAD_BYTES) throw new FileTooLargeError();
+  async upload(ownerId: string, file: IncomingFile, rules: UploadRules = { maxBytes: MAX_UPLOAD_BYTES, types: ALLOWED_UPLOAD_TYPES }): Promise<FileDto> {
+    if (file.size > rules.maxBytes) throw new FileTooLargeError();
     const type = await this.inspector.detectType(file.buffer);
-    if (!type || !(ALLOWED_UPLOAD_TYPES as readonly string[]).includes(type)) throw new FileTypeNotAllowedError();
+    if (!type || !rules.types.includes(type)) throw new FileTypeNotAllowedError();
     const now = new Date();
     const storageKey = `${now.getUTCFullYear()}/${now.getUTCMonth() + 1}/${randomUUID()}`;
     await this.storage.put(storageKey, file.buffer, type);

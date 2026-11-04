@@ -1,6 +1,6 @@
-import { Download, FileSpreadsheet } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Button } from '@/shared/ui';
+import { Alert, Button, FileDropzone } from '@/shared/ui';
 import { MAX_IMPORT_BYTES, MAX_IMPORT_ROWS, type ImportColumn } from './types';
 import type { ImportFailure } from './use-import-flow';
 
@@ -43,12 +43,7 @@ export function PickStep({ columns, checking, error, onTemplate, onFile }: PickP
         <p className="mt-2 text-xs text-muted">{t('dataExchange.templateHint')}</p>
         <p className="text-xs text-muted">{columns.filter((c) => c.required).map((c) => c.header).join(' · ')} *</p>
       </div>
-      <label className="flex min-h-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-neutral-500 text-sm hover:bg-neutral-50">
-        <FileSpreadsheet className="size-6 text-link" aria-hidden />
-        {checking ? t('dataExchange.checking') : t('dataExchange.chooseFile')}
-        <span className="text-xs text-muted">{t('dataExchange.fileHint', { rows: MAX_IMPORT_ROWS, mb: MAX_IMPORT_BYTES / 1024 / 1024 })}</span>
-        <input type="file" className="sr-only" accept=".xlsx,.csv" disabled={checking} onChange={(e) => { const file = e.target.files?.[0]; if (file) onFile(file); e.target.value = ''; }} />
-      </label>
+      <FileDropzone label={t('dataExchange.chooseFile')} accept=".xlsx,.csv" maxBytes={MAX_IMPORT_BYTES} busy={checking} prompt={t('dataExchange.dropFile')} hint={t('dataExchange.fileHint', { rows: MAX_IMPORT_ROWS })} onFiles={(files) => files.forEach(onFile)} />
       {error && <Alert>{error}</Alert>}
     </>
   );

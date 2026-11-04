@@ -4,7 +4,8 @@ import { PAGE_TITLE_TARGET, type FeatureModule } from '@/core/feature';
 import ar from './i18n/ar.json';
 import en from './i18n/en.json';
 
-export { useManagerSearch } from './api';
+export { useJobTitleOptions, useManagerSearch, useOrgNodeOptions } from './api';
+export { EmployeeAvatar, employeePhotoUrl } from './employee-avatar';
 
 export const employeesFeature: FeatureModule = {
   id: 'employees',
@@ -17,6 +18,10 @@ export const employeesFeature: FeatureModule = {
   nav: [{ to: '/employees', labelKey: 'nav.employees', icon: Users, group: 'people', permission: CorePermission.EmployeesView, pageKey: 'employees' }],
   tour: [
     { key: 'employees', target: PAGE_TITLE_TARGET, route: '/employees', placement: 'bottom', can: [{ id: 'create', permission: CorePermission.EmployeesCreate }, { id: 'update', permission: CorePermission.EmployeesUpdate }, { id: 'roles', permission: CorePermission.EmployeesAssignRoles }, { id: 'deactivate', permission: CorePermission.EmployeesDeactivate }, { id: 'sensitive', permission: CorePermission.EmployeesViewSensitive }, { id: 'import', permission: CorePermission.EmployeesImport }, { id: 'export', permission: CorePermission.EmployeesExport }, { id: 'impersonate', permission: CorePermission.ImpersonationStart }] },
+    { key: 'directory', target: PAGE_TITLE_TARGET, route: '/employees?tab=team', placement: 'bottom', can: [{ id: 'export', permission: CorePermission.DirectoryExport }] },
+    { key: 'employee-history', target: PAGE_TITLE_TARGET, route: '/employees', placement: 'bottom' },
+    { key: 'bulk-update', target: PAGE_TITLE_TARGET, route: '/employees', placement: 'bottom' },
+    { key: 'employee-photo', target: PAGE_TITLE_TARGET, route: '/employees', placement: 'bottom' },
   ],
   i18n: { ar, en },
 };

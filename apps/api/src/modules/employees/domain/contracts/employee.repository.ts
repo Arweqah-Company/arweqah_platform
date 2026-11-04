@@ -1,4 +1,4 @@
-import type { EmployeesQuery, EmployeesSummaryDto, ManagerOptionDto } from '@arweqah-platform/shared';
+import type { DirectoryQuery, EmployeesQuery, EmployeesSummaryDto, ManagerOptionDto } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../../common/domain/transaction-context';
 import type { ScopeFilter } from '../../../../core/access/domain/access-context';
 import type { Employee } from '../entities/employee.entity';
@@ -8,6 +8,10 @@ export abstract class EmployeeRepository {
   abstract findById(id: string): Promise<Employee | null>;
   abstract findByUserId(userId: string): Promise<Employee | null>;
   abstract list(query: EmployeesQuery, scope: ScopeFilter): Promise<{ items: Employee[]; total: number }>;
+  /** The active teammates of the viewer (FR-92): same unit, not the viewer, system accounts left out, by name. */
+  abstract team(query: DirectoryQuery, viewer: Employee): Promise<{ items: Employee[]; total: number }>;
+  /** The names of employees by id. */
+  abstract names(ids: string[]): Promise<Map<string, string>>;
   /** Whether each account may sign in, by user id. */
   abstract activeStates(userIds: string[]): Promise<Map<string, boolean>>;
   /** Inserts an employee; unique and reference violations become domain errors (also under concurrency). */

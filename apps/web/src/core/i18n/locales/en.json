@@ -23,6 +23,8 @@
       "tasks": "Tasks"
     },
     "profile": "Profile",
+    "directory": "My team",
+    "employeeFields": "Employee field permissions",
     "myAccess": "My access",
     "tickets": "Tickets",
     "ticketSetup": "Ticket setup",
@@ -64,7 +66,9 @@
     "show": "Show",
     "rows": "Rows per page",
     "pageN": "Page {{page}}",
-    "actions": "Actions"
+    "actions": "Actions",
+    "selectPage": "Select the rows of this page",
+    "selectRow": "Select this row"
   },
   "errors": {
     "generic": "The request could not be completed. Try again.",
@@ -212,6 +216,7 @@
   "dataExchange": {
     "export": "Export",
     "import": "Import",
+    "update": "Update from file",
     "close": "Close",
     "exportTitle": "Export data",
     "exportDescription": "Choose what to export: the scope, the columns and the file type.",
@@ -236,7 +241,8 @@
     "template": "Download template",
     "templateHint": "An Excel file with the columns you need (required ones starred), drop-downs and a “Lists” sheet with every option.",
     "chooseFile": "Choose an Excel or CSV file",
-    "fileHint": "Up to {{rows}} rows and {{mb}} MB.",
+    "dropFile": "Drop an Excel or CSV file here, or click to browse",
+    "fileHint": "Up to {{rows}} rows.",
     "sheetTemplate": "Template",
     "sheetLists": "Lists",
     "checking": "Checking the file…",
@@ -338,10 +344,16 @@
     "turnedOn": "Platform admin mode is on.",
     "expired": "Platform admin mode stopped because of inactivity. Turn it on again when you need it."
   },
+  "dropzone": {
+    "promptOne": "Drop the file here, or click to browse",
+    "promptMany": "Drop the files here, or click to browse",
+    "limit": "Up to {{mb}} MB",
+    "busy": "Uploading…",
+    "badType": "This file type is not allowed.",
+    "tooBig": "The file is bigger than the limit ({{mb}} MB)."
+  },
   "attachments": {
-    "add": "Attach files",
     "remove": "Remove {{name}}",
-    "uploading": "Uploading…",
     "tooMany": "At most {{max}} files.",
     "failed": "The file could not be uploaded.",
     "hint": "Optional. Images, PDF files or documents."

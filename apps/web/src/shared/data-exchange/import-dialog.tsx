@@ -14,12 +14,15 @@ interface ImportDialogProps {
   filename: string;
   columns: ImportColumn[];
   /** Turns the rows of the uploaded file into checked rows: errors, or a `run` that saves the row. */
-  prepare: (rows: SheetRow[]) => PreparedRow[];
+  prepare: (rows: SheetRow[]) => PreparedRow[] | Promise<PreparedRow[]>;
   onImported?: () => void;
+  /** Words of the dialog when it is not the plain «import» (the update mode says what it does). */
+  title?: string;
+  description?: string;
 }
 
 /** Download the template, upload it filled in, see which rows are wrong, import the rest, get a report. */
-export function ImportDialog({ open, onOpenChange, filename, columns, prepare, onImported }: ImportDialogProps) {
+export function ImportDialog({ open, onOpenChange, filename, columns, prepare, onImported, title, description }: ImportDialogProps) {
   const { t } = useTranslation();
   const flow = useImportFlow(columns, prepare, onImported);
   const template = async () => downloadBlob(await buildTemplateBlob(columns, { template: t('dataExchange.sheetTemplate'), lists: t('dataExchange.sheetLists') }), `${filename}-template.xlsx`);
@@ -38,7 +41,7 @@ export function ImportDialog({ open, onOpenChange, filename, columns, prepare, o
   };
 
   return (
-    <Dialog open={open} onOpenChange={close} title={t('dataExchange.importTitle')} description={t('dataExchange.importDescription')}>
+    <Dialog open={open} onOpenChange={close} title={title ?? t('dataExchange.importTitle')} description={description ?? t('dataExchange.importDescription')}>
       <div className="flex flex-col gap-5">{steps[flow.phase]}</div>
     </Dialog>
   );

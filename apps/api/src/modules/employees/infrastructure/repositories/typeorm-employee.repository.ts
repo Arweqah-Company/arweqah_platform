@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, QueryFailedError, Repository, type SelectQueryBuilder } from 'typeorm';
-import type { EmployeesQuery, EmployeesSummaryDto, ManagerOptionDto } from '@arweqah-platform/shared';
+import { DataSource, In, QueryFailedError, Repository, type SelectQueryBuilder } from 'typeorm';
+import type { DirectoryQuery, EmployeesQuery, EmployeesSummaryDto, ManagerOptionDto } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../../common/domain/transaction-context';
 import { managerOf } from '../../../../common/infrastructure/typeorm-transaction-runner';
 import type { ScopeFilter } from '../../../../core/access/domain/access-context';
@@ -43,10 +43,28 @@ export class TypeOrmEmployeeRepository extends EmployeeRepository {
     return { items, total };
   }
 
+  async team(query: DirectoryQuery, viewer: Employee): Promise<{ items: Employee[]; total: number }> {
+    const qb = this.repo.createQueryBuilder('e').orderBy('e.full_name', 'ASC').addOrderBy('e.id', 'ASC').skip((query.page - 1) * query.pageSize).take(query.pageSize);
+    qb.where('e.is_system_account = false').andWhere('EXISTS (SELECT 1 FROM users u WHERE u.id = e.user_id AND u.is_active)');
+    qb.andWhere('e.org_node_id = :unitId AND e.id <> :viewerId', { unitId: viewer.orgNodeId, viewerId: viewer.id });
+    if (query.companyId) qb.andWhere('e.company_id = :companyId', { companyId: query.companyId });
+    if (query.jobTitleId) qb.andWhere('e.job_title_id = :jobTitleId', { jobTitleId: query.jobTitleId });
+    if (query.search) qb.andWhere('(e.full_name ILIKE :term OR e.full_name_en ILIKE :term OR e.work_email ILIKE :term OR e.work_phone ILIKE :term)', { term: `%${escapeLike(query.search)}%` });
+    const [items, total] = await qb.getManyAndCount();
+    return { items, total };
+  }
+
+  async names(ids: string[]): Promise<Map<string, string>> {
+    if (!ids.length) return new Map();
+    const rows = await this.repo.find({ select: { id: true, fullName: true }, where: { id: In(ids) } });
+    return new Map(rows.map((e) => [e.id, e.fullName]));
+  }
+
   private applyFilters(qb: SelectQueryBuilder<Employee>, query: EmployeesQuery): void {
     if (query.companyId) qb.andWhere('e.company_id = :companyId', { companyId: query.companyId });
     if (query.orgNodeId) qb.andWhere('e.org_node_id = :orgNodeId', { orgNodeId: query.orgNodeId });
     if (query.relationTypeId) qb.andWhere('e.relation_type_id = :relationTypeId', { relationTypeId: query.relationTypeId });
+    if (query.employeeNumbers) qb.andWhere('e.employee_number = ANY(:employeeNumbers)', { employeeNumbers: query.employeeNumbers });
     this.applyAttributeFilters(qb, query);
     if (query.search) {
       qb.andWhere('(e.full_name ILIKE :term OR e.employee_number ILIKE :term OR e.work_email ILIKE :term OR e.full_name_en ILIKE :term)', { term: `%${escapeLike(query.search)}%` });

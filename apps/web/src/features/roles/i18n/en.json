@@ -21,6 +21,8 @@
     "audit": "Audit",
     "org": "Organization",
     "employees": "Employees",
+    "employee_fields": "Employee fields",
+    "directory": "My team",
     "lookups": "Form options",
     "notifications": "Notifications and e-mail",
     "lists": "Lists",
