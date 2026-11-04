@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { me, server } from '../../test/msw';
@@ -23,6 +23,15 @@ describe('AppLayout navigation', () => {
     expect(screen.getByRole('menuitem', { name: 'الملف الشخصي' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'الإشعارات' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'تسجيل الخروج' })).toBeInTheDocument();
+  });
+
+  it('ends the header with the account menu, which alone holds sign-out', async () => {
+    open();
+    const header = await screen.findByRole('banner');
+    await screen.findByRole('button', { name: 'حسابي' });
+    expect(within(header).queryByRole('button', { name: 'تسجيل الخروج' })).not.toBeInTheDocument();
+    const buttons = within(header).getAllByRole('button');
+    expect(buttons[buttons.length - 1]).toHaveAccessibleName('حسابي');
   });
 
   it('leaves a page out of the menu while it is hidden from the person', async () => {

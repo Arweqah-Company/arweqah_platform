@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-04 — Shell: account menu last, smaller button radius, framed sidebar
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 184 | The account dropdown is the last item of the top bar and the only place of sign-out (the separate icon is gone; the phone drawer keeps its own); buttons use `--radius-button` (8 px) instead of the 12 px control radius; the sidebar is a white 24 px frame holding the `ink` panel at 16 px | The owner's screens: sign-out was shown twice, buttons looked too round, and the sidebar sits on a white rounded backdrop | The owner wants another radius scale |
+
 ## 2026-11-04 — Deploy frees disk before it pulls
 
 | # | Decision | Why | Revisit when |

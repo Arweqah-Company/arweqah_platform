@@ -1,4 +1,4 @@
-import { Globe, LogOut, Menu } from 'lucide-react';
+import { Globe, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { CorePermission, type MeDto } from '@arweqah-platform/shared';
 import type { NavItem } from '@/core/feature';
@@ -18,7 +18,7 @@ interface HeaderProps {
   onSignOut: () => void;
 }
 
-/** Floating rounded bar: menu button (phone), language, notifications, the signed-in person with the account menu, sign-out. */
+/** Floating rounded bar: menu button (phone), admin mode, notifications, theme, language, and last the signed-in person with the account menu (it holds sign-out). */
 export function AppHeader({ me, accountItems, menuOpen, onToggleMenu, onSignOut }: HeaderProps) {
   const { t, i18n } = useTranslation();
   const save = useSavePreferences();
@@ -30,7 +30,6 @@ export function AppHeader({ me, accountItems, menuOpen, onToggleMenu, onSignOut 
       </Button>
       <BrandLogo layout="horizontal" width={96} className="lg:hidden" />
       <div className="ms-auto flex items-center gap-0.5 sm:gap-3">
-        <AccountMenu me={me} items={accountItems} onSignOut={onSignOut} />
         <span data-tour="admin-mode" className="inline-flex"><AdminModeToggle /></span>
         {can(CorePermission.NotificationsView) && <span data-tour="notifications" className="inline-flex"><NotificationBell /></span>}
         <span data-tour="language-theme" className="flex items-center gap-0.5 sm:gap-3">
@@ -40,9 +39,7 @@ export function AppHeader({ me, accountItems, menuOpen, onToggleMenu, onSignOut 
           <span className="max-sm:sr-only">{t('language.switchTo')}</span>
         </Button>
         </span>
-        <Button variant="ghost" size="icon" className="max-lg:hidden" aria-label={t('actions.signOut')} onClick={onSignOut}>
-          <LogOut className="size-5 rtl:-scale-x-100" />
-        </Button>
+        <AccountMenu me={me} items={accountItems} onSignOut={onSignOut} />
       </div>
     </header>
   );
