@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-04 — Deploy frees disk before it pulls
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 183 | `scripts/server/deploy.sh` runs `docker image prune -af` before `docker compose pull` and again at the end (it was `prune -f` at the end only) | Each deploy pulls images tagged with a new commit SHA; the old ones are not dangling, so `prune -f` kept them, and the disk of the server filled until the deploy of 2026-11-03 failed with `no space left on device` while pulling | The server keeps more than one version for fast rollback, or disk alarms exist |
+
 ## 2026-11-03 — ZAP API scan in four parallel shards
 
 | # | Decision | Why | Revisit when |

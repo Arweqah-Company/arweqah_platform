@@ -6,6 +6,9 @@ cd "$(dirname "$0")/../.."
 export TAG="${1:?image tag required}"
 dc() { docker compose -f docker-compose.prod.yml "$@"; }
 
+# Every deploy pulls images tagged with a new commit SHA, so old ones are not "dangling" and pile up until the disk is full.
+# Clear everything unused (running containers keep their images) before the pull, so a full disk cannot stop the next deploy.
+docker image prune -af
 dc pull api web
 dc up -d postgres rabbitmq
 # Migrations run before the new code starts.
@@ -14,4 +17,4 @@ dc run --rm api node ../../node_modules/typeorm/cli.js -d dist/database/data-sou
 dc run --rm api node dist/database/seeds/seed.js
 dc up -d --remove-orphans
 sed -i "s/^TAG=.*/TAG=$TAG/" .env
-docker image prune -f
+docker image prune -af
