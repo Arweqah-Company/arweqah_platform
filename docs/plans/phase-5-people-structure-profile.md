@@ -479,7 +479,7 @@ FR في README §4، كيانات + هجرة + سطر في `docs/database-design
 
 ### 14.2 الصلاحيات
 - **«تحديث من ملف»:** زره وحواره يتبعان `employees.update`، والاستيراد يتبع `employees.import`، كلٌّ بمفتاحه (`ExchangeButtons permissions.update`).
-- **قراءة الصورة (القرار 188):** البوابة `employees.view` (لكل موظف نطاق `own` على الأقل) والخدمة تقرر: نطاق `employees.view` على السجل، أو (`directory.view` وزميل وحدة أو النفس). من أُزيل عنه `directory.view` لا يرى صور زملائه، ومن يصل للسجل بـ`employees.view` يراها.
+- **قراءة الصورة (القرار 190):** البوابة `employees.view` (لكل موظف نطاق `own` على الأقل) والخدمة تقرر: نطاق `employees.view` على السجل، أو (`directory.view` وزميل وحدة أو النفس). من أُزيل عنه `directory.view` لا يرى صور زملائه، ومن يصل للسجل بـ`employees.view` يراها.
 - **زميل غير نشط:** `isOfMyTeam` يرفض غير النشط لغير النفس، فيرثه ملف الزميل وصورته.
 
 ### 14.3 استقرار وواجهة
