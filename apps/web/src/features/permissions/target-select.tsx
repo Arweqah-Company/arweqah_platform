@@ -27,7 +27,7 @@ export function TargetSelect({ kind, value, options, loaded, onChange, onSearch 
   const listed = options ?? [];
   const shown = picked && picked.id === value && !listed.some((o) => o.id === value) ? [picked, ...listed] : listed;
   const empty = kind !== 'user' && loaded && listed.length === 0;
-  const choose = (id: string | null) => { setPicked(listed.find((o) => o.id === id) ?? null); onChange(id ?? ''); };
+  const choose = (id: string | null) => { setPicked(shown.find((o) => o.id === id) ?? null); onChange(id ?? ''); };
   return (
     <FormField label={t(`target.${kind}`)} hint={empty ? t(`noTargets.${kind}`) : t(`targetHint.${kind}`, { defaultValue: '' }) || undefined}>
       {(p) => <Combobox id={p.id} aria-describedby={p['aria-describedby']} label={t(`target.${kind}`)} value={value || null} placeholder={t('choose')} options={shown.map((o) => ({ value: o.id, label: name(o) }))} onChange={choose} onSearch={kind === 'user' ? onSearch : undefined} />}

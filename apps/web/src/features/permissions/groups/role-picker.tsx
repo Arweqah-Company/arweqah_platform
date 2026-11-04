@@ -1,12 +1,13 @@
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useRoles } from '@/features/roles';
 import { FormField, MultiCombobox } from '@/shared/ui';
+import { useTargetOptions } from '../api';
 
 /** The roles of a group: a searchable list of the existing roles to add from, and the chosen ones as chips that can be taken out again. */
 export function RolePicker({ value, onChange, disabled }: { value: string[]; onChange: (ids: string[]) => void; disabled?: boolean }) {
   const { t, i18n } = useTranslation('permissions', { keyPrefix: 'roleGroups' });
-  const roles = useRoles().data ?? [];
+  // The permissions page's own list of roles: an editor of groups needs `permissions.view`, not `roles.view`.
+  const roles = useTargetOptions('role', '').data ?? [];
   const name = (r: { nameAr: string; nameEn: string }) => (i18n.language === 'ar' ? r.nameAr : r.nameEn);
   const chosen = roles.filter((r) => value.includes(r.id));
   const options = roles.map((r) => ({ value: r.id, label: name(r) }));

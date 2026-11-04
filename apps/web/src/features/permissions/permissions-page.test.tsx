@@ -2,7 +2,7 @@ import type { PermissionTargetDto } from '@arweqah-platform/shared';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
-import { catalog, me, roles, server } from '../../../test/msw';
+import { catalog, me, server } from '../../../test/msw';
 import { renderPage } from '../../../test/render';
 import { PermissionsPage } from './permissions-page';
 import { chooseOption } from '../../../test/select';
@@ -83,7 +83,9 @@ describe('Permissions page: groups of roles and fields (FR-46, FR-94)', () => {
     const group = { id: 'g1', nameAr: 'فريق', nameEn: 'Team', description: null, roles: [], usersCount: 0 };
     const saved: unknown[] = [];
     server.use(
-      http.get('*/api/roles', () => HttpResponse.json([{ ...roles[0], id: 'a1', nameAr: 'دور أ', nameEn: 'A' }, { ...roles[0], id: 'b1', nameAr: 'دور ب', nameEn: 'B' }])),
+      // An editor of groups may lack roles.view: the roles come from the permissions page's own list, not from GET /roles.
+      http.get('*/api/roles', () => HttpResponse.json({ code: 'FORBIDDEN' }, { status: 403 })),
+      http.get('*/api/permission-targets/role', () => HttpResponse.json([{ id: 'a1', nameAr: 'دور أ', nameEn: 'A' }, { id: 'b1', nameAr: 'دور ب', nameEn: 'B' }])),
       http.get('*/api/permission-targets/role-group', () => HttpResponse.json([{ id: 'g1', nameAr: 'فريق', nameEn: 'Team' }])),
       http.get('*/api/permission-targets/role-group/g1', () => HttpResponse.json({ ...role, kind: 'role-group', id: 'g1' })),
       http.get('*/api/role-groups', () => HttpResponse.json([group])),
@@ -133,5 +135,21 @@ describe('Permissions page: groups of roles and fields (FR-46, FR-94)', () => {
     expect(asked[0]).toBe('');
     fireEvent.change(await screen.findByPlaceholderText('ابحث…'), { target: { value: 'س' } });
     await waitFor(() => expect(asked).toContain('س'));
+  });
+
+  it('keeps the chosen person shown after a search that no longer lists them, and again after choosing them from the pinned line (FR-47)', async () => {
+    serve(['permissions.view']);
+    server.use(http.get('*/api/permission-targets/user', ({ request }) => {
+      const q = new URL(request.url).searchParams.get('q');
+      return HttpResponse.json(q === 'ب' ? [{ id: 'u2', nameAr: 'بسمة', nameEn: 'Basma' }] : [{ id: 'u1', nameAr: 'سارة مجدي', nameEn: 'Sara Magdy' }]);
+    }));
+    renderPage(<PermissionsPage />);
+    await chooseOption((await screen.findByLabelText('أضع الصلاحيات على')), 'user');
+    await chooseOption(await screen.findByLabelText('الشخص'), 'u1');
+    fireEvent.click(screen.getByLabelText('الشخص'));
+    fireEvent.change(await screen.findByPlaceholderText('ابحث…'), { target: { value: 'ب' } });
+    await screen.findByText('بسمة');
+    fireEvent.click(await screen.findAllByText('سارة مجدي').then((all) => all[all.length - 1] as HTMLElement));
+    await waitFor(() => expect(screen.getByLabelText('الشخص')).toHaveTextContent('سارة مجدي'));
   });
 });

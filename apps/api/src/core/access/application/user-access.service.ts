@@ -117,10 +117,10 @@ export class UserAccessService {
     }
   }
 
-  /** Nobody gives a field to change that they cannot change themselves: the fields of a grant stay inside the union of the fields the giver holds. */
+  /** Nobody gives a field to change that they cannot change themselves: the fields of a grant stay inside the fields the giver holds at the same or a wider reach (a field held only for their own record is not given for every record). */
   private assertHoldsFields(actor: AccessContext, grant: PermissionGrant): void {
     if (!carriesFields(grant.key)) return;
-    const held = new Set(actor.grantsOf(grant.key).flatMap((g) => fieldsOfGrant(g)));
+    const held = new Set(actor.grantsOf(grant.key).filter((g) => scopeRank(g.scope) >= scopeRank(grant.scope)).flatMap((g) => fieldsOfGrant(g)));
     if (fieldsOfGrant(grant).some((field) => !held.has(field))) throw new ForbiddenError('You cannot assign more than you hold');
   }
 }

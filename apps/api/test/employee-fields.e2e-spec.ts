@@ -116,4 +116,33 @@ describe('The fields a holder of «edit employees» may change belong to each gr
     await limited.put(`/api/permission-targets/role/${role.id}`).send({ permissions: [{ key: P.EmployeesUpdate, scope: 'all', fields: ['workPhone', 'iban'] }] }).expect(403);
     await limited.put(`/api/permission-targets/role/${role.id}`).send({ permissions: [{ key: P.EmployeesUpdate, scope: 'all', fields: ['workPhone'] }] }).expect(200);
   });
+
+  it('never lets someone give a field at a reach wider than the grant that holds it (CodeRabbit PR 50)', async () => {
+    const { org } = await setup();
+    const withoutUpdate = PERMISSIONS_ADMIN.filter((g) => g.key !== P.EmployeesUpdate);
+    const giver = await t.factories.user({ unit: org.unitA, grants: [...withoutUpdate, grant(P.EmployeesUpdate, 'all', ['workPhone'])] });
+    const ownRole = await t.factories.role([grant(P.EmployeesUpdate, 'own', ['iban'])]);
+    const access = t.app.get(UserAccessService);
+    const roleIds = ((await t.db.query('SELECT role_id FROM user_roles WHERE user_id = $1', [giver.id])) as { role_id: string }[]).map((r) => r.role_id);
+    await access.replaceRoles(giver.id, [...roleIds, ownRole.id]);
+    const agent = await t.factories.signInAdminMode(giver);
+    const person = await t.factories.user();
+    const give = (permission: PermissionGrant) => agent.put(`/api/permission-targets/user/${person.id}`).send({ permissions: [permission] });
+    await give(grant(P.EmployeesUpdate, 'all', ['iban'])).expect(403);
+    await give(grant(P.EmployeesUpdate, 'all', ['workPhone'])).expect(200);
+    await give(grant(P.EmployeesUpdate, 'own', ['iban'])).expect(200);
+  });
+
+  it('does not count an unchanged ID number, IBAN or salary as a change just because it is stored with a new random IV (CodeRabbit PR 50)', async () => {
+    const { org, colleague } = await setup();
+    const view = [grant(P.EmployeesView, 'all'), grant(P.EmployeesViewSensitive, 'all')];
+    const finance = await t.factories.signIn(await t.factories.user({ unit: org.unitA, grants: [...view, grant(P.EmployeesUpdate, 'all', ['iban'])] }));
+    const IBAN = 'SA0380000000608010167519';
+    const before = await record(finance, colleague);
+    await finance.put(`/api/employees/${colleague.employeeId}`).send(formOf(before, { iban: IBAN })).expect(200);
+    const hr = await t.factories.signIn(await t.factories.user({ unit: org.unitA, grants: [...view, grant(P.EmployeesUpdate, 'all', ['workLocation'])] }));
+    const target = await record(hr, colleague);
+    expect(target.iban).toBe(IBAN);
+    await hr.put(`/api/employees/${colleague.employeeId}`).send(formOf(target, { workLocation: 'Riyadh', iban: target.iban })).expect(200);
+  });
 });
