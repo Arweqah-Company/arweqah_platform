@@ -1,20 +1,14 @@
 import { CorePermission, type EmployeeAssignmentDto, type EmployeeAssignmentsDto, type EmployeeDto } from '@arweqah-platform/shared';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { todayInRiyadh } from '../src/common/domain/riyadh-date';
 import { EmployeeAssignmentsService } from '../src/modules/employees/application/services/employee-assignments.service';
 import { dayBefore } from '../src/modules/employees/domain/rules/assignment.rules';
-import { grant, HR_GRANTS, hrScenario } from './helpers/hr-scenario';
+import { dayFromToday, grant, HR_GRANTS, hrScenario, of } from './helpers/hr-scenario';
 import { useTestApp } from './setup/test-app';
 
 const P = CorePermission;
 const hr = HR_GRANTS;
 
-const dayFromToday = (days: number): string => {
-  const date = new Date(`${todayInRiyadh()}T00:00:00Z`);
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
-};
-const of = (body: EmployeeAssignmentsDto, field: string): EmployeeAssignmentDto[] => body.items.filter((i) => i.field === field);
 
 describe('Dated placement: unit, job title and manager with history (FR-89)', () => {
   const t = useTestApp();
@@ -62,8 +56,10 @@ describe('Dated placement: unit, job title and manager with history (FR-89)', ()
     expect(after.orgNode?.id).toBe(org.unitB.id);
     expect(after.jobTitle?.id).toBe(org.unitB.titleId);
     expect(await service.applyDue(day)).toBe(0);
-    const audit: { count: string }[] = await t.db.query(`SELECT count(*) FROM audit_logs WHERE action = 'employee.assignment.applied' AND entity_id = $1`, [person.employeeId]);
-    expect(Number(audit[0]?.count)).toBe(2);
+    await vi.waitFor(async () => {
+      const audit: { count: string }[] = await t.db.query(`SELECT count(*) FROM audit_logs WHERE action = 'employee.assignment.applied' AND entity_id = $1`, [person.employeeId]);
+      expect(Number(audit[0]?.count)).toBe(2);
+    });
   });
 
   it('cancels a change that has not started and opens the period it closed again; a change in force cannot be cancelled', async () => {

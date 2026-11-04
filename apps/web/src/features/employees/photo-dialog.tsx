@@ -48,7 +48,10 @@ function PhotoForm({ employeeId, close }: { employeeId: string; close: () => voi
       setView({ zoom: 1, x: 0, y: 0 });
       setLoaded({ image, name: file.name });
     };
-    image.onerror = () => setProblem(t('photo.unreadable'));
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      setProblem(t('photo.unreadable'));
+    };
     image.src = url;
   };
 

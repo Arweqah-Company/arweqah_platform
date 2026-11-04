@@ -1,4 +1,5 @@
-import { CorePermission, type PermissionGrant } from '@arweqah-platform/shared';
+import { CorePermission, type EmployeeAssignmentDto, type EmployeeAssignmentsDto, type PermissionGrant } from '@arweqah-platform/shared';
+import { todayInRiyadh } from '../../src/common/domain/riyadh-date';
 import type { TestContext } from '../setup/test-app';
 
 export const grant = (key: string, scope: PermissionGrant['scope']): PermissionGrant => ({ key, scope });
@@ -15,3 +16,13 @@ export async function hrScenario(t: TestContext, grants: PermissionGrant[]) {
   const boss = await t.factories.user({ unit: org.unitA });
   return { org, admin, agent, person, boss };
 }
+
+/** The Riyadh date `days` from today (negative for the past). */
+export const dayFromToday = (days: number): string => {
+  const date = new Date(`${todayInRiyadh()}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+};
+
+/** The periods of one field (`org_node`, `job_title`, `manager`) in an employee's history. */
+export const of = (body: EmployeeAssignmentsDto, field: string): EmployeeAssignmentDto[] => body.items.filter((i) => i.field === field);

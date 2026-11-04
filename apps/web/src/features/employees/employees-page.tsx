@@ -38,7 +38,7 @@ function EmployeesList() {
   const { importing, updating } = useEmployeesImport();
   const { query, loadAll, table } = useServerList<EmployeeListItemDto>('employees', '/employees', list, { search: list.term || undefined, ...toEmployeesQuery(list.filters.values) });
   const bulk = useBulkEdit(query.data?.items);
-  const exchange = <ExchangeButtons permissions={{ export: CorePermission.EmployeesExport, import: CorePermission.EmployeesImport }} exporting={{ columns: exportColumns, filename: 'employees', pageRows: query.data?.items ?? [], total: query.data?.total ?? 0, loadAll }} importing={importing} updating={updating} />;
+  const exchange = <ExchangeButtons permissions={{ export: CorePermission.EmployeesExport, import: CorePermission.EmployeesImport, update: CorePermission.EmployeesUpdate }} exporting={{ columns: exportColumns, filename: 'employees', pageRows: query.data?.items ?? [], total: query.data?.total ?? 0, loadAll }} importing={importing} updating={updating} />;
 
   return (
     <>

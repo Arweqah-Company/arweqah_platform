@@ -1,5 +1,5 @@
 import { BULK_UPDATE_MAX, CorePermission, type BulkUpdateResultDto, type EmployeeDto, type PermissionGrant } from '@arweqah-platform/shared';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { todayInRiyadh } from '../src/common/domain/riyadh-date';
 import { useTestApp } from './setup/test-app';
 
@@ -50,13 +50,15 @@ describe('Bulk edit of employees (FR-93)', () => {
       expect(after.orgNode?.id).toBe(org.unitB.id);
       expect(after.jobTitle?.id).toBe(org.unitB.titleId);
     }
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    for (const p of people) {
-      const audit = await t.db.query(`SELECT count(*) FROM audit_logs WHERE action = 'employee.assignment.changed' AND entity_id = $1`, [p.employeeId]);
-      expect(Number(audit[0].count)).toBe(1);
-    }
-    const summary = await t.db.query(`SELECT changes FROM audit_logs WHERE action = 'employee.bulk_updated' ORDER BY created_at DESC LIMIT 1`);
-    expect(summary[0].changes).toMatchObject({ accepted: ids.length, rejected: 0 });
+    // The audit entries are written a moment after the answer: wait for them (bounded) instead of sleeping for a fixed time.
+    await vi.waitFor(async () => {
+      for (const p of people) {
+        const audit = await t.db.query(`SELECT count(*) FROM audit_logs WHERE action = 'employee.assignment.changed' AND entity_id = $1`, [p.employeeId]);
+        expect(Number(audit[0].count)).toBe(1);
+      }
+      const summary = await t.db.query(`SELECT changes FROM audit_logs WHERE action = 'employee.bulk_updated' ORDER BY created_at DESC LIMIT 1`);
+      expect(summary[0].changes).toMatchObject({ accepted: ids.length, rejected: 0 });
+    });
   });
 
   it('refuses an employee of another company without touching the others', async () => {

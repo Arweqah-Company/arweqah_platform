@@ -12,7 +12,7 @@ import { EmployeePhotoService } from '../../application/services/employee-photo.
 
 const P = CorePermission;
 
-/** The profile photo of an employee (FR-91): set and removed with `employees.photo_update`, read by whoever holds `directory.view` for their teammates, and by whoever reaches the record with `employees.view`. */
+/** The profile photo of an employee (FR-91): set and removed with `employees.photo_update`, the route needs `employees.view` (every employee holds it for their own record) and the service decides: the record's reach, or `directory.view` for teammates. */
 @ApiTags('employees')
 @Controller('employees/:id/photo')
 @HiddenWithPage('employees')
@@ -35,7 +35,7 @@ export class EmployeePhotoController {
   }
 
   @Get()
-  @RequirePermission(P.DirectoryView)
+  @RequirePermission(P.EmployeesView)
   async read(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Res() res: Response): Promise<void> {
     const file = await this.photos.fileOf(ctx, id);
     const opened = await this.photos.open(file);

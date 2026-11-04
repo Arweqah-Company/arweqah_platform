@@ -45,7 +45,7 @@ describe('Employee profile photo (FR-91)', () => {
     await hr.put(`/api/employees/${person.employeeId}/photo`).attach('file', PNG, { filename: 'x.png', contentType: 'image/png' }).expect(200);
   });
 
-  it("is read by the person's teammates (and who reaches the record), not by another unit (404) nor without the team key (403); a missing photo is a 404", async () => {
+  it("is read by the person's teammates (and who reaches the record), not by another unit nor without the team key (404, as for any record out of reach); a missing photo is a 404", async () => {
     const { org, person, colleague, own } = await setup();
     await own.put(`/api/employees/${person.employeeId}/photo`).attach('file', PNG, { filename: 'me.png', contentType: 'image/png' }).expect(200);
     const seeing = await t.factories.signIn(colleague);
@@ -54,6 +54,6 @@ describe('Employee profile photo (FR-91)', () => {
     const otherUnit = await t.factories.signIn(await t.factories.user({ unit: org.unitB }));
     await otherUnit.get(`/api/employees/${person.employeeId}/photo`).expect(404);
     const stranger = await t.factories.signIn(await t.factories.user({ without: ['directory.'] }));
-    await stranger.get(`/api/employees/${person.employeeId}/photo`).expect(403);
+    await stranger.get(`/api/employees/${person.employeeId}/photo`).expect(404);
   });
 });

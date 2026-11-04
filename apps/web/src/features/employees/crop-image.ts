@@ -24,6 +24,9 @@ export function drawCrop(canvas: HTMLCanvasElement, image: CanvasImageSource & {
   const { sx, sy, side } = cropRect(image.width, image.height, view);
   canvas.width = size;
   canvas.height = size;
+  // A JPEG has no transparency: a transparent PNG would turn black, so the picture is drawn on white (the preview and the file look the same).
+  context.fillStyle = 'white';
+  context.fillRect(0, 0, size, size);
   context.drawImage(image, sx, sy, side, side, 0, 0, size, size);
 }
 

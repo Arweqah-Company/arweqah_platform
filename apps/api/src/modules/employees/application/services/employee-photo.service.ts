@@ -8,6 +8,7 @@ import type { AccessContext } from '../../../../core/access/domain/access-contex
 import { FilesService, type IncomingFile } from '../../../../core/files/application/files.service';
 import type { StoredFile } from '../../../../core/files/domain/stored-file.entity';
 import { EmployeeRepository } from '../../domain/contracts/employee.repository';
+import type { Employee } from '../../domain/entities/employee.entity';
 import { EMPLOYEE_AUDIT } from '../messages/employee.messages';
 import { EmployeeReachPolicy } from '../policies/employee-reach.policy';
 import { EmployeeAuditService } from './employee-audit.service';
@@ -43,9 +44,14 @@ export class EmployeePhotoService {
   /** The photo file of an employee the caller may see: whom they reach by `employees.view`, themselves and their teammates; none stored is a 404 (the screen shows the initial). */
   async fileOf(ctx: AccessContext, employeeId: string): Promise<StoredFile> {
     const employee = await this.employees.findById(employeeId);
-    if (!employee || !(this.reach.can(ctx, CorePermission.EmployeesView, employee) || (await this.reach.isOfMyTeam(ctx, employee)))) throw new NotFoundError('Employee', employeeId);
+    if (!employee || !(await this.mayRead(ctx, employee))) throw new NotFoundError('Employee', employeeId);
     if (!employee.photoFileId) throw new NotFoundError('Photo', employeeId);
     return this.files.getGranted(employee.photoFileId);
+  }
+
+  /** Whoever reaches the record with `employees.view`, or (with `directory.view`) the person's teammates. */
+  private async mayRead(ctx: AccessContext, employee: Employee): Promise<boolean> {
+    return this.reach.can(ctx, CorePermission.EmployeesView, employee) || (ctx.has(CorePermission.DirectoryView) && (await this.reach.isOfMyTeam(ctx, employee)));
   }
 
   open(file: StoredFile) {

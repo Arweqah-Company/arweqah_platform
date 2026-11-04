@@ -83,6 +83,8 @@ export class EmployeeBulkService {
     const plain = plainValues(input);
     const employee = await this.reach.find(ctx, id, placement ? P.EmployeesAssignChange : P.EmployeesUpdate);
     if (placement && Object.keys(plain).length && !this.reach.can(ctx, P.EmployeesUpdate, employee)) throw new NotFoundError('Employee', id);
+    // A refused placement must leave the plain values untouched: in a real run it is tried first, and rolled back, before anything is saved.
+    if (placement && !input.dryRun) await this.assignments.apply(employee, placementInput(input), { actorId, dryRun: true, announce: false });
     if (Object.keys(plain).length) await this.applyPlain(employee, plain, input.dryRun, actorId);
     if (placement) await this.assignments.apply(employee, placementInput(input), { actorId, dryRun: input.dryRun, announce: false });
     return employee.userId;
@@ -104,7 +106,9 @@ export class EmployeeBulkService {
   }
 }
 
+/** A person outside the caller's reach is refused as «not found» and carries no name: the list must not tell who they are. */
 function refusal(person: { id: string; fullName: string }, error: DomainError): BulkRefusalDto {
   const invalid = error instanceof InvalidReferenceError;
-  return { ...person, code: invalid ? 'INVALID_REFERENCE' : error.code, message: error.message };
+  const named = error instanceof NotFoundError ? { id: person.id, fullName: '' } : person;
+  return { ...named, code: invalid ? 'INVALID_REFERENCE' : error.code, message: error.message };
 }

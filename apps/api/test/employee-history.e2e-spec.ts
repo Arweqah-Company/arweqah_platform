@@ -1,5 +1,5 @@
 import { CorePermission, type EmployeeAssignmentsDto, type EmployeeChangeDto, type Paginated } from '@arweqah-platform/shared';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { todayInRiyadh } from '../src/common/domain/riyadh-date';
 import { grant, HR_GRANTS, hrScenario } from './helpers/hr-scenario';
 import { useTestApp } from './setup/test-app';
@@ -12,10 +12,10 @@ describe("The employee's history tab: placement with names and the change log (F
 
   const setup = () => hrScenario(t, hr);
 
-  /** The whole edit form with the given fields changed (the update takes the full form). */
+  /** The whole edit form with the given fields changed (the update takes the full form); the edit must succeed. */
   async function edit(agent: Awaited<ReturnType<typeof setup>>['agent'], id: string, changes: Record<string, unknown>) {
     const before = (await agent.get(`/api/employees/${id}`).expect(200)).body;
-    return agent.put(`/api/employees/${id}`).send({ companyId: before.company.id, orgNodeId: before.orgNode?.id, jobTitleId: before.jobTitle?.id, workEmail: before.workEmail, employeeNumber: before.employeeNumber, fullName: before.fullName, startDate: before.startDate, ...changes });
+    return agent.put(`/api/employees/${id}`).send({ companyId: before.company.id, orgNodeId: before.orgNode?.id, jobTitleId: before.jobTitle?.id, workEmail: before.workEmail, employeeNumber: before.employeeNumber, fullName: before.fullName, startDate: before.startDate, ...changes }).expect(200);
   }
 
   it('shows the names of the unit, the title and the manager and of who made the change, not only their ids', async () => {
@@ -33,12 +33,14 @@ describe("The employee's history tab: placement with names and the change log (F
 
   it('lists what was done to the record, newest first, with field names and who did it', async () => {
     const { agent, org, person } = await setup();
-    await (await edit(agent, person.employeeId, { workLocation: 'Riyadh HQ' })).body;
+    await edit(agent, person.employeeId, { workLocation: 'Riyadh HQ' });
     await agent.post(`/api/employees/${person.employeeId}/assignments`).send({ orgNodeId: org.unitB.id, jobTitleId: org.unitB.titleId, validFrom: todayInRiyadh(), reason: 'Moved' }).expect(201);
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    const res = await agent.get(`/api/employees/${person.employeeId}/changes`).expect(200);
-    const page = res.body as Paginated<EmployeeChangeDto>;
-    expect(page.items.map((i) => i.action)).toEqual(expect.arrayContaining(['employee.updated', 'employee.assignment.changed']));
+    // The audit entries are written a moment after the answer: wait for them instead of sleeping for a fixed time.
+    const page = await vi.waitFor(async () => {
+      const body = (await agent.get(`/api/employees/${person.employeeId}/changes`).expect(200)).body as Paginated<EmployeeChangeDto>;
+      expect(body.items.map((i) => i.action)).toEqual(expect.arrayContaining(['employee.updated', 'employee.assignment.changed']));
+      return body;
+    });
     const update = page.items.find((i) => i.action === 'employee.updated');
     expect(update?.fields).toContain('workLocation');
     expect(update?.actorName).toBeTruthy();
@@ -48,9 +50,13 @@ describe("The employee's history tab: placement with names and the change log (F
   it('never carries a value, only field names', async () => {
     const { agent, person } = await setup();
     await edit(agent, person.employeeId, { workLocation: 'SECRET-PLACE-123' });
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    const res = await agent.get(`/api/employees/${person.employeeId}/changes`).expect(200);
-    expect(JSON.stringify(res.body)).not.toContain('SECRET-PLACE-123');
+    // Only once the audit entry exists does "the value is absent" say something.
+    const body = await vi.waitFor(async () => {
+      const found = (await agent.get(`/api/employees/${person.employeeId}/changes`).expect(200)).body as Paginated<EmployeeChangeDto>;
+      expect(found.items.some((i) => i.action === 'employee.updated')).toBe(true);
+      return found;
+    });
+    expect(JSON.stringify(body)).not.toContain('SECRET-PLACE-123');
   });
 
   it('is read by a person for their own record only with the own scope; a colleague gets 404', async () => {

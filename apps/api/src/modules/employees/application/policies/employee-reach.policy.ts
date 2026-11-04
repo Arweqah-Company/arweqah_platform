@@ -18,11 +18,12 @@ export class EmployeeReachPolicy {
     return this.ability.can(ctx, key, { ownerId: employee.userId, companyId: employee.companyId, orgNodeId: employee.orgNodeId });
   }
 
-  /** The person themselves, or someone of their very own unit («My team»). */
+  /** The person themselves, or an active person of their very own unit («My team»): someone who can no longer sign in is not on the team. */
   async isOfMyTeam(ctx: AccessContext, employee: Employee): Promise<boolean> {
     if (employee.userId === ctx.userId) return true;
     const viewer = await this.employees.findByUserId(ctx.userId);
-    return !!viewer && isTeammate(viewer, employee);
+    if (!viewer || !isTeammate(viewer, employee)) return false;
+    return (await this.employees.activeStates([employee.userId])).get(employee.userId) ?? false;
   }
 
   async find(ctx: AccessContext, id: string, key: string): Promise<Employee> {

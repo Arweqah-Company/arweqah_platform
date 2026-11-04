@@ -1,11 +1,13 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { server } from '../../../test/msw';
 import { employeeFixture, openEmployeePage } from '../../../test/employees-fixtures';
 
 const CAN = ['employees.view', 'employees.photo_update'];
 const open = (keys: string[], photoFileId: string | null) => openEmployeePage(keys, employeeFixture({ photoFileId }));
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe('Employee profile photo on the page (FR-91)', () => {
   it('offers to add a photo to who may change it', async () => {
@@ -40,5 +42,17 @@ describe('Employee profile photo on the page (FR-91)', () => {
     open(['employees.view'], 'f1');
     await screen.findByRole('heading', { name: 'الصورة الشخصية' });
     expect(screen.queryByRole('button', { name: 'تغيير الصورة' })).not.toBeInTheDocument();
+  });
+
+  it('lets go of the temporary link of a picture the browser cannot read', async () => {
+    const revoked: string[] = [];
+    Object.assign(URL, { createObjectURL: () => 'blob:unreadable', revokeObjectURL: (u: string) => revoked.push(u) });
+    vi.stubGlobal('Image', class { onload: (() => void) | null = null; onerror: (() => void) | null = null; set src(_value: string) { queueMicrotask(() => this.onerror?.()); } });
+    open(CAN, null);
+    fireEvent.click(await screen.findByRole('button', { name: 'إضافة صورة' }));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(dialog.querySelector('input[type=file]') as HTMLInputElement, { target: { files: [new File(['x'], 'broken.png', { type: 'image/png' })] } });
+    expect(await within(dialog).findByText('تعذّرت قراءة الصورة.')).toBeInTheDocument();
+    expect(revoked).toEqual(['blob:unreadable']);
   });
 });

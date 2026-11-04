@@ -51,7 +51,7 @@ describe('A change of unit, title or manager asks from which day and why (FR-89)
     names: { relationType: null, workCountry: null, nationality: null, maritalStatus: null, residencyStatus: null, idType: null, contractType: null, contractCompany: null, gosiCompany: null, healthInsuranceCompany: null, gosiSystem: null, terminationReason: null, salaryCurrency: null },
   };
 
-  it('shows the day and the reason only once the unit is changed, and asks for the reason before saving', async () => {
+  it('shows the day and the reason fields only once the unit is changed', async () => {
     serve(saved);
     renderRoute([{ path: '/employees/:id/edit', element: <EmployeeFormPage /> }], '/employees/e1/edit');
     await screen.findByRole('heading', { name: 'تعديل بيانات الموظف' });

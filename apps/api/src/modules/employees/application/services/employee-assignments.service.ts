@@ -102,17 +102,19 @@ export class EmployeeAssignmentsService {
     return result;
   }
 
-  /** Cancels a change that has not started yet; the period it closed is open again. */
+  /** Cancels a change that has not started yet; the period before it takes over the days it covered (up to the next change, or without an end when it was the last). */
   async cancel(ctx: AccessContext, employeeId: string, assignmentId: string, actorId: string): Promise<EmployeeAssignmentsDto> {
     await this.reach.find(ctx, employeeId, CorePermission.EmployeesAssignChange);
     const row = await this.repo.findById(assignmentId);
     if (!row || row.employeeId !== employeeId) throw new NotFoundError('Assignment', assignmentId);
-    if (row.appliedAt || row.validFrom <= todayInRiyadh()) throw new AssignmentNotPendingError();
     await this.tx.run(async (tx) => {
       await this.repo.lockEmployee(employeeId, tx);
-      const previous = (await this.repo.history(employeeId, row.field, tx)).find((p) => p.validTo === dayBefore(row.validFrom));
-      await this.repo.remove(row.id, tx);
-      if (previous) await this.repo.close(previous.id, null, tx);
+      const periods = await this.repo.history(employeeId, row.field, tx);
+      const target = periods.find((p) => p.id === row.id);
+      if (!target || target.appliedAt || target.validFrom <= todayInRiyadh()) throw new AssignmentNotPendingError();
+      const previous = periods.find((p) => p.validTo === dayBefore(target.validFrom));
+      await this.repo.remove(target.id, tx);
+      if (previous) await this.repo.close(previous.id, target.validTo, tx);
     });
     this.auditor.record(actorId, EMPLOYEE_AUDIT.assignmentCancelled, employeeId, { field: row.field, validFrom: row.validFrom });
     return this.dto(await this.repo.history(employeeId));
@@ -149,18 +151,29 @@ export class EmployeeAssignmentsService {
   /** Writes to the employee records the changes whose day has come. Idempotent: a change is applied once. */
   async applyDue(today: string = todayInRiyadh()): Promise<number> {
     const due = await this.repo.due(today);
+    let applied = 0;
     for (const row of due) {
-      const column = ASSIGNMENT_COLUMN[row.field];
-      await this.tx.run(async (tx) => {
-        await this.employees.update(row.employeeId, { [column]: valueOf(row) }, tx);
-        await this.repo.markApplied(row.id, new Date(), tx);
-      });
-      const employee = await this.employees.findById(row.employeeId);
-      if (employee) await this.announce(employee.userId, true);
-      this.auditor.record(null, EMPLOYEE_AUDIT.assignmentApplied, row.employeeId, { field: row.field, validFrom: row.validFrom });
+      try {
+        await this.applyOne(row);
+        applied += 1;
+      } catch (error) {
+        // One failing row must not stall the rows behind it: it stays due and is tried again at the next run.
+        this.logger.error(`Placement change ${row.id} could not be applied: ${error instanceof Error ? error.message : String(error)}`);
+      }
     }
-    if (due.length) this.logger.log(`Applied ${due.length} placement change(s) that started`);
-    return due.length;
+    if (applied) this.logger.log(`Applied ${applied} placement change(s) that started`);
+    return applied;
+  }
+
+  private async applyOne(row: EmployeeAssignment): Promise<void> {
+    const column = ASSIGNMENT_COLUMN[row.field];
+    await this.tx.run(async (tx) => {
+      await this.employees.update(row.employeeId, { [column]: valueOf(row) }, tx);
+      await this.repo.markApplied(row.id, new Date(), tx);
+    });
+    const employee = await this.employees.findById(row.employeeId);
+    if (employee) await this.announce(employee.userId, true);
+    this.auditor.record(null, EMPLOYEE_AUDIT.assignmentApplied, row.employeeId, { field: row.field, validFrom: row.validFrom });
   }
 
   // ------------------------------------------------------------------ helpers
