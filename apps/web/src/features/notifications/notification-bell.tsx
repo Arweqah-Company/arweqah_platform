@@ -19,7 +19,7 @@ export function NotificationBell() {
   const ar = i18n.language === 'ar';
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
-      <Popover.Trigger className="relative rounded-[var(--radius-control)] p-2 hover:bg-neutral-50 data-[state=open]:bg-neutral-50" aria-label={t('bell', { count })}>
+      <Popover.Trigger className="relative rounded-[var(--radius-button)] p-2 hover:bg-neutral-50 data-[state=open]:bg-neutral-50" aria-label={t('bell', { count })}>
         <Bell className="size-5" />
         {count > 0 && (
           <span className="absolute -top-0.5 -end-0.5 grid min-w-5 place-items-center rounded-full bg-yellow-300 px-1 text-[11px] font-bold text-ink">

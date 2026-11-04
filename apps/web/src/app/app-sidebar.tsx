@@ -16,19 +16,20 @@ interface SidebarProps {
   onSignOut: () => void;
 }
 
-/** Floating dark panel: logo + collapse button, section label, pill-shaped links (the active one is cream). */
+/** A white rounded frame holding the dark panel: logo + collapse button, section label, links (the active one is cream). */
 export function AppSidebar({ items, open, collapsed, onToggleCollapsed, onNavigate, onSignOut }: SidebarProps) {
   const { t } = useTranslation();
   return (
     <aside
       data-tour="sidebar"
       className={cn(
-        'on-dark fixed inset-y-3 start-3 z-30 flex w-64 -translate-x-[115%] flex-col overflow-y-auto rounded-3xl bg-ink text-cream shadow-xl shadow-ink/20 transition-[transform,width] duration-200 rtl:translate-x-[115%]',
+        'fixed inset-y-3 start-3 z-30 w-64 -translate-x-[115%] rounded-3xl border border-neutral-200 bg-white p-2.5 shadow-xl shadow-ink/10 transition-[transform,width] duration-200 rtl:translate-x-[115%]',
         'lg:sticky lg:top-4 lg:bottom-auto lg:h-[calc(100vh-2rem)] lg:translate-x-0 lg:rtl:translate-x-0',
         collapsed && 'lg:w-[4.75rem]',
         open && 'translate-x-0 rtl:translate-x-0',
       )}
     >
+      <div className="on-dark flex h-full flex-col overflow-y-auto rounded-2xl bg-ink text-cream">
       <div className={cn('flex items-center gap-3 border-b border-cream/10 px-5 py-5', collapsed && 'lg:justify-center lg:px-0')}>
         <BrandLogo tone="white" layout="horizontal" width={150} decorative className={cn(collapsed && 'lg:hidden')} />
         <button
@@ -46,10 +47,11 @@ export function AppSidebar({ items, open, collapsed, onToggleCollapsed, onNaviga
         <SidebarNav items={items} collapsed={collapsed} onNavigate={onNavigate} />
       </nav>
       <div className="border-t border-cream/10 p-3 lg:hidden">
-        <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-2xl px-4 text-sm font-medium text-cream/85 transition-colors hover:bg-cream/10 hover:text-cream" onClick={onSignOut}>
+        <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-[var(--radius-button)] px-4 text-sm font-medium text-cream/85 transition-colors hover:bg-cream/10 hover:text-cream" onClick={onSignOut}>
           <LogOut className="size-5 rtl:-scale-x-100" aria-hidden />
           {t('actions.signOut')}
         </button>
+      </div>
       </div>
     </aside>
   );

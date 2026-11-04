@@ -7,7 +7,7 @@ import type { MeDto } from '@arweqah-platform/shared';
 import type { NavItem } from '@/core/feature';
 import { useTourControls } from '@/features/tour';
 
-const ITEM = 'flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm outline-none data-[highlighted]:bg-neutral-100';
+const ITEM = 'flex min-h-11 cursor-pointer items-center gap-3 rounded-[var(--radius-button)] px-3 text-sm outline-none data-[highlighted]:bg-neutral-100';
 
 interface Props {
   me: MeDto | undefined;
@@ -25,7 +25,7 @@ export function AccountMenu({ me, items, onSignOut }: Props) {
   const blockWhileTour = (e: Event) => { if (tour.accountMenuForced) e.preventDefault(); };
   return (
     <Menu.Root modal={false} open={open || tour.accountMenuForced} onOpenChange={setOpen}>
-      <Menu.Trigger data-tour="account-menu" aria-label={t('nav.groups.account')} className="flex items-center gap-3 rounded-xl ps-2 pe-1 transition-colors hover:bg-neutral-50 data-[state=open]:bg-neutral-50">
+      <Menu.Trigger data-tour="account-menu" aria-label={t('nav.groups.account')} className="flex items-center gap-3 rounded-[var(--radius-button)] ps-2 pe-1 transition-colors hover:bg-neutral-50 data-[state=open]:bg-neutral-50">
         <div className="hidden text-end leading-tight sm:block">
           <p className="text-sm font-medium">{me?.name}</p>
           {role && <p className="text-xs text-muted">{i18n.language === 'ar' ? role.nameAr : role.nameEn}</p>}

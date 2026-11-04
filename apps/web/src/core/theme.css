@@ -87,6 +87,7 @@
 
   --animate-fade-in: fade-in 0.2s ease-out;
 
+  --radius-button: 8px;
   --radius-control: 12px;
   --radius-panel: 14px;
 }

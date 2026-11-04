@@ -35,7 +35,13 @@ export abstract class BasePage {
 
   async signOut(): Promise<void> {
     await this.openDrawerIfPhone();
-    await this.page.getByRole('button', { name: 'تسجيل الخروج' }).first().click();
+    // The phone drawer has its own sign-out; everywhere else it is inside the account menu.
+    const drawerButton = this.page.getByRole('button', { name: 'تسجيل الخروج' });
+    if (await drawerButton.count()) await drawerButton.first().click();
+    else {
+      await this.page.getByRole('button', { name: 'حسابي' }).click();
+      await this.page.getByRole('menuitem', { name: 'تسجيل الخروج' }).click();
+    }
     await expect(this.page).toHaveURL(/\/login$/);
   }
 }
