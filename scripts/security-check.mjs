@@ -21,7 +21,8 @@ const walk = (dir, out = []) => {
 
 // Text of plain string literals is not code: `logger.warn('password not set')` is fine, `logger.warn(password)` is not.
 const stripPlainStrings = (line) => line.replace(/'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`[^`$]*`/g, '""');
-const SKIP_SQL = /database\/(migrations|seeds\/reset-test-db)/;
+// DDL scripts that cannot take parameters: migrations, and the two test-database scripts (names checked: *_test / *_e2e only, NODE_ENV=test only).
+const SKIP_SQL = /database\/(migrations|ensure-database|seeds\/reset-test-db)/;
 const isTest = (f) => /\.(spec|test|e2e-spec)\.tsx?$|[/\\]test[/\\]|[/\\]e2e[/\\]/.test(f);
 const rules = [
   { name: 'dangerouslySetInnerHTML (XSS)', test: /dangerouslySetInnerHTML/, scope: /apps\/web\/src/ },

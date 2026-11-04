@@ -1,20 +1,20 @@
 import { execSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { ADMIN_EMAIL, ADMIN_STATE, ADMIN_TOTP_SECRET, AUTH_DIRECTORY, adminTotpUri } from './support/fixtures';
+import { ADMIN_EMAIL, ADMIN_STATE, ADMIN_TOTP_SECRET, AUTH_DIRECTORY, E2E_DB_NAME, adminTotpUri } from './support/fixtures';
 import { forgetUsedCodes, freshCode } from './support/totp';
 
 const API = 'http://localhost:3100/api';
 const WEB = 'http://localhost:4173';
 
 /**
- * Resets the test database to the seed (the administrator gets a known authenticator secret and every company
+ * Resets the browser tests' database to the seed (the administrator gets a known authenticator secret and every company
  * gets a sample structure), then signs the administrator in once through the real API and saves the browser state.
  */
 export default async function globalSetup(): Promise<void> {
   execSync('npm run db:reset:test -w @arweqah-platform/api', {
     stdio: 'inherit',
     cwd: '..',
-    env: { ...process.env, SEED_ADMIN_EMAIL: ADMIN_EMAIL, SEED_ADMIN_TOTP_SECRET: ADMIN_TOTP_SECRET, SEED_DEMO_ORG: 'true' },
+    env: { ...process.env, DB_NAME: E2E_DB_NAME, SEED_ADMIN_EMAIL: ADMIN_EMAIL, SEED_ADMIN_TOTP_SECRET: ADMIN_TOTP_SECRET, SEED_DEMO_ORG: 'true' },
   });
   forgetUsedCodes();
   const res = await fetch(`${API}/auth/totp/sign-in`, {

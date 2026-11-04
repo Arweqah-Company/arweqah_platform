@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The check CLAUDE.md asks for after every task: architecture, design, testing and security, each reported on its own line.
-# Usage: npm run verify            everything, including the API e2e suite
-#        npm run verify -- --quick  skips the API e2e suite (use while iterating, run the full one before reporting done)
+# Usage: npm run verify            everything, including both e2e suites (API and browser, in parallel)
+#        npm run verify -- --quick  skips both e2e suites (use while iterating, run the full one before reporting done)
 set -u
 cd "$(dirname "$0")/.."
 quick=0; [ "${1:-}" = "--quick" ] && quick=1
@@ -20,7 +20,7 @@ step "Arabic and English complete" npm run i18n:check
 echo "Testing"
 step "typecheck + build" npx turbo run typecheck build
 step "unit and component tests" npx turbo run test
-if [ "$quick" = 0 ]; then step "API e2e (real PostgreSQL)" npm run test:e2e:api; else echo "  SKIP  API e2e (--quick)"; fi
+if [ "$quick" = 0 ]; then step "API e2e + browser e2e, at the same time on separate databases" bash scripts/e2e-all.sh; else echo "  SKIP  API e2e and browser e2e (--quick)"; fi
 echo "Security"
 step "secrets, headers, routes guarded, dependencies" npm run security:check
 [ "$failed" = 0 ] && echo "verify: all checks passed" || echo "verify: FAILED (see above)"

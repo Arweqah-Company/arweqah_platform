@@ -25,7 +25,8 @@
     "db:migration:generate": "npm run migration:generate -w @arweqah-platform/api",
     "db:seed": "npm run seed -w @arweqah-platform/api",
     "test:e2e:api": "turbo run build --filter=@arweqah-platform/shared && npm run test:e2e -w @arweqah-platform/api",
-    "test:e2e:web": "turbo run build --filter=@arweqah-platform/api --filter=@arweqah-platform/web && NODE_ENV=test npm run migration:run -w @arweqah-platform/api && npm run e2e -w @arweqah-platform/e2e",
+    "test:e2e:web": "turbo run build --filter=@arweqah-platform/api --filter=@arweqah-platform/web && npm run db:prepare:e2e -w @arweqah-platform/api && npm run e2e -w @arweqah-platform/e2e",
+    "test:e2e": "bash scripts/e2e-all.sh",
     "architecture:check": "node scripts/architecture-check.mjs",
     "verify": "bash scripts/verify.sh",
     "microsoft:check": "node scripts/check-microsoft.mjs"
