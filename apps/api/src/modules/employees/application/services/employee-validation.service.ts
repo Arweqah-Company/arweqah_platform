@@ -69,7 +69,7 @@ export class EmployeeValidationService {
   }
 
   /** The manager is any other employee, and never someone who reports to this employee (no loops). */
-  private async assertManager(managerId: string | null, selfId: string | undefined): Promise<void> {
+  async assertManager(managerId: string | null, selfId: string | undefined): Promise<void> {
     if (!managerId) return;
     const loop = !!selfId && (managerId === selfId || (await this.repo.reportsTo(managerId, selfId)));
     if (!(await this.repo.exists(managerId)) || loop) {

@@ -1,0 +1,40 @@
+{
+  "title": "Employee field permissions",
+  "description": "For each detail of an employee, choose who may change it: the employee themselves, HR, or only the platform administrator. A change takes effect as soon as it is saved.",
+  "searchLabel": "Search the fields",
+  "searchPlaceholder": "Search by field name",
+  "noMatches": "No fields match.",
+  "yes": "Yes",
+  "no": "No",
+  "columns": {
+    "field": "Field",
+    "group": "Group",
+    "self": "The employee changes it",
+    "hr": "HR changes it"
+  },
+  "groups": {
+    "personal": "Personal details",
+    "contact": "Contact",
+    "work": "Work",
+    "identity": "Identity and name",
+    "contract": "Contract and insurance",
+    "salary": "Pay and account",
+    "notes": "Notes"
+  },
+  "selfLocked": "Can never be switched on for the employee",
+  "saveBar": "Save changes",
+  "changed": "{{count}} fields changed",
+  "discard": "Discard",
+  "save": "Save",
+  "saved": "The field permissions were saved.",
+  "tour": {
+    "employee-fields": {
+      "title": "Employee field permissions",
+      "body": "For each detail of an employee choose who may change it: the employee or HR. Identity, contract and pay fields can never be switched on for the employee. What you save takes effect at once.",
+      "can": {
+        "edit": "Change who may edit each field",
+        "export": "Export the list to a file"
+      }
+    }
+  }
+}

@@ -58,7 +58,7 @@ export function CommentComposer(props: Props) {
     <form className="flex flex-col gap-3" onSubmit={(e) => { e.preventDefault(); void c.send(); }} noValidate>
       {c.error && <Alert>{errorMessage(tc, c.error)}</Alert>}
       <MentionTextarea taskId={props.taskId} value={c.text} onChange={c.setText} onPick={c.addPicked} label={label} mayMention={conversation.can.mention} maxLength={MAX_COMMENT_TEXT} onSubmit={() => void c.send()} />
-      {c.mayUpload && <FileAttachments files={c.files} onChange={c.setFiles} max={conversation.maxFiles} label={t('comments.attach')} />}
+      {c.mayUpload && <FileAttachments compact files={c.files} onChange={c.setFiles} max={conversation.maxFiles} label={t('comments.attach')} />}
       <div className="flex items-center justify-between gap-3">
         <span className="text-xs text-muted">{conversation.can.mention ? t('comments.hint') : t('comments.hintNoMention')}</span>
         <div className="flex gap-2">

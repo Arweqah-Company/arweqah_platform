@@ -1,7 +1,7 @@
 import { CorePermission } from '@arweqah-platform/shared';
 import { Body, Controller, Get, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import type { OwnProfileDto } from '@arweqah-platform/shared';
+import type { OwnProfileDto, SelfEditableFieldsDto } from '@arweqah-platform/shared';
 import { CurrentUser } from '../../../../common/presentation/current-user.decorator';
 import type { SessionUser } from '../../../../common/presentation/request-context';
 import { EmployeeProfileService } from '../../application/services/employee-profile.service';
@@ -18,6 +18,13 @@ export class ProfileController {
   @RequirePermission(CorePermission.ProfileView)
   get(@CurrentUser() user: SessionUser): Promise<OwnProfileDto> {
     return this.profile.get(user.id);
+  }
+
+  /** The fields the employee form leaves open to a plain employee editing their own record. */
+  @Get('field-rules')
+  @RequirePermission(CorePermission.ProfileView)
+  fieldRules(): Promise<SelfEditableFieldsDto> {
+    return this.profile.selfEditableFields();
   }
 
   @Put()

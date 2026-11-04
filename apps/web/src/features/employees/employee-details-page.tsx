@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLocation, useParams } from 'react-router';
+import { useLocation, useParams, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
-import { Alert, ConfirmDialog, PageHeader } from '@/shared/ui';
+import { CorePermission, type EmployeeDto } from '@arweqah-platform/shared';
+import { usePermissions } from '@/core/permissions/can';
+import { Alert, ConfirmDialog, PageHeader, Tabs } from '@/shared/ui';
 import { useEmployee, useResendInvite, useResetAuthenticator, useSetActive } from './api';
 import { DetailsSections } from './details-sections';
 import { HeaderActions, StatusRow, type EmployeeDialog } from './employee-actions';
+import { HistoryTab } from './history-tab';
+import { PhotoSection } from './photo-section';
 import { InvitationNotice, type InvitationState } from './invitation-notice';
 import { GroupsDialog } from './groups-dialog';
 import { RolesDialog } from './roles-dialog';
@@ -25,6 +29,20 @@ function useAction(close: () => void) {
       close();
     }
   };
+}
+
+/** The details of the employee, and (for who may see it) their history under a second tab. */
+function EmployeeTabs({ employee }: { employee: EmployeeDto }) {
+  const { t } = useTranslation('employees');
+  const [params, setParams] = useSearchParams();
+  const showHistory = usePermissions().can(CorePermission.EmployeesHistoryView);
+  const tab = showHistory && params.get('tab') === 'history' ? 'history' : 'details';
+  return (
+    <>
+      {showHistory && <Tabs label={t('tabs.label')} value={tab} tabs={[{ id: 'details', label: t('tabs.details') }, { id: 'history', label: t('tabs.history') }]} onChange={(id) => setParams(id === 'history' ? { tab: 'history' } : {}, { replace: true })} />}
+      {tab === 'history' ? <HistoryTab employeeId={employee.id} /> : <><PhotoSection employee={employee} /><DetailsSections employee={employee} /></>}
+    </>
+  );
 }
 
 export function EmployeeDetailsPage() {
@@ -49,7 +67,7 @@ export function EmployeeDetailsPage() {
       <PageHeader title={e.fullName} description={`${e.employeeNumber} · ${i18n.language === 'en' ? e.company.nameEn : e.company.nameAr}`} actions={<HeaderActions employee={e} onDialog={setDialog} onActivate={() => void run(() => setActive.mutateAsync(true), t('activated'))} onResend={() => undefined} />} />
       <StatusRow employee={e} onDialog={setDialog} onResend={() => void resend.mutateAsync().then(setInvitation)} />
       {invitation && <InvitationNotice invitation={invitation} />}
-      <DetailsSections employee={e} />
+      <EmployeeTabs employee={e} />
       <ConfirmDialog {...closeOn('deactivate')} tone="danger" title={t('deactivateDialog.title')} description={t('deactivateDialog.description')} confirmLabel={t('actions.deactivate')} onConfirm={() => run(() => setActive.mutateAsync(false), t('deactivated'))} />
       <ConfirmDialog {...closeOn('reset')} tone="danger" title={t('resetDialog.title')} description={t('resetDialog.description')} confirmLabel={t('actions.resetAuthenticator')} onConfirm={() => run(async () => setInvitation(await reset.mutateAsync()), t('resetDone'))} />
       <TerminateDialog employeeId={e.id} {...closeOn('terminate')} />

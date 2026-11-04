@@ -22,6 +22,16 @@ export interface Column<T> {
   sortKey?: string;
   /** The actions column: the last column of the table, and the bottom of a card. */
   isAction?: boolean;
+  /** Shown in the header cell instead of the text (a select-all box); the text stays as its accessible name. */
+  headerCell?: ReactNode;
+  /** The row's selection box: the first column of the table, and the top of a card. */
+  isSelect?: boolean;
+}
+
+/** Row selection: the ids chosen (across pages) and how to change them. */
+export interface TableSelection {
+  selected: ReadonlySet<string>;
+  onChange: (next: Set<string>) => void;
 }
 
 export interface TableSort {
@@ -61,6 +71,8 @@ interface DataTableProps<T> {
   onRowClick?: (row: T) => void;
   /** Every action on a row: they become the last column, headed "Actions" (a card shows them at its bottom). */
   actions?: (row: T) => ReactNode;
+  /** A box on every row (and one in the header for the whole page) to pick rows for a bulk action. */
+  selection?: TableSelection;
 }
 
 interface RowsProps<T> {
@@ -97,14 +109,21 @@ function SortButton({ text, active, dir, onClick }: { text: ReactNode; active: b
   );
 }
 
+/** What a header shows: its own cell (a select-all box) with the text kept for screen readers, or the text (hidden for the actions column). */
+function headerText<T>(column: Column<T>): ReactNode {
+  if (column.headerCell) return <>{column.headerCell}<span className="sr-only">{column.header}</span></>;
+  return <span className={column.hideHeader ? 'sr-only' : undefined}>{column.header}</span>;
+}
+
 /** A header cell; a sortable one is a button that says (to screen readers too) which way the table is ordered. */
 function HeaderCell<T>({ column, sort, onSort }: { column: Column<T>; sort?: TableSort; onSort?: (key: string) => void }) {
-  const text = <span className={column.hideHeader ? 'sr-only' : undefined}>{column.header}</span>;
+  const text = headerText(column);
   const sortKey = column.sortKey;
   const active = !!sortKey && sort?.key === sortKey;
+  const sortable = !!sortKey && !!onSort;
   return (
-    <th scope="col" aria-sort={ariaSortOf(active, sort?.dir, !!sortKey && !!onSort)} className={`px-4 py-3 text-start font-medium ${column.className ?? ''}`}>
-      {sortKey && onSort ? <SortButton text={text} active={active} dir={sort?.dir} onClick={() => onSort(sortKey)} /> : text}
+    <th scope="col" aria-sort={ariaSortOf(active, sort?.dir, sortable)} className={`px-4 py-3 text-start font-medium ${column.className ?? ''}`}>
+      {sortable ? <SortButton text={text} active={active} dir={sort?.dir} onClick={() => onSort(sortKey)} /> : text}
     </th>
   );
 }
@@ -149,14 +168,16 @@ function RowTable<T>({ caption, columns, rows, rowKey, isLoading, groupOf, sort,
 
 /** Phone layout: one card per row, label and value on a line, the actions column at the bottom. */
 function RowCards<T>({ columns, rows, rowKey, groupOf, onRowClick }: RowsProps<T>) {
-  const fields = columns.filter((c) => !c.hideHeader && !c.isAction);
+  const fields = columns.filter((c) => !c.hideHeader && !c.isAction && !c.isSelect);
   const actions = columns.filter((c) => c.hideHeader || c.isAction);
+  const select = columns.find((c) => c.isSelect);
   return (
     <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {rows?.map((row, index) => (
         <Fragment key={rowKey(row)}>
           {headingBefore(rows, index, groupOf) !== null && <li className="col-span-full pt-2 text-xs font-bold text-muted">{headingBefore(rows, index, groupOf)}</li>}
           <li data-tour={index === 0 ? 'first-row' : undefined} onClick={rowClick(row, onRowClick)} className={cn('rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm shadow-ink/5', onRowClick && 'cursor-pointer')}>
+          {select && <div className="mb-2">{select.cell(row)}</div>}
           <dl className="flex flex-col gap-2 text-sm">
             {fields.map((c) => (
               <div key={c.id ?? c.header} className="flex items-start justify-between gap-4">
@@ -182,13 +203,40 @@ const actionsColumn = <T,>(header: string, actions: (row: T) => ReactNode): Colu
   cell: (row) => <div className="flex items-center justify-end gap-1">{actions(row)}</div>,
 });
 
+const checkbox = 'size-5 accent-petrol-800';
+
+/** The selection column: a box per row, and in the header one that picks (or clears) the rows of this page. */
+function selectColumn<T>(selection: TableSelection, rows: T[] | undefined, rowKey: (row: T) => string, labels: { all: string; row: string }): Column<T> {
+  const ids = (rows ?? []).map(rowKey);
+  const chosen = ids.filter((id) => selection.selected.has(id)).length;
+  const toggle = (id: string) => {
+    const next = new Set(selection.selected);
+    if (!next.delete(id)) next.add(id);
+    selection.onChange(next);
+  };
+  const togglePage = () => {
+    const next = new Set(selection.selected);
+    for (const id of ids) if (chosen === ids.length) next.delete(id); else next.add(id);
+    selection.onChange(next);
+  };
+  return {
+    id: 'select',
+    header: labels.all,
+    isSelect: true,
+    className: 'w-px',
+    headerCell: <input type="checkbox" className={checkbox} aria-label={labels.all} checked={ids.length > 0 && chosen === ids.length} ref={(el) => { if (el) el.indeterminate = chosen > 0 && chosen < ids.length; }} onChange={togglePage} />,
+    cell: (row) => <input type="checkbox" className={checkbox} aria-label={labels.row} checked={selection.selected.has(rowKey(row))} onChange={() => toggle(rowKey(row))} />,
+  };
+}
+
 /** One table for every list: a rounded panel with a top bar, semantic markup, loading/empty states, pagination. */
-export function DataTable<T>({ listKey, caption, columns: allColumns, rows, rowKey, isLoading, error, empty, page, onPageChange, onPageSizeChange, view, title, toolbar, groupOf, sort, onSort, onRowClick, actions }: DataTableProps<T>) {
+export function DataTable<T>({ listKey, caption, columns: allColumns, rows, rowKey, isLoading, error, empty, page, onPageChange, onPageSizeChange, view, title, toolbar, groupOf, sort, onSort, onRowClick, actions, selection }: DataTableProps<T>) {
   const phone = useIsPhone();
   const { t } = useTranslation();
   const hidden = useHiddenInList(listKey);
   const visible = allColumns.filter((column) => !column.id || !hidden.columns.has(column.id));
-  const columns = actions ? [...visible, actionsColumn(t('table.actions'), actions)] : visible;
+  const withActions = actions ? [...visible, actionsColumn(t('table.actions'), actions)] : visible;
+  const columns = selection ? [selectColumn(selection, rows, rowKey, { all: t('table.selectPage'), row: t('table.selectRow') }), ...withActions] : withActions;
   const cards = (view ?? (phone ? 'cards' : 'table')) === 'cards';
   if (error) return <QueryError error={error} />;
   return (

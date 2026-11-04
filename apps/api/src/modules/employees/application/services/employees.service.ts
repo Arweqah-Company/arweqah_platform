@@ -5,7 +5,6 @@ import {
   EMPLOYEE_TERMINATED_TOPIC,
   todayIso,
   type AssignEmployeeRolesInput,
-  SELF_EDITABLE_EMPLOYEE_FIELDS,
   type CreateEmployeeInput,
   type CreateEmployeeResultDto,
   type EmployeeDto,
@@ -28,7 +27,6 @@ import { todayInRiyadh } from '../../../../common/domain/riyadh-date';
 import { ACCESS_CHANGED, EMPLOYEES_CHANGED } from '../../../../core/access/application/access.events';
 import { UserAccessService } from '../../../../core/access/application/user-access.service';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
-import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
 import { Outbox } from '../../../../core/messaging/application/outbox';
 import { AuthenticatorService } from '../../../../core/auth/application/authenticator.service';
 import { IdentityProvider } from '../../../../core/auth/application/identity-provider';
@@ -40,7 +38,12 @@ import { FieldNotEditableError, FieldRuleError, SelfActionError } from '../../do
 import { EmployeeTransformer } from '../transformers/employee.transformer';
 import type { EmployeeInput } from '../../domain/rules/employee-flags.rules';
 import { EmployeeValidationService } from './employee-validation.service';
-import { EMPLOYEE_AUDIT } from '../messages/employee.messages';
+import { EmployeeAssignmentsService } from './employee-assignments.service';
+import { EmployeeFieldRulesService } from './employee-field-rules.service';
+import { EMPLOYEE_AUDIT, FORM_CHANGE_REASON } from '../messages/employee.messages';
+import { ASSIGNMENT_COLUMN, type AssignmentColumn, type PlacementChange } from '../../domain/types/assignment.types';
+import { EmployeeReachPolicy } from '../policies/employee-reach.policy';
+import { EmployeeAuditService } from './employee-audit.service';
 
 const P = CorePermission;
 
@@ -68,6 +71,10 @@ export class EmployeesService {
     private readonly events: EventEmitter2,
     private readonly outbox: Outbox,
     private readonly emailDomains: AllowedEmailDomainsService,
+    private readonly assignments: EmployeeAssignmentsService,
+    private readonly fieldRules: EmployeeFieldRulesService,
+    private readonly reach: EmployeeReachPolicy,
+    private readonly auditor: EmployeeAuditService,
   ) {}
 
   async list(ctx: AccessContext, query: EmployeesQuery): Promise<Paginated<EmployeeListItemDto>> {
@@ -88,7 +95,7 @@ export class EmployeesService {
   }
 
   async get(ctx: AccessContext, id: string): Promise<EmployeeDto> {
-    return this.dto(ctx, await this.mustFind(ctx, id, P.EmployeesView));
+    return this.dto(ctx, await this.reach.find(ctx, id, P.EmployeesView));
   }
 
   /** Creates the person's record and sign-in account, assigns roles, then e-mails the activation link. */
@@ -107,6 +114,7 @@ export class EmployeesService {
     try {
       created = await this.tx.run(async (tx) => {
         const row = await this.repo.insert({ ...values, userId, createdBy: actorId }, tx);
+        await this.assignments.recordBaseline(row, tx);
         if (roleIds.length) await this.access.replaceRoles(userId, roleIds, { expiries: roleExpiries, grantedBy: actorId }, tx);
         return row;
       });
@@ -115,34 +123,64 @@ export class EmployeesService {
       throw error;
     }
     await this.events.emitAsync(EMPLOYEES_CHANGED);
-    this.audit(actorId, EMPLOYEE_AUDIT.created, created.id, { companyId: created.companyId, roles: roleIds.length });
+    this.auditor.record(actorId, EMPLOYEE_AUDIT.created, created.id, { companyId: created.companyId, roles: roleIds.length });
     return { employee: await this.dto(ctx, created), invitation: await this.invite(userId) };
   }
 
   async update(ctx: AccessContext, id: string, input: UpdateEmployeeInput, actorId: string): Promise<EmployeeDto> {
-    const existing = await this.mustFind(ctx, id, P.EmployeesUpdate);
+    const existing = await this.reach.find(ctx, id, P.EmployeesUpdate);
     if (input.workEmail && input.workEmail !== existing.workEmail) {
       throw new FieldRuleError('workEmail', 'The work email is the sign-in identity and cannot be changed here', { ar: 'بريد العمل هو هوية الدخول ولا يمكن تغييره من هنا', en: 'The work email is the sign-in identity and cannot be changed here' });
     }
     this.assertInScope(ctx, P.EmployeesUpdate, { companyId: input.companyId, orgNodeId: input.orgNodeId, ownerId: existing.userId });
-    const fields: EmployeeInput = { ...input, workEmail: existing.workEmail };
+    const { effectiveFrom, changeReason, ...rest } = input;
+    const fields: EmployeeInput = { ...rest, workEmail: existing.workEmail };
     const { values } = await this.validation.prepare(ctx, fields, existing);
-    this.assertSelfServiceFields(ctx, existing, values);
-    await this.tx.run((tx) => this.repo.update(id, values, tx));
+    await this.assertFieldRules(ctx, existing, values);
+    await this.saveWithPlacement(existing, values, { from: effectiveFrom ?? todayInRiyadh(), reason: changeReason ?? FORM_CHANGE_REASON }, actorId);
     await this.restoreAccessIfEndMoved(ctx, existing, values.endDate ?? null, actorId);
     await this.swapBaseRoleIfRelationChanged(existing, values.relationTypeId ?? null);
     this.events.emit(ACCESS_CHANGED, { userId: existing.userId });
     await this.events.emitAsync(EMPLOYEES_CHANGED);
-    this.audit(actorId, EMPLOYEE_AUDIT.updated, id, { fields: changedFields(existing, values) });
+    this.auditor.record(actorId, EMPLOYEE_AUDIT.updated, id, { fields: changedFields(existing, values) });
     return this.dto(ctx, (await this.repo.findById(id)) as Employee);
   }
 
-  /** A person whose "edit employees" reaches only their own record changes just the self-service fields of it. */
-  private assertSelfServiceFields(ctx: AccessContext, existing: Employee, values: Record<string, unknown>): void {
-    if (existing.userId !== ctx.userId || ctx.scopeOf(P.EmployeesUpdate) !== 'own') return;
-    const allowed: readonly string[] = SELF_EDITABLE_EMPLOYEE_FIELDS;
-    const blocked = changedFields(existing, values).filter((field) => !allowed.includes(field));
+  /**
+   * Saves the form. A change of unit, job title or manager goes to the placement history with its start day and reason;
+   * one that starts later waits there (the record keeps the value in force today) until the nightly job applies it (FR-89).
+   */
+  private async saveWithPlacement(existing: Employee, values: Record<string, unknown>, when: { from: string; reason: string }, actorId: string): Promise<void> {
+    const change = placementChange(existing, values);
+    const later = when.from > todayInRiyadh();
+    const written = later ? withoutKeys(values, Object.keys(change)) : values;
+    await this.tx.run(async (tx) => {
+      await this.repo.update(existing.id, written, tx);
+      if (Object.keys(change).length) await this.assignments.record(existing, change, { validFrom: when.from, reason: when.reason, actorId }, tx);
+    });
+  }
+
+  /**
+   * Who may change which detail (FR-94). A plain employee (edit reaches only their own record) changes only the fields the rules give them;
+   * anyone else changes every field except those the rules keep for platform administrators.
+   */
+  private async assertFieldRules(ctx: AccessContext, existing: Employee, values: Record<string, unknown>): Promise<void> {
+    const changed = changedFields(existing, values);
+    if (!changed.length) return;
+    const selfService = existing.userId === ctx.userId && ctx.scopeOf(P.EmployeesUpdate) === 'own';
+    const blocked = selfService ? await this.blockedForSelf(changed) : await this.blockedForHr(ctx, changed);
     if (blocked.length) throw new FieldNotEditableError(blocked);
+  }
+
+  private async blockedForSelf(changed: string[]): Promise<string[]> {
+    const allowed = await this.fieldRules.selfEditable();
+    return changed.filter((field) => !allowed.includes(field));
+  }
+
+  private async blockedForHr(ctx: AccessContext, changed: string[]): Promise<string[]> {
+    if (ctx.has(P.EmployeeFieldsEdit)) return [];
+    const locked = await this.fieldRules.hrLocked();
+    return changed.filter((field) => locked.includes(field));
   }
 
   private async isLimited(relationTypeId: string | null | undefined): Promise<boolean> {
@@ -150,7 +188,7 @@ export class EmployeesService {
   }
 
   /** Becoming a collaborator (or an employee again) changes the base role: Employee ↔ collaborator base. */
-  private async swapBaseRoleIfRelationChanged(existing: Employee, relationTypeId: string | null): Promise<void> {
+  async swapBaseRoleIfRelationChanged(existing: Employee, relationTypeId: string | null): Promise<void> {
     if (relationTypeId === existing.relationTypeId) return;
     const [was, is] = await Promise.all([this.isLimited(existing.relationTypeId), this.isLimited(relationTypeId)]);
     if (was !== is) await this.access.swapBaseRole(existing.userId, is);
@@ -162,21 +200,21 @@ export class EmployeesService {
     if (!this.ability.can(ctx, P.EmployeesDeactivate, { companyId: existing.companyId, orgNodeId: existing.orgNodeId, ownerId: existing.userId })) return;
     await this.identity.setActive(existing.userId, true);
     await this.repo.setAccessEnded(existing.id, null);
-    this.audit(actorId, EMPLOYEE_AUDIT.accessRestored, existing.id, { endDate });
+    this.auditor.record(actorId, EMPLOYEE_AUDIT.accessRestored, existing.id, { endDate });
   }
 
   async setActive(ctx: AccessContext, id: string, active: boolean, actorId: string): Promise<EmployeeDto> {
-    const employee = await this.mustFind(ctx, id, P.EmployeesDeactivate);
+    const employee = await this.reach.find(ctx, id, P.EmployeesDeactivate);
     if (!active && employee.userId === ctx.userId) throw new SelfActionError('You cannot deactivate your own account');
     await this.identity.setActive(employee.userId, active);
     this.events.emit(ACCESS_CHANGED, { userId: employee.userId });
-    this.audit(actorId, active ? EMPLOYEE_AUDIT.activated : EMPLOYEE_AUDIT.deactivated, id, {});
+    this.auditor.record(actorId, active ? EMPLOYEE_AUDIT.activated : EMPLOYEE_AUDIT.deactivated, id, {});
     return this.dto(ctx, employee);
   }
 
   /** Ends the relationship: end date and reason are recorded; the account stops signing in the day after the end date. */
   async terminate(ctx: AccessContext, id: string, input: TerminateEmployeeInput, actorId: string): Promise<EmployeeDto> {
-    const employee = await this.mustFind(ctx, id, P.EmployeesTerminate);
+    const employee = await this.reach.find(ctx, id, P.EmployeesTerminate);
     if (employee.userId === ctx.userId) throw new SelfActionError('You cannot end your own contract');
     if (input.endDate <= employee.startDate) throw new FieldRuleError('endDate', 'The end date must be after the start date', { ar: 'تاريخ النهاية يجب أن يكون بعد تاريخ البداية', en: 'The end date must be after the start date' });
     const isOther = await this.lookups.terminationReasonIsOther(input.terminationReasonId);
@@ -190,41 +228,41 @@ export class EmployeesService {
       await this.identity.setActive(employee.userId, false);
       await this.repo.setAccessEnded(id, new Date());
     }
-    this.audit(actorId, EMPLOYEE_AUDIT.terminated, id, { endDate: input.endDate });
+    this.auditor.record(actorId, EMPLOYEE_AUDIT.terminated, id, { endDate: input.endDate });
     return this.dto(ctx, (await this.repo.findById(id)) as Employee);
   }
 
   async assignRoles(ctx: AccessContext, id: string, input: AssignEmployeeRolesInput, actor: Actor): Promise<EmployeeDto> {
     const { roleIds, roleExpiries } = input;
     this.assertRoleExpiries(roleIds, roleExpiries);
-    const employee = await this.mustFind(ctx, id, P.EmployeesAssignRoles);
+    const employee = await this.reach.find(ctx, id, P.EmployeesAssignRoles);
     if (employee.userId === ctx.userId && !actor.adminMode) throw new SelfActionError('You cannot change your own roles');
     await this.assertCanAssignRoles(ctx, roleIds, { companyId: employee.companyId, orgNodeId: employee.orgNodeId, ownerId: employee.userId }, (await this.access.defaultRoleIds(employee.jobTitleId, await this.isLimited(employee.relationTypeId))).ids);
     await this.tx.run((tx) => this.access.replaceRoles(employee.userId, roleIds, { expiries: roleExpiries, grantedBy: actor.id }, tx));
     await this.events.emitAsync(EMPLOYEES_CHANGED);
-    this.audit(actor.id, EMPLOYEE_AUDIT.rolesChanged, id, { roleIds, withEndDate: Object.keys(roleExpiries ?? {}).length });
+    this.auditor.record(actor.id, EMPLOYEE_AUDIT.rolesChanged, id, { roleIds, withEndDate: Object.keys(roleExpiries ?? {}).length });
     return this.dto(ctx, employee);
   }
 
   async assignGroups(ctx: AccessContext, id: string, groupIds: string[], actor: Actor): Promise<EmployeeDto> {
-    const employee = await this.mustFind(ctx, id, P.EmployeesAssignGroups);
+    const employee = await this.reach.find(ctx, id, P.EmployeesAssignGroups);
     if (employee.userId === ctx.userId && !actor.adminMode) throw new SelfActionError('You cannot change your own groups');
     if (!this.ability.can(ctx, P.EmployeesAssignGroups, { companyId: employee.companyId, orgNodeId: employee.orgNodeId, ownerId: employee.userId })) throw new ForbiddenError();
     await this.access.assertGroupsGrantable(ctx, groupIds);
     await this.tx.run((tx) => this.access.replaceGroups(employee.userId, groupIds, actor.id, tx));
-    this.audit(actor.id, EMPLOYEE_AUDIT.groupsChanged, id, { groupIds });
+    this.auditor.record(actor.id, EMPLOYEE_AUDIT.groupsChanged, id, { groupIds });
     return this.dto(ctx, employee);
   }
 
   async resendInvite(ctx: AccessContext, id: string, actorId: string): Promise<InviteResultDto> {
-    const employee = await this.mustFind(ctx, id, P.EmployeesResendInvite);
-    this.audit(actorId, EMPLOYEE_AUDIT.invited, id, {});
+    const employee = await this.reach.find(ctx, id, P.EmployeesResendInvite);
+    this.auditor.record(actorId, EMPLOYEE_AUDIT.invited, id, {});
     return this.invite(employee.userId);
   }
 
   /** Lost phone: the employee links the app again through a new invitation; their sessions end now. */
   async resetAuthenticator(ctx: AccessContext, id: string, actorId: string): Promise<InviteResultDto> {
-    const employee = await this.mustFind(ctx, id, P.EmployeesResetAuthenticator);
+    const employee = await this.reach.find(ctx, id, P.EmployeesResetAuthenticator);
     if (employee.userId === ctx.userId) throw new SelfActionError('Use the security page to manage your own authenticator');
     await this.authenticator.reset(employee.userId, actorId);
     await this.identity.revokeAllSessions(employee.userId);
@@ -240,12 +278,6 @@ export class EmployeesService {
 
   // ------------------------------------------------------------------ helpers
   /** A record outside the actor's reach does not exist for them (404), whatever the permission. */
-  private async mustFind(ctx: AccessContext, id: string, key: string): Promise<Employee> {
-    const employee = await this.repo.findById(id);
-    const visible = employee && this.ability.can(ctx, key, { ownerId: employee.userId, companyId: employee.companyId, orgNodeId: employee.orgNodeId });
-    if (!employee || !visible) throw new NotFoundError('Employee', id);
-    return employee;
-  }
 
   private assertInScope(ctx: AccessContext, key: string, resource: { companyId: string; orgNodeId: string; ownerId?: string }): void {
     if (!this.ability.can(ctx, key, resource)) throw new NotFoundError('Org unit', resource.orgNodeId);
@@ -291,11 +323,6 @@ export class EmployeesService {
       return { sent: false, sentTo: '' };
     }
   }
-
-  private audit(actorId: string, action: string, entityId: string, changes: Record<string, unknown>): void {
-    const event: AuditEvent = { actorId, action, entityType: 'employee', entityId, changes };
-    this.events.emit(AUDIT_EVENT, event);
-  }
 }
 
 /** Names of the fields that changed (never their values, which may be sensitive). */
@@ -303,3 +330,16 @@ function changedFields(existing: Employee, values: Record<string, unknown>): str
   const current = existing as unknown as Record<string, unknown>;
   return Object.keys(values).filter((key) => values[key] !== current[key] && !(key.endsWith('Enc') && key !== 'idNumberEnc' && key !== 'ibanEnc' && key !== 'monthlyGrossSalaryEnc')).map((key) => key.replace(/Enc$/, '').replace(/Hash$/, ''));
 }
+
+/** The unit, title and manager the form changes (a value that stays the same is not a change). */
+function placementChange(existing: Employee, values: Record<string, unknown>): PlacementChange {
+  const change: PlacementChange = {};
+  for (const column of Object.values(ASSIGNMENT_COLUMN) as AssignmentColumn[]) {
+    if (values[column] === undefined) continue;
+    const next = (values[column] as string | null) ?? null;
+    if (next !== existing[column]) change[column] = next;
+  }
+  return change;
+}
+
+const withoutKeys = (values: Record<string, unknown>, keys: string[]): Record<string, unknown> => Object.fromEntries(Object.entries(values).filter(([key]) => !keys.includes(key)));

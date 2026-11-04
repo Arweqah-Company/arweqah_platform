@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import type { ExportColumn } from '@/shared/data-exchange/types';
 import { Badge, type Column } from '@/shared/ui';
+import { EmployeeAvatar } from './employee-avatar';
 
 /** The columns of the employee list, and the same data as plain text for export. */
 export function useEmployeeColumns() {
@@ -17,7 +18,13 @@ export function useEmployeeColumns() {
 
   const columns: Column<EmployeeListItemDto>[] = [
     { id: 'number', header: t('fields.employeeNumber'), cell: (e) => <span dir="ltr">{e.employeeNumber}</span> },
-    { id: 'name', header: t('fields.fullName'), cell: (e) => <Link className="font-medium text-link underline-offset-4 hover:underline" to={`/employees/${e.id}`}>{e.fullName}</Link> },
+    { id: 'name', header: t('fields.fullName'), cell: (e) => (
+        <span className="flex items-center gap-2">
+          <EmployeeAvatar employee={e} size="sm" />
+          <Link className="font-medium text-link underline-offset-4 hover:underline" to={`/employees/${e.id}`}>{e.fullName}</Link>
+        </span>
+      ),
+    },
     { id: 'company', header: t('fields.companyId'), cell: (e) => (ar ? e.company.nameAr : e.company.nameEn) },
     { id: 'unit', header: t('fields.orgNodeId'), cell: (e) => unitName(e) ?? dash },
     { id: 'title', header: t('fields.jobTitleId'), cell: (e) => title(e) ?? dash },

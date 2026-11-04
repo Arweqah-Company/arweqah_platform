@@ -1,5 +1,8 @@
 {
-  "pick": { "search": "Search by name", "empty": "No matches." },
+  "pick": {
+    "search": "Search by name",
+    "empty": "No matches."
+  },
   "title": "Employees",
   "description": "Employee records and their sign-in accounts, within your permissions.",
   "add": "Add employee",
@@ -181,7 +184,12 @@
     "startTo": "Contract starts until"
   },
   "import": {
-    "managerNumber": "Direct manager employee number"
+    "managerNumber": "Direct manager employee number",
+    "notFound": "No employee has the number “{{value}}” within your reach.",
+    "titleWithUnit": "Give the job title together with the new unit so it fits.",
+    "nothingToChange": "No value in this row changes anything.",
+    "updateTitle": "Update employees from a file",
+    "updateDescription": "A row is identified by the employee number, and the cells you fill are what changes; an empty cell leaves the record as it is. A change of unit, job title or manager takes effect today and is kept in the history."
   },
   "flagsColumn": "Needs attention",
   "groupsSaved": "Groups saved.",
@@ -202,6 +210,25 @@
         "import": "Import employees from a file",
         "export": "Export the list of employees",
         "impersonate": "Sign in as an employee to see what they see (when it is switched on in the security settings)"
+      }
+    },
+    "employee-history": {
+      "title": "Employee history",
+      "body": "Open any employee and then the «History» tab: their unit, job title and manager through time (what is in force and what waits for its day), and what was done to their record, by whom and when."
+    },
+    "employee-photo": {
+      "title": "Profile photo",
+      "body": "On an employee's page add or change a photo: choose the picture, then move the square over the face. It shows in the directory and the employee list."
+    },
+    "bulk-update": {
+      "title": "Bulk edit",
+      "body": "Select several employees in the list and press «Bulk edit»: choose what changes (unit, job title, manager, work location…), and preview who would change and who would be refused, and why, before applying."
+    },
+    "directory": {
+      "title": "My team",
+      "body": "The «My team» tab shows your colleagues in your unit: name, photo, job title, work e-mail and phone. Search, narrow by company and job title, and open a colleague to see their profile. It shows more if you are their manager.",
+      "can": {
+        "export": "Export your team to a file"
       }
     }
   },
@@ -225,5 +252,137 @@
     "computedBadge": "Automatic (has reports)",
     "everyoneOff": "Without the Employee role the employee will not see their personal pages (my account, security, notifications, tickets).",
     "endDate": "Ends on (optional): {{role}}"
+  },
+  "tabs": {
+    "label": "Employee page sections",
+    "details": "Details",
+    "history": "History"
+  },
+  "history": {
+    "placement": {
+      "title": "Unit, job title and manager through time",
+      "hint": "Each change closes the previous value the day before it starts. A later change waits for its day and then takes effect by itself.",
+      "empty": "No history yet: it starts with the first change."
+    },
+    "changes": {
+      "title": "Log of changes to the record",
+      "empty": "No changes recorded."
+    },
+    "field": {
+      "org_node": "Unit",
+      "job_title": "Job title",
+      "manager": "Direct manager"
+    },
+    "status": {
+      "title": "Status",
+      "current": "In force",
+      "pending": "Waiting for its day",
+      "past": "Past"
+    },
+    "value": "Value",
+    "from": "From",
+    "to": "To",
+    "reason": "Reason",
+    "by": "By",
+    "when": "When",
+    "what": "What happened",
+    "fields": "Fields",
+    "system": "System",
+    "noManager": "No manager",
+    "cancelChange": "Cancel the change",
+    "cancelled": "The waiting change was cancelled.",
+    "cancelDialog": {
+      "title": "Cancel the waiting change?",
+      "description": "The previous value stays in force and this change is not applied."
+    }
+  },
+  "placementChange": {
+    "effectiveFrom": "Effective from",
+    "effectiveFromHint": "Today or a later date; a later change waits for its day.",
+    "changeReason": "Reason for the change",
+    "changeReasonHint": "Shown in the employee's history.",
+    "reasonRequired": "Write the reason for changing the unit, title or manager."
+  },
+  "photo": {
+    "section": "Profile photo",
+    "add": "Add a photo",
+    "change": "Change photo",
+    "remove": "Remove photo",
+    "removed": "The photo was removed.",
+    "saved": "The photo was saved.",
+    "title": "Employee photo",
+    "description": "Choose a JPEG or PNG, then move the square over the face and save.",
+    "choose": "Choose the picture",
+    "drop": "Drop the picture here, or click to browse",
+    "hint": "JPEG or PNG; it is cropped square and shrunk before upload (limit 2 MB).",
+    "unreadable": "The picture could not be read.",
+    "preview": "Preview of the cropped photo",
+    "zoom": "Zoom",
+    "horizontal": "Horizontal",
+    "vertical": "Vertical",
+    "save": "Save photo",
+    "removeDialog": {
+      "title": "Remove the photo?",
+      "description": "The first letter of the name is shown instead."
+    }
+  },
+  "bulk": {
+    "button": "Bulk edit",
+    "selected": "{{count}} employees selected",
+    "clear": "Clear selection",
+    "title": "Bulk edit of {{count}} employees",
+    "description": "Choose the values to change (what you leave empty stays as it is), then preview who would change and who would be refused before applying.",
+    "unchanged": "No change",
+    "companyHint": "Decides which units are offered; anyone in another company is refused with the reason.",
+    "titleHint": "Choose it together with the unit so it fits.",
+    "removeManager": "Remove the direct manager",
+    "preview": "Preview",
+    "apply": "Apply to {{count}} employees",
+    "accepted": "{{count}} would change",
+    "rejected": "{{count}} would be refused",
+    "done": "{{count}} employees were changed.",
+    "someRefused": "{{count}} employees were refused; see the preview.",
+    "tooMany": "You cannot select more than {{max}} employees in one edit."
+  },
+  "pageTabs": {
+    "label": "Employees page sections",
+    "list": "Employees",
+    "team": "My team"
+  },
+  "team": {
+    "title": "My team",
+    "description": "Your colleagues in your unit: name, job title and how to reach them at work.",
+    "searchLabel": "Search my team",
+    "searchPlaceholder": "Search by name, e-mail or phone",
+    "name": "Name",
+    "unit": "Unit",
+    "company": "Company",
+    "workEmail": "Work e-mail",
+    "workPhone": "Work phone",
+    "view": "View profile",
+    "profile": "Colleague profile",
+    "loading": "Loading…",
+    "noMatches": "No results match the search.",
+    "empty": "No other colleagues in your unit.",
+    "manager": "Direct manager",
+    "workLocation": "Work location",
+    "workMode": "Work mode",
+    "startDate": "Start date",
+    "personalPhone": "Personal phone",
+    "personalEmail": "Personal e-mail",
+    "openRecord": "Open the employee record",
+    "mode": {
+      "onsite": "On site",
+      "hybrid": "Hybrid",
+      "remote": "Remote"
+    },
+    "level": {
+      "basic": "Basic details",
+      "extended": "Extended details (you are their manager)",
+      "full": "The whole record"
+    },
+    "jobTitle": "Job title",
+    "noUnit": "You have no unit yet.",
+    "noUnitHint": "Your team shows once you are placed in a unit."
   }
 }

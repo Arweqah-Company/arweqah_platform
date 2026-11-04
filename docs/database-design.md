@@ -542,8 +542,31 @@ erDiagram
     uuid salary_currency_country_id FK
     text iban_enc
     text notes
+    uuid photo_file_id FK
     uuid created_by
     timestamp_with_time_zone access_ended_at
+  }
+  employee_assignments {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid employee_id FK
+    character_varying field
+    uuid org_node_id FK
+    uuid job_title_id FK
+    uuid manager_employee_id FK
+    date valid_from
+    date valid_to
+    text reason
+    uuid created_by
+    timestamp_with_time_zone applied_at
+  }
+  employee_field_rules {
+    character_varying field PK
+    boolean editable_by_self
+    boolean editable_by_hr
+    uuid updated_by
+    timestamp_with_time_zone updated_at
   }
   companies ||--o{ employees : "company_id"
   companies ||--o{ employees : "contract_company_id"
@@ -562,6 +585,11 @@ erDiagram
   countries ||--o{ employees : "salary_currency_country_id"
   termination_reasons ||--o{ employees : "termination_reason_id"
   users ||--o{ employees : "user_id"
+  files ||--o{ employees : "photo_file_id"
+  employees ||--o{ employee_assignments : "employee_id"
+  employees ||--o{ employee_assignments : "manager_employee_id"
+  org_nodes ||--o{ employee_assignments : "org_node_id"
+  job_titles ||--o{ employee_assignments : "job_title_id"
   countries ||--o{ employees : "work_country_id"
 ```
 
@@ -1035,6 +1063,8 @@ erDiagram
 | Table | What it does |
 |---|---|
 | `employees` | The employee file: company, unit, job title, manager, relation, work location / mode, contact data, ID, contract, GOSI, medical insurance, dates, termination, salary. National ID, salary and IBAN are encrypted (`*_enc`, ID also hashed for lookup). Soft-deleted (`deleted_at`); linked to `users`. |
+| `employee_field_rules` | Who may change each detail of an employee (FR-94): one row per field of the catalog `EMPLOYEE_FIELDS`, with `editable_by_self` (the employee themselves; never switched on for identity, contract and pay fields) and `editable_by_hr` (off = only a platform administrator). The migration seeds the rule the platform had before; the tests treat it as a reference table. `employees.photo_file_id` (FR-91) points to the profile photo in `files`. |
+| `employee_assignments` | The dated placement of an employee (FR-89): one row per period of the unit, the job title or the direct manager (`field`), with `valid_from` / `valid_to`, the reason and who made it. A change closes the open period the day before the new one starts. `applied_at` is empty while a later period waits for its day; `employees` keeps the value in force today. One open period per employee and field. |
 
 ### 6. Tickets (internal, between departments)
 

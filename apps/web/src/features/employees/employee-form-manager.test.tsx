@@ -42,3 +42,25 @@ describe('The direct manager is optional in the employee form (FR-17, FR-18)', (
     expect(screen.queryByText('المدير المباشر *')).not.toBeInTheDocument();
   });
 });
+
+describe('A change of unit, title or manager asks from which day and why (FR-89)', () => {
+  const saved = {
+    id: 'e1', userId: 'u1', isActive: true, employeeNumber: 'N1', fullName: 'سارة أحمد', workEmail: 'sara@arweqah.sa', company: { id: 'c1', nameAr: 'أروقة', nameEn: 'Arweqah' },
+    relationTypeId: null, orgNode: { id: 'node-1', pathAr: 'قطاع › وحدة', pathEn: 'Sector › Unit' }, jobTitle: { id: 'title-1', nameAr: 'مطور', nameEn: 'Developer' }, manager: null, roles: [], groups: [],
+    startDate: '2024-01-01', endDate: null, sensitiveHidden: true, notes: null,
+    names: { relationType: null, workCountry: null, nationality: null, maritalStatus: null, residencyStatus: null, idType: null, contractType: null, contractCompany: null, gosiCompany: null, healthInsuranceCompany: null, gosiSystem: null, terminationReason: null, salaryCurrency: null },
+  };
+
+  it('shows the day and the reason only once the unit is changed, and asks for the reason before saving', async () => {
+    serve(saved);
+    renderRoute([{ path: '/employees/:id/edit', element: <EmployeeFormPage /> }], '/employees/e1/edit');
+    await screen.findByRole('heading', { name: 'تعديل بيانات الموظف' });
+    expect(screen.queryByLabelText(/يسري من/)).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('combobox', { name: 'الوحدة' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('combobox', { name: 'الوحدة' }));
+    fireEvent.click(await screen.findByText('وحدة ثانية'));
+    const day = (await screen.findByLabelText(/يسري من/)) as HTMLInputElement;
+    expect(day.value).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(screen.getByLabelText(/سبب التغيير/)).toBeInTheDocument();
+  });
+});

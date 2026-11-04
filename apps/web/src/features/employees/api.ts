@@ -1,6 +1,11 @@
 import type {
+  BulkUpdateInput,
+  BulkUpdateResultDto,
   CreateEmployeeInput,
   CreateEmployeeResultDto,
+  DirectoryProfileDto,
+  EmployeeAssignmentsDto,
+  EmployeeChangeDto,
   EmployeeDto,
   EmployeesSummaryDto,
   InviteResultDto,
@@ -9,9 +14,12 @@ import type {
   ManagerOptionDto,
   OrgNodeOptionDto,
   OrgReferenceDto,
+  Paginated,
+  SelfEditableFieldsDto,
   TerminateEmployeeInput,
   UpdateEmployeeInput,
 } from '@arweqah-platform/shared';
+import { SELF_EDITABLE_EMPLOYEE_FIELDS } from '@arweqah-platform/shared';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { refreshAccess } from '@/core/permissions/access-key';
@@ -65,3 +73,40 @@ export const useAssignRoles = (id: string) =>
   useEmployeeMutation((input: { roleIds: string[]; roleExpiries?: Record<string, string | null> }) => apiClient.put<EmployeeDto>(`/employees/${id}/roles`, input), true);
 export const useResendInvite = (id: string) => useEmployeeMutation(() => apiClient.post<InviteResultDto>(`/employees/${id}/resend-invite`));
 export const useResetAuthenticator = (id: string) => useEmployeeMutation(() => apiClient.post<InviteResultDto>(`/employees/${id}/reset-authenticator`));
+
+/** The dated unit, job title and manager of an employee, with names (the history tab). */
+export const useEmployeeAssignments = (id: string, enabled = true) =>
+  useQuery({ queryKey: ['employees', 'history', id, 'assignments'], enabled, queryFn: () => apiClient.get<EmployeeAssignmentsDto>(`/employees/${id}/assignments`) });
+
+/** What was done to the record, newest first. */
+export const useEmployeeChanges = (id: string, page: number, pageSize: number, enabled = true) =>
+  useQuery({ queryKey: ['employees', 'history', id, 'changes', page, pageSize], enabled, queryFn: () => apiClient.get<Paginated<EmployeeChangeDto>>(`/employees/${id}/changes`, { page, pageSize }), placeholderData: keepPreviousData });
+
+/** Cancels a change that has not started yet. */
+export const useCancelAssignment = (id: string) => useEmployeeMutation((assignmentId: string) => apiClient.delete(`/employees/${id}/assignments/${assignmentId}`));
+
+/** Uploads the (already cropped) photo of an employee. */
+export const useSetPhoto = (id: string) =>
+  useEmployeeMutation((file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return apiClient.put<{ photoFileId: string }>(`/employees/${id}/photo`, form);
+  });
+export const useRemovePhoto = (id: string) => useEmployeeMutation(() => apiClient.delete(`/employees/${id}/photo`));
+
+/** One change for many employees; with `dryRun` it only says who would change and who would be refused. */
+export const useBulkUpdate = () => useEmployeeMutation((input: BulkUpdateInput) => apiClient.post<BulkUpdateResultDto>('/employees/bulk-update', input));
+
+/** The fields a plain employee may change of their own record (an administrator sets them, FR-94); the first answer is the starting rule. */
+export const useSelfEditableFields = () =>
+  useQuery({
+    queryKey: ['employees', 'self-editable-fields'],
+    queryFn: () => apiClient.get<SelfEditableFieldsDto>('/me/profile/field-rules'),
+    initialData: { fields: [...SELF_EDITABLE_EMPLOYEE_FIELDS] },
+    initialDataUpdatedAt: 0,
+    staleTime: 60_000,
+  });
+
+/** One teammate's profile at the depth the viewer's relation allows (FR-92). */
+export const useTeamProfile = (id: string | null) =>
+  useQuery({ queryKey: ['directory', 'profile', id], enabled: !!id, queryFn: () => apiClient.get<DirectoryProfileDto>(`/directory/${id}`) });

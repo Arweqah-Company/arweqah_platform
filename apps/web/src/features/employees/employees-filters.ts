@@ -38,7 +38,7 @@ export function useEmployeeFilterFields(values: FilterValues): FilterField[] {
 }
 
 /** The filter values as the API's query (empty ones are left out; changing the company clears the unit and title). */
-export function toEmployeesQuery(values: FilterValues): Partial<EmployeesQuery> {
+export function toEmployeesQuery(values: FilterValues): Partial<Omit<EmployeesQuery, 'employeeNumbers'>> {
   const text = (id: string) => values[id] || undefined;
   const number = (id: string) => (values[id] === undefined || values[id] === '' ? undefined : Number(values[id]));
   return {

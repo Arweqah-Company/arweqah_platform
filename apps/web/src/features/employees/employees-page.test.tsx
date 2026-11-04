@@ -1,20 +1,16 @@
-import { CorePermission as P, type EmployeeListItemDto } from '@arweqah-platform/shared';
+import { CorePermission as P } from '@arweqah-platform/shared';
 import { fireEvent, screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
-import { access, me, server } from '../../../test/msw';
+import { listItemFixture, serveEmployeeList } from '../../../test/employees-fixtures';
+import { access, server } from '../../../test/msw';
 import { renderRoute } from '../../../test/render';
 import { EmployeesPage } from './employees-page';
 
-const ref = { id: 'c1', nameAr: 'أروقة الريادة', nameEn: 'Arweqah' };
-const person = (over: Partial<EmployeeListItemDto> = {}): EmployeeListItemDto => ({ id: 'e1', userId: 'u1', employeeNumber: 'N1', fullName: 'خالد المدير', workEmail: 'k@arweqah.sa', company: ref, orgNode: null, jobTitle: null, isActive: true, needsPlacement: false, idExpiresSoon: false, contractEndsSoon: false, isOwn: false, ...over });
+const person = listItemFixture;
 
 function serve(keys: string[], items = [person()]) {
-  server.use(
-    http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'all' as const }))))),
-    http.get('*/api/employees', () => HttpResponse.json({ items, total: items.length, page: 1, pageSize: 20 })),
-    http.get('*/api/employees/summary', () => HttpResponse.json({ total: 1, active: 1, idExpiring: 0, contractEnding: 0, needsPlacement: 0 })),
-  );
+  serveEmployeeList(keys, items);
   renderRoute([{ path: '/employees', element: <EmployeesPage /> }, { path: '/employees/:id', element: <p>صفحة الموظف</p> }], '/employees');
 }
 

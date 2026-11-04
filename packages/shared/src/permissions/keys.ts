@@ -109,6 +109,15 @@ export const CorePermission = {
   EmployeesViewSensitive: 'employees.view_sensitive',
   EmployeesAssignRoles: 'employees.assign_roles',
   EmployeesAssignGroups: 'employees.assign_groups',
+  EmployeesAssignChange: 'employees.assign_change',
+  EmployeesHistoryView: 'employees.history_view',
+  EmployeesPhotoUpdate: 'employees.photo_update',
+  EmployeesBulkUpdate: 'employees.bulk_update',
+  EmployeeFieldsView: 'employee_fields.view',
+  EmployeeFieldsEdit: 'employee_fields.edit',
+  EmployeeFieldsExport: 'employee_fields.export',
+  DirectoryView: 'directory.view',
+  DirectoryExport: 'directory.export',
   EmployeesResendInvite: 'employees.resend_invite',
   EmployeesResetAuthenticator: 'employees.reset_authenticator',
   EmployeesExport: 'employees.export',
@@ -186,6 +195,9 @@ const OWN_ACCOUNT_PERMISSIONS: { key: CorePermissionKey; scope: 'all' }[] = [
 export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own' | 'all' }[] = [
   ...OWN_ACCOUNT_PERMISSIONS,
   { key: CorePermission.EmployeesView, scope: 'own' },
+  { key: CorePermission.EmployeesHistoryView, scope: 'own' },
+  { key: CorePermission.EmployeesPhotoUpdate, scope: 'own' },
+  { key: CorePermission.DirectoryView, scope: 'all' },
   { key: CorePermission.EmployeesUpdate, scope: 'own' },
   { key: CorePermission.TicketsView, scope: 'own' },
   { key: CorePermission.TicketsCreate, scope: 'all' },
@@ -220,6 +232,7 @@ export const COLLABORATOR_BASE_PERMISSIONS: { key: CorePermissionKey; scope: 'ow
 
 export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'subtree' }[] = [
   { key: CorePermission.EmployeesView, scope: 'subtree' },
+  { key: CorePermission.EmployeesHistoryView, scope: 'subtree' },
   { key: CorePermission.TasksTeamView, scope: 'subtree' },
   { key: CorePermission.TasksMatrixView, scope: 'subtree' },
   { key: CorePermission.TasksApprove, scope: 'subtree' },

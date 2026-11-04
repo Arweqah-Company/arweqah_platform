@@ -11,6 +11,8 @@
   "saved": "Page visibility saved.",
   "page": {
     "employees": "Employees",
+    "employee-fields": "Employee field permissions",
+    "directory": "My team",
     "org": "Organization structure",
     "companies": "Companies",
     "roles": "Roles and permissions",

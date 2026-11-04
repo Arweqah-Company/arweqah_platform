@@ -47,7 +47,7 @@ async function runRows(rows: PreparedRow[], describe: (error: unknown) => string
 }
 
 /** pick a file → check every row → import the valid rows → report what failed. */
-export function useImportFlow(columns: ImportColumn[], prepare: (rows: SheetRow[]) => PreparedRow[], onImported?: () => void) {
+export function useImportFlow(columns: ImportColumn[], prepare: (rows: SheetRow[]) => PreparedRow[] | Promise<PreparedRow[]>, onImported?: () => void) {
   const { t } = useTranslation();
   const [phase, setPhase] = useState<ImportPhase>('pick');
   const [fileError, setFileError] = useState<string | null>(null);
@@ -59,7 +59,7 @@ export function useImportFlow(columns: ImportColumn[], prepare: (rows: SheetRow[
     setPhase('checking');
     setFileError(null);
     try {
-      setRows(prepare(await readImportFile(file, columns)));
+      setRows(await prepare(await readImportFile(file, columns)));
       setPhase('preview');
     } catch (error) {
       setFileError(error instanceof ImportFileError ? t(`dataExchange.file.${error.reason}`, { detail: error.detail }) : t('dataExchange.file.unreadable'));

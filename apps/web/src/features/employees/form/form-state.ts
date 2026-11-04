@@ -48,6 +48,9 @@ export interface FormState {
   roleIds: string[];
   /** The last day of a role, by role id (a role with no end date is not in it). */
   roleExpiries: Record<string, string>;
+  /** Edit only: from which day a changed unit, title or manager holds, and why (FR-89). */
+  effectiveFrom: string;
+  changeReason: string;
 }
 
 const TEXT_KEYS = [
@@ -62,7 +65,7 @@ export const EMPTY_FORM: FormState = {
   workPhone: '', personalPhone: '', employeeNumber: '', fullName: '', fullNameEn: '', gender: '', birthDate: '', nationalityId: '', maritalStatusId: '',
   residencyStatusId: '', idTypeId: '', idNumber: '', idExpiryDate: '', startDate: '', endDate: '', contractTypeId: '', contractTypeOther: '', contractCompanyId: '',
   gosiCompanyId: '', healthInsuranceCompanyId: '', isGosiRegistered: false, gosiRegistrationDate: '', gosiSystemId: '', profession: '', isQiwaContract: false,
-  hasMedicalInsurance: false, terminationReasonId: '', terminationReasonOther: '', monthlyGrossSalary: '', salaryCurrencyCountryId: '', iban: '', notes: '', roleIds: [], roleExpiries: {},
+  hasMedicalInsurance: false, terminationReasonId: '', terminationReasonOther: '', monthlyGrossSalary: '', salaryCurrencyCountryId: '', iban: '', notes: '', roleIds: [], roleExpiries: {}, effectiveFrom: '', changeReason: '',
 };
 
 const blank = (value: string): string | null => (value.trim() === '' ? null : value.trim());
@@ -70,8 +73,14 @@ const blank = (value: string): string | null => (value.trim() === '' ? null : va
 /** The API payload; roles are given when an employee is added (later changes use the roles dialog, and the update refuses the key). */
 export function toPayload(form: FormState, editing = false): Record<string, unknown> {
   const { roleIds, ...rest } = payloadFields(form);
-  return editing ? rest : { ...rest, roleIds, roleExpiries: roleExpiriesToSend(form, {}) };
+  return editing ? { ...rest, ...datedChange(form) } : { ...rest, roleIds, roleExpiries: roleExpiriesToSend(form, {}) };
 }
+
+/** The day and the reason of a placement change, sent only when the form has them. */
+const datedChange = (form: Pick<FormState, 'effectiveFrom' | 'changeReason'>) => ({
+  ...(blank(form.effectiveFrom) ? { effectiveFrom: form.effectiveFrom } : {}),
+  ...(blank(form.changeReason) ? { changeReason: form.changeReason.trim() } : {}),
+});
 
 /**
  * The end dates to send with the roles: those typed for a role that is ticked; a role that had a date and lost it is sent as null (no end date).

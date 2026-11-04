@@ -168,6 +168,10 @@ export class Employee extends SoftDeletableEntity {
   @Column({ name: 'iban_enc', type: 'text', nullable: true })
   ibanEnc: string | null;
 
+  // ---- Photo
+  @Column({ name: 'photo_file_id', type: 'uuid', nullable: true })
+  photoFileId: string | null;
+
   // ---- Log
   @Column({ type: 'text', nullable: true })
   notes: string | null;
@@ -179,6 +183,10 @@ export class Employee extends SoftDeletableEntity {
   @ManyToOne('User', { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'user_id', foreignKeyConstraintName: 'FK_employees_user' })
   private readonly userFk?: unknown;
+
+  @ManyToOne('StoredFile', { onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'photo_file_id', foreignKeyConstraintName: 'FK_employees_photo_file' })
+  private readonly photoFileFk?: unknown;
 
   @ManyToOne('Company')
   @JoinColumn({ name: 'company_id', foreignKeyConstraintName: 'FK_employees_company' })

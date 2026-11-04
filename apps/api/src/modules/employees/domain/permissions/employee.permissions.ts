@@ -14,8 +14,29 @@ export const EMPLOYEE_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.EmployeesViewSensitive, 'عرض البيانات الحساسة (الهوية والآيبان والراتب)', 'View sensitive data (ID, IBAN, salary)', WIDE),
   def(CorePermission.EmployeesAssignRoles, 'تعيين أدوار الموظفين', 'Assign employee roles', ['company', 'all']),
   def(CorePermission.EmployeesAssignGroups, 'تعيين مجموعات أدوار للموظف', 'Give an employee groups of roles', ['company', 'all']),
+  def(CorePermission.EmployeesAssignChange, 'تغيير وحدة الموظف أو مسماه أو مديره بتاريخ سريان', 'Change an employee\'s unit, job title or manager from a date', ['company', 'all']),
+  def(CorePermission.EmployeesBulkUpdate, 'تعديل جماعي لبيانات الموظفين', 'Edit many employees at once', ['company', 'all']),
+  def(CorePermission.EmployeesHistoryView, 'عرض سجل الموظف (تسكينه وتغييراته)', 'View an employee\'s history (placement and changes)', ['own', ...RECORD]),
+  def(CorePermission.EmployeesPhotoUpdate, 'تغيير صورة الموظف', 'Change an employee\'s photo', ['own', ...RECORD]),
   def(CorePermission.EmployeesResendInvite, 'إعادة إرسال رابط التفعيل', 'Resend the activation link', RECORD),
   def(CorePermission.EmployeesResetAuthenticator, 'إعادة ضبط تطبيق المصادقة', 'Reset the authenticator app', RECORD),
   def(CorePermission.EmployeesExport, 'تصدير الموظفين', 'Export employees', ['all']),
   def(CorePermission.EmployeesImport, 'استيراد الموظفين من ملف', 'Import employees from a file', ['all']),
+];
+
+const directory = (key: string, labelAr: string, labelEn: string): PermissionDefinition => ({ key, module: 'directory', labelAr, labelEn, scopes: ['all'] });
+
+/** «My team» (FR-92): basic details of the colleagues of the person's own unit. The unit is the reach, so the key has one scope. */
+export const DIRECTORY_PERMISSIONS: PermissionDefinition[] = [
+  directory(CorePermission.DirectoryView, 'عرض فريقي (زملاء وحدتي)', 'View my team (colleagues of my unit)'),
+  directory(CorePermission.DirectoryExport, 'تصدير فريقي', 'Export my team'),
+];
+
+const fields = (key: string, labelAr: string, labelEn: string): PermissionDefinition => ({ key, module: 'employee_fields', labelAr, labelEn, scopes: ['all'] });
+
+/** Who may change each detail of an employee (FR-94): platform administrators only. */
+export const EMPLOYEE_FIELD_PERMISSIONS: PermissionDefinition[] = [
+  fields(CorePermission.EmployeeFieldsView, 'عرض صفحة صلاحيات حقول الموظف', 'View the employee field permissions page'),
+  fields(CorePermission.EmployeeFieldsEdit, 'تحديد من يعدّل كل حقل من حقول الموظف', 'Choose who may change each employee field'),
+  fields(CorePermission.EmployeeFieldsExport, 'تصدير صلاحيات حقول الموظف', 'Export the employee field permissions'),
 ];

@@ -1,8 +1,8 @@
-import { SELF_EDITABLE_EMPLOYEE_FIELDS } from '@arweqah-platform/shared';
 import { createContext, useContext, type ReactNode } from 'react';
 import { Controller, useFormContext, type ControllerRenderProps } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Combobox, FormField, Input, Select, Textarea, type ComboboxOption } from '@/shared/ui';
+import { useSelfEditableFields } from '../api';
 import type { FormState } from './form-state';
 
 /** True inside the form of a plain employee editing their own record: only the self-service fields stay open, the rest is for HR (the API refuses it too). */
@@ -13,7 +13,8 @@ export const SelfServiceProvider = SelfServiceContext.Provider;
 export function useLock(name: string): { locked: boolean; hint?: string } {
   const { t } = useTranslation('employees');
   const selfService = useContext(SelfServiceContext);
-  const locked = selfService && !(SELF_EDITABLE_EMPLOYEE_FIELDS as readonly string[]).includes(name);
+  const editable = useSelfEditableFields().data.fields;
+  const locked = selfService && !editable.includes(name);
   return { locked, hint: locked ? t('hints.hrOnly') : undefined };
 }
 
