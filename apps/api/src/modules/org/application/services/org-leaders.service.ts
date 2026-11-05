@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import type {
   EndLeaderInput,
@@ -49,6 +49,8 @@ export function primaryLeader(rows: readonly LeaderRow[], groupCompanyId: string
  */
 @Injectable()
 export class OrgLeadersService {
+  private readonly logger = new Logger(OrgLeadersService.name);
+
   constructor(
     private readonly repo: OrgRepository,
     private readonly leaders: OrgLeaderRepository,
@@ -130,10 +132,15 @@ export class OrgLeadersService {
   async refreshCurrentCopies(): Promise<number> {
     let changed = 0;
     for (const nodeId of await this.leaders.nodesWithRows()) {
-      const node = await this.repo.node(nodeId);
-      if (!node) continue;
-      if (await this.tx.run((tx) => this.refreshCopy(node, tx))) changed += 1;
-      await this.syncHeadRoles(node.id);
+      try {
+        const node = await this.repo.node(nodeId);
+        if (!node) continue;
+        if (await this.tx.run((tx) => this.refreshCopy(node, tx))) changed += 1;
+        await this.syncHeadRoles(node.id);
+      } catch (error) {
+        // One unit with bad data must not leave the units after it with a stale manager and stale head roles.
+        this.logger.error(`Leaders of unit ${nodeId} could not be refreshed: ${error instanceof Error ? error.message : String(error)}`);
+      }
     }
     return changed;
   }

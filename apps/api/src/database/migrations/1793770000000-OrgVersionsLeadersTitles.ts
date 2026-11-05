@@ -7,6 +7,12 @@ const GRANT_TABLES: Record<string, string> = { role_permissions: 'role_id', role
 const LIST = `'{"ar":[],"en":[]}'::jsonb`;
 
 /**
+ * Fills `manager_source` of the manager periods that exist before this migration: a period that names a manager was chosen by a person (`manual`);
+ * one with no manager was never chosen by anybody, so the system may fill it by the reporting line (`auto_chain`).
+ */
+export const MANAGER_SOURCE_BACKFILL = `UPDATE employee_assignments SET manager_source = CASE WHEN manager_employee_id IS NULL THEN 'auto_chain' ELSE 'manual' END WHERE field = 'manager'`;
+
+/**
  * Stage 4 of the group structure (phase 5, FR-99, FR-100, FR-104…FR-107): dated versions and the charter of a unit, leaders per company with
  * acting leaders, grade / track / code / reporting line / content on job titles, the development-stage rules, and where an employee's manager came from.
  */
@@ -75,10 +81,10 @@ export class OrgVersionsLeadersTitles1793770000000 implements MigrationInterface
         await q.query(`CREATE UNIQUE INDEX "UQ_development_stage_rules_grade" ON "development_stage_rules" ("grade") WHERE track IS NULL`);
     }
 
-    /** Every manager period that exists was chosen by a person: `manual`; the system sets `auto_chain` from now on. */
+    /** Existing periods that name a manager are `manual`, those with none are `auto_chain`; the system sets `auto_chain` from now on. */
     private async managerSource(q: QueryRunner): Promise<void> {
         await q.query(`ALTER TABLE "employee_assignments" ADD "manager_source" character varying(20)`);
-        await q.query(`UPDATE employee_assignments SET manager_source = 'manual' WHERE field = 'manager'`);
+        await q.query(MANAGER_SOURCE_BACKFILL);
         await q.query(`ALTER TABLE "employee_assignments" ADD CONSTRAINT "CHK_employee_assignments_manager_source" CHECK ((field = 'manager') = (manager_source IS NOT NULL) AND (manager_source IS NULL OR manager_source IN ('auto_chain', 'manual')))`);
     }
 

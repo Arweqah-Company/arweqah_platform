@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { TransactionContext } from '../../../../common/domain/transaction-context';
 import { OrgCodePrefixRequiredError, OrgCodeSlotUnavailableError, OrgCodeTakenError } from '../../domain/errors/org.errors';
-import { nextUnitCode, rootLevelCode } from '../../domain/rules/org-codes.rules';
+import { nextUnitCode, rootLevelCode, slotFor } from '../../domain/rules/org-codes.rules';
 import type { LevelView, NodeView } from '../../domain/types/org.types';
 import { OrgRepository } from '../../domain/contracts/org.repository';
 
@@ -26,10 +26,22 @@ export class OrgUnitCodesService {
       parentCode: input.parent.code,
       parentType: input.parent.levelKey,
       childType: input.level.key,
-      siblingCodes: await this.repo.childCodes(input.parent.id, tx),
+      siblingCodes: await this.codesOfTheSameShape(input.parent, input.level.key, tx),
     });
     if (!code) throw new OrgCodeSlotUnavailableError();
     return code;
+  }
+
+  /**
+   * Every live code a new child could collide with: the parent's code with the slot of the child's type set to any number. A unit keeps its code when it
+   * moves, so the codes under this parent's prefix are not only those of its children today (a section that moved to another department still holds its old number).
+   */
+  private async codesOfTheSameShape(parent: NodeView, childType: string, tx: TransactionContext): Promise<string[]> {
+    const slot = slotFor(parent.levelKey, childType);
+    if (slot === null || !parent.code) return [];
+    const parts = parent.code.split('.');
+    parts[slot] = '__';
+    return this.repo.codesLike(parts.join('.'), tx);
   }
 
   private async rootCode(prefix: string | undefined, tx: TransactionContext): Promise<string> {

@@ -134,3 +134,16 @@ describe('Add unit: live validation and saving (FR-96)', () => {
     expect(await screen.findByRole('alert')).toBeInTheDocument();
   });
 });
+
+describe('Add unit: the start date defaults to the Riyadh day (CodeRabbit, PR 52)', () => {
+  it('fills 6 November at 01:30 Riyadh time (still 5 November in UTC)', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-05T22:30:00Z'));
+    try {
+      open();
+      expect((await screen.findByLabelText(/تاريخ بدء العمل/)) as HTMLInputElement).toHaveProperty('value', '2026-11-06');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

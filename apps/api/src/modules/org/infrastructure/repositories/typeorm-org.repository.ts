@@ -283,6 +283,11 @@ export class TypeOrmOrgRepository extends OrgRepository {
     return rows.map((r) => r.code);
   }
 
+  async codesLike(pattern: string, tx: TransactionContext): Promise<string[]> {
+    const rows: { code: string }[] = await this.m(tx).query('SELECT code FROM org_nodes WHERE code LIKE $1 AND deleted_at IS NULL', [pattern]);
+    return rows.map((r) => r.code);
+  }
+
   async codeTaken(code: string, tx: TransactionContext): Promise<boolean> {
     const rows: unknown[] = await this.m(tx).query('SELECT 1 FROM org_nodes WHERE code = $1 AND deleted_at IS NULL', [code]);
     return rows.length > 0;

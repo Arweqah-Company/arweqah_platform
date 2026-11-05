@@ -15,7 +15,12 @@ export class OrgScheduleJob {
 
   @Cron('15 0 * * *', { timeZone: 'Asia/Riyadh' })
   async scheduled(): Promise<void> {
-    await this.versions.applyDue();
+    // One failing step must not stop the other: the leaders still refresh when the dated changes of units could not be applied.
+    try {
+      await this.versions.applyDue();
+    } catch (error) {
+      this.logger.error(`Dated changes of units could not be applied: ${error instanceof Error ? error.message : String(error)}`);
+    }
     const moved = await this.leaders.refreshCurrentCopies();
     if (moved) this.logger.log(`Leader changed in ${moved} unit(s)`);
   }

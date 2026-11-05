@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { levels, N, orgNodes, orgTree, treeNode } from '../../../test/org-fixtures';
 import { allowedLevels, effectiveModeOf, parentChoices, resolveMode, suggestCode } from './add-unit-rules';
-import { buildModel, distribution, inTreeOrder, pathOf, subtreeOfCompany, unitMatches } from './org-model';
+import { buildModel, distribution, inTreeOrder, isScheduled, pathOf, subtreeOfCompany, unitMatches } from './org-model';
 
 describe('Structure model: tree order, paths and counts (FR-96)', () => {
   it('lists each unit after its parent with its depth', () => {
@@ -89,5 +89,18 @@ describe('Add unit rules (FR-96, FR-97)', () => {
     expect(effectiveModeOf(node(N.section), 'inherit')).toBe('shared');
     expect(effectiveModeOf(null, 'per_company')).toBe('per_company');
     expect(effectiveModeOf(null, '')).toBeNull();
+  });
+});
+
+describe('Structure model: «today» is the Riyadh day, not the UTC day (CodeRabbit, PR 52)', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('treats a unit that starts on the Riyadh day as in force, even while UTC is still on the previous day', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-05T22:30:00Z')); // 01:30 on 6 November in Riyadh
+    const startsToday = treeNode('x', 'unit', null, 'س', { startDate: '2026-11-06', hasScheduledChange: false });
+    const startsTomorrow = treeNode('y', 'unit', null, 'ص', { startDate: '2026-11-07', hasScheduledChange: false });
+    expect(isScheduled(startsToday)).toBe(false);
+    expect(isScheduled(startsTomorrow)).toBe(true);
   });
 });

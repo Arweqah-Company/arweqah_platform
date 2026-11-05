@@ -60,6 +60,8 @@ export abstract class OrgRepository {
   abstract lockChildren(parentId: string | null, tx: TransactionContext): Promise<void>;
   abstract childCodes(parentId: string | null, tx: TransactionContext): Promise<string[]>;
   abstract codeTaken(code: string, tx: TransactionContext): Promise<boolean>;
+  /** Live codes that fit a LIKE pattern (`_` is one character): every code a new unit of a given shape could collide with, wherever the unit sits now. */
+  abstract codesLike(pattern: string, tx: TransactionContext): Promise<string[]>;
 
   // Job titles
   abstract titlesOfNodes(nodeIds: string[]): Promise<TitleView[]>;

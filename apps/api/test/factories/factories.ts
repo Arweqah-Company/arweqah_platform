@@ -14,11 +14,11 @@ import { OrgLevelsService } from '../../src/modules/org/application/services/org
 import { OrgNodesService } from '../../src/modules/org/application/services/org-nodes.service';
 import { Employee } from '../../src/modules/employees/domain/entities/employee.entity';
 import { codeFor } from '../helpers/totp';
+import { randomPrefix } from './unit-prefix';
 
 /** Every unit made by the factories started long ago, so nothing depends on today's date. */
 const UNIT_START = '2024-01-01';
 type UnitKey = 'sector' | 'department' | 'section' | 'unit' | 'office';
-const randomPrefix = (): string => Array.from({ length: 3 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join('');
 
 export type TestAgent = ReturnType<typeof request.agent>;
 

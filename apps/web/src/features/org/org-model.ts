@@ -1,6 +1,7 @@
 import { childTypesOf, type JobTitleDto, type OrgLevelDto, type OrgTreeDto, type OrgTreeNodeDto } from '@arweqah-platform/shared';
 import type { ChartTone } from '@/shared/ui';
 import type { FilterValues } from '@/shared/lib/use-filters';
+import { todayInRiyadh } from '@/shared/lib/lines';
 import { matchesText } from '@/shared/lib/text-match';
 
 export type OrgNode = OrgTreeNodeDto;
@@ -19,9 +20,8 @@ const STATUS_TESTS: Record<string, (n: OrgNode) => boolean> = {
   active: (n) => n.isActive,
 };
 
-const today = (): string => new Date().toISOString().slice(0, 10);
 /** A unit that starts later, or that has a dated change waiting for its day. */
-export const isScheduled = (node: OrgNode): boolean => node.startDate > today() || node.hasScheduledChange;
+export const isScheduled = (node: OrgNode): boolean => node.startDate > todayInRiyadh() || node.hasScheduledChange;
 
 /** The words a search looks in: the unit's names and code and the names of its job titles. */
 function searchFields(node: OrgNode): string[] {

@@ -2,6 +2,16 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-05 — Review of PR #52 (group-wide organization structure): what was wrong and how it is settled
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 229 | **A manager period that existed before `OrgVersionsLeadersTitles` and names no manager is `auto_chain`, one that names a manager is `manual`** (`MANAGER_SOURCE_BACKFILL`, tested on the real database). The dev database was corrected the same way (32 rows written by the first migration) | The first migration wrote a period with no manager for every employee without one; marking it `manual` made `followChain` stop, so the chain never filled it | HR needs «no manager, on purpose» to survive the migration: it already does by a period HR writes (source `manual`) |
+| 230 | **A new unit takes the first free number among all live codes that fit the same shape under the parent** (`codesLike`: the parent's code with the slot of the type set to any number), not only among the parent's children today | A unit keeps its code when it moves (D14), so a section moved to another department still held the number its former parent would hand out next; the insert failed on `UQ_org_nodes_code` with a 500 | Codes are allowed to change on a move |
+| 231 | The nightly structure pass isolates its steps and, inside the leaders step, each unit: a failure is logged with the unit id and the rest still run | One unit with bad data left every unit after it with a stale manager and stale head roles, every night | |
+| 232 | The test factories take root-unit prefixes from a counter (AAA, AAB…), not at random | 17,576 values with about three roots per test across 500 tests made a 409 `ORG_CODE_TAKEN` flake likely on a full run | A suite needs more than 17,576 root units |
+| 233 | The web counts «today» in Asia/Riyadh (`todayInRiyadh`) for the scheduled badge of a unit and the default start date | UTC is three hours behind: between 00:00 and 03:00 Riyadh a unit starting today showed as scheduled and the dialog proposed yesterday | |
+
 ## 2026-11-05 — Organization structure (phase 5, stage 2): decisions after the interactive concept
 
 Rows 200–208 were planned; the API and database part was built the same day (rows 209–214 record what the build settled; rows 215–221 record stage 4, rows 222–223 the web screen: dated versions and charter, leaders, enriched job titles, the automatic manager). The full text is section 17 of `docs/plans/phase-5-people-structure-profile.md`. The concept was drawn as a Claude Artifact from the brand tokens and the plan, and the owner answered its open questions.

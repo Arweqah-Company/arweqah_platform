@@ -198,6 +198,17 @@ describe('Unit types of the group and the «who may be created under whom» tabl
     expect(moved.code).toBe('OPS.02.01.00');
   });
 
+  it('does not give a new unit the code of a unit that moved away from the same parent (CodeRabbit, PR 52)', async () => {
+    const { agent } = await api.admin();
+    const sector = await api.create(agent, 'sector', null, { name: 'S', codePrefix: 'OPS', managementMode: 'shared' });
+    const [d1, d2] = [await api.create(agent, 'department', sector.id, { name: 'D1' }), await api.create(agent, 'department', sector.id, { name: 'D2' })];
+    const section = await api.create(agent, 'section', d2.id, { name: 'Sec' });
+    expect(section.code).toBe('OPS.02.01.00');
+    await agent.post(`/api/org/nodes/${section.id}/move`).send({ parentId: d1.id }).expect(200); // keeps OPS.02.01.00
+    const next = await api.create(agent, 'section', d2.id, { name: 'Next section under the former parent' });
+    expect(next.code).toBe('OPS.02.02.00');
+  });
+
   it('answers 422 ORG_CODE_SLOT_UNAVAILABLE when the slot of the type is taken above, 422 without the prefix a sector needs, 400 for a bad prefix, 409 for a prefix already used', async () => {
     const { agent } = await api.admin();
     const sector = await api.create(agent, 'sector', null, { name: 'S', codePrefix: 'OPS', managementMode: 'shared' });
