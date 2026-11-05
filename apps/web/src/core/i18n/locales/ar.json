@@ -24,7 +24,6 @@
     },
     "profile": "الملف الشخصي",
     "directory": "فريقي",
-    "employeeFields": "صلاحيات حقول الموظف",
     "myAccess": "صلاحياتي",
     "tickets": "التذاكر",
     "ticketSetup": "إعداد التذاكر",
@@ -191,7 +190,8 @@
     "choose": "اختر…",
     "clear": "مسح الاختيار",
     "search": "ابحث…",
-    "empty": "لا نتائج."
+    "empty": "لا نتائج.",
+    "selectedCount": "تم اختيار {{count}}"
   },
   "footer": {
     "rights": "© {{year}} أروقة الريادة. جميع الحقوق محفوظة."

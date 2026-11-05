@@ -43,7 +43,6 @@ export const TOUR_STEPS = [
   { key: 'bulk-update', tour: 'general', permission: CorePermission.EmployeesBulkUpdate, page: 'employees' },
   { key: 'employee-photo', tour: 'general', permission: CorePermission.EmployeesPhotoUpdate, page: 'employees' },
   { key: 'directory', tour: 'general', permission: CorePermission.DirectoryView, page: 'directory' },
-  { key: 'employee-fields', tour: 'general', permission: CorePermission.EmployeeFieldsView, page: 'employee-fields' },
   { key: 'org', tour: 'general', permission: CorePermission.OrgView, page: 'org' },
   { key: 'org-views', tour: 'general', permission: CorePermission.OrgView, page: 'org' },
   { key: 'finish', tour: 'general' },

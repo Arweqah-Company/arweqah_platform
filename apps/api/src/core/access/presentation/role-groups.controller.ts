@@ -6,7 +6,8 @@ import { CurrentUser } from '../../../common/presentation/current-user.decorator
 import type { SessionUser } from '../../../common/presentation/request-context';
 import { IdParam } from '../../../common/presentation/zod-query';
 import { RoleGroupsService } from '../application/role-groups.service';
-import { RequireAdminMode, RequirePermission } from './require-permission.decorator';
+import type { AccessContext } from '../domain/access-context';
+import { Access, RequireAdminMode, RequirePermission } from './require-permission.decorator';
 
 class RoleGroupBody extends createZodDto(roleGroupInputSchema) {}
 
@@ -31,8 +32,8 @@ export class RoleGroupsController {
 
   @Put(':id')
   @RequirePermission(CorePermission.RoleGroupsUpdate)
-  update(@Param() { id }: IdParam, @Body() body: RoleGroupBody, @CurrentUser() user: SessionUser): Promise<RoleGroupDto> {
-    return this.groups.update(id, body, user.id);
+  update(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: RoleGroupBody, @CurrentUser() user: SessionUser): Promise<RoleGroupDto> {
+    return this.groups.update(ctx, id, body, user.id);
   }
 
   @Delete(':id')

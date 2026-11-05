@@ -1,4 +1,4 @@
-import type { EmployeeDto, PermissionScope } from '@arweqah-platform/shared';
+import { EMPLOYEE_FIELD_KEYS, type EmployeeDto, type PermissionScope } from '@arweqah-platform/shared';
 import { screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
@@ -24,7 +24,8 @@ async function open(scope: PermissionScope) {
     }),
     http.get('*/api/me', () => HttpResponse.json(me())),
     http.get('*/api/me/access', () => HttpResponse.json(access([{ key: 'employees.update', scope }, { key: 'employees.view', scope }]))),
-    http.get('*/api/employees/e1', () => HttpResponse.json(mine)),
+    // The grants decide the fields: a plain employee's own grant lists four, a wider grant lists them all (FR-94).
+    http.get('*/api/employees/e1', () => HttpResponse.json({ ...mine, editableFields: scope === 'own' ? ['workPhone', 'personalPhone', 'personalEmail', 'fullNameEn'] : EMPLOYEE_FIELD_KEYS })),
     http.get('*/api/lookups/org-nodes', () => HttpResponse.json([])),
     http.get('*/api/lookups/job-titles', () => HttpResponse.json([])),
   );
@@ -38,7 +39,7 @@ describe('Employee form for one\'s own record (FR-83)', () => {
     expect(asked).toEqual([]);
   });
 
-  it('locks the HR fields and keeps the phones, personal e-mail and English name open for a plain employee', async () => {
+  it('locks the fields the person\'s grant does not list and keeps the phones, personal e-mail and English name open', async () => {
     await open('own');
     for (const label of ['الوحدة', 'المسمى الوظيفي *']) expect(screen.getByLabelText(label)).toBeDisabled();
     expect(screen.getByLabelText('تاريخ البداية *')).toHaveAttribute('readonly');

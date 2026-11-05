@@ -13,6 +13,7 @@ import { EmployeeEmailTakenError, EmployeeNumberTakenError, FieldRuleError, IdDo
 import { applyFlagRules, type EmployeeInput, type RuleLookups } from '../../domain/rules/employee-flags.rules';
 import { toEmployeeValues } from '../transformers/employee-values.transformer';
 
+const ENCRYPTED_COLUMNS = ['idNumberEnc', 'ibanEnc', 'monthlyGrossSalaryEnc'] as const;
 const SENSITIVE_COLUMNS = ['idTypeId', 'idNumberEnc', 'idNumberHash', 'ibanEnc', 'monthlyGrossSalaryEnc', 'salaryCurrencyCountryId'] as const;
 
 export interface PreparedEmployee {
@@ -47,7 +48,20 @@ export class EmployeeValidationService {
     const values = toEmployeeValues(ruled, { cipher: this.cipher, blind: this.blind });
     await this.assertUnique(values, existing?.id);
     if (!sensitive) for (const column of SENSITIVE_COLUMNS) delete values[column];
+    else if (existing) this.dropUnchangedSecrets(values, existing);
     return { values, sensitive };
+  }
+
+  /**
+   * Every encryption uses a new random IV, so a value saved again unchanged would look different from the stored one:
+   * the secrets whose plain value did not change are left out, so they are neither rewritten nor reported as a change (FR-94).
+   */
+  private dropUnchangedSecrets(values: EmployeeValues, existing: Employee): void {
+    for (const column of ENCRYPTED_COLUMNS) {
+      const next = values[column];
+      const stored = existing[column];
+      if (typeof next === 'string' && typeof stored === 'string' && this.cipher.decrypt(next) === this.cipher.decrypt(stored)) delete values[column];
+    }
   }
 
   private async ruleLookups(input: EmployeeInput): Promise<RuleLookups> {

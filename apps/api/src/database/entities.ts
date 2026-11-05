@@ -27,7 +27,6 @@ import { EmailLog } from '../core/notifications/domain/email-log.entity';
 import { Notification } from '../core/notifications/domain/notification.entity';
 import { WorkflowInstance, WorkflowTransition } from '../core/workflow/domain/workflow-instance.entity';
 import { Employee } from '../modules/employees/domain/entities/employee.entity';
-import { EmployeeFieldRule } from '../modules/employees/domain/entities/employee-field-rule.entity';
 import { EmployeeAssignment } from '../modules/employees/domain/entities/employee-assignment.entity';
 import { LOOKUP_ENTITIES } from '../modules/lookups/domain/entities/lookup.entities';
 import { ORG_ENTITIES } from '../modules/org/domain/entities/org.entities';
@@ -81,5 +80,4 @@ export const ENTITIES = [
   ...TOUR_ENTITIES,
   Employee,
   EmployeeAssignment,
-  EmployeeFieldRule,
 ];

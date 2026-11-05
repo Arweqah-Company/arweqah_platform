@@ -47,7 +47,7 @@ export class EmployeeTransformer {
     private readonly lookups: LookupsService,
   ) {}
 
-  async toDto(e: Employee, view: { isActive: boolean; sensitive: boolean }): Promise<EmployeeDto> {
+  async toDto(e: Employee, view: { isActive: boolean; sensitive: boolean; editableFields?: string[] }): Promise<EmployeeDto> {
     const companyIds = [e.companyId, e.contractCompanyId, e.gosiCompanyId, e.healthInsuranceCompanyId].filter((id): id is string => !!id);
     const [companies, lookups, nodes, titles, managers, roles, groups, authenticatorEnabled, expiries] = await Promise.all([
       this.org.describeCompanies(companyIds),
@@ -62,6 +62,7 @@ export class EmployeeTransformer {
     ]);
     return {
       id: e.id,
+      editableFields: view.editableFields ?? [],
       userId: e.userId,
       isActive: view.isActive,
       isSystemAccount: e.isSystemAccount,

@@ -140,6 +140,7 @@ erDiagram
     uuid role_id PK,FK
     character_varying permission_key PK
     character_varying scope
+    text_array fields
   }
   user_roles {
     uuid user_id PK,FK
@@ -164,6 +165,7 @@ erDiagram
     uuid group_id PK,FK
     character_varying permission_key PK
     character_varying scope
+    text_array fields
   }
   user_groups {
     uuid id PK
@@ -181,6 +183,7 @@ erDiagram
     uuid group_id PK,FK
     character_varying permission_key PK
     character_varying scope
+    text_array fields
   }
   user_role_groups {
     uuid user_id PK,FK
@@ -193,6 +196,7 @@ erDiagram
     uuid user_id PK,FK
     character_varying permission_key PK
     character_varying scope
+    text_array fields
     date expires_at
     uuid granted_by FK
     timestamp_with_time_zone granted_at
@@ -560,13 +564,6 @@ erDiagram
     text reason
     uuid created_by
     timestamp_with_time_zone applied_at
-  }
-  employee_field_rules {
-    character_varying field PK
-    boolean editable_by_self
-    boolean editable_by_hr
-    uuid updated_by
-    timestamp_with_time_zone updated_at
   }
   companies ||--o{ employees : "company_id"
   companies ||--o{ employees : "contract_company_id"
@@ -1015,16 +1012,16 @@ erDiagram
 | Table | What it does |
 |---|---|
 | `roles` | Roles (manual, automatic by rule, per-unit «head of unit» roles via `org_node_id`, collaborator base). |
-| `role_permissions` | Permission keys a role holds, each with its scope (own / unit / company / all). |
+| `role_permissions` | Permission keys a role holds, each with its scope (own / unit / company / all) and, for «edit employees», the list of fields (`fields`, FR-94; empty = the basic data). |
 | `user_roles` | Roles assigned to a person (stored choices, with the grant stamp). |
 | `role_groups` | A named bundle of roles (e.g. «HR team»). |
 | `role_group_roles` | Which roles are inside a role group. |
-| `role_group_permissions` | Extra permission keys given to everyone holding a role group. |
+| `role_group_permissions` | Extra permission keys given to everyone holding a role group (with `fields` for «edit employees»). |
 | `user_groups` | A named group of people. |
 | `user_group_members` | Members of a user group. |
-| `user_group_permissions` | Permission keys given to every member of a user group. |
+| `user_group_permissions` | Permission keys given to every member of a user group (with `fields` for «edit employees»). |
 | `user_role_groups` | Role groups assigned to a person. |
-| `user_permissions` | Exceptions: a single permission key given to one person, with scope, expiry and who granted it. |
+| `user_permissions` | Exceptions: a single permission key given to one person, with scope, expiry, who granted it and (for «edit employees») its `fields`. |
 | `page_visibility_rules` | Which pages (`page_key`) a role may see in the menu. |
 | `list_settings` | Per list: hidden columns and hidden filters (list management). |
 
@@ -1063,7 +1060,6 @@ erDiagram
 | Table | What it does |
 |---|---|
 | `employees` | The employee file: company, unit, job title, manager, relation, work location / mode, contact data, ID, contract, GOSI, medical insurance, dates, termination, salary. National ID, salary and IBAN are encrypted (`*_enc`, ID also hashed for lookup). Soft-deleted (`deleted_at`); linked to `users`. |
-| `employee_field_rules` | Who may change each detail of an employee (FR-94): one row per field of the catalog `EMPLOYEE_FIELDS`, with `editable_by_self` (the employee themselves; never switched on for identity, contract and pay fields) and `editable_by_hr` (off = only a platform administrator). The migration seeds the rule the platform had before; the tests treat it as a reference table. `employees.photo_file_id` (FR-91) points to the profile photo in `files`. |
 | `employee_assignments` | The dated placement of an employee (FR-89): one row per period of the unit, the job title or the direct manager (`field`), with `valid_from` / `valid_to`, the reason and who made it. A change closes the open period the day before the new one starts. `applied_at` is empty while a later period waits for its day; `employees` keeps the value in force today. One open period per employee and field. |
 
 ### 6. Tickets (internal, between departments)

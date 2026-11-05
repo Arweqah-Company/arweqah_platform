@@ -24,7 +24,6 @@
     },
     "profile": "Profile",
     "directory": "My team",
-    "employeeFields": "Employee field permissions",
     "myAccess": "My access",
     "tickets": "Tickets",
     "ticketSetup": "Ticket setup",
@@ -191,7 +190,8 @@
     "choose": "Choose…",
     "clear": "Clear selection",
     "search": "Search…",
-    "empty": "No results."
+    "empty": "No results.",
+    "selectedCount": "{{count}} selected"
   },
   "footer": {
     "rights": "© {{year}} Arweqah Alreyadah. All rights reserved."

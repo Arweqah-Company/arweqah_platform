@@ -13,7 +13,6 @@ export const LIST_CATALOG = {
     ],
   },
   directory: { columns: ['name', 'title', 'unit', 'company', 'email', 'phone'], filters: ['companyId', 'jobTitleId'] },
-  'employee-fields': { columns: ['field', 'group', 'self', 'hr'], filters: ['group', 'self', 'hr'] },
   org: { columns: ['name', 'level', 'manager', 'employees', 'titles', 'status'], filters: ['level', 'status', 'employees', 'manager'] },
   companies: { columns: ['code', 'name', 'employees', 'status'], filters: ['status', 'employees'] },
   roles: { columns: ['name', 'origin', 'permissions', 'users', 'assignment', 'kind', 'type'], filters: ['type', 'assignment', 'kind', 'company', 'holders'] },

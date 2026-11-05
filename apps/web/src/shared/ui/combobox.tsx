@@ -35,7 +35,10 @@ interface ComboboxProps {
   onBlur?: () => void;
 }
 
-/** A select with search, for lists too long for a plain select (units, managers, countries). */
+/**
+ * A select with search, for lists too long for a plain select (units, managers, countries).
+ * The popup is at least as wide as the field and grows to fit its longest name (up to 32rem), and a long name wraps instead of being cut.
+ */
 export function Combobox({ label, id, value, onChange, options, placeholder, disabled, invalid, clearable, onSearch, searchable = true, className, onBlur, ...aria }: ComboboxProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -52,7 +55,7 @@ export function Combobox({ label, id, value, onChange, options, placeholder, dis
         {clearable && selected && !disabled && <ClearButton onClear={() => onChange(null)} />}
       </div>
       <Popover.Portal>
-        <Popover.Content align="start" sideOffset={4} className="animate-fade-in z-50 w-[var(--radix-popover-trigger-width)] rounded-[var(--radius-control)] border border-neutral-200 bg-white shadow-lg shadow-ink/10">
+        <Popover.Content align="start" sideOffset={4} className="animate-fade-in z-50 w-max min-w-[var(--radix-popover-trigger-width)] max-w-[min(32rem,calc(100vw-2rem))] rounded-[var(--radius-control)] border border-neutral-200 bg-white shadow-lg shadow-ink/10">
           <Command shouldFilter={!onSearch}>
             <Command.Input
               aria-label={label}
@@ -80,15 +83,15 @@ function ClearButton({ onClear }: { onClear: () => void }) {
   );
 }
 
-function ComboItem({ option: o, selected, onPick }: { option: ComboboxOption; selected: boolean; onPick: (value: string) => void }) {
+export function ComboItem({ option: o, selected, onPick }: { option: ComboboxOption; selected: boolean; onPick: (value: string) => void }) {
   return (
     <Command.Item
       value={`${o.label} ${o.hint ?? ''} ${o.value}`}
       onSelect={() => onPick(o.value)}
       className="flex cursor-pointer items-center justify-between gap-2 rounded-md px-3 py-2 text-sm transition-colors data-[selected=true]:bg-petrol-50"
     >
-      <span className="truncate">{o.label}</span>
-      <span className="flex items-center gap-2">
+      <span className="min-w-0 break-words">{o.label}</span>
+      <span className="flex shrink-0 items-center gap-2">
         {o.hint && <span dir="ltr" className="text-xs text-muted">{o.hint}</span>}
         {selected && <Check className="size-4 text-link" aria-hidden />}
       </span>
@@ -102,7 +105,7 @@ interface TriggerProps extends Pick<ComboboxProps, 'id' | 'label' | 'invalid' | 
   placeholderShown: boolean;
 }
 
-function ComboTrigger({ id, label, open, invalid, disabled, onBlur, text, placeholderShown, ...aria }: TriggerProps) {
+export function ComboTrigger({ id, label, open, invalid, disabled, onBlur, text, placeholderShown, ...aria }: TriggerProps) {
   return (
     <Popover.Trigger asChild>
       <button
@@ -118,7 +121,7 @@ function ComboTrigger({ id, label, open, invalid, disabled, onBlur, text, placeh
         disabled={disabled}
         className={cn(control, 'h-full flex cursor-pointer items-center justify-between gap-2 text-start')}
       >
-        <span className={cn('truncate', placeholderShown && 'text-muted')}>{text}</span>
+        <span title={placeholderShown ? undefined : text} className={cn('truncate', placeholderShown && 'text-muted')}>{text}</span>
         <ChevronDown className={cn('size-4 shrink-0 text-link transition-transform duration-150', open && 'rotate-180')} aria-hidden />
       </button>
     </Popover.Trigger>

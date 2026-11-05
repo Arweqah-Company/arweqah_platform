@@ -1,4 +1,4 @@
-import { EMPLOYEE_DEFAULT_PERMISSIONS, EMPLOYEE_FIELD_KEYS, SELF_EDITABLE_EMPLOYEE_FIELDS } from '@arweqah-platform/shared';
+import { ALL_EDITABLE_FIELDS, CorePermission, EMPLOYEE_DEFAULT_PERMISSIONS } from '@arweqah-platform/shared';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AppConfig } from '../../config/app-config.service';
@@ -10,7 +10,6 @@ import { AuthenticatorService } from '../../core/auth/application/authenticator.
 import { IdentityProvider } from '../../core/auth/application/identity-provider';
 import { User } from '../../core/auth/domain/user.entity';
 import { Employee } from '../../modules/employees/domain/entities/employee.entity';
-import { EmployeeFieldRule } from '../../modules/employees/domain/entities/employee-field-rule.entity';
 import { CompaniesSeeder } from './companies.seeder';
 import { DEFAULT_COMPANY_CODE } from './data/lookups.data';
 import { LookupsSeeder } from './lookups.seeder';
@@ -49,16 +48,9 @@ export class FoundationSeeder {
     await this.lookups.run();
     await this.companies.run();
     await this.demo.run();
-    await this.employeeFieldRules();
     await this.firstAdmin(admin);
     await this.ticketsDemo.run(await this.adminUserId());
     await this.autoRoles.sync();
-  }
-
-  /** Who may change each employee field (FR-94): a field with no row yet starts as the rule the platform always had; rows an administrator changed are left alone. */
-  private async employeeFieldRules(): Promise<void> {
-    const self: readonly string[] = SELF_EDITABLE_EMPLOYEE_FIELDS;
-    await this.db.getRepository(EmployeeFieldRule).createQueryBuilder().insert().values(EMPLOYEE_FIELD_KEYS.map((field) => ({ field, editableBySelf: self.includes(field), editableByHr: true }))).orIgnore().execute();
   }
 
   private async adminUserId(): Promise<string | null> {
@@ -75,7 +67,7 @@ export class FoundationSeeder {
     if (!isAdmin) Object.assign(role, { assignment: EMPLOYEE_ROLE_SEED.assignment, autoRule: EMPLOYEE_ROLE_SEED.autoRule, description: role.description ?? EMPLOYEE_ROLE_SEED.note });
     const saved = await repo.save(role);
     // The Employee role starts with the own-account and ticket keys, only while it has none (later changes are the administrator's).
-    const grants = isAdmin ? this.catalog.all().map((p) => ({ key: p.key, scope: 'all' as const })) : saved.permissions.length === 0 ? EMPLOYEE_DEFAULT_PERMISSIONS : null;
+    const grants = isAdmin ? this.catalog.all().map((p) => ({ key: p.key, scope: 'all' as const, ...(p.key === CorePermission.EmployeesUpdate && { fields: [...ALL_EDITABLE_FIELDS] }) })) : saved.permissions.length === 0 ? EMPLOYEE_DEFAULT_PERMISSIONS.map((p) => ({ key: p.key, scope: p.scope, ...(p.fields && { fields: [...p.fields] }) })) : null;
     if (grants) {
       saved.replacePermissions(grants);
       await this.db.transaction(async (m) => {

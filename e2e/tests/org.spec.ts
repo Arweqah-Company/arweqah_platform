@@ -41,17 +41,17 @@ test.describe('Organization: chart or table, per company (FR-31)', () => {
     await adminModeOffViaApi(page);
     await page.goto('/org');
     await expect(page.getByRole('heading', { level: 1, name: 'الهيكل التنظيمي' })).toBeVisible();
-    for (const name of ['إضافة وحدة', 'إضافة مسمى وظيفي', 'تقسيمات الهيكل']) await expect(page.getByRole('button', { name })).toHaveCount(0);
+    for (const name of ['إضافة وحدة', 'إضافة مسمى وظيفي', 'تقسيمات الهيكل']) await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
     await adminModeOnViaApi(page);
     await page.reload();
-    for (const name of ['إضافة وحدة', 'إضافة مسمى وظيفي', 'تقسيمات الهيكل']) await expect(page.getByRole('button', { name })).toBeVisible();
+    for (const name of ['إضافة وحدة', 'إضافة مسمى وظيفي', 'تقسيمات الهيكل']) await expect(page.getByRole('button', { name, exact: true }).first()).toBeVisible();
   });
 
   test('picks a level and a parent unit from the drop-downs inside the add-unit dialog', async ({ page }) => {
     test.setTimeout(90_000); // turning admin mode on needs a code the previous test has not used, which may mean waiting for the next 30-second step
     await adminModeOnViaApi(page);
     await page.goto('/org');
-    await page.getByRole('button', { name: 'إضافة وحدة' }).click();
+    await page.getByRole('button', { name: 'إضافة وحدة', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'إضافة وحدة' });
     const level = dialog.getByLabel('التقسيم *', { exact: true });
     await level.click();

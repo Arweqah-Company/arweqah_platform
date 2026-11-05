@@ -14,6 +14,10 @@ export class UserPermission extends GrantStamp {
   @Column({ type: 'varchar', length: 20 })
   scope: PermissionScope;
 
+  /** The fields the grant lets its holder change (`employees.update`); null for permissions that carry no list. */
+  @Column({ name: 'fields', type: 'text', array: true, nullable: true })
+  fields: string[] | null;
+
   @ManyToOne('User', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id', foreignKeyConstraintName: 'FK_user_permissions_user' })
   private readonly userFk?: unknown;

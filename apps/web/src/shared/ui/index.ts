@@ -13,6 +13,7 @@ export { ErrorPage, type ErrorCode } from './error-page';
 export { ListToolbar, ViewSwitch, type FilterField, type FilterOption, type ViewChoice } from './list-toolbar';
 export { TreeChart, type ChartItem, type ChartTone } from './tree-chart';
 export { Combobox, type ComboboxOption } from './combobox';
+export { MultiCombobox } from './multi-combobox';
 export { ConfirmDialog } from './confirm-dialog';
 export { EmptyState } from './empty-state';
 export { SectionCard } from './section-card';

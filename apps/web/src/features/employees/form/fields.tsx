@@ -1,21 +1,20 @@
+import { EMPLOYEE_FIELD_KEYS } from '@arweqah-platform/shared';
 import { createContext, useContext, type ReactNode } from 'react';
 import { Controller, useFormContext, type ControllerRenderProps } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Combobox, FormField, Input, Select, Textarea, type ComboboxOption } from '@/shared/ui';
-import { useSelfEditableFields } from '../api';
 import type { FormState } from './form-state';
 
-/** True inside the form of a plain employee editing their own record: only the self-service fields stay open, the rest is for HR (the API refuses it too). */
-const SelfServiceContext = createContext(false);
-export const SelfServiceProvider = SelfServiceContext.Provider;
+/** The details of the record the person may change (the grants of «edit employees» they hold decide, FR-94): everything else is locked. Null on the form of a new employee, where nothing is locked. */
+const EditableFieldsContext = createContext<readonly string[] | null>(null);
+export const EditableFieldsProvider = EditableFieldsContext.Provider;
 
 /** Is this field locked for the person filling the form, and the hint that says why. */
 export function useLock(name: string): { locked: boolean; hint?: string } {
   const { t } = useTranslation('employees');
-  const selfService = useContext(SelfServiceContext);
-  const editable = useSelfEditableFields().data.fields;
-  const locked = selfService && !editable.includes(name);
-  return { locked, hint: locked ? t('hints.hrOnly') : undefined };
+  const editable = useContext(EditableFieldsContext);
+  const locked = !!editable && EMPLOYEE_FIELD_KEYS.includes(name) && !editable.includes(name);
+  return { locked, hint: locked ? t('hints.notEditable') : undefined };
 }
 
 type TextName = Exclude<keyof FormState, 'isGosiRegistered' | 'isQiwaContract' | 'hasMedicalInsurance' | 'roleIds' | 'roleExpiries'>;

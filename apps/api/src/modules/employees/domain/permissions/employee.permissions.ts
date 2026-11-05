@@ -32,11 +32,3 @@ export const DIRECTORY_PERMISSIONS: PermissionDefinition[] = [
   directory(CorePermission.DirectoryExport, 'تصدير فريقي', 'Export my team'),
 ];
 
-const fields = (key: string, labelAr: string, labelEn: string): PermissionDefinition => ({ key, module: 'employee_fields', labelAr, labelEn, scopes: ['all'] });
-
-/** Who may change each detail of an employee (FR-94): platform administrators only. */
-export const EMPLOYEE_FIELD_PERMISSIONS: PermissionDefinition[] = [
-  fields(CorePermission.EmployeeFieldsView, 'عرض صفحة صلاحيات حقول الموظف', 'View the employee field permissions page'),
-  fields(CorePermission.EmployeeFieldsEdit, 'تحديد من يعدّل كل حقل من حقول الموظف', 'Choose who may change each employee field'),
-  fields(CorePermission.EmployeeFieldsExport, 'تصدير صلاحيات حقول الموظف', 'Export the employee field permissions'),
-];

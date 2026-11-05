@@ -16,7 +16,7 @@ export interface PermissionTargetDto {
   nameAr: string;
   nameEn: string;
   /** Placed on this target itself. */
-  permissions: { key: string; scope: PermissionScope }[];
+  permissions: { key: string; scope: PermissionScope; fields?: string[] | null }[];
   /** Reaches it from elsewhere (the roles of a group, the roles and groups of a person); shown, not edited here. */
   inherited: { key: string; scope: PermissionScope }[];
 }

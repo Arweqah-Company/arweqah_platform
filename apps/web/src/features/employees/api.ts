@@ -15,11 +15,9 @@ import type {
   OrgNodeOptionDto,
   OrgReferenceDto,
   Paginated,
-  SelfEditableFieldsDto,
   TerminateEmployeeInput,
   UpdateEmployeeInput,
 } from '@arweqah-platform/shared';
-import { SELF_EDITABLE_EMPLOYEE_FIELDS } from '@arweqah-platform/shared';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { refreshAccess } from '@/core/permissions/access-key';
@@ -96,16 +94,6 @@ export const useRemovePhoto = (id: string) => useEmployeeMutation(() => apiClien
 
 /** One change for many employees; with `dryRun` it only says who would change and who would be refused. */
 export const useBulkUpdate = () => useEmployeeMutation((input: BulkUpdateInput) => apiClient.post<BulkUpdateResultDto>('/employees/bulk-update', input));
-
-/** The fields a plain employee may change of their own record (an administrator sets them, FR-94); the first answer is the starting rule. */
-export const useSelfEditableFields = () =>
-  useQuery({
-    queryKey: ['employees', 'self-editable-fields'],
-    queryFn: () => apiClient.get<SelfEditableFieldsDto>('/me/profile/field-rules'),
-    initialData: { fields: [...SELF_EDITABLE_EMPLOYEE_FIELDS] },
-    initialDataUpdatedAt: 0,
-    staleTime: 60_000,
-  });
 
 /** One teammate's profile at the depth the viewer's relation allows (FR-92). */
 export const useTeamProfile = (id: string | null) =>

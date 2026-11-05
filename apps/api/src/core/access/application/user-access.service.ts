@@ -6,7 +6,7 @@ import { RoleRepository, UserAccessRepository } from '../domain/access.repositor
 import type { Role } from '../domain/role.entity';
 import { RoleGroupRepository } from '../domain/role-group.repository';
 import { PermissionCatalog } from './permission-catalog';
-import { scopeRank, type PermissionGrant } from '@arweqah-platform/shared';
+import { carriesFields, fieldsOfGrant, scopeRank, type PermissionGrant } from '@arweqah-platform/shared';
 import { ForbiddenError, NotFoundError } from '../../../common/domain/domain-error';
 import { ACCESS_CHANGED } from './access.events';
 
@@ -67,14 +67,17 @@ export class UserAccessService {
 
   /**
    * Nobody can hand out more than they hold: every permission of the roles must be one the actor has,
-   * at the same or a wider scope. Unknown roles are reported as not found.
+   * at the same or a wider scope, those of the groups the roles sit in included. Unknown roles are reported as not found.
    */
   async assertGrantable(actor: AccessContext, roleIds: string[], exempt: readonly string[] = []): Promise<void> {
     const unique = [...new Set(roleIds)];
     const roles = await this.roles.findByIds(unique);
     const missing = unique.find((id) => !roles.some((r) => r.id === id));
     if (missing) throw new NotFoundError('Role', missing);
-    this.assertHolds(actor, roles.filter((r) => !exempt.includes(r.id)).flatMap((r) => r.permissions));
+    const given = roles.filter((r) => !exempt.includes(r.id));
+    this.assertHolds(actor, given.flatMap((r) => r.permissions));
+    // A role also brings what the groups it sits in carry (decision 195).
+    this.assertHolds(actor, await this.groups.grantsOfGroupsHolding(given.map((r) => r.id)));
   }
 
   /** The roles a new employee starts with: the base role (Employee, or the collaborator base) and the role of their job title (those that exist). */
@@ -113,6 +116,14 @@ export class UserAccessService {
     for (const grant of grants) {
       const own = actor.scopeOf(grant.key);
       if (!own || scopeRank(own) < scopeRank(grant.scope)) throw new ForbiddenError('You cannot assign more than you hold');
+      this.assertHoldsFields(actor, grant);
     }
+  }
+
+  /** Nobody gives a field to change that they cannot change themselves: the fields of a grant stay inside the fields the giver holds at the same or a wider reach (a field held only for their own record is not given for every record). */
+  private assertHoldsFields(actor: AccessContext, grant: PermissionGrant): void {
+    if (!carriesFields(grant.key)) return;
+    const held = new Set(actor.grantsOf(grant.key).filter((g) => scopeRank(g.scope) >= scopeRank(grant.scope)).flatMap((g) => fieldsOfGrant(g)));
+    if (fieldsOfGrant(grant).some((field) => !held.has(field))) throw new ForbiddenError('You cannot assign more than you hold');
   }
 }

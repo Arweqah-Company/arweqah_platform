@@ -40,11 +40,15 @@ test.describe('Permissions page (FR-46, FR-47)', () => {
     const dialog = page.getByRole('dialog', { name: 'مجموعة أدوار جديدة' });
     await dialog.getByLabel('الاسم بالعربية *').fill(`مجموعة تجريبية${suffix}`);
     await dialog.getByLabel('الاسم بالإنجليزية *').fill(`Demo bundle${suffix}`);
-    await dialog.getByRole('checkbox', { name: roleName }).check();
+    await dialog.getByRole('combobox', { name: 'إضافة دور إلى المجموعة' }).click();
+    await page.getByRole('option', { name: roleName }).first().click();
+    await expect(dialog.getByRole('list', { name: 'الأدوار' }).getByRole('listitem')).toHaveCount(1);
+    await page.keyboard.press('Escape');
     await dialog.getByRole('button', { name: 'حفظ' }).click();
     await expect(page.getByLabel('مجموعة الأدوار', { exact: true })).not.toHaveText('اختر…');
     await page.getByRole('checkbox', { name: 'عرض صفحة سجل التدقيق' }).check();
-    await page.getByRole('button', { name: 'حفظ', exact: true }).click();
+    // the group has two saves: its roles and its permissions (the matrix)
+    await page.locator('#matrix').getByRole('button', { name: 'حفظ', exact: true }).click();
     await expect(page.getByText('حُفظت الصلاحيات.').first()).toBeVisible();
     await page.getByRole('button', { name: 'حذف' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'حذف' }).click();
@@ -56,7 +60,7 @@ test.describe('Permissions page (FR-46, FR-47)', () => {
     const people = page.getByRole('dialog', { name: 'مجموعة مستخدمين جديدة' });
     await people.getByLabel('الاسم بالعربية *').fill(`فريق تجريبي${suffix}`);
     await people.getByLabel('الاسم بالإنجليزية *').fill(`Demo team${suffix}`);
-    await people.getByLabel('ابحث عن شخص لإضافته').fill('magdy');
+    await people.getByLabel('ابحث عن شخص لإضافته').fill('m');
     await people.getByRole('list', { name: 'النتائج' }).getByRole('button').first().click();
     await expect(people.getByRole('list', { name: 'الأعضاء' }).getByRole('listitem')).toHaveCount(1);
     await people.getByRole('button', { name: 'حفظ' }).click();
