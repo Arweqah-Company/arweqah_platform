@@ -25,6 +25,7 @@ export class AccessContextService {
       record.isActive,
       record.reach,
       record.elevatedGrants,
+      record.restrictedNodes,
     );
     this.cache.set(userId, { context, expiresAt: Date.now() + CACHE_TTL_MS });
     return context;

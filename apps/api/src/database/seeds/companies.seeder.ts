@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CompaniesService } from '../../modules/org/application/services/companies.service';
 import { COMPANIES } from './data/lookups.data';
 
-/** Creates the group's companies, each with the default levels. Existing companies are left untouched. */
+/** Creates the group's companies. Existing companies are left untouched (the structure is one for the whole group). */
 @Injectable()
 export class CompaniesSeeder {
   private readonly logger = new Logger('Seed');

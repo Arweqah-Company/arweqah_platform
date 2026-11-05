@@ -1,155 +1,380 @@
 {
   "title": "Organization structure",
-  "description": "Build each company's structure with three forms: levels, then units, then job titles.",
-  "company": "Company",
-  "selectUnit": "Select a unit in the tree to see its details.",
+  "description": {
+    "full": "One tree for the whole group and all its companies. What each company sees follows where its employees sit.",
+    "team": "The units that have employees under them and the ones above, with their leaders and job titles."
+  },
   "actions": {
-    "levels": "Levels",
+    "levels": "Structure divisions",
     "addUnit": "Add unit",
-    "addTitle": "Add job title"
+    "addUnder": "Add a unit under it",
+    "changeMode": "Change management type",
+    "setCode": "Set code",
+    "edit": "Edit",
+    "move": "Move"
   },
-  "empty": {
-    "title": "This company has no units yet",
-    "description": "Start by adding the first unit at the top level. You can review the levels (sector, department, section, unit) first with the “Levels” button.",
-    "action": "Add the first unit",
-    "levels": "Levels of this company: {{levels}}"
+  "search": {
+    "label": "Search the structure",
+    "placeholder": "Search by unit name, code or a job title in it"
   },
-  "levels": {
-    "title": "Levels of the structure",
-    "description": "Order the levels from top to bottom. The last level accepts job titles and employees.",
-    "nameAr": "Arabic name",
-    "nameEn": "English name",
-    "assignable": "Accepts job titles and employees",
-    "add": "Add level",
-    "up": "Move up",
-    "down": "Move down",
-    "remove": "Remove level",
-    "rules": "Enter both names for every level; the last level must accept employees.",
-    "saved": "Levels saved."
+  "scope": {
+    "label": "View",
+    "team": "Employees only",
+    "full": "Full view",
+    "asCompany": "Show me a company's structure",
+    "allCompanies": "All companies"
   },
-  "impact": {
-    "title": "This change affects existing data",
-    "description": "Review what will be removed before confirming. Nothing changes until you confirm.",
-    "summary": "Will be removed: {{units}} unit(s) and {{titles}} job title(s). Employees attached: {{employees}}.",
-    "employeesQuestion": "What happens to the attached employees ({{count}})?",
-    "transfer": "Transfer them to another unit (recommended)",
-    "targetUnit": "Target unit",
-    "mapTitle": "New job title for “{{title}}” ({{count}} employees)",
-    "chooseTitle": "Choose the job title",
-    "delete": "Delete them",
-    "deleteWarning": "{{count}} employees will be deleted, their accounts disabled and their sessions ended.",
-    "typeCount": "Type the number of employees to confirm",
-    "cancel": "Cancel",
-    "confirm": "Confirm removal"
-  },
-  "node": {
-    "title": "Add unit",
-    "description": "Choose the level, then the parent unit from the level above.",
-    "editTitle": "Edit unit",
-    "level": "Level",
-    "parent": "Parent unit ({{level}})",
-    "parentLabel": "Parent unit",
-    "nameAr": "Arabic name",
-    "nameEn": "English name",
-    "manager": "Unit manager",
-    "managerHint": "Optional. Proposed as the direct manager of the unit's employees.",
-    "active": "Active unit",
-    "titlesRequired": "Job titles (at least one)",
-    "saved": "Unit saved.",
-    "startDate": "Start date",
-    "startHint": "The day the unit started working.",
-    "startInvalid": "Not a sensible date: from 1980 up to two years ahead."
-  },
-  "titles": {
-    "title": "Add job titles",
-    "description": "Add one or more titles to a unit that accepts employees.",
-    "unit": "Unit",
-    "nameAr": "Arabic name",
-    "nameEn": "English name",
-    "add": "Add title",
-    "remove": "Remove title",
-    "saved": "Job titles added.",
-    "template": "Copy permissions from role",
-    "templateHint": "The role of this title starts with the permissions of this role; you can edit them later on the roles page.",
-    "templateDefault": "Employee role (default)"
-  },
-  "move": {
-    "title": "Move unit",
-    "description": "Choose another unit from the level above this one.",
-    "newParent": "New parent unit",
-    "confirm": "Move",
-    "done": "Unit moved."
-  },
-  "details": {
-    "level": "Level",
-    "manager": "Manager",
+  "filter": {
+    "status": {
+      "empty": "Empty (no employees)",
+      "noleader": "Employees without a leader",
+      "inactive": "Stopped",
+      "active": "In force"
+    },
     "employees": "Employees",
-    "status": "Status",
-    "titles": "Job titles",
-    "addTitle": "Add title",
-    "addChild": "Add unit below",
-    "move": "Move",
-    "deleteTitle": "Delete the unit?",
-    "deleteBody": "The unit and its job titles are deleted if it has no sub-units or employees.",
-    "deleted": "Unit deleted.",
-    "deleteTitleTitle": "Delete the job title?",
-    "deleteTitleBody": "A title with employees, or the last title of a unit, cannot be deleted.",
-    "titleDeleted": "Job title deleted.",
-    "startDate": "Started"
+    "withEmployees": "Has employees",
+    "withoutEmployees": "No employees",
+    "manager": "Leader",
+    "withManager": "Has a leader",
+    "withoutManager": "No leader"
+  },
+  "legend": {
+    "label": "Colors of the unit types",
+    "note": "The color follows the unit type, and every card carries a text badge."
+  },
+  "mode": {
+    "shared": "Shared",
+    "perCompany": "Per company",
+    "inherited": "inherited",
+    "inheritedFromParent": "inherited from the parent"
+  },
+  "status": {
+    "inForce": "In force",
+    "inactive": "Stopped",
+    "empty": "Empty",
+    "noLeader": "No leader",
+    "scheduled": "Scheduled change"
+  },
+  "alerts": {
+    "hiddenIntro": "This is the structure of “{{company}}”: it shows the units that have employees of your company under them, the units above them up to the top, and the shared units that have employees.",
+    "hiddenCount": "{{count}} units without employees are hidden in this view.",
+    "noneHidden": "No units are hidden.",
+    "needFull": "Seeing the full structure needs the “See the full structure” permission.",
+    "openFull": "Open the full view",
+    "yourCompany": "your company",
+    "compare": "You are comparing the full view with what “{{company}}” sees. The faded units with a dashed border ({{count}}) are not visible to that company's employees.",
+    "noLeader": "Units with employees and no leader in their company ({{count}}):",
+    "noLeaderMore": " and {{count}} more",
+    "showThem": "Show them",
+    "separator": ", "
   },
   "chart": {
-    "company": "Company",
-    "counts": "{{units}} units · {{employees}} employees",
-    "nodeCounts": "{{employees}} employees · {{units}} units",
-    "searchLabel": "Search the chart",
-    "searchPlaceholder": "Find a unit in the chart",
-    "openAll": "Open all",
-    "closeAll": "Close all",
-    "label": "Organization chart of {{company}}",
-    "legend": "Colors of the structure levels"
+    "group": "Arweqah Alreyadah",
+    "groupFull": "Arweqah Alreyadah (the group)",
+    "groupBadge": "Group",
+    "rootCounts": "{{units}} units · {{employees}} employees",
+    "nodeCounts": "{{employees}} employees · {{units}} below · {{mode}}",
+    "label": "Organization chart"
   },
   "table": {
     "title": "Units ({{count}})",
     "name": "Unit",
-    "path": "Path",
-    "searchLabel": "Search units",
-    "searchPlaceholder": "Search by name, path or manager",
-    "withEmployees": "Has employees",
-    "withoutEmployees": "No employees",
-    "withManager": "Has a manager",
-    "withoutManager": "No manager"
+    "code": "Code",
+    "noCode": "Code not set",
+    "type": "Type",
+    "mode": "Management type",
+    "leader": "Leader",
+    "employees": "Employees",
+    "titles": "Titles",
+    "status": "Status"
+  },
+  "empty": {
+    "teamTitle": "No units have employees of your company yet",
+    "teamBody": "Units show here once an employee of your company is placed in them.",
+    "fullTitle": "There are no units in the structure yet",
+    "fullBody": "Start by adding the first unit. You can review the types and their rules first from “Structure divisions”.",
+    "action": "Add the first unit",
+    "noMatch": "No units match the search or the filters",
+    "clear": "Clear search and filters"
+  },
+  "details": {
+    "label": "Unit details: {{name}}",
+    "path": "Unit path",
+    "tabs": "Details sections",
+    "deleteTitle": "Delete the unit?",
+    "deleteBody": "The unit and its job titles are deleted if it has no units below it and no employees.",
+    "deleted": "The unit was deleted."
+  },
+  "tabs": {
+    "overview": "Overview",
+    "titles": "Titles",
+    "leaders": "Leaders",
+    "charter": "Charter",
+    "history": "History"
+  },
+  "overview": {
+    "parent": "Parent",
+    "sharedText": "Shared: managed once from Arweqah, and the leader of the unit manages any employee under it.",
+    "perCompanyText": "Managed per company: each company has its own leader and employees.",
+    "employeesIn": "employees in {{units}} units below and {{titles}} direct titles",
+    "byCompany": "Employees by company",
+    "distributionLabel": "Employees by company",
+    "noEmployees": "There are no employees in this unit yet.",
+    "ownCompanyOnly": "{{count}} employees of your company. Numbers per company are in the full view.",
+    "sharedNote": "In a shared unit, an employee's company is written beside the name when it differs from the user's company."
+  },
+  "node": {
+    "editTitle": "Edit the unit",
+    "nameAr": "Arabic name",
+    "nameEn": "English name",
+    "manager": "Unit manager",
+    "managerHint": "Optional. Offered as the direct manager of the unit's employees.",
+    "active": "The unit is working",
+    "saved": "The unit was saved.",
+    "startDate": "Start date",
+    "startHint": "The day the unit started working.",
+    "startInvalid": "Unreasonable date: from 1980 up to two years ahead.",
+    "effectiveFrom": "Effective from",
+    "effectiveHint": "Today, or a later day: a change dated later is recorded as a scheduled version and applied on its day.",
+    "effectivePast": "A change cannot start in the past.",
+    "reason": "Reason for the change"
+  },
+  "add": {
+    "title": "Add a unit",
+    "description": "Choose the parent, then the type. The allowed types follow the rules table.",
+    "parent": "Parent",
+    "underGroup": "Arweqah Alreyadah (the top)",
+    "noTypes": "No unit may be created under this parent. Change the parent or edit the rules from “Structure divisions”.",
+    "noSlot": "No code slot is free for this type under this parent.",
+    "parentNoCode": "This parent has no code: set its code first.",
+    "prefix": "Unit code (three letters)",
+    "prefixHint": "Three capital English letters the codes start with, such as OPS.",
+    "prefixInvalid": "Three capital English letters.",
+    "nameEnHint": "Optional. Translated from the Arabic as you type.",
+    "modeInherit": "Inherited from the parent",
+    "modeInheritNow": "Now: {{mode}}.",
+    "modeSharedText": "Managed once from Arweqah. The leader of the unit manages any employee under it.",
+    "modePerCompanyText": "Exists in every company, and each company has its own leader and employees.",
+    "suggestedCode": "Suggested code:",
+    "codeNone": {
+      "pending": "Decided once the type is chosen",
+      "prefix": "Type the three letters",
+      "parentNoCode": "The parent has no code",
+      "noSlot": "No free slot"
+    },
+    "seesShared": "It shows for every company once the first employee of any company is placed in it.",
+    "seesPerCompany": "It will not show in a company's structure until its first employee is placed in it. Whoever can see the full structure always sees it.",
+    "save": "Save the unit",
+    "saved": "The unit was added."
+  },
+  "changeMode": {
+    "title": "Change how the unit is managed",
+    "direction": "From “{{from}}” to “{{to}}”. It applies to the unit and everything under it unless one of them has its own value.",
+    "impactToPer": "Employees of the subsidiary companies in this unit change their manager from the Arweqah leader to their own company's leader, and if there is none the manager moves up inside the company. The change is audited and the reason recorded.",
+    "impactToShared": "Employees of the subsidiary companies in this unit get the Arweqah leader as their manager, and the subsidiaries' leader roles for it are closed. The change is audited and the reason recorded.",
+    "reason": "Reason for the change",
+    "reasonHint": "For example: merging the services department into Arweqah.",
+    "confirm": "Confirm the change",
+    "result": "Changed. Units affected: {{units}}. Employees of the subsidiary companies whose manager was recomputed: {{employees}}."
+  },
+  "setCode": {
+    "title": "Set the unit's code",
+    "once": "This unit was created before codes existed. Its code is set once and does not change afterwards.",
+    "hint": "In the form OPS.03.03.01",
+    "invalid": "Use the form OPS.03.03.01.",
+    "use": "Use the suggestion",
+    "saved": "The code was set."
+  },
+  "move": {
+    "title": "Move the unit",
+    "description": "Choose a place the structure rules allow. The unit's code stays as it is.",
+    "newParent": "New parent",
+    "confirm": "Move",
+    "done": "The unit was moved.",
+    "nowhere": "The rules allow no other place for this type."
+  },
+  "levels": {
+    "title": "Structure divisions",
+    "description": "The unit types and the rules of who may be created under whom. One for the whole group.",
+    "typesTitle": "Divisions",
+    "typesNote": "Each division is one unit type for the whole group. Any division you add shows in every company.",
+    "nameAr": "Arabic name",
+    "nameEn": "English name",
+    "accepts": "Takes titles and employees",
+    "units": "Units",
+    "builtIn": "Built in",
+    "newType": "New division",
+    "remove": "Remove the division",
+    "add": "Add a division",
+    "nameRequired": "The Arabic name is required.",
+    "nameDuplicate": "This name is already used.",
+    "nameEnRequired": "The English name is required.",
+    "matrixTitle": "Who is created under whom",
+    "matrixNote": "A tick means the child may be created under that parent. A parent accepts one type or more, and sibling units need not look alike.",
+    "parentChild": "Parent ↓ / Child →",
+    "all": "All",
+    "allUnder": "All types under {{parent}}",
+    "pair": "Parent {{parent}}, child {{child}}",
+    "fixedSector": "Fixed rule: a sector is created only under Arweqah Alreyadah.",
+    "fixedOffice": "Fixed rule: no office under an office.",
+    "codeNote": "The code follows the type: one slot per type (sector 1, department 2, section 3, unit 4). An office takes the number 09 in the slot where it sits, and an added division takes the unit slot.",
+    "save": "Save the divisions",
+    "saved": "The divisions were saved."
   },
   "tour": {
     "org": {
-      "title": "Organization",
-      "body": "The company tree with its sectors, departments, sections and units, each with its manager and headcount. Switch between the chart and the table to see the view that suits you, and search to reach any unit.",
+      "title": "Organization structure",
+      "body": "The group's tree of sectors, departments, sections and units, with each unit's leader and number of employees. You see the units that have employees of your company under them and the ones above. Switch between the chart, the table and the cards, and search to reach any unit.",
       "can": {
         "unit_create": "Add a new unit to the structure",
-        "unit_update": "Edit a unit and its manager",
-        "unit_move": "Move a unit elsewhere in the tree",
-        "levels": "Manage the levels of the structure",
-        "titles": "Manage job titles",
+        "unit_update": "Edit a unit's details and its manager",
+        "unit_move": "Move a unit to another place in the tree",
+        "unit_share": "Change a unit between shared and per company",
+        "titles": "Add job titles to a unit from the “Titles” tab",
         "export": "Export the structure to a file"
       }
     },
     "org-views": {
-      "title": "Ways to view the structure",
-      "body": "Switch between three views: the chart is a tree of colored cards, the icicle is side-by-side blocks, and the table lists every unit. The divisions are the levels of the structure (sector, department, section, unit); each level has a fixed color shown in the legend above the chart. Click any unit to see its manager, employees and job titles."
+      "title": "Ways to see the structure",
+      "body": "Switch between four ways: the chart is a tree of cards, the horizontal chart is blocks side by side, the table lists every unit, and the cards. A unit's color follows its type (sector, department, section, unit, office), and each card carries a badge with the type. Click any unit to see its details."
+    },
+    "org-full-view": {
+      "title": "Seeing the full structure",
+      "body": "With your permission you see every unit, even empty ones: switch between “Employees only” and “Full view”, and choose “Show me a company's structure” to see what its employees see and what they do not."
     },
     "org-levels": {
-      "title": "Structure levels",
-      "body": "Here you set the levels of the structure, their names and order; every unit belongs to one of them. A change here shows across the company.",
-      "can": {
-        "titles": "You add job titles to your units with the \"Add job title\" button"
-      }
+      "title": "Structure divisions",
+      "body": "Here you set the unit types and their names, and the rules of who may be created under whom. The divisions are one for the whole group, and any change shows in every company."
     },
     "org-add-unit": {
       "title": "Add a unit",
-      "body": "Click here to add a unit: write its name in Arabic and English, choose its level, then the parent unit it belongs to, its manager and its job titles, and save so it appears in the chart. In the table view a \"+\" button on each row adds a unit directly under it.",
+      "body": "Press here to add a unit: choose the parent and the type, write the name, and pick how it is managed (shared or per company). The code the unit will get shows before you save. In the table view, the “+” on a row adds a unit directly under it.",
       "can": {
-        "unit_update": "You edit any unit and its manager with the pencil on its row",
-        "unit_move": "You move a unit under another parent with the move button"
+        "unit_update": "Edit any unit and its manager from the pencil on its row",
+        "unit_move": "Move a unit to another parent from the move button on its row"
       }
+    },
+    "org-charter": {
+      "title": "Unit charter",
+      "body": "In the “Charter” tab you write the unit's purpose, its outputs, what is inside its scope and what is outside it, and its limits."
+    }
+  },
+  "leaders": {
+    "loading": "Loading the leaders…",
+    "roleNote": "The role «leader of {{name}}» is one role, not tied to a company. Everyone with a leader row in force holds it, and its permissions are the same in every company.",
+    "sharedLabel": "Leader of the shared unit",
+    "noSharedLeader": "This shared unit has no leader.",
+    "sharedNote": "One leader only, from the group company. They manage the employees of every company under the unit.",
+    "tableLabel": "Unit leaders by company",
+    "company": "Company",
+    "leader": "Leader",
+    "employees": "Employees",
+    "noLeader": "No leader",
+    "escalates": "The manager goes up to {{name}} ({{unit}})",
+    "noLeaderAbove": "No leader above for this company: the manager stays empty",
+    "noCompanies": "No company has employees here",
+    "noCompaniesHint": "Companies appear once an employee is placed in the unit.",
+    "window": "from",
+    "windowTo": "to",
+    "status": {
+      "current": "In force",
+      "scheduled": "Scheduled",
+      "past": "Ended"
+    },
+    "actingTitle": "Acting leaders and scheduled appointments",
+    "kinds": {
+      "leader": "Leader",
+      "acting": "Acting leader"
+    },
+    "assign": "Assign a leader or acting leader",
+    "assignTitle": "Assign a leader or acting leader",
+    "sharedRule": "The unit is shared: its leader is chosen from the group company only.",
+    "actingRule": "An acting leader holds the leader role only for their window, and needs a leader in force for the whole window.",
+    "kind": "Kind",
+    "chooseCompany": "Choose the company",
+    "employee": "Employee",
+    "employeePlaceholder": "Search by name or employee number",
+    "chooseCompanyFirst": "Choose the company first: only its employees are listed.",
+    "validFrom": "Starts on",
+    "validTo": "Ends on",
+    "validToHint": "Leave empty for a leader with no end.",
+    "reason": "Reason",
+    "saved": "The leader was assigned.",
+    "errors": {
+      "fromPast": "A leader starts today or later.",
+      "toNeeded": "An acting leader needs an end date.",
+      "toBeforeFrom": "The end cannot be before the start.",
+      "endPast": "The end date is today or later."
+    },
+    "end": "End",
+    "endTitle": "End the leader",
+    "endDate": "Last day",
+    "endHint": "The last day they lead (today or later).",
+    "ended": "The leader's term was ended.",
+    "remove": "Remove",
+    "removeTitle": "Remove the appointment?",
+    "removeBody": "The appointment of {{name}} is removed because it has not started yet.",
+    "removed": "The appointment was removed."
+  },
+  "charter": {
+    "loading": "Loading the charter…",
+    "note": "The charter says why the unit exists, what it delivers and where its work stops. Every change is recorded with its effective date and its reason in the History tab.",
+    "purpose": "Purpose",
+    "outputs": "Outputs",
+    "inScope": "In scope",
+    "outOfScope": "Out of scope",
+    "limits": "Limits",
+    "sectionEmpty": "Not written yet.",
+    "emptyTitle": "This unit has no charter yet",
+    "emptyHint": "The charter: purpose, outputs, what is in and out of scope, and its limits.",
+    "write": "Write the charter",
+    "edit": "Edit the charter",
+    "dialogTitle": "Unit charter",
+    "linesHint": "One item per line.",
+    "effectiveFrom": "Effective from",
+    "effectiveHint": "Today, or a later day to record a scheduled version.",
+    "reason": "Reason for the change",
+    "errors": {
+      "dateRequired": "Choose the effective date.",
+      "datePast": "The charter cannot take effect in the past."
+    },
+    "saved": "The charter was saved.",
+    "savedScheduled": "The charter is scheduled to take effect on {{date}}."
+  },
+  "history": {
+    "loading": "Loading the history…",
+    "timeline": "Versions of the unit through time",
+    "status": {
+      "current": "In force",
+      "past": "Previous",
+      "scheduled": "Scheduled"
+    },
+    "from": "from",
+    "to": "to",
+    "by": "By {{name}}",
+    "logTitle": "Change log",
+    "logEmpty": "No changes recorded yet.",
+    "reason": "Reason: {{reason}}",
+    "note": "Editing the unit today does not change yesterday's record, and a unit is stopped by a date instead of being deleted. Moving it to another parent is immediate and audited.",
+    "actions": {
+      "org_unit_created": "The unit was created",
+      "org_unit_updated": "The unit was edited",
+      "org_unit_moved": "The unit was moved",
+      "org_unit_deleted": "The unit was deleted",
+      "org_unit_mode_changed": "The management type changed",
+      "org_unit_code_set": "The unit code was set",
+      "org_unit_charter_changed": "The charter was edited",
+      "org_unit_version_applied": "A scheduled change was applied",
+      "org_unit_leader_set": "A leader was assigned",
+      "org_unit_leader_ended": "A leader's term was ended",
+      "org_unit_leader_removed": "A leader appointment was removed",
+      "org_job_title_created": "A job title was added",
+      "org_job_title_updated": "A job title was edited",
+      "org_job_title_deleted": "A job title was deleted",
+      "org_job_title_content_changed": "A job title's content was edited",
+      "org_job_titles_imported": "Job titles were imported from a file",
+      "org_levels_changed": "The structure divisions changed",
+      "org_level_rules_changed": "The creation rules changed"
     }
   }
 }

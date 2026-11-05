@@ -46,8 +46,23 @@ async function runRows(rows: PreparedRow[], describe: (error: unknown) => string
   return { failures: failures.sort((a, b) => a.rowNumber - b.rowNumber) };
 }
 
-/** pick a file → check every row → import the valid rows → report what failed. */
-export function useImportFlow(columns: ImportColumn[], prepare: (rows: SheetRow[]) => PreparedRow[] | Promise<PreparedRow[]>, onImported?: () => void) {
+/** A failed call refuses every row it was meant to save, each with the same message. */
+async function commitAll(commit: BatchCommit, rows: PreparedRow[], describe: (error: unknown) => string): Promise<ImportFailure[]> {
+  try {
+    return (await commit(rows)).sort((a, b) => a.rowNumber - b.rowNumber);
+  } catch (error) {
+    return rows.map((r) => ({ rowNumber: r.rowNumber, message: describe(error) }));
+  }
+}
+
+/** Saves every valid row in one go and returns the rows the server refused (for a list whose import is decided by the server as a whole). */
+export type BatchCommit = (rows: PreparedRow[]) => Promise<ImportFailure[]>;
+
+/**
+ * pick a file → check every row → import the valid rows → report what failed.
+ * With `commit` the valid rows are saved by that one call; otherwise each row runs by itself (`PreparedRow.run`), a few at a time.
+ */
+export function useImportFlow(columns: ImportColumn[], prepare: (rows: SheetRow[]) => PreparedRow[] | Promise<PreparedRow[]>, onImported?: () => void, commit?: BatchCommit) {
   const { t } = useTranslation();
   const [phase, setPhase] = useState<ImportPhase>('pick');
   const [fileError, setFileError] = useState<string | null>(null);
@@ -70,7 +85,8 @@ export function useImportFlow(columns: ImportColumn[], prepare: (rows: SheetRow[
   const start = async () => {
     setPhase('running');
     setProgress(0);
-    setFailures((await runRows(rows.filter((r) => r.run), (error) => errorMessage(t, error), setProgress)).failures);
+    const valid = rows.filter((r) => r.run);
+    setFailures(commit ? await commitAll(commit, valid, (error) => errorMessage(t, error)) : (await runRows(valid, (error) => errorMessage(t, error), setProgress)).failures);
     setPhase('done');
     onImported?.();
   };

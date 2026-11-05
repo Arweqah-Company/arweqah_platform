@@ -16,28 +16,30 @@ export class AbilityFactory {
   build(ctx: AccessContext): AppAbility {
     const rules: Rule[] = [];
     for (const { key, scope } of ctx.grants()) {
-      const rule = this.ruleFor(ctx, key, scope);
-      if (rule) rules.push(rule);
+      rules.push(...this.rulesFor(ctx, key, scope));
       // Every grant includes the user's own records.
       rules.push({ action: key, subject: 'Record', conditions: { ownerId: ctx.userId } });
     }
     return createMongoAbility(rules);
   }
 
-  /** A unit-based scope without a placement means no unit-wide access, only the user's own records. */
-  private ruleFor(ctx: AccessContext, key: string, scope: PermissionScope): Rule | null {
+  /**
+   * A unit-based scope without a placement means no unit-wide access, only the user's own records. In a unit managed per company the
+   * scope reaches only the people of the person's company, so such units get their own rule with the company condition.
+   */
+  private rulesFor(ctx: AccessContext, key: string, scope: PermissionScope): Rule[] {
     const { companyId } = ctx.placement;
     const base = { action: key, subject: 'Record' };
-    switch (scope) {
-      case 'all':
-        return base;
-      case 'company':
-        return companyId ? { ...base, conditions: { companyId } } : null;
-      default: {
-        const ids = ctx.nodesFor(scope);
-        return isTreeScope(scope) && ids.length ? { ...base, conditions: { orgNodeId: { $in: [...ids] } } } : null;
-      }
-    }
+    if (scope === 'all') return [base];
+    if (scope === 'company') return companyId ? [{ ...base, conditions: { companyId } }] : [];
+    const ids = ctx.nodesFor(scope);
+    if (!isTreeScope(scope) || !ids.length) return [];
+    const restricted = new Set(ctx.restrictedNodesFor(scope));
+    const free = ids.filter((id) => !restricted.has(id));
+    return [
+      ...(free.length ? [{ ...base, conditions: { orgNodeId: { $in: free } } }] : []),
+      ...(restricted.size && companyId ? [{ ...base, conditions: { orgNodeId: { $in: [...restricted] }, companyId } }] : []),
+    ];
   }
 
   can(ctx: AccessContext, key: string, resource: ScopedResource): boolean {
@@ -58,8 +60,7 @@ export class AbilityFactory {
 
   /** Does this one grant (by its own scope) reach the record? */
   private reaches(ctx: AccessContext, key: string, scope: PermissionScope, resource: ScopedResource): boolean {
-    const rule = this.ruleFor(ctx, key, scope);
-    const rules: Rule[] = [...(rule ? [rule] : []), { action: key, subject: 'Record', conditions: { ownerId: ctx.userId } }];
+    const rules: Rule[] = [...this.rulesFor(ctx, key, scope), { action: key, subject: 'Record', conditions: { ownerId: ctx.userId } }];
     return createMongoAbility(rules).can(key, subject('Record', { ...resource }));
   }
 

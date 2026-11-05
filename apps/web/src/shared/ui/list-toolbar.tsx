@@ -86,7 +86,7 @@ function FilterPanel({ fields, values, onChange }: { fields: FilterField[]; valu
         </Button>
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Content align="end" sideOffset={8} collisionPadding={16} className="animate-fade-in z-50 max-h-[70vh] w-[min(92vw,30rem)] overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-5 shadow-xl shadow-ink/10">
+        <Popover.Content align="end" sideOffset={8} collisionPadding={16} className="animate-fade-in z-50 max-h-[min(70vh,var(--radix-popover-content-available-height))] w-[min(92vw,30rem)] overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-5 shadow-xl shadow-ink/10">
           <div className="grid gap-4 sm:grid-cols-2">
             {fields.map((f) => <FieldControl key={f.id} field={f} value={values[f.id] ?? ''} onChange={(v) => onChange({ ...values, [f.id]: v })} />)}
           </div>
@@ -154,4 +154,9 @@ export function ListToolbar({ listKey, search, filters: allFilters, view, action
       {filters && <ActiveFilters {...filters} />}
     </>
   );
+}
+
+/** The panel that holds a list's toolbar when the list is not a table (it has a chart view too): the same rounded white surface as the table's top bar. */
+export function ListToolbarPanel({ children }: { children: ReactNode }) {
+  return <div className="mb-4 flex flex-wrap items-center gap-3 rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm shadow-ink/5">{children}</div>;
 }

@@ -15,6 +15,7 @@ import { DEFAULT_COMPANY_CODE } from './data/lookups.data';
 import { LookupsSeeder } from './lookups.seeder';
 import { EMPLOYEE_ROLE_SEED } from './data/roles.data';
 import { RolesCatalogSeeder } from './roles-catalog.seeder';
+import { OrgLevelsSeeder } from './org-levels.seeder';
 import { OrgStructureSeeder } from './org-structure.seeder';
 import { TicketsDemoSeeder } from './tickets-demo.seeder';
 
@@ -34,6 +35,7 @@ export class FoundationSeeder {
     private readonly authenticator: AuthenticatorService,
     private readonly config: AppConfig,
     private readonly lookups: LookupsSeeder,
+    private readonly orgLevels: OrgLevelsSeeder,
     private readonly companies: CompaniesSeeder,
     private readonly demo: OrgStructureSeeder,
     private readonly ticketsDemo: TicketsDemoSeeder,
@@ -46,6 +48,7 @@ export class FoundationSeeder {
     await this.upsertRole(EMPLOYEE_ROLE, 'موظف', false);
     await this.rolesCatalog.run();
     await this.lookups.run();
+    await this.orgLevels.run();
     await this.companies.run();
     await this.demo.run();
     await this.firstAdmin(admin);

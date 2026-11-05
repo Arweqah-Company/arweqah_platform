@@ -43,7 +43,7 @@ export class EmployeeValidationService {
     const sensitive = this.canHandleSensitive(ctx, { ownerId: existing?.userId, companyId: input.companyId, orgNodeId: input.orgNodeId });
     const effective = sensitive ? input : { ...input, idTypeId: null, idNumber: null, iban: null, monthlyGrossSalary: null, salaryCurrencyCountryId: null };
     const ruled = applyFlagRules(effective, await this.ruleLookups(effective));
-    await this.org.assertPlacement({ companyId: ruled.companyId, orgNodeId: ruled.orgNodeId, jobTitleId: ruled.jobTitleId });
+    await this.org.assertPlacement({ orgNodeId: ruled.orgNodeId, jobTitleId: ruled.jobTitleId });
     await this.assertManager(ruled.managerId ?? null, existing?.id);
     const values = toEmployeeValues(ruled, { cipher: this.cipher, blind: this.blind });
     await this.assertUnique(values, existing?.id);

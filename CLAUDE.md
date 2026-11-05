@@ -74,7 +74,7 @@ Description captured as FR rows in README §4 (next free FR id; foundation used 
 ## Start of every task (read first, in this order)
 Before writing code for any task, read what is current so nothing is built on stale assumptions:
 1. `docs/decisions.md` (newest first) and the sections of `README.md` the task touches: §4 requirements (FR rows), §6 ERD (points to `docs/database-design.md`), §7 and §8 diagrams, §12 actors, Brand; `docs/database-design.md` when the task touches tables.
-2. The last entries of «سجل التنفيذ (ما تم)» at the end of `docs/plans/phase-1-auth-employees.md` (what was done most recently and what remains).
+2. The last entries of «سجل التنفيذ (ما تم)» at the end of the plan file of the module the task belongs to (`docs/plans/<phase>.md`; what was done most recently and what remains). Each feature keeps its own log in its own plan file; `phase-1-auth-employees.md` holds the log of the foundation and the first business modules only.
 3. Invoke `arweqah-design-system` before any UI work and `module-architecture` before any API module work (the skills below), and follow them as written.
 When your work changes behaviour, screens, tables, flows, permissions, env vars or design rules, update the same files in the same task: README (§4/6/7/8/12, Brand, Run), `docs/decisions.md`, the plan log, and the design-system skill. A task is not done while those files disagree with the code.
 
@@ -85,7 +85,7 @@ Skills live in `.claude/skills/`. **At the end of every implementation step (and
 - `security-check` — any change to API, web, database, auth or configuration. Run `npm run security:check`.
 - `arweqah-design-system` — any change under `apps/web`. Run `npm run design:check`, then verify the real screens (RTL + LTR, desktop + phone, axe) as the skill describes.
 - `i18n-review` — any change to text, i18n files, seeds or error messages. Run `npm run i18n:check`.
-**After every feature, append a dated entry under «سجل التنفيذ (ما تم)» at the end of `docs/plans/phase-1-auth-employees.md`** (what was done, where, how it was verified), in Arabic.
+**After every feature, append a dated entry under «سجل التنفيذ (ما تم)» at the end of that feature's own plan file (`docs/plans/<phase>.md` of its module; a module without a plan file gets one first, standing rule 12)** (what was done, where, how it was verified), in Arabic.
 **Verify after every task, before saying it is done: `npm run verify`.** It reports four groups, and your report repeats them in four lines:
 - **Architecture:** `architecture:check` (module folders by kind, entity registry, feature registration, no cross-feature internals), eslint `boundaries`/limits, duplication < 3 %.
 - **Design:** `design:check`, `i18n:check`, and for UI changes the real screens (RTL + LTR, desktop + phone, axe).

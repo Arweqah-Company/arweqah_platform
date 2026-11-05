@@ -21,7 +21,7 @@ describe('AccessContext', () => {
       { key: 'employees.view', scope: 'subtree' },
     ], true);
     expect(ctx.scopeOf('employees.view')).toBe('company');
-    expect(ctx.filterFor('employees.view')).toEqual({ scope: 'company', userId: 'u1', companyId: 'c1', nodeIds: [] });
+    expect(ctx.filterFor('employees.view')).toEqual({ scope: 'company', userId: 'u1', companyId: 'c1', nodeIds: [], restrictedNodeIds: [] });
     expect(ctx.filterFor('roles.manage')).toBeNull();
   });
 
@@ -72,7 +72,7 @@ describe('AccessContext: how far a unit-based scope reaches (FR-80)', () => {
   });
 
   it('describes a depth scope as the units it reaches, and leaves company and all as they are', () => {
-    expect(context('subtree:1').nodeScopeOf('leaves.approve')).toEqual({ kind: 'nodes', ids: ['n1', 'n2'] });
+    expect(context('subtree:1').nodeScopeOf('leaves.approve')).toEqual({ kind: 'nodes', ids: ['n1', 'n2'], restrictedIds: [], companyId: 'c1' });
     expect(context('company').nodeScopeOf('leaves.approve')).toEqual({ kind: 'company', companyId: 'c1' });
     expect(context('all').nodeScopeOf('leaves.approve')).toEqual({ kind: 'all' });
     expect(context('subtree:2').reaches('leaves.approve', { orgNodeId: 'n3', companyId: 'c1' })).toBe(true);
@@ -81,6 +81,31 @@ describe('AccessContext: how far a unit-based scope reaches (FR-80)', () => {
 
   it('passes the units a scope reaches to list queries', () => {
     expect(context('subtree:1', placement, [...SITS, ...MANAGES]).filterFor('leaves.approve')).toMatchObject({ scope: 'subtree:1', nodeIds: expect.arrayContaining(['n1', 'n2', 'm1', 'm2']) });
+  });
+});
+
+/** n2 is managed per company, every other unit is shared (FR-100). */
+const withRestricted = (scope: PermissionScope) =>
+  new AccessContext('u1', placement, [{ key: 'leaves.approve', scope }], true, reachFrom(SITS), [], new Set(['n2']));
+
+describe('Units managed per company (FR-100)', () => {
+  const factory = new AbilityFactory();
+
+  it('names the reached units that are managed per company, and passes them to list queries', () => {
+    expect(withRestricted('subtree').restrictedNodesFor('subtree')).toEqual(['n2']);
+    expect(withRestricted('subtree:0').restrictedNodesFor('subtree:0')).toEqual([]);
+    expect(withRestricted('subtree').filterFor('leaves.approve')).toMatchObject({ nodeIds: ['n1', 'n2', 'n3', 'n4'], restrictedNodeIds: ['n2'] });
+  });
+
+  it.each([
+    [{ orgNodeId: 'n2', companyId: 'c1' }, true],
+    [{ orgNodeId: 'n2', companyId: 'c2' }, false],
+    [{ orgNodeId: 'n2' }, false],
+    [{ orgNodeId: 'n3', companyId: 'c2' }, true],
+    [{ orgNodeId: 'n9', companyId: 'c1' }, false],
+  ])('a subtree scope on %o → %s (a record of another company is out of reach in a per-company unit only)', (resource, allowed) => {
+    expect(withRestricted('subtree').reaches('leaves.approve', resource as { orgNodeId: string; companyId: string })).toBe(allowed);
+    expect(factory.can(withRestricted('subtree'), 'leaves.approve', resource)).toBe(allowed);
   });
 });
 

@@ -38,4 +38,12 @@ describe('Task reach by scope (FR-49)', () => {
     expect(inReach('subtree:1', deep, person({ orgNodeId: 'n3' }))).toBe(false);
     expect(inReach('subtree:1', deep, person({ managerEmployeeId: 'e-me', orgNodeId: 'n9' }))).toBe(true);
   });
+
+  it('in a unit managed per company a unit-based scope reaches only the viewer\'s company; a shared unit reaches everyone (FR-100)', () => {
+    const restricted: TaskViewer = { ...viewer, restrictedNodeIds: ['n2'] };
+    expect(inReach('subtree', restricted, person({ orgNodeId: 'n2', companyId: 'c1' }))).toBe(true);
+    expect(inReach('subtree', restricted, person({ orgNodeId: 'n2', companyId: 'c2' }))).toBe(false);
+    expect(inReach('subtree', restricted, person({ orgNodeId: 'n1', companyId: 'c2' }))).toBe(true);
+    expect(inReach('subtree', restricted, person({ orgNodeId: 'n2', companyId: 'c2', managerEmployeeId: 'e-me' }))).toBe(true); // a direct report stays one
+  });
 });

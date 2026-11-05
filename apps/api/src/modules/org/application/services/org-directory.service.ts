@@ -18,14 +18,16 @@ export interface NamedRef {
 export class OrgDirectoryService {
   constructor(private readonly repo: OrgRepository) {}
 
-  /** A person is placed in an active unit of their company whose level accepts employees, with one of its active job titles. */
-  async assertPlacement(placement: { companyId: string; orgNodeId: string; jobTitleId: string }): Promise<void> {
+  /**
+   * A person is placed in an active unit whose type accepts employees, with one of its active job titles. The structure is one for the
+   * whole group, so any company may place people in any such unit (the company of the person is theirs, not the unit's).
+   */
+  async assertPlacement(placement: { orgNodeId: string; jobTitleId: string }): Promise<void> {
     const node = await this.repo.node(placement.orgNodeId);
     const level = node ? await this.repo.level(node.levelId) : null;
     const title = await this.repo.title(placement.jobTitleId);
-    const valid =
-      node && level && title && node.companyId === placement.companyId && node.isActive && level.isAssignable && title.orgNodeId === node.id && title.isActive;
-    if (!valid) throw new InvalidPlacementError('The unit and job title must belong to the selected company and accept employees');
+    const valid = node && level && title && node.isActive && level.isAssignable && title.orgNodeId === node.id && title.isActive;
+    if (!valid) throw new InvalidPlacementError('The unit and job title must accept employees');
   }
 
   async companyOptions(): Promise<CompanyView[]> {
@@ -52,9 +54,9 @@ export class OrgDirectoryService {
     return new Map((await this.repo.titlesByIds(ids)).map((t) => [t.id, { id: t.id, nameAr: t.nameAr, nameEn: t.nameEn }]));
   }
 
-  /** Units that can take employees (assignable level, active, at least one active title), with their default manager. */
-  async nodeOptions(companyId: string): Promise<OrgNodeOptionDto[]> {
-    const [levels, nodes] = await Promise.all([this.repo.levels(companyId), this.repo.nodes(companyId)]);
+  /** Units that can take employees (a type that accepts them, active, at least one active title), with their default manager. The tree is the group's, so every company gets the same list. */
+  async nodeOptions(): Promise<OrgNodeOptionDto[]> {
+    const [levels, nodes] = await Promise.all([this.repo.levels(), this.repo.nodes()]);
     const assignable = new Set(levels.filter((l) => l.isAssignable).map((l) => l.id));
     const candidates = nodes.filter((n) => n.isActive && assignable.has(n.levelId));
     const titles = await this.repo.titlesOfNodes(candidates.map((n) => n.id));

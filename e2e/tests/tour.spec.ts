@@ -1,13 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
 import { BasePage } from '../pages/base.page';
 import { ListPage } from '../pages/list.page';
-import { adminModeOnViaApi } from '../support/admin-mode';
+import { adminModeOffViaApi, adminModeOnViaApi } from '../support/admin-mode';
 import { ADMIN_STATE } from '../support/fixtures';
 
 class Screen extends BasePage {}
 test.use({ storageState: ADMIN_STATE });
 
-const GENERAL = ['أهلًا بك في منصة أروقة', 'حسابك', 'ملفي الشخصي', 'الأمان', 'صلاحياتي', 'تسجيل الخروج', 'اللغة والمظهر', 'الإشعارات', 'القائمة الجانبية', 'الصفحة الرئيسية', 'التذاكر', 'التذاكر', 'تذكرة جديدة', 'طرق عرض التذاكر', 'مهامي', 'المهام', 'مهمة جديدة', 'جدول أم لوحة Kanban', 'افتح المهمة وعدّلها', 'الموظفون', 'الموظفون', 'سجل الموظف', 'الصورة الشخصية', 'فريقي', 'الهيكل التنظيمي', 'الهيكل التنظيمي', 'طرق عرض الهيكل', 'انتهت الجولة'];
+const GENERAL = ['أهلًا بك في منصة أروقة', 'حسابك', 'ملفي الشخصي', 'الأمان', 'صلاحياتي', 'تسجيل الخروج', 'اللغة والمظهر', 'الإشعارات', 'القائمة الجانبية', 'الصفحة الرئيسية', 'التذاكر', 'التذاكر', 'تذكرة جديدة', 'طرق عرض التذاكر', 'مهامي', 'المهام', 'مهمة جديدة', 'جدول أم لوحة Kanban', 'افتح المهمة وعدّلها', 'الموظفون', 'الموظفون', 'سجل الموظف', 'الصورة الشخصية', 'فريقي', 'الهيكل التنظيمي', 'الهيكل التنظيمي', 'طرق عرض الهيكل', 'المسميات الوظيفية', 'المسميات الوظيفية', 'بطاقة المسمى', 'انتهت الجولة'];
 const bubble = (page: Page) => page.getByRole('alertdialog');
 const title = (page: Page) => bubble(page).getByRole('heading', { level: 2 });
 const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))));
@@ -25,9 +25,11 @@ test.afterEach(async ({ page }) => {
 
 test.describe('Welcome tour (FR-67)', () => {
   test('starts by itself on the first sign-in, walks every page, and never comes back once finished', async ({ page }) => {
+    test.setTimeout(120_000);
     // The "open the task" step points at the first row of the list: the list must have one.
     const made = await page.request.post('/api/tasks', { data: { title: 'Tour sample task' }, headers: { origin: 'http://localhost:4173' } });
     expect(made.ok()).toBe(true);
+    await adminModeOffViaApi(page); // the full-structure step belongs to those who hold the key, which works only in admin mode
     await setTour(page, 'general', 'restart');
     await page.goto('/');
     await expect(title(page)).toHaveText(GENERAL[0]!);
@@ -93,6 +95,36 @@ test.describe('Welcome tour (FR-67)', () => {
     await expect(title(page)).toHaveText('وضع المدير');
     await bubble(page).getByRole('button', { name: 'التالي' }).click();
     await expect(title(page)).toHaveText('الشركات');
+    await page.keyboard.press('Escape');
+    await expect(bubble(page)).toHaveCount(0);
+  });
+});
+
+test.describe('Welcome tour: the job-titles page, the title card and the charter tab (FR-67, FR-99, FR-107)', () => {
+  const stepsOf = async (page: Page, tour: 'general' | 'admin'): Promise<string[]> => ((await (await page.request.get(`/api/me/tour/${tour}`)).json()).steps as { key: string }[]).map((s) => s.key);
+
+  test('every employee is offered the job-titles page and the card; the charter step belongs to those who hold its key, in admin mode only', async ({ page }) => {
+    await adminModeOffViaApi(page);
+    const general = await stepsOf(page, 'general');
+    expect(general).toEqual(expect.arrayContaining(['job-titles', 'title-card']));
+    expect(general).not.toContain('org-full-view'); // the full-view key works in admin mode only
+    expect(await stepsOf(page, 'admin')).not.toContain('org-charter');
+    await adminModeOnViaApi(page);
+    expect(await stepsOf(page, 'admin')).toContain('org-charter');
+    await adminModeOffViaApi(page);
+  });
+
+  test('the administration tour opens the first unit on its Charter tab and points at it', async ({ page }) => {
+    test.setTimeout(120_000);
+    await setTour(page, 'admin', 'restart');
+    await adminModeOnViaApi(page);
+    await page.goto('/');
+    await expect(title(page)).toHaveText('وضع المدير');
+    for (let i = 0; i < 12 && (await title(page).innerText()) !== 'ميثاق الوحدة'; i++) await bubble(page).getByRole('button', { name: 'التالي' }).click();
+    await expect(title(page)).toHaveText('ميثاق الوحدة', { timeout: 40_000 });
+    await expect(page.getByRole('tab', { name: 'الميثاق' })).toHaveAttribute('aria-selected', 'true');
+    await settled(page);
+    await new Screen(page).expectNoSeriousA11yIssues();
     await page.keyboard.press('Escape');
     await expect(bubble(page)).toHaveCount(0);
   });

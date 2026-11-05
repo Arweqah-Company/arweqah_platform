@@ -48,18 +48,22 @@
     "org": {
       "name": "الهيكل التنظيمي",
       "columns": {
-        "name": "الاسم",
-        "level": "المستوى",
+        "name": "الوحدة",
+        "code": "الرمز",
+        "level": "النوع",
+        "mode": "نوع الإدارة",
+        "leader": "القائد",
         "manager": "المسؤول",
         "employees": "الموظفون",
-        "titles": "المسميات الوظيفية",
+        "titles": "المسميات",
         "status": "الحالة"
       },
       "filters": {
-        "level": "المستوى",
+        "level": "النوع",
+        "mode": "نوع الإدارة",
         "status": "الحالة",
         "employees": "له موظفون",
-        "manager": "له مسؤول"
+        "manager": "له قائد"
       }
     },
     "companies": {
@@ -276,6 +280,25 @@
       "filters": {
         "status": "الحالة",
         "active": "قيد الاستخدام"
+      }
+    },
+    "job-titles": {
+      "name": "المسميات الوظيفية",
+      "columns": {
+        "name": "المسمى",
+        "code": "الرمز",
+        "unit": "الوحدة",
+        "grade": "الدرجة",
+        "track": "المسار",
+        "occupants": "الشاغلون"
+      },
+      "filters": {
+        "sector": "القطاع",
+        "department": "الإدارة",
+        "section": "القسم",
+        "grade": "الدرجة",
+        "track": "المسار",
+        "vacant": "الشاغر"
       }
     }
   },

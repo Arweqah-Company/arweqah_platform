@@ -31,12 +31,12 @@ describe('A head role for every organization unit (FR-69)', () => {
   const headRoleOf = async (nodeId: string): Promise<RoleRow | undefined> => (await roles()).find((r) => r.orgNodeId === nodeId);
   const rolesOf = async (userId: string) => [...((await t.app.get(UserAccessService).rolesOf([userId])).get(userId) ?? [])].map((r) => r.id);
   const setManager = async (nodeId: string, managerId: string | null) => {
-    const tree = (await agent.get(`/api/org/companies/${(await t.factories.defaultCompany())}/tree`).expect(200)).body.nodes as { id: string; nameAr: string; nameEn: string; startDate: string; isActive: boolean }[];
+    const tree = (await agent.get('/api/org/tree?view=full').expect(200)).body.nodes as { id: string; nameAr: string; nameEn: string; startDate: string; isActive: boolean }[];
     const node = tree.find((n) => n.id === nodeId) as { nameAr: string; nameEn: string; startDate: string; isActive: boolean };
     await agent.put(`/api/org/nodes/${nodeId}`).send({ nameAr: node.nameAr, nameEn: node.nameEn, startDate: node.startDate, isActive: node.isActive, managerId }).expect(200);
   };
   const setActive = async (nodeId: string, isActive: boolean) => {
-    const tree = (await agent.get(`/api/org/companies/${(await t.factories.defaultCompany())}/tree`).expect(200)).body.nodes as { id: string; nameAr: string; nameEn: string; startDate: string; manager?: { id: string } | null; managerId?: string | null }[];
+    const tree = (await agent.get('/api/org/tree?view=full').expect(200)).body.nodes as { id: string; nameAr: string; nameEn: string; startDate: string; manager?: { id: string } | null; managerId?: string | null }[];
     const node = tree.find((n) => n.id === nodeId) as { nameAr: string; nameEn: string; startDate: string; managerId?: string | null };
     await agent.put(`/api/org/nodes/${nodeId}`).send({ nameAr: node.nameAr, nameEn: node.nameEn, startDate: node.startDate, isActive, managerId: node.managerId ?? null }).expect(200);
   };
@@ -96,7 +96,7 @@ describe('A head role for every organization unit (FR-69)', () => {
   it('renames the role with the unit, makes the role of a unit that has none, and drops the role of a removed unit', async () => {
     const org = await setup();
     const before = (await headRoleOf(org.sectionAB)) as RoleRow;
-    const node = (await agent.get(`/api/org/companies/${org.companyId}/tree`).expect(200)).body.nodes.find((n: { id: string }) => n.id === org.sectionAB) as { nameAr: string; nameEn: string; startDate: string; isActive: boolean };
+    const node = (await agent.get('/api/org/tree?view=full').expect(200)).body.nodes.find((n: { id: string }) => n.id === org.sectionAB) as { nameAr: string; nameEn: string; startDate: string; isActive: boolean };
     await agent.put(`/api/org/nodes/${org.sectionAB}`).send({ nameAr: 'قسم جديد الاسم', nameEn: 'Renamed Section', startDate: node.startDate, isActive: node.isActive, managerId: null }).expect(200);
     expect(await headRoleOf(org.sectionAB)).toMatchObject({ id: before.id, nameAr: 'قائد قسم جديد الاسم', nameEn: 'Head of Renamed Section' });
     await t.db.query('DELETE FROM roles WHERE org_node_id = $1', [org.sectionAB]);

@@ -9,17 +9,19 @@ describe('Seeders (FR-14, FR-25)', () => {
   const t = useTestApp();
   const count = async (sql: string): Promise<number> => (await t.db.query(sql))[0].n;
 
-  it('creates the ten companies with the four default levels, the roles and the startup administrator', async () => {
+  it('creates the ten companies, the group\'s five unit types with their rules, the roles and the startup administrator', async () => {
     await t.app.get(FoundationSeeder).run();
     expect(await count('SELECT count(*)::int AS n FROM companies')).toBe(10);
-    expect(await count('SELECT count(*)::int AS n FROM org_levels')).toBe(40);
-    const arw = await t.db.query(`SELECT l.sort_order, l.is_assignable, ta.name AS ar, te.name AS en FROM org_levels l
-      JOIN companies c ON c.id = l.company_id AND c.code = 'ARW'
+    expect(await count('SELECT count(*)::int AS n FROM org_levels')).toBe(5);
+    const types = await t.db.query(`SELECT l.template_code, l.is_assignable, l.is_built_in, ta.name AS ar, te.name AS en FROM org_levels l
       JOIN org_level_translations ta ON ta.org_level_id = l.id AND ta.lang = 'ar'
       JOIN org_level_translations te ON te.org_level_id = l.id AND te.lang = 'en' ORDER BY l.sort_order`);
-    expect(arw.map((l: { ar: string }) => l.ar)).toEqual(['قطاع', 'إدارة', 'قسم', 'وحدة']);
-    expect(arw.map((l: { en: string }) => l.en)).toEqual(['Sector', 'Department', 'Section', 'Unit']);
-    expect(arw.map((l: { is_assignable: boolean }) => l.is_assignable)).toEqual([false, false, false, true]);
+    expect(types.map((l: { ar: string }) => l.ar)).toEqual(['قطاع', 'إدارة', 'قسم', 'وحدة', 'مكتب']);
+    expect(types.map((l: { en: string }) => l.en)).toEqual(['Sector', 'Department', 'Section', 'Unit', 'Office']);
+    expect(types.map((l: { is_assignable: boolean }) => l.is_assignable)).toEqual([false, true, true, true, true]);
+    expect(types.every((l: { is_built_in: boolean }) => l.is_built_in)).toBe(true);
+    expect(await count('SELECT count(*)::int AS n FROM org_level_parents')).toBe(14);
+    expect(await count('SELECT count(*)::int AS n FROM org_level_parents WHERE parent_level_id IS NULL')).toBe(3);
     const names = await t.db.query(`SELECT te.name AS en FROM companies c JOIN company_translations te ON te.company_id = c.id AND te.lang = 'en' ORDER BY c.code`);
     expect(names.map((n: { en: string }) => n.en)).toContain('Arweqah Alreyadah');
     const roles = await t.db.query('SELECT name_en FROM roles WHERE is_system ORDER BY name_en');
@@ -36,6 +38,24 @@ describe('Seeders (FR-14, FR-25)', () => {
     await t.db.query(`UPDATE org_nodes SET deleted_at = now() WHERE id = (SELECT id FROM org_nodes ORDER BY created_at DESC LIMIT 1)`);
     await seeder.run(); // a structure that someone changed is left alone
     expect(await count('SELECT count(*)::int AS n FROM org_nodes WHERE deleted_at IS NULL')).toBe(67);
+  });
+
+  it('gives the sample structure unit codes by type, with the top units shared (FR-96, FR-97)', async () => {
+    await t.app.get(FoundationSeeder).run();
+    expect(await count('SELECT count(*)::int AS n FROM org_nodes WHERE code IS NULL')).toBe(0);
+    expect(await count(`SELECT count(*)::int AS n FROM org_nodes WHERE parent_id IS NULL AND management_mode = 'shared'`)).toBe(7);
+    expect(await count(`SELECT count(*)::int AS n FROM org_nodes WHERE parent_id IS NOT NULL AND management_mode IS NOT NULL`)).toBe(0);
+    expect(await count(`SELECT count(*)::int AS n FROM org_nodes WHERE parent_id IS NULL AND code !~ '^[A-Z]{3}\\.00\\.00\\.00$'`)).toBe(0);
+  });
+
+  it('keeps a type renamed or switched by an administrator and a rules table that was edited when it runs again', async () => {
+    const seeder = t.app.get(FoundationSeeder);
+    await seeder.run();
+    await t.db.query(`UPDATE org_level_translations SET name = 'Branch' WHERE lang = 'en' AND org_level_id = (SELECT id FROM org_levels WHERE template_code = 'unit')`);
+    await t.db.query('DELETE FROM org_level_parents WHERE parent_level_id IS NULL AND child_level_id = (SELECT id FROM org_levels WHERE template_code = $1)', ['office']);
+    await seeder.run();
+    expect(await count(`SELECT count(*)::int AS n FROM org_level_translations WHERE name = 'Branch'`)).toBe(1);
+    expect(await count('SELECT count(*)::int AS n FROM org_level_parents')).toBe(13);
   });
 
   it('is safe to run again: nothing is duplicated', async () => {
