@@ -61,6 +61,12 @@ Rows 200–208 were planned; the API and database part was built the same day (r
 | 199 | Second CodeRabbit round on PR 50: (1) adding a role to a group of roles needs the actor to be able to hand out the group's own permissions (`RoleGroupsService.update` takes the access context); (2) assigning a role counts the permissions of the groups it sits in (`assertGrantable`); (3) the migration gives every wider «edit employees» grant of a holder of the old `employee_fields.edit` all the fields, since that key was never held back by the HR rules; (4) **not applied:** a `down` that restores the customised old rules table, because the rules now live on the grants and the `down` of a data-moving migration recreates the shape with the defaults, as the other migrations do (production never reverts) | Review findings checked against the code and reproduced first | A rollback of this migration must give back the old customised rules |
 | 194 | `Select` and `Combobox` popups are at least as wide as the field and fit their longest name (max 32rem or the screen width minus 2rem); a long name wraps | Long names (a role, a unit path, a person) were cut with an ellipsis on a laptop screen, as in the role list of the permissions page | A list needs a fixed narrow popup |
 
+## 2026-11-05 — CI spends fewer Actions minutes
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 235 | The ZAP scan (`security / dast`, four shards) runs only on the **push to `main`** (input `run_dast` of `security.yml`, turned on by `ci.yml` when the event is `push`), not on every pull request; and a pull request that only touches `docs/**` or `*.md` does not start CI at all (`paths-ignore` on `pull_request` only; a push to `main` always runs everything, and the deploy still waits for it). quality, both e2e suites, npm audit, gitleaks, Semgrep and Trivy are unchanged on every code pull request | The organization is on GitHub Free (private repo, 2,000 minutes a month, spending limit 0 $): the quota ran out on 2026-11-04 and every job was refused. The four ZAP shards were the heaviest part of each run. A deploy is still gated by the full scan, so a finding appears at the merge, not in the pull request; a documentation-only pull request is not scanned for secrets until it reaches `main` | The organization pays for minutes or moves to a plan with more of them; or a ZAP finding reaches `main` twice (then it comes back to pull requests that touch `apps/api`) |
+
 ## 2026-11-04 — Review of PR #46: what was wrong and how it is settled
 
 | # | Decision | Why | Revisit when |
