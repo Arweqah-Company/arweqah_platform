@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { childrenOf, descendantCount } from '../lib/chart-tree';
 import { cn } from '../lib/cn';
 import { useOpenNodes } from '../lib/use-open-nodes';
+import { TONES, type ChartTone } from './chart-tones';
 
 export interface ChartItem {
   id: string;
@@ -16,20 +17,17 @@ export interface ChartItem {
   lines?: string[];
   /** Shown dimmed (inactive). */
   muted?: boolean;
+  /** More words the search box matches besides the title. */
+  searchText?: string;
+  /** Shown faded with a dashed border: a unit the compared company would not see. */
+  faded?: boolean;
+  /** Shown dimmed because it does not match the search or filters (it is only here as the way to a match). */
+  dimmed?: boolean;
   /** The brand color of the card (a level of the structure gets one tone, the root is `ink`). */
   tone?: ChartTone;
 }
 
-export type ChartTone = 'ink' | 'petrol' | 'green' | 'orange' | 'neutral';
-
-/** Brand colors per tone: card, its badge and the selected ring. Text stays dark or cream for contrast. */
-const TONES: Record<ChartTone, { card: string; badge: string; solid: boolean }> = {
-  ink: { card: 'border-ink bg-ink text-cream', badge: 'border-cream/50 text-cream', solid: true },
-  petrol: { card: 'border-link bg-petrol-50 text-fg', badge: 'border-link bg-petrol-800 text-cream', solid: false },
-  green: { card: 'border-green-400 bg-green-50 text-fg', badge: 'border-green-400 bg-green-400 text-ink', solid: false },
-  orange: { card: 'border-orange-500 bg-orange-50 text-fg', badge: 'border-orange-700 bg-orange-700 text-cream', solid: false },
-  neutral: { card: 'border-neutral-500 bg-white text-fg', badge: 'border-ink bg-ink text-cream', solid: false },
-};
+export type { ChartTone };
 
 interface TreeChartProps {
   items: ChartItem[];
@@ -39,6 +37,8 @@ interface TreeChartProps {
   label: string;
   /** Nodes whose title contains this text are highlighted and their ancestors opened. */
   query?: string;
+  /** How many levels start open (the root is level 0); the default shows the root and the level below it. */
+  openDepth?: number;
 }
 
 /** Zoom steps and their classes, written out so Tailwind keeps them. */
@@ -54,8 +54,7 @@ const ZOOMS = [
   { value: 1.25, className: 'scale-125' },
 ];
 const DEFAULT_ZOOM = ZOOMS.findIndex((z) => z.value === 0.75);
-/** How many levels start open. */
-const OPEN_DEPTH = 2;
+const DEFAULT_OPEN_DEPTH = 2;
 
 interface NodeProps {
   item: ChartItem;
@@ -69,14 +68,16 @@ interface NodeProps {
   onToggle: (id: string) => void;
 }
 
-function cardClasses({ tone, isRoot, selected, hit, muted }: { tone: ChartTone; isRoot: boolean; selected: boolean; hit: boolean; muted?: boolean }): string {
+function cardClasses({ tone, isRoot, selected, hit, item }: { tone: ChartTone; isRoot: boolean; selected: boolean; hit: boolean; item: ChartItem }): string {
   return cn(
     'flex w-52 flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-3.5 text-center shadow-sm shadow-ink/5 transition-[box-shadow,transform] duration-150 hover:shadow-md',
     TONES[tone].card,
     isRoot && 'cursor-default',
     selected && 'ring-4 ring-ink/25',
     hit && !selected && 'ring-4 ring-yellow-300',
-    muted && 'opacity-60',
+    item.muted && 'opacity-60',
+    item.faded && 'border-dashed opacity-60',
+    item.dimmed && 'opacity-50',
   );
 }
 
@@ -94,7 +95,7 @@ function ChartNode({ item, items, isRoot, selected, hit, open, rtl, onSelect, on
   const hasKids = childrenOf(items, item.id).length > 0;
   return (
     <div className="relative flex flex-col items-center">
-      <button type="button" dir={rtl ? 'rtl' : 'ltr'} aria-pressed={isRoot ? undefined : selected} onClick={() => !isRoot && onSelect(item.id)} className={cardClasses({ tone: item.tone ?? 'neutral', isRoot, selected, hit, muted: item.muted })}>
+      <button type="button" dir={rtl ? 'rtl' : 'ltr'} aria-pressed={isRoot ? undefined : selected} onClick={() => !isRoot && onSelect(item.id)} className={cardClasses({ tone: item.tone ?? 'neutral', isRoot, selected, hit, item })}>
         {item.badge && <span className={cn('rounded-full border px-2.5 py-0.5 text-xs font-medium', TONES[item.tone ?? 'neutral'].badge)}>{item.badge}</span>}
         <span className="line-clamp-2 text-sm font-bold leading-snug">{item.title}</span>
         {item.lines?.map((line) => <span key={line} className={cn('text-xs', TONES[item.tone ?? 'neutral'].solid ? 'text-cream/85' : 'text-fg/75')}>{line}</span>)}
@@ -116,7 +117,7 @@ function fitZoom(box: HTMLElement, content: HTMLElement): number {
  * An organization-style chart of a tree: cards joined by lines, each node can be opened or closed, the whole chart
  * zooms, fits the screen and can be dragged. Drawn with HTML and CSS only (see `.org-chart` in theme.css), so it prints and selects like text.
  */
-export function TreeChart({ items, selectedId, onSelect, label, query = '' }: TreeChartProps) {
+export function TreeChart({ items, selectedId, onSelect, label, query = '', openDepth = DEFAULT_OPEN_DEPTH }: TreeChartProps) {
   const { t, i18n } = useTranslation();
   const rtl = i18n.language === 'ar';
   const root = items.find((i) => i.parentId === null) as ChartItem;
@@ -124,7 +125,7 @@ export function TreeChart({ items, selectedId, onSelect, label, query = '' }: Tr
   const viewport = useRef<HTMLDivElement>(null);
   const content = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
-  const { hits, isOpen, toggle, openAll: openNodes, closeAll: closeNodes } = useOpenNodes(items, root.id, query, OPEN_DEPTH);
+  const { hits, isOpen, toggle, openAll: openNodes, closeAll: closeNodes } = useOpenNodes(items, root.id, query, openDepth);
 
   /** Picks the zoom that shows everything and scrolls to the middle (the chart is centered on the box). */
   const fit = () => {

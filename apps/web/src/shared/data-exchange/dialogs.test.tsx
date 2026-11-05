@@ -66,3 +66,20 @@ describe('Import dialog (FR-29)', () => {
     expect(await screen.findByText(/أعمدة مطلوبة ناقصة: الرمز/)).toBeInTheDocument();
   });
 });
+
+describe('Import dialog with one call for all rows', () => {
+  const columns: ImportColumn[] = [{ id: 'code', header: 'الرمز', required: true }];
+
+  it('saves the valid rows with the single commit, shows the note, and reports the rows it refused', async () => {
+    const commit = vi.fn(async (rows: PreparedRow[]) => [{ rowNumber: rows[1]?.rowNumber as number, message: 'مرفوض' }]);
+    const prepare = (sheet: SheetRow[]): PreparedRow[] => sheet.map((r) => ({ rowNumber: r.rowNumber, errors: [], run: async () => undefined }));
+    render(<ImportDialog open onOpenChange={() => undefined} filename="x" columns={columns} prepare={prepare} commit={commit} previewNote="جديد: 2" />);
+    fireEvent.change(document.querySelector('input[type=file]') as HTMLInputElement, { target: { files: [new File(['الرمز\r\nA\r\nB\r\n'], 'x.csv')] } });
+    expect(await screen.findByText('جديد: 2')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'استيراد 2 صف' }));
+    expect(await screen.findByText('تم استيراد 1 صف، وفشل 1.')).toBeInTheDocument();
+    expect(commit).toHaveBeenCalledTimes(1);
+    expect(screen.getByText(/الصف 3/).closest('li')).toHaveTextContent('مرفوض');
+  });
+});
+

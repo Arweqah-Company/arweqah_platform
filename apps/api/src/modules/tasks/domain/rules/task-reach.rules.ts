@@ -22,8 +22,12 @@ export function inReach(scope: PermissionScope | null, viewer: TaskViewer, perso
 function reachesBeyondReports(scope: PermissionScope, viewer: TaskViewer, person: Pick<TaskPerson, 'orgNodeId' | 'companyId'>): boolean {
   if (scope === 'unit') return false;
   if (scope === 'company') return !!viewer.companyId && person.companyId === viewer.companyId;
-  return !!person.orgNodeId && (viewer.reachNodes?.[scope] ?? viewer.subtreeNodeIds).includes(person.orgNodeId);
+  if (!person.orgNodeId || !(viewer.reachNodes?.[scope] ?? viewer.subtreeNodeIds).includes(person.orgNodeId)) return false;
+  return !viewer.restrictedNodeIds?.includes(person.orgNodeId) || sameCompany(viewer, person);
 }
+
+/** In a unit managed per company only the viewer's own company is reached. */
+const sameCompany = (viewer: TaskViewer, person: Pick<TaskPerson, 'companyId'>): boolean => !!viewer.companyId && person.companyId === viewer.companyId;
 
 export const isDirectReport = (viewer: TaskViewer, person: Pick<TaskPerson, 'managerEmployeeId'>): boolean =>
   !!viewer.employeeId && person.managerEmployeeId === viewer.employeeId;

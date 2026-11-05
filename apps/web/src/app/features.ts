@@ -12,6 +12,7 @@ import { myAccessFeature } from '@/features/my-access';
 import { profileFeature } from '@/features/profile';
 import { notificationsFeature } from '@/features/notifications';
 import { listSettingsFeature } from '@/features/list-settings';
+import { jobTitlesFeature } from '@/features/job-titles';
 import { orgFeature } from '@/features/org';
 import { permissionsFeature } from '@/features/permissions';
 import { pageVisibilityFeature } from '@/features/page-visibility';
@@ -28,6 +29,7 @@ export const FEATURES: FeatureModule[] = [
   homeFeature,
   employeesFeature,
   orgFeature,
+  jobTitlesFeature,
   companiesFeature,
   tasksFeature,
   ticketsFeature,

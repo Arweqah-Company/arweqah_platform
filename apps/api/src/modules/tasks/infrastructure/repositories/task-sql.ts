@@ -53,5 +53,13 @@ export function reachSql(scope: PermissionScope | null, viewer: TaskViewer, empl
   if (scope === 'company') return viewer.companyId ? `${employee}.company_id = ${bind(viewer.companyId)}` : 'FALSE';
   const direct = viewer.employeeId ? `${employee}.manager_id = ${bind(viewer.employeeId)}` : 'FALSE';
   if (scope === 'unit') return direct;
-  return `(${direct} OR ${employee}.org_node_id = ANY(${bind([...(viewer.reachNodes?.[scope] ?? viewer.subtreeNodeIds)])}))`;
+  return `(${direct} OR ${unitsSql(scope, viewer, employee, bind)})`;
+}
+
+/** The units a depth scope covers; in a unit managed per company only the people of the viewer's company are reached. */
+function unitsSql(scope: PermissionScope, viewer: TaskViewer, employee: string, bind: (value: unknown) => string): string {
+  const inUnits = `${employee}.org_node_id = ANY(${bind([...(viewer.reachNodes?.[scope] ?? viewer.subtreeNodeIds)])})`;
+  if (!viewer.restrictedNodeIds?.length) return inUnits;
+  const sameCompany = viewer.companyId ? ` OR ${employee}.company_id = ${bind(viewer.companyId)}` : '';
+  return `(${inUnits} AND (${employee}.org_node_id <> ALL(${bind([...viewer.restrictedNodeIds])})${sameCompany}))`;
 }

@@ -38,3 +38,8 @@ export function Dialog({ open, onOpenChange, title, description, children, wide,
     </RadixDialog.Root>
   );
 }
+
+/** The buttons at the bottom of a long form: they stay in view while the form scrolls, so saving is never out of reach. */
+export function DialogFooter({ children }: { children: ReactNode }) {
+  return <div className="sticky -bottom-7 -mx-7 -mb-7 mt-4 flex flex-wrap justify-end gap-2 border-t border-neutral-200 bg-white px-7 py-4">{children}</div>;
+}

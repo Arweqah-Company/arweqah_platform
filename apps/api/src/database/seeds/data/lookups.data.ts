@@ -85,12 +85,13 @@ export const TERMINATION_REASONS: (SeedName & { isOther: boolean })[] = [
   { code: 'other', ar: 'أخرى', en: 'Other', isOther: true },
 ];
 
-/** One template for every company for now: sector, department, section, unit (only the unit takes employees). */
+/** The built-in unit types of the group structure (the same for every company); `isAssignable` = the type accepts job titles and employees. */
 export const ORG_LEVEL_TEMPLATE: (SeedName & { isAssignable: boolean })[] = [
   { code: 'sector', ar: 'قطاع', en: 'Sector', isAssignable: false },
-  { code: 'department', ar: 'إدارة', en: 'Department', isAssignable: false },
-  { code: 'section', ar: 'قسم', en: 'Section', isAssignable: false },
+  { code: 'department', ar: 'إدارة', en: 'Department', isAssignable: true },
+  { code: 'section', ar: 'قسم', en: 'Section', isAssignable: true },
   { code: 'unit', ar: 'وحدة', en: 'Unit', isAssignable: true },
+  { code: 'office', ar: 'مكتب', en: 'Office', isAssignable: true },
 ];
 
 /** The group's companies. English names and codes are proposals until the official spelling is confirmed. */

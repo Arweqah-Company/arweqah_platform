@@ -21,14 +21,20 @@ export function applyScope<T extends ObjectLiteral>(
 ): SelectQueryBuilder<T> {
   if (filter.scope === 'all') return qb;
   const own = `${columns.owner} = :scopeOwner`;
-  const params = { scopeOwner: filter.userId, scopeCompany: filter.companyId, scopeNodes: [...filter.nodeIds] };
+  const params = { scopeOwner: filter.userId, scopeCompany: filter.companyId, scopeNodes: [...filter.nodeIds], scopeRestricted: [...filter.restrictedNodeIds] };
   const wide = widerCondition(filter, columns);
   return qb.andWhere(wide ? `(${wide} OR ${own})` : own, params);
 }
 
-/** A company scope is the company; a unit-based scope (the unit, or the unit and so many levels below) is the units in `nodeIds`. */
+/**
+ * A company scope is the company; a unit-based scope (the unit, or the unit and so many levels below) is the units in `nodeIds`,
+ * and in a unit managed per company only the people of the viewer's company (without a company column, such a unit is left out).
+ */
 function widerCondition(filter: ScopeFilter, columns: ScopeColumns): string | null {
   if (filter.scope === 'company') return filter.companyId && columns.company ? `${columns.company} = :scopeCompany` : null;
-  if (!isTreeScope(filter.scope)) return null;
-  return columns.orgNode && filter.nodeIds.length ? `${columns.orgNode} = ANY(:scopeNodes)` : null;
+  if (!isTreeScope(filter.scope) || !columns.orgNode || !filter.nodeIds.length) return null;
+  const inUnits = `${columns.orgNode} = ANY(:scopeNodes)`;
+  if (!filter.restrictedNodeIds.length) return inUnits;
+  const sameCompany = columns.company && filter.companyId ? ` OR ${columns.company} = :scopeCompany` : '';
+  return `(${inUnits} AND (${columns.orgNode} <> ALL(:scopeRestricted)${sameCompany}))`;
 }

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { CorePermission, type AssignmentField, type AuditQuery, type BilingualName, type ChangeAssignmentsInput, type EmployeeAssignmentsDto, type EmployeeChangeDto, type Paginated } from '@arweqah-platform/shared';
+import { CorePermission, type ManagerSource, type AssignmentField, type AuditQuery, type BilingualName, type ChangeAssignmentsInput, type EmployeeAssignmentsDto, type EmployeeChangeDto, type Paginated } from '@arweqah-platform/shared';
 import { rehearse } from '../../../../common/application/rehearse';
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
 import { NotFoundError } from '../../../../common/domain/domain-error';
@@ -32,7 +32,12 @@ export interface ChangeWhen {
   validFrom: string;
   reason: string;
   actorId: string | null;
+  /** Who chose a manager: HR (`manual`, the default: it stays until HR changes it) or the reporting line of titles (`auto_chain`). */
+  managerSource?: ManagerSource;
 }
+
+/** The reason written on a manager period the system sets from the reporting line of job titles. */
+export const CHAIN_REASON = 'chain';
 
 /** The result of recording a change: what was written to history and what is in force from today. */
 export interface RecordedChange {
@@ -142,7 +147,8 @@ export class EmployeeAssignmentsService {
       if (periods.length && valueOf(periods[periods.length - 1] as EmployeeAssignment) === value) continue;
       const plan = planChange(periods, when.validFrom, today);
       if (plan.closeId) await this.repo.close(plan.closeId, plan.closeTo, tx);
-      const values = { ...blank(FIELD_OF[column]), [VALUE_COLUMN[FIELD_OF[column]]]: value, reason: when.reason, createdBy: when.actorId, appliedAt: plan.applyNow ? new Date() : null };
+      const managerSource = managerSourceOf(column, when);
+      const values = { ...blank(FIELD_OF[column]), [VALUE_COLUMN[FIELD_OF[column]]]: value, managerSource, reason: when.reason, createdBy: when.actorId, appliedAt: plan.applyNow ? new Date() : null };
       if (plan.replaceId) await this.repo.overwrite(plan.replaceId, values, tx);
       else await this.repo.insert([{ employeeId: employee.id, field: FIELD_OF[column], validFrom: when.validFrom, validTo: null, ...values }], tx);
       result.recorded.push(column);
@@ -154,6 +160,26 @@ export class EmployeeAssignmentsService {
   /** The first periods of a new employee: the placement they were given, from their start (or today when they start later). */
   async recordBaseline(employee: Employee, tx: TransactionContext): Promise<void> {
     for (const field of ['org_node', 'job_title', 'manager'] as const) await this.periodsOf(employee, field, tx);
+  }
+
+  /**
+   * Sets the manager an employee gets from the reporting line of job titles (`managerId` null = nobody above has a holder), from today with the reason «chain».
+   * It follows only while the last manager period was set by the system: a manager HR chose stays. Nothing is written when the value is already the last one.
+   * Returns whether the manager changed.
+   */
+  async followChain(employeeId: string, managerId: string | null): Promise<boolean> {
+    const employee = await this.employees.findById(employeeId);
+    if (!employee) return false;
+    return this.tx.run(async (tx) => {
+      await this.repo.lockEmployee(employee.id, tx);
+      const periods = await this.periodsOf(employee, 'manager', tx);
+      const last = periods[periods.length - 1] as EmployeeAssignment;
+      if (last.managerSource !== 'auto_chain' || valueOf(last) === managerId) return false;
+      const when: ChangeWhen = { validFrom: todayInRiyadh(), reason: CHAIN_REASON, actorId: null, managerSource: 'auto_chain' };
+      const result = await this.record(employee, { managerId }, when, tx);
+      if (Object.keys(result.appliedNow).length) await this.employees.update(employee.id, result.appliedNow, tx);
+      return result.recorded.length > 0;
+    });
   }
 
   /** Writes to the employee records the changes whose day has come. Idempotent: a change is applied once. */
@@ -198,7 +224,9 @@ export class EmployeeAssignmentsService {
     if (value === null && field !== 'manager') return [];
     const today = todayInRiyadh();
     const from = employee.startDate < today ? employee.startDate : today;
-    const row = { employeeId: employee.id, field, validFrom: from, validTo: null, reason: BASELINE_REASON, createdBy: null, appliedAt: new Date(), ...blank(field), [VALUE_COLUMN[field]]: value };
+    // A manager nobody chose yet is left to the reporting line; one that exists was chosen by a person.
+    const managerSource: ManagerSource | null = field === 'manager' ? (value === null ? 'auto_chain' : 'manual') : null;
+    const row = { employeeId: employee.id, field, validFrom: from, validTo: null, managerSource, reason: BASELINE_REASON, createdBy: null, appliedAt: new Date(), ...blank(field), [VALUE_COLUMN[field]]: value };
     return this.repo.insert([row], tx);
   }
 
@@ -207,7 +235,7 @@ export class EmployeeAssignmentsService {
     if (change.orgNodeId !== undefined || change.jobTitleId !== undefined) {
       const orgNodeId = change.orgNodeId ?? latest(history, 'org_node', employee.orgNodeId);
       const jobTitleId = change.jobTitleId ?? latest(history, 'job_title', employee.jobTitleId);
-      if (orgNodeId && jobTitleId) await this.org.assertPlacement({ companyId: employee.companyId, orgNodeId, jobTitleId });
+      if (orgNodeId && jobTitleId) await this.org.assertPlacement({ orgNodeId, jobTitleId });
     }
     if (change.managerId) await this.validation.assertManager(change.managerId, employee.id);
   }
@@ -230,6 +258,11 @@ export class EmployeeAssignmentsService {
     this.events.emit(ACCESS_CHANGED, { userId });
     await this.events.emitAsync(EMPLOYEES_CHANGED);
   }
+}
+
+/** Who set a manager period: only manager periods have a source, and a change nobody labelled was HR's. */
+function managerSourceOf(column: AssignmentColumn, when: ChangeWhen): ManagerSource | null {
+  return column === 'managerId' ? (when.managerSource ?? 'manual') : null;
 }
 
 /** The names of the fields an audit entry says it changed (`fields` for an edit, `field` for a placement change). */

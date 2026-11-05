@@ -12,6 +12,7 @@ import { MailTransportFactory } from '../../src/core/notifications/application/m
 import { TranslatorFactory } from '../../src/core/translation/domain/contracts/translator-factory';
 import { Translator } from '../../src/core/translation/domain/contracts/translator';
 import { LookupsSeeder } from '../../src/database/seeds/lookups.seeder';
+import { OrgLevelsSeeder } from '../../src/database/seeds/org-levels.seeder';
 import { Factories } from '../factories/factories';
 import { AdminModeProbeController } from '../fakes/admin-mode-probe.controller';
 import { CaptchaVerifier } from '../../src/core/integrations/domain/contracts/captcha-verifier';
@@ -99,6 +100,7 @@ async function resetBetweenTests(ctx: TestContext): Promise<void> {
   ctx.app.get(ActiveProviders).invalidate('translation');
   ctx.app.get(ActiveProviders).invalidate('email');
   await truncateAll(ctx.db);
+  await ctx.app.get(OrgLevelsSeeder).run(); // the group's unit types and rules (they are data, emptied with the rest)
   await ctx.db.query(`INSERT INTO security_settings (key, value) VALUES ('requestsPerMinute', 100000)`);
   ctx.app.get(SecuritySettingsService).invalidate();
 }

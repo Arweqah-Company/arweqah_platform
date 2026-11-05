@@ -42,6 +42,7 @@ export class TaskViewerFactory {
     const scopes: Record<string, PermissionScope | null> = {};
     for (const key of SCOPED_KEYS) scopes[key] = ctx.scopeOf(key);
     const reachNodes = Object.fromEntries(Object.values(scopes).filter((s): s is PermissionScope => !!s && s.startsWith('subtree:')).map((s) => [s, ctx.nodesFor(s)]));
-    return { userId: ctx.userId, employeeId: await this.directory.employeeIdOf(ctx.userId), companyId: ctx.placement.companyId, subtreeNodeIds: ctx.subtreeNodeIds, reachNodes, scopes };
+    const restrictedNodeIds = ctx.restrictedNodesFor('subtree');
+    return { userId: ctx.userId, employeeId: await this.directory.employeeIdOf(ctx.userId), companyId: ctx.placement.companyId, subtreeNodeIds: ctx.subtreeNodeIds, reachNodes, restrictedNodeIds, scopes };
   }
 }

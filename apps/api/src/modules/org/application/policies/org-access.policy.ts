@@ -3,9 +3,9 @@ import { NotFoundError } from '../../../../common/domain/domain-error';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
 
 /**
- * Org permissions reach "company" (the user's own company) or "all"; viewing the structure also reaches "the unit and so many
- * levels below" (the company is then the user's own and `visibleNodes` narrows the units). A company outside the user's
- * reach does not exist for them (404), as for every scoped record.
+ * Org permissions reach "company" (the user's own company) or "all". Every unit is held by the group company, so a holder whose
+ * company is another one reaches none of them for now (404, as for every scoped record); how a company-scoped key should read on
+ * the one group tree is decided with the tickets and tasks stage.
  */
 export function assertCompanyAccess(ctx: AccessContext, key: string, companyId: string): void {
   const scope = ctx.scopeOf(key);
@@ -21,14 +21,13 @@ export const ORG_UNIT_MOVE = CorePermission.OrgUnitMove;
 export const ORG_UNIT_DELETE = CorePermission.OrgUnitDelete;
 export const ORG_LEVELS = CorePermission.OrgLevelsManage;
 export const ORG_TITLES = CorePermission.OrgTitlesManage;
-
-/**
- * The units of a company the permission lets the person see. With the company or all scope that is every unit; with a unit-based scope it is the
- * units the scope reaches, and the highest of them is shown as a root (its parent is not theirs to see).
- */
-export function visibleNodes<T extends { id: string; parentId: string | null }>(ctx: AccessContext, key: string, nodes: T[]): T[] {
-  const scope = ctx.scopeOf(key);
-  if (!scope || !isTreeScope(scope)) return nodes;
-  const reached = new Set(ctx.nodesFor(scope));
-  return nodes.filter((n) => reached.has(n.id)).map((n) => (n.parentId && reached.has(n.parentId) ? n : { ...n, parentId: null }));
-}
+export const ORG_VIEW_FULL = CorePermission.OrgViewFull;
+export const ORG_UNIT_SHARE = CorePermission.OrgUnitShare;
+export const ORG_CHARTER_EDIT = CorePermission.OrgCharterEdit;
+export const ORG_LEADERS_MANAGE = CorePermission.OrgLeadersManage;
+export const ORG_TITLES_EDIT_CONTENT = CorePermission.OrgTitlesEditContent;
+export const JOB_TITLES_VIEW = CorePermission.JobTitlesView;
+export const JOB_TITLES_CREATE = CorePermission.JobTitlesCreate;
+export const JOB_TITLES_UPDATE = CorePermission.JobTitlesUpdate;
+export const JOB_TITLES_DELETE = CorePermission.JobTitlesDelete;
+export const JOB_TITLES_IMPORT = CorePermission.JobTitlesImport;

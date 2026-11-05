@@ -37,18 +37,15 @@ export class LookupsService {
     return (await this.org.companyOptions()).map((c) => ({ id: c.id, code: c.code, name: lang === 'en' ? c.nameEn : c.nameAr, nameAr: c.nameAr, nameEn: c.nameEn }));
   }
 
-  orgNodes(companyId: string): Promise<OrgNodeOptionDto[]> {
-    return this.org.nodeOptions(companyId);
+  /** The structure is the group's, so the units are the same whichever company asks (the parameter is kept for the clients that send it). */
+  orgNodes(_companyId: string): Promise<OrgNodeOptionDto[]> {
+    return this.org.nodeOptions();
   }
 
   async orgReference(): Promise<OrgReferenceDto[]> {
     const companies = await this.org.companyOptions();
-    return Promise.all(
-      companies.map(async (c) => ({
-        companyId: c.id,
-        units: await Promise.all((await this.org.nodeOptions(c.id)).map(async (unit) => ({ ...unit, titles: await this.org.titleOptions(unit.id) }))),
-      })),
-    );
+    const units = await Promise.all((await this.org.nodeOptions()).map(async (unit) => ({ ...unit, titles: await this.org.titleOptions(unit.id) })));
+    return companies.map((c) => ({ companyId: c.id, units }));
   }
 
   jobTitles(orgNodeId: string): Promise<JobTitleOptionDto[]> {

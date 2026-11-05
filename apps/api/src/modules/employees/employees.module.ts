@@ -18,6 +18,7 @@ import { DirectoryService } from './application/services/directory.service';
 import { EmployeePhotoController } from './presentation/controllers/employee-photo.controller';
 import { EmployeeReachPolicy } from './application/policies/employee-reach.policy';
 import { EmployeeEditPolicy } from './application/policies/employee-edit.policy';
+import { EmployeeAutoManagerService } from './application/services/employee-auto-manager.service';
 import { EmployeeAuditService } from './application/services/employee-audit.service';
 import { EmployeePhotoService } from './application/services/employee-photo.service';
 import { EmployeeHistoryController } from './presentation/controllers/employee-history.controller';
@@ -48,6 +49,7 @@ import { ProfileController } from './presentation/controllers/profile.controller
     EmployeeTransformer,
     EmployeeLifecycleJob,
     EmployeeAssignmentsService,
+    EmployeeAutoManagerService,
     EmployeePhotoService,
     EmployeeReachPolicy,
     EmployeeEditPolicy,
@@ -59,7 +61,7 @@ import { ProfileController } from './presentation/controllers/profile.controller
     { provide: EmployeeRepository, useClass: TypeOrmEmployeeRepository },
     { provide: EmployeePlacementPort, useClass: EmployeePlacementAdapter },
   ],
-  exports: [EmployeePlacementPort, EmployeeLifecycleJob, EmployeeAssignmentsService],
+  exports: [EmployeePlacementPort, EmployeeLifecycleJob, EmployeeAssignmentsService, EmployeeAutoManagerService],
 })
 export class EmployeesModule implements OnModuleInit {
   constructor(private readonly catalog: PermissionCatalog) {}

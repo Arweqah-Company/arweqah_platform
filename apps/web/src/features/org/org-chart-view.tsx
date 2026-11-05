@@ -1,66 +1,47 @@
-import type { OrgTreeDto } from '@arweqah-platform/shared';
-import { useMemo, useState } from 'react';
+import type { TFunction } from 'i18next';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Icicle, SearchInput, TreeChart, type ChartItem, type ChartTone } from '@/shared/ui';
+import { Icicle, TreeChart, type ChartItem } from '@/shared/ui';
+import { nodeName, toneOfLevel, type OrgModel } from './org-model';
 
 const ROOT = 'root';
-
-/** One brand color per level of the structure, in this order (a fifth level starts again). */
-export const LEVEL_TONES: ChartTone[] = ['petrol', 'green', 'orange', 'neutral'];
-const SWATCH: Record<ChartTone, string> = { ink: 'bg-ink', petrol: 'bg-petrol-800', green: 'bg-green-400', orange: 'bg-orange-700', neutral: 'bg-neutral-700' };
-
-/** The company as the root card and its units below it, with the totals the reference chart shows. */
-function chartItems(tree: OrgTreeDto, companyName: string, t: (key: string, options?: Record<string, unknown>) => string, ar: boolean): ChartItem[] {
-  const levels = new Map(tree.levels.map((l) => [l.id, ar ? l.nameAr : l.nameEn]));
-  const toneOf = (levelId: string): ChartTone => LEVEL_TONES[Math.max(0, tree.levels.findIndex((l) => l.id === levelId)) % LEVEL_TONES.length] as ChartTone;
-  const employees = tree.nodes.reduce((sum, n) => sum + n.employeesCount, 0);
-  const childCount = (id: string) => tree.nodes.filter((n) => n.parentId === id).length;
+/** The group as the root card and the units below it, coloured by their type, with the counts the page shows. */
+function chartItems(model: OrgModel, t: TFunction, ar: boolean): ChartItem[] {
+  const modeLabel = (mode: string) => t(mode === 'shared' ? 'mode.shared' : 'mode.perCompany');
+  const kids = (id: string) => model.nodes.filter((n) => n.parentId === id).length;
   return [
-    { id: ROOT, parentId: null, tone: 'ink', title: companyName, badge: t('chart.company'), lines: [t('chart.counts', { units: tree.nodes.length, employees })] },
-    ...tree.nodes.map((n) => ({
+    { id: ROOT, parentId: null, tone: 'ink', title: t('chart.group'), badge: t('chart.groupBadge'), lines: [t('chart.rootCounts', { units: model.nodes.length, employees: model.total })] },
+    ...model.nodes.map((n) => ({
       id: n.id,
-      parentId: n.parentId ?? ROOT,
-      title: ar ? n.nameAr : n.nameEn,
-      badge: levels.get(n.levelId),
-      tone: toneOf(n.levelId),
+      parentId: n.parentId && model.byId.has(n.parentId) ? n.parentId : ROOT,
+      title: nodeName(n, ar),
+      badge: ar ? model.levelById.get(n.levelId)?.nameAr : model.levelById.get(n.levelId)?.nameEn,
+      tone: toneOfLevel(model.levelById.get(n.levelId)),
       muted: !n.isActive,
-      lines: [t('chart.nodeCounts', { employees: n.employeesCount, units: childCount(n.id) })],
+      faded: n.visibleForCompany === false,
+      dimmed: model.filtering && !model.matching.has(n.id),
+      searchText: [n.nameAr, n.nameEn, n.code ?? '', ...n.titles.flatMap((x) => [x.nameAr, x.nameEn])].join(' '),
+      lines: [t('chart.nodeCounts', { employees: model.counts.get(n.id) ?? 0, units: kids(n.id), mode: modeLabel(n.effectiveMode) }), n.code ?? t('table.noCode')],
     })),
   ];
 }
 
 interface Props {
-  tree: OrgTreeDto;
-  companyName: string;
+  model: OrgModel;
   selectedId: string | null;
   onSelect: (id: string) => void;
-  /** Rows of blocks instead of a top-down tree. */
-  icicle?: boolean;
+  /** Blocks in columns instead of a top-down tree. */
+  icicle: boolean;
+  /** The search box's text: the chart opens the way to a match and rings it. */
+  query: string;
 }
 
-function Picture({ icicle, ...props }: { items: ChartItem[]; selectedId: string | null; onSelect: (id: string) => void; label: string; query: string; icicle: boolean }) {
-  return icicle ? <Icicle {...props} /> : <TreeChart {...props} />;
-}
-
-/** The organization chart (top-down or icicle): search, open / close all, zoom, drag; a click selects the unit. */
-export function OrgChartView({ tree, companyName, selectedId, onSelect, icicle = false }: Props) {
+/** The organization chart (top-down or icicle): open / close all, fit, zoom, drag; a click selects the unit. */
+export function OrgChartView({ model, selectedId, onSelect, icicle, query }: Props) {
   const { t, i18n } = useTranslation('org');
-  const [query, setQuery] = useState('');
-  const items = useMemo(() => chartItems(tree, companyName, t, i18n.language === 'ar'), [tree, companyName, t, i18n.language]);
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <SearchInput className="sm:max-w-md" aria-label={t('chart.searchLabel')} placeholder={t('chart.searchPlaceholder')} value={query} onChange={(e) => setQuery(e.target.value)} />
-        <ul aria-label={t('chart.legend')} className="flex flex-wrap items-center gap-3 text-xs">
-          {tree.levels.map((level, index) => (
-            <li key={level.id} className="inline-flex items-center gap-1.5">
-              <span className={`size-3 rounded-full ${SWATCH[LEVEL_TONES[index % LEVEL_TONES.length] as ChartTone]}`} aria-hidden />
-              {i18n.language === 'ar' ? level.nameAr : level.nameEn}
-            </li>
-          ))}
-        </ul>
-      </div>
-      <Picture items={items} selectedId={selectedId} onSelect={onSelect} label={t('chart.label', { company: companyName })} query={query} icicle={icicle} />
-    </div>
-  );
+  const ar = i18n.language === 'ar';
+  const items = useMemo(() => chartItems(model, t, ar), [model, t, ar]);
+  const props = { items, selectedId, onSelect, label: t('chart.label'), query };
+  // The chart starts with the group open only (a unit opens with its round button); the icicle starts fully open, as the design system says.
+  return icicle ? <Icicle {...props} /> : <TreeChart {...props} openDepth={1} />;
 }

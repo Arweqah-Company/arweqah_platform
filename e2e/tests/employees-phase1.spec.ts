@@ -67,18 +67,20 @@ test.describe('Employees: directory, history tab and photo (FR-90, FR-91, FR-92)
 });
 
 test.describe('The fields a holder of «edit employees» may change belong to each grant (FR-94)', () => {
-  test('has no page of its own; beside the permission a button opens the checklist, the choice is saved with the role, and it is accessible', async ({ page }) => {
+  test('has no page of its own; beside the permission a button opens the checklist, the choice is saved with the role, and it is accessible', async ({ page }, info) => {
     test.setTimeout(150_000);
+    // Both projects (computer and phone) run in the same database and role names are unique: each run makes a role of its own.
+    const roleName = `دور يعدّل الموظفين ${info.project.name}`;
     await adminModeOnViaApi(page);
     await page.goto('/employee-fields');
     await expect(page.getByRole('heading', { level: 1, name: 'نأسف على إبلاغك بأن هذه الصفحة غير موجودة' })).toBeVisible();
     const origin = { origin: 'http://localhost:4173' };
-    const made = await page.request.post('/api/roles', { data: { nameAr: 'دور يعدّل الموظفين', nameEn: 'Role that edits employees', permissions: [{ key: 'employees.update', scope: 'company' }] }, headers: origin });
+    const made = await page.request.post('/api/roles', { data: { nameAr: roleName, nameEn: `Role that edits employees ${info.project.name}`, permissions: [{ key: 'employees.update', scope: 'company' }] }, headers: origin });
     expect(made.ok()).toBe(true);
     const roleId = ((await made.json()) as { id: string }).id;
     await page.goto('/permissions');
     await page.getByRole('combobox', { name: 'الدور' }).click();
-    await page.getByRole('option', { name: 'دور يعدّل الموظفين' }).first().click();
+    await page.getByRole('option', { name: roleName }).first().click();
     // A new grant starts with the basic data: contact and personal (9 fields).
     await page.getByRole('button', { name: 'الحقول التي يعدّلها (9)' }).click();
     const dialog = page.getByRole('dialog');

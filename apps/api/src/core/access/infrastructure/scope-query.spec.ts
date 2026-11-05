@@ -4,7 +4,7 @@ import type { ScopeFilter } from '../domain/access-context';
 import { applyScope } from './scope-query';
 
 const COLUMNS = { owner: 'e.user_id', company: 'e.company_id', orgNode: 'e.org_node_id' };
-const filter = (scope: ScopeFilter['scope'], nodeIds: string[] = []): ScopeFilter => ({ scope, userId: 'u1', companyId: 'c1', nodeIds });
+const filter = (scope: ScopeFilter['scope'], nodeIds: string[] = [], restrictedNodeIds: string[] = []): ScopeFilter => ({ scope, userId: 'u1', companyId: 'c1', nodeIds, restrictedNodeIds });
 
 /** Runs applyScope on a recorder that keeps the condition and the parameters it was given. */
 function run(f: ScopeFilter): { where: string | null; params: Record<string, unknown> | null } {
@@ -21,6 +21,12 @@ describe('applyScope (FR-06, FR-80)', () => {
 
   it('limits to the company, and always keeps the person\'s own rows', () => {
     expect(run(filter('company')).where).toBe('(e.company_id = :scopeCompany OR e.user_id = :scopeOwner)');
+  });
+
+  it('in a unit managed per company reaches only the people of the viewer\'s company; a shared unit reaches everyone', () => {
+    const seen = run(filter('subtree', ['n1', 'n2'], ['n2']));
+    expect(seen.where).toBe('((e.org_node_id = ANY(:scopeNodes) AND (e.org_node_id <> ALL(:scopeRestricted) OR e.company_id = :scopeCompany)) OR e.user_id = :scopeOwner)');
+    expect(seen.params).toMatchObject({ scopeNodes: ['n1', 'n2'], scopeRestricted: ['n2'], scopeCompany: 'c1' });
   });
 
   it.each(['unit', 'subtree', 'subtree:1', 'subtree:3'] as const)('limits a %s scope to the units it reaches', (scope) => {

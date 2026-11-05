@@ -10,6 +10,7 @@ export function useOpenNodes(items: TreeNode[], rootId: string, query: string, o
     isOpen: (id: string) => forced.has(id) || !closed.has(id),
     toggle: (id: string) => setClosed((prev) => { const next = new Set(prev); if (!next.delete(id)) next.add(id); return next; }),
     openAll: () => setClosed(new Set()),
-    closeAll: () => setClosed(new Set(items.filter((i) => childrenOf(items, i.id).length).map((i) => i.id))),
+    /** Closes every node but the root, so the way back is always one click away. */
+    closeAll: () => setClosed(new Set(items.filter((i) => i.id !== rootId && childrenOf(items, i.id).length).map((i) => i.id))),
   };
 }

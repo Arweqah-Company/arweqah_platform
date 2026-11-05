@@ -55,8 +55,13 @@ const AUTO_ROLE_STATEMENTS = [
      AND NOT EXISTS (SELECT 1 FROM employees m WHERE m.user_id = ur.user_id AND m.deleted_at IS NULL AND ${WITH_REPORTS}) RETURNING ur.user_id`,
 ];
 
-/** Does the employee manage this active unit? */
-const MANAGES_UNIT = `EXISTS (SELECT 1 FROM org_nodes n WHERE n.manager_id = $1 AND n.id = $2 AND n.deleted_at IS NULL AND n.is_active)`;
+/** Today in Riyadh, the platform's day. */
+const RIYADH_TODAY = `(now() AT TIME ZONE 'Asia/Riyadh')::date`;
+/** The employee leads the unit: it is their unit's manager (the current copy of the primary leader), or a leader or acting leader of any company whose days include today (FR-100). */
+const LEADS_UNIT = (employee: string, unit: string) =>
+  `(${unit}.manager_id = ${employee} OR EXISTS (SELECT 1 FROM org_node_leaders l WHERE l.node_id = ${unit}.id AND l.employee_id = ${employee} AND l.valid_from <= ${RIYADH_TODAY} AND (l.valid_to IS NULL OR l.valid_to >= ${RIYADH_TODAY})))`;
+/** Does the employee ($1) lead this active unit ($2)? */
+const MANAGES_UNIT = `EXISTS (SELECT 1 FROM org_nodes n WHERE n.id = $2 AND n.deleted_at IS NULL AND n.is_active AND ${LEADS_UNIT('$1', 'n')})`;
 
 const TITLE_NAME = (lang: string) => `(SELECT x.name FROM job_title_translations x WHERE x.job_title_id = t.id AND x.lang = '${lang}')`;
 const TITLE_UNIT = (lang: string) => `(SELECT x.name FROM org_node_translations x WHERE x.org_node_id = t.org_node_id AND x.lang = '${lang}')`;
@@ -125,13 +130,24 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
     const grants = valid.filter((r) => !waits(r)).map(toGrant);
     const elevatedGrants = valid.filter(waits).map(toGrant);
     const placement = (await this.placementsOf([userId])).get(userId) ?? NO_PLACEMENT;
-    return {
-      isActive: user.isActive,
-      grants,
-      elevatedGrants,
-      placement,
-      reach: await this.reachOf(userId, placement.orgNodeId),
-    };
+    const reach = await this.reachOf(userId, placement.orgNodeId);
+    return { isActive: user.isActive, grants, elevatedGrants, placement, reach, restrictedNodes: await this.restrictedAmong([...reach.keys()]) };
+  }
+
+  /**
+   * Among the units, those managed per company: the closest explicit mode going up the closure decides, and a unit with none above it
+   * counts as per company (the same default as `effectiveModes`). A scope reaches only the people of the viewer's company in them.
+   */
+  private async restrictedAmong(nodeIds: string[]): Promise<ReadonlySet<string>> {
+    if (!nodeIds.length) return new Set();
+    const rows: { id: string }[] = await this.userRoles.manager.query(
+      `SELECT n.id FROM org_nodes n
+       WHERE n.id = ANY($1) AND COALESCE(
+         (SELECT a.management_mode FROM org_node_closure c JOIN org_nodes a ON a.id = c.ancestor_id AND a.deleted_at IS NULL
+          WHERE c.descendant_id = n.id AND a.management_mode IS NOT NULL ORDER BY c.depth LIMIT 1), 'per_company') = 'per_company'`,
+      [nodeIds],
+    );
+    return new Set(rows.map((r) => r.id));
   }
 
   /** The units the person reaches: where they sit and the units whose head role they hold because they manage them, each with the levels below it. */
@@ -139,7 +155,7 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
     const rows: { nodeId: string; depth: number }[] = await this.userRoles.manager.query(
       `SELECT c.descendant_id AS "nodeId", c.depth AS depth FROM org_node_closure c WHERE c.ancestor_id = $2::uuid
        UNION ALL
-       SELECT c.descendant_id, c.depth FROM employees e JOIN org_nodes n ON n.manager_id = e.id AND n.deleted_at IS NULL AND n.is_active
+       SELECT c.descendant_id, c.depth FROM employees e JOIN org_nodes n ON n.deleted_at IS NULL AND n.is_active AND ${LEADS_UNIT('e.id', 'n')}
        JOIN roles r ON r.auto_rule = 'node_head' AND r.org_node_id = n.id
        JOIN user_roles ur ON ur.role_id = r.id AND ur.user_id = e.user_id AND ${holds('ur')}
        JOIN org_node_closure c ON c.ancestor_id = n.id

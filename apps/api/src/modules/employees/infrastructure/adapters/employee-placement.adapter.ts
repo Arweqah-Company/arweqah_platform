@@ -1,19 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, type EntityManager } from 'typeorm';
-import type { TransactionContext } from '../../../../common/domain/transaction-context';
-import { returnedRows } from '../../../../common/infrastructure/query-result';
-import { managerOf } from '../../../../common/infrastructure/typeorm-transaction-runner';
-import { EmployeePlacementPort } from '../../../org/domain/contracts/employee-placement.port';
+import { DataSource } from 'typeorm';
+import { EmployeePlacementPort, type PlacedEmployee, type TitleHolders } from '../../../org/domain/contracts/employee-placement.port';
 
 const COUNT_BY_COMPANY = 'SELECT company_id AS id, count(*) AS n FROM employees WHERE company_id = ANY($1) AND deleted_at IS NULL GROUP BY company_id';
 const COUNT_BY_NODE = 'SELECT org_node_id AS id, count(*) AS n FROM employees WHERE org_node_id = ANY($1) AND deleted_at IS NULL GROUP BY org_node_id';
 const COUNT_BY_TITLE = 'SELECT job_title_id AS id, count(*) AS n FROM employees WHERE job_title_id = ANY($1) AND deleted_at IS NULL GROUP BY job_title_id';
 
+/** An employee counts while their contract has not ended (the day is Riyadh's). */
+const ACTIVE = `e.deleted_at IS NULL AND (e.end_date IS NULL OR e.end_date >= (now() AT TIME ZONE 'Asia/Riyadh')::date)`;
+
 const counts = (rows: { id: string; n: string }[]): Map<string, number> => new Map(rows.map((r) => [r.id, Number(r.n)]));
 
 /**
  * What the org module asks of the employees placed in its units. Direct SQL on purpose: org
- * never depends on this module, and these are set-based updates inside the caller's transaction.
+ * never depends on this module.
  */
 @Injectable()
 export class EmployeePlacementAdapter extends EmployeePlacementPort {
@@ -51,39 +51,44 @@ export class EmployeePlacementAdapter extends EmployeePlacementPort {
     return rows.length > 0;
   }
 
-  async transfer(
-    command: { fromNodeIds: string[]; targetNodeId: string; titleMap: Record<string, string>; fallbackTitleId: string },
-    tx: TransactionContext,
-  ): Promise<number> {
-    const rows = returnedRows<{ id: string }>(await this.m(tx).query(
-      `UPDATE employees
-       SET org_node_id = $2,
-           job_title_id = COALESCE(($3::jsonb ->> job_title_id::text)::uuid, $4),
-           updated_at = now()
-       WHERE org_node_id = ANY($1) AND deleted_at IS NULL
-       RETURNING id`,
-      [command.fromNodeIds, command.targetNodeId, JSON.stringify(command.titleMap), command.fallbackTitleId],
-    ));
-    return rows.length;
+  async staffByUnitAndCompany(): Promise<Map<string, Map<string, number>>> {
+    const rows: { unit: string; company: string; n: string }[] = await this.ds.query(
+      'SELECT org_node_id AS unit, company_id AS company, count(*) AS n FROM employees WHERE org_node_id IS NOT NULL AND deleted_at IS NULL GROUP BY org_node_id, company_id',
+    );
+    const out = new Map<string, Map<string, number>>();
+    for (const row of rows) out.set(row.unit, (out.get(row.unit) ?? new Map<string, number>()).set(row.company, Number(row.n)));
+    return out;
   }
 
-  /** One transaction: the employees are soft-deleted, their accounts disabled and their sessions ended. */
-  async remove(command: { fromNodeIds: string[]; actorId: string }, tx: TransactionContext): Promise<number> {
-    const m = this.m(tx);
-    const rows = returnedRows<{ user_id: string }>(await m.query(
-      `UPDATE employees SET deleted_at = now(), updated_at = now()
-       WHERE org_node_id = ANY($1) AND deleted_at IS NULL AND is_system_account = false RETURNING user_id`,
-      [command.fromNodeIds],
-    ));
-    const userIds = rows.map((r) => r.user_id);
-    if (userIds.length) {
-      await m.query('UPDATE users SET is_active = false, updated_at = now() WHERE id = ANY($1)', [userIds]);
-      await m.query('DELETE FROM auth_sessions WHERE user_id = ANY($1)', [userIds]);
-    }
-    return userIds.length;
+  async companiesOf(employeeIds: string[]): Promise<Map<string, string>> {
+    if (!employeeIds.length) return new Map();
+    const rows: { id: string; company_id: string }[] = await this.ds.query('SELECT id, company_id FROM employees WHERE id = ANY($1) AND deleted_at IS NULL', [employeeIds]);
+    return new Map(rows.map((r) => [r.id, r.company_id]));
   }
 
-  private m(tx: TransactionContext): EntityManager {
-    return managerOf(tx, this.ds.manager);
+  async userNamesOf(userIds: string[]): Promise<Map<string, string>> {
+    if (!userIds.length) return new Map();
+    const rows: { user_id: string; full_name: string }[] = await this.ds.query('SELECT user_id, full_name FROM employees WHERE user_id = ANY($1)', [userIds]);
+    return new Map(rows.map((r) => [r.user_id, r.full_name]));
+  }
+
+  async holdersByTitle(): Promise<Map<string, Map<string, TitleHolders>>> {
+    const rows: { title: string; company: string; n: string; first_id: string; first_name: string }[] = await this.ds.query(
+      `SELECT e.job_title_id AS title, e.company_id AS company, count(*) AS n,
+              (array_agg(e.id ORDER BY e.start_date, e.id))[1] AS first_id, (array_agg(e.full_name ORDER BY e.start_date, e.id))[1] AS first_name
+       FROM employees e WHERE e.job_title_id IS NOT NULL AND ${ACTIVE} GROUP BY e.job_title_id, e.company_id`,
+    );
+    const out = new Map<string, Map<string, TitleHolders>>();
+    for (const r of rows) out.set(r.title, (out.get(r.title) ?? new Map<string, TitleHolders>()).set(r.company, { count: Number(r.n), firstId: r.first_id, firstName: r.first_name }));
+    return out;
+  }
+
+  async placedEmployees(titleIds: string[]): Promise<PlacedEmployee[]> {
+    if (!titleIds.length) return [];
+    const rows: { id: string; company_id: string; job_title_id: string; manager_id: string | null }[] = await this.ds.query(
+      `SELECT e.id, e.company_id, e.job_title_id, e.manager_id FROM employees e WHERE e.job_title_id = ANY($1) AND ${ACTIVE}`,
+      [titleIds],
+    );
+    return rows.map((r) => ({ id: r.id, companyId: r.company_id, titleId: r.job_title_id, managerId: r.manager_id }));
   }
 }

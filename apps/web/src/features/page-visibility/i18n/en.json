@@ -31,6 +31,7 @@
     "email-templates": "E-mail templates",
     "notification-templates": "Notification templates",
     "tour-settings": "Welcome tour",
-    "captcha-settings": "Bot protection"
+    "captcha-settings": "Bot protection",
+    "job-titles": "Job titles"
   }
 }

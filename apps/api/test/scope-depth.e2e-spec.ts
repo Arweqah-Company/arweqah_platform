@@ -25,46 +25,49 @@ describe('Depth of what a role reaches (FR-80)', () => {
     admin = await t.factories.signInAdminMode(await t.factories.user({ grants: ORG_ADMIN }));
     return org;
   };
-  const levelId = async (org: TestOrg, index: number): Promise<string> => ((await admin.get(`/api/org/companies/${org.companyId}/tree`).expect(200)).body.levels as Level[])[index]?.id as string;
+  const levelId = async (index: number): Promise<string> => ((await admin.get('/api/org/levels').expect(200)).body.levels as Level[])[index]?.id as string;
   /** Replaces what the head roles of the units of a level hold with these grants. */
-  const giveHeadRole = async (org: TestOrg, index: number, grants: { key: string; scope: string }[]): Promise<void> => {
-    const ids = ((await t.db.query(`SELECT r.id FROM roles r JOIN org_nodes n ON n.id = r.org_node_id WHERE r.auto_rule = 'node_head' AND n.org_level_id = $1`, [await levelId(org, index)])) as { id: string }[]).map((r) => r.id);
+  const giveHeadRole = async (index: number, grants: { key: string; scope: string }[]): Promise<void> => {
+    const ids = ((await t.db.query(`SELECT r.id FROM roles r JOIN org_nodes n ON n.id = r.org_node_id WHERE r.auto_rule = 'node_head' AND n.org_level_id = $1`, [await levelId(index)])) as { id: string }[]).map((r) => r.id);
     for (const id of ids) {
       await t.db.query('DELETE FROM role_permissions WHERE role_id = $1', [id]);
       for (const g of grants) await t.db.query('INSERT INTO role_permissions (role_id, permission_key, scope) VALUES ($1, $2, $3)', [id, g.key, g.scope]);
     }
   };
   const setManager = async (nodeId: string, managerId: string): Promise<void> => {
-    const nodes = (await admin.get(`/api/org/companies/${await t.factories.defaultCompany()}/tree`).expect(200)).body.nodes as { id: string; nameAr: string; nameEn: string; startDate: string; isActive: boolean }[];
+    const nodes = (await admin.get('/api/org/tree?view=full').expect(200)).body.nodes as { id: string; nameAr: string; nameEn: string; startDate: string; isActive: boolean }[];
     const node = nodes.find((n) => n.id === nodeId) as { nameAr: string; nameEn: string; startDate: string; isActive: boolean };
     await admin.put(`/api/org/nodes/${nodeId}`).send({ nameAr: node.nameAr, nameEn: node.nameEn, startDate: node.startDate, isActive: node.isActive, managerId }).expect(200);
   };
   /** A person placed nowhere who manages the department of the test organization. */
   const departmentHead = async (org: TestOrg, grants: { key: string; scope: string }[]) => {
-    await giveHeadRole(org, 1, grants);
+    await giveHeadRole(1, grants);
     const head = await t.factories.user({ without: ['org.view'] }); // the Employee role's own org.view (all) would hide the depth under test
     await setManager(org.department, head.employeeId);
     return t.factories.signIn(head);
   };
-  const treeOf = async (agent: TestAgent, org: TestOrg): Promise<NodeRow[]> => (await agent.get(`/api/org/companies/${org.companyId}/tree`).expect(200)).body.nodes;
+  const treeOf = async (agent: TestAgent): Promise<NodeRow[]> => (await agent.get('/api/org/tree').expect(200)).body.nodes;
   const employeesOf = async (agent: TestAgent): Promise<string[]> => ((await agent.get('/api/employees').query({ pageSize: 100 }).expect(200)).body.items as { id: string }[]).map((e) => e.id);
 
-  it('shows the head of a department the sections one level below, with the department as the top of what they see', async () => {
+  it('does not narrow the structure by the depth of org.view (FR-98): a department head sees their company\'s structure, the units with colleagues of their company and the ones above', async () => {
     const org = await setup();
+    await t.factories.user({ unit: org.unitA });
     const head = await departmentHead(org, [{ key: CorePermission.OrgView, scope: 'subtree:1' }]);
-    const nodes = await treeOf(head, org);
-    expect(nodes.map((n) => n.nameEn).sort()).toEqual(['Department', 'Section AB', 'Section C']);
-    expect(nodes.find((n) => n.id === org.department)?.parentId).toBeNull();
-    expect(nodes.find((n) => n.id === org.sectionAB)?.parentId).toBe(org.department);
+    const nodes = await treeOf(head);
+    expect(nodes.map((n) => n.nameEn).sort()).toEqual(['Department', 'Section AB', 'Sector', 'Unit A']);
+    expect(nodes.find((n) => n.id === org.department)?.parentId).not.toBeNull(); // the whole path from the sector, not the department as a top
   });
 
-  it('shows two levels, and everything below, as the role says, and never the other company', async () => {
+  it('never shows the units of another company\'s people, whatever the depth, and refuses to compare companies (403)', async () => {
     const org = await setup();
+    await t.factories.user({ unit: org.unitA });
+    await t.factories.user({ unit: org.unitOther });
+    await t.db.query(`UPDATE org_nodes SET management_mode = 'per_company' WHERE parent_id IS NULL AND company_id = $1`, [org.otherCompanyId]); // the other company manages its own units: they are not shared with ours
     const two = await departmentHead(org, [{ key: CorePermission.OrgView, scope: 'subtree:2' }]);
-    expect((await treeOf(two, org)).map((n) => n.nameEn).sort()).toEqual(['Department', 'Section AB', 'Section C', 'Unit A', 'Unit B', 'Unit C']);
-    const none = await t.factories.signIn(await t.factories.user({ without: ['org.view'], grants: [{ key: CorePermission.OrgView, scope: 'subtree:2' }] }));
-    await none.get(`/api/org/companies/${org.otherCompanyId}/tree`).expect(404);
-    await two.get(`/api/org/companies/${org.otherCompanyId}/tree`).expect(404);
+    const names = (await treeOf(two)).map((n) => n.nameEn);
+    expect(names).toContain('Unit A');
+    expect(names.filter((n) => n.startsWith('Other'))).toEqual([]);
+    await two.get(`/api/org/tree?asCompany=${org.otherCompanyId}`).expect(403);
   });
 
   it('keeps the employees of the units below out of reach until the depth reaches their unit', async () => {

@@ -3,6 +3,8 @@ export interface TreeNode {
   /** Null for the root. */
   parentId: string | null;
   title: string;
+  /** More words a search matches besides the title (a code, the names of titles). */
+  searchText?: string;
 }
 
 export function childrenOf<T extends TreeNode>(items: T[], id: string): T[] {
@@ -32,7 +34,7 @@ export function matchesOf(items: TreeNode[], query: string): { hits: Set<string>
   const needle = query.trim().toLowerCase();
   if (!needle) return { hits, open };
   const byId = new Map(items.map((i) => [i.id, i]));
-  for (const item of items.filter((i) => i.title.toLowerCase().includes(needle) && i.parentId !== null)) {
+  for (const item of items.filter((i) => `${i.title} ${i.searchText ?? ''}`.toLowerCase().includes(needle) && i.parentId !== null)) {
     hits.add(item.id);
     for (let p = byId.get(item.parentId ?? ''); p; p = byId.get(p.parentId ?? '')) open.add(p.id);
   }
