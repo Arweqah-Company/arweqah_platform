@@ -284,7 +284,7 @@ export class TypeOrmOrgRepository extends OrgRepository {
   }
 
   async codesLike(pattern: string, tx: TransactionContext): Promise<string[]> {
-    const rows: { code: string }[] = await this.m(tx).query('SELECT code FROM org_nodes WHERE code LIKE $1 AND deleted_at IS NULL', [pattern]);
+    const rows: { code: string }[] = await this.m(tx).createQueryBuilder().select('n.code', 'code').from('org_nodes', 'n').where('n.code LIKE :pattern AND n.deleted_at IS NULL', { pattern }).getRawMany();
     return rows.map((r) => r.code);
   }
 
