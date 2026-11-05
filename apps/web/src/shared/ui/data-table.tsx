@@ -69,6 +69,8 @@ interface DataTableProps<T> {
   onSort?: (key: string) => void;
   /** Clicking anywhere on a row (not on a button or link inside it) opens the row's view. */
   onRowClick?: (row: T) => void;
+  /** Extra classes of a row (a selected unit, a row that is only the way to a match). */
+  rowClassName?: (row: T) => string | undefined;
   /** Every action on a row: they become the last column, headed "Actions" (a card shows them at its bottom). */
   actions?: (row: T) => ReactNode;
   /** A box on every row (and one in the header for the whole page) to pick rows for a bulk action. */
@@ -83,6 +85,7 @@ interface RowsProps<T> {
   sort?: TableSort;
   onSort?: (key: string) => void;
   onRowClick?: (row: T) => void;
+  rowClassName?: (row: T) => string | undefined;
 }
 
 /** A click on the row itself opens it; a click on a button, link or field inside it does its own thing. */
@@ -135,7 +138,7 @@ const headingBefore = <T,>(rows: T[], index: number, groupOf?: (row: T) => strin
   return index === 0 || groupOf(rows[index - 1] as T) !== group ? group : null;
 };
 
-function RowTable<T>({ caption, columns, rows, rowKey, isLoading, groupOf, sort, onSort, onRowClick }: RowsProps<T> & { caption: string; isLoading?: boolean }) {
+function RowTable<T>({ caption, columns, rows, rowKey, isLoading, groupOf, sort, onSort, onRowClick, rowClassName }: RowsProps<T> & { caption: string; isLoading?: boolean }) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-neutral-200" tabIndex={0} role="region" aria-label={caption}>
       <table className="w-full text-sm">
@@ -151,7 +154,7 @@ function RowTable<T>({ caption, columns, rows, rowKey, isLoading, groupOf, sort,
               {headingBefore(rows, index, groupOf) !== null && (
                 <tr className="bg-neutral-50"><th scope="colgroup" colSpan={columns.length} className="px-4 py-2 text-start text-xs font-bold text-muted">{headingBefore(rows, index, groupOf)}</th></tr>
               )}
-              <tr data-tour={index === 0 ? 'first-row' : undefined} onClick={rowClick(row, onRowClick)} className={cn('border-b border-neutral-200/70 transition-colors duration-150 last:border-0 hover:bg-neutral-50/70', onRowClick && 'cursor-pointer')}>
+              <tr data-tour={index === 0 ? 'first-row' : undefined} onClick={rowClick(row, onRowClick)} className={cn('border-b border-neutral-200/70 transition-colors duration-150 last:border-0 hover:bg-neutral-50/70', onRowClick && 'cursor-pointer', rowClassName?.(row))}>
                 {columns.map((c) => (
                   <td key={c.id ?? c.header} className={`px-4 py-4 align-middle ${c.className ?? ''}`}>
                     {c.cell(row)}
@@ -167,7 +170,7 @@ function RowTable<T>({ caption, columns, rows, rowKey, isLoading, groupOf, sort,
 }
 
 /** Phone layout: one card per row, label and value on a line, the actions column at the bottom. */
-function RowCards<T>({ columns, rows, rowKey, groupOf, onRowClick }: RowsProps<T>) {
+function RowCards<T>({ columns, rows, rowKey, groupOf, onRowClick, rowClassName }: RowsProps<T>) {
   const fields = columns.filter((c) => !c.hideHeader && !c.isAction && !c.isSelect);
   const actions = columns.filter((c) => c.hideHeader || c.isAction);
   const select = columns.find((c) => c.isSelect);
@@ -176,7 +179,7 @@ function RowCards<T>({ columns, rows, rowKey, groupOf, onRowClick }: RowsProps<T
       {rows?.map((row, index) => (
         <Fragment key={rowKey(row)}>
           {headingBefore(rows, index, groupOf) !== null && <li className="col-span-full pt-2 text-xs font-bold text-muted">{headingBefore(rows, index, groupOf)}</li>}
-          <li data-tour={index === 0 ? 'first-row' : undefined} onClick={rowClick(row, onRowClick)} className={cn('rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm shadow-ink/5', onRowClick && 'cursor-pointer')}>
+          <li data-tour={index === 0 ? 'first-row' : undefined} onClick={rowClick(row, onRowClick)} className={cn('rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm shadow-ink/5', onRowClick && 'cursor-pointer', rowClassName?.(row))}>
           {select && <div className="mb-2">{select.cell(row)}</div>}
           <dl className="flex flex-col gap-2 text-sm">
             {fields.map((c) => (
@@ -230,7 +233,7 @@ function selectColumn<T>(selection: TableSelection, rows: T[] | undefined, rowKe
 }
 
 /** One table for every list: a rounded panel with a top bar, semantic markup, loading/empty states, pagination. */
-export function DataTable<T>({ listKey, caption, columns: allColumns, rows, rowKey, isLoading, error, empty, page, onPageChange, onPageSizeChange, view, title, toolbar, groupOf, sort, onSort, onRowClick, actions, selection }: DataTableProps<T>) {
+export function DataTable<T>({ listKey, caption, columns: allColumns, rows, rowKey, isLoading, error, empty, page, onPageChange, onPageSizeChange, view, title, toolbar, groupOf, sort, onSort, onRowClick, rowClassName, actions, selection }: DataTableProps<T>) {
   const phone = useIsPhone();
   const { t } = useTranslation();
   const hidden = useHiddenInList(listKey);
@@ -243,7 +246,7 @@ export function DataTable<T>({ listKey, caption, columns: allColumns, rows, rowK
     <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm shadow-ink/5">
       <TopBar title={title} toolbar={toolbar} />
       <div className="p-3 sm:p-5">
-        {cards ? <RowCards columns={columns} rows={rows} rowKey={rowKey} groupOf={groupOf} onRowClick={onRowClick} /> : <RowTable caption={caption} columns={columns} rows={rows} rowKey={rowKey} isLoading={isLoading} groupOf={groupOf} sort={sort} onSort={onSort} onRowClick={onRowClick} />}
+        {cards ? <RowCards columns={columns} rows={rows} rowKey={rowKey} groupOf={groupOf} onRowClick={onRowClick} rowClassName={rowClassName} /> : <RowTable caption={caption} columns={columns} rows={rows} rowKey={rowKey} isLoading={isLoading} groupOf={groupOf} sort={sort} onSort={onSort} onRowClick={onRowClick} rowClassName={rowClassName} />}
       </div>
       <TableState isLoading={isLoading} isEmpty={rows?.length === 0} empty={empty} />
       {page && <TableFooter page={page} onPageChange={onPageChange} onPageSizeChange={onPageSizeChange} />}

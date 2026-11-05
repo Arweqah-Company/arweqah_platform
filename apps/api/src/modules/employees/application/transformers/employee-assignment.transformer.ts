@@ -26,5 +26,6 @@ export function toAssignmentDto(row: EmployeeAssignment, today: string, names: P
     createdBy: row.createdBy,
     createdByName: names.createdByName,
     status: statusOf(row, today),
+    managerSource: row.managerSource,
   };
 }

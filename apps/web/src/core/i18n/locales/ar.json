@@ -24,7 +24,6 @@
     },
     "profile": "الملف الشخصي",
     "directory": "فريقي",
-    "employeeFields": "صلاحيات حقول الموظف",
     "myAccess": "صلاحياتي",
     "tickets": "التذاكر",
     "ticketSetup": "إعداد التذاكر",
@@ -37,7 +36,8 @@
     "taskPolicies": "سياسات المهام",
     "translationSettings": "إعدادات الترجمة",
     "emailSettings": "إعدادات البريد",
-    "serviceSettings": "الإعدادات"
+    "serviceSettings": "الإعدادات",
+    "jobTitles": "المسميات الوظيفية"
   },
   "actions": {
     "save": "حفظ",
@@ -191,7 +191,8 @@
     "choose": "اختر…",
     "clear": "مسح الاختيار",
     "search": "ابحث…",
-    "empty": "لا نتائج."
+    "empty": "لا نتائج.",
+    "selectedCount": "تم اختيار {{count}}"
   },
   "footer": {
     "rights": "© {{year}} أروقة الريادة. جميع الحقوق محفوظة."
@@ -362,5 +363,9 @@
     "nameAr": "الاسم بالعربية",
     "nameEn": "الاسم بالإنجليزية",
     "description": "الوصف"
+  },
+  "linesField": {
+    "tooMany": "لا يزيد عدد السطور على {{max}}.",
+    "tooLong": "لا يزيد السطر الواحد على {{max}} حرفًا."
   }
 }

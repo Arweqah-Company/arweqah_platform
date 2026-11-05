@@ -1,0 +1,174 @@
+{
+  "title": "Job titles",
+  "description": "Every job title of the group in one list with its code, grade, track and headcount. Click a title to open its card.",
+  "searchLabel": "Search job titles",
+  "searchPlaceholder": "Search by name or code",
+  "noMatches": "No titles match the search or the filters",
+  "empty": "No job titles yet",
+  "emptyHint": "Titles are added from the units or imported from a file.",
+  "add": {
+    "button": "Add a title",
+    "title": "Add a job title",
+    "description": "Choose the unit the title belongs to, then write its name, grade and track.",
+    "unit": "Unit",
+    "next": "Next"
+  },
+  "columns": {
+    "name": "Title",
+    "code": "Code",
+    "noCode": "No code",
+    "unit": "Unit",
+    "unitCode": "Unit code",
+    "unitPath": "Unit path",
+    "occupants": "Holders",
+    "status": "Status"
+  },
+  "filters": {
+    "sector": "Sector",
+    "department": "Department",
+    "section": "Section",
+    "vacant": "Vacancy",
+    "vacantYes": "Vacant (no holder)",
+    "vacantNo": "Has holders"
+  },
+  "actions": {
+    "openCard": "Open the card",
+    "editContent": "Edit the content"
+  },
+  "titles": {
+    "title": "Add job titles",
+    "description": "Add one or more job titles to the unit.",
+    "nameAr": "Arabic name",
+    "nameEn": "English name",
+    "add": "Add a title",
+    "remove": "Remove the title",
+    "saved": "The job titles were added.",
+    "template": "Copy permissions from a role",
+    "templateHint": "The title's role starts with this role's permissions; you then edit it from the roles page.",
+    "templateDefault": "The “Employee” role (default)",
+    "none": "This unit has no job titles yet.",
+    "notAccepted": "This type of unit takes no job titles and no employees. Titles belong to the units below it.",
+    "employees": "{{count}} employees",
+    "vacant": "Vacant",
+    "active": "Active title",
+    "editTitle": "Edit the job title",
+    "updated": "The job title was updated.",
+    "deleteTitle": "Delete the job title?",
+    "deleteBody": "A title that has employees cannot be deleted.",
+    "deleted": "The job title was deleted.",
+    "grade": "Grade",
+    "track": "Track",
+    "choose": "Choose",
+    "tracks": {
+      "M": "Management",
+      "P": "Professional",
+      "J": "Projects",
+      "C": "Consulting",
+      "S": "Support"
+    },
+    "noCodeYet": "This title has no code: choose its grade and track to build it (once).",
+    "reportsTo": "Reports to",
+    "reportsToHint": "The higher title this one reports to. Search by name or code.",
+    "reportsToNone": "No reporting line"
+  },
+  "card": {
+    "loading": "Loading the card…",
+    "codeMeaning": "What the code means",
+    "slot": {
+      "sector": "Sector",
+      "department": "Department",
+      "section": "Section",
+      "unit": "Unit",
+      "none": "none",
+      "gradeTrack": "Grade and track",
+      "sequence": "Sequence"
+    },
+    "noCode": "This title has no code yet: someone who may edit titles sets its grade and track, and the code is built.",
+    "stageLabel": "Development stage",
+    "stageText": "{{stage}}: {{hours}} hours a year, budget cap {{budget}} SAR",
+    "stageNoRule": "No rule covers this grade and track yet: HR decides.",
+    "stageNoGrade": "The stage shows once the grade and track are set.",
+    "stage": {
+      "foundation": "Foundation",
+      "specialization": "Specialization",
+      "mastery": "Mastery",
+      "operational_leadership": "Operational leadership",
+      "institutional_leadership": "Institutional leadership"
+    },
+    "content": "Responsibilities, qualifications and indicators",
+    "editContent": "Edit the content",
+    "contentEmpty": "No content has been entered for this title yet. It is imported from the titles file or written by someone who may edit title content.",
+    "responsibilities": "Responsibilities",
+    "qualifications": "Qualifications",
+    "kpis": "Performance indicators",
+    "occupants": "Holders by company"
+  },
+  "chain": {
+    "title": "Who is the direct manager?",
+    "rule": "The manager is the nearest higher title that has a holder. Vacant titles are skipped, and the search never leaves the employee's company.",
+    "company": "An employee of company",
+    "label": "Direct manager chain",
+    "employeeOf": "An employee of {{company}}",
+    "vacant": "Vacant: skipped",
+    "blocked": "Outside the company: the search does not go beyond it",
+    "found": "Direct manager: {{name}} ({{count}} holders)",
+    "foundCount": "Direct manager: one of its holders ({{count}} holders)",
+    "none": "This employee has no manager in their company. They appear in the «units with no leader» report, and HR assigns one by hand with a date and a reason.",
+    "noCompany": "Choose a company that has holders of this title to see the manager chain.",
+    "state": {
+      "vacant": "Vacant",
+      "found": "Manager found",
+      "blocked": "Outside the company"
+    }
+  },
+  "content": {
+    "title": "Edit the title content",
+    "description": "One item per line, in Arabic and English. Every save raises the content version.",
+    "saved": "The title content was saved."
+  },
+  "import": {
+    "code": "Title code",
+    "codeHint": "Leave empty for a new title: it is built from the unit, grade and track.",
+    "unitCode": "Unit code",
+    "unitCodeHint": "The unit a new title belongs to.",
+    "reportsToCode": "Reports-to code",
+    "reportsToHint": "The code of the higher title (in the file or already in the system).",
+    "linesHint": "One item per line.",
+    "preview": "New titles: {{created}} · updated: {{updated}} · unchanged: {{unchanged}}.",
+    "reason": {
+      "bad_code": "The title code is not valid.",
+      "unit_required": "Give the unit code or the title code.",
+      "unit_not_found": "No unit has this code.",
+      "unit_not_accepting": "This unit does not take titles.",
+      "unit_code_missing": "The unit has no code yet.",
+      "unit_mismatch": "The title code does not match the unit code.",
+      "grade_required": "The grade is required.",
+      "track_required": "The track is required.",
+      "grade_track_mismatch": "The grade and track do not match the title code.",
+      "grade_track_frozen": "A title grade and track cannot change once its code is built.",
+      "duplicate_in_file": "The code appears twice in the file.",
+      "sequence_taken": "This sequence is already used in the same unit.",
+      "reports_to_unknown": "The title it reports to does not exist.",
+      "reports_to_self": "A title cannot report to itself.",
+      "reports_to_cycle": "The reporting line makes a loop."
+    }
+  },
+  "tour": {
+    "job-titles": {
+      "title": "Job titles",
+      "body": "Every job title of the group in one list with its code, grade, track and headcount, with search and filters by sector, department, section, grade, track and vacancy, and import and export from a file.",
+      "can": {
+        "create": "Add a new title to a unit",
+        "update": "Edit a title's name, grade, track and reporting line",
+        "delete": "Delete a title nobody holds",
+        "content": "Edit a title's responsibilities, qualifications and indicators",
+        "import": "Import titles from a file",
+        "export": "Export the titles to a file"
+      }
+    },
+    "title-card": {
+      "title": "The title card",
+      "body": "Click any title to open its card: its code cut into parts, its grade, track and development stage, its content, who holds it in each company, and the direct-manager chain for an employee of a chosen company."
+    }
+  }
+}

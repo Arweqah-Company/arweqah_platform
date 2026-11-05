@@ -9,10 +9,13 @@ export const orgFeature: FeatureModule = {
   routes: [{ path: '/org', lazy: () => import('./org-page').then((m) => ({ Component: m.OrgPage })) }],
   nav: [{ to: '/org', labelKey: 'nav.org', icon: Network, group: 'people', permission: CorePermission.OrgView, pageKey: 'org' }],
   tour: [
-    { key: 'org', target: PAGE_TITLE_TARGET, route: '/org', placement: 'bottom', can: [{ id: 'unit_create', permission: CorePermission.OrgUnitCreate }, { id: 'unit_update', permission: CorePermission.OrgUnitUpdate }, { id: 'unit_move', permission: CorePermission.OrgUnitMove }, { id: 'levels', permission: CorePermission.OrgLevelsManage }, { id: 'titles', permission: CorePermission.OrgTitlesManage }, { id: 'export', permission: CorePermission.OrgExport }] },
+    { key: 'org', target: PAGE_TITLE_TARGET, route: '/org', placement: 'bottom', can: [{ id: 'unit_create', permission: CorePermission.OrgUnitCreate }, { id: 'unit_update', permission: CorePermission.OrgUnitUpdate }, { id: 'unit_move', permission: CorePermission.OrgUnitMove }, { id: 'unit_share', permission: CorePermission.OrgUnitShare }, { id: 'titles', permission: CorePermission.JobTitlesCreate }, { id: 'export', permission: CorePermission.OrgExport }] },
     { key: 'org-views', target: '[data-tour="view-switch"]', route: '/org', placement: 'bottom' },
-    { key: 'org-levels', target: '[data-tour="org-levels"]', route: '/org', placement: 'bottom', can: [{ id: 'titles', permission: CorePermission.OrgTitlesManage }] },
+    { key: 'org-full-view', target: '[data-tour="org-scope"]', route: '/org', placement: 'bottom' },
+    { key: 'org-levels', target: '[data-tour="org-levels"]', route: '/org', placement: 'bottom' },
     { key: 'org-add-unit', target: '[data-tour="org-add-unit"]', route: '/org', placement: 'bottom', can: [{ id: 'unit_update', permission: CorePermission.OrgUnitUpdate }, { id: 'unit_move', permission: CorePermission.OrgUnitMove }] },
+    // The Charter tab of the details panel carries this mark; the link opens the first unit on it.
+    { key: 'org-charter', target: '[data-tour="org-charter"]', route: '/org?unit=first&tab=charter', placement: 'bottom' },
   ],
   i18n: { ar, en },
 };

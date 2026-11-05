@@ -84,6 +84,8 @@ export const server = setupServer(
   http.get('*/api/roles', () => HttpResponse.json(roles)),
   http.get('*/api/lookups', () => HttpResponse.json(lookups)),
   http.get('*/api/lookups/companies', () => HttpResponse.json(companyOptions)),
+  // The title picker (a reporting line) searches the job titles; no title unless a test says so.
+  http.get('*/api/org/job-titles', () => HttpResponse.json({ items: [], total: 0, page: 1, pageSize: 20 })),
   // Translation is off unless a test turns it on, so typing Arabic never fills an English field by itself.
   http.post('*/api/translate', () => HttpResponse.json({ statusCode: 502, code: 'TRANSLATION_UNAVAILABLE', message: 'Translation is not available' }, { status: 502 })),
 );

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import { CorePermission, LEVEL_HEAD_DEFAULT_PERMISSIONS, type PermissionGrant, type PermissionScope } from '@arweqah-platform/shared';
+import { CorePermission, LEVEL_HEAD_DEFAULT_PERMISSIONS, storedFields, type PermissionGrant, type PermissionScope } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../common/application/transaction-runner';
 import { returnedRows } from '../../../common/infrastructure/query-result';
 import { managerOf } from '../../../common/infrastructure/typeorm-transaction-runner';
@@ -16,19 +16,21 @@ const TODAY = `(now() AT TIME ZONE 'Asia/Riyadh')::date`;
 /** The row has no end date, or its last day has not passed. */
 const holds = (alias: string): string => `(${alias}.expires_at IS NULL OR ${alias}.expires_at >= ${TODAY})`;
 
-const PERMISSIONS_OF_USER = `SELECT up.permission_key AS key, up.scope FROM user_permissions up WHERE up.user_id = $1 AND ${holds('up')} ORDER BY up.permission_key`;
+const PERMISSIONS_OF_USER = `SELECT up.permission_key AS key, up.scope, up.fields FROM user_permissions up WHERE up.user_id = $1 AND ${holds('up')} ORDER BY up.permission_key`;
 
 /** A role that holds `admin_mode.use` is an administrative role: its grants work only in platform admin mode. */
-const IS_ADMIN_ROLE = `EXISTS (SELECT 1 FROM role_permissions a WHERE a.role_id = rp.role_id AND a.permission_key = '${CorePermission.AdminModeUse}')`;
+const isAdminRole = (roleId: string): string => `EXISTS (SELECT 1 FROM role_permissions a WHERE a.role_id = ${roleId} AND a.permission_key = '${CorePermission.AdminModeUse}')`;
+const IS_ADMIN_ROLE = isAdminRole('rp.role_id');
 
 const GRANTS_OF_USER = `
-  SELECT rp.permission_key AS key, rp.scope AS scope, ${IS_ADMIN_ROLE} AS elevated FROM role_permissions rp
+  SELECT rp.permission_key AS key, rp.scope AS scope, rp.fields AS fields, ${IS_ADMIN_ROLE} AS elevated FROM role_permissions rp
   WHERE rp.role_id IN (
     SELECT ur.role_id FROM user_roles ur WHERE ur.user_id = $1 AND ${holds('ur')}
     UNION SELECT gr.role_id FROM user_role_groups ug JOIN role_group_roles gr ON gr.group_id = ug.group_id WHERE ug.user_id = $1 AND ${holds('ug')})
-  UNION ALL SELECT gp.permission_key, gp.scope, false FROM role_group_permissions gp JOIN user_role_groups ug ON ug.group_id = gp.group_id WHERE ug.user_id = $1 AND ${holds('ug')}
-  UNION ALL SELECT up.permission_key, up.scope, false FROM user_permissions up WHERE up.user_id = $1 AND ${holds('up')}
-  UNION ALL SELECT ugp.permission_key, ugp.scope, false FROM user_group_permissions ugp JOIN user_group_members m ON m.group_id = ugp.group_id WHERE m.user_id = $1`;
+  UNION ALL SELECT gp.permission_key, gp.scope, gp.fields, false FROM role_group_permissions gp JOIN user_role_groups ug ON ug.group_id = gp.group_id WHERE ug.user_id = $1 AND ${holds('ug')}
+  UNION ALL SELECT gp.permission_key, gp.scope, gp.fields, ${isAdminRole('gr.role_id')} FROM role_group_permissions gp JOIN role_group_roles gr ON gr.group_id = gp.group_id JOIN user_roles ur ON ur.role_id = gr.role_id WHERE ur.user_id = $1 AND ${holds('ur')}
+  UNION ALL SELECT up.permission_key, up.scope, up.fields, false FROM user_permissions up WHERE up.user_id = $1 AND ${holds('up')}
+  UNION ALL SELECT ugp.permission_key, ugp.scope, ugp.fields, false FROM user_group_permissions ugp JOIN user_group_members m ON m.group_id = ugp.group_id WHERE m.user_id = $1`;
 
 /** The same grants as `GRANTS_OF_USER`, one row per source with its name, so a person can see where each permission comes from. */
 const GRANT_SOURCES_OF_USER = `
@@ -38,6 +40,8 @@ const GRANT_SOURCES_OF_USER = `
     FROM user_role_groups ug JOIN role_groups g ON g.id = ug.group_id JOIN role_group_roles gr ON gr.group_id = g.id JOIN role_permissions rp ON rp.role_id = gr.role_id WHERE ug.user_id = $1 AND ${holds('ug')}
   UNION ALL SELECT gp.permission_key, gp.scope, 'role_group', g.name_ar, g.name_en, false
     FROM user_role_groups ug JOIN role_groups g ON g.id = ug.group_id JOIN role_group_permissions gp ON gp.group_id = g.id WHERE ug.user_id = $1 AND ${holds('ug')}
+  UNION ALL SELECT gp.permission_key, gp.scope, 'role_group', g.name_ar, g.name_en, ${isAdminRole('gr.role_id')}
+    FROM user_roles ur JOIN role_group_roles gr ON gr.role_id = ur.role_id JOIN role_groups g ON g.id = gr.group_id JOIN role_group_permissions gp ON gp.group_id = g.id WHERE ur.user_id = $1 AND ${holds('ur')}
   UNION ALL SELECT up.permission_key, up.scope, 'direct', '', '', false FROM user_permissions up WHERE up.user_id = $1 AND ${holds('up')}
   UNION ALL SELECT ugp.permission_key, ugp.scope, 'user_group', g.name_ar, g.name_en, false
     FROM user_group_members m JOIN user_groups g ON g.id = m.group_id JOIN user_group_permissions ugp ON ugp.group_id = g.id WHERE m.user_id = $1`;
@@ -51,8 +55,13 @@ const AUTO_ROLE_STATEMENTS = [
      AND NOT EXISTS (SELECT 1 FROM employees m WHERE m.user_id = ur.user_id AND m.deleted_at IS NULL AND ${WITH_REPORTS}) RETURNING ur.user_id`,
 ];
 
-/** Does the employee manage this active unit? */
-const MANAGES_UNIT = `EXISTS (SELECT 1 FROM org_nodes n WHERE n.manager_id = $1 AND n.id = $2 AND n.deleted_at IS NULL AND n.is_active)`;
+/** Today in Riyadh, the platform's day. */
+const RIYADH_TODAY = `(now() AT TIME ZONE 'Asia/Riyadh')::date`;
+/** The employee leads the unit: it is their unit's manager (the current copy of the primary leader), or a leader or acting leader of any company whose days include today (FR-100). */
+const LEADS_UNIT = (employee: string, unit: string) =>
+  `(${unit}.manager_id = ${employee} OR EXISTS (SELECT 1 FROM org_node_leaders l WHERE l.node_id = ${unit}.id AND l.employee_id = ${employee} AND l.valid_from <= ${RIYADH_TODAY} AND (l.valid_to IS NULL OR l.valid_to >= ${RIYADH_TODAY})))`;
+/** Does the employee ($1) lead this active unit ($2)? */
+const MANAGES_UNIT = `EXISTS (SELECT 1 FROM org_nodes n WHERE n.id = $2 AND n.deleted_at IS NULL AND n.is_active AND ${LEADS_UNIT('$1', 'n')})`;
 
 const TITLE_NAME = (lang: string) => `(SELECT x.name FROM job_title_translations x WHERE x.job_title_id = t.id AND x.lang = '${lang}')`;
 const TITLE_UNIT = (lang: string) => `(SELECT x.name FROM org_node_translations x WHERE x.org_node_id = t.org_node_id AND x.lang = '${lang}')`;
@@ -86,6 +95,7 @@ const REMOVE_ORPHAN_JOB_TITLE_ROLES = `DELETE FROM roles r WHERE r.job_title_id 
 interface GrantRow {
   key: string | null;
   scope: PermissionScope | null;
+  fields?: string[] | null;
   elevated: boolean;
 }
 
@@ -115,18 +125,29 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
     if (!user) return null;
     const rows = await this.grantRows(userId);
     const valid = rows.filter((r): r is GrantRow & { key: string; scope: PermissionScope } => !!r.key && !!r.scope);
-    const toGrant = (r: { key: string; scope: PermissionScope }): PermissionGrant => ({ key: r.key, scope: r.scope });
+    const toGrant = (r: { key: string; scope: PermissionScope; fields?: string[] | null }): PermissionGrant => ({ key: r.key, scope: r.scope, ...(r.fields && { fields: r.fields }) });
     const waits = (r: GrantRow & { key: string }): boolean => r.elevated && r.key !== CorePermission.AdminModeUse;
     const grants = valid.filter((r) => !waits(r)).map(toGrant);
     const elevatedGrants = valid.filter(waits).map(toGrant);
     const placement = (await this.placementsOf([userId])).get(userId) ?? NO_PLACEMENT;
-    return {
-      isActive: user.isActive,
-      grants,
-      elevatedGrants,
-      placement,
-      reach: await this.reachOf(userId, placement.orgNodeId),
-    };
+    const reach = await this.reachOf(userId, placement.orgNodeId);
+    return { isActive: user.isActive, grants, elevatedGrants, placement, reach, restrictedNodes: await this.restrictedAmong([...reach.keys()]) };
+  }
+
+  /**
+   * Among the units, those managed per company: the closest explicit mode going up the closure decides, and a unit with none above it
+   * counts as per company (the same default as `effectiveModes`). A scope reaches only the people of the viewer's company in them.
+   */
+  private async restrictedAmong(nodeIds: string[]): Promise<ReadonlySet<string>> {
+    if (!nodeIds.length) return new Set();
+    const rows: { id: string }[] = await this.userRoles.manager.query(
+      `SELECT n.id FROM org_nodes n
+       WHERE n.id = ANY($1) AND COALESCE(
+         (SELECT a.management_mode FROM org_node_closure c JOIN org_nodes a ON a.id = c.ancestor_id AND a.deleted_at IS NULL
+          WHERE c.descendant_id = n.id AND a.management_mode IS NOT NULL ORDER BY c.depth LIMIT 1), 'per_company') = 'per_company'`,
+      [nodeIds],
+    );
+    return new Set(rows.map((r) => r.id));
   }
 
   /** The units the person reaches: where they sit and the units whose head role they hold because they manage them, each with the levels below it. */
@@ -134,7 +155,7 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
     const rows: { nodeId: string; depth: number }[] = await this.userRoles.manager.query(
       `SELECT c.descendant_id AS "nodeId", c.depth AS depth FROM org_node_closure c WHERE c.ancestor_id = $2::uuid
        UNION ALL
-       SELECT c.descendant_id, c.depth FROM employees e JOIN org_nodes n ON n.manager_id = e.id AND n.deleted_at IS NULL AND n.is_active
+       SELECT c.descendant_id, c.depth FROM employees e JOIN org_nodes n ON n.deleted_at IS NULL AND n.is_active AND ${LEADS_UNIT('e.id', 'n')}
        JOIN roles r ON r.auto_rule = 'node_head' AND r.org_node_id = n.id
        JOIN user_roles ur ON ur.role_id = r.id AND ur.user_id = e.user_id AND ${holds('ur')}
        JOIN org_node_closure c ON c.ancestor_id = n.id
@@ -172,17 +193,17 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
   }
 
   async permissionsOf(userId: string): Promise<PermissionGrant[]> {
-    const rows: { key: string; scope: PermissionScope }[] = await this.userRoles.manager.query(PERMISSIONS_OF_USER, [userId]);
-    return rows;
+    const rows: { key: string; scope: PermissionScope; fields?: string[] | null }[] = await this.userRoles.manager.query(PERMISSIONS_OF_USER, [userId]);
+    return rows.map((r) => ({ key: r.key, scope: r.scope, ...(r.fields && { fields: r.fields }) }));
   }
 
   async replacePermissions(userId: string, grants: PermissionGrant[], grantedBy: string | null, tx?: TransactionContext): Promise<void> {
     const m = managerOf(tx, this.userRoles.manager);
-    const unique = [...new Map(grants.map((g) => [g.key, g.scope])).entries()];
-    await m.query('DELETE FROM user_permissions WHERE user_id = $1 AND NOT (permission_key = ANY($2::text[]))', [userId, unique.map(([key]) => key)]);
-    // A permission already held keeps its end date and who gave it; only its scope follows the new list.
-    for (const [key, scope] of unique) {
-      await m.query('INSERT INTO user_permissions (user_id, permission_key, scope, granted_by) VALUES ($1, $2, $3, $4) ON CONFLICT (user_id, permission_key) DO UPDATE SET scope = EXCLUDED.scope', [userId, key, scope, grantedBy]);
+    const unique = [...new Map(grants.map((g) => [g.key, g])).values()];
+    await m.query('DELETE FROM user_permissions WHERE user_id = $1 AND NOT (permission_key = ANY($2::text[]))', [userId, unique.map((g) => g.key)]);
+    // A permission already held keeps its end date and who gave it; only its scope and fields follow the new list.
+    for (const g of unique) {
+      await m.query('INSERT INTO user_permissions (user_id, permission_key, scope, fields, granted_by) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (user_id, permission_key) DO UPDATE SET scope = EXCLUDED.scope, fields = EXCLUDED.fields', [userId, g.key, g.scope, storedFields(g), grantedBy]);
     }
   }
 

@@ -24,7 +24,6 @@
     },
     "profile": "Profile",
     "directory": "My team",
-    "employeeFields": "Employee field permissions",
     "myAccess": "My access",
     "tickets": "Tickets",
     "ticketSetup": "Ticket setup",
@@ -37,7 +36,8 @@
     "taskPolicies": "Task policies",
     "translationSettings": "Translation settings",
     "emailSettings": "E-mail settings",
-    "serviceSettings": "Settings"
+    "serviceSettings": "Settings",
+    "jobTitles": "Job titles"
   },
   "actions": {
     "save": "Save",
@@ -191,7 +191,8 @@
     "choose": "Choose…",
     "clear": "Clear selection",
     "search": "Search…",
-    "empty": "No results."
+    "empty": "No results.",
+    "selectedCount": "{{count}} selected"
   },
   "footer": {
     "rights": "© {{year}} Arweqah Alreyadah. All rights reserved."
@@ -362,5 +363,9 @@
     "nameAr": "Name in Arabic",
     "nameEn": "Name in English",
     "description": "Description"
+  },
+  "linesField": {
+    "tooMany": "Use at most {{max}} lines.",
+    "tooLong": "A line can have at most {{max}} characters."
   }
 }

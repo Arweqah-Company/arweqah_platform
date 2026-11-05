@@ -1,4 +1,4 @@
-import type { CompanyDto, JobTitleDto, OrgLevelDto, OrgNodeDto } from '@arweqah-platform/shared';
+import type { CompanyDto, JobTitleDto, ManagementMode, OrgLevelDto, OrgNodeDto } from '@arweqah-platform/shared';
 import type { CompanyView, LevelView, NodePath, NodeView, TitleView } from '../../domain/types/org.types';
 
 export const toCompanyDto = (c: CompanyView, employeesCount: number): CompanyDto => ({
@@ -12,12 +12,14 @@ export const toCompanyDto = (c: CompanyView, employeesCount: number): CompanyDto
 
 export const toLevelDto = (l: LevelView, unitsCount: number): OrgLevelDto => ({
   id: l.id,
-  companyId: l.companyId,
-  sortOrder: l.sortOrder,
+  key: l.key,
   nameAr: l.nameAr,
   nameEn: l.nameEn,
-  isAssignable: l.isAssignable,
-  templateCode: l.templateCode,
+  sortOrder: l.sortOrder,
+  acceptsTitles: l.isAssignable,
+  isBuiltIn: l.isBuiltIn,
+  tone: l.tone,
+  codeSlot: l.codeSlot,
   unitsCount,
 });
 
@@ -28,9 +30,15 @@ export const toTitleDto = (t: TitleView, employeesCount: number): JobTitleDto =>
   nameEn: t.nameEn,
   isActive: t.isActive,
   employeesCount,
+  code: t.code,
+  grade: t.grade,
+  track: t.track,
+  reportsToTitleId: t.reportsToTitleId,
+  contentVersion: t.contentVersion,
 });
 
 export interface NodeDtoParts {
+  effectiveMode: ManagementMode;
   path: NodePath | undefined;
   managerName: string | null;
   employeesCount: number;
@@ -41,7 +49,9 @@ export const toNodeDto = (n: NodeView, parts: NodeDtoParts): OrgNodeDto => ({
   id: n.id,
   companyId: n.companyId,
   levelId: n.levelId,
+  levelKey: n.levelKey,
   parentId: n.parentId,
+  code: n.code,
   nameAr: n.nameAr,
   nameEn: n.nameEn,
   pathAr: parts.path?.pathAr ?? n.nameAr,
@@ -52,4 +62,6 @@ export const toNodeDto = (n: NodeView, parts: NodeDtoParts): OrgNodeDto => ({
   isActive: n.isActive,
   employeesCount: parts.employeesCount,
   jobTitles: parts.titles,
+  managementMode: n.managementMode,
+  effectiveMode: parts.effectiveMode,
 });

@@ -30,20 +30,6 @@
         "contractEnding": "Contract ending soon"
       }
     },
-    "employee-fields": {
-      "name": "Employee field permissions",
-      "columns": {
-        "field": "Field",
-        "group": "Group",
-        "self": "The employee changes it",
-        "hr": "HR changes it"
-      },
-      "filters": {
-        "group": "Group",
-        "self": "The employee changes it",
-        "hr": "HR changes it"
-      }
-    },
     "directory": {
       "name": "My team",
       "columns": {
@@ -62,18 +48,22 @@
     "org": {
       "name": "Organization structure",
       "columns": {
-        "name": "Name",
-        "level": "Level",
+        "name": "Unit",
+        "code": "Code",
+        "level": "Type",
+        "mode": "Management type",
+        "leader": "Leader",
         "manager": "Manager",
         "employees": "Employees",
-        "titles": "Job titles",
+        "titles": "Titles",
         "status": "Status"
       },
       "filters": {
-        "level": "Level",
+        "level": "Type",
+        "mode": "Management type",
         "status": "Status",
         "employees": "Has employees",
-        "manager": "Has a manager"
+        "manager": "Has a leader"
       }
     },
     "companies": {
@@ -290,6 +280,25 @@
       "filters": {
         "status": "Status",
         "active": "In use"
+      }
+    },
+    "job-titles": {
+      "name": "Job titles",
+      "columns": {
+        "name": "Title",
+        "code": "Code",
+        "unit": "Unit",
+        "grade": "Grade",
+        "track": "Track",
+        "occupants": "Holders"
+      },
+      "filters": {
+        "sector": "Sector",
+        "department": "Department",
+        "section": "Section",
+        "grade": "Grade",
+        "track": "Track",
+        "vacant": "Vacancy"
       }
     }
   },

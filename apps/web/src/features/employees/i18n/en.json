@@ -93,7 +93,7 @@
     "remote": "Remote"
   },
   "hints": {
-    "hrOnly": "Changed by HR or the platform administrator.",
+    "notEditable": "You may not change this field. The administrator chooses the fields each role may change.",
     "pickCompanyFirst": "Choose the company first.",
     "pickUnitFirst": "Choose the unit first.",
     "managerDefault": "The unit's manager is proposed for a new employee; you can change it or clear it. A direct manager is not required.",

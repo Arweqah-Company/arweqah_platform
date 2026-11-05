@@ -50,7 +50,7 @@ describe('A role for every job title (FR-68)', () => {
     const org = await t.factories.org();
     await setup([...ORG_ADMIN, { key: CorePermission.AuditView, scope: ALL }]);
     const template = await t.factories.role([{ key: CorePermission.AuditView, scope: ALL }]);
-    const added = (await agent.post(`/api/org/nodes/${org.unitC.id}/job-titles`).send({ jobTitles: [{ nameAr: 'مدقق', nameEn: 'Auditor', templateRoleId: template.id }, { nameAr: 'محلل', nameEn: 'Analyst' }] }).expect(201)).body as { id: string; nameEn: string }[];
+    const added = (await agent.post(`/api/org/nodes/${org.unitC.id}/job-titles`).send({ jobTitles: [{ nameAr: 'مدقق', nameEn: 'Auditor', templateRoleId: template.id, grade: 7, track: 'P' }, { nameAr: 'محلل', nameEn: 'Analyst', grade: 7, track: 'P' }] }).expect(201)).body as { id: string; nameEn: string }[];
     // The response is not in the order of the request.
     const idOf = (nameEn: string) => added.find((x) => x.nameEn === nameEn)?.id as string;
     expect((await roleOfTitle(idOf('Auditor')))?.permissions.map((p) => p.key)).toEqual([CorePermission.AuditView]);
@@ -63,7 +63,7 @@ describe('A role for every job title (FR-68)', () => {
   it('refuses a template that does not exist, one that follows the organization, or one holding more than the actor does', async () => {
     const org = await t.factories.org();
     await setup();
-    const send = (templateRoleId: string) => agent.post(`/api/org/nodes/${org.unitC.id}/job-titles`).send({ jobTitles: [{ nameAr: 'محلل', nameEn: 'Analyst', templateRoleId }] });
+    const send = (templateRoleId: string) => agent.post(`/api/org/nodes/${org.unitC.id}/job-titles`).send({ jobTitles: [{ nameAr: 'محلل', nameEn: 'Analyst', grade: 7, track: 'P', templateRoleId }] });
     await send('00000000-0000-4000-8000-0000000000aa').expect(404);
     const derived = (await roleOfTitle(org.unitA.titleId))?.id as string;
     expect((await send(derived).expect(422)).body.code).toBe('ROLE_TEMPLATE_INVALID');
@@ -84,7 +84,7 @@ describe('A role for every job title (FR-68)', () => {
   it('removes the role with its title, and the roles of a unit with the unit; a title that people hold stays', async () => {
     const org = await t.factories.org();
     await setup();
-    const added = (await agent.post(`/api/org/nodes/${org.unitC.id}/job-titles`).send({ jobTitles: [{ nameAr: 'محلل', nameEn: 'Analyst' }] }).expect(201)).body as { id: string }[];
+    const added = (await agent.post(`/api/org/nodes/${org.unitC.id}/job-titles`).send({ jobTitles: [{ nameAr: 'محلل', nameEn: 'Analyst', grade: 7, track: 'P' }] }).expect(201)).body as { id: string }[];
     const extra = added[0]?.id as string;
     expect(await roleOfTitle(extra)).toBeDefined();
     await agent.delete(`/api/org/job-titles/${extra}`).expect(204);
@@ -100,7 +100,7 @@ describe('A role for every job title (FR-68)', () => {
     await employeeRole([CorePermission.ProfileView]);
     const org = await t.factories.org();
     await setup();
-    await t.db.query(`INSERT INTO job_titles (org_node_id) VALUES ($1)`, [org.unitA.id]);
+    await t.db.query(`INSERT INTO job_titles (org_node_id, responsibilities, qualifications, kpis) VALUES ($1, '{"ar":[],"en":[]}', '{"ar":[],"en":[]}', '{"ar":[],"en":[]}')`, [org.unitA.id]);
     const raw = ((await t.db.query('SELECT id FROM job_titles WHERE id NOT IN (SELECT job_title_id FROM roles WHERE job_title_id IS NOT NULL) AND deleted_at IS NULL')) as { id: string }[])[0]?.id as string;
     await t.db.query(`INSERT INTO job_title_translations (job_title_id, lang, name) VALUES ($1, 'ar', 'مسمى خام'), ($1, 'en', 'Raw title')`, [raw]);
     await t.app.get(AutoRolesService).sync();
@@ -113,6 +113,6 @@ describe('A role for every job title (FR-68)', () => {
   it('answers 403 to a person without the organization keys', async () => {
     const org = await t.factories.org();
     const plain = await t.factories.signIn(await t.factories.user());
-    await plain.post(`/api/org/nodes/${org.unitC.id}/job-titles`).send({ jobTitles: [{ nameAr: 'محلل', nameEn: 'Analyst' }] }).expect(403);
+    await plain.post(`/api/org/nodes/${org.unitC.id}/job-titles`).send({ jobTitles: [{ nameAr: 'محلل', nameEn: 'Analyst', grade: 7, track: 'P' }] }).expect(403);
   });
 });

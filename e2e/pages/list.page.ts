@@ -11,7 +11,7 @@ export class ListPage extends BasePage {
     await this.page.getByRole('button', { name: /تصفية/ }).click();
   }
 
-  async switchView(view: 'جدول' | 'بطاقات' | 'مخطط'): Promise<void> {
+  async switchView(view: 'جدول' | 'بطاقات' | 'مخطط' | 'مخطط طبقي'): Promise<void> {
     await this.page.getByRole('button', { name: view, exact: true }).click();
     await expect(this.page.getByRole('button', { name: view, exact: true })).toHaveAttribute('aria-pressed', 'true');
   }

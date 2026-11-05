@@ -3,7 +3,7 @@ import type { TransactionContext } from '../../../../common/domain/transaction-c
 import type { EmployeeAssignment } from '../entities/employee-assignment.entity';
 
 /** What a same-day correction rewrites in a period. */
-export type AssignmentValues = Partial<Pick<EmployeeAssignment, 'orgNodeId' | 'jobTitleId' | 'managerEmployeeId' | 'reason' | 'createdBy' | 'appliedAt'>>;
+export type AssignmentValues = Partial<Pick<EmployeeAssignment, 'orgNodeId' | 'jobTitleId' | 'managerEmployeeId' | 'managerSource' | 'reason' | 'createdBy' | 'appliedAt'>>;
 
 /** Names of the people a history mentions: managers (employees) and the users who made the changes. */
 export interface PeopleNames {

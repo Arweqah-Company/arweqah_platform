@@ -11,6 +11,8 @@ export interface UserAccessRecord {
   placement: Placement;
   /** The units the person reaches and how deep: the unit they sit in and the units they manage through a head role, then the units below them. */
   reach: UnitReach;
+  /** Among the units the person reaches, those managed per company. */
+  restrictedNodes: ReadonlySet<string>;
 }
 
 /** A role to make for a job title: its name follows the title, its permissions are copied from a template. */

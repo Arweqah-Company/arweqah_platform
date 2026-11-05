@@ -11,7 +11,6 @@
   "saved": "حُفظ ظهور الصفحات.",
   "page": {
     "employees": "الموظفون",
-    "employee-fields": "صلاحيات حقول الموظف",
     "directory": "فريقي",
     "org": "الهيكل التنظيمي",
     "companies": "الشركات",
@@ -32,6 +31,7 @@
     "email-templates": "قوالب البريد الإلكتروني",
     "notification-templates": "قوالب الإشعارات",
     "tour-settings": "جولة الترحيب",
-    "captcha-settings": "الحماية من الروبوتات"
+    "captcha-settings": "الحماية من الروبوتات",
+    "job-titles": "المسميات الوظيفية"
   }
 }

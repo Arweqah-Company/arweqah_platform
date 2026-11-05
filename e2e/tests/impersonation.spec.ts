@@ -21,21 +21,17 @@ async function setting(page: Page, enabled: number): Promise<void> {
   expect(response.ok()).toBe(true);
 }
 
-/** An employee to work as: the demo organization has units and job titles, so one is created through the API. */
+/** An employee to work as: the demo organization has units and job titles (one tree for the whole group), so one is created through the API in the first company. */
 async function makeEmployee(page: Page): Promise<{ id: string; name: string }> {
   const companies = (await (await page.request.get('/api/companies')).json()) as { items?: { id: string }[] } | { id: string }[];
-  let found: { companyId: string; unit: { id: string; jobTitles: { id: string }[] } } | undefined;
-  for (const { id: companyId } of Array.isArray(companies) ? companies : (companies.items ?? [])) {
-    const tree = (await (await page.request.get(`/api/org/companies/${companyId}/tree`)).json()) as { nodes?: { id: string; jobTitles: { id: string }[] }[] };
-    const unit = (tree.nodes ?? []).find((n) => n.jobTitles.length > 0);
-    if (unit) { found = { companyId, unit }; break; }
-  }
-  if (!found) throw new Error('the demo organization has no unit with a job title');
-  const { companyId, unit } = found;
+  const companyId = (Array.isArray(companies) ? companies : (companies.items ?? []))[0]?.id;
+  const tree = (await (await page.request.get('/api/org/tree?view=full')).json()) as { nodes?: { id: string; titles: { id: string }[] }[] };
+  const unit = (tree.nodes ?? []).find((n) => n.titles.length > 0);
+  if (!companyId || !unit) throw new Error('the demo organization has no unit with a job title');
   const n = Date.now().toString().slice(-7);
   const name = `موظف الدعم ${n}`;
   const created = await page.request.post('/api/employees', {
-    data: { companyId, orgNodeId: unit.id, jobTitleId: unit.jobTitles[0]?.id, workEmail: `support${n}@arweqah.sa`, employeeNumber: `S${n}`, fullName: name, startDate: '2024-03-01' },
+    data: { companyId, orgNodeId: unit.id, jobTitleId: unit.titles[0]?.id, workEmail: `support${n}@arweqah.sa`, employeeNumber: `S${n}`, fullName: name, startDate: '2024-03-01' },
     headers: ORIGIN,
   });
   expect(created.status(), await created.text()).toBe(201);

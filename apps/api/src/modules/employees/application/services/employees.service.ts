@@ -39,10 +39,10 @@ import { EmployeeTransformer } from '../transformers/employee.transformer';
 import type { EmployeeInput } from '../../domain/rules/employee-flags.rules';
 import { EmployeeValidationService } from './employee-validation.service';
 import { EmployeeAssignmentsService } from './employee-assignments.service';
-import { EmployeeFieldRulesService } from './employee-field-rules.service';
 import { EMPLOYEE_AUDIT, FORM_CHANGE_REASON } from '../messages/employee.messages';
 import { ASSIGNMENT_COLUMN, type AssignmentColumn, type PlacementChange } from '../../domain/types/assignment.types';
 import { EmployeeReachPolicy } from '../policies/employee-reach.policy';
+import { EmployeeEditPolicy } from '../policies/employee-edit.policy';
 import { EmployeeAuditService } from './employee-audit.service';
 
 const P = CorePermission;
@@ -72,7 +72,7 @@ export class EmployeesService {
     private readonly outbox: Outbox,
     private readonly emailDomains: AllowedEmailDomainsService,
     private readonly assignments: EmployeeAssignmentsService,
-    private readonly fieldRules: EmployeeFieldRulesService,
+    private readonly editing: EmployeeEditPolicy,
     private readonly reach: EmployeeReachPolicy,
     private readonly auditor: EmployeeAuditService,
   ) {}
@@ -136,7 +136,7 @@ export class EmployeesService {
     const { effectiveFrom, changeReason, ...rest } = input;
     const fields: EmployeeInput = { ...rest, workEmail: existing.workEmail };
     const { values } = await this.validation.prepare(ctx, fields, existing);
-    await this.assertFieldRules(ctx, existing, values);
+    this.assertFieldRules(ctx, existing, values);
     await this.saveWithPlacement(existing, values, { from: effectiveFrom ?? todayInRiyadh(), reason: changeReason ?? FORM_CHANGE_REASON }, actorId);
     await this.restoreAccessIfEndMoved(ctx, existing, values.endDate ?? null, actorId);
     await this.swapBaseRoleIfRelationChanged(existing, values.relationTypeId ?? null);
@@ -160,27 +160,10 @@ export class EmployeesService {
     });
   }
 
-  /**
-   * Who may change which detail (FR-94). A plain employee (edit reaches only their own record) changes only the fields the rules give them;
-   * anyone else changes every field except those the rules keep for platform administrators.
-   */
-  private async assertFieldRules(ctx: AccessContext, existing: Employee, values: Record<string, unknown>): Promise<void> {
-    const changed = changedFields(existing, values);
-    if (!changed.length) return;
-    const selfService = existing.userId === ctx.userId && ctx.scopeOf(P.EmployeesUpdate) === 'own';
-    const blocked = selfService ? await this.blockedForSelf(changed) : await this.blockedForHr(ctx, changed);
+  /** Who may change which detail (FR-94): only the fields the caller's grants of «edit employees» give them for this record. */
+  private assertFieldRules(ctx: AccessContext, existing: Employee, values: Record<string, unknown>): void {
+    const blocked = this.editing.blocked(ctx, existing, changedFields(existing, values));
     if (blocked.length) throw new FieldNotEditableError(blocked);
-  }
-
-  private async blockedForSelf(changed: string[]): Promise<string[]> {
-    const allowed = await this.fieldRules.selfEditable();
-    return changed.filter((field) => !allowed.includes(field));
-  }
-
-  private async blockedForHr(ctx: AccessContext, changed: string[]): Promise<string[]> {
-    if (ctx.has(P.EmployeeFieldsEdit)) return [];
-    const locked = await this.fieldRules.hrLocked();
-    return changed.filter((field) => locked.includes(field));
   }
 
   private async isLimited(relationTypeId: string | null | undefined): Promise<boolean> {
@@ -311,7 +294,7 @@ export class EmployeesService {
   private async dto(ctx: AccessContext, employee: Employee): Promise<EmployeeDto> {
     const states = await this.repo.activeStates([employee.userId]);
     const sensitive = this.validation.canHandleSensitive(ctx, { ownerId: employee.userId, companyId: employee.companyId, orgNodeId: employee.orgNodeId });
-    return this.transformer.toDto(employee, { isActive: states.get(employee.userId) ?? false, sensitive });
+    return this.transformer.toDto(employee, { isActive: states.get(employee.userId) ?? false, sensitive, editableFields: this.editing.editableFields(ctx, employee) });
   }
 
   /** A mail failure must not undo the employee: the record exists and the link can be re-sent. */

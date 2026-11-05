@@ -50,6 +50,8 @@ export function PickStep({ columns, checking, error, onTemplate, onFile }: PickP
 }
 
 interface PreviewProps {
+  /** What the server says the file would do (new, updated, unchanged). */
+  note?: string;
   validCount: number;
   invalid: { rowNumber: number; errors: string[] }[];
   total: number;
@@ -57,11 +59,12 @@ interface PreviewProps {
   onAnother: () => void;
 }
 
-export function PreviewStep({ validCount, invalid, total, onStart, onAnother }: PreviewProps) {
+export function PreviewStep({ note, validCount, invalid, total, onStart, onAnother }: PreviewProps) {
   const { t } = useTranslation();
   return (
     <>
       <Alert tone={invalid.length ? 'info' : 'success'}>{t('dataExchange.summary', { valid: validCount, invalid: invalid.length, total })} {invalid.length > 0 && t('dataExchange.onlyValid')}</Alert>
+      {note && <p className="text-sm text-muted">{note}</p>}
       {invalid.length > 0 && <ErrorList title={t('dataExchange.errorsTitle')} items={invalid.map((r) => ({ rowNumber: r.rowNumber, messages: r.errors }))} />}
       <div className="flex gap-3">
         <Button disabled={validCount === 0} onClick={onStart}>{t('dataExchange.startImport', { count: validCount })}</Button>

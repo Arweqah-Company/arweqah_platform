@@ -1,3 +1,4 @@
+import { LEGACY_SELF_EDITABLE_FIELDS } from '../employees/field-rules';
 /**
  * Permission keys of the platform: one for every page (view) and one for every button or action (add, edit, delete, move,
  * approve, reject, export, import…). A page needs its view key; a button shows only for people who hold its key, and the
@@ -100,6 +101,17 @@ export const CorePermission = {
   OrgLevelsManage: 'org.levels_manage',
   OrgTitlesManage: 'org.titles_manage',
   OrgExport: 'org.export',
+  OrgViewFull: 'org.view_full',
+  OrgUnitShare: 'org.unit_share',
+  OrgCharterEdit: 'org.charter_edit',
+  OrgLeadersManage: 'org.leaders_manage',
+  OrgTitlesEditContent: 'org.titles_edit_content',
+  JobTitlesView: 'job_titles.view',
+  JobTitlesCreate: 'job_titles.create',
+  JobTitlesUpdate: 'job_titles.update',
+  JobTitlesDelete: 'job_titles.delete',
+  JobTitlesExport: 'job_titles.export',
+  JobTitlesImport: 'job_titles.import',
   // Employees
   EmployeesView: 'employees.view',
   EmployeesCreate: 'employees.create',
@@ -113,9 +125,6 @@ export const CorePermission = {
   EmployeesHistoryView: 'employees.history_view',
   EmployeesPhotoUpdate: 'employees.photo_update',
   EmployeesBulkUpdate: 'employees.bulk_update',
-  EmployeeFieldsView: 'employee_fields.view',
-  EmployeeFieldsEdit: 'employee_fields.edit',
-  EmployeeFieldsExport: 'employee_fields.export',
   DirectoryView: 'directory.view',
   DirectoryExport: 'directory.export',
   EmployeesResendInvite: 'employees.resend_invite',
@@ -192,13 +201,13 @@ const OWN_ACCOUNT_PERMISSIONS: { key: CorePermissionKey; scope: 'all' }[] = [
  * The role grows as modules arrive: add the key here and in a migration that inserts it into the `everyone` role (decision 155).
  * Tickets are seen and answered at the narrowest scope ("own": the ones the person sent or handles); wider scopes are given on the permissions page.
  */
-export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own' | 'all' }[] = [
+export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own' | 'all'; fields?: string[] }[] = [
   ...OWN_ACCOUNT_PERMISSIONS,
   { key: CorePermission.EmployeesView, scope: 'own' },
   { key: CorePermission.EmployeesHistoryView, scope: 'own' },
   { key: CorePermission.EmployeesPhotoUpdate, scope: 'own' },
   { key: CorePermission.DirectoryView, scope: 'all' },
-  { key: CorePermission.EmployeesUpdate, scope: 'own' },
+  { key: CorePermission.EmployeesUpdate, scope: 'own', fields: LEGACY_SELF_EDITABLE_FIELDS },
   { key: CorePermission.TicketsView, scope: 'own' },
   { key: CorePermission.TicketsCreate, scope: 'all' },
   { key: CorePermission.TicketsReply, scope: 'own' },
@@ -209,6 +218,7 @@ export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own
   { key: CorePermission.TicketsReopen, scope: 'all' },
   { key: CorePermission.LookupsView, scope: 'all' },
   { key: CorePermission.OrgView, scope: 'all' },
+  { key: CorePermission.JobTitlesView, scope: 'all' },
   { key: CorePermission.TasksView, scope: 'own' },
   { key: CorePermission.TasksCreate, scope: 'all' },
   { key: CorePermission.TasksUpdate, scope: 'own' },
@@ -249,6 +259,17 @@ export const ORG_ADMIN_PERMISSIONS: CorePermissionKey[] = [
   CorePermission.OrgUnitDelete,
   CorePermission.OrgLevelsManage,
   CorePermission.OrgTitlesManage,
+  CorePermission.OrgViewFull,
+  CorePermission.OrgUnitShare,
+  CorePermission.OrgCharterEdit,
+  CorePermission.OrgLeadersManage,
+  CorePermission.OrgTitlesEditContent,
+  CorePermission.JobTitlesView,
+  CorePermission.JobTitlesCreate,
+  CorePermission.JobTitlesUpdate,
+  CorePermission.JobTitlesDelete,
+  CorePermission.JobTitlesExport,
+  CorePermission.JobTitlesImport,
 ];
 export const COMPANIES_ADMIN_PERMISSIONS: CorePermissionKey[] = [CorePermission.CompaniesView, CorePermission.CompaniesCreate, CorePermission.CompaniesUpdate, CorePermission.CompaniesDelete];
 export const ROLES_ADMIN_PERMISSIONS: CorePermissionKey[] = [CorePermission.RolesView, CorePermission.RolesCreate, CorePermission.RolesUpdate, CorePermission.RolesDelete, CorePermission.RolesSyncAuto];

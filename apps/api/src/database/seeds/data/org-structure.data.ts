@@ -7,6 +7,8 @@ export interface OrgRow {
   en: string;
   /** Arabic name of the parent one level up; null for a sector. */
   parent: string | null;
+  /** The grade and track of the unit's title, when the source has them (the owner's sheet has none, so none is invented; the official titles file gives them). */
+  title?: { grade: number; track: 'M' | 'P' | 'J' | 'C' | 'S' };
 }
 
 const s = (ar: string, en: string): OrgRow => ({ kind: 'sector', ar, en, parent: null });

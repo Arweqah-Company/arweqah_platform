@@ -96,7 +96,7 @@ export function toRoleDto(role: Role, usersCount: number, origin: RoleOriginDto 
     jobTitleId: role.jobTitleId,
     orgNodeId: role.orgNodeId,
     origin,
-    permissions: (role.permissions ?? []).map((p) => ({ key: p.key, scope: p.scope })),
+    permissions: (role.permissions ?? []).map((p) => ({ key: p.key, scope: p.scope, ...(p.fields && { fields: p.fields }) })),
     usersCount,
   };
 }
