@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-05 — CI spends fewer Actions minutes
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 200 | The ZAP scan (`security / dast`, four shards) runs only on the **push to `main`** (input `run_dast` of `security.yml`, turned on by `ci.yml` when the event is `push`), not on every pull request; and a pull request that only touches `docs/**` or `*.md` does not start CI at all (`paths-ignore` on `pull_request` only; a push to `main` always runs everything, and the deploy still waits for it). quality, both e2e suites, npm audit, gitleaks, Semgrep and Trivy are unchanged on every code pull request | The organization is on GitHub Free (private repo, 2,000 minutes a month, spending limit 0 $): the quota ran out on 2026-11-04 and every job was refused. The four ZAP shards were the heaviest part of each run. A deploy is still gated by the full scan, so a finding appears at the merge, not in the pull request; a documentation-only pull request is not scanned for secrets until it reaches `main` | The organization pays for minutes or moves to a plan with more of them; or a ZAP finding reaches `main` twice (then it comes back to pull requests that touch `apps/api`) |
+
 ## 2026-11-04 — Review of PR #46: what was wrong and how it is settled
 
 | # | Decision | Why | Revisit when |

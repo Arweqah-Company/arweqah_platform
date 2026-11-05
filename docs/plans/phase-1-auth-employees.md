@@ -1389,3 +1389,11 @@ shared/data-exchange/   export-file · template · read-sheet · csv · mapping 
 - **ما تم:** القرار 184 وskill التصميم محدّثان.
 - **أين:** `apps/web/src/app/{app-header,app-sidebar,sidebar-nav,account-menu}.tsx`، `shared/ui/{button,tabs}.tsx`، `notification-bell.tsx`، `core/theme.css`، `e2e/pages/base.page.ts`.
 - **كيف تحقّقنا:** اختبار `app-layout.test.tsx` (آخر زر في الشريط هو «حسابي» ولا زر خروج فيه)؛ وPlaywright على الشاشتين (دخول وخروج وقائمة الحساب وaxe) ولقطات حقيقية بالعربية؛ و`design:check` و`i18n:check` نظيفان.
+
+### 2026-11-05 — CI: أقل دقائق Actions (خطة ثم تنفيذ)
+- **المطلوب:** تقليل استهلاك دقائق GitHub Actions بعد أن انتهت الحصة المجانية (2,017 من 2,000 دقيقة في 11/2026، والمنظمة على خطة Free والمستودع خاص وحدّ الصرف 0$) فرفض GitHub تشغيل كل الـjobs.
+- **القاعدة (تم):** (1) فحص ZAP (أربعة أجزاء) يعمل على push إلى `main` فقط، لا على كل PR: مدخل `run_dast` في `security.yml` يفعّله `ci.yml` عندما يكون الحدث `push`؛ والـdeploy ما زال ينتظر الفحص الكامل. (2) PR يمس `docs/**` أو `**/*.md` فقط لا يشغّل CI (`paths-ignore` على `pull_request` فقط؛ push إلى `main` يشغّل كل شيء). لا تغيير في quality وe2e وnpm audit وgitleaks وSemgrep وTrivy على أي PR فيه كود.
+- **ما لم يتغيّر:** `cancel-in-progress` كان موجودًا. لا شاشات ولا جداول ولا صلاحيات.
+- **المتبقي (قرار المالك):** رفع حدّ الصرف أو انتظار تصفير الحصة (1 ديسمبر) لتشغيل CI على PR #50؛ تنفيذ هذا التعديل لا يعيد الحصة المستهلكة.
+- **أين:** `.github/workflows/{ci,security}.yml`، القرار 200، README (Deploy وجدول الأمان).
+- **كيف تحقّقنا:** تحليل YAML للملفين ناجح؛ التشغيل الفعلي يُرى على أول PR بعد عودة الحصة (يجب ألا يظهر `dast` على PR ويظهر على push إلى `main`).

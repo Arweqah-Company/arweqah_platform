@@ -5,6 +5,10 @@ name: Security
 on:
   workflow_call:
     inputs:
+      run_dast:
+        description: Run the ZAP scan (heavy, four shards); ci.yml turns it on for the push to main only
+        type: boolean
+        default: false
       start_command:
         description: Command that builds and starts the app in the background (for DAST)
         type: string
@@ -73,8 +77,8 @@ jobs:
 
   # The API scan is split by module into parallel shards (scripts/zap-shard.mjs); shard 1 also runs the passive baseline.
   dast-scan:
-    # Inputs exist only when called from CI; schedule/manual runs skip DAST here
-    if: inputs.start_command != ''
+    # Inputs exist only when called from CI; schedule/manual runs skip DAST here, and so do pull requests (see run_dast in ci.yml)
+    if: inputs.run_dast && inputs.start_command != ''
     name: dast shard ${{ matrix.shard }}
     runs-on: ubuntu-latest
     strategy:
@@ -142,7 +146,7 @@ jobs:
 
   # One stable check name for the whole scan: fails when any shard failed or was cancelled.
   dast:
-    if: always() && inputs.start_command != ''
+    if: always() && inputs.run_dast && inputs.start_command != ''
     needs: dast-scan
     runs-on: ubuntu-latest
     steps:
