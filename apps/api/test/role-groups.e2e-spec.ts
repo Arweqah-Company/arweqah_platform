@@ -44,6 +44,49 @@ describe('Groups of roles, groups of people and the permissions page (FR-46, FR-
     expect(await permissionsOf(targetAgent)).not.toContain('audit.view');
   });
 
+  it('gives the permissions placed on a group of roles to everyone who holds a role inside it, shown as inherited on the role (FR-46)', async () => {
+    const agent = await admin(PERMISSIONS_ADMIN);
+    const groupsAdmin = await admin();
+    const inside = await t.factories.role([]);
+    const outside = await t.factories.role([]);
+    const group = (await groupsAdmin.post('/api/role-groups').send({ nameAr: 'حزمة الأدوار', nameEn: 'Role bundle', roleIds: [inside.id] }).expect(201)).body;
+    await agent.put(`/api/permission-targets/role-group/${group.id}`).send({ permissions: [{ key: 'audit.view', scope: 'all' }] }).expect(200);
+    const holder = await t.factories.user();
+    const holderAgent = await t.factories.signIn(holder);
+    const other = await t.factories.user();
+    const otherAgent = await t.factories.signIn(other);
+    await t.app.get(UserAccessService).replaceRoles(holder.id, [inside.id]);
+    await t.app.get(UserAccessService).replaceRoles(other.id, [outside.id]);
+    expect(await permissionsOf(holderAgent)).toContain('audit.view');
+    expect(await permissionsOf(otherAgent)).not.toContain('audit.view');
+    expect((await agent.get(`/api/permission-targets/role/${inside.id}`).expect(200)).body.inherited).toEqual([{ key: 'audit.view', scope: 'all' }]);
+    await groupsAdmin.put(`/api/role-groups/${group.id}`).send({ nameAr: 'حزمة الأدوار', nameEn: 'Role bundle', roleIds: [] }).expect(200);
+    expect(await permissionsOf(holderAgent)).not.toContain('audit.view');
+  });
+
+  it('does not let someone add a role to a group whose permissions they could not hand out themselves (CodeRabbit PR 50)', async () => {
+    const strong = await admin(PERMISSIONS_ADMIN);
+    const weak = await admin([...GROUPS_ADMIN, ...keys([CorePermission.AuditView])]);
+    const role = await t.factories.role([]);
+    const group = (await weak.post('/api/role-groups').send({ nameAr: 'مجموعة قوية', nameEn: 'Strong group', roleIds: [] }).expect(201)).body;
+    await strong.put(`/api/permission-targets/role-group/${group.id}`).send({ permissions: [{ key: 'roles.view', scope: 'all' }] }).expect(200);
+    await weak.put(`/api/role-groups/${group.id}`).send({ nameAr: 'مجموعة قوية', nameEn: 'Strong group', roleIds: [role.id] }).expect(403);
+    // a name change or taking a role out needs no such check
+    await weak.put(`/api/role-groups/${group.id}`).send({ nameAr: 'مجموعة', nameEn: 'Strong group', roleIds: [] }).expect(200);
+  });
+
+  it('counts the permissions a role gets through the groups it sits in when someone assigns that role (CodeRabbit PR 50)', async () => {
+    const groupsAdmin = await admin();
+    const permissionsAdmin = await admin(PERMISSIONS_ADMIN);
+    const role = await t.factories.role([]);
+    const group = (await groupsAdmin.post('/api/role-groups').send({ nameAr: 'مجموعة', nameEn: 'Group', roleIds: [role.id] }).expect(201)).body;
+    await permissionsAdmin.put(`/api/permission-targets/role-group/${group.id}`).send({ permissions: [{ key: 'audit.view', scope: 'all' }] }).expect(200);
+    const hr = await t.factories.user({ grants: [...HR, { key: CorePermission.EmployeesAssignRoles, scope: 'all' as const }] });
+    const target = await t.factories.user();
+    const response = await (await t.factories.signIn(hr)).put(`/api/employees/${target.employeeId}/roles`).send({ roleIds: [role.id] });
+    expect(response.status).toBe(403);
+  });
+
   it('puts permissions on a role, a group of roles, one person and a group of people, each reaching exactly its holders', async () => {
     const agent = await admin(PERMISSIONS_ADMIN);
     const groupsAdmin = await admin();

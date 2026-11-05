@@ -3,9 +3,11 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { RoleGroupDto, RoleGroupInput } from '@arweqah-platform/shared';
 import { NotFoundError } from '../../../common/domain/domain-error';
 import { AUDIT_EVENT, type AuditEvent } from '../../audit/application/audit.events';
+import type { AccessContext } from '../domain/access-context';
 import { RoleRepository } from '../domain/access.repository';
 import { RoleGroupRepository, type RoleGroupRecord } from '../domain/role-group.repository';
 import { ACCESS_CHANGED } from './access.events';
+import { UserAccessService } from './user-access.service';
 
 /** Groups of roles: one name for a bundle of roles that go together (a team, a job). */
 @Injectable()
@@ -13,6 +15,7 @@ export class RoleGroupsService {
   constructor(
     private readonly groups: RoleGroupRepository,
     private readonly roles: RoleRepository,
+    private readonly access: UserAccessService,
     private readonly events: EventEmitter2,
   ) {}
 
@@ -28,9 +31,11 @@ export class RoleGroupsService {
     return this.one(id);
   }
 
-  async update(id: string, input: RoleGroupInput, actorId: string): Promise<RoleGroupDto> {
-    if (!(await this.groups.find(id))) throw new NotFoundError('Role group', id);
+  async update(ctx: AccessContext, id: string, input: RoleGroupInput, actorId: string): Promise<RoleGroupDto> {
+    const current = await this.groups.find(id);
+    if (!current) throw new NotFoundError('Role group', id);
     await this.assertRoles(input.roleIds);
+    await this.assertCanBringGroupGrants(ctx, id, current.roleIds, input.roleIds);
     await this.groups.update(id, { ...input, description: input.description ?? null });
     this.events.emit(ACCESS_CHANGED, {});
     this.audit(actorId, 'role_group.updated', id, { roles: input.roleIds.length });
@@ -43,6 +48,12 @@ export class RoleGroupsService {
     await this.groups.remove(id);
     this.events.emit(ACCESS_CHANGED, {});
     this.audit(actorId, 'role_group.deleted', id, { nameEn: group.nameEn });
+  }
+
+  /** A role added to a group takes the group's permissions with it: only someone who could hand those out themselves may add one. */
+  private async assertCanBringGroupGrants(ctx: AccessContext, id: string, before: string[], after: string[]): Promise<void> {
+    if (!after.some((roleId) => !before.includes(roleId))) return;
+    this.access.assertPermissionsGrantable(ctx, await this.groups.grantsOf(id));
   }
 
   private async one(id: string): Promise<RoleGroupDto> {

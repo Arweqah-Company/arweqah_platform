@@ -21,7 +21,6 @@
     "audit": "Audit",
     "org": "Organization",
     "employees": "Employees",
-    "employee_fields": "Employee fields",
     "directory": "My team",
     "lookups": "Form options",
     "notifications": "Notifications and e-mail",
@@ -84,5 +83,31 @@
     "exceptions": "Exceptions"
   },
   "tabsLabel": "Roles and exceptions",
-  "noTabs": "You have no permission on any tab here."
+  "noTabs": "You have no permission on any tab here.",
+  "fields": {
+    "button": "Fields they may change ({{count}})",
+    "title": "The fields a holder of «Edit employees» may change",
+    "description": "Choose, for this permission alone, the fields its holder may change on an employee's record. It starts with the basic data (contact and personal); you may add any field.",
+    "summary": "A holder of this permission may change {{count}} of {{total}} fields.",
+    "unionNote": "They add to what other roles give the same person, and apply to the records the permission's reach includes (their own record always counts).",
+    "search": "Search the fields",
+    "noMatch": "No fields match.",
+    "basic": "Basic",
+    "all": "All",
+    "none": "None",
+    "selectGroup": "Select all",
+    "clearGroup": "Clear all",
+    "structureNote": "The unit, job title and manager also need the permission «Change placement from a date».",
+    "done": "Done",
+    "groups": {
+      "personal": "Personal details",
+      "contact": "Contact",
+      "work": "Work",
+      "identity": "Identity and name",
+      "contract": "Contract and insurance",
+      "salary": "Pay and account",
+      "notes": "Notes",
+      "structure": "Structure and relation"
+    }
+  }
 }

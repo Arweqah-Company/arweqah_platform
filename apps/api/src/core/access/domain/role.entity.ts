@@ -1,19 +1,17 @@
-import { isDerivedRule, type PermissionGrant, type PermissionScope, type RoleAssignment, type RoleAutoRule } from '@arweqah-platform/shared';
+import { isDerivedRule, storedFields, type PermissionGrant, type RoleAssignment, type RoleAutoRule } from '@arweqah-platform/shared';
 import { Column, Entity, Index, OneToMany, PrimaryColumn, ManyToOne, JoinColumn, type Relation } from 'typeorm';
 import { NamedEntity } from '../../../common/domain/named.entity';
 import { BusinessRuleError } from '../../../common/domain/domain-error';
 import { DerivedRoleError } from './errors';
+import { GrantReach } from './grant-reach.entity';
 
 @Entity('role_permissions')
-export class RolePermission {
+export class RolePermission extends GrantReach {
   @PrimaryColumn({ name: 'role_id', type: 'uuid' })
   roleId: string;
 
   @PrimaryColumn({ name: 'permission_key', type: 'varchar', length: 100 })
   key: string;
-
-  @Column({ type: 'varchar', length: 20 })
-  scope: PermissionScope;
 
   @ManyToOne(() => Role, (role) => role.permissions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'role_id' })
@@ -57,9 +55,9 @@ export class Role extends NamedEntity {
   permissions: RolePermission[];
 
   replacePermissions(grants: PermissionGrant[]): void {
-    const unique = new Map(grants.map((g) => [g.key, g.scope]));
-    this.permissions = [...unique].map(([key, scope]) =>
-      Object.assign(new RolePermission(), { roleId: this.id, key, scope }),
+    const unique = new Map(grants.map((g) => [g.key, g]));
+    this.permissions = [...unique.values()].map((g) =>
+      Object.assign(new RolePermission(), { roleId: this.id, key: g.key, scope: g.scope, fields: storedFields(g) }),
     );
   }
 

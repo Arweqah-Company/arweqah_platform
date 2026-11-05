@@ -1,11 +1,16 @@
 import { z } from 'zod';
 import { localizedNameSchema } from '../common/localized';
+import { carriesFields, EMPLOYEE_FIELD_KEYS } from '../employees/field-rules';
 import { permissionScopeSchema, type PermissionScope } from '../permissions/scope';
 
-export const permissionGrantSchema = z.strictObject({
-  key: z.string().regex(/^[a-z][a-z0-9_-]*\.[a-z][a-z0-9_-]*$/),
-  scope: permissionScopeSchema,
-});
+export const permissionGrantSchema = z
+  .strictObject({
+    key: z.string().regex(/^[a-z][a-z0-9_-]*\.[a-z][a-z0-9_-]*$/),
+    scope: permissionScopeSchema,
+    /** Only for a permission that carries a list of fields (`employees.update`); left out = the basic data. */
+    fields: z.array(z.enum(EMPLOYEE_FIELD_KEYS as [string, ...string[]])).max(EMPLOYEE_FIELD_KEYS.length).nullish(),
+  })
+  .refine((grant) => grant.fields == null || carriesFields(grant.key), { message: 'This permission has no list of fields', path: ['fields'] });
 
 export const ROLE_ASSIGNMENTS = ['auto', 'manual'] as const;
 export type RoleAssignment = (typeof ROLE_ASSIGNMENTS)[number];
@@ -55,7 +60,7 @@ export interface RoleDto {
   orgNodeId: string | null;
   /** The unit and company of a job title role; null for the other roles. */
   origin: RoleOriginDto | null;
-  permissions: { key: string; scope: PermissionScope }[];
+  permissions: { key: string; scope: PermissionScope; fields?: string[] | null }[];
   usersCount: number;
 }
 

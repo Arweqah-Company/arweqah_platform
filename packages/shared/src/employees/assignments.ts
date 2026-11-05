@@ -6,6 +6,10 @@ import type { BilingualName } from './schemas';
 export const ASSIGNMENT_FIELDS = ['org_node', 'job_title', 'manager'] as const;
 export type AssignmentField = (typeof ASSIGNMENT_FIELDS)[number];
 
+/** Who set a manager period: HR (`manual`, stays until HR changes it) or the system from the reporting line of job titles (`auto_chain`, follows people as they come and go; FR-100). */
+export const MANAGER_SOURCES = ['auto_chain', 'manual'] as const;
+export type ManagerSource = (typeof MANAGER_SOURCES)[number];
+
 const isoDate = z.iso.date();
 
 /**
@@ -39,6 +43,8 @@ export interface EmployeeAssignmentDto {
   createdBy: string | null;
   createdByName: string | null;
   status: AssignmentStatus;
+  /** Manager periods only: who set it. Always sent by the API. */
+  managerSource?: ManagerSource | null;
 }
 
 export interface EmployeeAssignmentsDto {

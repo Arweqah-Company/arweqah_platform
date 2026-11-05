@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, type EntityManager } from 'typeorm';
+import { type PermissionGrant, type PermissionScope } from '@arweqah-platform/shared';
 import { RoleGroupRepository, type RoleGroupRecord, type RoleGroupValues } from '../domain/role-group.repository';
 
 const SELECT_GROUPS = `SELECT g.id, g.name_ar AS "nameAr", g.name_en AS "nameEn", g.description,
@@ -8,6 +9,13 @@ const SELECT_GROUPS = `SELECT g.id, g.name_ar AS "nameAr", g.name_en AS "nameEn"
   FROM role_groups g`;
 const ALL_GROUPS = `${SELECT_GROUPS} ORDER BY g.name_ar`;
 const ONE_GROUP = `${SELECT_GROUPS} WHERE g.id = $1`;
+
+interface GrantRow {
+  key: string;
+  scope: PermissionScope;
+  fields: string[] | null;
+}
+const toGrant = (r: GrantRow): PermissionGrant => ({ key: r.key, scope: r.scope, ...(r.fields && { fields: r.fields }) });
 
 @Injectable()
 export class TypeOrmRoleGroupRepository extends RoleGroupRepository {
@@ -41,6 +49,19 @@ export class TypeOrmRoleGroupRepository extends RoleGroupRepository {
 
   async remove(id: string): Promise<void> {
     await this.ds.query('DELETE FROM role_groups WHERE id = $1', [id]);
+  }
+
+  async grantsOf(id: string): Promise<PermissionGrant[]> {
+    return (await this.ds.query<GrantRow[]>('SELECT permission_key AS key, scope, fields FROM role_group_permissions WHERE group_id = $1', [id])).map(toGrant);
+  }
+
+  async grantsOfGroupsHolding(roleIds: string[]): Promise<PermissionGrant[]> {
+    if (!roleIds.length) return [];
+    const rows = await this.ds.query<GrantRow[]>(
+      'SELECT gp.permission_key AS key, gp.scope, gp.fields FROM role_group_permissions gp JOIN role_group_roles gr ON gr.group_id = gp.group_id WHERE gr.role_id = ANY($1::uuid[])',
+      [roleIds],
+    );
+    return rows.map(toGrant);
   }
 
   private async setRoles(m: EntityManager, groupId: string, roleIds: string[]): Promise<void> {

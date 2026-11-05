@@ -29,6 +29,11 @@ export function useListPage(id: string, initialFilters?: FilterValues) {
     setPageSize,
     view,
     filters,
+    /** Empties the search box and every filter. */
+    clearAll: () => {
+      setSearch('');
+      filters.clear();
+    },
     /** True when the list is narrowed by a search or a filter. */
     narrowed: term !== '' || Object.keys(filters.values).length > 0,
     /** `withView: false` leaves out the table / cards switch (a list that has its own views). */

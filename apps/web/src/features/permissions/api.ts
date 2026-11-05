@@ -11,11 +11,10 @@ export interface TargetOption {
 
 const KEY = ['permission-targets'];
 
-/** The roles, groups of roles or groups of people to choose from; for people, those matching the search. */
+/** The roles, groups of roles or groups of people to choose from; for people, the first ones, or those matching the search typed in the drop-down. */
 export const useTargetOptions = (kind: PermissionTargetKind, search: string) =>
   useQuery({
     queryKey: [...KEY, 'list', kind, search],
-    enabled: kind !== 'user' || search.trim().length >= 2,
     queryFn: () => apiClient.get<TargetOption[]>(`/permission-targets/${kind}${search ? `?q=${encodeURIComponent(search)}` : ''}`),
   });
 

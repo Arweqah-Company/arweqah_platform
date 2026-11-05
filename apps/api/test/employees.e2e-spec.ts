@@ -138,12 +138,18 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     expect(users[0].n).toBe(1);
   });
 
-  it('refuses a placement that does not fit: other company, unit that takes no employees, title of another unit (422)', async () => {
+  it('refuses a placement that does not fit: a unit with no title for them, title of another unit (422)', async () => {
     const { agent, payload, org } = await setup();
     const code = async (overrides: Record<string, unknown>) => (await agent.post('/api/employees').send(payload(org.unitA, overrides)).expect(422)).body.code;
-    expect(await code({ companyId: org.otherCompanyId })).toBe('INVALID_PLACEMENT');
     expect(await code({ orgNodeId: org.sectionAB })).toBe('INVALID_PLACEMENT');
     expect(await code({ jobTitleId: org.unitB.titleId })).toBe('INVALID_PLACEMENT');
+  });
+
+  it('FR-96: an employee of any company may be placed in any unit of the group structure', async () => {
+    const { agent, payload, org } = await setup();
+    const created = await agent.post('/api/employees').send(payload(org.unitA, { companyId: org.otherCompanyId })).expect(201);
+    const row = (await t.db.query('SELECT company_id, org_node_id FROM employees WHERE id = $1', [created.body.employee.id]))[0];
+    expect(row).toEqual({ company_id: org.otherCompanyId, org_node_id: org.unitA.id });
   });
 
   it('refuses a manager that would create a reporting loop (422)', async () => {
@@ -456,8 +462,8 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
 
 /** The editable fields of an employee as the form would send them back. */
 function asUpdate(e: Record<string, unknown> & { orgNode?: { id: string } | null; jobTitle?: { id: string } | null; company?: { id: string } }): Record<string, unknown> {
-  const { id, userId, isActive, isSystemAccount, authenticatorEnabled, accessEndedAt, company, orgNode, jobTitle, manager, roles, groups, names, sensitiveHidden, createdAt, updatedAt, ...rest } = e as Record<string, unknown>;
-  void [id, userId, isActive, isSystemAccount, authenticatorEnabled, accessEndedAt, roles, groups, names, sensitiveHidden, createdAt, updatedAt];
+  const { id, userId, isActive, isSystemAccount, editableFields, authenticatorEnabled, accessEndedAt, company, orgNode, jobTitle, manager, roles, groups, names, sensitiveHidden, createdAt, updatedAt, ...rest } = e as Record<string, unknown>;
+  void [id, userId, isActive, isSystemAccount, editableFields, authenticatorEnabled, accessEndedAt, roles, groups, names, sensitiveHidden, createdAt, updatedAt];
   const clean = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== null));
   return { ...clean, companyId: (company as { id: string }).id, orgNodeId: (orgNode as { id: string }).id, jobTitleId: (jobTitle as { id: string }).id, managerId: (manager as { id: string } | null)?.id ?? null };
 }

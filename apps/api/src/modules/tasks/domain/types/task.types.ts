@@ -20,6 +20,8 @@ export interface TaskViewer {
   subtreeNodeIds: readonly string[];
   /** The units a depth scope (`subtree:N`) of theirs reaches, by scope; the plain `subtree` scope uses `subtreeNodeIds`. */
   reachNodes?: Readonly<Record<string, readonly string[]>>;
+  /** Units managed per company: a unit-based scope reaches only the people of the viewer's company there (a shared unit reaches everyone). */
+  restrictedNodeIds?: readonly string[];
   /** The scope of a key (null = the viewer does not hold it). */
   scopes: Readonly<Record<string, PermissionScope | null>>;
 }

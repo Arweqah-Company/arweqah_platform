@@ -66,15 +66,42 @@ test.describe('Employees: directory, history tab and photo (FR-90, FR-91, FR-92)
   });
 });
 
-test.describe('Employee field permissions page (FR-94)', () => {
-  test('opens in admin mode, lists the fields with their two choices and is accessible', async ({ page }) => {
-    test.setTimeout(120_000);
+test.describe('The fields a holder of «edit employees» may change belong to each grant (FR-94)', () => {
+  test('has no page of its own; beside the permission a button opens the checklist, the choice is saved with the role, and it is accessible', async ({ page }, info) => {
+    test.setTimeout(150_000);
+    // Both projects (computer and phone) run in the same database and role names are unique: each run makes a role of its own.
+    const roleName = `دور يعدّل الموظفين ${info.project.name}`;
     await adminModeOnViaApi(page);
     await page.goto('/employee-fields');
-    await expect(page.getByRole('heading', { level: 1, name: 'صلاحيات حقول الموظف' })).toBeVisible();
-    await expect(page.getByRole('checkbox', { name: /الجوال الشخصي.*الموظف نفسه/ })).toBeChecked();
-    await expect(page.getByRole('checkbox', { name: /الآيبان.*الموظف نفسه/ })).toBeDisabled();
+    await expect(page.getByRole('heading', { level: 1, name: 'نأسف على إبلاغك بأن هذه الصفحة غير موجودة' })).toBeVisible();
+    const origin = { origin: 'http://localhost:4173' };
+    const made = await page.request.post('/api/roles', { data: { nameAr: roleName, nameEn: `Role that edits employees ${info.project.name}`, permissions: [{ key: 'employees.update', scope: 'company' }] }, headers: origin });
+    expect(made.ok()).toBe(true);
+    const roleId = ((await made.json()) as { id: string }).id;
+    await page.goto('/permissions');
+    await page.getByRole('combobox', { name: 'الدور' }).click();
+    await page.getByRole('option', { name: roleName }).first().click();
+    // A new grant starts with the basic data: contact and personal (9 fields).
+    await page.getByRole('button', { name: 'الحقول التي يعدّلها (9)' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByRole('checkbox', { name: 'الجوال الشخصي' })).toBeChecked();
+    await expect(dialog.getByRole('checkbox', { name: 'الآيبان' })).not.toBeChecked();
+    // No field is locked: the administrator may give even a pay field.
+    await dialog.getByRole('checkbox', { name: 'الآيبان' }).check();
     await new Screen(page).expectNoSeriousA11yIssues();
+    await dialog.getByRole('button', { name: 'تم' }).click();
+    await expect(page.getByRole('button', { name: 'الحقول التي يعدّلها (10)' })).toBeVisible();
+    await page.getByRole('button', { name: 'حفظ' }).click();
+    await expect.poll(async () => ((await (await page.request.get(`/api/permission-targets/role/${roleId}`)).json()) as { permissions: { key: string; fields?: string[] }[] }).permissions.find((p) => p.key === 'employees.update')?.fields).toContain('iban');
+  });
+
+  test('is offered for the Employee role too: its own-record grant lists the four fields an employee changes of themselves', async ({ page }) => {
+    test.setTimeout(120_000);
+    await adminModeOnViaApi(page);
+    await page.goto('/permissions');
+    await page.getByRole('combobox', { name: 'الدور' }).click();
+    await page.getByRole('option', { name: 'موظف', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'الحقول التي يعدّلها (4)' })).toBeVisible();
   });
 });
 
@@ -83,6 +110,6 @@ test.describe('Welcome tour of the employees pages (standing rule 9)', () => {
     const plain = await tourKeys(page);
     expect(plain).toEqual(expect.arrayContaining(['directory', 'employee-history', 'employee-photo']));
     await adminModeOnViaApi(page);
-    expect(await tourKeys(page)).toEqual(expect.arrayContaining(['directory', 'employee-history', 'bulk-update', 'employee-fields']));
+    expect(await tourKeys(page)).toEqual(expect.arrayContaining(['directory', 'employee-history', 'bulk-update']));
   });
 });

@@ -8,11 +8,12 @@ import { ACCESS_CHANGED, EMPLOYEES_CHANGED } from '../../../../core/access/appli
 import type { AccessContext } from '../../../../core/access/domain/access-context';
 import { EmployeeRepository } from '../../domain/contracts/employee.repository';
 import type { Employee } from '../../domain/entities/employee.entity';
-import { InvalidReferenceError } from '../../domain/errors/employee.errors';
+import { FieldNotEditableError, InvalidReferenceError } from '../../domain/errors/employee.errors';
 import { EMPLOYEE_AUDIT } from '../messages/employee.messages';
 import { EmployeeAssignmentsService } from './employee-assignments.service';
 import { EmployeesService } from './employees.service';
 import { EmployeeReachPolicy } from '../policies/employee-reach.policy';
+import { EmployeeEditPolicy } from '../policies/employee-edit.policy';
 import { EmployeeAuditService } from './employee-audit.service';
 
 const P = CorePermission;
@@ -46,6 +47,7 @@ export class EmployeeBulkService {
     private readonly assignments: EmployeeAssignmentsService,
     private readonly employeesService: EmployeesService,
     private readonly reach: EmployeeReachPolicy,
+    private readonly editing: EmployeeEditPolicy,
     private readonly tx: TransactionRunner,
     private readonly events: EventEmitter2,
     private readonly auditor: EmployeeAuditService,
@@ -83,6 +85,8 @@ export class EmployeeBulkService {
     const plain = plainValues(input);
     const employee = await this.reach.find(ctx, id, placement ? P.EmployeesAssignChange : P.EmployeesUpdate);
     if (placement && Object.keys(plain).length && !this.reach.can(ctx, P.EmployeesUpdate, employee)) throw new NotFoundError('Employee', id);
+    const blocked = this.editing.blocked(ctx, employee, Object.keys(plain));
+    if (blocked.length) throw new FieldNotEditableError(blocked);
     await this.save(employee, input, plain, actorId);
     return employee.userId;
   }

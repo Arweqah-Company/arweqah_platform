@@ -7,7 +7,7 @@ import { usePermissions } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Alert, Button, PageHeader } from '@/shared/ui';
 import { cn } from '@/shared/lib/cn';
-import { SelfServiceProvider } from './form/fields';
+import { EditableFieldsProvider } from './form/fields';
 import { ContactSection } from './form/contact-section';
 import { ContractSection } from './form/contract-section';
 import { NotesSection } from './form/notes-section';
@@ -17,7 +17,6 @@ import { SalarySection } from './form/salary-section';
 import { useDefaultRoles } from './form/use-default-roles';
 import { useEmployeeForm } from './form/use-employee-form';
 import { useEmployeeOptions } from './form/use-options';
-import { useIsSelfService } from './form/use-self-service';
 import { SectionsNav } from './form/sections-nav';
 import { WorkSection } from './form/work-section';
 
@@ -106,19 +105,19 @@ function FormBody({ id, options, state }: { id?: string; options: ReturnType<typ
   const { form, employee, editing } = state;
   const sensitive = showsSensitive(editing, employee.data, can);
   const twoSteps = can(CorePermission.EmployeesAssignRoles) && can(CorePermission.RolesView);
-  const selfService = useIsSelfService(editing ? employee.data : undefined);
+  const editable = employee.data?.editableFields ?? null;
   const flow = useStepFlow(state, twoSteps);
   useDefaultRoles(form, { editing, savedTitleId: employee.data?.jobTitle?.id ?? '', enabled: twoSteps });
   return (
     <FormProvider {...form}>
-      <SelfServiceProvider value={selfService}>
+      <EditableFieldsProvider value={editable}>
       <PageHeader title={editing ? t('editTitle') : t('newTitle')} description={t('formIntro')} />
       {twoSteps && <StepsHeader step={flow.step} steps={['details', 'roles']} />}
       <form onSubmit={flow.onSubmit} noValidate className="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)]">
         {flow.step === 'details' ? <DetailsStep id={id} options={options} state={state} sensitive={sensitive} /> : <div className="lg:col-span-2"><RolesStep /></div>}
         <SaveBar editing={editing} id={id} busy={form.formState.isSubmitting} step={flow.step} twoSteps={twoSteps} onNext={() => void flow.next()} onBack={() => flow.setStep('details')} />
       </form>
-      </SelfServiceProvider>
+      </EditableFieldsProvider>
     </FormProvider>
   );
 }

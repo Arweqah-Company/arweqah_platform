@@ -13,6 +13,7 @@ class ResizeObserverStub {
 }
 globalThis.ResizeObserver = ResizeObserverStub;
 Element.prototype.scrollIntoView = () => undefined;
+Element.prototype.scrollTo = () => undefined; // the chart centres itself after Open all / Close all
 Element.prototype.hasPointerCapture = () => false;
 Element.prototype.releasePointerCapture = () => undefined;
 

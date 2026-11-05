@@ -112,16 +112,16 @@ describe('Dated placement: unit, job title and manager with history (FR-89)', ()
     expect(early.body.code).toBe('ASSIGNMENT_DATE_NOT_AFTER');
   });
 
-  it('refuses a unit and title that do not fit, a unit of another company, an unknown manager and a manager loop', async () => {
+  it('refuses a unit and title that do not fit, an unknown manager and a manager loop; a unit of another company\'s people is allowed (FR-96)', async () => {
     const { agent, org, route, boss, person } = await setup();
     const today = todayInRiyadh();
     const mismatch = await agent.post(route).send({ orgNodeId: org.unitB.id, jobTitleId: org.unitA.titleId, validFrom: today, reason: 'Title of another unit' }).expect(422);
     expect(mismatch.body.code).toBe('INVALID_PLACEMENT');
-    await agent.post(route).send({ orgNodeId: org.unitOther.id, jobTitleId: org.unitOther.titleId, validFrom: today, reason: 'Other company' }).expect(422);
     await agent.post(route).send({ managerId: '00000000-0000-4000-8000-000000000000', validFrom: today, reason: 'Nobody' }).expect(422);
     await agent.post(`/api/employees/${boss.employeeId}/assignments`).send({ managerId: person.employeeId, validFrom: today, reason: 'Boss reports to the person' }).expect(201);
     const loop = await agent.post(route).send({ managerId: boss.employeeId, validFrom: today, reason: 'Loop' }).expect(422);
     expect(loop.body.code).toBe('FIELD_RULE');
+    await agent.post(route).send({ orgNodeId: org.unitOther.id, jobTitleId: org.unitOther.titleId, validFrom: today, reason: 'A unit the other company\'s people sit in' }).expect(201);
   });
 
   it('is changed only by who holds the key, within their company; the history is read by who holds the history key (403, 404)', async () => {

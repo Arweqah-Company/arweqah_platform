@@ -10,7 +10,6 @@ import { EmployeePlacementPort } from '../../domain/contracts/employee-placement
 import type { CompanyView } from '../../domain/types/org.types';
 import { OrgRepository } from '../../domain/contracts/org.repository';
 import { toCompanyDto } from '../transformers/org.transformer';
-import { OrgLevelsService } from './org-levels.service';
 import { ORG_AUDIT } from '../messages/org.messages';
 
 @Injectable()
@@ -18,7 +17,6 @@ export class CompaniesService {
   constructor(
     private readonly repo: OrgRepository,
     private readonly employees: EmployeePlacementPort,
-    private readonly levels: OrgLevelsService,
     private readonly tx: TransactionRunner,
     private readonly events: EventEmitter2,
   ) {}
@@ -35,14 +33,10 @@ export class CompaniesService {
     return company;
   }
 
-  /** A new company starts with the default levels (sector, department, section, unit) and no units. */
+  /** A new company needs nothing more: the structure is one for the whole group. */
   async create(input: UpsertCompanyInput, actorId: string | null): Promise<CompanyDto> {
     if (await this.repo.companyCodeTaken(input.code)) throw new CompanyCodeTakenError();
-    const id = await this.tx.run(async (tx) => {
-      const created = await this.repo.insertCompany(input, tx);
-      await this.levels.applyTemplate(created, tx);
-      return created;
-    });
+    const id = await this.tx.run((tx) => this.repo.insertCompany(input, tx));
     this.audit(actorId, ORG_AUDIT.companyCreated, id, { code: input.code });
     await this.events.emitAsync(ORG_CHANGED);
     return toCompanyDto(await this.get(id), 0);

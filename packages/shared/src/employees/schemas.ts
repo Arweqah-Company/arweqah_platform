@@ -252,6 +252,8 @@ export const EMPLOYEE_PHOTO_TYPES = ['image/jpeg', 'image/png'] as const;
 
 export interface EmployeeDto {
   id: string;
+  /** The details of this record the caller may change (FR-94): the union of the fields of their grants of «edit employees» that reach it. */
+  editableFields: string[];
   /** The stored photo (read with `GET /employees/:id/photo`); null when there is none. */
   photoFileId: string | null;
   userId: string;

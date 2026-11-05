@@ -7,11 +7,11 @@ const KEY = ['user-groups'];
 
 export const useUserGroups = () => useQuery({ queryKey: KEY, queryFn: () => apiClient.get<UserGroupDto[]>('/user-groups') });
 
-/** People to add as members: those matching the search (at least two letters). */
+/** People to add as members: those matching the search, from the first letter. */
 export const usePeople = (search: string) =>
   useQuery({
     queryKey: [...KEY, 'people', search],
-    enabled: search.trim().length >= 2,
+    enabled: search.trim().length >= 1,
     queryFn: () => apiClient.get<{ id: string; nameAr: string }[]>(`/user-groups/people?q=${encodeURIComponent(search)}`),
   });
 

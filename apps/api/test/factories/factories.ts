@@ -1,5 +1,5 @@
 import type { INestApplication } from '@nestjs/common';
-import { COMPANIES_ADMIN_PERMISSIONS, CorePermission, EMPLOYEE_DEFAULT_PERMISSIONS, ORG_ADMIN_PERMISSIONS, type PermissionGrant } from '@arweqah-platform/shared';
+import { ALL_EDITABLE_FIELDS, COMPANIES_ADMIN_PERMISSIONS, CorePermission, EMPLOYEE_DEFAULT_PERMISSIONS, ORG_ADMIN_PERMISSIONS, type ManagementMode, type PermissionGrant } from '@arweqah-platform/shared';
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
@@ -14,9 +14,11 @@ import { OrgLevelsService } from '../../src/modules/org/application/services/org
 import { OrgNodesService } from '../../src/modules/org/application/services/org-nodes.service';
 import { Employee } from '../../src/modules/employees/domain/entities/employee.entity';
 import { codeFor } from '../helpers/totp';
+import { randomPrefix } from './unit-prefix';
 
 /** Every unit made by the factories started long ago, so nothing depends on today's date. */
 const UNIT_START = '2024-01-01';
+type UnitKey = 'sector' | 'department' | 'section' | 'unit' | 'office';
 
 export type TestAgent = ReturnType<typeof request.agent>;
 
@@ -77,6 +79,9 @@ export const TICKET_DESK_ADMIN_GRANTS: PermissionGrant[] = [
 export const TICKET_PLATFORM_ADMIN_GRANTS: PermissionGrant[] = TICKET_DESK_ADMIN_GRANTS.map((g) => ({ key: g.key, scope: 'all' as const }));
 
 /** Grant that lets a test user switch platform admin mode on. */
+/** A test grant of «edit employees» that does not say which fields lets its holder change them all, so specs about other things need not list fields; the specs about the lists pass `fields` themselves. */
+const editsEverything = (g: PermissionGrant): PermissionGrant => (g.key === CorePermission.EmployeesUpdate && !g.fields ? { ...g, fields: [...ALL_EDITABLE_FIELDS] } : g);
+
 /** What `factories.user` takes: `without` lists key prefixes (such as `tasks.`) taken out of the Employee role's baseline, for tests about a person who lacks them. */
 export interface UserOptions { grants?: PermissionGrant[]; unit?: TestUnit; enrolled?: boolean; active?: boolean; bare?: boolean; without?: string[] }
 
@@ -129,18 +134,43 @@ export class Factories {
   }
 
   private async unit(companyId: string, levelIndex: number, parentId: string | null, name: string): Promise<{ id: string }> {
-    const levels = await this.app.get(OrgLevelsService).list(companyId);
-    const node = await this.app.get(OrgNodesService).createNode(this.admin, { levelId: levels[levelIndex]?.id as string, parentId, nameAr: name, nameEn: name, startDate: UNIT_START, jobTitles: [] }, this.admin.userId);
-    return { id: node.id };
+    return this.node({ key: ['sector', 'department', 'section'][levelIndex] as UnitKey, parentId, name, companyId });
   }
 
-  private async leaf(companyId: string, parentId: string, name: string): Promise<TestUnit> {
-    const levels = await this.app.get(OrgLevelsService).list(companyId);
+  private leaf(companyId: string, parentId: string, name: string): Promise<TestUnit> {
+    return this.node({ key: 'unit', parentId, name, companyId, titles: true });
+  }
+
+  /** The id of a built-in unit type (the types are the group's, seeded before every test). */
+  async levelId(key: string): Promise<string> {
+    const level = (await this.app.get(OrgLevelsService).list()).levels.find((l) => l.key === key);
+    if (!level) throw new Error(`No unit type "${key}"`);
+    return level.id;
+  }
+
+  /**
+   * One unit of the group tree. A top unit is shared (what the group did until now) unless `mode` says otherwise; a unit in another
+   * company's tree (`companyId` not the group company) is re-labelled afterwards, because tickets and tasks still scope by `org_nodes.company_id`.
+   */
+  async node(options: { key: UnitKey; parentId: string | null; name: string; companyId?: string; mode?: ManagementMode | null; titles?: boolean }): Promise<TestUnit> {
+    const group = await this.defaultCompany();
+    const mode = options.mode === undefined ? (options.parentId ? null : 'shared') : options.mode;
     const node = await this.app.get(OrgNodesService).createNode(
       this.admin,
-      { levelId: levels[3]?.id as string, parentId, nameAr: name, nameEn: name, startDate: UNIT_START, jobTitles: [{ nameAr: `مسمى ${name}`, nameEn: `Title ${name}` }] },
+      {
+        levelId: await this.levelId(options.key),
+        parentId: options.parentId,
+        nameAr: options.name,
+        nameEn: options.name,
+        startDate: UNIT_START,
+        jobTitles: options.titles ? [{ nameAr: `مسمى ${options.name}`, nameEn: `Title ${options.name}` }] : [],
+        ...(options.parentId ? {} : { codePrefix: randomPrefix() }),
+        managementMode: mode,
+      },
       this.admin.userId,
     );
+    const companyId = options.companyId ?? group;
+    if (companyId !== group) await this.db.query('UPDATE org_nodes SET company_id = $1 WHERE id = $2', [companyId, node.id]);
     return { id: node.id, titleId: node.jobTitles[0]?.id as string, companyId };
   }
 
@@ -160,7 +190,7 @@ export class Factories {
     // Like the real Employee role, everyone starts with the own-account and ticket keys; `grants` add to them; `bare` gives a person with no role at all.
     if (options.bare) return;
     const defaults = EMPLOYEE_DEFAULT_PERMISSIONS.filter((p) => !options.without?.some((prefix) => p.key.startsWith(prefix)));
-    await this.app.get(UserAccessService).replaceRoles(id, [(await this.role([...defaults, ...(options.grants ?? [])])).id]);
+    await this.app.get(UserAccessService).replaceRoles(id, [(await this.role([...defaults, ...(options.grants ?? []).map(editsEverything)])).id]);
   }
 
   private async employeeFor(userId: string, email: string, unit?: TestUnit): Promise<Employee> {

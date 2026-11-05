@@ -6,13 +6,13 @@ import { authFeature } from '@/features/auth';
 import { companiesFeature } from '@/features/companies';
 import { integrationsFeature } from '@/features/integrations';
 import { templatesFeature } from '@/features/templates';
-import { employeeFieldsFeature } from '@/features/employee-fields';
 import { employeesFeature } from '@/features/employees';
 import { homeFeature } from '@/features/home';
 import { myAccessFeature } from '@/features/my-access';
 import { profileFeature } from '@/features/profile';
 import { notificationsFeature } from '@/features/notifications';
 import { listSettingsFeature } from '@/features/list-settings';
+import { jobTitlesFeature } from '@/features/job-titles';
 import { orgFeature } from '@/features/org';
 import { permissionsFeature } from '@/features/permissions';
 import { pageVisibilityFeature } from '@/features/page-visibility';
@@ -28,8 +28,8 @@ export const FEATURES: FeatureModule[] = [
   authFeature,
   homeFeature,
   employeesFeature,
-  employeeFieldsFeature,
   orgFeature,
+  jobTitlesFeature,
   companiesFeature,
   tasksFeature,
   ticketsFeature,

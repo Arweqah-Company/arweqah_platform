@@ -5,7 +5,8 @@ import { childrenOf, descendantCount } from '../lib/chart-tree';
 import { cn } from '../lib/cn';
 import { partitionLayout, type PartitionSlice } from '../lib/partition-layout';
 import { useOpenNodes } from '../lib/use-open-nodes';
-import type { ChartItem, ChartTone } from './tree-chart';
+import { FILL, ON_FILL } from './chart-tones';
+import type { ChartItem } from './tree-chart';
 
 /** Width of a level (a column) and height of a line (one leaf), in drawing units: room for a whole name and a second line. */
 const COLUMN = 250;
@@ -17,9 +18,6 @@ const PADDING = 44;
 const ZOOMS = [0.4, 0.5, 0.75, 1, 1.25];
 const NATURAL = ZOOMS.indexOf(1);
 
-const FILL: Record<ChartTone, string> = { ink: 'fill-ink', petrol: 'fill-petrol-800', green: 'fill-green-400', orange: 'fill-orange-700', neutral: 'fill-neutral-700' };
-/** Text that stays readable on the fill of each tone. */
-const ON_FILL: Record<ChartTone, string> = { ink: 'fill-cream', petrol: 'fill-cream', green: 'fill-ink', orange: 'fill-cream', neutral: 'fill-cream' };
 const BAR_BUTTON = 'grid h-9 min-w-9 place-items-center rounded-lg px-2 text-xs text-fg transition-colors hover:bg-neutral-50 disabled:opacity-40';
 
 /** The name cut with an ellipsis to what fits the block (a column is wide enough for most names whole). */
@@ -44,6 +42,9 @@ interface BlockProps {
   onSelect: (id: string) => void;
 }
 
+/** Dimmed (stopped, or only the way to a match) or faded (not visible to the compared company). */
+const fadeClass = (item: ChartItem): string => (item.muted || item.dimmed ? 'opacity-50' : item.faded ? 'opacity-60' : '');
+
 function Block({ item, box, isRoot, selected, hit, onSelect }: BlockProps) {
   const tone = item.tone ?? 'neutral';
   const middle = box.y + box.height / 2;
@@ -53,9 +54,9 @@ function Block({ item, box, isRoot, selected, hit, onSelect }: BlockProps) {
     onKeyDown: (e: React.KeyboardEvent) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onSelect(item.id)),
   };
   return (
-    <g {...press} className={cn(!isRoot && 'cursor-pointer outline-none focus-visible:[&>rect]:stroke-link', item.muted && 'opacity-50')}>
+    <g {...press} className={cn(!isRoot && 'cursor-pointer outline-none focus-visible:[&>rect]:stroke-link', fadeClass(item))}>
       <title>{item.title}</title>
-      <rect x={box.x + GAP / 2} y={box.y + GAP / 2} width={COLUMN - GAP} height={box.height - GAP} rx={10} className={cn(FILL[tone], 'stroke-white stroke-2', (selected || hit) && 'stroke-yellow-300 [stroke-width:5px]')} />
+      <rect x={box.x + GAP / 2} y={box.y + GAP / 2} width={COLUMN - GAP} height={box.height - GAP} rx={10} className={cn(FILL[tone], 'stroke-white stroke-2', item.faded && '[stroke-dasharray:6_4]', (selected || hit) && 'stroke-yellow-300 [stroke-width:5px]')} />
       <text x={box.x + COLUMN / 2} y={middle - 8} textAnchor="middle" dominantBaseline="middle" className={cn(ON_FILL[tone], 'pointer-events-none text-[13px] font-bold')}>{fitLabel(item.title, COLUMN)}</text>
       <text x={box.x + COLUMN / 2} y={middle + 11} textAnchor="middle" dominantBaseline="middle" className={cn(ON_FILL[tone], 'pointer-events-none text-[11px]')}>{[item.badge, item.lines?.[0]].filter(Boolean).join(' · ')}</text>
     </g>
@@ -99,6 +100,8 @@ interface IcicleProps {
   onSelect: (id: string) => void;
   label: string;
   query?: string;
+  /** How many levels start open (the root is level 0); the default opens everything. */
+  openDepth?: number;
 }
 
 /**
@@ -106,11 +109,11 @@ interface IcicleProps {
  * parent whose height is the number of units below it. Every name is written whole on a line of its own; any block with units
  * under it opens and closes, and the buttons open all, close all, fit and zoom.
  */
-export function Icicle({ items, selectedId, onSelect, label, query = '' }: IcicleProps) {
+export function Icicle({ items, selectedId, onSelect, label, query = '', openDepth = Number.POSITIVE_INFINITY }: IcicleProps) {
   const { t, i18n } = useTranslation();
   const mirrored = i18n.language === 'ar';
   const rootId = (items.find((i) => i.parentId === null) as ChartItem).id;
-  const nodes = useOpenNodes(items, rootId, query, Number.POSITIVE_INFINITY);
+  const nodes = useOpenNodes(items, rootId, query, openDepth);
   const [zoom, setZoom] = useState(NATURAL);
   const box = useRef<HTMLDivElement>(null);
   const shown = useMemo(() => visibleItems(items, rootId, nodes.isOpen), [items, rootId, nodes.isOpen]);

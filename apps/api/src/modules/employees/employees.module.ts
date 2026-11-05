@@ -8,11 +8,6 @@ import { EmployeeTransformer } from './application/transformers/employee.transfo
 import { EmployeeAssignmentsJob } from './infrastructure/jobs/employee-assignments.job';
 import { EmployeeAssignmentsService } from './application/services/employee-assignments.service';
 import { EmployeeAssignmentRepository } from './domain/contracts/employee-assignment.repository';
-import { EmployeeFieldRule } from './domain/entities/employee-field-rule.entity';
-import { EmployeeFieldRuleRepository } from './domain/contracts/employee-field-rule.repository';
-import { TypeOrmEmployeeFieldRuleRepository } from './infrastructure/repositories/typeorm-employee-field-rule.repository';
-import { EmployeeFieldRulesService } from './application/services/employee-field-rules.service';
-import { EmployeeFieldRulesController } from './presentation/controllers/employee-field-rules.controller';
 import { EmployeeAssignment } from './domain/entities/employee-assignment.entity';
 import { TypeOrmEmployeeAssignmentRepository } from './infrastructure/repositories/typeorm-employee-assignment.repository';
 import { EmployeeAssignmentsController } from './presentation/controllers/employee-assignments.controller';
@@ -22,6 +17,8 @@ import { DirectoryController } from './presentation/controllers/directory.contro
 import { DirectoryService } from './application/services/directory.service';
 import { EmployeePhotoController } from './presentation/controllers/employee-photo.controller';
 import { EmployeeReachPolicy } from './application/policies/employee-reach.policy';
+import { EmployeeEditPolicy } from './application/policies/employee-edit.policy';
+import { EmployeeAutoManagerService } from './application/services/employee-auto-manager.service';
 import { EmployeeAuditService } from './application/services/employee-audit.service';
 import { EmployeePhotoService } from './application/services/employee-photo.service';
 import { EmployeeHistoryController } from './presentation/controllers/employee-history.controller';
@@ -30,7 +27,7 @@ import { EmployeeValidationService } from './application/services/employee-valid
 import { EmployeeProfileService } from './application/services/employee-profile.service';
 import { EmployeesService } from './application/services/employees.service';
 import { Employee } from './domain/entities/employee.entity';
-import { DIRECTORY_PERMISSIONS, EMPLOYEE_FIELD_PERMISSIONS, EMPLOYEE_PERMISSIONS } from './domain/permissions/employee.permissions';
+import { DIRECTORY_PERMISSIONS, EMPLOYEE_PERMISSIONS } from './domain/permissions/employee.permissions';
 import { EmployeeRepository } from './domain/contracts/employee.repository';
 import { EmployeePlacementAdapter } from './infrastructure/adapters/employee-placement.adapter';
 import { TypeOrmEmployeeRepository } from './infrastructure/repositories/typeorm-employee.repository';
@@ -43,8 +40,8 @@ import { ProfileController } from './presentation/controllers/profile.controller
  */
 @Global()
 @Module({
-  imports: [TypeOrmModule.forFeature([Employee, EmployeeAssignment, EmployeeFieldRule]), OrgModule, LookupsModule],
-  controllers: [EmployeesController, EmployeeFieldRulesController, EmployeeBulkController, EmployeeAssignmentsController, EmployeeHistoryController, EmployeePhotoController, DirectoryController, ProfileController],
+  imports: [TypeOrmModule.forFeature([Employee, EmployeeAssignment]), OrgModule, LookupsModule],
+  controllers: [EmployeesController, EmployeeBulkController, EmployeeAssignmentsController, EmployeeHistoryController, EmployeePhotoController, DirectoryController, ProfileController],
   providers: [
     EmployeesService,
     EmployeeProfileService,
@@ -52,19 +49,19 @@ import { ProfileController } from './presentation/controllers/profile.controller
     EmployeeTransformer,
     EmployeeLifecycleJob,
     EmployeeAssignmentsService,
+    EmployeeAutoManagerService,
     EmployeePhotoService,
     EmployeeReachPolicy,
+    EmployeeEditPolicy,
     EmployeeAuditService,
     EmployeeBulkService,
-    EmployeeFieldRulesService,
-    { provide: EmployeeFieldRuleRepository, useClass: TypeOrmEmployeeFieldRuleRepository },
     DirectoryService,
     EmployeeAssignmentsJob,
     { provide: EmployeeAssignmentRepository, useClass: TypeOrmEmployeeAssignmentRepository },
     { provide: EmployeeRepository, useClass: TypeOrmEmployeeRepository },
     { provide: EmployeePlacementPort, useClass: EmployeePlacementAdapter },
   ],
-  exports: [EmployeePlacementPort, EmployeeLifecycleJob, EmployeeAssignmentsService],
+  exports: [EmployeePlacementPort, EmployeeLifecycleJob, EmployeeAssignmentsService, EmployeeAutoManagerService],
 })
 export class EmployeesModule implements OnModuleInit {
   constructor(private readonly catalog: PermissionCatalog) {}
@@ -72,6 +69,5 @@ export class EmployeesModule implements OnModuleInit {
   onModuleInit(): void {
     this.catalog.register(EMPLOYEE_PERMISSIONS);
     this.catalog.register(DIRECTORY_PERMISSIONS);
-    this.catalog.register(EMPLOYEE_FIELD_PERMISSIONS);
   }
 }

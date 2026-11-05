@@ -140,6 +140,7 @@ erDiagram
     uuid role_id PK,FK
     character_varying permission_key PK
     character_varying scope
+    text_array fields
   }
   user_roles {
     uuid user_id PK,FK
@@ -164,6 +165,7 @@ erDiagram
     uuid group_id PK,FK
     character_varying permission_key PK
     character_varying scope
+    text_array fields
   }
   user_groups {
     uuid id PK
@@ -181,6 +183,7 @@ erDiagram
     uuid group_id PK,FK
     character_varying permission_key PK
     character_varying scope
+    text_array fields
   }
   user_role_groups {
     uuid user_id PK,FK
@@ -193,6 +196,7 @@ erDiagram
     uuid user_id PK,FK
     character_varying permission_key PK
     character_varying scope
+    text_array fields
     date expires_at
     uuid granted_by FK
     timestamp_with_time_zone granted_at
@@ -250,11 +254,18 @@ erDiagram
     timestamp_with_time_zone created_at
     timestamp_with_time_zone updated_at
     timestamp_with_time_zone deleted_at
-    uuid company_id FK
     integer sort_order
     boolean is_assignable
     boolean is_active
-    character_varying template_code
+    character_varying template_code UK
+    boolean is_built_in
+    character_varying tone
+    integer code_slot
+  }
+  org_level_parents {
+    uuid id PK
+    uuid parent_level_id FK
+    uuid child_level_id FK
   }
   org_level_translations {
     uuid id PK
@@ -289,6 +300,9 @@ erDiagram
     integer sort_order
     boolean is_active
     date start_date
+    character_varying code UK
+    character_varying management_mode
+    jsonb charter
   }
   org_node_translations {
     uuid id PK
@@ -308,6 +322,14 @@ erDiagram
     timestamp_with_time_zone deleted_at
     uuid org_node_id FK
     boolean is_active
+    character_varying code UK
+    smallint grade
+    character_varying track
+    uuid reports_to_title_id FK
+    jsonb responsibilities
+    jsonb qualifications
+    jsonb kpis
+    integer content_version
   }
   job_title_translations {
     uuid id PK
@@ -315,10 +337,48 @@ erDiagram
     character_varying name
     uuid job_title_id FK
   }
+  development_stage_rules {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    smallint grade
+    character_varying track
+    character_varying stage
+  }
+  org_node_versions {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid node_id FK
+    date valid_from
+    date valid_to
+    character_varying name_ar
+    character_varying name_en
+    character_varying code
+    boolean is_active
+    jsonb charter
+    text reason
+    uuid created_by
+    timestamp_with_time_zone applied_at
+  }
+  org_node_leaders {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid node_id FK
+    uuid company_id FK
+    uuid employee_id FK
+    character_varying kind
+    date valid_from
+    date valid_to
+    text reason
+    uuid created_by
+  }
   companies ||--o{ company_translations : "company_id"
   org_level_templates ||--o{ org_level_template_translations : "org_level_template_id"
-  companies ||--o{ org_levels : "company_id"
   org_levels ||--o{ org_level_translations : "org_level_id"
+  org_levels ||--o{ org_level_parents : "parent_level_id"
+  org_levels ||--o{ org_level_parents : "child_level_id"
   companies ||--o{ org_nodes : "company_id"
   employees ||--o{ org_nodes : "manager_id"
   org_levels ||--o{ org_nodes : "org_level_id"
@@ -328,6 +388,11 @@ erDiagram
   org_nodes ||--o{ org_node_closure : "descendant_id"
   org_nodes ||--o{ job_titles : "org_node_id"
   job_titles ||--o{ job_title_translations : "job_title_id"
+  job_titles ||--o{ job_titles : "reports_to_title_id"
+  org_nodes ||--o{ org_node_versions : "node_id"
+  org_nodes ||--o{ org_node_leaders : "node_id"
+  companies ||--o{ org_node_leaders : "company_id"
+  employees ||--o{ org_node_leaders : "employee_id"
 ```
 
 ### 4. Lookups
@@ -557,16 +622,10 @@ erDiagram
     uuid manager_employee_id FK
     date valid_from
     date valid_to
+    character_varying manager_source
     text reason
     uuid created_by
     timestamp_with_time_zone applied_at
-  }
-  employee_field_rules {
-    character_varying field PK
-    boolean editable_by_self
-    boolean editable_by_hr
-    uuid updated_by
-    timestamp_with_time_zone updated_at
   }
   companies ||--o{ employees : "company_id"
   companies ||--o{ employees : "contract_company_id"
@@ -1015,16 +1074,16 @@ erDiagram
 | Table | What it does |
 |---|---|
 | `roles` | Roles (manual, automatic by rule, per-unit «head of unit» roles via `org_node_id`, collaborator base). |
-| `role_permissions` | Permission keys a role holds, each with its scope (own / unit / company / all). |
+| `role_permissions` | Permission keys a role holds, each with its scope (own / unit / company / all) and, for «edit employees», the list of fields (`fields`, FR-94; empty = the basic data). |
 | `user_roles` | Roles assigned to a person (stored choices, with the grant stamp). |
 | `role_groups` | A named bundle of roles (e.g. «HR team»). |
 | `role_group_roles` | Which roles are inside a role group. |
-| `role_group_permissions` | Extra permission keys given to everyone holding a role group. |
+| `role_group_permissions` | Extra permission keys given to everyone holding a role group (with `fields` for «edit employees»). |
 | `user_groups` | A named group of people. |
 | `user_group_members` | Members of a user group. |
-| `user_group_permissions` | Permission keys given to every member of a user group. |
+| `user_group_permissions` | Permission keys given to every member of a user group (with `fields` for «edit employees»). |
 | `user_role_groups` | Role groups assigned to a person. |
-| `user_permissions` | Exceptions: a single permission key given to one person, with scope, expiry and who granted it. |
+| `user_permissions` | Exceptions: a single permission key given to one person, with scope, expiry, who granted it and (for «edit employees») its `fields`. |
 | `page_visibility_rules` | Which pages (`page_key`) a role may see in the menu. |
 | `list_settings` | Per list: hidden columns and hidden filters (list management). |
 
@@ -1034,15 +1093,19 @@ erDiagram
 |---|---|
 | `companies` | The group's companies (branches): code and active flag; names in `company_translations`. |
 | `company_translations` | Company names in ar / en. |
-| `org_levels` | Levels of the structure per company (sector, department, section, unit…). |
+| `org_levels` | The unit types of the whole group (sector, department, section, unit, office, and types an administrator adds): `template_code` is the stable key, `is_assignable` = accepts job titles and employees, `is_built_in` = cannot be removed, `tone` = colour family, `code_slot` = slot in a unit code (null for the office). No `company_id`: the structure is one for the group. |
+| `org_level_parents` | «Who may be created under whom»: one row per allowed (parent type, child type); a null `parent_level_id` is the group root. Edited from the Organization levels window; it only stops new units. |
 | `org_level_translations` | Level names in ar / en. |
-| `org_level_templates` | Reusable level sets used when a company is created. |
+| `org_level_templates` | The built-in unit types and their defaults (sector, department, section, unit, office), seeded; the group's `org_levels` start from them. |
 | `org_level_template_translations` | Template level names in ar / en. |
-| `org_nodes` | The organization tree: each sector / department / section / unit, with its parent and head. |
+| `org_nodes` | The group's one organization tree: each sector / department / section / unit / office, with its parent and head. `charter` is the charter in force (jsonb: purpose, outputs, in / out of scope, limits in ar and en). `company_id` is the group company (every unit belongs to it). `code` is the unit code built by type (`OPS.03.03.01`; null until set for units created before codes), `management_mode` is `shared`, `per_company` or null (inherit from the closest ancestor with a value). |
 | `org_node_translations` | Node names in ar / en. |
 | `org_node_closure` | Ancestor → descendant pairs with depth, so «everything under this unit» is one query (scope checks). |
-| `job_titles` | Job titles. |
+| `job_titles` | Job titles of a unit (never on a sector). `code` (`OPS.03.03.01-L7P-01`: unit code, grade, track, sequence per unit, grade and track) is built once and never changes or reused (null for titles made before codes, until HR gives a grade and track); `grade` 1–9 and `track` M / P / J / C / S come together and are set once; `reports_to_title_id` is the reporting line (no loops) that finds an employee's manager; `responsibilities`, `qualifications` and `kpis` are ordered lists in ar and en (jsonb) and `content_version` grows with every edit of them. |
 | `job_title_translations` | Job title names in ar / en. |
+| `development_stage_rules` | Which development stage a grade (and a track, or any track when null) gives: foundation, specialization, mastery, operational or institutional leadership. Seeded from the defaults; read only for now, HR edits later. A rule with a track wins over one for the grade alone. |
+| `org_node_versions` | The dated versions of a unit (FR-99): name (ar, en), code, on/off switch and charter (jsonb) from `valid_from` to `valid_to` (open while null), with the reason and who made it. Versions of a unit never overlap (exclusion constraint), a past one is never rewritten; `org_nodes` keeps the one in force as its current values, and a version that starts later waits (`applied_at` empty) until the nightly job copies it. |
+| `org_node_leaders` | Who leads a unit for a company and who acts for them (FR-100): `kind` leader or acting, with `valid_from` / `valid_to` and the reason. A shared unit has one leader from the group company; a unit managed per company has one per company. Rows of the same kind for one unit and company never overlap, an acting leader always has an end date. `org_nodes.manager_id` keeps the primary leader in force as a copy; the unit's head role goes to every leader and acting leader in force. |
 
 ### 4. Lookups (drop-down lists, each with its `*_translations`)
 
@@ -1063,8 +1126,7 @@ erDiagram
 | Table | What it does |
 |---|---|
 | `employees` | The employee file: company, unit, job title, manager, relation, work location / mode, contact data, ID, contract, GOSI, medical insurance, dates, termination, salary. National ID, salary and IBAN are encrypted (`*_enc`, ID also hashed for lookup). Soft-deleted (`deleted_at`); linked to `users`. |
-| `employee_field_rules` | Who may change each detail of an employee (FR-94): one row per field of the catalog `EMPLOYEE_FIELDS`, with `editable_by_self` (the employee themselves; never switched on for identity, contract and pay fields) and `editable_by_hr` (off = only a platform administrator). The migration seeds the rule the platform had before; the tests treat it as a reference table. `employees.photo_file_id` (FR-91) points to the profile photo in `files`. |
-| `employee_assignments` | The dated placement of an employee (FR-89): one row per period of the unit, the job title or the direct manager (`field`), with `valid_from` / `valid_to`, the reason and who made it. A change closes the open period the day before the new one starts. `applied_at` is empty while a later period waits for its day; `employees` keeps the value in force today. One open period per employee and field. |
+| `employee_assignments` | The dated placement of an employee (FR-89): one row per period of the unit, the job title or the direct manager (`field`), with `valid_from` / `valid_to`, the reason and who made it. A change closes the open period the day before the new one starts. `applied_at` is empty while a later period waits for its day; `employees` keeps the value in force today. One open period per employee and field. A manager period has a `manager_source`: `manual` (HR chose the person; it stays) or `auto_chain` (the system found the nearest occupied title above the employee's and follows it as people come and go; reason «chain»). |
 
 ### 6. Tickets (internal, between departments)
 
