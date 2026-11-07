@@ -23,6 +23,15 @@ async function newTask(page: Page, title: string): Promise<void> {
 }
 
 test.describe('Task comments (FR-66)', () => {
+  test('keeps the mention list reachable by keyboard when it scrolls', async ({ page }) => {
+    await newTask(page, `قائمة الذكر (${test.info().project.name})`);
+    await page.addStyleTag({ content: '[role="listbox"] { max-height: 12px !important; }' }); // few colleagues must not hide the bug: force the list to scroll
+    await page.getByRole('textbox', { name: 'اكتب تعليقًا' }).fill('@');
+    await expect(page.getByRole('listbox', { name: 'زملاء يمكن ذكرهم' })).toBeVisible();
+    await settled(page);
+    await new Screen(page).expectNoSeriousA11yIssues();
+  });
+
   test('writes a comment, mentions a colleague, answers it, edits and deletes', async ({ page }) => {
     await newTask(page, `نقاش المهمة (${test.info().project.name})`);
     await expect(page.getByRole('heading', { level: 2, name: 'التعليقات' })).toBeVisible();
