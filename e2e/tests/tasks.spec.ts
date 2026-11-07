@@ -91,7 +91,8 @@ test.describe('Task tags and policies (FR-54)', () => {
     const dialog = page.getByRole('dialog', { name: 'إضافة فئة' });
     await dialog.getByRole('combobox', { name: 'الجهة', exact: true }).click();
     await page.getByRole('textbox', { name: 'الجهة', exact: true }).fill('الخدمات المشتركة');
-    await page.getByRole('button', { name: /الخدمات المشتركة/ }).first().click();
+    await page.getByRole('button').filter({ has: page.getByText('إدارة الخدمات المشتركة', { exact: true }) }).click();
+    await expect(dialog.getByRole('combobox', { name: 'الجهة', exact: true })).toHaveText(/إدارة الخدمات المشتركة$/);
     await dialog.getByLabel('الاسم بالعربية *').fill('تقارير الأداء');
     await dialog.getByLabel('الاسم بالإنجليزية *').fill('Performance reports');
     await settled(page);
