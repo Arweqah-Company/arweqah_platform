@@ -33,9 +33,9 @@
     "microsoft:check": "node scripts/check-microsoft.mjs"
   },
   "devDependencies": {
-    "jscpd": "5.4.0",
-    "prettier": "3.9.9",
-    "turbo": "2.11.7",
+    "jscpd": "5.4.2",
+    "prettier": "3.9.10",
+    "turbo": "2.11.10",
     "typescript": "5.9.3"
   },
   "dependencies": {
