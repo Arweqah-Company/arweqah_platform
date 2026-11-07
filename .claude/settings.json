@@ -7,5 +7,10 @@
         ]
       }
     ]
+  },
+   "permissions": {
+    "allow": [
+      "Bash(gh pr merge 53 --merge --admin)"
+    ]
   }
 }

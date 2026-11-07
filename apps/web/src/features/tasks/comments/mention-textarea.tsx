@@ -79,7 +79,7 @@ export function MentionTextarea({ taskId, value, onChange, onPick, label, mayMen
         onKeyDown={onKeyDown}
       />
       {at && people.length > 0 && (
-        <ul id={listId} role="listbox" aria-label={t('comments.mentionList')} className="absolute inset-x-0 top-full z-20 mt-1 max-h-56 overflow-auto rounded-xl border border-neutral-200 bg-white p-1 shadow-lg">
+        <ul id={listId} role="listbox" tabIndex={0} aria-label={t('comments.mentionList')} className="absolute inset-x-0 top-full z-20 mt-1 max-h-56 overflow-auto rounded-xl border border-neutral-200 bg-white p-1 shadow-lg">
           {people.map((p, i) => (
             <li key={p.id} role="option" aria-selected={i === active} className={cn('cursor-pointer rounded-lg px-3 py-2 text-sm', i === active ? 'bg-petrol-50 text-link' : 'hover:bg-neutral-50')} onMouseDown={(e) => { e.preventDefault(); choose(p); }}>
               {p.name}
