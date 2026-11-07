@@ -18,6 +18,7 @@
     "migration:run:prod": "typeorm -d dist/database/data-source.js migration:run",
     "seed": "ts-node src/database/seeds/seed.ts",
     "seed:prod": "node dist/database/seeds/seed.js",
+    "db:reset:org": "ts-node src/database/seeds/reset-org-structure.ts",
     "db:reset:test": "NODE_ENV=test npm run migration:run && NODE_ENV=test ts-node src/database/seeds/reset-test-db.ts",
     "db:prepare:e2e": "DB_NAME=arweqah_platform_e2e NODE_ENV=test ts-node src/database/ensure-database.ts && DB_NAME=arweqah_platform_e2e NODE_ENV=test npm run migration:run"
   },
