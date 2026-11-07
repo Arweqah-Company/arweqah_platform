@@ -83,8 +83,9 @@ test.describe('Tickets (FR-36 … FR-41)', () => {
     await adminModeOn(page);
     await page.goto('/tickets/setup');
     await expect(page.getByRole('heading', { level: 1, name: 'إعداد التذاكر' })).toBeVisible();
-    const desk = page.getByLabel('الإدارة', { exact: true });
-    await choose(desk, /(?=.*أروقة الريادة)(?=.*الخدمات المشتركة)/);
+    await page.getByRole('combobox', { name: 'الجهة', exact: true }).click();
+    await page.getByRole('textbox', { name: 'الجهة', exact: true }).fill('الخدمات المشتركة');
+    await page.getByRole('button', { name: /الخدمات المشتركة/ }).first().click();
     await choose(page.getByLabel('حالة الاستقبال'), 'متوقف مؤقتًا');
     await page.getByRole('button', { name: 'حفظ', exact: true }).first().click();
     await expect(page.getByText('حُفظت الإعدادات.')).toBeVisible();
@@ -121,13 +122,13 @@ test.describe('Tickets (FR-36 … FR-41)', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'أداء التذاكر' })).toBeVisible();
     const byType = page.getByRole('table', { name: 'حسب نوع التذكرة' });
     await expect(byType).toBeVisible();
-    await expect(byType.getByRole('columnheader', { name: 'الإدارة' })).toBeVisible(); // every department: say which one
+    await expect(byType.getByRole('columnheader', { name: 'الجهة' })).toBeVisible(); // every department: say which one
     await expect(page.getByText('مفتوحة الآن').first()).toBeVisible();
     await new Screen(page).expectNoSeriousA11yIssues();
 
-    await choose(page.getByLabel('الإدارة', { exact: true }), 'إدارة الخدمات المشتركة');
+    await choose(page.getByLabel('الجهة', { exact: true }), 'إدارة الخدمات المشتركة');
     await expect(byType.getByRole('columnheader', { name: 'النوع' })).toBeVisible();
-    await expect(byType.getByRole('columnheader', { name: 'الإدارة' })).toHaveCount(0); // one department: no column
+    await expect(byType.getByRole('columnheader', { name: 'الجهة' })).toHaveCount(0); // one department: no column
     await expect(page.getByText('مفتوحة الآن').first()).toBeVisible();
     await settled(page);
     await new Screen(page).expectNoSeriousA11yIssues();

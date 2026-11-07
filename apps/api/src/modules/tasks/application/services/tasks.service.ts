@@ -116,12 +116,13 @@ export class TasksService {
     return this.get(viewer, id);
   }
 
-  /** What the new-task form shows: who the viewer may give a task to, their department's tags, and who approves a task for themselves. */
+  /** What the new-task form shows: who the viewer may give a task to, the tags of their unit and every unit above it, and who approves a task for themselves. */
   async formOptions(viewer: TaskViewer, search?: string): Promise<TaskFormOptionsDto> {
     const me = await this.directory.person(viewer.userId);
     if (!me) throw new TaskAssigneeInvalidError();
     const department = await this.directory.departmentOf(viewer.userId);
-    const tags = department ? await this.tags.list(me.companyId, [department.nodeId]) : [];
+    const units = [...new Set([...(await this.directory.unitsAbove(viewer.userId)), ...(department ? [department.nodeId] : [])])];
+    const tags = units.length ? await this.tags.list(me.companyId, units) : [];
     return {
       assignees: (await this.assigneeChoices(viewer, me, department?.managerUserId ?? null, search)).map((p) => ({ id: p.userId, name: p.name, isSelf: p.userId === viewer.userId })),
       tags: tags.filter((t) => t.isActive).map((t) => this.transformer.tagRecord(t)),

@@ -14,6 +14,8 @@ const PERSON = `SELECT u.id AS "userId", COALESCE(e.full_name, u.name) AS name, 
   WHERE u.is_active`;
 
 /** The nearest department above (or at) the person's unit, and its manager when that manager is active. */
+const UNITS_ABOVE = `SELECT n.id FROM employees e JOIN org_node_closure c ON c.descendant_id = e.org_node_id JOIN org_nodes n ON n.id = c.ancestor_id AND n.deleted_at IS NULL
+  WHERE e.user_id = $1 AND e.deleted_at IS NULL`;
 const DEPARTMENT = `SELECT n.id AS "nodeId", mgr.user_id AS "managerUserId"
   FROM employees e
   JOIN org_node_closure c ON c.descendant_id = e.org_node_id
@@ -47,6 +49,11 @@ export class TypeOrmTaskDirectory extends TaskDirectory {
   async employeeIdOf(userId: string): Promise<string | null> {
     const rows: { id: string }[] = await this.ds.query('SELECT id FROM employees WHERE user_id = $1 AND deleted_at IS NULL', [userId]);
     return rows[0]?.id ?? null;
+  }
+
+  async unitsAbove(userId: string): Promise<string[]> {
+    const rows: { id: string }[] = await this.ds.query(UNITS_ABOVE, [userId]);
+    return rows.map((r) => r.id);
   }
 
   async departmentOf(userId: string): Promise<{ nodeId: string; managerUserId: string | null } | null> {

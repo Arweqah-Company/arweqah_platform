@@ -247,8 +247,12 @@ export interface TaskTagAdminDto extends TaskTagDto {
 
 export interface TaskDepartmentOptionDto {
   id: string;
+  /** The unit above, or null at the top of the structure. */
+  parentId: string | null;
   nameAr: string;
   nameEn: string;
+  pathAr: string;
+  pathEn: string;
 }
 
 export interface TaskPolicyDto extends TaskPolicyInput {

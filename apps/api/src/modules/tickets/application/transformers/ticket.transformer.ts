@@ -98,6 +98,7 @@ export class TicketTransformer {
     const names = input.names ?? NO_NAMES;
     return {
       orgNodeId: department.orgNodeId,
+      parentId: department.parentId,
       companyId: department.companyId,
       companyNameAr: input.company?.nameAr ?? '',
       companyNameEn: input.company?.nameEn ?? '',
