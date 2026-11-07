@@ -121,7 +121,7 @@ export class TasksService {
     const me = await this.directory.person(viewer.userId);
     if (!me) throw new TaskAssigneeInvalidError();
     const department = await this.directory.departmentOf(viewer.userId);
-    const units = [...new Set([...(await this.directory.unitsAbove(viewer.userId)), ...(department ? [department.nodeId] : [])])];
+    const units = [...new Set(await this.unitsKeepingTags(viewer.userId))];
     const tags = units.length ? await this.tags.list(me.companyId, units) : [];
     return {
       assignees: (await this.assigneeChoices(viewer, me, department?.managerUserId ?? null, search)).map((p) => ({ id: p.userId, name: p.name, isSelf: p.userId === viewer.userId })),
@@ -171,13 +171,19 @@ export class TasksService {
     if (!decision.allowed) throw new TaskAssignmentNotAllowedError();
   }
 
-  /** A tag must be active, of the same company, and kept by the department of the one who gives or the one who receives. */
+  /** A tag must be active, of the same company, and kept by a unit the one who gives or the one who receives may use (their department or one above it). */
   private async assertTagUsable(tagId: string | null, { creator, assignee }: Pair): Promise<void> {
     if (!tagId) return;
     const tag = await this.tags.find(tagId);
     if (!tag || !tag.isActive || tag.companyId !== creator.companyId) throw new TaskTagInvalidError();
-    const departments = await Promise.all([this.directory.departmentOf(creator.userId), this.directory.departmentOf(assignee.userId)]);
-    if (!departments.some((d) => d?.nodeId === tag.orgNodeId)) throw new TaskTagInvalidError();
+    const kept = await Promise.all([creator.userId, assignee.userId].map((userId) => this.unitsKeepingTags(userId)));
+    if (!kept.some((units) => units.includes(tag.orgNodeId))) throw new TaskTagInvalidError();
+  }
+
+  /** The units whose tags a person may use: their department and every unit above it (what the new-task form offers). */
+  private async unitsKeepingTags(userId: string): Promise<string[]> {
+    const [department, above] = await Promise.all([this.directory.departmentOf(userId), this.directory.unitsAbove(userId)]);
+    return department ? [...above, department.nodeId] : above;
   }
 
   /** Who accepts a task that needs review: who gave it; for a task given to oneself, whoever approves it (nobody = no review). */

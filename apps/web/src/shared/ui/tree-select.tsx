@@ -24,6 +24,7 @@ interface TreeSelectProps {
   items: TreeSelectItem[];
   disabled?: boolean;
   'aria-describedby'?: string;
+  'aria-required'?: boolean;
 }
 
 /**
@@ -48,14 +49,14 @@ export function TreeSelect({ label, id, value, onChange, items, disabled, ...ari
     setOpen(next);
     if (next) {
       setQuery('');
-      setParent(selected ? (index.byId.get(selected.id)?.parentId ?? null) : null);
+      setParent(selected && selected.parentId !== null && index.byId.has(selected.parentId) ? selected.parentId : null);
     }
   };
 
   return (
     <Popover.Root open={open} onOpenChange={toggle}>
       <div className="relative h-12">
-        <ComboTrigger id={id} label={label} open={open} disabled={disabled} text={selected?.label ?? t('combobox.choose')} placeholderShown={!selected} {...aria} />
+        <ComboTrigger id={id} label={label} open={open} disabled={disabled} text={selected ? (selected.hint ?? selected.label) : t('combobox.choose')} placeholderShown={!selected} {...aria} />
       </div>
       <Popover.Portal>
         <Popover.Content align="start" sideOffset={4} className="animate-fade-in z-50 w-max min-w-[var(--radix-popover-trigger-width)] max-w-[min(32rem,calc(100vw-2rem))] rounded-[var(--radius-control)] border border-neutral-200 bg-white shadow-lg shadow-ink/10">

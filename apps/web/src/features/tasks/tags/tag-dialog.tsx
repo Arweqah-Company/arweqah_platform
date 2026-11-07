@@ -32,7 +32,7 @@ function TagFields({ form, set, editing }: { form: Form; set: (change: Partial<F
       {!editing && (
         <FormField label={`${t('tags.department')} *`}>
           {(p) => (
-            <TreeSelect label={t('tags.department')} id={p.id} aria-describedby={p['aria-describedby']} value={form.orgNodeId || null} onChange={(orgNodeId) => set({ orgNodeId })} items={items} />
+            <TreeSelect label={t('tags.department')} id={p.id} aria-describedby={p['aria-describedby']} aria-required value={form.orgNodeId || null} onChange={(orgNodeId) => set({ orgNodeId })} items={items} />
           )}
         </FormField>
       )}

@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner } from "typeorm";
 
 /**
  * Head roles (one per organization unit, made automatically) also hold the leader's own account pages and the tickets and tasks of the unit and below.
- * Only keys a head role does not have yet are added: what an administrator already edited stays as it is.
+ * Only the keys new in this change are added (the older head defaults are left out, so one an administrator took off is not given back), and only where a role lacks them.
  */
 export class HeadRolesOwnAccountTicketsTasks1793780000000 implements MigrationInterface {
     name = 'HeadRolesOwnAccountTicketsTasks1793780000000'
@@ -15,15 +15,9 @@ export class HeadRolesOwnAccountTicketsTasks1793780000000 implements MigrationIn
         ['my_access.export', 'all'],
         ['notifications.view', 'all'],
         ['notifications.mark_read', 'all'],
-        ['employees.view', 'subtree'],
-        ['employees.history_view', 'subtree'],
-        ['tasks.team_view', 'subtree'],
-        ['tasks.matrix_view', 'subtree'],
         ['tasks.team_change_status', 'subtree'],
         ['tasks.update', 'subtree'],
         ['tasks.reopen', 'subtree'],
-        ['tasks.approve', 'subtree'],
-        ['tasks.reject', 'subtree'],
         ['tickets.view', 'subtree'],
         ['tickets.reply', 'subtree'],
         ['tickets.setup_view', 'subtree'],
@@ -31,7 +25,6 @@ export class HeadRolesOwnAccountTicketsTasks1793780000000 implements MigrationIn
         ['tickets.type_create', 'subtree'],
         ['tickets.type_update', 'subtree'],
         ['tickets.type_delete', 'subtree'],
-        ['tickets.figures_view', 'subtree'],
     ];
 
     public async up(queryRunner: QueryRunner): Promise<void> {

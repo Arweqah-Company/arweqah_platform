@@ -39,4 +39,18 @@ describe('TreeSelect', () => {
     fireEvent.click(screen.getByText('قسم التخطيط'));
     expect(screen.getByRole('combobox', { name: 'الجهة' })).toHaveTextContent('قسم التخطيط');
   });
+
+  it('opens a selection whose parent is not in the list at the top level (review of PR 53)', () => {
+    render(<TreeSelect label="الجهة" value="o" onChange={() => {}} items={[{ id: 'o', parentId: 'gone', label: 'وحدة يتيمة' }, { id: 'g', parentId: null, label: 'قطاع النمو' }]} />);
+    fireEvent.click(screen.getByRole('combobox', { name: 'الجهة' }));
+    expect(screen.getAllByText('وحدة يتيمة').length).toBeGreaterThan(1);
+    expect(screen.getByText('قطاع النمو')).toBeInTheDocument();
+  });
+
+  it('keeps the path of the chosen unit visible and says it is required (review of PR 53)', () => {
+    render(<TreeSelect label="الجهة" aria-required value="x" onChange={() => {}} items={items} />);
+    const trigger = screen.getByRole('combobox', { name: 'الجهة' });
+    expect(trigger).toHaveAttribute('aria-required', 'true');
+    expect(trigger).toHaveTextContent('أروقة — قطاع التشغيل — إدارة المشاريع — قسم التخطيط');
+  });
 });

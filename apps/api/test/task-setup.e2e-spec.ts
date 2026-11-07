@@ -74,6 +74,9 @@ describe('Tasks: tags and policies (FR-54)', () => {
       const ids = options.tags.map((x) => x.id);
       expect(ids).toEqual(expect.arrayContaining([onSection.id, onDepartment.id]));
       expect(ids).not.toContain(onOther.id);
+      // What the form offers, the API accepts (review of PR 53).
+      for (const offered of [onSection, onDepartment]) expect((await w.agents.employee.post('/api/tasks').send({ title: 'بفئة معروضة', tagId: offered.id }).expect(201)).body.tag).toMatchObject({ id: offered.id });
+      expect((await w.agents.employee.post('/api/tasks').send({ title: 'بفئة غريبة', tagId: onOther.id }).expect(422)).body.code).toBe('TASK_TAG_INVALID');
     });
 
     it('lets the all scope work on every department, and validates the input', async () => {
