@@ -28,22 +28,25 @@ describe('Seeders (FR-14, FR-25)', () => {
     expect(roles.map((r: { name_en: string }) => r.name_en)).toEqual(['Employee', 'System Admin']);
   });
 
-  it('organization structure (every environment, the server included): gives Arweqah Alreyadah the owner sheet once, with a job title for each unit, and never again', async () => {
+  it('organization structure (every environment, the server included): gives Arweqah Alreyadah the official organization file once, with all its job titles (each with a code and a role), and never again', async () => {
     const seeder = t.app.get(FoundationSeeder);
     await seeder.run();
-    expect(await count('SELECT count(*)::int AS n FROM org_nodes')).toBe(68);
-    expect(await count('SELECT count(*)::int AS n FROM job_titles')).toBe(32);
+    expect(await count('SELECT count(*)::int AS n FROM org_nodes')).toBe(64);
+    expect(await count('SELECT count(*)::int AS n FROM job_titles')).toBe(270);
+    expect(await count('SELECT count(*)::int AS n FROM job_titles WHERE code IS NULL')).toBe(0);
+    expect(await count(`SELECT count(*)::int AS n FROM roles WHERE auto_rule = 'job_title'`)).toBe(270);
+    expect(await count(`SELECT count(*)::int AS n FROM roles WHERE auto_rule = 'node_head'`)).toBe(64);
     await seeder.run();
-    expect(await count('SELECT count(*)::int AS n FROM org_nodes')).toBe(68);
+    expect(await count('SELECT count(*)::int AS n FROM org_nodes')).toBe(64);
     await t.db.query(`UPDATE org_nodes SET deleted_at = now() WHERE id = (SELECT id FROM org_nodes ORDER BY created_at DESC LIMIT 1)`);
     await seeder.run(); // a structure that someone changed is left alone
-    expect(await count('SELECT count(*)::int AS n FROM org_nodes WHERE deleted_at IS NULL')).toBe(67);
+    expect(await count('SELECT count(*)::int AS n FROM org_nodes WHERE deleted_at IS NULL')).toBe(63);
   });
 
   it('gives the sample structure unit codes by type, with the top units shared (FR-96, FR-97)', async () => {
     await t.app.get(FoundationSeeder).run();
     expect(await count('SELECT count(*)::int AS n FROM org_nodes WHERE code IS NULL')).toBe(0);
-    expect(await count(`SELECT count(*)::int AS n FROM org_nodes WHERE parent_id IS NULL AND management_mode = 'shared'`)).toBe(7);
+    expect(await count(`SELECT count(*)::int AS n FROM org_nodes WHERE parent_id IS NULL AND management_mode = 'shared'`)).toBe(6);
     expect(await count(`SELECT count(*)::int AS n FROM org_nodes WHERE parent_id IS NOT NULL AND management_mode IS NOT NULL`)).toBe(0);
     expect(await count(`SELECT count(*)::int AS n FROM org_nodes WHERE parent_id IS NULL AND code !~ '^[A-Z]{3}\\.00\\.00\\.00$'`)).toBe(0);
   });

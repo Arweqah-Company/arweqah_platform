@@ -40,6 +40,15 @@ export class OrgLevelsSeeder {
 
   private async ensureRules(m: EntityManager): Promise<void> {
     if ((await m.query('SELECT 1 FROM org_level_parents LIMIT 1')).length > 0) return;
+    await this.insertDefaultRules(m);
+  }
+
+  /** Adds every default «who may sit under whom» pair that is missing; used before the group's structure is built, which needs them all (an office directly under the group, for one). */
+  async ensureDefaultRules(): Promise<void> {
+    await this.db.transaction((m) => this.insertDefaultRules(m));
+  }
+
+  private async insertDefaultRules(m: EntityManager): Promise<void> {
     const pairs = Object.entries(DEFAULT_PARENT_RULES).flatMap(([parent, children]) => children.map((child) => [parent, child] as const));
     await m.query(
       `INSERT INTO org_level_parents (parent_level_id, child_level_id)
