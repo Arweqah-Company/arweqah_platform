@@ -1,6 +1,6 @@
 {
   "title": "Tickets",
-  "description": "Send a request to a department and follow it, or answer the tickets that arrive for you.",
+  "description": "Send a request to a unit and follow it, or answer the tickets that arrive for you.",
   "newTicket": "New ticket",
   "tabsLabel": "Ticket view",
   "tabs": {
@@ -16,15 +16,15 @@
     "inbox": "No tickets have arrived for you."
   },
   "emptyHint": {
-    "mine": "Press “New ticket” to send your request to the right department.",
-    "inbox": "Tickets assigned to you appear here, or your department's tickets if you manage it."
+    "mine": "Press “New ticket” to send your request to the right unit.",
+    "inbox": "Tickets assigned to you appear here, or your unit's tickets if you manage it."
   },
   "groupBy": {
     "label": "Group by",
     "none": "No grouping",
     "assignee": "Assignee",
     "status": "Status",
-    "desk": "Department",
+    "desk": "Unit",
     "type": "Type"
   },
   "groups": {
@@ -33,7 +33,7 @@
   "columns": {
     "number": "Number",
     "title": "Title",
-    "desk": "Department",
+    "desk": "Unit",
     "type": "Type",
     "sender": "Sender",
     "assignee": "Assignee",
@@ -59,7 +59,7 @@
     "personal": "Personal"
   },
   "filters": {
-    "desk": "Department",
+    "desk": "Unit",
     "type": "Type",
     "assignee": "Assignee",
     "status": "Status"
@@ -68,19 +68,19 @@
   "sent": "The ticket was sent.",
   "new": {
     "title": "New ticket",
-    "description": "Choose the department and the type, then write your request."
+    "description": "Choose the unit and the type, then write your request."
   },
   "choose": {
     "personalNotice": "Complaints and personal matters go to Human Resources directly.",
     "search": "What do you need?",
-    "browse": "Browse departments",
-    "hideBrowse": "Hide departments",
-    "allDesks": "All departments",
+    "browse": "Browse units",
+    "hideBrowse": "Hide units",
+    "allDesks": "All units",
     "noMatches": "No type matches your search.",
-    "nothing": "No department receives tickets right now.",
-    "paused": "This department has paused receiving tickets for now.",
-    "notStarted": "This department has not started working yet.",
-    "noManager": "This department has no manager at the moment.",
+    "nothing": "No unit receives tickets right now.",
+    "paused": "This unit has paused receiving tickets for now.",
+    "notStarted": "This unit has not started working yet.",
+    "noManager": "This unit has no manager at the moment.",
     "duration_one": "Usual time: 1 working day",
     "duration_other": "Usual time: {{count}} working days",
     "typesCount_one": "1 type",
@@ -96,7 +96,7 @@
     "titleRequired": "Write a title for the ticket.",
     "text": "Details",
     "neededBy": "When do you need it",
-    "tooEarly": "The earliest date this department accepts is {{date}}.",
+    "tooEarly": "The earliest date this unit accepts is {{date}}.",
     "priority": "Priority",
     "attachments": "Ticket attachments",
     "shortcut": "Ctrl + Enter to send",
@@ -147,14 +147,14 @@
     "decline-close": {
       "button": "Not done yet",
       "title": "Decline the closing",
-      "description": "The ticket goes back to the department, open, with your message.",
+      "description": "The ticket goes back to the unit, open, with your message.",
       "confirm": "Reopen it",
       "done": "The ticket is open again."
     },
     "reopen": {
       "button": "Reopen",
       "title": "Reopen the ticket",
-      "description": "The ticket goes back to the department, open.",
+      "description": "The ticket goes back to the unit, open.",
       "confirm": "Reopen",
       "done": "The ticket was reopened."
     },
@@ -168,15 +168,15 @@
   },
   "setup": {
     "title": "Ticket setup",
-    "description": "Set how your department receives tickets: types and durations.",
-    "desk": "Department",
+    "description": "Set how your unit receives tickets: types and durations.",
+    "desk": "Unit",
     "managerIs": "Manager: {{name}}",
-    "noManager": "This department has no manager yet: assign one in the organization structure to activate it.",
+    "noManager": "This unit has no manager yet: assign one in the organization structure to activate it.",
     "needAdminMode": "This page works in platform admin mode. Turn it on at the top of the page.",
-    "none": "No department available to you",
-    "noneHint": "The departments you manage appear here.",
+    "none": "No unit available to you",
+    "noneHint": "The units you manage appear here.",
     "receptionTitle": "Reception",
-    "receptionIntro": "Decide whether the department receives tickets now, and what the sender reads.",
+    "receptionIntro": "Decide whether the unit receives tickets now, and what the sender reads.",
     "reception": "Reception status",
     "status": {
       "active": "Active",
@@ -184,15 +184,15 @@
       "stopped": "Stopped"
     },
     "receptionHint": {
-      "active": "The department is listed and receives tickets.",
-      "paused": "The department is listed but disabled with a message, and is resumed by hand. Existing tickets are handled as usual.",
-      "stopped": "The department is not listed for anyone. Existing tickets are handled as usual."
+      "active": "The unit is listed and receives tickets.",
+      "paused": "The unit is listed but disabled with a message, and is resumed by hand. Existing tickets are handled as usual.",
+      "stopped": "The unit is not listed for anyone. Existing tickets are handled as usual."
     },
-    "needsManager": "A department without a manager cannot be activated.",
+    "needsManager": "A unit without a manager cannot be activated.",
     "acceptsPersonal": "Accepts personal requests (the unit manager does not see them)",
-    "descriptionAr": "Department description for the sender (Arabic)",
-    "descriptionEn": "Department description for the sender (English)",
-    "descriptionHint": "Shown to the employee when they choose this department.",
+    "descriptionAr": "Unit description for the sender (Arabic)",
+    "descriptionEn": "Unit description for the sender (English)",
+    "descriptionHint": "Shown to the employee when they choose this unit.",
     "days": {
       "defaultDueDays": "Usual completion time",
       "minLeadDays": "Earliest date that can be asked for",
@@ -206,7 +206,7 @@
     "saved": "The settings were saved.",
     "typesTitle": "Ticket types",
     "typesIntro": "Each type has a name, a description, an assignee and an optional own duration.",
-    "noTypes": "No types yet. Add one so the department can receive tickets.",
+    "noTypes": "No types yet. Add one so the unit can receive tickets.",
     "type": {
       "assignee": "Assignee",
       "assigneeHint": "The employee tickets are assigned to. Required for a personal type.",
@@ -216,7 +216,7 @@
       "descriptionAr": "Description in Arabic",
       "descriptionEn": "Description in English",
       "dueDays": "Own duration in working days",
-      "dueDaysHint": "Leave empty to use the department's duration.",
+      "dueDaysHint": "Leave empty to use the unit's duration.",
       "personal": "Personal type: the unit manager does not see it, only the sender and the assignee",
       "active": "Active type",
       "saved": "The type was saved.",
@@ -224,7 +224,7 @@
       "newTitle": "Add a type",
       "description": "The type's name and description are shown to the employee when they send.",
       "handledBy": "Assignee: {{name}}",
-      "noAssignee": "No assignee: the department manager handles them",
+      "noAssignee": "No assignee: the unit manager handles them",
       "inactive": "Inactive",
       "edit": "Edit {{name}}",
       "remove": "Delete {{name}}",
@@ -241,7 +241,7 @@
   },
   "figures": {
     "title": "Ticket performance",
-    "description": "The last {{days}} days, by department.",
+    "description": "The last {{days}} days, by unit.",
     "indicators": "Indicators",
     "openNow": "Open now",
     "incoming": "Incoming tickets",
@@ -259,14 +259,14 @@
     "byAssignee": "Who handles the tickets",
     "attention": "Needs action today",
     "attentionEmpty": "Nothing is overdue or stale.",
-    "none": "No department is set up yet",
-    "noneHint": "Set up a department on the “Ticket setup” page and its figures appear here.",
+    "none": "No unit is set up yet",
+    "noneHint": "Set up a unit on the “Ticket setup” page and its figures appear here.",
     "hours_one": "1 hour",
     "hours_other": "{{count}} hours",
     "personalCount_one": "1 of them personal",
     "personalCount_other": "{{count}} of them personal",
-    "allDesks": "All departments",
-    "desk": "Department"
+    "allDesks": "All units",
+    "desk": "Unit"
   },
   "board": {
     "label": "Tickets board",
@@ -277,9 +277,9 @@
   "tour": {
     "tickets": {
       "title": "Tickets",
-      "body": "Tickets are the formal way to ask another department for something: pick the department and type, write your request, and follow its status and replies until it is closed. Every ticket has a number and a clear path.",
+      "body": "Tickets are the formal way to ask another unit for something: pick the unit and type, write your request, and follow its status and replies until it is closed. Every ticket has a number and a clear path.",
       "can": {
-        "create": "Send a new ticket to the right department",
+        "create": "Send a new ticket to the right unit",
         "reply": "Reply to tickets and exchange files and notes",
         "request_close": "Ask to close a ticket once it is done",
         "confirm_close": "Confirm or decline closing a ticket",
@@ -290,7 +290,7 @@
     },
     "ticket-new": {
       "title": "New ticket",
-      "body": "Open a ticket from this button: pick the department and the type of request, write the title and details, attach any files, and send. It reaches the person in charge of that department and gets a number you can follow it by.",
+      "body": "Open a ticket from this button: pick the unit and the type of request, write the title and details, attach any files, and send. It reaches the person in charge of that unit and gets a number you can follow it by.",
       "can": {
         "reply": "After sending you follow replies and add notes and files from the ticket page"
       }

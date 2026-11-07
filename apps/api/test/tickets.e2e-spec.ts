@@ -60,8 +60,8 @@ describe('Tickets (FR-36 … FR-41)', () => {
     it('lists a department nobody set up as stopped, and lets its manager activate it with types', async () => {
       const w = await world();
       const listed = (await w.agents.manager.get('/api/tickets/setup/desks').expect(200)).body as TicketDeskDto[];
-      expect(listed).toHaveLength(1);
-      expect(listed[0]).toMatchObject({ orgNodeId: w.desk, manager: { id: w.manager.id }, settings: { receptionStatus: 'stopped', defaultDueDays: 3, autoCloseDays: 4, reopenWindowDays: 7, staleAfterDays: 14, minLeadDays: 0 }, types: [] });
+      expect(listed).toHaveLength(6); // the department and the five units below it (its manager leads them all)
+      expect(listed.find((d) => d.orgNodeId === w.desk)).toMatchObject({ orgNodeId: w.desk, manager: { id: w.manager.id }, settings: { receptionStatus: 'stopped', defaultDueDays: 3, autoCloseDays: 4, reopenWindowDays: 7, staleAfterDays: 14, minLeadDays: 0 }, types: [] });
       const saved = await setupDesk(w.agents.manager, w.desk, { descriptionAr: 'نصيحة', autoCloseDays: 6 }).expect(200);
       expect(saved.body.settings).toMatchObject({ receptionStatus: 'active', autoCloseDays: 6, descriptionAr: 'نصيحة' });
       const type = await addType(w.agents.manager, w.desk, { defaultAssigneeUserId: w.assignee.id, dueDays: 5 }).expect(201);
@@ -84,8 +84,38 @@ describe('Tickets (FR-36 … FR-41)', () => {
       const platformAgent = await t.factories.signIn(platform);
       await adminModeOn(platformAgent, platform);
       const all = (await platformAgent.get('/api/tickets/setup/desks').expect(200)).body as TicketDeskDto[];
-      expect(all.map((d) => d.orgNodeId).sort()).toEqual([w.desk, w.org.otherDepartment].sort());
-      await platformAgent.get(`/api/tickets/setup/desks/${w.org.sectionAB}`).expect(404); // a section is not a department
+      const ids = all.map((d) => d.orgNodeId);
+      expect(ids).toEqual(expect.arrayContaining([w.desk, w.org.otherDepartment, w.org.sectionAB, w.org.unitA.id])); // any unit type is a desk
+      expect(all.find((d) => d.orgNodeId === w.org.sectionAB)?.parentId).toBe(w.desk); // the setup page drills down by parent
+      await platformAgent.get(`/api/tickets/setup/desks/00000000-0000-4000-8000-000000000000`).expect(404);
+    });
+
+    it('lets the leader of a unit set up that unit and every unit below it, and none above or beside it (FR-36)', async () => {
+      const w = await world();
+      const leader = await t.factories.user({ unit: w.org.unitC, grants: TICKET_DESK_ADMIN_GRANTS });
+      await t.db.query('UPDATE org_nodes SET manager_id = $1 WHERE id = $2', [leader.employeeId, w.org.sectionAB]);
+      const agent = await t.factories.signIn(leader);
+      await adminModeOn(agent, leader);
+      const ids = ((await agent.get('/api/tickets/setup/desks').expect(200)).body as TicketDeskDto[]).map((d) => d.orgNodeId);
+      expect(ids).toEqual(expect.arrayContaining([w.org.sectionAB, w.org.unitA.id, w.org.unitB.id]));
+      expect(ids).not.toContain(w.org.sectionC);
+      expect(ids).not.toContain(w.desk);
+      await agent.get(`/api/tickets/setup/desks/${w.org.unitA.id}`).expect(200);
+      await agent.get(`/api/tickets/setup/desks/${w.desk}`).expect(404);
+    });
+
+    it('lets a ticket type sit on any unit of the structure: a section or a unit (FR-36)', async () => {
+      const w = await world();
+      const platform = await t.factories.user({ grants: [...TICKET_PLATFORM_ADMIN_GRANTS, { key: CorePermission.AdminModeUse, scope: 'all' }] });
+      const agent = await t.factories.signIn(platform);
+      await adminModeOn(agent, platform);
+      for (const node of [w.org.unitA.id, w.org.sectionAB]) {
+        await t.db.query('UPDATE org_nodes SET manager_id = $1 WHERE id = $2', [w.manager.employeeId, node]);
+        await setupDesk(agent, node).expect(200);
+        const type = (await addType(agent, node, { defaultAssigneeUserId: w.assignee.id }).expect(201)).body;
+        expect(type).toMatchObject({ isActive: true });
+        expect(((await agent.get(`/api/tickets/setup/desks/${node}`).expect(200)).body as TicketDeskDto).types).toHaveLength(1);
+      }
     });
 
     it('refuses to activate a department without a manager, and bad numbers or assignees', async () => {
@@ -450,7 +480,8 @@ describe('Tickets (FR-36 … FR-41)', () => {
       await t.db.query(`UPDATE tickets SET needed_by = current_date - 2 WHERE title = $1 AND status = 'open' AND NOT is_personal`, ['الطابعة لا تعمل']);
       const response = (await w.agents.manager.get('/api/tickets/figures').expect(200)).body;
       expect(response.windowDays).toBe(30);
-      expect(response.desks.map((d: { id: string }) => d.id)).toEqual([w.desk]);
+      expect(response.desks.map((d: { id: string }) => d.id)).toContain(w.desk);
+      expect(response.desks).toHaveLength(6);
       expect(response.scope).toBe('all');
       const desk = response.figures;
       expect(desk).toMatchObject({ openNow: 2, incoming: 3, personalCount: 1, outcomes: { confirmed: 1, auto: 0, notExecuted: 0, reopened: 0 } });

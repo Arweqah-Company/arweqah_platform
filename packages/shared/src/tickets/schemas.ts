@@ -146,6 +146,8 @@ export interface TicketDeskSettingsDto {
 export interface TicketDeskDto {
   /** The department (organization node) id. */
   orgNodeId: string;
+  /** The unit above, or null at the top of the structure. */
+  parentId: string | null;
   companyId: string;
   companyNameAr: string;
   companyNameEn: string;

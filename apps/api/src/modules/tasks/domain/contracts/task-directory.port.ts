@@ -9,6 +9,8 @@ export abstract class TaskDirectory {
   /** The employee record of a user (null for an account with none). */
   abstract employeeIdOf(userId: string): Promise<string | null>;
   /** The department the person works in (the nearest department at or above their unit) and its active manager, or null. */
+  /** The employee's own unit and every unit above it (the units whose tags the person may use). */
+  abstract unitsAbove(userId: string): Promise<string[]>;
   abstract departmentOf(userId: string): Promise<{ nodeId: string; managerUserId: string | null } | null>;
   /** People the viewer may give tasks to by scope (and `search` by name), at most 30, never the viewer. */
   abstract assignCandidates(viewer: TaskViewer, scope: PermissionScope | null, search?: string): Promise<TaskPerson[]>;

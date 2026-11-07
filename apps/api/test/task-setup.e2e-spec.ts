@@ -48,19 +48,35 @@ describe('Tasks: tags and policies (FR-54)', () => {
       const own = (await w.agents.deptManager.get('/api/task-tags/departments').expect(200)).body as TaskDepartmentOptionDto[];
       expect(own.map((d) => d.id)).toEqual([w.org.department]);
       const all = (await w.agents.admin.get('/api/task-tags/departments').expect(200)).body as TaskDepartmentOptionDto[];
-      expect(all.map((d) => d.id).sort()).toEqual([w.org.department, w.org.otherDepartment].sort());
+      expect(all.map((d) => d.id)).toEqual(expect.arrayContaining([w.org.department, w.org.otherDepartment, w.org.sectionAB, w.org.unitA.id])); // any unit type
+      expect(all.find((d) => d.id === w.org.sectionAB)).toMatchObject({ parentId: w.org.department });
     });
 
-    it('refuses another department\'s tags (404), a node that is not a department (422), and a move of a tag', async () => {
+    it('refuses another department\'s tags (404), a unit out of reach (404), an unknown node (422), and a move of a tag', async () => {
       const w = await world();
       await w.agents.deptManager.post('/api/task-tags').send(tag(w.org.otherDepartment)).expect(404);
-      expect((await w.agents.deptManager.post('/api/task-tags').send(tag(w.org.unitA.id)).expect(422)).body.code).toBe('TASK_DEPARTMENT_INVALID');
+      await w.agents.deptManager.post('/api/task-tags').send(tag(w.org.unitA.id)).expect(404);
+      expect((await w.agents.deptManager.post('/api/task-tags').send(tag('00000000-0000-4000-8000-000000000000')).expect(422)).body.code).toBe('TASK_DEPARTMENT_INVALID');
       const foreign = await addTag(w.agents.admin, w.org.otherDepartment);
       await w.agents.deptManager.put(`/api/task-tags/${foreign.id}`).send(tag(w.org.otherDepartment)).expect(404);
       await w.agents.deptManager.delete(`/api/task-tags/${foreign.id}`).expect(404);
       expect((await w.agents.deptManager.get('/api/task-tags').expect(200)).body).toEqual([]);
       const mine = await addTag(w.agents.deptManager, w.org.department);
       expect((await w.agents.deptManager.put(`/api/task-tags/${mine.id}`).send(tag(w.org.otherDepartment)).expect(422)).body.code).toBe('TASK_DEPARTMENT_INVALID');
+    });
+
+    it('lets a tag sit on any unit, and the new-task form offers the tags of the person\'s unit and every unit above it (FR-57)', async () => {
+      const w = await world();
+      const onSection = await addTag(w.agents.admin, w.org.sectionAB, { nameAr: 'قسمي', nameEn: 'Mine' });
+      const onDepartment = await addTag(w.agents.admin, w.org.department, { nameAr: 'إدارتي', nameEn: 'Dept' });
+      const onOther = await addTag(w.agents.admin, w.org.sectionC, { nameAr: 'غيري', nameEn: 'Other' });
+      const options = (await w.agents.employee.get('/api/tasks/options').expect(200)).body as { tags: { id: string }[] };
+      const ids = options.tags.map((x) => x.id);
+      expect(ids).toEqual(expect.arrayContaining([onSection.id, onDepartment.id]));
+      expect(ids).not.toContain(onOther.id);
+      // What the form offers, the API accepts (review of PR 53).
+      for (const offered of [onSection, onDepartment]) expect((await w.agents.employee.post('/api/tasks').send({ title: 'بفئة معروضة', tagId: offered.id }).expect(201)).body.tag).toMatchObject({ id: offered.id });
+      expect((await w.agents.employee.post('/api/tasks').send({ title: 'بفئة غريبة', tagId: onOther.id }).expect(422)).body.code).toBe('TASK_TAG_INVALID');
     });
 
     it('lets the all scope work on every department, and validates the input', async () => {

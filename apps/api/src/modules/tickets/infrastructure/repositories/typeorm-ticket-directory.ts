@@ -5,19 +5,25 @@ import { TicketDirectory } from '../../domain/contracts/ticket-directory.port';
 import type { DepartmentFacts, PersonRecord } from '../../domain/types/ticket.types';
 
 /**
- * Departments are the organization nodes of the level that came from the "department" template. A manager counts only
- * while their employee record and account are active. Read-only SQL over the org, employee and user tables.
+ * A desk may be any active organization unit, of any type (sector, department, section, unit, office or an added type):
+ * the type of the level no longer matters. A manager counts only while their employee record and account are active.
+ * `managersAbove` lists the active managers of the unit and of every unit above it: whoever leads a sector or a department
+ * reaches that unit and everything below it. Read-only SQL over the org, employee and user tables.
  */
 const DEPARTMENTS = `
-  SELECT n.id AS "orgNodeId", n.company_id AS "companyId", to_char(n.start_date, 'YYYY-MM-DD') AS "startDate",
-         m.user_id AS "managerUserId", m.full_name AS "managerName"
+  SELECT n.id AS "orgNodeId", n.parent_id AS "parentId", n.company_id AS "companyId", to_char(n.start_date, 'YYYY-MM-DD') AS "startDate",
+         m.user_id AS "managerUserId", m.full_name AS "managerName",
+         ARRAY(SELECT e2.user_id::text FROM org_node_closure c
+               JOIN org_nodes a ON a.id = c.ancestor_id AND a.deleted_at IS NULL
+               JOIN employees e2 ON e2.id = a.manager_id AND e2.deleted_at IS NULL
+               JOIN users u2 ON u2.id = e2.user_id AND u2.is_active
+               WHERE c.descendant_id = n.id) AS "managersAbove"
   FROM org_nodes n
-  JOIN org_levels l ON l.id = n.org_level_id AND l.template_code = 'department' AND l.deleted_at IS NULL
   LEFT JOIN (SELECT e.id, e.user_id, e.full_name FROM employees e JOIN users u ON u.id = e.user_id AND u.is_active WHERE e.deleted_at IS NULL) m ON m.id = n.manager_id
   WHERE n.deleted_at IS NULL AND n.is_active`;
 
 const DEPARTMENTS_OF = `${DEPARTMENTS} AND n.id = ANY($1)`;
-const MANAGED = `SELECT d."orgNodeId" AS id FROM (${DEPARTMENTS}) d WHERE d."managerUserId" = $1`;
+const MANAGED = `SELECT d."orgNodeId" AS id FROM (${DEPARTMENTS}) d WHERE $1 = ANY(d."managersAbove")`;
 const ACTIVE_EMPLOYEE = `SELECT u.id, COALESCE(e.full_name, u.name) AS name FROM users u JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE u.id = $1 AND u.is_active`;
 const PEOPLE = `SELECT u.id, COALESCE(e.full_name, u.name) AS name FROM users u LEFT JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE u.id = ANY($1)`;
 

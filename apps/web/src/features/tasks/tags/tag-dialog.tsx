@@ -1,10 +1,10 @@
 import type { TaskTagAdminDto, TaskTagInput } from '@arweqah-platform/shared';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
-import { Alert, Button, Dialog, FormField, Input, Select } from '@/shared/ui';
+import { Alert, Button, Dialog, FormField, Input, TreeSelect } from '@/shared/ui';
 import { useSaveTag, useTagDepartments } from '../api';
 import { useAutoEnglish } from '@/shared/lib/use-auto-english';
 
@@ -21,7 +21,9 @@ const toInput = (f: Form): TaskTagInput => ({ orgNodeId: f.orgNodeId, nameAr: f.
 function TagFields({ form, set, editing }: { form: Form; set: (change: Partial<Form>) => void; editing: boolean }) {
   const { t, i18n } = useTranslation('tasks');
   const rules = useRules();
-  const departments = useTagDepartments(!editing).data ?? [];
+  const departments = useTagDepartments(!editing).data;
+  const ar = i18n.language === 'ar';
+  const items = useMemo(() => (departments ?? []).map((d) => ({ id: d.id, parentId: d.parentId, label: ar ? d.nameAr : d.nameEn, hint: ar ? d.pathAr : d.pathEn })), [departments, ar]);
   const nameAr = useLiveError(form.nameAr, rules.text(2));
   const nameEn = useLiveError(form.nameEn, rules.text(2));
   useAutoEnglish(form.nameAr, form.nameEn, (nameEn) => set({ nameEn }));
@@ -30,10 +32,7 @@ function TagFields({ form, set, editing }: { form: Form; set: (change: Partial<F
       {!editing && (
         <FormField label={`${t('tags.department')} *`}>
           {(p) => (
-            <Select {...p} aria-required value={form.orgNodeId} onChange={(e) => set({ orgNodeId: e.target.value })}>
-              <option value="">{t('tags.chooseDepartment')}</option>
-              {departments.map((d) => <option key={d.id} value={d.id}>{i18n.language === 'ar' ? d.nameAr : d.nameEn}</option>)}
-            </Select>
+            <TreeSelect label={t('tags.department')} id={p.id} aria-describedby={p['aria-describedby']} aria-required value={form.orgNodeId || null} onChange={(orgNodeId) => set({ orgNodeId })} items={items} />
           )}
         </FormField>
       )}

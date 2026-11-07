@@ -49,6 +49,8 @@ describe('A head role for every organization unit (FR-69)', () => {
     expect(role?.nameEn).toMatch(/^Head of /);
     expect(role?.nameAr).toMatch(/^قائد /);
     expect(role?.permissions.map((p) => `${p.key}:${p.scope}`).sort()).toEqual(LEVEL_HEAD_DEFAULT_PERMISSIONS.map((p) => `${p.key}:${p.scope}`).sort());
+    const held = new Set(role?.permissions.map((p) => `${p.key}:${p.scope}`));
+    for (const wanted of ['profile.update:all', 'security.view:all', 'notifications.view:all', 'tickets.view:subtree', 'tickets.setup_view:subtree', 'tickets.type_create:subtree', 'tasks.team_view:subtree']) expect(held.has(wanted)).toBe(true); // FR-36
     expect(role?.origin).toMatchObject({ companyId: org.companyId });
     const units = (await t.db.query('SELECT count(*)::int AS n FROM org_nodes WHERE deleted_at IS NULL')) as { n: number }[];
     expect((await roles()).filter((r) => r.autoRule === 'node_head')).toHaveLength(units[0]?.n as number);

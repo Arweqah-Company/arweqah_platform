@@ -35,11 +35,15 @@ export type TypeValues = Omit<TypeRecord, 'id' | 'deskId' | 'defaultAssigneeName
 /** A department of the organization, with what the ticket rules need to know about it. */
 export interface DepartmentFacts {
   orgNodeId: string;
+  /** The unit above, or null at the top of the structure. */
+  parentId: string | null;
   companyId: string;
   /** ISO date. */
   startDate: string;
   managerUserId: string | null;
   managerName: string | null;
+  /** User ids of the active managers of this unit and of every unit above it (they reach it as the leader of what contains it). */
+  managersAbove: string[];
 }
 
 export interface PersonRecord {

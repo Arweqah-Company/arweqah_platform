@@ -59,7 +59,7 @@ export class TypeOrmTaskTagRepository extends TaskTagRepository {
     await managerOf(tx, this.ds.manager).query('DELETE FROM task_tags WHERE id = $1', [id]);
   }
 
-  departments(companyId: string | null, nodeIds: readonly string[] | null): Promise<{ id: string; companyId: string }[]> {
+  departments(companyId: string | null, nodeIds: readonly string[] | null): Promise<{ id: string; parentId: string | null; companyId: string }[]> {
     const values: unknown[] = [];
     const where: string[] = ['n.deleted_at IS NULL'];
     if (companyId) {
@@ -71,15 +71,14 @@ export class TypeOrmTaskTagRepository extends TaskTagRepository {
       where.push(`n.id = ANY($${values.length})`);
     }
     return this.ds.query(
-      `SELECT n.id, n.company_id AS "companyId" FROM org_nodes n JOIN org_levels l ON l.id = n.org_level_id AND l.template_code = 'department' AND l.deleted_at IS NULL WHERE ${where.join(' AND ')}`,
+      `SELECT n.id, n.parent_id AS "parentId", n.company_id AS "companyId" FROM org_nodes n WHERE ${where.join(' AND ')}`,
       values,
     );
   }
 
   async isDepartment(nodeId: string): Promise<boolean> {
     const rows: { yes: boolean }[] = await this.ds.query(
-      `SELECT EXISTS (SELECT 1 FROM org_nodes n JOIN org_levels l ON l.id = n.org_level_id AND l.template_code = 'department' AND l.deleted_at IS NULL
-        WHERE n.id = $1 AND n.deleted_at IS NULL) AS yes`,
+      `SELECT EXISTS (SELECT 1 FROM org_nodes n WHERE n.id = $1 AND n.deleted_at IS NULL) AS yes`,
       [nodeId],
     );
     return rows[0]?.yes ?? false;

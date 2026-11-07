@@ -15,6 +15,7 @@ export { TreeChart, type ChartItem, type ChartTone } from './tree-chart';
 export { ToneBadge } from './tone-badge';
 export { Combobox, type ComboboxOption } from './combobox';
 export { MultiCombobox } from './multi-combobox';
+export { TreeSelect, type TreeSelectItem } from './tree-select';
 export { ConfirmDialog } from './confirm-dialog';
 export { EmptyState } from './empty-state';
 export { SectionCard } from './section-card';

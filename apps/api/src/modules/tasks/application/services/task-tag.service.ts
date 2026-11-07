@@ -38,7 +38,7 @@ export class TaskTagService {
     const reach = await this.reach(ctx, P.TasksTagCreate);
     const found = await this.tags.departments(reach.companyId, reach.nodeIds);
     const names = await this.org.describeNodes(found.map((d) => d.id));
-    return found.map((d) => ({ id: d.id, nameAr: names.get(d.id)?.nameAr ?? '', nameEn: names.get(d.id)?.nameEn ?? '' })).sort((a, b) => a.nameAr.localeCompare(b.nameAr, 'ar'));
+    return found.map((d) => ({ id: d.id, parentId: d.parentId, nameAr: names.get(d.id)?.nameAr ?? '', nameEn: names.get(d.id)?.nameEn ?? '', pathAr: names.get(d.id)?.pathAr ?? '', pathEn: names.get(d.id)?.pathEn ?? '' })).sort((a, b) => a.nameAr.localeCompare(b.nameAr, 'ar'));
   }
 
   async create(ctx: AccessContext, input: TaskTagInput): Promise<TaskTagAdminDto> {

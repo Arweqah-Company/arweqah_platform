@@ -232,7 +232,8 @@ export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own
 ];
 
 /**
- * What the head role of an organization level starts with (the manager of a unit sees and acts on their unit and the units below it).
+ * What the head role of an organization level starts with (the manager of a unit sees and acts on their unit and the units below it, and keeps their own account pages).
+ * Every module that arrives adds its team / unit-and-below keys here and in a migration that inserts them into the existing head roles (decision 238).
  * Copied once when the role is made; an administrator edits it afterwards on the roles page. `org.view` is left out: it reaches a whole company, not a subtree.
  */
 /** What the «collaborator base» role starts with: the person's own account and notifications, nothing of the company's data (a job title role adds the rest). */
@@ -240,13 +241,28 @@ export const COLLABORATOR_BASE_PERMISSIONS: { key: CorePermissionKey; scope: 'ow
   ...OWN_ACCOUNT_PERMISSIONS,
 ];
 
-export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'subtree' }[] = [
+export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'subtree' | 'all' }[] = [
+  // the leader's own account: profile (edit), security, access page, notifications
+  ...OWN_ACCOUNT_PERMISSIONS,
+  // people of the unit and below
   { key: CorePermission.EmployeesView, scope: 'subtree' },
   { key: CorePermission.EmployeesHistoryView, scope: 'subtree' },
+  // tasks of the unit and below
   { key: CorePermission.TasksTeamView, scope: 'subtree' },
   { key: CorePermission.TasksMatrixView, scope: 'subtree' },
+  { key: CorePermission.TasksTeamChangeStatus, scope: 'subtree' },
+  { key: CorePermission.TasksUpdate, scope: 'subtree' },
+  { key: CorePermission.TasksReopen, scope: 'subtree' },
   { key: CorePermission.TasksApprove, scope: 'subtree' },
   { key: CorePermission.TasksReject, scope: 'subtree' },
+  // tickets of the unit and below: see, answer, set up the unit's desk and its types, and the figures
+  { key: CorePermission.TicketsView, scope: 'subtree' },
+  { key: CorePermission.TicketsReply, scope: 'subtree' },
+  { key: CorePermission.TicketsSetupView, scope: 'subtree' },
+  { key: CorePermission.TicketsSetupEdit, scope: 'subtree' },
+  { key: CorePermission.TicketsTypeCreate, scope: 'subtree' },
+  { key: CorePermission.TicketsTypeUpdate, scope: 'subtree' },
+  { key: CorePermission.TicketsTypeDelete, scope: 'subtree' },
   { key: CorePermission.TicketsFiguresView, scope: 'subtree' },
 ];
 
