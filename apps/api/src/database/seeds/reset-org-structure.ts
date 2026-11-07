@@ -1,11 +1,12 @@
 import './seed-env';
 import 'reflect-metadata';
 import dataSource from '../data-source';
+import { assertResetAllowed } from './reset-org-guard';
 
 /**
  * Development only: empties the organization structure so the seed can build the owner's current file again
  * (`npm run db:reset:org`, then `npm run db:seed`). It deletes every unit, job title (with its role), ticket desk and ticket, and takes every
- * employee out of their unit and title (they stay, flagged «needs placement»). It refuses to run in production.
+ * employee out of their unit and title (they stay, flagged «needs placement»). It refuses to run unless NODE_ENV is development or test and the database host is local.
  */
 async function resetOrgStructure(db: typeof dataSource): Promise<void> {
   await db.transaction(async (m) => {
@@ -18,7 +19,7 @@ async function resetOrgStructure(db: typeof dataSource): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  if (process.env.NODE_ENV === 'production') throw new Error('The organization reset is for development only');
+  assertResetAllowed(process.env);
   const db = await dataSource.initialize();
   try {
     await resetOrgStructure(db);
