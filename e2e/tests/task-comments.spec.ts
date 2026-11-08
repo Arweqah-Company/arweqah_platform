@@ -16,7 +16,10 @@ async function newTask(page: Page, title: string): Promise<void> {
   await page.getByRole('button', { name: 'مهمة جديدة' }).click();
   const popup = page.getByRole('dialog', { name: 'مهمة جديدة' });
   await popup.getByLabel('العنوان *').fill(title);
+  // The dialog closes when the server has answered, which can take longer than the default wait on a busy machine: wait for the answer, then for the dialog.
+  const created = page.waitForResponse((r) => r.request().method() === 'POST' && new URL(r.url()).pathname === '/api/tasks', { timeout: 20_000 });
   await popup.getByRole('button', { name: 'إنشاء المهمة' }).click();
+  await created;
   await expect(popup).toHaveCount(0);
   await page.getByRole('link', { name: title }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText(title);

@@ -59,6 +59,9 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'org.unit.updated': a('organization', 'عدّل وحدة تنظيمية', 'Edited an organizational unit'),
   'org.unit.moved': a('organization', 'نقل وحدة تنظيمية', 'Moved an organizational unit'),
   'org.unit.deleted': a('organization', 'حذف وحدة تنظيمية', 'Deleted an organizational unit'),
+  'career.content.saved': a('organization', 'حفظ محتوى المسار الوظيفي لمسمى', 'Saved the career-path content of a job title'),
+  'career.content.published': a('organization', 'عيّن المسار الوظيفي لمسمى جاهزًا', 'Set the career path of a job title ready'),
+  'career.content.drafted': a('organization', 'أرجع المسار الوظيفي لمسمى إلى مسودة', 'Set the career path of a job title back to draft'),
   'org.levels.changed': a('organization', 'غيّر مستويات الهيكل', 'Changed the structure levels'),
   'org.levels.copied': a('organization', 'نسخ مستويات الهيكل من شركة أخرى', 'Copied the structure levels from another company'),
 

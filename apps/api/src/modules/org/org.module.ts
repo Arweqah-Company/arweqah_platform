@@ -48,7 +48,7 @@ import { OrgController } from './presentation/controllers/org.controller';
     { provide: OrgLeaderRepository, useClass: TypeOrmOrgLeaderRepository },
     { provide: JobTitleRepository, useClass: TypeOrmJobTitleRepository },
   ],
-  exports: [OrgDirectoryService, CompaniesService, OrgLevelsService, OrgNodesService, OrgTreeService, OrgChainService, OrgLeadersService],
+  exports: [OrgDirectoryService, JobTitlesService, CompaniesService, OrgLevelsService, OrgNodesService, OrgTreeService, OrgChainService, OrgLeadersService],
 })
 export class OrgModule implements OnModuleInit {
   constructor(private readonly catalog: PermissionCatalog) {}
