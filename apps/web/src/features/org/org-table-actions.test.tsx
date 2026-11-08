@@ -30,7 +30,7 @@ describe('Organization table: every action on a unit is on its row, as icons (FR
 
   it('shows the action of one key and nothing else', async () => {
     openOrgPage({ keys: [CorePermission.OrgUnitShare], adminMode: true });
-    expect(verbs(await rowOf('قسم الموارد البشرية'))).toEqual(['عرض', 'تغيير نوع الإدارة']);
+    await expectActions('قسم الموارد البشرية', ['عرض', 'تغيير نوع الإدارة']); // polls: the permissions load after the rows
   });
 
   it('shows only the view action to somebody without the organization keys, and none of the others in plain mode', async () => {
