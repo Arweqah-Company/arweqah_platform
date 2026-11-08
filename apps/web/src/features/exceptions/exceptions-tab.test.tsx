@@ -70,8 +70,10 @@ describe('Exceptions tab (FR-70)', () => {
   });
 
   it('shows no actions to someone who may only see the list', async () => {
-    open(['exceptions.view'], 0);
+    // «Export» is held too, only to know the permissions have arrived: its button appears with them, so the absence checked below is a real answer and not a read before they loaded.
+    open(['exceptions.view', 'exceptions.export']);
     await screen.findByText('علي حسن');
+    await screen.findByRole('button', { name: 'تصدير' });
     expect(screen.queryByRole('button', { name: 'تغيير تاريخ الانتهاء' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'سحب الاستثناء' })).not.toBeInTheDocument();
   });
