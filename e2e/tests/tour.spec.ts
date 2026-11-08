@@ -3,6 +3,7 @@ import { BasePage } from '../pages/base.page';
 import { ListPage } from '../pages/list.page';
 import { adminModeOffViaApi, adminModeOnViaApi } from '../support/admin-mode';
 import { ADMIN_STATE } from '../support/fixtures';
+import { ensureTeamSample } from '../support/org-data';
 
 class Screen extends BasePage {}
 test.use({ storageState: ADMIN_STATE });
@@ -29,6 +30,7 @@ test.describe('Welcome tour (FR-67)', () => {
     // The "open the task" step points at the first row of the list: the list must have one.
     const made = await page.request.post('/api/tasks', { data: { title: 'Tour sample task' }, headers: { origin: 'http://localhost:4173' } });
     expect(made.ok()).toBe(true);
+    await ensureTeamSample(page, test.info().project.name); // the card step points at the first title and the structure step at the first unit
     await adminModeOffViaApi(page); // the full-structure step belongs to those who hold the key, which works only in admin mode
     await setTour(page, 'general', 'restart');
     await page.goto('/');
@@ -116,6 +118,7 @@ test.describe('Welcome tour: the job-titles page, the title card and the charter
 
   test('the administration tour opens the first unit on its Charter tab and points at it', async ({ page }) => {
     test.setTimeout(120_000);
+    await ensureTeamSample(page, test.info().project.name);
     await setTour(page, 'admin', 'restart');
     await adminModeOnViaApi(page);
     await page.goto('/');
