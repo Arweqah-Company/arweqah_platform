@@ -61,7 +61,7 @@ function useOpenTitle(rows: CareerTitleListItemDto[]) {
     if (dirty && id !== selected?.id) setPending(next);
     else setCurrent(next);
   };
-  const edited = (isDirty: boolean) => { setDirty(isDirty); if (isDirty && !current) setCurrent(selected); };
+  const edited = (isDirty: boolean) => { setDirty(isDirty); if (isDirty) setCurrent(selected); };
   const discard = () => { setCurrent(pending); setPending(undefined); };
   return { selected, choose, setDirty: edited, asking: !!pending, cancel: () => setPending(undefined), discard };
 }

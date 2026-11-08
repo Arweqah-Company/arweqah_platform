@@ -148,6 +148,19 @@ describe('The career-path content page: what the panel keeps and what an error h
     expect(screen.getByLabelText('ملخص الوظيفة')).toHaveValue('ملخص لم يُحفظ');
   });
 
+  it('pins the title the panel shows when editing starts, even if an earlier choice was taken out of the list by a search', async () => {
+    open([...ALL, CorePermission.CareerContentEdit]);
+    await screen.findByLabelText('ملخص الوظيفة');
+    await pick('محاسب');
+    await screen.findByRole('heading', { level: 3, name: 'محاسب' });
+    server.use(http.get('*/api/career/titles', ({ request }) => HttpResponse.json({ items: new URL(request.url).searchParams.get('search') ? [careerRow({ id: 't9', nameAr: 'مراجع حسابات', nameEn: 'Auditor', status: 'ready' })] : [careerRow()], total: 1, page: 1, pageSize: 20 })));
+    fireEvent.change(screen.getByPlaceholderText('ابحث بالمسمى أو الرمز'), { target: { value: 'مراجع' } });
+    await screen.findByRole('heading', { level: 3, name: 'مراجع حسابات' });
+    fireEvent.change(await screen.findByLabelText('ملخص الوظيفة'), { target: { value: 'تعديل على البديل' } });
+    expect(await screen.findByRole('heading', { level: 3, name: 'مراجع حسابات' })).toBeInTheDocument();
+    expect(screen.getByLabelText('ملخص الوظيفة')).toHaveValue('تعديل على البديل');
+  });
+
   it('does not ask when nothing was edited', async () => {
     open([...ALL, CorePermission.CareerContentEdit]);
     await screen.findByLabelText('ملخص الوظيفة');
