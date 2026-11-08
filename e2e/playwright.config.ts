@@ -6,10 +6,20 @@ export const WEB_URL = 'http://localhost:4173';
 export const API_PORT = '3100';
 const API_ENV = { NODE_ENV: 'test', DB_NAME: E2E_DB_NAME, PORT: API_PORT, API_URL: `http://localhost:${API_PORT}`, SIGN_IN_RATE_LIMIT: '1000', SMTP_HOST: '127.0.0.1', SMTP_PORT: '1', SMTP_USER: '', SMTP_PASSWORD: '' };
 
+/** `2/4` → `{ current: 2, total: 4 }`; nothing (or anything else) runs every test. */
+function shardFromEnv(value: string | undefined): { current: number; total: number } | null {
+  const match = /^(\d+)\/(\d+)$/.exec(value ?? '');
+  if (!match) return null;
+  const [current, total] = [Number(match[1]), Number(match[2])];
+  return current >= 1 && current <= total ? { current, total } : null;
+}
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: false, // one database for the whole run (its own, apart from the API e2e suite's)
   workers: 1,
+  // `E2E_SHARD=2/4` runs the second quarter of the tests (the CI splits the suite over four runners, each with its own database).
+  shard: shardFromEnv(process.env.E2E_SHARD),
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['html', { open: 'never' }], ['list']] : 'list',
   globalSetup: './global-setup.ts',

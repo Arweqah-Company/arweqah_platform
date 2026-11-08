@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-08 — The browser suite runs on four CI runners
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 253 | **The `e2e-web` job of `ci.yml` is a matrix of four shards** (`E2E_SHARD=<n>/4`, read by `e2e/playwright.config.ts` into Playwright's `shard`); each runner has its own Postgres service and its own built servers, so the single-database rule (one worker per database) still holds. Report artifacts are named per shard. Locally nothing changes: without `E2E_SHARD` every test runs, and `npm run test:e2e:web` / `npm run verify` are as before. | One runner took about 30 minutes for about 200 tests (desktop and mobile, one worker, one database), and every pull request waited for it. The shards split by file (66 / 37 / 64 / 35 tests), so the wall time is the slowest shard's. It costs some extra Actions minutes (each runner repeats `npm ci` and the browser install), a trade against decision 235. No status check is required by name in the repository rules, so renaming the job to `e2e-web (1)`…`(4)` blocks nothing. | A shard is much slower than the others (rebalance by moving files or use more shards), or the minutes matter more than the wait. |
+
 ## 2026-11-07 — The real structure and every job title are seeded from the owner's official file
 
 | # | Decision | Why | Revisit when |
