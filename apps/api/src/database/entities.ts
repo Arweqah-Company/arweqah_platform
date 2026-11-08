@@ -33,7 +33,8 @@ import { ORG_ENTITIES } from '../modules/org/domain/entities/org.entities';
 import { TASK_ENTITIES } from '../modules/tasks/domain/entities/task.entities';
 import { TASK_COMMENT_ENTITIES } from '../modules/tasks/domain/entities/task-comment.entities';
 import { TOUR_ENTITIES } from '../modules/tour/domain/entities/tour.entities';
-import { CAREER_PROFILE_ENTITIES } from '../modules/career-profile/domain/entities/career-profile.entities';
+import { CAREER_ACKNOWLEDGEMENT_ENTITIES } from '../modules/career-profile/domain/entities/career-acknowledgement.entities';
+import { CAREER_CONTENT_ENTITIES } from '../modules/career-profile/domain/entities/career-profile.entities';
 import { TICKET_ENTITIES } from '../modules/tickets/domain/entities/ticket.entities';
 
 /**
@@ -79,7 +80,8 @@ export const ENTITIES = [
   ...TASK_ENTITIES,
   ...TASK_COMMENT_ENTITIES,
   ...TOUR_ENTITIES,
-  ...CAREER_PROFILE_ENTITIES,
+  ...CAREER_CONTENT_ENTITIES,
+  ...CAREER_ACKNOWLEDGEMENT_ENTITIES,
   Employee,
   EmployeeAssignment,
 ];

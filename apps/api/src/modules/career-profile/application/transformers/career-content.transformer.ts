@@ -1,4 +1,5 @@
-import { EMPTY_CAREER_CONTENT, type CareerTitleContentDto } from '@arweqah-platform/shared';
+import { randomUUID } from 'node:crypto';
+import { EMPTY_CAREER_CONTENT, type CareerContent, type CareerTitleContentDto } from '@arweqah-platform/shared';
 import { careerReadinessProblems } from '../../domain/rules/career-readiness.rules';
 import type { StoredCareerContent, TitleIdentity } from '../../domain/types/career-profile.types';
 
@@ -16,4 +17,10 @@ export function toCareerContentDto(title: TitleIdentity, stored: StoredCareerCon
     problems: careerReadinessProblems(content),
     updatedAt: stored ? stored.updatedAt.toISOString() : null,
   };
+}
+
+/** Gives every learning unit that has no id its own (a unit keeps its id for good: the employee's progress will point at it). */
+export function withUnitIds(content: CareerContent, newId: () => string = randomUUID): CareerContent {
+  const periods = content.learning.periods.map((p) => ({ ...p, units: p.units.map((u) => ({ ...u, id: u.id ?? newId() })) }));
+  return { ...content, learning: { ...content.learning, periods } };
 }

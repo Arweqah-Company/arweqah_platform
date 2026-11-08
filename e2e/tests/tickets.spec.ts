@@ -6,6 +6,13 @@ import { freshCode } from '../support/totp';
 import { choose } from '../support/select';
 
 class Screen extends BasePage {}
+
+/** Clicks a dialog button and waits for the server's answer to the write it sends: the screen changes only after it, which can take longer than the default wait on a busy machine. */
+async function confirmInDialog(page: Page, name: string): Promise<void> {
+  const answered = page.waitForResponse((r) => ['POST', 'PUT', 'PATCH'].includes(r.request().method()) && r.url().includes('/api/tickets/'), { timeout: 20_000 });
+  await page.getByRole('dialog').getByRole('button', { name }).click();
+  await answered;
+}
 test.use({ storageState: ADMIN_STATE });
 
 const TURN_ON = 'تفعيل وضع مدير المنصة';
@@ -55,14 +62,14 @@ test.describe('Tickets (FR-36 … FR-41)', () => {
     await expect(page.getByText('جاري العمل عليها')).toBeVisible();
 
     await page.getByRole('button', { name: 'طلب الإغلاق' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'طلب الإغلاق' }).click();
+    await confirmInDialog(page, 'طلب الإغلاق');
     await expect(page.getByText('بانتظار تأكيد الإغلاق').first()).toBeVisible();
     await page.getByRole('button', { name: 'تأكيد التنفيذ' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'تأكيد وإغلاق' }).click();
+    await confirmInDialog(page, 'تأكيد وإغلاق');
     await expect(page.getByText('مغلقة').first()).toBeVisible();
     await expect(page.getByText(/يمكنك إعادة الفتح خلال/)).toBeVisible();
     await page.getByRole('button', { name: 'إعادة فتح' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'إعادة الفتح' }).click();
+    await confirmInDialog(page, 'إعادة الفتح');
     await expect(page.getByText('مفتوحة').first()).toBeVisible();
 
     await page.goto('/tickets');

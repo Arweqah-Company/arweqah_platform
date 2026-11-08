@@ -1,5 +1,6 @@
 import type { CareerContentStatus } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../../common/domain/transaction-context';
+import type { CodedContent } from '../rules/learning-links.rules';
 import type { ContentWrite, StoredCareerContent } from '../types/career-profile.types';
 
 export abstract class CareerContentRepository {
@@ -9,5 +10,7 @@ export abstract class CareerContentRepository {
   abstract lock(titleId: string, tx: TransactionContext): Promise<StoredCareerContent | null>;
   /** Saves the content at `version` (creating the row at version 1) and keeps a snapshot of it. Returns the stored row. */
   abstract save(write: ContentWrite, tx: TransactionContext): Promise<StoredCareerContent>;
+  /** The titles with these codes (upper case), each with its content or null while nothing was saved. */
+  abstract findByCodes(codes: readonly string[]): Promise<Map<string, CodedContent>>;
   abstract setStatus(titleId: string, status: CareerContentStatus, actorId: string, tx: TransactionContext): Promise<void>;
 }

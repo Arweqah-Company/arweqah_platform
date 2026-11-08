@@ -78,8 +78,15 @@ export const CorePermission = {
   TourSettingsReset: 'tour.settings_reset',
   TourSettingsExport: 'tour.settings_export',
   // Career path: the content of each job title (the page «career path content», FR-113)
+  CareerProfileView: 'career_profile.view',
+  CareerLearningExport: 'career_learning.export',
+  CareerAcknowledgeCreate: 'career_acknowledge.create',
+  CareerAcknowledgeReopen: 'career_acknowledge.reopen',
   CareerContentView: 'career_content.view',
   CareerContentEdit: 'career_content.edit',
+  CareerContentImport: 'career_content.import',
+  CareerContentExport: 'career_content.export',
+  CareerTitlefileUpload: 'career_titlefile.upload',
   CareerTitlefilePublish: 'career_titlefile.publish',
   CareerTitlefilePreview: 'career_titlefile.preview',
   // My account
@@ -199,6 +206,9 @@ const OWN_ACCOUNT_PERMISSIONS: { key: CorePermissionKey; scope: 'all' }[] = [
   { key: CorePermission.MyAccessExport, scope: 'all' },
   { key: CorePermission.NotificationsView, scope: 'all' },
   { key: CorePermission.NotificationsMarkRead, scope: 'all' },
+  { key: CorePermission.CareerProfileView, scope: 'all' },
+  { key: CorePermission.CareerAcknowledgeCreate, scope: 'all' },
+  { key: CorePermission.CareerLearningExport, scope: 'all' },
 ];
 
 /**

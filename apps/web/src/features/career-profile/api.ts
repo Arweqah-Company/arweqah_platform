@@ -1,0 +1,65 @@
+import type {
+  CareerContent,
+  CareerListStatus,
+  CareerTitleContentDto,
+  CareerTitleListItemDto,
+  ExtractTitleFileInput,
+  ImportLearningLinksInput,
+  LearningImportResultDto,
+  MyCareerProfileDto,
+  ReopenAcknowledgementInput,
+  ReopenAcknowledgementResultDto,
+  TitleFileResultDto,
+} from '@arweqah-platform/shared';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '@/core/api/api-client';
+
+export const MY_CAREER_KEY = ['career-profile', 'me'] as const;
+
+/** The signed-in employee's own career path (the page and the gate read the same answer). */
+export const useMyCareer = (enabled = true) =>
+  useQuery({ queryKey: MY_CAREER_KEY, enabled, staleTime: 30_000, queryFn: () => apiClient.get<MyCareerProfileDto>('/career-profile/me') });
+
+/** The version the person read; the answer replaces the cached path so the gate lifts at once. */
+export function useAcknowledge() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (contentVersion: number) => apiClient.post<MyCareerProfileDto>('/career-profile/me/acknowledge', { contentVersion }),
+    onSuccess: (me) => client.setQueryData(MY_CAREER_KEY, me),
+  });
+}
+
+export const CAREER_TITLES_KEY = 'career-titles';
+/** The key of the HR list (`useServerList` caches it under the list's name). */
+export const CAREER_LIST_KEY = 'career-content';
+
+/** The career content of one title (read to preview it). */
+export const useTitleContent = (titleId: string | null) =>
+  useQuery({ queryKey: [CAREER_TITLES_KEY, 'content', titleId], enabled: !!titleId, queryFn: () => apiClient.get<CareerTitleContentDto>(`/career/titles/${titleId}/content`) });
+
+/** Every write on a title's path refreshes the list, the content and the person's own path. */
+function useTitleWrite<TIn, TOut>(titleId: string, write: (input: TIn) => Promise<TOut>) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: write,
+    onSuccess: () => Promise.all([CAREER_TITLES_KEY, CAREER_LIST_KEY, 'career-profile'].map((key) => client.invalidateQueries({ queryKey: [key] }))),
+  });
+}
+
+/** Saves the whole document; `expectedVersion` makes a save on an older version a 409 instead of overwriting a newer one. */
+export const useSaveContent = (titleId: string) =>
+  useTitleWrite(titleId, (input: { content: CareerContent; expectedVersion: number }) => apiClient.put<CareerTitleContentDto>(`/career/titles/${titleId}/content`, input));
+
+export const useSetReady = (titleId: string) => useTitleWrite(titleId, () => apiClient.post<CareerTitleContentDto>(`/career/titles/${titleId}/publish`, {}));
+export const useSetDraft = (titleId: string) => useTitleWrite(titleId, () => apiClient.post<CareerTitleContentDto>(`/career/titles/${titleId}/draft`, {}));
+export const useReopenAck = (titleId: string) =>
+  useTitleWrite(titleId, (input: ReopenAcknowledgementInput) => apiClient.post<ReopenAcknowledgementResultDto>(`/career/titles/${titleId}/reopen-acknowledgement`, input));
+
+/** Reads a title file: with `dryRun` it only reports what the file holds. */
+export const readTitleFile = (titleId: string, input: ExtractTitleFileInput) => apiClient.post<TitleFileResultDto>(`/career/titles/${titleId}/file`, input);
+export const useReadTitleFile = (titleId: string) => useTitleWrite(titleId, (input: ExtractTitleFileInput) => readTitleFile(titleId, input));
+
+/** The learning-links sheet: with `dryRun` it only reports what each row would do. */
+export const importLearningLinks = (input: ImportLearningLinksInput) => apiClient.post<LearningImportResultDto>('/career/learning-links', input);
+
+export type { CareerListStatus, CareerTitleListItemDto };

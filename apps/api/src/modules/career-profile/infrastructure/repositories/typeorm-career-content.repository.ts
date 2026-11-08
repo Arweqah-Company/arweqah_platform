@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, EntityManager } from 'typeorm';
-import type { CareerContentStatus } from '@arweqah-platform/shared';
+import { EMPTY_CAREER_LEARNING, type CareerContent, type CareerContentStatus } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../../common/domain/transaction-context';
 import { managerOf } from '../../../../common/infrastructure/typeorm-transaction-runner';
 import { CareerContentRepository } from '../../domain/contracts/career-content.repository';
 import { CareerTitleContent, CareerTitleContentVersion } from '../../domain/entities/career-profile.entities';
+import type { CodedContent } from '../../domain/rules/learning-links.rules';
 import type { ContentWrite, StoredCareerContent } from '../../domain/types/career-profile.types';
 
 @Injectable()
@@ -36,11 +37,25 @@ export class TypeOrmCareerContentRepository extends CareerContentRepository {
     return toStored(await m.findOneOrFail(CareerTitleContent, { where: { titleId } }))!;
   }
 
+  async findByCodes(codes: readonly string[]): Promise<Map<string, CodedContent>> {
+    if (codes.length === 0) return new Map();
+    const rows: { id: string; code: string; version: number | null; content: CodedContent['content'] }[] = await this.ds.query(
+      `SELECT j.id, j.code, c.version, c.content FROM job_titles j LEFT JOIN career_title_content c ON c.title_id = j.id WHERE j.deleted_at IS NULL AND j.code = ANY($1)`,
+      [codes],
+    );
+    return new Map(rows.map((r) => [r.code.toUpperCase(), { titleId: r.id, version: r.version ?? 0, content: r.content === null ? null : normalise(r.content) }]));
+  }
+
   async setStatus(titleId: string, status: CareerContentStatus, actorId: string, tx: TransactionContext): Promise<void> {
     await this.m(tx).update(CareerTitleContent, { titleId }, { status, updatedBy: actorId });
   }
 }
 
 function toStored(row: CareerTitleContent | null): StoredCareerContent | null {
-  return row && { titleId: row.titleId, version: row.version, status: row.status, content: row.content, updatedAt: row.updatedAt };
+  return row && { titleId: row.titleId, version: row.version, status: row.status, content: normalise(row.content), updatedAt: row.updatedAt };
+}
+
+/** Content saved before the learning plan joined the document has no `learning`: it reads as an empty plan. */
+function normalise(content: CareerContent): CareerContent {
+  return { ...content, learning: content.learning ?? EMPTY_CAREER_LEARNING };
 }

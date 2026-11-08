@@ -2,6 +2,7 @@ import { Global, Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PermissionCatalog } from '../../core/access/application/permission-catalog';
 import { LookupsModule } from '../lookups/lookups.module';
+import { EmployeeCareerPort } from '../career-profile/domain/contracts/employee-career.port';
 import { EmployeePlacementPort } from '../org/domain/contracts/employee-placement.port';
 import { OrgModule } from '../org/org.module';
 import { EmployeeTransformer } from './application/transformers/employee.transformer';
@@ -29,6 +30,7 @@ import { EmployeesService } from './application/services/employees.service';
 import { Employee } from './domain/entities/employee.entity';
 import { DIRECTORY_PERMISSIONS, EMPLOYEE_PERMISSIONS } from './domain/permissions/employee.permissions';
 import { EmployeeRepository } from './domain/contracts/employee.repository';
+import { EmployeeCareerAdapter } from './infrastructure/adapters/employee-career.adapter';
 import { EmployeePlacementAdapter } from './infrastructure/adapters/employee-placement.adapter';
 import { TypeOrmEmployeeRepository } from './infrastructure/repositories/typeorm-employee.repository';
 import { EmployeesController } from './presentation/controllers/employees.controller';
@@ -60,8 +62,9 @@ import { ProfileController } from './presentation/controllers/profile.controller
     { provide: EmployeeAssignmentRepository, useClass: TypeOrmEmployeeAssignmentRepository },
     { provide: EmployeeRepository, useClass: TypeOrmEmployeeRepository },
     { provide: EmployeePlacementPort, useClass: EmployeePlacementAdapter },
+    { provide: EmployeeCareerPort, useClass: EmployeeCareerAdapter },
   ],
-  exports: [EmployeePlacementPort, EmployeeLifecycleJob, EmployeeAssignmentsService, EmployeeAutoManagerService],
+  exports: [EmployeePlacementPort, EmployeeCareerPort, EmployeeLifecycleJob, EmployeeAssignmentsService, EmployeeAutoManagerService],
 })
 export class EmployeesModule implements OnModuleInit {
   constructor(private readonly catalog: PermissionCatalog) {}

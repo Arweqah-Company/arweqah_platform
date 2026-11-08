@@ -300,6 +300,38 @@
         "track": "Track",
         "vacant": "Vacancy"
       }
+    },
+    "career-content": {
+      "name": "Career-path content",
+      "columns": {
+        "name": "Title",
+        "code": "Code",
+        "unit": "Unit",
+        "grade": "Grade",
+        "track": "Track",
+        "status": "Path state",
+        "holders": "Holders"
+      },
+      "filters": {
+        "status": "Path state",
+        "grade": "Grade",
+        "track": "Track",
+        "unit": "Unit"
+      }
+    },
+    "career-learning": {
+      "name": "Learning units of my path",
+      "columns": {
+        "priority": "Priority",
+        "unit": "Unit",
+        "duration": "Duration",
+        "language": "Language",
+        "link": "Link"
+      },
+      "filters": {
+        "priority": "Priority",
+        "language": "Language"
+      }
     }
   },
   "listHint": "The first column (the name) always stays.",

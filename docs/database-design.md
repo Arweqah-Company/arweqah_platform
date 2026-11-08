@@ -1075,8 +1075,28 @@ erDiagram
     jsonb content
     uuid saved_by
   }
+  career_acknowledgements {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid employee_id FK,UK
+    uuid title_id FK,UK
+    integer content_version UK
+    timestamp_with_time_zone acknowledged_at
+  }
+  career_ack_reopenings {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid title_id FK
+    character_varying reason
+    uuid reopened_by
+  }
   job_titles ||--o| career_title_content : "title_id"
   job_titles ||--o{ career_title_content_versions : "title_id"
+  job_titles ||--o{ career_acknowledgements : "title_id"
+  job_titles ||--o{ career_ack_reopenings : "title_id"
+  employees ||--o{ career_acknowledgements : "employee_id"
 ```
 
 ## Part 2 — What each table does
@@ -1212,3 +1232,5 @@ erDiagram
 |---|---|
 | `career_title_content` | The career-path content of one job title (one row per title): `content` (jsonb: summary, indicators, responsibilities, ladder, level path, competencies, required actions, acknowledgement sentence), `version` (grows by one per save), `status` (`draft` or `ready`: only a ready path is shown to the title's holders). |
 | `career_title_content_versions` | A snapshot of the content at each version (`title_id` + `version` unique), kept so what an employee acknowledged can be shown again. |
+| `career_acknowledgements` | An employee's acknowledgement of the career path of a title at a content version (`employee_id` + `title_id` + `content_version` unique; acknowledging the same version again only refreshes the time). The platform is held back until the latest one of the employee's title is later than the latest reopening. |
+| `career_ack_reopenings` | HR asked the holders of a title to acknowledge again, with the reason: whoever acknowledged before it is asked once more. |
