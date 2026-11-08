@@ -1,7 +1,7 @@
 import type { CareerContent } from '@arweqah-platform/shared';
 import { Plus, Trash2 } from 'lucide-react';
-import type { ReactNode } from 'react';
-import { Button, RowAction } from '@/shared/ui';
+import { useState, type ComponentProps, type ReactNode } from 'react';
+import { Button, RowAction, Textarea } from '@/shared/ui';
 
 /** A block of an editor: a heading, its rows, and the «add» button beneath them. */
 export function EditorBlock({ title, hint, onAdd, addLabel, children }: { title: string; hint?: string; onAdd?: () => void; addLabel?: string; children: ReactNode }) {
@@ -30,6 +30,16 @@ export function EditorRow({ children, onRemove, removeLabel }: { children: React
 /** One line per item, as in the title file: the text of a list is edited as lines (empty lines are dropped). */
 export const toLines = (items: readonly string[]): string => items.join('\n');
 export const fromLines = (text: string): string[] => text.split('\n').map((l) => l.trim()).filter(Boolean);
+
+/**
+ * A textarea that holds a list as lines. It keeps what the person typed (a trailing space, a new empty line) while the list it hands back is
+ * clean, and shows the list again when it is changed from outside (another row, a reset).
+ */
+export function LinesTextarea({ lines, onLines, ...rest }: { lines: readonly string[]; onLines: (next: string[]) => void } & Omit<ComponentProps<typeof Textarea>, 'value' | 'onChange'>) {
+  const [text, setText] = useState(() => toLines(lines));
+  if (toLines(fromLines(text)) !== toLines(lines)) setText(toLines(lines));
+  return <Textarea {...rest} value={text} onChange={(e) => { setText(e.target.value); onLines(fromLines(e.target.value)); }} />;
+}
 
 /** Replaces one item of a list. */
 export const replaceAt = <T,>(list: readonly T[], index: number, value: T): T[] => list.map((item, i) => (i === index ? value : item));

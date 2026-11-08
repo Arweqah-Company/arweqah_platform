@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { FormField, Input, Textarea } from '@/shared/ui';
-import { EditorBlock, EditorRow, fromLines, removeAt, replaceAt, toLines, contentSetter, type EditorProps } from './editor-parts';
+import { EditorBlock, EditorRow, LinesTextarea, removeAt, replaceAt, contentSetter, type EditorProps } from './editor-parts';
 
 /** The job description: the summary, the indicators (one governing) and the responsibilities with their tasks. */
 export function DescriptionEditor({ content, onChange }: EditorProps) {
@@ -33,7 +33,7 @@ export function DescriptionEditor({ content, onChange }: EditorProps) {
               {(p) => <Input {...p} maxLength={200} value={g.title} onChange={(e) => set('responsibilities', replaceAt(content.responsibilities, i, { ...g, title: e.target.value }))} />}
             </FormField>
             <FormField label={t('editor.tasks')} hint={t('editor.oneLinePerItem')}>
-              {(p) => <Textarea {...p} rows={3} value={toLines(g.tasks)} onChange={(e) => set('responsibilities', replaceAt(content.responsibilities, i, { ...g, tasks: fromLines(e.target.value) }))} />}
+              {(p) => <LinesTextarea {...p} rows={3} lines={g.tasks} onLines={(tasks) => set('responsibilities', replaceAt(content.responsibilities, i, { ...g, tasks }))} />}
             </FormField>
           </EditorRow>
         ))}

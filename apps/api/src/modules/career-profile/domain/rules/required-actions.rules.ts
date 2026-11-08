@@ -6,7 +6,8 @@ export interface ParsedRequiredActions {
 
 const MONTHS: Readonly<Record<string, number>> = { يناير: 1, فبراير: 2, مارس: 3, أبريل: 4, مايو: 5, يونيو: 6, يوليو: 7, أغسطس: 8, سبتمبر: 9, أكتوبر: 10, نوفمبر: 11, ديسمبر: 12 };
 const MONTH_AND_YEAR = /(يناير|فبراير|مارس|أبريل|مايو|يونيو|يوليو|أغسطس|سبتمبر|أكتوبر|نوفمبر|ديسمبر)\s*(\d{4})/g;
-const DAY_BEFORE = /(\d{1,2})\s+و?$/;
+/** A day before the month; the lookbehind keeps the end of an earlier year («2026 و») from being read as one. */
+const DAY_BEFORE = /(?<!\d)(\d{1,2})\s+و?$/;
 /** A heading is a short line (the field of the career content holds 160 characters). */
 const HEADING_MAX = 160;
 

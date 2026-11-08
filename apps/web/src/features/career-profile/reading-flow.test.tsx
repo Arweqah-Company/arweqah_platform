@@ -55,6 +55,12 @@ describe('Reading the career path in order before acknowledging it (FR-112, deci
     expect(screen.getByRole('button', { name: 'أقرّ وأتابع' })).toBeDisabled();
   });
 
+  it('draws «Previous» with the arrow that points right and «Next» with the one that points left in Arabic (no mirroring on top of them)', async () => {
+    open();
+    await screen.findByText(careerContent.summary);
+    expect(document.querySelector('svg[class*="rtl:-scale-x-100"]')).toBeNull();
+  });
+
   it('explains a click on a locked tab and does not open it', async () => {
     open();
     await screen.findByText(careerContent.summary);

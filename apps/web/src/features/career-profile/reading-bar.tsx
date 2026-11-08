@@ -30,8 +30,8 @@ function Navigation({ step, reached, atEnd, onMove, onNext }: Pick<Props, 'step'
       <span className="flex-1 max-sm:hidden" />
       {!nextOk && step !== 'ack' && <span role="status" className="text-sm text-muted max-sm:order-last max-sm:basis-full">{t('gate.scrollHint')}</span>}
       <div className="flex gap-2 max-sm:w-full [&>*]:max-sm:flex-1">
-        <Button variant="secondary" disabled={!previous} onClick={() => previous && onMove(previous)}><ArrowRight className="size-4 rtl:-scale-x-100 ltr:rotate-180" aria-hidden />{t('gate.previous')}</Button>
-        {next && <Button disabled={!nextOk} onClick={onNext}>{t(next === 'ack' ? 'gate.nextAck' : 'gate.next', { section: next === 'ack' ? '' : t(`sections.${next}`) })}<ArrowLeft className="size-4 rtl:-scale-x-100 ltr:rotate-180" aria-hidden /></Button>}
+        <Button variant="secondary" disabled={!previous} onClick={() => previous && onMove(previous)}><ArrowRight className="size-4 ltr:rotate-180" aria-hidden />{t('gate.previous')}</Button>
+        {next && <Button disabled={!nextOk} onClick={onNext}>{t(next === 'ack' ? 'gate.nextAck' : 'gate.next', { section: next === 'ack' ? '' : t(`sections.${next}`) })}<ArrowLeft className="size-4 ltr:rotate-180" aria-hidden /></Button>}
       </div>
     </div>
   );

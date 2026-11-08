@@ -58,8 +58,25 @@ describe('Error pages: 401, 403, 404 (FR-30)', () => {
     const { unmount } = renderRoute(routes('/broken'), '/p');
     expect(await screen.findByRole('heading', { level: 1, name: 'حدث خطأ غير متوقع' })).toBeInTheDocument();
     unmount();
+    let answered = false;
+    server.use(http.get('*/api/missing', () => { answered = true; return HttpResponse.json({ code: 'not_found', message: 'x' }, { status: 404 }); }));
     renderRoute(routes('/missing'), '/p');
-    await vi.waitFor(() => expect(screen.getByText('تحميل')).toBeInTheDocument());
+    await vi.waitFor(() => expect(answered).toBe(true));
+    await new Promise((resolve) => setTimeout(resolve, 50));
     expect(screen.queryByRole('heading', { level: 1, name: 'حدث خطأ غير متوقع' })).not.toBeInTheDocument();
+  });
+
+  it('500: the page comes back when the query that failed answers well later (a refetch, a retry), without leaving the page', async () => {
+    let healthy = false;
+    server.use(http.get('*/api/me', () => HttpResponse.json(me([]))));
+    server.use(http.get('*/api/flaky', () => (healthy ? HttpResponse.json({ ok: true }) : HttpResponse.json({ code: 'internal', message: 'x' }, { status: 500 }))));
+    const Shell = () => {
+      const { refetch } = useQuery({ queryKey: ['flaky'], queryFn: () => apiClient.get<{ ok: boolean }>('/flaky'), retry: false });
+      return <><button onClick={() => { healthy = true; void refetch(); }}>إعادة</button><RouteOutlet /></>;
+    };
+    renderRoute([{ path: '/p', element: <Shell />, children: [{ index: true, element: <p>الصفحة</p> }] }], '/p');
+    expect(await screen.findByRole('heading', { level: 1, name: 'حدث خطأ غير متوقع' })).toBeInTheDocument();
+    screen.getByRole('button', { name: 'إعادة' }).click();
+    expect(await screen.findByText('الصفحة')).toBeInTheDocument();
   });
 });

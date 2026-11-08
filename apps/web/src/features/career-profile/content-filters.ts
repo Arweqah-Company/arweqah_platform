@@ -18,7 +18,7 @@ export function useContentFilterFields(): FilterField[] {
   const units = (useUnits().data?.nodes ?? []).map((n) => ({ value: n.id, label: `${(ar ? n.nameAr : n.nameEn) || n.nameAr}${n.code ? ` (${n.code})` : ''}` }));
   return [
     { id: 'status', label: t('content.columns.status'), type: 'select', options: CAREER_LIST_STATUSES.map((s) => ({ value: s, label: t(`content.status.${s}`) })) },
-    { id: 'orgNodeId', label: t('content.columns.unit'), type: 'select', options: units },
+    { id: 'unit', label: t('content.columns.unit'), type: 'select', options: units },
     { id: 'grade', label: t('content.columns.grade'), type: 'select', options: GRADES.map((g) => ({ value: String(g), label: `L${g}` })) },
     { id: 'track', label: t('content.columns.track'), type: 'select', options: TITLE_TRACKS.map((x) => ({ value: x, label: t(`content.tracks.${x}`) })) },
   ];
@@ -28,7 +28,7 @@ export function useContentFilterFields(): FilterField[] {
 export function toContentQuery(values: FilterValues): Partial<Omit<CareerTitlesQuery, 'page' | 'pageSize' | 'search'>> {
   return {
     status: (values.status || undefined) as CareerListStatus | undefined,
-    orgNodeId: values.orgNodeId || undefined,
+    orgNodeId: values.unit || undefined,
     grade: values.grade ? Number(values.grade) : undefined,
     track: (values.track || undefined) as TitleTrack | undefined,
   };

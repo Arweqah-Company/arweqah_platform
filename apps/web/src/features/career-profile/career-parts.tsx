@@ -17,8 +17,8 @@ export function Indicators({ kpis }: { kpis: CareerContent['kpis'] }) {
   const { t } = useTranslation('career-profile');
   return (
     <ul className="flex list-disc flex-col gap-1.5 ps-5 text-fg">
-      {kpis.map((k) => (
-        <li key={k.text}>
+      {kpis.map((k, i) => (
+        <li key={`${i}-${k.text}`}>
           {k.text} {k.governing && <Badge tone="info">{t('description.governing')}</Badge>}
         </li>
       ))}
@@ -31,11 +31,11 @@ export function Responsibilities({ groups }: { groups: CareerContent['responsibi
   return (
     <div className="flex flex-col gap-2">
       {groups.map((g, i) => (
-        <details key={g.title} open={i === 0} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+        <details key={`${i}-${g.title}`} open={i === 0} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
           <summary className="cursor-pointer font-medium text-fg">{g.title}</summary>
           <ul className="mt-2 flex list-disc flex-col gap-1 ps-5 text-fg">
-            {g.tasks.map((task) => (
-              <li key={task}>{task}</li>
+            {g.tasks.map((task, n) => (
+              <li key={`${n}-${task}`}>{task}</li>
             ))}
           </ul>
         </details>

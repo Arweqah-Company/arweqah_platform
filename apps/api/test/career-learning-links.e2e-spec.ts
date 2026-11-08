@@ -47,6 +47,14 @@ describe('The learning-links sheet (FR-113)', () => {
     expect((await s.stored()).content.learning.periods[0]!.units[0]!.link).toBe('');
   });
 
+  it('reads content stored before the learning plan existed as an empty plan: the sheet rejects the row (no_period) instead of failing, and the content is readable', async () => {
+    const s = await setup();
+    await t.db.query(`UPDATE career_title_content SET content = content - 'learning' WHERE title_id = $1`, [s.rep.id]);
+    const res = (await s.post([s.row()]).expect(200)).body as LearningImportResultDto;
+    expect(res).toMatchObject({ rejected: 1, updated: 0 });
+    expect((await s.stored()).content.learning).toEqual({ badges: [], rule: '', periods: [] });
+  });
+
   it('refuses rows that name no title, no content, no period or no unit, and a unit named twice', async () => {
     const s = await setup();
     const res = (await s.post([s.row({ period: 'السنة 9' }), s.row({ unit: 'لا وحدة' }), s.row({ titleCode: s.head.code }), s.row(), s.row({ link: 'https://other.example' })]).expect(200)).body as LearningImportResultDto;

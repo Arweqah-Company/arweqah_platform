@@ -36,7 +36,7 @@
     "currentTitle": "Current title",
     "youAreHere": "You are here",
     "nextLevel": "Next level ↑",
-    "ladderHint": "You climb from right to left: each grade is higher than the one before it.",
+    "ladderHint": "You climb from left to right: each grade is higher than the one before it.",
     "stageLabel": "Development stage (from the grade and track)",
     "hoursLabel": "Hours a year",
     "hours": "{{count}} hours",
