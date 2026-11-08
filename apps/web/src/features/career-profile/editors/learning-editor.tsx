@@ -3,12 +3,11 @@ import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button, FormField, Input, Select, Textarea } from '@/shared/ui';
 import { formatMinutes } from '../format-minutes';
-import { EditorBlock, EditorRow, removeAt, replaceAt } from './editor-parts';
+import { EditorBlock, EditorRow, removeAt, replaceAt, type EditorProps } from './editor-parts';
 
 type Learning = CareerContent['learning'];
 type Period = Learning['periods'][number];
 type Unit = Period['units'][number];
-type Props = { content: CareerContent; onChange: (next: CareerContent) => void };
 
 const HTTPS = /^https:\/\/\S+$/i;
 
@@ -51,7 +50,7 @@ function PeriodBlock({ period, names, onChange, onRemove }: { period: Period; na
 }
 
 /** The learning plan: any number of periods, each with its units; the badges the hours earn and how they are awarded. */
-export function LearningEditor({ content, onChange }: Props) {
+export function LearningEditor({ content, onChange }: EditorProps) {
   const { t } = useTranslation('career-profile');
   const learning = content.learning;
   const set = (next: Partial<Learning>) => onChange({ ...content, learning: { ...learning, ...next } });

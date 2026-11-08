@@ -1,14 +1,11 @@
-import type { CareerContent } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { FormField, Input, Textarea } from '@/shared/ui';
-import { EditorBlock, EditorRow, fromLines, removeAt, replaceAt, toLines } from './editor-parts';
-
-type Props = { content: CareerContent; onChange: (next: CareerContent) => void };
+import { EditorBlock, EditorRow, fromLines, removeAt, replaceAt, toLines, contentSetter, type EditorProps } from './editor-parts';
 
 /** The required actions (each with a heading, its lines and the last day) and the acknowledgement sentence. */
-export function RequiredEditor({ content, onChange }: Props) {
+export function RequiredEditor({ content, onChange }: EditorProps) {
   const { t } = useTranslation('career-profile');
-  const set = <K extends keyof CareerContent>(key: K, value: CareerContent[K]) => onChange({ ...content, [key]: value });
+  const set = contentSetter(content, onChange);
   return (
     <div className="flex flex-col gap-4">
       <EditorBlock title={t('sections.required')} onAdd={() => set('required', [...content.required, { when: '', lines: [], deadline: null }])} addLabel={t('editor.addRequired')}>

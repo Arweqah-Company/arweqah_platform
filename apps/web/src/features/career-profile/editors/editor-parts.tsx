@@ -1,6 +1,6 @@
+import type { CareerContent } from '@arweqah-platform/shared';
 import { Plus, Trash2 } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Button, RowAction } from '@/shared/ui';
 
 /** A block of an editor: a heading, its rows, and the «add» button beneath them. */
@@ -35,7 +35,14 @@ export const fromLines = (text: string): string[] => text.split('\n').map((l) =>
 export const replaceAt = <T,>(list: readonly T[], index: number, value: T): T[] => list.map((item, i) => (i === index ? value : item));
 export const removeAt = <T,>(list: readonly T[], index: number): T[] => list.filter((_, i) => i !== index);
 
-export function useEditorText() {
-  const { t } = useTranslation('career-profile');
-  return t;
+/** What every editor receives: the document being edited and how to hand back a changed copy. */
+export interface EditorProps {
+  content: CareerContent;
+  onChange: (next: CareerContent) => void;
 }
+
+/** Sets one field of the document and hands the changed copy back. */
+export const contentSetter =
+  (content: CareerContent, onChange: EditorProps['onChange']) =>
+  <K extends keyof CareerContent>(key: K, value: CareerContent[K]): void =>
+    onChange({ ...content, [key]: value });

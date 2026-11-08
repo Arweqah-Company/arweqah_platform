@@ -1,15 +1,13 @@
-import { COMPETENCY_VALUES, type CareerContent } from '@arweqah-platform/shared';
+import { COMPETENCY_VALUES } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { FormField, Input, Select } from '@/shared/ui';
-import { EditorBlock, EditorRow, removeAt, replaceAt } from './editor-parts';
-
-type Props = { content: CareerContent; onChange: (next: CareerContent) => void };
+import { EditorBlock, EditorRow, removeAt, replaceAt, contentSetter, type EditorProps } from './editor-parts';
 
 /** The technical competencies: the levels they are asked at (columns) and, for each competency, its value at each level. */
-export function CompetenciesEditor({ content, onChange }: Props) {
+export function CompetenciesEditor({ content, onChange }: EditorProps) {
   const { t } = useTranslation('career-profile');
   const columns = content.competencyColumns;
-  const set = <K extends keyof CareerContent>(key: K, value: CareerContent[K]) => onChange({ ...content, [key]: value });
+  const set = contentSetter(content, onChange);
   const addColumn = () => onChange({ ...content, competencyColumns: [...columns, ''], competencies: content.competencies.map((c) => ({ ...c, values: [...c.values, COMPETENCY_VALUES[3]] })) });
   const removeColumn = (i: number) => onChange({ ...content, competencyColumns: removeAt(columns, i), competencies: content.competencies.map((c) => ({ ...c, values: removeAt(c.values, i) })) });
   return (

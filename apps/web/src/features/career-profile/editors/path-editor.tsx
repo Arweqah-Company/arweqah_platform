@@ -1,14 +1,12 @@
-import { CAREER_LEVELS, type CareerContent } from '@arweqah-platform/shared';
+import { CAREER_LEVELS } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { FormField, Input, Select } from '@/shared/ui';
-import { EditorBlock, EditorRow, removeAt, replaceAt } from './editor-parts';
-
-type Props = { content: CareerContent; onChange: (next: CareerContent) => void };
+import { EditorBlock, EditorRow, removeAt, replaceAt, contentSetter, type EditorProps } from './editor-parts';
 
 /** The career ladder (one level marked as the current title), the condition to move up, and the steps of the level path. */
-export function PathEditor({ content, onChange }: Props) {
+export function PathEditor({ content, onChange }: EditorProps) {
   const { t } = useTranslation('career-profile');
-  const set = <K extends keyof CareerContent>(key: K, value: CareerContent[K]) => onChange({ ...content, [key]: value });
+  const set = contentSetter(content, onChange);
   const nextLevel = CAREER_LEVELS.find((l) => !content.ladder.some((s) => s.level === l)) ?? CAREER_LEVELS[0];
   return (
     <div className="flex flex-col gap-4">
