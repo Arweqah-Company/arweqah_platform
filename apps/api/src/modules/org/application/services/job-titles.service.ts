@@ -114,6 +114,12 @@ export class JobTitlesService {
     return { ...input, contentVersion };
   }
 
+  /** Who a title is (id, code, names), for the modules that hang content on it; a missing title is a 404. */
+  async identity(id: string): Promise<{ id: string; code: string | null; nameAr: string; nameEn: string }> {
+    const t = await this.mustDetail(id);
+    return { id: t.id, code: t.code, nameAr: t.nameAr, nameEn: t.nameEn };
+  }
+
   /** The stored rules of the development stage by grade and track (read only for now). */
   async stageRules(): Promise<DevelopmentStageRuleDto[]> {
     return (await this.titles.stageRules()).map(toStageRuleDto).filter((r): r is DevelopmentStageRuleDto => !!r).sort((a, b) => a.grade - b.grade || (a.track ?? '').localeCompare(b.track ?? ''));

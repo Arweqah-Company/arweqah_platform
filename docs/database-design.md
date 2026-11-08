@@ -1052,6 +1052,33 @@ erDiagram
   workflow_instances ||--o{ workflow_transitions : "instance_id"
 ```
 
+### 10. Career path (content of each job title)
+
+```mermaid
+erDiagram
+  career_title_content {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid title_id FK,UK
+    integer version
+    character_varying status
+    jsonb content
+    uuid updated_by
+  }
+  career_title_content_versions {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid title_id FK,UK
+    integer version UK
+    jsonb content
+    uuid saved_by
+  }
+  job_titles ||--o| career_title_content : "title_id"
+  job_titles ||--o{ career_title_content_versions : "title_id"
+```
+
 ## Part 2 — What each table does
 
 ### 1. Identity and sign-in
@@ -1178,3 +1205,10 @@ erDiagram
 | `tour_step_settings` | Welcome-tour steps the admin edited: enabled flag, order, texts in ar / en. |
 | `user_tour_progress` | Which tour steps each user has seen or dismissed. |
 | `migrations` | TypeORM bookkeeping: which migrations already ran. |
+
+### 10. Career path
+
+| Table | What it does |
+|---|---|
+| `career_title_content` | The career-path content of one job title (one row per title): `content` (jsonb: summary, indicators, responsibilities, ladder, level path, competencies, required actions, acknowledgement sentence), `version` (grows by one per save), `status` (`draft` or `ready`: only a ready path is shown to the title's holders). |
+| `career_title_content_versions` | A snapshot of the content at each version (`title_id` + `version` unique), kept so what an employee acknowledged can be shown again. |

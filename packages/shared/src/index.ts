@@ -50,3 +50,4 @@ export * from './integrations/schemas';
 export * from './templates/schemas';
 export * from './tour/catalog';
 export * from './tour/schemas';
+export * from './career/content';

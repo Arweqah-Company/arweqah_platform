@@ -37,6 +37,7 @@ import { EmployeesModule } from './modules/employees/employees.module';
 import { LookupsModule } from './modules/lookups/lookups.module';
 import { OrgModule } from './modules/org/org.module';
 import { TasksModule } from './modules/tasks/tasks.module';
+import { CareerProfileModule } from './modules/career-profile/career-profile.module';
 import { TourModule } from './modules/tour/tour.module';
 import { TicketsModule } from './modules/tickets/tickets.module';
 
@@ -79,6 +80,7 @@ const JSON_LIMIT = '1mb';
     TicketsModule,
     TasksModule,
     TourModule,
+    CareerProfileModule,
     HealthModule,
   ],
   providers: [

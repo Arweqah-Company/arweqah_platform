@@ -77,6 +77,11 @@ export const CorePermission = {
   TourSettingsReorder: 'tour.settings_reorder',
   TourSettingsReset: 'tour.settings_reset',
   TourSettingsExport: 'tour.settings_export',
+  // Career path: the content of each job title (the page «career path content», FR-113)
+  CareerContentView: 'career_content.view',
+  CareerContentEdit: 'career_content.edit',
+  CareerTitlefilePublish: 'career_titlefile.publish',
+  CareerTitlefilePreview: 'career_titlefile.preview',
   // My account
   ProfileView: 'profile.view',
   ProfileUpdate: 'profile.update',

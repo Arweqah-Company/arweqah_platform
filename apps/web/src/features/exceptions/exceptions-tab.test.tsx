@@ -1,6 +1,6 @@
 import type { AccessExceptionDto } from '@arweqah-platform/shared';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
-import { http, HttpResponse } from 'msw';
+import { delay, http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { me, server } from '../../../test/msw';
 import { renderPage } from '../../../test/render';
@@ -23,9 +23,10 @@ const ROWS = [
   row({ userId: 'u3', userName: 'منى سعيد', kind: 'role-group', targetId: 'g9', targetNameAr: 'فريق الجودة', targetNameEn: 'Quality', grantedById: 'g2', grantedByName: 'ليلى', expiresAt: day(90) }),
 ];
 
-const open = (keys = ['exceptions.view', 'exceptions.update', 'exceptions.revoke', 'exceptions.export']) => {
+const open = (keys = ['exceptions.view', 'exceptions.update', 'exceptions.revoke', 'exceptions.export'], latency = 150) => {
   server.use(
-    http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'all' as const }))))),
+    // The permissions arrive after the rows (as they can under load): the actions must be waited for, never read at once.
+    http.get('*/api/me', async () => { await delay(latency); return HttpResponse.json(me(keys.map((key) => ({ key, scope: 'all' as const })))); }),
     http.get('*/api/access/exceptions', () => HttpResponse.json(ROWS)),
   );
   renderPage(<ExceptionsTab />);
@@ -58,19 +59,21 @@ describe('Exceptions tab (FR-70)', () => {
     );
     open();
     const personRow = (await screen.findByText('علي حسن')).closest('tr') as HTMLElement;
-    fireEvent.click(within(personRow).getByRole('button', { name: 'تغيير تاريخ الانتهاء' }));
+    fireEvent.click(await within(personRow).findByRole('button', { name: 'تغيير تاريخ الانتهاء' }));
     const date = await screen.findByLabelText('ينتهي في');
     fireEvent.change(date, { target: { value: day(40) } });
     fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
     await waitFor(() => expect(changed).toEqual({ expiresAt: day(40) }));
-    fireEvent.click(within(personRow).getByRole('button', { name: 'سحب الاستثناء' }));
+    fireEvent.click(await within(personRow).findByRole('button', { name: 'سحب الاستثناء' }));
     fireEvent.click(await screen.findByRole('button', { name: 'سحب الاستثناء', hidden: false }));
     await waitFor(() => expect(revoked).toBe('permission/u2/tickets.view'));
   });
 
   it('shows no actions to someone who may only see the list', async () => {
-    open(['exceptions.view']);
+    // «Export» is held too, only to know the permissions have arrived: its button appears with them, so the absence checked below is a real answer and not a read before they loaded.
+    open(['exceptions.view', 'exceptions.export']);
     await screen.findByText('علي حسن');
+    await screen.findByRole('button', { name: 'تصدير' });
     expect(screen.queryByRole('button', { name: 'تغيير تاريخ الانتهاء' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'سحب الاستثناء' })).not.toBeInTheDocument();
   });
