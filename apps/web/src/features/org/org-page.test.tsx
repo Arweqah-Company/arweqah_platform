@@ -1,8 +1,9 @@
 import { CorePermission } from '@arweqah-platform/shared';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { http, HttpResponse } from 'msw';
+import { delay, http, HttpResponse } from 'msw';
 import { N, orgNodes, orgTree, treeNode, versionsDto } from '../../../test/org-fixtures';
+import { access } from '../../../test/msw';
 import { openOrgPage } from '../../../test/org-harness';
 import { chooseOption } from '../../../test/select';
 
@@ -225,9 +226,11 @@ describe('Organization page: the details of a unit (FR-96)', () => {
 
 describe('Organization page: empty structure', () => {
   it('explains an empty team view and offers the first unit to someone who can add one', async () => {
-    openOrgPage({ team: orgTree({ nodes: [] }), keys: [CorePermission.OrgUnitCreate], adminMode: true });
+    // The permissions arrive after the page (as they can under load): the button must be waited for, never read at once.
+    const slowAccess = http.get('*/api/me/access', async () => { await delay(150); return HttpResponse.json(access()); });
+    openOrgPage({ team: orgTree({ nodes: [] }), keys: [CorePermission.OrgUnitCreate], adminMode: true, handlers: [slowAccess] });
     expect(await screen.findByText('لا وحدات تحتها موظفون في شركتك بعد')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'إضافة أول وحدة' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'إضافة أول وحدة' })).toBeInTheDocument();
   });
 });
 
