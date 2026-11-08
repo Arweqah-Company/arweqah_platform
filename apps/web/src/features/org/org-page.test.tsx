@@ -254,9 +254,11 @@ describe('Organization page: scheduled changes and links (FR-99)', () => {
   });
 
   it('opens the first top unit on a tab from a link (the welcome tour uses it), once', async () => {
-    openOrgPage({ path: '/?unit=first&tab=charter', handlers: [http.get('*/api/org/nodes/:id/versions', () => HttpResponse.json(versionsDto()))] });
+    // The permissions arrive after the unit's details (as they can under load): the tab must be waited for, never read at once.
+    const slowAccess = http.get('*/api/me/access', async () => { await delay(150); return HttpResponse.json(access()); });
+    openOrgPage({ path: '/?unit=first&tab=charter', handlers: [slowAccess, http.get('*/api/org/nodes/:id/versions', () => HttpResponse.json(versionsDto()))] });
     const details = await screen.findByRole('complementary', { name: 'تفاصيل الوحدة: قطاع التشغيل' });
-    expect(within(details).getByRole('tab', { name: 'الميثاق' })).toHaveAttribute('aria-selected', 'true');
+    expect(await within(details).findByRole('tab', { name: 'الميثاق' })).toHaveAttribute('aria-selected', 'true');
     fireEvent.click(within(details).getByRole('button', { name: 'إغلاق' }));
     await waitFor(() => expect(screen.queryByRole('complementary')).not.toBeInTheDocument()); // closing is never undone by the link
   });

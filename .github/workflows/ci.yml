@@ -67,6 +67,14 @@ jobs:
   e2e-web:
     needs: quality
     runs-on: ubuntu-latest
+    # The browser tests share one database and run one after the other, so one runner took about 30 minutes: the files are split over four
+    # runners, each with its own database, and the wall time is the slowest shard's (decision 253).
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      E2E_SHARD: ${{ matrix.shard }}/4
     services:
       postgres:
         image: postgres:16-alpine
@@ -84,7 +92,7 @@ jobs:
       - if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.shard }}
           path: e2e/playwright-report
           retention-days: 7
 

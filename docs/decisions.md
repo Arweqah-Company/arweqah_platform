@@ -2,6 +2,14 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-08 — The browser suite runs on four CI runners
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 253 | **The `e2e-web` job of `ci.yml` is a matrix of four shards** (`E2E_SHARD=<n>/4`, read by `e2e/playwright.config.ts` into Playwright's `shard`); each runner has its own Postgres service and its own built servers, so the single-database rule (one worker per database) still holds. Report artifacts are named per shard. Locally nothing changes: without `E2E_SHARD` every test runs, and `npm run test:e2e:web` / `npm run verify` are as before. | One runner took about 30 minutes for about 200 tests (desktop and mobile, one worker, one database), and every pull request waited for it. The shards split by file (66 / 37 / 64 / 35 tests), so the wall time is the slowest shard's. It costs some extra Actions minutes (each runner repeats `npm ci` and the browser install), a trade against decision 235. No status check is required by name in the repository rules, so renaming the job to `e2e-web (1)`…`(4)` blocks nothing. | A shard is much slower than the others (rebalance by moving files or use more shards), or the minutes matter more than the wait. |
+| 254 | **A spec makes the data it needs and never relies on another file having run before it in the same database.** The first sharded run showed `tour.spec.ts` needing a title and a person that `job-titles.spec.ts` made earlier (it failed alone, with the same error, before the fix); it now makes its own through `ensureTeamSample` (`e2e/support/org-data.ts`). | The suite is split by file over runners that each have their own database. | A spec fails when run alone. |
+| 255 | **Known risk, not fixed yet: 27 web unit tests in 10 files read something the permissions decide at once instead of waiting for it** (found by running the whole web suite with a temporary 150 ms delay on `/api/me/access`: `charter-tab`, `history-tab`, `leaders-tab`, `org-page`, `org-table-actions`, `permissions-page`, `profile-page`, `security-settings-tab`, `templates-tab`, `steps-tab`). They pass on a normal run and fail only under load, one or two at a time (three of them already failed CI and are fixed: decision 252 and `org-page` «opens the first top unit on a tab»). | Fixing them one per CI failure costs a full CI run each time. | A cleanup task: each gets `findBy…` where a permission shows something, with the delay kept in the test as the proof. |
+
 ## 2026-11-07 — The real structure and every job title are seeded from the owner's official file
 
 | # | Decision | Why | Revisit when |

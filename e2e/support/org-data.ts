@@ -1,4 +1,5 @@
 import { expect, type Page } from '@playwright/test';
+import { adminModeOnViaApi } from './admin-mode';
 
 const ORIGIN = { origin: 'http://localhost:4173' };
 
@@ -43,3 +44,21 @@ export async function makeEmployee(page: Page, options: { companyId: string; uni
 
 /** A short tag that differs between runs and between the two projects that run in the same database. */
 export const uniqueTag = (project: string): string => `${project.slice(0, 1)}${Date.now().toString().slice(-7)}`;
+
+const SAMPLE_UNIT = 'وحدة التسويق';
+const sampled = new Set<string>();
+
+/**
+ * One title with one holder in a unit of the sample structure, so that the team view and the job-titles list have a first row (the welcome tour
+ * points at them). A spec that needs it makes it itself, once per project, instead of relying on another file having run before it in the same
+ * database: the suite is split over several runners in CI. Switches admin mode on (the structure is read in full).
+ */
+export async function ensureTeamSample(page: Page, project: string): Promise<void> {
+  if (sampled.has(project)) return;
+  await adminModeOnViaApi(page);
+  const tag = uniqueTag(project);
+  const unit = await unitNamed(page, SAMPLE_UNIT);
+  const title = await makeTitle(page, unit.id, `مسمى الجولة ${tag}`, 7, 'P');
+  await makeEmployee(page, { companyId: await groupCompanyId(page, unit.id), unitId: unit.id, titleId: title.id, name: `موظف الجولة ${tag}`, tag: `tour${tag}` });
+  sampled.add(project);
+}
