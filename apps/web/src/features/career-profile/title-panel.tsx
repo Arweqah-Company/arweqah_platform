@@ -1,5 +1,5 @@
 import { careerContentSchema, careerReadinessProblems, CorePermission, type CareerContent, type CareerTitleListItemDto } from '@arweqah-platform/shared';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { ApiError } from '@/core/api/api-client';
@@ -93,15 +93,17 @@ function PanelHeading({ title }: { title: CareerTitleListItemDto }) {
 }
 
 /** The panel of one title: its heading and actions, what is missing, and its path in seven tabs, the five with content edited field by field (saved with «Save»). */
-export function TitlePanel({ title, onAction }: { title: CareerTitleListItemDto; onAction: (state: TitleDialogState) => void }) {
+export function TitlePanel({ title, stale = false, onAction, onDirtyChange }: { title: CareerTitleListItemDto; stale?: boolean; onAction: (state: TitleDialogState) => void; onDirtyChange?: (dirty: boolean) => void }) {
   const { t } = useTranslation('career-profile');
   const canEdit = usePermissions().can(CorePermission.CareerContentEdit);
   const doc = useWorkspaceDocument(title.id);
   const [tab, setTab] = useState<WorkspaceTab>('description');
+  const { dirty } = doc;
+  useEffect(() => { onDirtyChange?.(dirty); return () => onDirtyChange?.(false); }, [dirty, onDirtyChange]);
   const canBeReady = !!doc.content && careerReadinessProblems(doc.content).length === 0;
   return (
     <section aria-label={t('workspace.tabsLabel')} className="flex min-w-0 flex-col gap-3 rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm shadow-ink/5">
-      <div className="flex flex-wrap items-start justify-between gap-3"><PanelHeading title={title} /><TitleActions title={title} canBeReady={canBeReady} onOpen={onAction} /></div>
+      <div className="flex flex-wrap items-start justify-between gap-3"><PanelHeading title={title} />{!stale && <TitleActions title={title} canBeReady={canBeReady} onOpen={onAction} />}</div>
       {doc.stored.isError && <Alert tone="danger">{t('preview.failed')}</Alert>}
       <Tabs tabs={TABS.map((id) => ({ id, label: t(`workspace.tabs.${id}`) }))} value={tab} label={t('workspace.tabsLabel')} onChange={setTab} />
       {doc.content && <WorkspaceBody content={doc.content} tab={tab} canEdit={canEdit} onChange={doc.setDraft} />}

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import { useListPage, type ListPage } from '@/shared/lib/use-list-page';
 import { useServerList } from '@/shared/lib/use-server-list';
-import { Button, EmptyState, ListToolbar, ListToolbarPanel, PageHeader } from '@/shared/ui';
+import { Button, ConfirmDialog, EmptyState, ListToolbar, ListToolbarPanel, PageHeader } from '@/shared/ui';
 import { useContentColumns } from './content-columns';
 import { toContentQuery, useContentFilterFields } from './content-filters';
 import { useLearningLinksImport } from './learning-links-import';
@@ -46,9 +46,21 @@ function TitlesColumn({ list, rows, query, selectedId, onSelect }: { list: ListP
   );
 }
 
+/** Which title is open, and the question before another one replaces a panel that holds unsaved edits. */
+function useOpenTitle(rows: CareerTitleListItemDto[]) {
+  const [selectedId, setSelectedId] = useState<string>();
+  const [dirty, setDirty] = useState(false);
+  const [pendingId, setPendingId] = useState<string>();
+  const selected = rows.find((x) => x.id === selectedId) ?? rows[0];
+  const choose = (id: string) => (dirty && id !== selected?.id ? setPendingId(id) : setSelectedId(id));
+  const discard = () => { setSelectedId(pendingId); setPendingId(undefined); };
+  return { selected, choose, setDirty, asking: !!pendingId, cancel: () => setPendingId(undefined), discard };
+}
+
 /**
  * The titles on one side and the open title's path on the other (the screen of the career-path mock-up): search and filters (state, unit, grade,
  * track) above the list, export and import in the header; the actions of a title (preview, title file, ready, reopen) are in its panel.
+ * After a failed reload the stale titles, the export and the panel's actions are gone, the panel stays so an unsaved edit is not lost.
  */
 export function CareerContentPage() {
   const { t } = useTranslation('career-profile');
@@ -56,19 +68,20 @@ export function CareerContentPage() {
   const { exportColumns } = useContentColumns();
   const importing = useLearningLinksImport();
   const [open, setOpen] = useState<TitleDialogState>(null);
-  const [selectedId, setSelectedId] = useState<string>();
   const { query, loadAll } = useServerList<CareerTitleListItemDto>('career-content', '/career/titles', list, { search: list.term || undefined, ...toContentQuery(list.filters.values) });
   const rows = query.data?.items ?? [];
-  const selected = rows.find((x) => x.id === selectedId) ?? rows[0];
+  const { selected, choose, setDirty, asking, cancel, discard } = useOpenTitle(rows);
   const exporting = { columns: exportColumns, filename: 'career-content', pageRows: rows, total: query.data?.total ?? 0, loadAll };
+  const actions = query.isError ? undefined : <ExchangeButtons permissions={{ export: CorePermission.CareerContentExport, import: CorePermission.CareerContentImport }} exporting={exporting} importing={importing} />;
   return (
     <>
-      <PageHeader title={t('content.title')} description={t('content.description')} actions={<ExchangeButtons permissions={{ export: CorePermission.CareerContentExport, import: CorePermission.CareerContentImport }} exporting={exporting} importing={importing} />} />
+      <PageHeader title={t('content.title')} description={t('content.description')} actions={actions} />
       <div className="grid items-start gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
-        <TitlesColumn list={list} rows={rows} query={query} selectedId={selected?.id} onSelect={setSelectedId} />
-        {selected && <TitlePanel key={selected.id} title={selected} onAction={setOpen} />}
+        <TitlesColumn list={list} rows={query.isError ? [] : rows} query={query} selectedId={selected?.id} onSelect={choose} />
+        {selected && <TitlePanel key={selected.id} title={selected} stale={query.isError} onAction={setOpen} onDirtyChange={setDirty} />}
       </div>
       <TitleDialogs state={open} onClose={() => setOpen(null)} />
+      <ConfirmDialog open={asking} onOpenChange={(o) => !o && cancel()} title={t('discard.title')} description={t('discard.description')} confirmLabel={t('discard.confirm')} tone="danger" onConfirm={discard} />
     </>
   );
 }

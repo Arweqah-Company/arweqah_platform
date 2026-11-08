@@ -370,5 +370,10 @@
     "deadline": "Last day",
     "deadlineHint": "Leave it empty for a «while you are in the period» item.",
     "valueAt": "Value at column {{n}}"
+  },
+  "discard": {
+    "title": "Discard the unsaved edits?",
+    "description": "The open title has edits that were not saved. Opening another title drops them.",
+    "confirm": "Discard and switch"
   }
 }

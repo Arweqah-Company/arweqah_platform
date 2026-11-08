@@ -121,3 +121,40 @@ describe('The career-path content page: dialogs of the panel (FR-113)', () => {
     await waitFor(() => expect(posted).toContainEqual({ url: '/api/career/titles/t3/reopen-acknowledgement', body: { reason: 'تغيّر الوصف الوظيفي' } }));
   });
 });
+
+describe('The career-path content page: what the panel keeps and what an error hides (FR-113)', () => {
+  it('asks before another title replaces a panel with unsaved edits, keeps them on «cancel» and drops them on «discard»', async () => {
+    open([...ALL, CorePermission.CareerContentEdit]);
+    const summary = await screen.findByLabelText('ملخص الوظيفة');
+    fireEvent.change(summary, { target: { value: 'ملخص لم يُحفظ' } });
+    await pick('محاسب');
+    expect(await screen.findByText('تجاهل التعديلات غير المحفوظة؟')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'إلغاء' }));
+    await waitFor(() => expect(screen.queryByText('تجاهل التعديلات غير المحفوظة؟')).not.toBeInTheDocument());
+    expect(screen.getByLabelText('ملخص الوظيفة')).toHaveValue('ملخص لم يُحفظ');
+    await pick('محاسب');
+    fireEvent.click(await screen.findByRole('button', { name: 'تجاهل وانتقال' }));
+    expect(await screen.findByRole('heading', { level: 3, name: 'محاسب' })).toBeInTheDocument();
+  });
+
+  it('does not ask when nothing was edited', async () => {
+    open([...ALL, CorePermission.CareerContentEdit]);
+    await screen.findByLabelText('ملخص الوظيفة');
+    await pick('محاسب');
+    expect(await screen.findByRole('heading', { level: 3, name: 'محاسب' })).toBeInTheDocument();
+    expect(screen.queryByText('تجاهل التعديلات غير المحفوظة؟')).not.toBeInTheDocument();
+  });
+
+  it('after a failed reload leaves no titles to pick, no export and no actions on the stale panel', async () => {
+    open();
+    await screen.findByRole('heading', { level: 3, name: 'منسق الاستقطاب' });
+    expect(screen.getByRole('button', { name: /تصدير/ })).toBeInTheDocument();
+    server.use(http.get('*/api/career/titles', () => HttpResponse.json({ code: 'internal', message: 'x' }, { status: 500 })));
+    fireEvent.change(screen.getByPlaceholderText('ابحث بالمسمى أو الرمز'), { target: { value: 'م' } });
+    expect(await screen.findByRole('alert')).toHaveTextContent('تعذّر تحميل المسميات.');
+    expect(screen.queryByRole('button', { name: /تصدير/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /محاسب/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /رفع ملف المسمى/ })).not.toBeInTheDocument();
+  });
+});
+
