@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { careerContent } from '../../../../test/career-fixtures';
 import { renderPage } from '../../../../test/render';
 import { DescriptionEditor } from './description-editor';
+import { LinesTextarea } from './editor-parts';
 import { RequiredEditor } from './required-editor';
 
 function Host({ editor: Editor }: { editor: typeof DescriptionEditor }) {
@@ -29,5 +30,10 @@ describe('one line per item textareas (FR-113)', () => {
     const box = screen.getAllByRole('textbox').find((b) => (b as HTMLTextAreaElement).value === careerContent.required[0]?.lines.join('\n')) as HTMLTextAreaElement;
     fireEvent.change(box, { target: { value: `${box.value}\n` } });
     expect(box.value.endsWith('\n')).toBe(true);
+  });
+
+  it('shows a list whose items carry spaces or a line break without looping (an item stored as « second» or «a\nb»)', () => {
+    renderPage(<LinesTextarea lines={['first', ' second', 'a\nb']} onLines={() => undefined} />);
+    expect((screen.getByRole('textbox') as HTMLTextAreaElement).value).toContain('first');
   });
 });

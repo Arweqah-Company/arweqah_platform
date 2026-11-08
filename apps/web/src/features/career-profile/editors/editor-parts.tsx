@@ -37,7 +37,7 @@ export const fromLines = (text: string): string[] => text.split('\n').map((l) =>
  */
 export function LinesTextarea({ lines, onLines, ...rest }: { lines: readonly string[]; onLines: (next: string[]) => void } & Omit<ComponentProps<typeof Textarea>, 'value' | 'onChange'>) {
   const [text, setText] = useState(() => toLines(lines));
-  if (toLines(fromLines(text)) !== toLines(lines)) setText(toLines(lines));
+  if (toLines(fromLines(text)) !== toLines(fromLines(toLines(lines)))) setText(toLines(lines));
   return <Textarea {...rest} value={text} onChange={(e) => { setText(e.target.value); onLines(fromLines(e.target.value)); }} />;
 }
 
