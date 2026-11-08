@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useMe, useSignOut } from '@/core/auth/session';
+import { CareerGate } from '@/features/career-profile';
 import { TourProvider } from '@/features/tour';
 import { ListSettingsProvider } from '@/shared/lib/list-settings';
 import { NavContext } from '@/core/navigation';
@@ -37,7 +38,9 @@ export function AppLayout() {
           <AppHeader me={me} accountItems={accountItems} menuOpen={open} onToggleMenu={() => setOpen(!open)} onSignOut={() => void signOut()} />
           <main id="main" className="flex-1 px-1 pb-6 sm:px-2">
             <div className="animate-fade-in">
-              <RouteOutlet />
+              <CareerGate>
+                <RouteOutlet />
+              </CareerGate>
             </div>
           </main>
         </div>

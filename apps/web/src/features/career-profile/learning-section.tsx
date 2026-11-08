@@ -1,0 +1,52 @@
+import type { CareerContent } from '@arweqah-platform/shared';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Badge, Tabs } from '@/shared/ui';
+import { LearningUnits } from './learning-units';
+import { Part } from './career-parts';
+
+
+/** The badges the hours earn, and how they are awarded. */
+function Badges({ learning }: { learning: CareerContent['learning'] }) {
+  const { t } = useTranslation('career-profile');
+  return (
+    <>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {learning.badges.map((b) => (
+          <div key={b.name} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+            <b className="text-fg">{b.name}</b>
+            <p className="text-sm text-muted">{b.condition}</p>
+            <Badge tone="info">{t('learning.hours', { count: b.hours })}</Badge>
+          </div>
+        ))}
+      </div>
+      {learning.rule && <p className="mt-2 text-sm text-muted">{learning.rule}</p>}
+    </>
+  );
+}
+
+const SUB_TABS = ['units', 'badges'] as const;
+type SubTab = (typeof SUB_TABS)[number];
+
+/** Section 4: two sub-tabs. «Learning units»: the periods as tabs, each a list. «Badges»: what the hours earn and how they are awarded. */
+export function LearningSection({ content, preview = false }: { content: CareerContent; preview?: boolean }) {
+  const { t } = useTranslation('career-profile');
+  const { periods } = content.learning;
+  const [sub, setSub] = useState<SubTab>('units');
+  const [name, setName] = useState(periods[0]?.name ?? '');
+  const current = periods.find((p) => p.name === name) ?? periods[0];
+  return (
+    <div className="flex flex-col gap-4">
+      <Tabs tabs={SUB_TABS.map((id) => ({ id, label: t(`learning.sub.${id}`) }))} value={sub} label={t('learning.subLabel')} onChange={setSub} />
+      <div role="tabpanel" className="flex flex-col gap-3">
+        {sub === 'units' && (
+          <>
+            <Tabs tabs={periods.map((p) => ({ id: p.name, label: `${p.name} (${p.units.length})` }))} value={current?.name ?? ''} label={t('learning.periods')} onChange={setName} />
+            <LearningUnits key={current?.name} period={current} preview={preview} />
+          </>
+        )}
+        {sub === 'badges' && <Part title={t('learning.badges')}><Badges learning={content.learning} /></Part>}
+      </div>
+    </div>
+  );
+}

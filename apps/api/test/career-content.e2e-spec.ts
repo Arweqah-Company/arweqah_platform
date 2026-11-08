@@ -1,26 +1,11 @@
 import { CorePermission, EMPTY_CAREER_CONTENT, type CareerContent, type CareerTitleContentDto, type PermissionGrant } from '@arweqah-platform/shared';
 import { describe, expect, it, vi } from 'vitest';
+import { complete } from './helpers/career-content';
 import { chainScenario } from './helpers/title-chain';
 import { useTestApp } from './setup/test-app';
 
 const KEYS = [CorePermission.CareerContentView, CorePermission.CareerContentEdit, CorePermission.CareerTitlefilePublish, CorePermission.CareerTitlefilePreview];
 const grants = (without?: string): PermissionGrant[] => KEYS.filter((k) => k !== without).map((key) => ({ key, scope: 'all' as const }));
-
-const complete: CareerContent = {
-  ...EMPTY_CAREER_CONTENT,
-  summary: 'تنسيق ودعم أعمال وحدة الاستقطاب',
-  kpis: [{ text: 'تحقيق مستهدف المقبولين', governing: true }, { text: 'معدل التحويل', governing: false }],
-  responsibilities: [{ title: 'تحديد الفئة المستهدفة', tasks: ['تحليل المستهدفات', 'تحديد معايير الأهلية'] }],
-  ladder: [{ level: 'L9', title: 'منسق الاستقطاب', current: true }, { level: 'L6', title: 'قائد فريق الاستقطاب', current: false }],
-  transitionRule: 'إتقان الحالات القياسية باستقلال',
-  pathUnit: 'إدارة التشغيل · وحدة الاستقطاب',
-  pathTitle: 'منسق الاستقطاب',
-  steps: [{ n: 1, label: 'الأساس المعرفي', title: 'دروب', meta: 'دورة · جهة' }],
-  competencyColumns: ['L9 منسق الاستقطاب', 'L5 رئيس وحدة'],
-  competencies: [{ name: 'الاتصال المباشر', values: ['أساسي', 'خبير'] }],
-  required: [{ when: '15 أكتوبر 2026', lines: ['أتأكد من مسماي وكودي'], deadline: '2026-10-15' }],
-  ackText: 'اطلعت على الوصف الوظيفي لمسمى «منسق الاستقطاب»',
-};
 
 describe('Career-path content of a job title (FR-111, FR-113)', () => {
   const t = useTestApp();
@@ -36,7 +21,7 @@ describe('Career-path content of a job title (FR-111, FR-113)', () => {
     const s = await setup();
     const res = await s.hr.get(`${s.url()}/content`).expect(200);
     const body = res.body as CareerTitleContentDto;
-    expect(body).toMatchObject({ titleId: s.head.id, titleCode: s.head.code, version: 0, status: 'draft', updatedAt: null, problems: ['description', 'development', 'required'] });
+    expect(body).toMatchObject({ titleId: s.head.id, titleCode: s.head.code, version: 0, status: 'draft', updatedAt: null, problems: ['description', 'development', 'learning', 'required'] });
     expect(body.content).toEqual(EMPTY_CAREER_CONTENT);
   });
 
@@ -44,7 +29,9 @@ describe('Career-path content of a job title (FR-111, FR-113)', () => {
     const s = await setup();
     const first = (await s.hr.put(`${s.url()}/content`).send({ content: complete, expectedVersion: 0 }).expect(200)).body as CareerTitleContentDto;
     expect(first).toMatchObject({ version: 1, status: 'draft', problems: [] });
-    expect(first.content).toEqual(complete);
+    const unit = first.content.learning.periods[0]!.units[0]!;
+    expect(unit.id).toMatch(/^[0-9a-f-]{36}$/);
+    expect(first.content).toEqual({ ...complete, learning: { ...complete.learning, periods: [{ name: 'السنة 1', units: [{ ...complete.learning.periods[0]!.units[0]!, id: unit.id }] }] } });
     const second = (await s.hr.put(`${s.url()}/content`).send({ content: { ...complete, summary: 'ملخص معدّل' }, expectedVersion: 1 }).expect(200)).body as CareerTitleContentDto;
     expect(second.version).toBe(2);
     const versions = (await t.db.query('SELECT version, content FROM career_title_content_versions WHERE title_id = $1 ORDER BY version', [s.head.id])) as { version: number; content: CareerContent }[];
@@ -52,6 +39,17 @@ describe('Career-path content of a job title (FR-111, FR-113)', () => {
     expect(versions[0]!.content.summary).toBe(complete.summary);
     expect(versions[1]!.content.summary).toBe('ملخص معدّل');
     expect(((await s.hr.get(`${s.url()}/content`).expect(200)).body as CareerTitleContentDto).version).toBe(2);
+  });
+
+  it('gives each learning unit an id once and keeps it in the later saves, a new unit getting its own', async () => {
+    const s = await setup();
+    const first = (await s.hr.put(`${s.url()}/content`).send({ content: complete }).expect(200)).body as CareerTitleContentDto;
+    const unit = first.content.learning.periods[0]!.units[0]!;
+    const kept = (await s.hr.put(`${s.url()}/content`).send({ content: { ...first.content, learning: { ...first.content.learning, periods: [{ name: 'السنة 1', units: [unit, { ...unit, id: undefined, title: 'وحدة ثانية' }] }] } } }).expect(200)).body as CareerTitleContentDto;
+    const ids = kept.content.learning.periods[0]!.units.map((u) => u.id);
+    expect(ids[0]).toBe(unit.id);
+    expect(ids[1]).toMatch(/^[0-9a-f-]{36}$/);
+    expect(ids[1]).not.toBe(unit.id);
   });
 
   it('refuses a save made on an older version (409 CAREER_CONTENT_STALE) and keeps what is stored', async () => {
@@ -87,7 +85,7 @@ describe('Career-path content of a job title (FR-111, FR-113)', () => {
   it('sets a complete path ready and back to draft, and refuses an incomplete one with the missing sections (422)', async () => {
     const s = await setup();
     const none = await s.hr.post(`${s.url()}/publish`).expect(422);
-    expect(none.body).toMatchObject({ code: 'CAREER_CONTENT_NOT_READY', details: { problems: ['description', 'development', 'required'] } });
+    expect(none.body).toMatchObject({ code: 'CAREER_CONTENT_NOT_READY', details: { problems: ['description', 'development', 'learning', 'required'] } });
     await s.hr.put(`${s.url()}/content`).send({ content: { ...complete, ackText: '', ladder: [] } }).expect(200);
     const partial = await s.hr.post(`${s.url()}/publish`).expect(422);
     expect(partial.body).toMatchObject({ details: { problems: ['development', 'required'] } });

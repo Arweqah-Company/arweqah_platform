@@ -3,6 +3,7 @@ import { addTranslations } from '@/core/i18n';
 import { auditFeature } from '@/features/audit';
 import { emailLogFeature } from '@/features/email-log';
 import { authFeature } from '@/features/auth';
+import { careerProfileFeature } from '@/features/career-profile';
 import { companiesFeature } from '@/features/companies';
 import { integrationsFeature } from '@/features/integrations';
 import { templatesFeature } from '@/features/templates';
@@ -30,6 +31,7 @@ export const FEATURES: FeatureModule[] = [
   employeesFeature,
   orgFeature,
   jobTitlesFeature,
+  careerProfileFeature,
   companiesFeature,
   tasksFeature,
   ticketsFeature,

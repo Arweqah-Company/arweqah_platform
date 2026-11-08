@@ -47,4 +47,4 @@ export class CareerTitleContentVersion extends BaseEntity {
   savedBy: string | null;
 }
 
-export const CAREER_PROFILE_ENTITIES = [CareerTitleContent, CareerTitleContentVersion];
+export const CAREER_CONTENT_ENTITIES = [CareerTitleContent, CareerTitleContentVersion];

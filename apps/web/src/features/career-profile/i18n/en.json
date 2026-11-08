@@ -1,0 +1,366 @@
+{
+  "page": {
+    "title": "Career path",
+    "description": "Your path in your job title, in five sections in the same order: description, evaluation, development, learning and required.",
+    "notReady": "Your career path is not ready yet",
+    "notReadyHint": "HR prepares it for your title, and it appears here as soon as it is ready.",
+    "version": "Content version {{version}}",
+    "acknowledged": "You acknowledged content version {{version}}",
+    "sectionsLabel": "Career path sections",
+    "loadFailed": "Your career path could not be loaded. Try again."
+  },
+  "sections": {
+    "description": "Job description",
+    "evaluation": "Performance evaluation",
+    "development": "Career development",
+    "learning": "Learning plan",
+    "required": "Required"
+  },
+  "description": {
+    "summary": "Job summary",
+    "kpis": "Job performance indicators",
+    "governing": "Governing indicator",
+    "responsibilities": "Responsibilities ({{groups}} responsibilities, {{tasks}} tasks)"
+  },
+  "evaluation": {
+    "note": "Performance evaluation belongs to your development stage, not to the title. Its weights, criteria and grade scale appear here when an evaluation cycle opens."
+  },
+  "development": {
+    "ladder": "Career ladder",
+    "current": "Current title",
+    "condition": "Condition to move up",
+    "output": "Documented output of this level",
+    "certificates": "Certificates at the end of the level",
+    "competencies": "Technical competencies",
+    "competency": "Competency",
+    "currentTitle": "Current title",
+    "youAreHere": "You are here",
+    "nextLevel": "Next level ↑",
+    "ladderHint": "You climb from right to left: each grade is higher than the one before it.",
+    "stageLabel": "Development stage (from the grade and track)",
+    "hoursLabel": "Hours a year",
+    "hours": "{{count}} hours",
+    "budgetLabel": "Budget cap per person",
+    "budget": "{{amount}} SAR",
+    "sub": {
+      "ladder": "Career ladder",
+      "path": "Level path",
+      "competencies": "Technical competencies"
+    },
+    "subLabel": "Career development sections",
+    "pathNote": "«Applied at work» is approved by your direct manager and then by the development officer before it counts.",
+    "competenciesNote": "«Basic» and «Expert» are the levels of a competency; «—» means the competency is not part of that level."
+  },
+  "learning": {
+    "units": "Learning units",
+    "periods": "Learning plan periods",
+    "periodTotal": "{{count}} units · {{duration}}",
+    "hoursMinutes": "{{hours}} h {{minutes}} min",
+    "hours": "{{count}} hours",
+    "openLink": "Open the link",
+    "noLink": "No link yet",
+    "badges": "Badges",
+    "sub": {
+      "units": "Learning units",
+      "badges": "Badges"
+    },
+    "subLabel": "Learning plan sections",
+    "searchLabel": "Search the units",
+    "searchPlaceholder": "Search the units and providers",
+    "noMatches": "No units match the search and filters.",
+    "columns": {
+      "period": "Period",
+      "priority": "Priority",
+      "unit": "Unit",
+      "provider": "Provider",
+      "duration": "Duration",
+      "minutes": "Minutes",
+      "language": "Language",
+      "link": "Link"
+    }
+  },
+  "required": {
+    "overdue": "Overdue",
+    "daysLeft": "In {{count}} days",
+    "whileInPeriod": "While you are in the period",
+    "ackText": "Acknowledgement text"
+  },
+  "gate": {
+    "why": {
+      "first": "This is your first sign-in",
+      "title": "Your job title has changed",
+      "reopened": "HR reopened the acknowledgement"
+    },
+    "intro": "Read the five sections of your path in order (description, evaluation, development, learning, required). You move from one section to the next with «Next» after scrolling to its end, then reach the «Acknowledgement» step. You cannot use the rest of the platform before you acknowledge.",
+    "stepsLabel": "Steps of reading the path in order",
+    "ackStep": "Acknowledgement",
+    "locked": "Opens after you read the previous section",
+    "lockedToast": "Read the sections in order: press «Next» after scrolling to the end of each one.",
+    "step": "Section {{n}} of {{total}}: {{name}}",
+    "lastStep": "Last step: acknowledgement",
+    "scrollHint": "Scroll to the end of the section to enable «Next»",
+    "previous": "Previous",
+    "next": "Next: {{section}}",
+    "nextAck": "Next: acknowledgement",
+    "ackStepDone": "You finished the five sections. One step is left: the acknowledgement.",
+    "ackStepHint": "Tick the acknowledgement box in the bar below, then press «Acknowledge and continue». You can go back to any section with «Previous».",
+    "ackDefault": "I have read my career path and acknowledge it",
+    "ackRecorded": "The acknowledgement is recorded with your name, content version {{version}} and the date.",
+    "ackLocked": "Enabled after you read the five sections in order and reach the acknowledgement step.",
+    "ackButton": "Acknowledge and continue",
+    "done": "Acknowledged. You can keep using the platform.",
+    "stale": "The content of your path changed while you were reading. Reload the page and read the new version.",
+    "failed": "The acknowledgement could not be recorded. Try again."
+  },
+  "content": {
+    "title": "Career-path content",
+    "description": "The job titles and the state of each one's path: upload the title file, review the result, then set it ready so its holders see it and are asked to acknowledge it.",
+    "searchLabel": "Search titles",
+    "searchPlaceholder": "Search by title or code",
+    "noMatches": "No titles match the search and filters.",
+    "empty": "No job titles yet.",
+    "columns": {
+      "name": "Title",
+      "code": "Code",
+      "unit": "Unit",
+      "grade": "Grade",
+      "track": "Track",
+      "status": "Path state",
+      "holders": "Holders",
+      "version": "Content version"
+    },
+    "status": {
+      "none": "No content",
+      "draft": "Draft",
+      "ready": "Ready"
+    },
+    "tracks": {
+      "M": "Management",
+      "P": "Professional",
+      "J": "Junior",
+      "C": "Consulting",
+      "S": "Specialist"
+    },
+    "export": {
+      "nameAr": "Title in Arabic",
+      "nameEn": "Title in English"
+    }
+  },
+  "actions": {
+    "preview": "Preview the path",
+    "upload": "Upload the title file",
+    "ready": "Set the path ready",
+    "draft": "Set the path back to draft",
+    "reopen": "Reopen the acknowledgement"
+  },
+  "preview": {
+    "title": "Career-path preview: {{name}}",
+    "ready": "This is what the title's holders see.",
+    "draft": "Draft: the employee does not see it until you set it ready.",
+    "empty": "This title has no content yet. Upload the title file to see the preview.",
+    "failed": "The content could not be loaded."
+  },
+  "ready": {
+    "title": "Set the path of «{{name}}» ready",
+    "description": "The path will be shown to the title's holders ({{count}}) and they will be asked to acknowledge it. It cannot be set ready with a part missing.",
+    "confirm": "Set ready",
+    "done": "The path is ready and its holders see it.",
+    "failed": "The path could not be set ready: a part is missing."
+  },
+  "draft": {
+    "title": "Set the path of «{{name}}» back to draft",
+    "description": "The path disappears for the title's holders ({{count}}) until you set it ready again. Nothing they acknowledged is deleted.",
+    "confirm": "Set back to draft",
+    "done": "The path is a draft again.",
+    "failed": "The path could not be set back to draft."
+  },
+  "reopen": {
+    "title": "Reopen the acknowledgement",
+    "description": "The title's holders ({{count}}) will be asked to acknowledge their path again when they sign in, and cannot use the platform before.",
+    "reason": "Reason *",
+    "reasonShort": "Write a reason of at least 5 characters.",
+    "confirm": "Confirm",
+    "done": "The acknowledgement was reopened for {{count}} employees.",
+    "failed": "The acknowledgement could not be reopened."
+  },
+  "file": {
+    "title": "Upload the title file: {{name}}",
+    "description": "One file per title: the job description, the career development, the learning plan and the required actions. Nothing is saved before you review it.",
+    "pick": "Choose the title file",
+    "hint": "txt, docx or pdf. The file is read in the browser.",
+    "paste": "Or paste the text of the file",
+    "limit": "Up to {{max}} characters",
+    "extract": "Extract",
+    "extractFailed": "The text could not be read. Try again.",
+    "save": "Save the extracted content",
+    "close": "Close",
+    "clean": "Every part is sound and can be saved.",
+    "needsReview": "Parts that need review before saving:",
+    "ignored": "The reader skipped text that is not content: {{lines}}.",
+    "saved": "The title's content was saved (version {{version}}).",
+    "saveRefused": "The file was not saved: it needs review.",
+    "saveFailed": "The file could not be saved.",
+    "readErrors": {
+      "unsupported": "This file type is not supported: use txt, docx or pdf.",
+      "unreadable": "The file could not be read. Try pasting its text.",
+      "empty": "The file has no text."
+    },
+    "counts": {
+      "indicators": "Indicators",
+      "responsibilities": "Responsibilities",
+      "tasks": "Tasks",
+      "ladderLevels": "Ladder levels",
+      "pathSteps": "Path steps",
+      "competencies": "Competencies",
+      "badges": "Badges",
+      "learningPeriods": "Learning periods",
+      "learningUnits": "Learning units",
+      "learningMinutes": "Learning minutes",
+      "requiredItems": "Required items"
+    },
+    "problems": {
+      "summary_missing": "The job summary is missing",
+      "indicators_missing": "The performance indicators are missing",
+      "responsibilities_missing": "The responsibilities are missing",
+      "current_title_unmarked": "The career ladder has no current title marked",
+      "path_steps_missing": "The steps of the level path are missing",
+      "transition_rule_missing": "The condition to move up is missing",
+      "competencies_missing": "The technical competencies table is missing",
+      "learning_missing": "The learning plan has no units",
+      "learning_total_mismatch": "The total of a learning period does not match its units",
+      "badges_missing": "The learning plan badges are missing",
+      "required_missing": "The required actions are missing",
+      "acknowledgement_missing": "The acknowledgement text is missing",
+      "code_mismatch": "The title code in the file is not this title's code",
+      "content_invalid": "Text in the file is over an allowed limit, or a duration is not understood"
+    }
+  },
+  "tour": {
+    "career-profile": {
+      "title": "Your career path",
+      "body": "Your path in your job title: the job description, evaluation, development, learning plan and what is required. At your first sign-in you read it in order, then acknowledge it."
+    },
+    "career-content": {
+      "title": "Career-path content",
+      "body": "Each title has its path: upload the title file, review what was read from it, then set it ready so its holders see it.",
+      "can": {
+        "upload": "Upload and read a title file",
+        "publish": "Set a path ready or back to draft",
+        "reopen": "Reopen the acknowledgement for a title's holders",
+        "import": "Import learning-unit links from an Excel file"
+      }
+    }
+  },
+  "import": {
+    "titleCode": "Title code",
+    "titleCodeHint": "As in the content list (for example OPS.01.01.01-L9P-01).",
+    "period": "Period",
+    "unit": "Unit name",
+    "link": "Link",
+    "linkHint": "An https address the employee opens. Leave it empty to clear the link.",
+    "preview": "{{updated}} units will get a new link and {{unchanged}} stay as they are.",
+    "reason": {
+      "title_not_found": "No title has this code",
+      "no_content": "This title has no saved content",
+      "period_not_found": "No period of this name in the learning plan",
+      "unit_not_found": "No unit of this name in the period",
+      "unit_ambiguous": "More than one unit of this name in the period",
+      "duplicate_row": "The unit is named in an earlier row",
+      "content_changed": "The title's content changed during the import: import again"
+    }
+  },
+  "header": {
+    "manager": "Direct manager: {{name}}",
+    "stage": "Development stage: {{name}}",
+    "slots": {
+      "sector": "Sector",
+      "department": "Department",
+      "section": "Section",
+      "unit": "Unit"
+    }
+  },
+  "stage": {
+    "foundation": "Foundation",
+    "specialization": "Specialization",
+    "mastery": "Mastery",
+    "operational_leadership": "Operational leadership",
+    "institutional_leadership": "Institutional leadership"
+  },
+  "workspace": {
+    "title": "Career-path workspace: {{name}}",
+    "tabsLabel": "Path sections",
+    "tabs": {
+      "description": "Job description",
+      "path": "Ladder and path",
+      "competencies": "Technical competencies",
+      "learning": "Learning plan",
+      "required": "Required",
+      "evaluation": "Evaluation",
+      "lists": "Shared lists"
+    },
+    "complete": "Every part is complete: the path can be set ready.",
+    "cannotBeReady": "It cannot be set ready:",
+    "problems": {
+      "description": "The job description is incomplete (summary, indicators or responsibilities)",
+      "development": "The career development is incomplete (ladder, path, competencies or the condition to move up)",
+      "learning": "The learning plan has no badge or no unit, or a period has no name or a repeated one",
+      "required": "The required actions or the acknowledgement text are incomplete"
+    },
+    "save": "Save changes",
+    "saved": "The content was saved and its version went up.",
+    "stale": "This title's content changed after you opened it. Close the window, open it again and redo your edit.",
+    "saveFailed": "The content could not be saved. Try again.",
+    "invalid": "A field of the content is missing or not valid. Fix the marked fields before saving.",
+    "evaluationNote": "Performance evaluation belongs to the development stage, not to the title: the evaluation file for all stages is uploaded once from «Shared lists» when the evaluation cycle is built.",
+    "listsNote": "The shared lists (stages, criteria, behaviours and the evaluation file) are built with the evaluation cycle."
+  },
+  "editor": {
+    "required": "This field is required",
+    "remove": "Remove",
+    "removeUnit": "Remove the unit",
+    "removePeriod": "Remove the period",
+    "oneLinePerItem": "One item per line",
+    "summary": "Job summary",
+    "addKpi": "Add an indicator",
+    "kpiText": "Indicator",
+    "addResponsibility": "Add a responsibility",
+    "responsibilityTitle": "Responsibility",
+    "tasks": "Its tasks",
+    "ladderHint": "Mark the employee's current title on the ladder.",
+    "addLevel": "Add a level",
+    "level": "Level",
+    "levelTitle": "Title",
+    "addStep": "Add a step",
+    "pathUnit": "Unit",
+    "pathTitle": "Title",
+    "stepLabel": "Step {{n}}: heading",
+    "stepTitle": "Content",
+    "stepMeta": "Kind of proof",
+    "columns": "Competency levels",
+    "columnsHint": "The columns competencies are asked at (such as L9 Recruitment coordinator).",
+    "addColumn": "Add a column",
+    "columnName": "Column {{n}} name",
+    "addCompetency": "Add a competency",
+    "addUnit": "Add a unit",
+    "addPeriod": "Add a year or period",
+    "periodName": "Period name",
+    "periodRequired": "The period name is required",
+    "periodRepeated": "The period name is repeated",
+    "periodDefault": "Year {{n}}",
+    "newPeriod": "New period",
+    "durationUnclear": "The duration is not understood (for example: 2 hours and 30 minutes, in Arabic words)",
+    "linkHint": "The employee opens it with «Open the link».",
+    "linkInvalid": "The link must start with https://",
+    "addBadge": "Add a badge",
+    "badgeName": "Badge name",
+    "badgeCondition": "Its condition",
+    "badgeHours": "Hours",
+    "badgeRule": "How the badge is awarded",
+    "addRequired": "Add an item",
+    "when": "When",
+    "requiredLines": "Item text",
+    "deadline": "Last day",
+    "deadlineHint": "Leave it empty for a «while you are in the period» item.",
+    "valueAt": "Value at column {{n}}"
+  }
+}

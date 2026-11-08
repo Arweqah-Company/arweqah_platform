@@ -37,7 +37,9 @@
     "translationSettings": "Translation settings",
     "emailSettings": "E-mail settings",
     "serviceSettings": "Settings",
-    "jobTitles": "Job titles"
+    "jobTitles": "Job titles",
+    "careerProfile": "Career path",
+    "careerContent": "Career-path content"
   },
   "actions": {
     "save": "Save",
@@ -295,7 +297,12 @@
       "title": "Sorry, this page does not exist",
       "description": "To keep browsing, you can go back to the previous page with the button below."
     },
+    "500": {
+      "title": "Something went wrong",
+      "description": "An unexpected error stopped this page. Reload it, or go back to the home page. If it keeps happening, tell the system administrator."
+    },
     "back": "Back",
+    "reload": "Reload page",
     "signIn": "Sign in"
   },
   "chart": {

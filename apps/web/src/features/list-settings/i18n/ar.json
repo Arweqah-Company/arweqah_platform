@@ -300,6 +300,38 @@
         "track": "المسار",
         "vacant": "الشاغر"
       }
+    },
+    "career-content": {
+      "name": "محتوى المسارات الوظيفية",
+      "columns": {
+        "name": "المسمى",
+        "code": "الرمز",
+        "unit": "الوحدة",
+        "grade": "الدرجة",
+        "track": "المسار",
+        "status": "حالة المسار",
+        "holders": "الشاغلون"
+      },
+      "filters": {
+        "status": "حالة المسار",
+        "grade": "الدرجة",
+        "track": "المسار",
+        "unit": "الوحدة"
+      }
+    },
+    "career-learning": {
+      "name": "وحدات التعلم في مساري",
+      "columns": {
+        "priority": "الأولوية",
+        "unit": "الوحدة",
+        "duration": "المدة",
+        "language": "اللغة",
+        "link": "الرابط"
+      },
+      "filters": {
+        "priority": "الأولوية",
+        "language": "اللغة"
+      }
     }
   },
   "listHint": "العمود الأول (الاسم) يبقى دائمًا.",

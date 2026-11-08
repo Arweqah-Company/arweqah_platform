@@ -5,6 +5,8 @@ const ICONS: Record<ErrorCode, string> = {
   404: 'M-14 -14a22 22 0 1 0 0.1 0zM3 3l22 22',
   // padlock: no permission
   403: 'M-18 -2h36v28h-36zM-11 -2v-10a11 11 0 0 1 22 0v10',
+  // warning triangle: something broke
+  500: 'M0 -16l26 44h-52zM0 0v12M0 20v1',
   // key: sign in
   401: 'M-22 0a10 10 0 1 0 0.1 0zM-12 0h34M12 0v10M22 0v8',
 };

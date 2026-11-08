@@ -1,4 +1,4 @@
-import type { LocalizedList, ManagementMode, OrgCharter, TitleTrack } from '@arweqah-platform/shared';
+import type { LocalizedList, ManagementMode, DevelopmentStageName, OrgCharter, TitleTrack } from '@arweqah-platform/shared';
 
 /** Read models the org repository returns. Names carry both languages. */
 export interface Names {
@@ -66,4 +66,16 @@ export interface TitleDetail extends TitleView, TitleContent {}
 export interface NodePath {
   pathAr: string;
   pathEn: string;
+}
+
+/** Who a title is, for the modules that hang content on it (the career path). */
+export interface TitleIdentityView {
+  id: string;
+  code: string | null;
+  nameAr: string;
+  nameEn: string;
+  grade: number | null;
+  track: TitleTrack | null;
+  unit: { code: string | null; nameAr: string; nameEn: string };
+  stage: { code: DevelopmentStageName; hoursPerYear: number; budgetCap: number } | null;
 }

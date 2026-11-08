@@ -2,6 +2,7 @@ import { createBrowserRouter, Outlet, type RouteObject } from 'react-router';
 import { RequireAuth, SessionWatcher } from '@/core/auth/session';
 import { AppLayout } from './app-layout';
 import { FEATURES } from './features';
+import { RouteErrorPage } from './route-error-page';
 import { NotFoundPage } from './not-found-page';
 import { SessionEndedPage } from './session-ended-page';
 
@@ -25,6 +26,7 @@ const withPermission = (route: RouteObject): RouteObject => {
 export const router = createBrowserRouter([
   {
     Component: Root,
+    ErrorBoundary: RouteErrorPage,
     children: [
       ...FEATURES.flatMap((f) => f.publicRoutes ?? []),
       { path: '/401', Component: SessionEndedPage },

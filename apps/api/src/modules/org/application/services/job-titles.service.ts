@@ -23,6 +23,7 @@ import { JobTitleRepository } from '../../domain/contracts/job-title.repository'
 import { OrgRepository } from '../../domain/contracts/org.repository';
 import { GroupCompanyMissingError, OrgViewFullRequiredError } from '../../domain/errors/org.errors';
 import { stageFor } from '../../domain/rules/development-stage.rules';
+import type { TitleIdentityView } from '../../domain/types/org.types';
 import { planTitleImport, type ImportContext, type RowPlan } from '../../domain/rules/title-import.rules';
 import type { NodeView, TitleContent, TitleDetail } from '../../domain/types/org.types';
 import { ORG_AUDIT } from '../messages/org.messages';
@@ -114,10 +115,12 @@ export class JobTitlesService {
     return { ...input, contentVersion };
   }
 
-  /** Who a title is (id, code, names), for the modules that hang content on it; a missing title is a 404. */
-  async identity(id: string): Promise<{ id: string; code: string | null; nameAr: string; nameEn: string }> {
+  /** Who a title is (id, code, names, grade, track, its unit and its development stage), for the modules that hang content on it; a missing title is a 404. */
+  async identity(id: string): Promise<TitleIdentityView> {
     const t = await this.mustDetail(id);
-    return { id: t.id, code: t.code, nameAr: t.nameAr, nameEn: t.nameEn };
+    const [node, rules] = await Promise.all([this.mustNode(t.orgNodeId), this.titles.stageRules()]);
+    const stage = t.grade !== null && t.track ? stageFor(rules, t.grade, t.track) : null;
+    return { id: t.id, code: t.code, nameAr: t.nameAr, nameEn: t.nameEn, grade: t.grade, track: t.track, unit: { code: node.code, nameAr: node.nameAr, nameEn: node.nameEn }, stage: stage ? { code: stage.code, hoursPerYear: stage.hoursPerYear, budgetCap: stage.budgetCap } : null };
   }
 
   /** The stored rules of the development stage by grade and track (read only for now). */
