@@ -1,5 +1,5 @@
 # Build from the repo root: docker build -f apps/web/Dockerfile --build-arg VITE_MICROSOFT_ENABLED=true .
-FROM node:24.21-alpine AS base
+FROM node:26.12-alpine AS base
 RUN npm i -g turbo@2.11.7
 
 FROM base AS pruner
