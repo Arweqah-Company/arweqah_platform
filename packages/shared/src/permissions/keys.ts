@@ -233,7 +233,6 @@ export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own
   { key: CorePermission.TicketsReopen, scope: 'all' },
   { key: CorePermission.LookupsView, scope: 'all' },
   { key: CorePermission.OrgView, scope: 'all' },
-  { key: CorePermission.JobTitlesView, scope: 'all' },
   { key: CorePermission.TasksView, scope: 'own' },
   { key: CorePermission.TasksCreate, scope: 'all' },
   { key: CorePermission.TasksUpdate, scope: 'own' },

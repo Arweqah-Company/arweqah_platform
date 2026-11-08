@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { careerContent, careerRow } from '../../../test/career-fixtures';
 import { me, server } from '../../../test/msw';
 import { renderPage } from '../../../test/render';
-import { TitleWorkspace } from './title-workspace';
+import { TitlePanel } from './title-panel';
 
 const EDIT = [CorePermission.CareerContentView, CorePermission.CareerContentEdit, CorePermission.CareerTitlefilePreview];
 
@@ -21,7 +21,7 @@ function open(content: CareerContent = careerContent, keys: string[] = EDIT, sta
       return HttpResponse.json({ version: 5 });
     }),
   );
-  renderPage(<TitleWorkspace title={careerRow({ status })} onClose={() => undefined} onAction={() => undefined} />);
+  renderPage(<TitlePanel title={careerRow({ status })} onAction={() => undefined} />);
   return { puts };
 }
 

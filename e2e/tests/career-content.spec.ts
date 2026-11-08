@@ -34,21 +34,22 @@ async function draftTitle(page: Page, project: string): Promise<{ id: string; na
   return { id: title.id, name };
 }
 
-const rowOf = (page: Page, name: string) => page.getByRole('row').filter({ has: page.getByText(name, { exact: true }) });
+/** The panel of the open title (the first one the search found). */
+const panelOf = (page: Page) => page.getByRole('region', { name: 'أقسام المسار' });
 
 test.describe('Career-path content (FR-111, FR-112, FR-113)', () => {
-  test('lists a title with the state of its path, previews it on a click, and is accessible', async ({ page }, info) => {
+  test('lists a title with the state of its path, opens it in the panel beside the list, previews it, and is accessible', async ({ page }, info) => {
     const data = await draftTitle(page, info.project.name);
     const list = new ListPage(page);
     await page.goto('/career-content');
     await expect(page.getByRole('heading', { level: 1, name: 'محتوى المسارات الوظيفية' })).toBeVisible();
-    await list.switchView('جدول');
     await list.search('بحث في المسميات').fill(data.name);
-    const row = rowOf(page, data.name);
-    await expect(row.getByText('مسودة', { exact: true })).toBeVisible();
-    await expect(row.getByText('L7', { exact: true })).toBeVisible();
+    const panel = panelOf(page);
+    await expect(panel.getByRole('heading', { level: 3, name: data.name })).toBeVisible();
+    await expect(panel.getByText('مسودة: لا يراها الموظف')).toBeVisible();
+    await expect(panel.getByText('إصدار المحتوى 1')).toBeVisible();
     await list.expectNoSeriousA11yIssues();
-    await row.getByRole('button', { name: /^معاينة المسار/ }).click();
+    await panel.getByRole('button', { name: /^معاينة المسار/ }).click();
     const dialog = page.getByRole('dialog');
     await expect(dialog.getByText('معاينة المسار الوظيفي', { exact: false })).toBeVisible();
     await expect(dialog.getByText(COMPLETE.summary)).toBeVisible();
@@ -62,15 +63,13 @@ test.describe('Career-path content (FR-111, FR-112, FR-113)', () => {
     await expect(dialog).toHaveCount(0);
   });
 
-  test('opens the workspace of a title on a click on its row, edits a field, sees what is missing live, saves it, and the list shows the new version', async ({ page }, info) => {
+  test('edits a field of the open title in its panel, sees what is missing live, saves it, and the list shows the new version', async ({ page }, info) => {
     const data = await draftTitle(page, info.project.name);
     const list = new ListPage(page);
     await page.goto('/career-content');
-    await list.switchView('جدول');
     await list.search('بحث في المسميات').fill(data.name);
-    await rowOf(page, data.name).getByText(data.name, { exact: true }).click();
-    const dialog = page.getByRole('dialog');
-    await expect(dialog.getByText('مساحة عمل المسار', { exact: false })).toBeVisible();
+    const dialog = panelOf(page);
+    await expect(dialog.getByRole('heading', { level: 3, name: data.name })).toBeVisible();
     await expect(dialog.getByText('كل الأجزاء مكتملة ويمكن تعيين المسار جاهزًا.')).toBeVisible();
     const summary = dialog.getByLabel('ملخص الوظيفة');
     await summary.fill('');
@@ -94,14 +93,13 @@ test.describe('Career-path content (FR-111, FR-112, FR-113)', () => {
     const data = await draftTitle(page, info.project.name);
     const list = new ListPage(page);
     await page.goto('/career-content');
-    await list.switchView('جدول');
     await list.search('بحث في المسميات').fill(data.name);
-    const row = rowOf(page, data.name);
+    const row = panelOf(page);
     await row.getByRole('button', { name: /^تعيين المسار جاهزًا/ }).click();
     await expect(page.getByText(/سيظهر المسار لشاغلي المسمى/)).toBeVisible();
     await list.expectNoSeriousA11yIssues();
     await page.getByRole('dialog').getByRole('button', { name: 'تعيين جاهزًا' }).click();
-    await expect(row.getByText('جاهز', { exact: true })).toBeVisible();
+    await expect(row.getByText('جاهز: ظاهر لشاغليه')).toBeVisible();
     await row.getByRole('button', { name: /^إعادة فتح الإقرار/ }).click();
     const reopen = page.getByRole('dialog');
     await expect(reopen.getByRole('button', { name: 'تأكيد' })).toBeDisabled();
@@ -111,16 +109,15 @@ test.describe('Career-path content (FR-111, FR-112, FR-113)', () => {
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await row.getByRole('button', { name: /^إرجاع المسار إلى مسودة/ }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'إرجاع إلى مسودة' }).click();
-    await expect(row.getByText('مسودة', { exact: true })).toBeVisible();
+    await expect(row.getByText('مسودة: لا يراها الموظف')).toBeVisible();
   });
 
   test('opens the title-file dialog, reads a pasted text, says what is missing and keeps «Save» off, accessibly', async ({ page }, info) => {
     const data = await draftTitle(page, info.project.name);
     const list = new ListPage(page);
     await page.goto('/career-content');
-    await list.switchView('جدول');
     await list.search('بحث في المسميات').fill(data.name);
-    await rowOf(page, data.name).getByRole('button', { name: /^رفع ملف المسمى/ }).click();
+    await panelOf(page).getByRole('button', { name: /^رفع ملف المسمى/ }).click();
     const dialog = page.getByRole('dialog');
     await expect(dialog.getByRole('button', { name: 'حفظ المحتوى المستخرج' })).toBeDisabled();
     await dialog.getByLabel('أو الصق نص الملف').fill('ملخص الوظيفة\nنص قصير بلا باقي الأقسام');

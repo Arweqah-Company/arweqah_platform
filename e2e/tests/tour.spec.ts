@@ -8,7 +8,7 @@ import { ensureTeamSample } from '../support/org-data';
 class Screen extends BasePage {}
 test.use({ storageState: ADMIN_STATE });
 
-const GENERAL = ['أهلًا بك في منصة أروقة', 'حسابك', 'ملفي الشخصي', 'الأمان', 'صلاحياتي', 'تسجيل الخروج', 'اللغة والمظهر', 'الإشعارات', 'القائمة الجانبية', 'الصفحة الرئيسية', 'التذاكر', 'التذاكر', 'تذكرة جديدة', 'طرق عرض التذاكر', 'مهامي', 'المهام', 'مهمة جديدة', 'جدول أم لوحة Kanban', 'افتح المهمة وعدّلها', 'الموظفون', 'الموظفون', 'سجل الموظف', 'الصورة الشخصية', 'فريقي', 'الهيكل التنظيمي', 'الهيكل التنظيمي', 'طرق عرض الهيكل', 'المسميات الوظيفية', 'المسميات الوظيفية', 'بطاقة المسمى', 'المسار الوظيفي', 'مسارك الوظيفي', 'انتهت الجولة'];
+const GENERAL = ['أهلًا بك في منصة أروقة', 'حسابك', 'ملفي الشخصي', 'الأمان', 'صلاحياتي', 'تسجيل الخروج', 'اللغة والمظهر', 'الإشعارات', 'القائمة الجانبية', 'الصفحة الرئيسية', 'التذاكر', 'التذاكر', 'تذكرة جديدة', 'طرق عرض التذاكر', 'مهامي', 'المهام', 'مهمة جديدة', 'جدول أم لوحة Kanban', 'افتح المهمة وعدّلها', 'الموظفون', 'الموظفون', 'سجل الموظف', 'الصورة الشخصية', 'فريقي', 'الهيكل التنظيمي', 'الهيكل التنظيمي', 'طرق عرض الهيكل', 'المسار الوظيفي', 'مسارك الوظيفي', 'انتهت الجولة'];
 const bubble = (page: Page) => page.getByRole('alertdialog');
 const title = (page: Page) => bubble(page).getByRole('heading', { level: 2 });
 const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))));
@@ -105,13 +105,15 @@ test.describe('Welcome tour (FR-67)', () => {
 test.describe('Welcome tour: the job-titles page, the title card and the charter tab (FR-67, FR-99, FR-107)', () => {
   const stepsOf = async (page: Page, tour: 'general' | 'admin'): Promise<string[]> => ((await (await page.request.get(`/api/me/tour/${tour}`)).json()).steps as { key: string }[]).map((s) => s.key);
 
-  test('every employee is offered the job-titles page and the card; the charter step belongs to those who hold its key, in admin mode only', async ({ page }) => {
+  test('an employee is not offered the job-titles page or the card (decision 267); they belong to those who hold the key, in admin mode, with the charter step', async ({ page }) => {
     await adminModeOffViaApi(page);
     const general = await stepsOf(page, 'general');
-    expect(general).toEqual(expect.arrayContaining(['job-titles', 'title-card']));
+    expect(general).not.toEqual(expect.arrayContaining(['job-titles']));
+    expect(general).not.toContain('title-card');
     expect(general).not.toContain('org-full-view'); // the full-view key works in admin mode only
     expect(await stepsOf(page, 'admin')).not.toContain('org-charter');
     await adminModeOnViaApi(page);
+    expect(await stepsOf(page, 'general')).toEqual(expect.arrayContaining(['job-titles', 'title-card']));
     expect(await stepsOf(page, 'admin')).toContain('org-charter');
     await adminModeOffViaApi(page);
   });

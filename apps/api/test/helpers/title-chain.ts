@@ -1,4 +1,4 @@
-import type { JobTitleDto } from '@arweqah-platform/shared';
+import type { JobTitleDto, PermissionGrant } from '@arweqah-platform/shared';
 import type { TestAgent, TestUnit, TestUser } from '../factories/factories';
 import type { TestContext } from '../setup/test-app';
 import { orgAdmin } from './org-admin';
@@ -19,9 +19,9 @@ export async function chainScenario(t: TestContext) {
   const lead = await addTitle('Lead', 6, 'M', head.id);
   const rep = await addTitle('Rep', 7, 'P', lead.id);
   /** An employee of `company` holding `title` in the department. */
-  const person = async (title: JobTitleDto, company: string): Promise<TestUser> => {
+  const person = async (title: JobTitleDto, company: string, grants?: PermissionGrant[]): Promise<TestUser> => {
     const unit: TestUnit = { id: dept.id, titleId: title.id, companyId: dept.companyId };
-    const user = await t.factories.user({ unit });
+    const user = await t.factories.user({ unit, ...(grants ? { grants } : {}) });
     await t.db.query('UPDATE employees SET company_id = $1 WHERE id = $2', [company, user.employeeId]);
     return user;
   };

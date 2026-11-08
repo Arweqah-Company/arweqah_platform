@@ -6,9 +6,8 @@ import { Alert, Button, ConfirmDialog, Dialog, DialogFooter, FormField, Input } 
 import { useReopenAck, useSetDraft, useSetReady, useTitleContent } from './api';
 import { FreeReading } from './free-reading';
 import { TitleFileDialog } from './title-file-dialog';
-import { TitleWorkspace } from './title-workspace';
 
-export type TitleDialogState = { kind: 'workspace' | 'preview' | 'file' | 'ready' | 'draft' | 'reopen'; title: CareerTitleListItemDto } | null;
+export type TitleDialogState = { kind: 'preview' | 'file' | 'ready' | 'draft' | 'reopen'; title: CareerTitleListItemDto } | null;
 
 const nameOf = (x: CareerTitleListItemDto, ar: boolean): string => (ar ? x.nameAr : x.nameEn) || x.nameAr;
 
@@ -69,11 +68,10 @@ function ReopenDialog({ title, onClose }: { title: CareerTitleListItemDto; onClo
 }
 
 /** The dialog the row's icon opened. */
-export function TitleDialogs({ state, onClose, onOpen }: { state: TitleDialogState; onClose: () => void; onOpen: (state: TitleDialogState) => void }) {
+export function TitleDialogs({ state, onClose }: { state: TitleDialogState; onClose: () => void }) {
   const { i18n } = useTranslation();
   if (!state) return null;
   const { kind, title } = state;
-  if (kind === 'workspace') return <TitleWorkspace title={title} onClose={onClose} onAction={onOpen} />;
   if (kind === 'preview') return <PreviewDialog title={title} onClose={onClose} />;
   if (kind === 'file') return <TitleFileDialog titleId={title.id} titleName={nameOf(title, i18n.language === 'ar')} onClose={onClose} />;
   if (kind === 'reopen') return <ReopenDialog title={title} onClose={onClose} />;
