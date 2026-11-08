@@ -5,6 +5,9 @@ import { orgAdmin, orgContext, orgGrantsWithout } from './helpers/org-admin';
 import { chainScenario } from './helpers/title-chain';
 import { useTestApp } from './setup/test-app';
 
+/** The Employee role no longer holds the job-titles page (decision 267): the people who read it here hold its key. */
+const VIEW = [{ key: CorePermission.JobTitlesView, scope: 'all' as const }];
+
 const content = (n: string): JobTitleContentDto => ({
   responsibilities: { ar: [`مسؤولية ${n}`], en: [`Duty ${n}`] },
   qualifications: { ar: ['مؤهل'], en: ['A degree'] },
@@ -129,10 +132,10 @@ describe('The job-titles list, the card and the development-stage rules (FR-107)
     const companyC = await t.factories.company();
     const other = await t.factories.node({ key: 'sector', parentId: null, name: 'Other', mode: 'per_company' });
     const otherDept = await t.factories.node({ key: 'department', parentId: other.id, name: 'Other dept', titles: true });
-    const outsider = await t.factories.user({ unit: otherDept });
+    const outsider = await t.factories.user({ unit: otherDept, grants: VIEW });
     await t.db.query('UPDATE employees SET company_id = $1 WHERE id = $2', [companyC, outsider.employeeId]);
-    const repG = await s.person(s.rep, s.group);
-    const repB = await s.person(s.rep, s.companyB);
+    const repG = await s.person(s.rep, s.group, VIEW);
+    const repB = await s.person(s.rep, s.companyB, VIEW);
     const list = async (agent: typeof s.agent, query: Record<string, string | number> = {}): Promise<JobTitlesPageDto> => (await agent.get('/api/org/job-titles').query(query).expect(200)).body;
     const card = (agent: typeof s.agent, id: string, company?: string) => agent.get(`/api/org/job-titles/${id}/card`).query(company ? { company } : {});
     return { ...s, other, otherDept, outsider, repG, repB, companyC, list, card };
@@ -200,8 +203,8 @@ describe('The job-titles list, the card and the development-stage rules (FR-107)
     const empty = (await s.card(asB, s.rep.id).expect(200)).body as JobTitleCardDto;
     expect(empty.chain).toMatchObject({ companyId: s.companyB, managerTitleId: null });
     expect(empty.chain?.steps.map((x) => [x.nameEn, x.state])).toEqual([['Lead', 'vacant'], ['Head', 'vacant']]);
-    const headG = await s.person(s.head, s.group); // a holder in another company never counts for company B
-    const headB = await s.person(s.head, s.companyB);
+    const headG = await s.person(s.head, s.group, VIEW); // a holder in another company never counts for company B
+    const headB = await s.person(s.head, s.companyB, VIEW);
     const found = (await s.card(asB, s.rep.id).expect(200)).body as JobTitleCardDto;
     expect(found.chain?.managerTitleId).toBe(s.head.id);
     expect(found.chain?.steps.map((x) => [x.nameEn, x.state, x.count])).toEqual([['Lead', 'vacant', null], ['Head', 'found', 1]]);

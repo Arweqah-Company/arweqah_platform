@@ -87,15 +87,14 @@ test.describe('Job titles page: the list, search and filters (FR-107)', () => {
     await expect(page.getByRole('button', { name: 'بطاقات', exact: true })).toHaveAttribute('aria-pressed', 'true');
   });
 
-  test('hides adding, editing and deleting while admin mode is off', async ({ page }, info) => {
-    const data = await sample(page, info.project.name);
+  test('is not offered to an employee: with admin mode off the page shows the no-permission page and no title is read (decision 267)', async ({ page }) => {
     await adminModeOffViaApi(page);
     await page.goto('/job-titles');
-    await new ListPage(page).search('بحث في المسميات').fill(data.child);
-    await expect(page.getByText(data.child).first()).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'ليس لديك صلاحية للدخول إلى هذه الصفحة' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'إضافة مسمى', exact: true })).toHaveCount(0);
-    for (const name of [new RegExp(`^تعديل: ${data.child}`), new RegExp(`^حذف: ${data.child}`), new RegExp(`^تعديل المحتوى: ${data.child}`)]) await expect(page.getByRole('button', { name })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: new RegExp(`^فتح البطاقة: ${data.child}`) })).toBeVisible();
+    await adminModeOnViaApi(page);
+    await page.goto('/job-titles');
+    await expect(page.getByRole('heading', { level: 1, name: 'المسميات الوظيفية' })).toBeVisible();
   });
 });
 

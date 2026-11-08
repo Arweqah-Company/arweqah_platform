@@ -1,10 +1,10 @@
 import { careerContentSchema, careerReadinessProblems, CorePermission, type CareerContent, type CareerTitleListItemDto } from '@arweqah-platform/shared';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { ApiError } from '@/core/api/api-client';
 import { usePermissions } from '@/core/permissions/can';
-import { Alert, Button, Dialog, DialogFooter, Tabs } from '@/shared/ui';
+import { Alert, Badge, Button, Tabs } from '@/shared/ui';
 import { useSaveContent, useTitleContent } from './api';
 import { StatusBadge } from './content-columns';
 import { CompetenciesEditor } from './editors/competencies-editor';
@@ -14,7 +14,7 @@ import { PathEditor } from './editors/path-editor';
 import { RequiredEditor } from './editors/required-editor';
 import { FreeReading } from './free-reading';
 import type { TitleDialogState } from './title-dialogs';
-import { TitleRowActions } from './title-row-actions';
+import { TitleActions } from './title-actions';
 
 const TABS = ['description', 'path', 'competencies', 'learning', 'required', 'evaluation', 'lists'] as const;
 type WorkspaceTab = (typeof TABS)[number];
@@ -75,24 +75,40 @@ function Notices({ doc }: { doc: ReturnType<typeof useWorkspaceDocument> }) {
   return message ? <div className="mt-3"><Alert tone={doc.dirty && !doc.valid && !doc.save.isError ? 'warning' : 'danger'}>{t(message)}</Alert></div> : null;
 }
 
-/** The workspace of one title: its path in seven tabs, the five that hold content edited field by field (saved with «Save»), and the live list of what is missing. */
-export function TitleWorkspace({ title, onClose, onAction }: { title: CareerTitleListItemDto; onClose: () => void; onAction: (state: TitleDialogState) => void }) {
+/** The name of the title, its code, the version of its content and whether its holders see it. */
+function PanelHeading({ title }: { title: CareerTitleListItemDto }) {
   const { t, i18n } = useTranslation('career-profile');
+  const name = (i18n.language === 'ar' ? title.nameAr : title.nameEn) || title.nameAr;
+  return (
+    <div>
+      <h3 className="font-heading text-xl font-bold text-fg">{name}</h3>
+      <div className="mt-1 flex flex-wrap items-center gap-2">
+        {title.code && <bdi dir="ltr" className="font-latin text-sm text-muted">{title.code}</bdi>}
+        {title.version > 0 && <Badge tone="neutral">{t('content.versionBadge', { version: title.version })}</Badge>}
+        <StatusBadge status={title.status} />
+        {title.status !== 'none' && <span className="text-sm text-muted">{t(`content.shown.${title.status}`)}</span>}
+      </div>
+    </div>
+  );
+}
+
+/** The panel of one title: its heading and actions, what is missing, and its path in seven tabs, the five with content edited field by field (saved with «Save»). */
+export function TitlePanel({ title, stale = false, onAction, onDirtyChange }: { title: CareerTitleListItemDto; stale?: boolean; onAction: (state: TitleDialogState) => void; onDirtyChange?: (dirty: boolean) => void }) {
+  const { t } = useTranslation('career-profile');
   const canEdit = usePermissions().can(CorePermission.CareerContentEdit);
   const doc = useWorkspaceDocument(title.id);
   const [tab, setTab] = useState<WorkspaceTab>('description');
-  const name = (i18n.language === 'ar' ? title.nameAr : title.nameEn) || title.nameAr;
+  const { dirty } = doc;
+  useEffect(() => { onDirtyChange?.(dirty); return () => onDirtyChange?.(false); }, [dirty, onDirtyChange]);
+  const canBeReady = !!doc.content && careerReadinessProblems(doc.content).length === 0;
   return (
-    <Dialog open onOpenChange={(o) => !o && onClose()} title={t('workspace.title', { name })} description={title.code ?? undefined} xl>
-      <div className="mb-3 flex flex-wrap items-center gap-2"><StatusBadge status={title.status} /><TitleRowActions title={title} first={false} onOpen={onAction} /></div>
+    <section aria-label={t('workspace.tabsLabel')} className="flex min-w-0 flex-col gap-3 rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm shadow-ink/5">
+      <div className="flex flex-wrap items-start justify-between gap-3"><PanelHeading title={title} />{!stale && <TitleActions title={title} canBeReady={canBeReady} onOpen={onAction} />}</div>
       {doc.stored.isError && <Alert tone="danger">{t('preview.failed')}</Alert>}
-      <div className="mt-3"><Tabs tabs={TABS.map((id) => ({ id, label: t(`workspace.tabs.${id}`) }))} value={tab} label={t('workspace.tabsLabel')} onChange={setTab} /></div>
+      <Tabs tabs={TABS.map((id) => ({ id, label: t(`workspace.tabs.${id}`) }))} value={tab} label={t('workspace.tabsLabel')} onChange={setTab} />
       {doc.content && <WorkspaceBody content={doc.content} tab={tab} canEdit={canEdit} onChange={doc.setDraft} />}
       <Notices doc={doc} />
-      <DialogFooter>
-        {canEdit && <Button disabled={!doc.dirty || !doc.valid || doc.save.isPending} onClick={doc.submit}>{t('workspace.save')}</Button>}
-        <Button variant="secondary" onClick={onClose}>{t('file.close')}</Button>
-      </DialogFooter>
-    </Dialog>
+      {canEdit && <div><Button disabled={!doc.dirty || !doc.valid || doc.save.isPending} onClick={doc.submit}>{t('workspace.save')}</Button></div>}
+    </section>
   );
 }

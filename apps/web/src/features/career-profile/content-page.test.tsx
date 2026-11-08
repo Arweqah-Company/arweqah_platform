@@ -35,55 +35,54 @@ function open(keys: string[] = ALL, items = [careerRow(), careerRow({ id: 't2', 
   return { asked, posted };
 }
 
+const pick = async (name: string) => fireEvent.click(await screen.findByRole('button', { name: (accessible) => accessible.includes(name) }));
+
 describe('The career-path content page (FR-113)', () => {
-  it('reads the list again after a path is set ready, so the row shows its new state at once', async () => {
+  it('reads the list again after a path is set ready, so the title shows its new state at once', async () => {
     let status: 'draft' | 'ready' = 'draft';
     open(ALL, [careerRow()]);
     server.use(
       http.get('*/api/career/titles', () => HttpResponse.json({ items: [careerRow({ status })], total: 1, page: 1, pageSize: 20 })),
       http.post('*/api/career/titles/t1/publish', () => { status = 'ready'; return HttpResponse.json({}); }),
     );
-    const row = (await screen.findByText('منسق الاستقطاب')).closest('tr') as HTMLElement;
-    expect(within(row).getByText('مسودة')).toBeInTheDocument();
-    fireEvent.click(await within(row).findByRole('button', { name: /تعيين المسار جاهزًا/ }));
+    expect(await screen.findByText('مسودة: لا يراها الموظف')).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: /تعيين المسار جاهزًا/ }));
     fireEvent.click(await screen.findByRole('button', { name: 'تعيين جاهزًا' }));
-    expect(await within((await screen.findByText('منسق الاستقطاب')).closest('tr') as HTMLElement).findByText('جاهز')).toBeInTheDocument();
+    expect(await screen.findByText('جاهز: ظاهر لشاغليه')).toBeInTheDocument();
   });
 
-  it('lists the titles with the state of their path, the unit, grade, track and holders', async () => {
+  it('lists the titles with their code and the state of their path, and opens the first one in its panel with its version', async () => {
     open();
-    const row = (await screen.findByText('منسق الاستقطاب')).closest('tr') as HTMLElement;
-    expect(within(row).getByText('مسودة')).toBeInTheDocument();
-    expect(within(row).getByText('وحدة الاستقطاب')).toBeInTheDocument();
-    expect(within(row).getByText('L9')).toBeInTheDocument();
-    expect(within(row).getByText('مهني')).toBeInTheDocument();
-    expect(within((screen.getByText('مساعد إداري').closest('tr')) as HTMLElement).getByText('بلا محتوى')).toBeInTheDocument();
-    expect(within((screen.getByText('محاسب').closest('tr')) as HTMLElement).getByText('جاهز')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /منسق الاستقطاب/ })).toHaveAttribute('aria-current', 'true');
+    expect(screen.getByRole('button', { name: /مساعد إداري.*بلا محتوى/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /محاسب.*جاهز/ })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 3, name: 'منسق الاستقطاب' })).toBeInTheDocument();
+    expect(screen.getByText('إصدار المحتوى 2')).toBeInTheDocument();
+    expect(within(screen.getByRole('region', { name: 'أقسام المسار' })).getByText('OPS.01.01.01-L9P-01')).toBeInTheDocument();
   });
 
-  it('shows on each row only the actions its state allows and the person\'s keys give', async () => {
+  it('shows in the panel only the actions the state of the title allows and the person\'s keys give', async () => {
     open();
-    const draft = (await screen.findByText('منسق الاستقطاب')).closest('tr') as HTMLElement;
-    expect(await within(draft).findByRole('button', { name: /تعيين المسار جاهزًا/ })).toBeInTheDocument();
-    expect(within(draft).queryByRole('button', { name: /إرجاع المسار إلى مسودة/ })).not.toBeInTheDocument();
-    expect(within(draft).queryByRole('button', { name: /إعادة فتح الإقرار/ })).not.toBeInTheDocument();
-    const ready = screen.getByText('محاسب').closest('tr') as HTMLElement;
-    expect(within(ready).getByRole('button', { name: /إرجاع المسار إلى مسودة/ })).toBeInTheDocument();
-    expect(within(ready).getByRole('button', { name: /إعادة فتح الإقرار/ })).toBeInTheDocument();
-    const none = screen.getByText('مساعد إداري').closest('tr') as HTMLElement;
-    expect(within(none).queryByRole('button', { name: /تعيين المسار جاهزًا/ })).not.toBeInTheDocument();
-    expect(within(none).getByRole('button', { name: /رفع ملف المسمى/ })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /تعيين المسار جاهزًا/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /إرجاع المسار إلى مسودة/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /إعادة فتح الإقرار/ })).not.toBeInTheDocument();
+    await pick('محاسب');
+    expect(await screen.findByRole('button', { name: /إرجاع المسار إلى مسودة/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /إعادة فتح الإقرار لشاغلي المسمى \(3\)/ })).toBeInTheDocument();
+    await pick('مساعد إداري');
+    expect(await screen.findByRole('button', { name: /رفع ملف المسمى/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /تعيين المسار جاهزًا/ })).not.toBeInTheDocument();
   });
 
-  it('hides every action from a person who only sees the list', async () => {
+  it('hides every action and the editors from a person who only sees the page', async () => {
     open([CorePermission.CareerContentView]);
-    const row = (await screen.findByText('منسق الاستقطاب')).closest('tr') as HTMLElement;
-    expect(within(row).queryAllByRole('button')).toHaveLength(0);
+    await screen.findByRole('heading', { level: 3, name: 'منسق الاستقطاب' });
+    for (const name of [/معاينة المسار/, /رفع ملف المسمى/, /تعيين المسار جاهزًا/, /حفظ التعديلات/]) expect(screen.queryByRole('button', { name })).not.toBeInTheDocument();
   });
 
   it('searches and filters in the API query: the path state, the grade and the track', async () => {
     const { asked } = open();
-    await screen.findByText('منسق الاستقطاب');
+    await screen.findByRole('button', { name: /منسق الاستقطاب/ });
     fireEvent.change(screen.getByPlaceholderText('ابحث بالمسمى أو الرمز'), { target: { value: 'منسق' } });
     await waitFor(() => expect(asked.some((p) => p.get('search') === 'منسق')).toBe(true));
     fireEvent.click(await screen.findByRole('button', { name: /تصفية/ }));
@@ -92,23 +91,17 @@ describe('The career-path content page (FR-113)', () => {
     await chooseOption(screen.getByLabelText('المسار'), 'P');
     await waitFor(() => expect(asked.some((p) => p.get('status') === 'ready' && p.get('grade') === '9' && p.get('track') === 'P')).toBe(true));
   });
-
 });
 
-describe('The career-path content page: dialogs of a row (FR-113)', () => {
-  it('opens the workspace on a click on the row and the preview from its icon, and confirms before setting a path ready, with the holders it reaches', async () => {
+describe('The career-path content page: dialogs of the panel (FR-113)', () => {
+  it('previews the path from its icon, and confirms before setting a path ready, with the holders it reaches', async () => {
     const { posted } = open();
-    fireEvent.click(await screen.findByText('منسق الاستقطاب'));
-    expect(await screen.findByText('مساحة عمل المسار: منسق الاستقطاب')).toBeInTheDocument(); // a click on the row opens the workspace
-    fireEvent.click(within(screen.getByRole('dialog')).getAllByRole('button', { name: 'إغلاق' }).at(-1) as HTMLElement);
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    fireEvent.click(await within((await screen.findByText('منسق الاستقطاب')).closest('tr') as HTMLElement).findByRole('button', { name: /معاينة المسار/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /معاينة المسار/ }));
     expect(await screen.findByText('معاينة المسار الوظيفي: منسق الاستقطاب')).toBeInTheDocument();
-    expect(await screen.findByText(careerContent.summary)).toBeInTheDocument();
-    fireEvent.click(within(screen.getByRole('dialog')).getAllByRole('button', { name: 'إغلاق' }).at(-1) as HTMLElement);
+    expect((await screen.findAllByText(careerContent.summary)).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getAllByRole('button', { name: 'إغلاق' }).at(-1) as HTMLElement);
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    const draft = (await screen.findByText('منسق الاستقطاب')).closest('tr') as HTMLElement;
-    fireEvent.click(await within(draft).findByRole('button', { name: /تعيين المسار جاهزًا/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /تعيين المسار جاهزًا/ }));
     expect(await screen.findByText(/سيظهر المسار لشاغلي المسمى \(3\)/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'تعيين جاهزًا' }));
     await waitFor(() => expect(posted.map((p) => p.url)).toContain('/api/career/titles/t1/publish'));
@@ -116,8 +109,8 @@ describe('The career-path content page: dialogs of a row (FR-113)', () => {
 
   it('asks for a reason of five characters before reopening the acknowledgement', async () => {
     const { posted } = open();
-    const ready = (await screen.findByText('محاسب')).closest('tr') as HTMLElement;
-    fireEvent.click(await within(ready).findByRole('button', { name: /إعادة فتح الإقرار/ }));
+    await pick('محاسب');
+    fireEvent.click(await screen.findByRole('button', { name: /إعادة فتح الإقرار/ }));
     const confirm = await screen.findByRole('button', { name: 'تأكيد' });
     expect(confirm).toBeDisabled();
     fireEvent.change(screen.getByLabelText('السبب *'), { target: { value: 'ق' } });
@@ -128,3 +121,64 @@ describe('The career-path content page: dialogs of a row (FR-113)', () => {
     await waitFor(() => expect(posted).toContainEqual({ url: '/api/career/titles/t3/reopen-acknowledgement', body: { reason: 'تغيّر الوصف الوظيفي' } }));
   });
 });
+
+describe('The career-path content page: what the panel keeps and what an error hides (FR-113)', () => {
+  it('asks before another title replaces a panel with unsaved edits, keeps them on «cancel» and drops them on «discard»', async () => {
+    open([...ALL, CorePermission.CareerContentEdit]);
+    const summary = await screen.findByLabelText('ملخص الوظيفة');
+    fireEvent.change(summary, { target: { value: 'ملخص لم يُحفظ' } });
+    await pick('محاسب');
+    expect(await screen.findByText('تجاهل التعديلات غير المحفوظة؟')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'إلغاء' }));
+    await waitFor(() => expect(screen.queryByText('تجاهل التعديلات غير المحفوظة؟')).not.toBeInTheDocument());
+    expect(screen.getByLabelText('ملخص الوظيفة')).toHaveValue('ملخص لم يُحفظ');
+    await pick('محاسب');
+    fireEvent.click(await screen.findByRole('button', { name: 'تجاهل وانتقال' }));
+    expect(await screen.findByRole('heading', { level: 3, name: 'محاسب' })).toBeInTheDocument();
+  });
+
+  it('keeps the open title and its edits when a search takes it out of the list', async () => {
+    open([...ALL, CorePermission.CareerContentEdit]);
+    const summary = await screen.findByLabelText('ملخص الوظيفة');
+    fireEvent.change(summary, { target: { value: 'ملخص لم يُحفظ' } });
+    server.use(http.get('*/api/career/titles', ({ request }) => HttpResponse.json({ items: new URL(request.url).searchParams.get('search') ? [careerRow({ id: 't9', nameAr: 'مراجع حسابات', nameEn: 'Auditor', status: 'ready' })] : [careerRow()], total: 1, page: 1, pageSize: 20 })));
+    fireEvent.change(screen.getByPlaceholderText('ابحث بالمسمى أو الرمز'), { target: { value: 'مراجع' } });
+    expect(await screen.findByRole('button', { name: /مراجع حسابات/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: 'منسق الاستقطاب' })).toBeInTheDocument();
+    expect(screen.getByLabelText('ملخص الوظيفة')).toHaveValue('ملخص لم يُحفظ');
+  });
+
+  it('pins the title the panel shows when editing starts, even if an earlier choice was taken out of the list by a search', async () => {
+    open([...ALL, CorePermission.CareerContentEdit]);
+    await screen.findByLabelText('ملخص الوظيفة');
+    await pick('محاسب');
+    await screen.findByRole('heading', { level: 3, name: 'محاسب' });
+    server.use(http.get('*/api/career/titles', ({ request }) => HttpResponse.json({ items: new URL(request.url).searchParams.get('search') ? [careerRow({ id: 't9', nameAr: 'مراجع حسابات', nameEn: 'Auditor', status: 'ready' })] : [careerRow()], total: 1, page: 1, pageSize: 20 })));
+    fireEvent.change(screen.getByPlaceholderText('ابحث بالمسمى أو الرمز'), { target: { value: 'مراجع' } });
+    await screen.findByRole('heading', { level: 3, name: 'مراجع حسابات' });
+    fireEvent.change(await screen.findByLabelText('ملخص الوظيفة'), { target: { value: 'تعديل على البديل' } });
+    expect(await screen.findByRole('heading', { level: 3, name: 'مراجع حسابات' })).toBeInTheDocument();
+    expect(screen.getByLabelText('ملخص الوظيفة')).toHaveValue('تعديل على البديل');
+  });
+
+  it('does not ask when nothing was edited', async () => {
+    open([...ALL, CorePermission.CareerContentEdit]);
+    await screen.findByLabelText('ملخص الوظيفة');
+    await pick('محاسب');
+    expect(await screen.findByRole('heading', { level: 3, name: 'محاسب' })).toBeInTheDocument();
+    expect(screen.queryByText('تجاهل التعديلات غير المحفوظة؟')).not.toBeInTheDocument();
+  });
+
+  it('after a failed reload leaves no titles to pick, no export and no actions on the stale panel', async () => {
+    open();
+    await screen.findByRole('heading', { level: 3, name: 'منسق الاستقطاب' });
+    expect(screen.getByRole('button', { name: /تصدير/ })).toBeInTheDocument();
+    server.use(http.get('*/api/career/titles', () => HttpResponse.json({ code: 'internal', message: 'x' }, { status: 500 })));
+    fireEvent.change(screen.getByPlaceholderText('ابحث بالمسمى أو الرمز'), { target: { value: 'م' } });
+    expect(await screen.findByRole('alert')).toHaveTextContent('تعذّر تحميل المسميات.');
+    expect(screen.queryByRole('button', { name: /تصدير/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /محاسب/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /رفع ملف المسمى/ })).not.toBeInTheDocument();
+  });
+});
+
