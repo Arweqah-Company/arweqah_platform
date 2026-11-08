@@ -46,15 +46,24 @@ function TitlesColumn({ list, rows, query, selectedId, onSelect }: { list: ListP
   );
 }
 
-/** Which title is open, and the question before another one replaces a panel that holds unsaved edits. */
+/**
+ * Which title is open, and the question before another one replaces a panel that holds unsaved edits. The open title is kept apart from the
+ * results: a search, a filter or a reload that no longer lists it does not close its panel while it holds edits (the list still refreshes it when it is there).
+ */
 function useOpenTitle(rows: CareerTitleListItemDto[]) {
-  const [selectedId, setSelectedId] = useState<string>();
+  const [current, setCurrent] = useState<CareerTitleListItemDto>();
   const [dirty, setDirty] = useState(false);
-  const [pendingId, setPendingId] = useState<string>();
-  const selected = rows.find((x) => x.id === selectedId) ?? rows[0];
-  const choose = (id: string) => (dirty && id !== selected?.id ? setPendingId(id) : setSelectedId(id));
-  const discard = () => { setSelectedId(pendingId); setPendingId(undefined); };
-  return { selected, choose, setDirty, asking: !!pendingId, cancel: () => setPendingId(undefined), discard };
+  const [pending, setPending] = useState<CareerTitleListItemDto>();
+  const fresh = current && (rows.find((x) => x.id === current.id) ?? current);
+  const selected = dirty ? fresh ?? rows[0] : rows.find((x) => x.id === current?.id) ?? rows[0];
+  const choose = (id: string) => {
+    const next = rows.find((x) => x.id === id);
+    if (dirty && id !== selected?.id) setPending(next);
+    else setCurrent(next);
+  };
+  const edited = (isDirty: boolean) => { setDirty(isDirty); if (isDirty && !current) setCurrent(selected); };
+  const discard = () => { setCurrent(pending); setPending(undefined); };
+  return { selected, choose, setDirty: edited, asking: !!pending, cancel: () => setPending(undefined), discard };
 }
 
 /**

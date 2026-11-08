@@ -137,6 +137,17 @@ describe('The career-path content page: what the panel keeps and what an error h
     expect(await screen.findByRole('heading', { level: 3, name: 'محاسب' })).toBeInTheDocument();
   });
 
+  it('keeps the open title and its edits when a search takes it out of the list', async () => {
+    open([...ALL, CorePermission.CareerContentEdit]);
+    const summary = await screen.findByLabelText('ملخص الوظيفة');
+    fireEvent.change(summary, { target: { value: 'ملخص لم يُحفظ' } });
+    server.use(http.get('*/api/career/titles', ({ request }) => HttpResponse.json({ items: new URL(request.url).searchParams.get('search') ? [careerRow({ id: 't9', nameAr: 'مراجع حسابات', nameEn: 'Auditor', status: 'ready' })] : [careerRow()], total: 1, page: 1, pageSize: 20 })));
+    fireEvent.change(screen.getByPlaceholderText('ابحث بالمسمى أو الرمز'), { target: { value: 'مراجع' } });
+    expect(await screen.findByRole('button', { name: /مراجع حسابات/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: 'منسق الاستقطاب' })).toBeInTheDocument();
+    expect(screen.getByLabelText('ملخص الوظيفة')).toHaveValue('ملخص لم يُحفظ');
+  });
+
   it('does not ask when nothing was edited', async () => {
     open([...ALL, CorePermission.CareerContentEdit]);
     await screen.findByLabelText('ملخص الوظيفة');
