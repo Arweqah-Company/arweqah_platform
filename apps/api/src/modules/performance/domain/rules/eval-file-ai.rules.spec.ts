@@ -48,3 +48,10 @@ describe('The AI reading of an evaluation file (FR-118)', () => {
     expect(ungroundedOf(content, SAMPLE_EVAL_FILE.replace(/ /g, '  '))).toEqual([]);
   });
 });
+
+describe('grounding of short names', () => {
+  it('checks a three-letter name against the source but not a number or a range', async () => {
+    const { ungroundedTexts } = await import('../../../../common/domain/grounding');
+    expect(ungroundedTexts(['جيد', '95', '109.9', '60/40', '125%'], 'مستويات الأداء')).toEqual(['جيد']);
+  });
+});

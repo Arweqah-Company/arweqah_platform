@@ -28,6 +28,9 @@ function ResultPart({ result }: { result: EvalFileResult }) {
   );
 }
 
+/** A sound result may be saved; one the AI made needs its content, so what is saved is what was reviewed. */
+const canSave = (result: EvalFileResult | null): boolean => !!result && isSound(result) && (result.source !== 'ai' || !!result.content);
+
 /** The buttons under the dialog: save (off, with the reason beside it, until a sound file was extracted) and close. */
 function FileFooter({ saveable, saving, onSave, onClose }: { saveable: boolean; saving: boolean; onSave: () => void; onClose: () => void }) {
   const { t } = useTranslation('performance');
@@ -54,7 +57,7 @@ export function EvalFileDialog({ onClose }: { onClose: () => void }) {
   const reader = useDocumentReader((value) => { setText(value); setEmpty(false); run(value); });
   const failed = saveFailure(t, save.error ?? confirm.error);
   const extract = () => { setEmpty(!text.trim()); if (text.trim()) run(text); };
-  const saveable = !!result && isSound(result);
+  const saveable = canSave(result);
   const finished = { onSuccess: () => { toast.success(t('file.saved', { count: result?.stages.length ?? 0 })); onClose(); } };
   const onSave = () => (result?.source === 'ai' && result.content ? confirm.mutate(result.content, finished) : save.mutate(text, finished));
   return (

@@ -8,7 +8,7 @@ const FILLS: SplitPart['fill'][] = ['fill-petrol-800', 'fill-green-400', 'fill-n
 export function WeightsTab({ template }: { template: StageTemplate }) {
   const { t } = useTranslation('performance');
   const basic: SplitPart[] = [{ key: 'r', label: `${t('evaluation.results')} ${template.resultsWeight}%`, value: template.resultsWeight, fill: FILLS[0]! }, { key: 'b', label: `${t('evaluation.behaviour')} ${template.behaviourWeight}%`, value: template.behaviourWeight, fill: FILLS[1]! }];
-  const extra: SplitPart[] = template.extra.map((x, i) => ({ key: x.name, label: `${x.name} ${x.points}%`, value: x.points, fill: FILLS[i % FILLS.length]! }));
+  const extra: SplitPart[] = template.extra.map((x, i) => ({ key: `${i}-${x.name}`, label: `${x.name} ${x.points}%`, value: x.points, fill: FILLS[i % FILLS.length]! }));
   const stage = { stage: template.stage, name: template.name };
   return (
     <div className="flex flex-col gap-4">

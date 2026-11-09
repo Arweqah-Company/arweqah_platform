@@ -27,7 +27,7 @@ const ascending = (bands: GradeBand[]) => [...bands].map((b) => ({ ...b, start: 
 export function GradeScale({ bands, cap, score }: { bands: GradeBand[]; cap: number; /** A real score (the employee's result); without it the slider is offered. */ score?: number }) {
   const { t } = useTranslation('performance');
   const [tried, setTried] = useState(Math.min(DEFAULT_SCORE, cap));
-  const value = score ?? tried;
+  const value = score ?? Math.min(tried, cap);
   const levels = ascending(bands);
   const current = [...levels].reverse().find((b) => value >= b.start) ?? levels[0];
   const pin = t(score === undefined ? 'evaluation.here' : 'evaluation.yours');

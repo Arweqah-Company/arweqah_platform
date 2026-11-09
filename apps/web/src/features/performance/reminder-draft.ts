@@ -15,7 +15,9 @@ export const emptyDraft = (): ReminderDraft => ({ kind: 'self', on: true, days: 
 export const toDraft = (r: ReminderDto): ReminderDraft => ({ kind: r.kind, on: r.on, days: r.days.join(', '), titleAr: r.titleAr, titleEn: r.titleEn, bodyAr: r.bodyAr, bodyEn: r.bodyEn });
 
 /** The days typed as «7, 3, 1»: a piece that is not a number stays NaN so the rule refuses it; empty pieces are dropped. */
-const daysOf = (text: string): number[] => text.split(/[,\u060C]/).map((x) => x.trim()).filter(Boolean).map(Number);
+/** Arabic-Indic and Persian digits as Latin ones, so «٧، ٣، ١» is read as 7, 3, 1. */
+const latinDigits = (s: string): string => s.replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (d) => String(d.charCodeAt(0) & 0xf));
+const daysOf = (text: string): number[] => latinDigits(text).split(/[,\u060C]/).map((x) => x.trim()).filter(Boolean).map(Number);
 
 /** What the form sends, from the draft; the employee's reminder takes a list of days, the others the one number. */
 export const candidateOf = (d: ReminderDraft): unknown => ({ kind: d.kind, on: d.on, days: d.kind === 'self' ? daysOf(d.days) : daysOf(d.days).slice(0, 1), titleAr: d.titleAr, titleEn: d.titleEn, bodyAr: d.bodyAr, bodyEn: d.bodyEn });

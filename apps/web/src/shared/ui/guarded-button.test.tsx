@@ -27,4 +27,11 @@ describe('GuardedButton', () => {
     expect(onClick).not.toHaveBeenCalled();
     expect(toast.info).toHaveBeenCalledWith('Not yet');
   });
+
+  it('does not submit a form while blocked', () => {
+    const submit = vi.fn((e: { preventDefault: () => void }) => e.preventDefault());
+    render(<form onSubmit={submit}><GuardedButton type="submit" blocked reason="Not yet">Go</GuardedButton></form>);
+    fireEvent.click(screen.getByRole('button', { name: 'Go' }));
+    expect(submit).not.toHaveBeenCalled();
+  });
 });

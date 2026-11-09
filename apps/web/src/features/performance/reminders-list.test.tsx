@@ -64,7 +64,7 @@ describe('The automatic reminders list (FR-124, plan §3.7ج)', () => {
     expect(within(dialog).getByText('أيام الموظف من 1 إلى 30 (حتى 10 أيام)، مفصولة بفواصل.')).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('button', { name: 'حفظ' }));
     expect(calls).toHaveLength(0);
-    fireEvent.change(within(dialog).getByLabelText('قبل آخر موعد بـ (أيام، مفصولة بفواصل) *'), { target: { value: '10, 5, 2' } });
+    fireEvent.change(within(dialog).getByLabelText('قبل آخر موعد بـ (أيام، مفصولة بفواصل) *'), { target: { value: '١٠، ٥، ٢' } }); // Arabic digits and comma
     fireEvent.change(within(dialog).getByLabelText('العنوان بالعربية *'), { target: { value: 'تذكير مخصص' } });
     fireEvent.change(within(dialog).getByLabelText('النص بالعربية *'), { target: { value: 'أرسل تقييمك قبل الموعد' } });
     fireEvent.click(within(dialog).getByRole('button', { name: 'حفظ' }));
