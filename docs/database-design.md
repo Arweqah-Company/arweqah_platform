@@ -1147,6 +1147,48 @@ erDiagram
     timestamp_with_time_zone reached_at
     uuid recorded_by
   }
+  performance_templates {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    integer stage_no UK
+    character_varying name
+    jsonb template
+    integer source_version
+    uuid updated_by
+  }
+  performance_settings {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    character_varying key UK
+    jsonb value
+    uuid updated_by
+  }
+  performance_cycles {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    integer fiscal_year UK
+    character_varying status
+    boolean is_open UK
+    uuid opened_by
+    timestamp_with_time_zone opened_at
+    uuid closed_by
+    timestamp_with_time_zone closed_at
+    jsonb dates
+    jsonb template_snapshot
+  }
+  performance_catalog_items {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid cycle_id FK
+    character_varying kind
+    character_varying title
+    integer points
+  }
+  performance_cycles ||--o{ performance_catalog_items : "cycle_id"
   employees ||--o{ career_development_requests : "employee_id"
   files |o--o{ career_development_requests : "agreement_file_id"
   employees ||--o{ career_employee_competency_levels : "employee_id"
@@ -1300,4 +1342,8 @@ erDiagram
 | `career_required_progress` | An employee ticked an item of «required» (`employee_id` + `title_id` + `item_index` unique; unticking deletes the row). |
 | `career_development_requests` | A development request (FR-116): the course, its cost in whole riyals, `plan` (`in` the learning plan or `out` of it), the `level` that decides it now (`direct`, `sector`, `ceo`) and `approver_user_id` (the person who holds that post for the employee; changes when the request goes up), `status` (`pending`, `approved`, `rejected`), the retention agreement (`agreement_file_id`), the yearly cap of the employee's stage on the day it was sent (`budget_cap`), the decision (who, when, the reason of a rejection). The workflow `career.development_request` carries its state and the seven-day deadline of the direct manager. |
 | `career_employee_competency_levels` | The level (`أساسي` or `خبير`) of one technical competency of the employee's title that their manager recorded (`employee_id` + `competency` unique; the competency is the one of the title's content, by name; taking the record back deletes the row). |
+| `performance_templates` | The template of one development stage as the evaluation file gave it (FR-118): one row per stage (`stage_no` unique), the whole template in `template` (weights, extra components, cap, results criteria, behaviours), and `source_version`, which grows with each upload of the stage. |
+| `performance_settings` | A setting shared by every stage, by `key`: `grade_scale` (the five bands with their ranges) and `fiscal_card` (the twelve months and their notes). |
+| `performance_cycles` | An evaluation cycle, one per fiscal year (`fiscal_year` unique): `status` is the stage of the machine `performance.cycle` (self, mgr, cal, appr, notif, obj, closed), who opened and closed it and when, `is_open` (true until closed; a partial unique index lets only one cycle be open), `dates` (the date of each stage) and `template_snapshot` (the templates frozen when it opened). |
+| `performance_catalog_items` | An item of the extra component HR offers (`kind` init or growth, `title`, `points` 1 to 10). `cycle_id` is null while the item waits for the next cycle, which takes it when it opens. |
 | `career_ack_reopenings` | HR asked the holders of a title to acknowledge again, with the reason: whoever acknowledged before it is asked once more. |

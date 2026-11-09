@@ -408,6 +408,17 @@
         "status": "Status",
         "active": "In use"
       }
+    },
+    "performance-catalog": {
+      "name": "Extra-component catalog",
+      "columns": {
+        "title": "Item",
+        "kind": "Kind",
+        "points": "Points"
+      },
+      "filters": {
+        "kind": "Kind"
+      }
     }
   },
   "listHint": "The first column (the name) always stays.",

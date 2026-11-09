@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Badge, Button, Dialog, DialogFooter, FileDropzone, FormField, Textarea } from '@/shared/ui';
 import { readTitleFile } from './api';
-import { DocumentReadError, readDocumentText, TITLE_FILE_ACCEPT, TITLE_FILE_MAX_BYTES } from './read-document';
+import { TITLE_FILE_ACCEPT, TITLE_FILE_MAX_BYTES } from '@/shared/lib/read-document';
+import { useDocumentReader } from '@/shared/lib/use-document-reader';
 import { AiNotes, AiOffer } from './title-file-ai';
 import { useTitleFileSave } from './use-title-file-save';
 
@@ -45,29 +46,18 @@ function SaveOff({ result }: { result: TitleFileResultDto | null }) {
 
 /** The text of the file (pasted or read from a document), what the ordinary reader found in it, and the way to read it again. */
 function useTitleFileReading(titleId: string) {
-  const { t } = useTranslation('career-profile');
   const [text, setText] = useState('');
   const [result, setResult] = useState<TitleFileResultDto | null>(null);
-  const [readError, setReadError] = useState<string | null>(null);
   const check = useMutation({ mutationFn: (value: string) => readTitleFile(titleId, { text: value, dryRun: true }), onSuccess: setResult });
   const run = (value: string) => { setResult(null); check.mutate(value); };
-  const onFile = async (files: File[]) => {
-    setReadError(null);
-    try {
-      const value = await readDocumentText(files[0] as File);
-      setText(value);
-      run(value);
-    } catch (e) {
-      setReadError(t(`file.readErrors.${e instanceof DocumentReadError ? e.reason : 'unreadable'}`));
-    }
-  };
-  return { text, setText, result, setResult, readError, check, run, onFile };
+  const reader = useDocumentReader((value) => { setText(value); run(value); });
+  return { text, setText, result, setResult, reader, check, run };
 }
 
 /** The dialog that reads a title file: pasted text, or a txt, Word or PDF file read in the browser; nothing is saved before «Save». */
 export function TitleFileDialog({ titleId, titleName, titleCode = null, onClose }: { titleId: string; titleName: string; titleCode?: string | null; onClose: () => void }) {
   const { t } = useTranslation('career-profile');
-  const { text, setText, result, setResult, readError, check, run, onFile } = useTitleFileReading(titleId);
+  const { text, setText, result, setResult, reader, check, run } = useTitleFileReading(titleId);
   const save = useTitleFileSave(titleId, text, result, onClose);
   // The text may be edited while the AI works: an answer about a text that is no longer in the box is dropped.
   const latest = useRef(text);
@@ -75,8 +65,8 @@ export function TitleFileDialog({ titleId, titleName, titleCode = null, onClose 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()} title={t('file.title', { name: titleName })} description={t('file.description')} xl>
       <div className="flex flex-col gap-4">
-        <FileDropzone label={t('file.pick')} accept={TITLE_FILE_ACCEPT} maxBytes={TITLE_FILE_MAX_BYTES} hint={t('file.hint')} busy={check.isPending} onFiles={(f) => void onFile(f)} />
-        {readError && <Alert tone="danger">{readError}</Alert>}
+        <FileDropzone label={t('file.pick')} accept={TITLE_FILE_ACCEPT} maxBytes={TITLE_FILE_MAX_BYTES} hint={t('file.hint')} busy={check.isPending} onFiles={(f) => void reader.read(f)} />
+        {reader.failure && <Alert tone="danger">{t(`file.readErrors.${reader.failure}`)}</Alert>}
         <FormField label={t('file.paste')} hint={t('file.limit', { max: TITLE_FILE_MAX_CHARS.toLocaleString() })}>
           {(props) => <Textarea {...props} rows={6} value={text} maxLength={TITLE_FILE_MAX_CHARS} onChange={(e) => { setText(e.target.value); setResult(null); }} />}
         </FormField>

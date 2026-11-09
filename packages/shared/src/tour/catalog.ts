@@ -52,6 +52,7 @@ export const TOUR_STEPS = [
   { key: 'career-content', tour: 'general', permission: CorePermission.CareerContentView, page: 'career-content' },
   { key: 'career-certificates', tour: 'general', permission: CorePermission.CareerCertificatesReview, page: 'career-certificates' },
   { key: 'career-requests', tour: 'general', permission: CorePermission.CareerRequestsView, page: 'career-requests' },
+  { key: 'performance-cycle', tour: 'general', permission: CorePermission.PerformanceCycleView, page: 'performance-cycle' },
   { key: 'career-team', tour: 'general', permission: CorePermission.CareerTeamView, page: 'career-team' },
   { key: 'finish', tour: 'general' },
   { key: 'admin-mode', tour: 'admin', permission: CorePermission.AdminModeUse },
