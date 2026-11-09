@@ -59,6 +59,7 @@ function parse<T>(schema: z.ZodType<T>, text: string): T {
 
 /** The schema as the service wants it: plain JSON Schema without the `$schema` marker. */
 export function jsonSchemaOf(schema: z.ZodType): Record<string, unknown> {
-  const { $schema: _marker, ...rest } = z.toJSONSchema(schema) as Record<string, unknown>;
-  return rest;
+  const json = z.toJSONSchema(schema) as Record<string, unknown>;
+  delete json.$schema;
+  return json;
 }
