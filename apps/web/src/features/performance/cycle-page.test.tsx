@@ -1,4 +1,4 @@
-import { http, HttpResponse } from 'msw';
+import { delay, http, HttpResponse } from 'msw';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { CorePermission, type CycleStateDto, type EvalFileResult } from '@arweqah-platform/shared';
@@ -115,6 +115,38 @@ describe('The evaluation cycle page (FR-118)', () => {
   });
 });
 
+describe('Failures are shown, not swallowed (PR 67)', () => {
+  it('tells the person when moving the cycle on is refused, and keeps the dialog open', async () => {
+    open(cycle('self'));
+    server.use(http.post('*/api/performance/cycle/advance', () => HttpResponse.json({ code: 'CYCLE_AT_LAST_STAGE', message: 'x' }, { status: 409 })));
+    fireEvent.click(await screen.findByRole('button', { name: 'نقل الدورة للمرحلة التالية' }));
+    fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'نقل الدورة للمرحلة التالية' }));
+    expect(await screen.findByText('تعذّر تنفيذ العملية: ربما تغيّرت مرحلة الدورة. أعد تحميل الصفحة.')).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('tells the person when deleting a catalog item fails', async () => {
+    open(cycle('self'));
+    server.use(http.delete('*/api/performance/cycle/catalog/:id', () => HttpResponse.json({ code: 'x', message: 'x' }, { status: 500 })));
+    fireEvent.click(await screen.findByRole('button', { name: /حذف البند: مساهمة في ورشة/ }));
+    fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'حذف البند' }));
+    expect(await screen.findByText('تعذّر حذف البند.')).toBeInTheDocument();
+  });
+
+  it('does not crash on a date problem the page has no words for, nor on a problems value that is not a list', async () => {
+    open(cycle('self'));
+    server.use(http.put('*/api/performance/cycle/dates/:key', () => HttpResponse.json({ code: 'CYCLE_DATE_INVALID', message: 'x', details: { problems: ['something_new'] } }, { status: 422 })));
+    fireEvent.click(await screen.findByRole('button', { name: /تعديل الموعد: لقاءا المعايرة/ }));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('من'), { target: { value: '2027-04-21' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'حفظ' }));
+    expect(await within(dialog).findByText('الموعد لا يناسب بقية المواعيد.')).toBeInTheDocument();
+    server.use(http.put('*/api/performance/cycle/dates/:key', () => HttpResponse.json({ code: 'CYCLE_DATE_INVALID', message: 'x', details: { problems: 'oops' } }, { status: 422 })));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'حفظ' }));
+    expect(await within(dialog).findByText('تعذّر حفظ الموعد.')).toBeInTheDocument();
+  });
+});
+
 describe('The evaluation file dialog (FR-118)', () => {
   const result = (problems: string[]): EvalFileResult => ({ stages: [{ stage: 1, name: 'التأسيس', problems: problems as never, template: {} as never }], scale: { bands: [{ name: 'a', range: '1', from: 1, to: null, description: '' }], problems: [] }, fiscal: null, ignored: [], saved: false });
 
@@ -152,5 +184,25 @@ describe('The evaluation file dialog (FR-118)', () => {
     await waitFor(() => expect(within(dialog).getByRole('button', { name: 'حفظ الملف' })).toBeEnabled());
     fireEvent.click(within(dialog).getByRole('button', { name: 'حفظ الملف' }));
     await waitFor(() => expect(saved).toEqual([{ text: 'نص', dryRun: false }]));
+  });
+
+  it('does not let text that changed while the check was still running be saved', async () => {
+    const saved = openFile([]);
+    server.use(http.post('*/api/performance/templates/file', async ({ request }) => {
+      const body = (await request.json()) as { dryRun: boolean };
+      if (!body.dryRun) saved.push(body);
+      await delay(250);
+      return HttpResponse.json(result([]));
+    }));
+    fireEvent.click(await screen.findByRole('button', { name: 'رفع ملف التقييم' }));
+    const dialog = await screen.findByRole('dialog');
+    const box = within(dialog).getByLabelText(/الصق نص الملف/);
+    fireEvent.change(box, { target: { value: 'نص' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'افحص الملف' }));
+    fireEvent.change(box, { target: { value: 'نص بعد التعديل' } }); // edited while the check runs
+    await within(dialog).findByText('سليم', undefined, { timeout: 2000 }).catch(() => null);
+    await new Promise((r) => setTimeout(r, 450));
+    expect(within(dialog).getByRole('button', { name: 'حفظ الملف' })).toBeDisabled();
+    expect(saved).toEqual([]);
   });
 });

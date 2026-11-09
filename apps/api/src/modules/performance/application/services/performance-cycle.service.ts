@@ -9,13 +9,21 @@ import type { AccessContext } from '../../../../core/access/domain/access-contex
 import { WorkflowEngine } from '../../../../core/workflow/application/workflow-engine';
 import { PerformanceCycleRepository, type CycleRow } from '../../domain/contracts/performance-cycle.repository';
 import { PerformanceTemplateRepository } from '../../domain/contracts/performance-template.repository';
-import { CycleAlreadyOpenError, CycleDateInvalidError, CycleNotOpenError, CycleNotReadyError, CycleStageEndedError, CycleYearExistsError } from '../../domain/errors/performance.errors';
+import { CycleAlreadyOpenError, CycleDateInvalidError, CycleNotOpenError, CycleNotReadyError, CycleStageChangedError, CycleStageEndedError, CycleYearExistsError } from '../../domain/errors/performance.errors';
 import { dateProblems, withDate } from '../../domain/rules/cycle-dates.rules';
 import { cycleReadiness } from '../../domain/rules/cycle-readiness.rules';
 import { CYCLE_KEY } from '../../domain/rules/cycle.machine';
 import { PERFORMANCE_AUDIT, PERFORMANCE_CATALOG_ENTITY, PERFORMANCE_CYCLE_ENTITY } from '../messages/performance.messages';
 
 const NEXT: Partial<Record<CycleStage, CycleStage>> = { self: 'mgr', mgr: 'cal', cal: 'appr', appr: 'notif', notif: 'obj' };
+
+/** The conflict the database caught when two opens ran together: a second open cycle, or a second cycle of the same year. */
+function uniqueViolation(error: unknown, fiscalYear: number): Error | null {
+  const driver = (error as { driverError?: { code?: string; constraint?: string } } | null)?.driverError;
+  if (driver?.code !== '23505') return null;
+  if (driver.constraint === 'UQ_performance_cycles_open') return new CycleAlreadyOpenError();
+  return driver.constraint === 'UQ_performance_cycles_year' ? new CycleYearExistsError(fiscalYear) : null;
+}
 
 const toDto = (c: CycleRow): CycleDto => ({ id: c.id, fiscalYear: c.fiscalYear, stage: c.stage, openedAt: c.openedAt.toISOString(), closedAt: c.closedAt ? c.closedAt.toISOString() : null, dates: c.dates });
 
@@ -51,7 +59,7 @@ export class PerformanceCycleService {
       const row = await this.cycles.insert({ fiscalYear: input.fiscalYear, openedBy: ctx.userId, openedAt: this.clock.now(), snapshot: { stages, scale: scale ?? [], fiscal: fiscal ?? { months: [], notes: [] } } }, tx);
       await this.cycles.adoptWaiting(row.id, tx);
       await this.workflow.start({ definitionKey: CYCLE_KEY, entityType: PERFORMANCE_CYCLE_ENTITY, entityId: row.id, actorId: ctx.userId, tx });
-    });
+    }).catch((error: unknown) => { throw uniqueViolation(error, input.fiscalYear) ?? error; });
     this.audit(ctx, PERFORMANCE_AUDIT.cycleOpened, { fiscalYear: input.fiscalYear });
     return this.state();
   }
@@ -113,7 +121,7 @@ export class PerformanceCycleService {
     const instance = await this.workflow.findByEntity(PERFORMANCE_CYCLE_ENTITY, cycle.id);
     if (!instance || instance.isDone) throw new CycleNotOpenError();
     await this.tx.run(async (tx) => {
-      await this.cycles.setStage(cycle.id, step.stage, step.by, tx);
+      if (!(await this.cycles.setStage(cycle.id, { from: cycle.stage, to: step.stage }, step.by, tx))) throw new CycleStageChangedError();
       await this.workflow.send({ instanceId: instance.id, event: { type: step.event }, actorId: ctx.userId, tx });
     });
   }

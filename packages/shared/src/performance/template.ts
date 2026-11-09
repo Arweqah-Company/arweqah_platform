@@ -64,7 +64,7 @@ export interface FiscalCard {
 }
 
 /** Why a part of the file cannot be saved: each code is one check that failed. */
-export const EVAL_PROBLEMS = ['basic_split', 'criteria_sum', 'cap_sum', 'no_criteria', 'no_behaviours', 'behaviour_question', 'duplicate_stage'] as const;
+export const EVAL_PROBLEMS = ['basic_split', 'criteria_sum', 'cap_sum', 'no_criteria', 'no_behaviours', 'behaviour_question', 'duplicate_stage', 'stage_range'] as const;
 export const SCALE_PROBLEMS = ['scale_levels', 'scale_range'] as const;
 export const FISCAL_PROBLEMS = ['fiscal_months'] as const;
 export type EvalProblem = (typeof EVAL_PROBLEMS)[number] | (typeof SCALE_PROBLEMS)[number] | (typeof FISCAL_PROBLEMS)[number];

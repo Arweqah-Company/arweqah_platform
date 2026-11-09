@@ -42,6 +42,13 @@ export class CycleStageEndedError extends ConflictError {
   }
 }
 
+export class CycleStageChangedError extends ConflictError {
+  override readonly code = 'CYCLE_STAGE_CHANGED';
+  constructor() {
+    super('The stage of the cycle changed while you were acting: reload and try again');
+  }
+}
+
 export class CycleDateInvalidError extends BusinessRuleError {
   override readonly code = 'CYCLE_DATE_INVALID';
   constructor(problems: readonly string[]) {

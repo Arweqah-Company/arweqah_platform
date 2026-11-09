@@ -40,12 +40,14 @@ export class TypeOrmPerformanceCycleRepository extends PerformanceCycleRepositor
   }
 
   async insert(cycle: { fiscalYear: number; openedBy: string; openedAt: Date; snapshot: TemplateSnapshot }, tx: TransactionContext): Promise<CycleRow> {
-    const saved = await this.cycleRepo(tx).save(Object.assign(new PerformanceCycle(), { fiscalYear: cycle.fiscalYear, status: 'self', openedBy: cycle.openedBy, openedAt: cycle.openedAt, dates: [], templateSnapshot: cycle.snapshot }));
+    const saved = await this.cycleRepo(tx).save(Object.assign(new PerformanceCycle(), { fiscalYear: cycle.fiscalYear, status: 'self', isOpen: true, openedBy: cycle.openedBy, openedAt: cycle.openedAt, dates: [], templateSnapshot: cycle.snapshot }));
     return toRow(saved);
   }
 
-  async setStage(id: string, stage: CycleStage, by: { userId: string; at: Date } | null, tx: TransactionContext): Promise<void> {
-    await this.cycleRepo(tx).update({ id }, { status: stage, ...(stage === 'closed' && by ? { closedBy: by.userId, closedAt: by.at } : {}) });
+  async setStage(id: string, move: { from: CycleStage; to: CycleStage }, by: { userId: string; at: Date } | null, tx: TransactionContext): Promise<boolean> {
+    const closing = move.to === 'closed';
+    const result = await this.cycleRepo(tx).update({ id, status: move.from }, { status: move.to, ...(closing ? { isOpen: false } : {}), ...(closing && by ? { closedBy: by.userId, closedAt: by.at } : {}) });
+    return (result.affected ?? 0) > 0;
   }
 
   async setDates(id: string, dates: CycleDate[], tx: TransactionContext): Promise<void> {

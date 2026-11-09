@@ -1,10 +1,13 @@
 import type { BehaviourItem, EvalFileResult, EvalProblem, ExtraComponent, FiscalCard, GradeBand, ResultsCriterion, StageResult, StageTemplate } from '@arweqah-platform/shared';
-import { FISCAL_MONTHS, SCALE_LEVELS } from '@arweqah-platform/shared';
+import { FISCAL_MONTHS, PERFORMANCE_STAGES, SCALE_LEVELS } from '@arweqah-platform/shared';
 
 /** The months of the fiscal year, in the order the file lists them (April to March). */
 const MONTHS = ['أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر', 'يناير', 'فبراير', 'مارس'];
 const MONTH_KINDS = ['محطة', 'متابعة يومية'];
 const NOTE_MIN = 25;
+/** A range or a heading is a short line; the patterns that read them run only over short text, so a long line costs nothing. */
+const LINE_MAX = 200;
+const RANGE_MAX = 60;
 
 const isPct = (x: string | undefined): boolean => /^\d+(\.\d+)?%$/.test(x ?? '');
 const pct = (x: string | undefined): number => parseFloat(x ?? '');
@@ -127,13 +130,14 @@ export function readBlock(L: readonly string[]): Block {
 
 /** The stage number and the name from the results heading («معايير المرحلة 1 التأسيس»), or the position when there is none. */
 function stageIdentity(heading: string, position: number): { stage: number; name: string } {
-  const m = /المرحلة\s*(\d+)\s*(\S+(?:\s+\S+)?)/.exec(heading);
+  const m = heading.length <= LINE_MAX ? /المرحلة\s*(\d+)\s*(\S+(?:\s+\S+)?)/.exec(heading) : null; // a longer line is not a heading: no pattern runs over it
   return m ? { stage: Number(m[1]), name: m[2] ?? '' } : { stage: position, name: '' };
 }
 
 /** The checks of one stage: the weights, the shares, the cap, and that every behaviour has its question. */
 export function stageProblems(t: StageTemplate): EvalProblem[] {
   const problems: EvalProblem[] = [];
+  if (!(PERFORMANCE_STAGES as readonly number[]).includes(t.stage)) problems.push('stage_range');
   if (!near(t.resultsWeight + t.behaviourWeight, t.basicTotal)) problems.push('basic_split');
   if (!t.criteria.length) problems.push('no_criteria');
   else if (!near(sum(t.criteria.map((c) => c.share)), 100)) problems.push('criteria_sum');
@@ -159,6 +163,7 @@ function toTemplate(block: Block, who: { stage: number; name: string }): StageTe
 
 /** The range of a band as the file wrote it: «110 فأكثر», «95 إلى 109.9», «أقل من 65». */
 export function parseRange(text: string): { from: number | null; to: number | null } | null {
+  if (text.length > RANGE_MAX) return null;
   const upward = /(\d+(?:\.\d+)?)\s*فأكثر/.exec(text);
   if (upward) return { from: Number(upward[1]), to: null };
   const between = /(\d+(?:\.\d+)?)\s*إلى\s*(\d+(?:\.\d+)?)/.exec(text);
@@ -217,7 +222,8 @@ function scaleResult(tail: Tail): EvalFileResult['scale'] {
 
 function fiscalResult(tail: Tail): EvalFileResult['fiscal'] {
   if (!tail.months.length && !tail.notes.length) return null;
-  return { card: { months: tail.months, notes: tail.notes }, problems: tail.months.length === FISCAL_MONTHS ? [] : ['fiscal_months'] };
+  const distinct = new Set(tail.months.map((m) => m.month)).size;
+  return { card: { months: tail.months, notes: tail.notes }, problems: tail.months.length === FISCAL_MONTHS && distinct === FISCAL_MONTHS ? [] : ['fiscal_months'] };
 }
 
 /** Where each stage block starts: a line «الأساسي» followed by a percentage. */

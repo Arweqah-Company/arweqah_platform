@@ -12,7 +12,8 @@
     "open": "Open the evaluation cycle",
     "advance": "Move the cycle to the next stage",
     "close": "Close the cycle",
-    "file": "Upload the evaluation file"
+    "file": "Upload the evaluation file",
+    "failed": "The action failed: the stage of the cycle may have changed. Reload the page."
   },
   "stepper": {
     "label": "Stages of the evaluation cycle"
@@ -131,7 +132,8 @@
     "problems": {
       "end_before_start": "The end is before the start.",
       "before_previous": "It starts before the stage ahead of it ends.",
-      "after_next": "It ends after the stage behind it starts."
+      "after_next": "It ends after the stage behind it starts.",
+      "unknown": "The date does not fit the other dates."
     }
   },
   "catalog": {
@@ -157,7 +159,8 @@
     "kinds": {
       "init": "Internal initiatives",
       "growth": "Contribution to growth"
-    }
+    },
+    "removeFailed": "The item could not be deleted."
   },
   "file": {
     "title": "Upload the evaluation file",
@@ -193,7 +196,8 @@
       "duplicate_stage": "The stage appears twice in the file.",
       "scale_levels": "The grade scale does not have five levels.",
       "scale_range": "A range of the grade scale is not understood.",
-      "fiscal_months": "The fiscal-year card does not have twelve months."
+      "fiscal_months": "The fiscal-year card does not have twelve months.",
+      "stage_range": "The stage number is outside 1 to 5."
     }
   },
   "tour": {

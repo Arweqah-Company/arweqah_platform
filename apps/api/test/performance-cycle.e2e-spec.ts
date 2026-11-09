@@ -74,6 +74,30 @@ describe('The evaluation cycle (FR-118)', () => {
     expect(row!.closed_by).toBeTruthy();
   });
 
+  it('lets only one of two opens at the same moment through (one open cycle in the database)', async () => {
+    const agent = await withFile();
+    const both = await Promise.all([agent.post('/api/performance/cycle/open').send({ fiscalYear: 2026 }), agent.post('/api/performance/cycle/open').send({ fiscalYear: 2027 })]);
+    expect(both.map((r) => r.status).sort()).toEqual([200, 409]);
+    expect(((await t.db.query(`SELECT count(*)::int AS n FROM performance_cycles WHERE status <> 'closed'`)) as { n: number }[])[0]!.n).toBe(1);
+  });
+
+  it('keeps one open cycle in the database itself: a second row that is not closed is refused, a closed one is not', async () => {
+    const insert = (year: number, status: string) => t.db.query(`INSERT INTO performance_cycles (fiscal_year, status, is_open, opened_by, opened_at, template_snapshot) VALUES ($1, $2::varchar, $2::varchar <> 'closed', gen_random_uuid(), now(), '{}')`, [year, status]);
+    await insert(2030, 'self');
+    await expect(insert(2031, 'mgr')).rejects.toThrow(/unique|duplicate/i);
+    await insert(2032, 'closed');
+    await insert(2033, 'closed');
+  });
+
+  it('moves a stage once when two advances arrive together: the row and the workflow agree, and the other is 409', async () => {
+    const agent = await withFile();
+    await agent.post('/api/performance/cycle/open').send({ fiscalYear: 2026 }).expect(200);
+    const both = await Promise.all([agent.post('/api/performance/cycle/advance'), agent.post('/api/performance/cycle/advance')]);
+    expect(both.map((r) => r.status).sort()).toEqual([200, 409]);
+    const [row] = (await t.db.query(`SELECT c.status AS stage, w.state FROM performance_cycles c JOIN workflow_instances w ON w.entity_id = c.id`)) as { stage: string; state: string }[];
+    expect(row).toEqual({ stage: 'mgr', state: 'mgr' });
+  });
+
   it('sets the dates of the stages and refuses one that does not fit the others (422 with the problems)', async () => {
     const agent = await withFile();
     await agent.put('/api/performance/cycle/dates/final').send({ from: '2027-04-15', to: '2027-04-20' }).expect(409); // no cycle yet

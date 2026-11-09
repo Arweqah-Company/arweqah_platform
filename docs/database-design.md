@@ -1171,6 +1171,7 @@ erDiagram
     timestamp_with_time_zone updated_at
     integer fiscal_year UK
     character_varying status
+    boolean is_open UK
     uuid opened_by
     timestamp_with_time_zone opened_at
     uuid closed_by
@@ -1343,6 +1344,6 @@ erDiagram
 | `career_employee_competency_levels` | The level (`أساسي` or `خبير`) of one technical competency of the employee's title that their manager recorded (`employee_id` + `competency` unique; the competency is the one of the title's content, by name; taking the record back deletes the row). |
 | `performance_templates` | The template of one development stage as the evaluation file gave it (FR-118): one row per stage (`stage_no` unique), the whole template in `template` (weights, extra components, cap, results criteria, behaviours), and `source_version`, which grows with each upload of the stage. |
 | `performance_settings` | A setting shared by every stage, by `key`: `grade_scale` (the five bands with their ranges) and `fiscal_card` (the twelve months and their notes). |
-| `performance_cycles` | An evaluation cycle, one per fiscal year (`fiscal_year` unique): `status` is the stage of the machine `performance.cycle` (self, mgr, cal, appr, notif, obj, closed), who opened and closed it and when, `dates` (the date of each stage) and `template_snapshot` (the templates frozen when it opened). |
+| `performance_cycles` | An evaluation cycle, one per fiscal year (`fiscal_year` unique): `status` is the stage of the machine `performance.cycle` (self, mgr, cal, appr, notif, obj, closed), who opened and closed it and when, `is_open` (true until closed; a partial unique index lets only one cycle be open), `dates` (the date of each stage) and `template_snapshot` (the templates frozen when it opened). |
 | `performance_catalog_items` | An item of the extra component HR offers (`kind` init or growth, `title`, `points` 1 to 10). `cycle_id` is null while the item waits for the next cycle, which takes it when it opens. |
 | `career_ack_reopenings` | HR asked the holders of a title to acknowledge again, with the reason: whoever acknowledged before it is asked once more. |

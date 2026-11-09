@@ -16,7 +16,8 @@ export abstract class PerformanceCycleRepository {
   abstract current(): Promise<CycleRow | null>;
   abstract yearExists(fiscalYear: number): Promise<boolean>;
   abstract insert(cycle: { fiscalYear: number; openedBy: string; openedAt: Date; snapshot: TemplateSnapshot }, tx: TransactionContext): Promise<CycleRow>;
-  abstract setStage(id: string, stage: CycleStage, by: { userId: string; at: Date } | null, tx: TransactionContext): Promise<void>;
+  /** Writes the stage only while the cycle is still at `from`: false when another request moved it first. */
+  abstract setStage(id: string, move: { from: CycleStage; to: CycleStage }, by: { userId: string; at: Date } | null, tx: TransactionContext): Promise<boolean>;
   abstract setDates(id: string, dates: CycleDate[], tx: TransactionContext): Promise<void>;
   /** The items of the cycle (or the ones waiting for the next cycle when `cycleId` is null). */
   abstract catalog(cycleId: string | null): Promise<CatalogItemDto[]>;

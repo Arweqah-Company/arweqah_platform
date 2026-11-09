@@ -104,6 +104,30 @@ describe('parseEvalFile: what it refuses to call sound', () => {
   });
 });
 
+describe('parseEvalFile: review findings (PR 67)', () => {
+  it('refuses a stage number outside one to five (it would be saved but never make the cycle ready)', () => {
+    const r = parseEvalFile(SAMPLE_EVAL_FILE.replace(/المرحلة 1 التأسيس/g, 'المرحلة 9 التأسيس'));
+    expect(r.stages[0]!.problems).toContain('stage_range');
+    expect(isSound(r)).toBe(false);
+  });
+
+  it('counts twelve DISTINCT months in the fiscal card, not twelve lines', () => {
+    const lines = SAMPLE_EVAL_FILE.split('\n');
+    const at = lines.indexOf('أبريل');
+    const same = lines.map((l, i) => (i > at && i < at + 24 && ['مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر', 'يناير', 'فبراير', 'مارس'].includes(l) ? 'أبريل' : l)).join('\n');
+    expect(parseEvalFile(same).fiscal?.problems).toContain('fiscal_months');
+  });
+
+  it('reads a very long line of digits in linear time and calls the range not understood', () => {
+    const long = '1'.repeat(150_000);
+    const text = SAMPLE_EVAL_FILE.replace('النهائي 110 فأكثر', `النهائي ${long} فأكثر`);
+    const started = Date.now();
+    const r = parseEvalFile(text);
+    expect(Date.now() - started).toBeLessThan(500);
+    expect(r.scale?.problems).toContain('scale_range');
+  });
+});
+
 describe('parseRange', () => {
   it('reads the three written forms and nothing else', () => {
     expect(parseRange('110 فأكثر')).toEqual({ from: 110, to: null });

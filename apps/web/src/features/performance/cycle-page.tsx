@@ -39,8 +39,12 @@ function Confirmations({ dialog, onClose }: { dialog: Dialogs; onClose: () => vo
   const close = useCloseCycle();
   return (
     <>
-      <ConfirmDialog open={dialog === 'advance'} onOpenChange={(o) => !o && onClose()} title={t('advance.title')} description={t('advance.description')} confirmLabel={t('actions.advance')} busy={advance.isPending} onConfirm={() => advance.mutate(undefined, { onSuccess: () => { toast.success(t('advance.done')); onClose(); } })} />
-      <ConfirmDialog open={dialog === 'close'} onOpenChange={(o) => !o && onClose()} title={t('closeCycle.title')} description={t('closeCycle.description')} tone="danger" confirmLabel={t('actions.close')} busy={close.isPending} onConfirm={() => close.mutate(undefined, { onSuccess: () => { toast.success(t('closeCycle.done')); onClose(); } })} />
+      <ConfirmDialog open={dialog === 'advance'} onOpenChange={(o) => { if (!o) { advance.reset(); onClose(); } }} title={t('advance.title')} description={t('advance.description')} confirmLabel={t('actions.advance')} busy={advance.isPending} onConfirm={() => advance.mutate(undefined, { onSuccess: () => { toast.success(t('advance.done')); onClose(); } })}>
+        {advance.isError && <Alert tone="danger">{t('actions.failed')}</Alert>}
+      </ConfirmDialog>
+      <ConfirmDialog open={dialog === 'close'} onOpenChange={(o) => { if (!o) { close.reset(); onClose(); } }} title={t('closeCycle.title')} description={t('closeCycle.description')} tone="danger" confirmLabel={t('actions.close')} busy={close.isPending} onConfirm={() => close.mutate(undefined, { onSuccess: () => { toast.success(t('closeCycle.done')); onClose(); } })}>
+        {close.isError && <Alert tone="danger">{t('actions.failed')}</Alert>}
+      </ConfirmDialog>
     </>
   );
 }

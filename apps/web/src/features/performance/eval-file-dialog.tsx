@@ -32,14 +32,19 @@ function Findings({ result }: { result: EvalFileResult }) {
 
 const sound = (r: EvalFileResult): boolean => r.stages.length + (r.scale ? 1 : 0) + (r.fiscal ? 1 : 0) > 0 && r.stages.every((s) => !s.problems.length) && !r.scale?.problems.length && !r.fiscal?.problems.length;
 
+/** The server's check of a text: the result belongs to the text it was made for, so a check that finishes after the text changed is never used. */
+function useEvalCheck(text: string) {
+  const [checked, setChecked] = useState<{ text: string; result: EvalFileResult } | null>(null);
+  const check = useMutation({ mutationFn: (value: string) => readEvalFile({ text: value, dryRun: true }), onSuccess: (r, value) => setChecked({ text: value, result: r }) });
+  return { check, result: checked && checked.text === text ? checked.result : null, run: (value: string) => { setChecked(null); check.mutate(value); }, forget: () => setChecked(null) };
+}
+
 /** The dialog that reads the evaluation file: pasted text, or a txt, Word or PDF file read in the browser; the server checks it and nothing is saved before «Save». */
 export function EvalFileDialog({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation('performance');
   const [text, setText] = useState('');
-  const [result, setResult] = useState<EvalFileResult | null>(null);
-  const check = useMutation({ mutationFn: (value: string) => readEvalFile({ text: value, dryRun: true }), onSuccess: setResult });
+  const { check, result, run, forget } = useEvalCheck(text);
   const save = useSaveEvalFile();
-  const run = (value: string) => { setResult(null); check.mutate(value); };
   const reader = useDocumentReader((value) => { setText(value); run(value); });
   const failed = save.error instanceof ApiError ? t('file.saveRefused') : save.isError ? t('file.saveFailed') : null;
   return (
@@ -47,7 +52,7 @@ export function EvalFileDialog({ onClose }: { onClose: () => void }) {
       <div className="flex flex-col gap-4">
         <FileDropzone label={t('file.pick')} accept={TITLE_FILE_ACCEPT} maxBytes={TITLE_FILE_MAX_BYTES} hint={t('file.hint')} busy={check.isPending} onFiles={(f) => void reader.read(f)} />
         {reader.failure && <Alert tone="danger">{t(`file.readErrors.${reader.failure}`)}</Alert>}
-        <FormField label={t('file.paste')} hint={t('file.limit', { max: EVAL_FILE_MAX.toLocaleString() })}>{(p) => <Textarea {...p} rows={6} value={text} maxLength={EVAL_FILE_MAX} onChange={(e) => { setText(e.target.value); setResult(null); }} />}</FormField>
+        <FormField label={t('file.paste')} hint={t('file.limit', { max: EVAL_FILE_MAX.toLocaleString() })}>{(p) => <Textarea {...p} rows={6} value={text} maxLength={EVAL_FILE_MAX} onChange={(e) => { setText(e.target.value); forget(); }} />}</FormField>
         <div><Button variant="secondary" disabled={!text.trim() || check.isPending} onClick={() => run(text)}>{t('file.check')}</Button></div>
         {check.isError && <Alert tone="danger">{t('file.checkFailed')}</Alert>}
         {result && <Findings result={result} />}

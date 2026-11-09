@@ -20,13 +20,14 @@ function DateDialog({ row, onClose }: { row: DateRow; onClose: () => void }) {
   const save = useSetDate();
   const [from, setFrom] = useState(row.from ?? '');
   const [to, setTo] = useState(row.to ?? '');
-  const problems = save.error instanceof ApiError ? ((save.error.details as { problems?: string[] } | undefined)?.problems ?? []) : [];
+  const raw = save.error instanceof ApiError ? (save.error.details as { problems?: unknown } | undefined)?.problems : undefined;
+  const problems = Array.isArray(raw) ? raw.filter((p): p is string => typeof p === 'string') : [];
   const submit = () => save.mutate({ key: row.key, from, to: to || null }, { onSuccess: () => { toast.success(t('dates.saved')); onClose(); } });
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()} title={t('dates.edit')} description={t(`dates.keys.${row.key}`)}>
       <FormField label={t('dates.from')}>{(p) => <Input {...p} type="date" dir="ltr" value={from} onChange={(e) => setFrom(e.target.value)} />}</FormField>
       <FormField label={t('dates.to')} hint={t('dates.toHint')}>{(p) => <Input {...p} type="date" dir="ltr" value={to} onChange={(e) => setTo(e.target.value)} />}</FormField>
-      {problems.length > 0 && <Alert tone="danger"><ul className="list-disc ps-5">{problems.map((p) => <li key={p}>{t(`dates.problems.${p}`)}</li>)}</ul></Alert>}
+      {problems.length > 0 && <Alert tone="danger"><ul className="list-disc ps-5">{problems.map((p) => <li key={p}>{t(`dates.problems.${p}`, { defaultValue: t('dates.problems.unknown') })}</li>)}</ul></Alert>}
       {save.isError && problems.length === 0 && <Alert tone="danger">{t('dates.failed')}</Alert>}
       <DialogFooter>
         <Button disabled={!from || save.isPending} onClick={submit}>{t('save')}</Button>

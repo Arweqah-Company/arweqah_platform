@@ -25,6 +25,11 @@ export class PerformanceCycle extends BaseEntity {
   @Column({ name: 'closed_at', type: 'timestamptz', nullable: true })
   closedAt: Date | null;
 
+  /** True until the cycle is closed: a unique index lets only one row be open (a second `open` at the same moment fails in the database, not only in the check). */
+  @Index('UQ_performance_cycles_open', { unique: true, where: 'is_open' })
+  @Column({ name: 'is_open', type: 'boolean', default: true })
+  isOpen: boolean;
+
   @Column({ type: 'jsonb', default: () => "'[]'" })
   dates: CycleDate[];
 

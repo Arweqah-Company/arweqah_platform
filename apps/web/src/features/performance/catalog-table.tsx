@@ -69,7 +69,9 @@ export function CatalogTable({ items }: { items: CatalogItemDto[] }) {
         columns={columns}
       />
       {adding && <AddDialog onClose={() => setAdding(false)} />}
-      <ConfirmDialog open={!!removing} onOpenChange={(o) => !o && setRemoving(null)} title={t('catalog.removeTitle')} description={removing?.title} tone="danger" confirmLabel={t('catalog.remove')} busy={remove.isPending} onConfirm={() => { if (removing) remove.mutate(removing.id, { onSuccess: () => { toast.success(t('catalog.removed')); setRemoving(null); } }); }} />
+      <ConfirmDialog open={!!removing} onOpenChange={(o) => { if (!o) { remove.reset(); setRemoving(null); } }} title={t('catalog.removeTitle')} description={removing?.title} tone="danger" confirmLabel={t('catalog.remove')} busy={remove.isPending} onConfirm={() => { if (removing) remove.mutate(removing.id, { onSuccess: () => { toast.success(t('catalog.removed')); setRemoving(null); } }); }}>
+        {remove.isError && <Alert tone="danger">{t('catalog.removeFailed')}</Alert>}
+      </ConfirmDialog>
     </>
   );
 }
