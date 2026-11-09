@@ -76,14 +76,19 @@
       "duration": "Duration",
       "minutes": "Minutes",
       "language": "Language",
-      "link": "Link"
-    }
+      "link": "Link",
+      "state": "Proof state"
+    },
+    "reached": "Reached",
+    "notYet": "Not yet"
   },
   "required": {
     "overdue": "Overdue",
     "daysLeft": "In {{count}} days",
     "whileInPeriod": "While you are in the period",
-    "ackText": "Acknowledgement text"
+    "ackText": "Acknowledgement text",
+    "done": "Done: {{item}}",
+    "doneBadge": "Done"
   },
   "gate": {
     "why": {
@@ -257,6 +262,24 @@
         "reopen": "Reopen the acknowledgement for a title's holders",
         "import": "Import learning-unit links from an Excel file"
       }
+    },
+    "career-certificates": {
+      "title": "Certificate review",
+      "body": "The proofs employees sent for learning units: open one, then approve it, reject it with a reason, or refer it to the direct manager.",
+      "can": {
+        "approve": "Approve a proof",
+        "reject": "Reject a proof with a reason",
+        "refer": "Refer to the direct manager",
+        "export": "Export the list"
+      }
+    },
+    "career-team": {
+      "title": "My career team",
+      "body": "The paths of the people under you: what they finished and what they are late in. Open a member to see what waits for your decision.",
+      "can": {
+        "decide": "Decide a proof referred to you",
+        "export": "Export the list"
+      }
     }
   },
   "import": {
@@ -375,5 +398,118 @@
     "title": "Discard the unsaved edits?",
     "description": "The open title has edits that were not saved. Opening another title drops them.",
     "confirm": "Discard and switch"
+  },
+  "proof": {
+    "title": "Send a proof of completion",
+    "kind": "Kind of proof",
+    "kinds": {
+      "certificate": {
+        "title": "Certificate",
+        "hint": "The certificate file (PDF or an image, up to 10 MB)."
+      },
+      "application": {
+        "title": "Applied at work",
+        "hint": "Your direct manager approves it after you describe what you applied."
+      },
+      "output": {
+        "title": "Written output",
+        "hint": "A summary or report you produced from the learning."
+      }
+    },
+    "pick": "Choose the proof file",
+    "fileHint": "PDF, PNG or JPEG",
+    "chosenFile": "File: {{name}}",
+    "fileRequired": "Attach the certificate file first.",
+    "note": "Note for the reviewer (optional)",
+    "send": "Send for approval",
+    "sent": "The proof was sent for approval.",
+    "failed": "The proof could not be sent. Try again.",
+    "rejectedBecause": "Rejected because: {{reason}}",
+    "rejectedBecauseLabel": "Reason for rejection",
+    "upload": "Send a proof",
+    "again": "Send again",
+    "details": "Unit details",
+    "submittedAt": "Sent on",
+    "file": "File",
+    "state": {
+      "todo": "Not started",
+      "wait": "Waiting for approval",
+      "referred": "With the direct manager",
+      "done": "Done",
+      "rej": "Rejected"
+    }
+  },
+  "tiles": {
+    "units": "Learning units done",
+    "unitsValue": "{{done}} of {{total}}",
+    "hours": "Hours done",
+    "hoursNext": "Hours done · next medal: {{name}} at {{hours}} hours"
+  },
+  "certs": {
+    "title": "Certificate review",
+    "description": "The proofs employees sent for the units of their learning plan: open one, then approve it (its hours count), reject it with a reason, or refer it to the direct manager.",
+    "scope": "You review the proofs of every employee here; the platform manager sets the scope of the review in the permissions.",
+    "searchLabel": "Search the proofs",
+    "searchPlaceholder": "Search by employee or unit",
+    "noMatches": "No proofs match the search and the filters.",
+    "empty": "No proofs are waiting for review.",
+    "open": "Open the proof",
+    "approve": "Approve",
+    "approved": "The proof was approved.",
+    "refer": "Refer to the direct manager",
+    "referred": "The proof was referred to the direct manager.",
+    "failed": "The decision could not be made: someone else may have decided it. Refresh the page.",
+    "unitGone": "A unit no longer in the plan",
+    "rejectedBefore": "The proof of this unit was rejected {{count}} times before.",
+    "reject": {
+      "action": "Reject with a reason",
+      "title": "Reject the proof",
+      "reason": "Reason for rejection *",
+      "short": "Write a reason of at least 5 characters.",
+      "confirm": "Reject the proof",
+      "done": "The proof was rejected and the employee was told."
+    },
+    "columns": {
+      "employee": "Employee",
+      "unit": "Unit",
+      "proof": "Proof",
+      "minutes": "Hours",
+      "submitted": "Sent on",
+      "status": "State"
+    },
+    "filters": {
+      "kind": "Kind of proof",
+      "status": "State"
+    }
+  },
+  "team": {
+    "title": "My career team",
+    "description": "The paths of the people under you: how much of the mandatory and necessary units they finished, their approved hours and what they are late in. Read only: you do not edit their path here.",
+    "searchLabel": "Search the team",
+    "searchPlaceholder": "Search by name",
+    "noMatches": "Nobody matches the search and the filters.",
+    "empty": "Nobody is in your team yet.",
+    "open": "Open the member",
+    "lateAlert": "{{count}} of your team are late in what is required.",
+    "required": "Mandatory and necessary",
+    "hours": "Approved hours",
+    "overdue": "Late items",
+    "waitingProofs": "Proofs waiting for a decision",
+    "noProofs": "No proofs are waiting for a decision.",
+    "loadFailed": "The member's proofs could not be loaded.",
+    "readOnly": "Read only: you do not edit their career file from here. You decide here only a proof referred to you.",
+    "columns": {
+      "employee": "Employee",
+      "title": "Title",
+      "progress": "Mandatory and necessary done",
+      "hours": "Approved hours",
+      "late": "Late",
+      "status": "State"
+    },
+    "status": {
+      "regular": "Regular",
+      "late": "Late",
+      "no_path": "No ready path"
+    }
   }
 }

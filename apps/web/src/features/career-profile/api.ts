@@ -5,10 +5,14 @@ import type {
   CareerTitleListItemDto,
   ExtractTitleFileInput,
   ImportLearningLinksInput,
+  LearningRecordDto,
   LearningImportResultDto,
   MyCareerProfileDto,
+  MyProgressDto,
   ReopenAcknowledgementInput,
   ReopenAcknowledgementResultDto,
+  SubmitProofInput,
+  TeamMemberDetailDto,
   TitleFileResultDto,
 } from '@arweqah-platform/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -63,3 +67,64 @@ export const useReadTitleFile = (titleId: string) => useTitleWrite(titleId, (inp
 export const importLearningLinks = (input: ImportLearningLinksInput) => apiClient.post<LearningImportResultDto>('/career/learning-links', input);
 
 export type { CareerListStatus, CareerTitleListItemDto };
+
+export const MY_LEARNING_KEY = ['career-profile', 'learning'] as const;
+export const MY_PROGRESS_KEY = ['career-profile', 'progress'] as const;
+
+/** The proofs the signed-in employee sent, and how far they are (the learning plan and its filters read them). */
+export const useMyLearning = (enabled = true) => useQuery({ queryKey: MY_LEARNING_KEY, enabled, queryFn: () => apiClient.get<LearningRecordDto[]>('/career-profile/me/learning') });
+
+/** Units done, approved hours, the medals and the ticks of «required». */
+export const useMyProgress = (enabled = true) => useQuery({ queryKey: MY_PROGRESS_KEY, enabled, queryFn: () => apiClient.get<MyProgressDto>('/career-profile/me/progress') });
+
+/** Sends a proof: the file first (when there is one), then the proof that points at it. */
+export function useSubmitProof() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ file, ...input }: Omit<SubmitProofInput, 'fileId'> & { file?: File }) => {
+      let fileId: string | undefined;
+      if (file) {
+        const form = new FormData();
+        form.append('file', file);
+        fileId = (await apiClient.post<{ id: string }>('/files', form)).id;
+      }
+      return apiClient.post<LearningRecordDto>('/career-profile/me/learning', { ...input, ...(fileId ? { fileId } : {}) });
+    },
+    onSuccess: () => Promise.all([client.invalidateQueries({ queryKey: MY_LEARNING_KEY }), client.invalidateQueries({ queryKey: MY_PROGRESS_KEY })]),
+  });
+}
+
+/** Ticks or unticks an item of «required»; the answer replaces the cached progress. */
+export function useTickRequired() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ index, done }: { index: number; done: boolean }) => apiClient.put<MyProgressDto>(`/career-profile/me/required/${index}`, { done }),
+    onSuccess: (progress) => client.setQueryData(MY_PROGRESS_KEY, progress),
+  });
+}
+
+export const CERTIFICATES_KEY = 'career-certificates';
+
+/** One decision on a proof: approve, reject with a reason, or refer to the direct manager. The queue is read again after it. */
+export function useDecideProof(id: string) {
+  const client = useQueryClient();
+  const done = () => client.invalidateQueries({ queryKey: [CERTIFICATES_KEY] });
+  return {
+    approve: useMutation({ mutationFn: () => apiClient.post(`/career/certificates/${id}/approve`, {}), onSuccess: done }),
+    reject: useMutation({ mutationFn: (reason: string) => apiClient.post(`/career/certificates/${id}/reject`, { reason }), onSuccess: done }),
+    refer: useMutation({ mutationFn: () => apiClient.post(`/career/certificates/${id}/refer`, {}), onSuccess: done }),
+  };
+}
+
+export const useTeamMember = (employeeId: string) => useQuery({ queryKey: ['career-team', 'member', employeeId], queryFn: () => apiClient.get<TeamMemberDetailDto>(`/career/team/${employeeId}`) });
+
+/** The manager's decision on a proof referred to them; the team page and the member are read again after it. */
+export function useTeamDecision(employeeId: string, proofId: string) {
+  const client = useQueryClient();
+  const done = () => client.invalidateQueries({ queryKey: ['career-team'] });
+  const base = `/career/team/${employeeId}/proofs/${proofId}`;
+  return {
+    approve: useMutation({ mutationFn: () => apiClient.post(`${base}/approve`, {}), onSuccess: done }),
+    reject: useMutation({ mutationFn: (reason: string) => apiClient.post(`${base}/reject`, { reason }), onSuccess: done }),
+  };
+}

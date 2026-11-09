@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { Role } from '../../core/access/domain/role.entity';
-import { ROLE_SEEDS } from './data/roles.data';
+import { ENSURED_ROLES, ROLE_SEEDS } from './data/roles.data';
 
 /**
  * Creates the owner's list of roles once: only while no custom role exists, so roles an administrator renamed,
@@ -14,6 +14,11 @@ export class RolesCatalogSeeder {
   constructor(private readonly db: DataSource) {}
 
   async run(): Promise<void> {
+    await this.seedOwnerList();
+    await this.ensureRoles(); // after the owner's list: a role made here must not stop that list from being created
+  }
+
+  private async seedOwnerList(): Promise<void> {
     const repo = this.db.getRepository(Role);
     if ((await repo.count({ where: { isSystem: false } })) > 0) return;
     for (const seed of ROLE_SEEDS) {
@@ -21,5 +26,18 @@ export class RolesCatalogSeeder {
       await repo.save(role);
     }
     this.logger.log(`${ROLE_SEEDS.length} roles created from the owner's list`);
+  }
+
+  /** Makes the roles the platform needs when one is missing (by name); an existing one is left as an administrator set it. */
+  private async ensureRoles(): Promise<void> {
+    const repo = this.db.getRepository(Role);
+    for (const wanted of ENSURED_ROLES) {
+      if (await repo.findOne({ where: { nameAr: wanted.ar } })) continue;
+      const role = Object.assign(new Role(), { nameAr: wanted.ar, nameEn: wanted.en, description: wanted.note, isSystem: false, assignment: 'manual' as const, autoRule: null, permissions: [] });
+      await repo.save(role);
+      role.replacePermissions(wanted.keys.map((key) => ({ key, scope: 'all' as const })));
+      await repo.save(role);
+      this.logger.log(`Role «${wanted.ar}» created`);
+    }
   }
 }

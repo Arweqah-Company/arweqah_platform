@@ -13,6 +13,17 @@ const manual = (ar: string, en: string, extra: Partial<RoleSeed> = {}): RoleSeed
 /** "Employee" (موظف) is the seeded system role; the others are created once, when no custom role exists yet. */
 export const EMPLOYEE_ROLE_SEED = { assignment: 'auto', autoRule: 'everyone', note: 'يُسند للجميع من الهيكل' } as const;
 
+/**
+ * Roles the platform needs to exist whatever the state of the list above: made once when missing (by Arabic name), with these keys, and never touched
+ * again, so an administrator can change them. The reviewer of the career-path certificates (FR-114).
+ */
+export const ENSURED_ROLES: { ar: string; en: string; note: string; keys: readonly string[] }[] = [
+  {
+    ar: 'مسؤول تطوير الموظفين', en: 'Employee development officer', note: 'يراجع شهادات التعلم ويعتمدها',
+    keys: ['career_certificates.review', 'career_certificates.approve', 'career_certificates.reject', 'career_certificates.refer', 'career_certificates.export'],
+  },
+];
+
 export const ROLE_SEEDS: RoleSeed[] = [
   auto('مدير مباشر', 'Direct manager', { autoRule: 'has_reports', note: 'يُسند لمن له مرؤوسون' }),
   auto('مستقبِل تذاكر الوحدة', 'Unit ticket receiver'),

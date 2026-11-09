@@ -326,11 +326,42 @@
         "unit": "الوحدة",
         "duration": "المدة",
         "language": "اللغة",
-        "link": "الرابط"
+        "link": "الرابط",
+        "state": "حالة الإثبات"
       },
       "filters": {
         "priority": "الأولوية",
-        "language": "اللغة"
+        "language": "اللغة",
+        "state": "حالة الإثبات"
+      }
+    },
+    "career-certificates": {
+      "name": "مراجعة الشهادات",
+      "columns": {
+        "employee": "الموظف",
+        "unit": "الوحدة",
+        "proof": "الإثبات",
+        "minutes": "الساعات",
+        "submitted": "رُفع في",
+        "status": "الحالة"
+      },
+      "filters": {
+        "kind": "نوع الإثبات",
+        "status": "الحالة"
+      }
+    },
+    "career-team": {
+      "name": "فريقي المهني",
+      "columns": {
+        "employee": "الموظف",
+        "title": "المسمى",
+        "progress": "إنجاز الإلزامي والضروري",
+        "hours": "الساعات المعتمدة",
+        "late": "المتأخر",
+        "status": "الحالة"
+      },
+      "filters": {
+        "status": "الحالة"
       }
     }
   },

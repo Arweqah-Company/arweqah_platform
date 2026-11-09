@@ -20,6 +20,6 @@ export function SectionBody({ section, content, stage, preview }: { section: Car
     case 'evaluation': return <EvaluationSection />;
     case 'development': return <DevelopmentSection content={content} stage={stage} preview={preview} />;
     case 'learning': return <LearningSection content={content} preview={preview} />;
-    case 'required': return <RequiredSection content={content} />;
+    case 'required': return <RequiredSection content={content} preview={preview} />;
   }
 }
