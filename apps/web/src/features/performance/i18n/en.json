@@ -1,0 +1,211 @@
+{
+  "close": "Close",
+  "save": "Save",
+  "page": {
+    "title": "Evaluation cycle",
+    "description": "Open the performance evaluation cycle, move it through its stages and close it; the dates of the stages, the evaluation file and the extra-component catalog.",
+    "loadFailed": "The evaluation cycle could not be loaded.",
+    "notReady": "The cycle cannot open before the evaluation file is uploaded: the template of each of the five stages, the grade scale and the fiscal-year card.",
+    "fiscalYear": "Cycle of fiscal year {{year}}"
+  },
+  "actions": {
+    "open": "Open the evaluation cycle",
+    "advance": "Move the cycle to the next stage",
+    "close": "Close the cycle",
+    "file": "Upload the evaluation file"
+  },
+  "stepper": {
+    "label": "Stages of the evaluation cycle"
+  },
+  "stages": {
+    "none": {
+      "title": "Not opened",
+      "who": "Human resources",
+      "what": "HR uploads the evaluation file, prepares the catalog and the dates, then opens the cycle.",
+      "date": "Before the fiscal year starts"
+    },
+    "self": {
+      "title": "Self-evaluation",
+      "who": "The employee",
+      "what": "Rates their behaviours, writes their achievements and picks from the catalog; the manager is told when it is sent.",
+      "date": "Until 10 March"
+    },
+    "mgr": {
+      "title": "Manager's evaluation",
+      "who": "The direct manager, then the one above",
+      "what": "Reviews the self-evaluation and enters the results and behaviour scores.",
+      "date": "After the self-evaluation"
+    },
+    "cal": {
+      "title": "Calibration",
+      "who": "The holder of the calibration key",
+      "what": "Compares the managers and adjusts, with a written reason.",
+      "date": "21 to 24 April"
+    },
+    "appr": {
+      "title": "Approval",
+      "who": "The holder of the approval key",
+      "what": "Approves the results and decides the objections.",
+      "date": "27 April"
+    },
+    "notif": {
+      "title": "Individual notification",
+      "who": "The system",
+      "what": "Tells each employee their result individually, with an exportable copy.",
+      "date": "30 April"
+    },
+    "obj": {
+      "title": "Objection window",
+      "who": "The employee and the approver",
+      "what": "One reasoned objection per employee.",
+      "date": "Five working days"
+    },
+    "closed": {
+      "title": "Closed",
+      "who": "The system",
+      "what": "The cycle is closed and the results stay in each employee's record.",
+      "date": "—"
+    }
+  },
+  "stage": {
+    "who": "Who works in it",
+    "what": "What happens",
+    "date": "Usual date",
+    "state": {
+      "done": "Finished",
+      "current": "The current stage",
+      "next": "Coming"
+    }
+  },
+  "readiness": {
+    "title": "Readiness to open the cycle",
+    "ready": "Ready",
+    "notReady": "Not ready",
+    "stage": "Template of stage {{stage}}",
+    "scale": "Grade scale",
+    "fiscal": "Fiscal-year card",
+    "catalog": "Catalog items: {{count}} (may be empty).",
+    "yes": "Uploaded",
+    "no": "Not uploaded"
+  },
+  "open": {
+    "title": "Open the evaluation cycle",
+    "description": "The cycle opens for a fiscal year and starts at the self-evaluation stage.",
+    "year": "Fiscal year",
+    "yearInvalid": "Enter a year of four digits.",
+    "snapshot": "The cycle takes a snapshot of the templates when it opens: what is uploaded afterwards does not change this year.",
+    "confirm": "Open the cycle",
+    "done": "The cycle was opened.",
+    "yearExists": "A cycle for this year exists already.",
+    "notReady": "The evaluation file is incomplete.",
+    "failed": "The cycle could not be opened."
+  },
+  "advance": {
+    "title": "Move the cycle to the next stage",
+    "description": "The cycle moves to the next stage and does not go back.",
+    "done": "The cycle moved to the next stage."
+  },
+  "closeCycle": {
+    "title": "Close the cycle",
+    "description": "After closing, the evaluations cannot change and the results stay in each employee's record. Your name and the time are kept.",
+    "done": "The cycle was closed."
+  },
+  "dates": {
+    "title": "Dates of the stages",
+    "stage": "Stage",
+    "from": "From",
+    "to": "To",
+    "toHint": "Optional: a single day when empty.",
+    "edit": "Change the date",
+    "saved": "The date was saved.",
+    "failed": "The date could not be saved.",
+    "keys": {
+      "final": "Final result after the numbers close",
+      "calibration": "The two calibration meetings",
+      "approval": "Approval",
+      "notification": "Individual notification with an exportable copy",
+      "objection": "Objection window (five working days from the notification)",
+      "self_deadline": "Last day of the self-evaluation",
+      "qualitative_close": "Close of the qualitative part (behaviour and evidence)"
+    },
+    "problems": {
+      "end_before_start": "The end is before the start.",
+      "before_previous": "It starts before the stage ahead of it ends.",
+      "after_next": "It ends after the stage behind it starts."
+    }
+  },
+  "catalog": {
+    "title": "Extra-component catalog",
+    "searchLabel": "Search the catalog",
+    "searchPlaceholder": "Search the items",
+    "empty": "The catalog has no items yet.",
+    "noMatches": "No item matches the search and filters.",
+    "add": "Add an item",
+    "addHint": "An item the employee picks in their self-evaluation and the manager confirms.",
+    "added": "The item was added.",
+    "remove": "Delete the item",
+    "removeTitle": "Delete an item from the catalog",
+    "removed": "The item was deleted.",
+    "failed": "The item could not be added.",
+    "titleShort": "The name needs at least {{min}} characters.",
+    "pointsRange": "Points from 1 to {{max}}.",
+    "columns": {
+      "title": "Item",
+      "kind": "Kind",
+      "points": "Points"
+    },
+    "kinds": {
+      "init": "Internal initiatives",
+      "growth": "Contribution to growth"
+    }
+  },
+  "file": {
+    "title": "Upload the evaluation file",
+    "description": "One file for the five stages, then the grade scale and the fiscal-year card. Nothing is saved before you review it.",
+    "pick": "Evaluation file",
+    "hint": "txt, docx or pdf, read in the browser",
+    "paste": "Or paste the text of the file",
+    "limit": "Up to {{max}} characters",
+    "check": "Check the file",
+    "checkFailed": "The file could not be checked.",
+    "empty": "The text holds no stage, grade scale or fiscal card.",
+    "stage": "Stage {{stage}} {{name}}",
+    "scale": "Grade scale ({{count}} levels)",
+    "fiscal": "Fiscal-year card ({{count}} months)",
+    "sound": "Sound",
+    "needsReview": "Needs review",
+    "save": "Save the file",
+    "saved": "The evaluation file was saved.",
+    "saveRefused": "The file has parts that need review and was not saved.",
+    "saveFailed": "The file could not be saved.",
+    "readErrors": {
+      "unsupported": "The file type is not supported.",
+      "unreadable": "The file could not be read.",
+      "empty": "The file is empty."
+    },
+    "problems": {
+      "basic_split": "Results + behaviour do not make the basic total.",
+      "criteria_sum": "The shares of the results criteria do not add up to 100.",
+      "cap_sum": "Basic + extra do not make the cap.",
+      "no_criteria": "No results criteria.",
+      "no_behaviours": "No behaviours.",
+      "behaviour_question": "A behaviour has no question for the evaluator.",
+      "duplicate_stage": "The stage appears twice in the file.",
+      "scale_levels": "The grade scale does not have five levels.",
+      "scale_range": "A range of the grade scale is not understood.",
+      "fiscal_months": "The fiscal-year card does not have twelve months."
+    }
+  },
+  "tour": {
+    "performance-cycle": {
+      "title": "Evaluation cycle",
+      "body": "HR opens the performance evaluation cycle here, moves it through its stages and closes it, uploads the evaluation file and sets the dates and the catalog.",
+      "can": {
+        "manage": "Open the cycle, move it on and change the dates",
+        "close": "Close the cycle",
+        "upload": "Upload the evaluation file",
+        "catalog": "Manage the extra-component catalog"
+      }
+    }
+  }
+}

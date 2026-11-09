@@ -1,0 +1,28 @@
+import type { CatalogItemDto, CatalogItemInput, CycleDate, CycleStage, TemplateSnapshot } from '@arweqah-platform/shared';
+import type { TransactionContext } from '../../../../common/domain/transaction-context';
+
+export interface CycleRow {
+  id: string;
+  fiscalYear: number;
+  stage: CycleStage;
+  openedAt: Date;
+  closedAt: Date | null;
+  dates: CycleDate[];
+  snapshot: TemplateSnapshot;
+}
+
+export abstract class PerformanceCycleRepository {
+  /** The cycle in progress, else the one closed last, else null. */
+  abstract current(): Promise<CycleRow | null>;
+  abstract yearExists(fiscalYear: number): Promise<boolean>;
+  abstract insert(cycle: { fiscalYear: number; openedBy: string; openedAt: Date; snapshot: TemplateSnapshot }, tx: TransactionContext): Promise<CycleRow>;
+  abstract setStage(id: string, stage: CycleStage, by: { userId: string; at: Date } | null, tx: TransactionContext): Promise<void>;
+  abstract setDates(id: string, dates: CycleDate[], tx: TransactionContext): Promise<void>;
+  /** The items of the cycle (or the ones waiting for the next cycle when `cycleId` is null). */
+  abstract catalog(cycleId: string | null): Promise<CatalogItemDto[]>;
+  abstract addItem(cycleId: string | null, item: CatalogItemInput, tx: TransactionContext): Promise<CatalogItemDto>;
+  /** Deletes an item of the given cycle (or of the waiting ones); false when it is not there. */
+  abstract removeItem(id: string, cycleId: string | null, tx: TransactionContext): Promise<boolean>;
+  /** Gives the waiting items to the cycle that just opened. */
+  abstract adoptWaiting(cycleId: string, tx: TransactionContext): Promise<void>;
+}

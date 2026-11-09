@@ -42,7 +42,8 @@
     "careerContent": "Career-path content",
     "careerCertificates": "Certificate review",
     "careerTeam": "My career team",
-    "careerRequests": "Development requests"
+    "careerRequests": "Development requests",
+    "performanceCycle": "Evaluation cycle"
   },
   "actions": {
     "save": "Save",

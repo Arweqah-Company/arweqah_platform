@@ -15,6 +15,7 @@ import { notificationsFeature } from '@/features/notifications';
 import { listSettingsFeature } from '@/features/list-settings';
 import { jobTitlesFeature } from '@/features/job-titles';
 import { orgFeature } from '@/features/org';
+import { performanceFeature } from '@/features/performance';
 import { permissionsFeature } from '@/features/permissions';
 import { pageVisibilityFeature } from '@/features/page-visibility';
 import { exceptionsFeature } from '@/features/exceptions';
@@ -32,6 +33,7 @@ export const FEATURES: FeatureModule[] = [
   orgFeature,
   jobTitlesFeature,
   careerProfileFeature,
+  performanceFeature,
   companiesFeature,
   tasksFeature,
   ticketsFeature,
