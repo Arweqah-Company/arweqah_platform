@@ -7,8 +7,11 @@ export const PERFORMANCE_AUDIT = {
   cycleDateSet: 'performance.cycle.date_set',
   catalogAdded: 'performance.catalog.added',
   catalogRemoved: 'performance.catalog.removed',
+  selfSent: 'performance.self.sent',
+  selfEdited: 'performance.self.edited',
 } as const;
 
 export const PERFORMANCE_TEMPLATE_ENTITY = 'performance_template';
 export const PERFORMANCE_CYCLE_ENTITY = 'performance_cycle';
 export const PERFORMANCE_CATALOG_ENTITY = 'performance_catalog_item';
+export const PERFORMANCE_EVALUATION_ENTITY = 'performance_evaluation';

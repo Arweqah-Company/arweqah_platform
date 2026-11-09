@@ -105,6 +105,7 @@ export const CorePermission = {
   CareerTeamView: 'career_team.view',
   CareerTeamDecide: 'career_team.decide',
   CareerTeamExport: 'career_team.export',
+  PerformanceSelfEvaluate: 'performance.self_evaluate',
   PerformanceCycleView: 'performance.cycle_view',
   PerformanceTemplateUpload: 'performance.template_upload',
   PerformanceCycleManage: 'performance.cycle_manage',
@@ -240,6 +241,7 @@ const OWN_ACCOUNT_PERMISSIONS: { key: CorePermissionKey; scope: 'all' }[] = [
   { key: CorePermission.CareerLearningUpload, scope: 'all' },
   { key: CorePermission.CareerRequiredTick, scope: 'all' },
   { key: CorePermission.CareerRequestsCreate, scope: 'all' },
+  { key: CorePermission.PerformanceSelfEvaluate, scope: 'all' },
 ];
 
 /**

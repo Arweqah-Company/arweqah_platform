@@ -1188,6 +1188,26 @@ erDiagram
     character_varying title
     integer points
   }
+  performance_evaluations {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid cycle_id FK,UK
+    uuid employee_id FK,UK
+    integer stage_no
+    uuid manager_user_id
+  }
+  performance_self_evaluations {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid evaluation_id FK,UK
+    jsonb content
+    timestamp_with_time_zone sent_at
+  }
+  performance_cycles ||--o{ performance_evaluations : "cycle_id"
+  employees ||--o{ performance_evaluations : "employee_id"
+  performance_evaluations ||--o| performance_self_evaluations : "evaluation_id"
   performance_cycles ||--o{ performance_catalog_items : "cycle_id"
   employees ||--o{ career_development_requests : "employee_id"
   files |o--o{ career_development_requests : "agreement_file_id"
@@ -1346,4 +1366,6 @@ erDiagram
 | `performance_settings` | A setting shared by every stage, by `key`: `grade_scale` (the five bands with their ranges) and `fiscal_card` (the twelve months and their notes). |
 | `performance_cycles` | An evaluation cycle, one per fiscal year (`fiscal_year` unique): `status` is the stage of the machine `performance.cycle` (self, mgr, cal, appr, notif, obj, closed), who opened and closed it and when, `is_open` (true until closed; a partial unique index lets only one cycle be open), `dates` (the date of each stage) and `template_snapshot` (the templates frozen when it opened). |
 | `performance_catalog_items` | An item of the extra component HR offers (`kind` init or growth, `title`, `points` 1 to 10). `cycle_id` is null while the item waits for the next cycle, which takes it when it opens. |
+| `performance_evaluations` | One employee's evaluation in one cycle (`cycle_id` + `employee_id` unique): the stage they are evaluated by (from their grade and track when the cycle opened or when they first asked) and the user of their direct manager at that time. |
+| `performance_self_evaluations` | What the employee wrote about themselves, one document per evaluation (`content`: the level and note of each behaviour, the achievements per criterion, the catalog items picked) and `sent_at` (null until the first send). |
 | `career_ack_reopenings` | HR asked the holders of a title to acknowledge again, with the reason: whoever acknowledged before it is asked once more. |

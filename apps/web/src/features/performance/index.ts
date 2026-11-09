@@ -4,6 +4,8 @@ import { PAGE_MAIN_TARGET, type FeatureModule } from '@/core/feature';
 import ar from './i18n/ar.json';
 import en from './i18n/en.json';
 
+export { EvaluationSection } from './evaluation-section';
+
 /** Performance evaluation: the cycle for HR now (stepper, evaluation file, dates, catalog); the employee's and the manager's screens come with the next stages. */
 export const performanceFeature: FeatureModule = {
   id: 'performance',

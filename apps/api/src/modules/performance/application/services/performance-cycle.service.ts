@@ -7,6 +7,7 @@ import { NotFoundError } from '../../../../common/domain/domain-error';
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
 import { WorkflowEngine } from '../../../../core/workflow/application/workflow-engine';
+import { PerformanceEvaluationService } from './performance-evaluation.service';
 import { PerformanceCycleRepository, type CycleRow } from '../../domain/contracts/performance-cycle.repository';
 import { PerformanceTemplateRepository } from '../../domain/contracts/performance-template.repository';
 import { CycleAlreadyOpenError, CycleDateInvalidError, CycleNotOpenError, CycleNotReadyError, CycleStageChangedError, CycleStageEndedError, CycleYearExistsError } from '../../domain/errors/performance.errors';
@@ -33,6 +34,7 @@ export class PerformanceCycleService {
   constructor(
     private readonly cycles: PerformanceCycleRepository,
     private readonly templates: PerformanceTemplateRepository,
+    private readonly evaluations: PerformanceEvaluationService,
     private readonly workflow: WorkflowEngine,
     private readonly tx: TransactionRunner,
     private readonly clock: Clock,
@@ -58,6 +60,7 @@ export class PerformanceCycleService {
     await this.tx.run(async (tx) => {
       const row = await this.cycles.insert({ fiscalYear: input.fiscalYear, openedBy: ctx.userId, openedAt: this.clock.now(), snapshot: { stages, scale: scale ?? [], fiscal: fiscal ?? { months: [], notes: [] } } }, tx);
       await this.cycles.adoptWaiting(row.id, tx);
+      await this.evaluations.openFor(row.id, tx);
       await this.workflow.start({ definitionKey: CYCLE_KEY, entityType: PERFORMANCE_CYCLE_ENTITY, entityId: row.id, actorId: ctx.userId, tx });
     }).catch((error: unknown) => { throw uniqueViolation(error, input.fiscalYear) ?? error; });
     this.audit(ctx, PERFORMANCE_AUDIT.cycleOpened, { fiscalYear: input.fiscalYear });

@@ -2,6 +2,15 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PermissionCatalog } from '../../core/access/application/permission-catalog';
 import { WorkflowRegistry } from '../../core/workflow/application/workflow-definition';
+import { MyPerformanceController } from './presentation/controllers/my-performance.controller';
+import { PerformanceEvaluationService } from './application/services/performance-evaluation.service';
+import { PerformanceSelfService } from './application/services/performance-self.service';
+import { PerformanceEvaluationRepository } from './domain/contracts/performance-evaluation.repository';
+import { PerformanceStagePort } from './domain/contracts/performance-roster.port';
+import { PERFORMANCE_EVALUATION_ENTITIES } from './domain/entities/performance-evaluations.entities';
+import { OrgStageAdapter } from './infrastructure/adapters/org-stage.adapter';
+import { TypeOrmPerformanceEvaluationRepository } from './infrastructure/repositories/typeorm-performance-evaluation.repository';
+import { OrgModule } from '../org/org.module';
 import { PerformanceCycleService } from './application/services/performance-cycle.service';
 import { PerformanceTemplateService } from './application/services/performance-template.service';
 import { PerformanceCycleRepository } from './domain/contracts/performance-cycle.repository';
@@ -17,11 +26,15 @@ import { PerformanceTemplatesController } from './presentation/controllers/perfo
 
 /** Performance evaluation: the evaluation file and its templates, and the cycle now; the self-evaluation, the manager's evaluation, the calibration and the objections come in later stages. */
 @Module({
-  imports: [TypeOrmModule.forFeature([...PERFORMANCE_TEMPLATE_ENTITIES, ...PERFORMANCE_CYCLE_ENTITIES])],
-  controllers: [PerformanceTemplatesController, PerformanceCycleController],
+  imports: [TypeOrmModule.forFeature([...PERFORMANCE_TEMPLATE_ENTITIES, ...PERFORMANCE_CYCLE_ENTITIES, ...PERFORMANCE_EVALUATION_ENTITIES]), OrgModule],
+  controllers: [PerformanceTemplatesController, PerformanceCycleController, MyPerformanceController],
   providers: [
     PerformanceTemplateService,
     PerformanceCycleService,
+    PerformanceEvaluationService,
+    PerformanceSelfService,
+    { provide: PerformanceStagePort, useClass: OrgStageAdapter },
+    { provide: PerformanceEvaluationRepository, useClass: TypeOrmPerformanceEvaluationRepository },
     { provide: PerformanceTemplateRepository, useClass: TypeOrmPerformanceTemplateRepository },
     { provide: PerformanceCycleRepository, useClass: TypeOrmPerformanceCycleRepository },
   ],

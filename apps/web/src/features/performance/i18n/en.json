@@ -211,5 +211,94 @@
         "catalog": "Manage the extra-component catalog"
       }
     }
+  },
+  "evaluation": {
+    "loadFailed": "The performance evaluation could not be loaded.",
+    "noCycle": "The evaluation cycle has not been opened yet. When HR opens it, the button «start the self-evaluation» appears here and you get a message.",
+    "none": "You have no evaluation in this cycle",
+    "noneHint": "The evaluation of your title's stage is not uploaded yet, or you hold no title. HR will get in touch if needed.",
+    "yourStage": "Your evaluation is the evaluation of your stage",
+    "yourStageHint": "The weights, criteria, behaviours and grade scale are below.",
+    "tabsLabel": "Performance evaluation sections",
+    "tabs": {
+      "me": "My evaluation",
+      "weights": "Weights and criteria",
+      "behaviours": "Behaviours",
+      "scale": "Grade scale",
+      "calendar": "Fiscal-year card"
+    },
+    "basic": "Basic {{total}}%",
+    "results": "Results",
+    "behaviour": "Behaviour",
+    "extra": "Extra",
+    "cap": "The most the final score can be: {{cap}} (the cap).",
+    "criteria": "Results {{weight}}% of the basic part",
+    "criteriaHint": "Each criterion is a share of the results part (they add up to 100%).",
+    "behaviours": "Behaviour {{weight}}%",
+    "question": "The evaluator's question",
+    "scale": "Grade scale (the final score out of {{cap}})",
+    "scaleLabel": "The grade scale from the lowest to the highest",
+    "final": "Final",
+    "scaleDirection": "Each level is higher than the one before it.",
+    "fiscal": "Fiscal-year card"
+  },
+  "self": {
+    "level": "My rating",
+    "choose": "Choose…",
+    "levelRequired": "Choose a level.",
+    "levels": {
+      "100": "Always",
+      "75": "Often",
+      "50": "Sometimes",
+      "25": "Rarely",
+      "0": "Never"
+    },
+    "note": "Note",
+    "noteHint": "Required at «always», «rarely» and «never».",
+    "noteShort": "A note is required at this level (at least {{min}} characters).",
+    "intro": "You rate the behaviours on the same scale as your manager, write your achievements for each results criterion and pick from the catalog. Your manager sees it before their evaluation and is not bound by it.",
+    "introSent": "You sent it, and you can change it until your manager starts.",
+    "behavioursTitle": "Behaviours",
+    "achievementsTitle": "My achievements for each results criterion (no score)",
+    "achievementHint": "Write what you achieved and the evidence",
+    "learning": "Learning",
+    "auto": "automatic",
+    "learningCard": "Calculated from the learning plan: {{done}} approved hours of {{of}}.",
+    "noItems": "There are no items in this year's catalog.",
+    "points": "{{count}} points",
+    "back": "Back to the view",
+    "saveDraft": "Save a draft",
+    "send": "Send my self-evaluation",
+    "saveEdit": "Save the change",
+    "start": "Start the self-evaluation",
+    "edit": "Change my self-evaluation",
+    "sentDone": "Your self-evaluation was sent.",
+    "edited": "The change was saved.",
+    "draftSaved": "The draft was saved.",
+    "failed": "The self-evaluation could not be saved: check the fields or try again.",
+    "sentTitle": "What I sent",
+    "behaviour": "Behaviour",
+    "status": {
+      "none": {
+        "title": "The evaluation cycle is open: rate yourself",
+        "body": "Last day: {{date}}. You rate your behaviours and write your achievements, then your direct manager is told.",
+        "badge": "Not started"
+      },
+      "draft": {
+        "title": "You have a draft that was not sent",
+        "body": "Last day: {{date}}. Finish the evaluation and send it.",
+        "badge": "Draft"
+      },
+      "sent": {
+        "title": "You sent your self-evaluation",
+        "body": "Your manager {{manager}} was told and reviews it, then it goes to the manager above. You can change it until your manager starts.",
+        "badge": "Sent"
+      },
+      "noManager": "your direct manager",
+      "noDate": "not set"
+    },
+    "underReview": "Your evaluation is under review ({{stage}}).",
+    "noScores": "Scores are not shown before the individual notification after the approval.",
+    "managerStage": "The manager's stage: you can change your evaluation until your manager starts."
   }
 }

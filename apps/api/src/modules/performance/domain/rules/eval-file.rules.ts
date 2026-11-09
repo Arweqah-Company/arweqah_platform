@@ -1,9 +1,9 @@
 import type { BehaviourItem, EvalFileResult, EvalProblem, ExtraComponent, FiscalCard, GradeBand, ResultsCriterion, StageResult, StageTemplate } from '@arweqah-platform/shared';
-import { FISCAL_MONTHS, PERFORMANCE_STAGES, SCALE_LEVELS } from '@arweqah-platform/shared';
+import { FISCAL_KINDS, FISCAL_MONTHS, PERFORMANCE_STAGES, SCALE_LEVELS } from '@arweqah-platform/shared';
 
 /** The months of the fiscal year, in the order the file lists them (April to March). */
 const MONTHS = ['أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر', 'يناير', 'فبراير', 'مارس'];
-const MONTH_KINDS = ['محطة', 'متابعة يومية'];
+const MONTH_KINDS: readonly string[] = FISCAL_KINDS;
 const NOTE_MIN = 25;
 /** A range or a heading is a short line; the patterns that read them run only over short text, so a long line costs nothing. */
 const LINE_MAX = 200;
