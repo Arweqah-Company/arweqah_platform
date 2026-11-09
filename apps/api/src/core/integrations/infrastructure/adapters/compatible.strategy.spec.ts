@@ -3,7 +3,7 @@ import { CompatibleStrategy } from './compatible.strategy';
 
 const REQUEST = {
   providerKey: 'compatible' as const,
-  values: { apiKey: 'AIza-key-1234567', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/', model: 'gemini-3.8-flash' },
+  values: { apiKey: 'fake-key-for-tests', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/', model: 'gemini-3.8-flash' },
   system: 'sys',
   user: 'doc',
   schema: { type: 'object' },
@@ -29,7 +29,7 @@ describe('The OpenAI-compatible strategy of the AI service (FR-126)', () => {
     expect(await strategy.json(REQUEST)).toEqual({ kind: 'ok', text: '{"ok":true}', inputTokens: 30, outputTokens: 12 });
     const [url, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
     expect(url).toBe('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions');
-    expect((init.headers as Record<string, string>).authorization).toBe('Bearer AIza-key-1234567');
+    expect((init.headers as Record<string, string>).authorization).toBe('Bearer fake-key-for-tests');
     expect(JSON.parse(init.body as string)).toEqual({
       model: 'gemini-3.8-flash',
       messages: [{ role: 'system', content: 'sys' }, { role: 'user', content: 'doc' }],
@@ -100,7 +100,7 @@ describe('The OpenAI-compatible strategy of the AI service (FR-126)', () => {
     expect(await strategy.models(REQUEST)).toEqual({ kind: 'ok', models: ['llama-a', 'llama-b'] });
     const [url, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
     expect(url).toBe('https://generativelanguage.googleapis.com/v1beta/openai/models');
-    expect((init.headers as Record<string, string>).authorization).toBe('Bearer AIza-key-1234567');
+    expect((init.headers as Record<string, string>).authorization).toBe('Bearer fake-key-for-tests');
   });
 
   it('FR-126: reads Google\'s own shape too (`models[].name` with the `models/` prefix) and drops the prefix', async () => {

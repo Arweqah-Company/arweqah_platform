@@ -78,7 +78,7 @@ describe('The AI service in the settings (FR-126)', () => {
   });
 
   describe('the OpenAI-compatible service (a free provider next to Claude)', () => {
-    const FREE = { apiKey: 'AIza-free-key-1234567890' };
+    const FREE = { apiKey: 'fake-free-key-for-tests' };
     const FREE_URL = '/api/integrations/ai/compatible';
 
     it('FR-126: is tried with its own strategy, the key never comes back, and it can be switched on after a passing test', async () => {
@@ -138,7 +138,7 @@ describe('The AI service in the settings (FR-126)', () => {
       await agent.put(URL).send({ values: VALUES }).expect(200);
       await agent.post(modelsUrl).send({}).expect(200);
       expect(t.ai.modelCalls[0]?.values).toMatchObject({ apiKey: VALUES.apiKey });
-      await agent.post('/api/integrations/ai/compatible/models').send({ values: { apiKey: 'AIza-free-key-1234567890' } }).expect(200);
+      await agent.post('/api/integrations/ai/compatible/models').send({ values: { apiKey: 'fake-free-key-for-tests' } }).expect(200);
       expect(t.ai.modelCalls[1]).toMatchObject({ providerKey: 'compatible', values: { baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai' } });
     });
 
@@ -154,7 +154,7 @@ describe('The AI service in the settings (FR-126)', () => {
     it('FR-126: validation (422 without a key or with a private address), 404 for an unknown provider, 403 without the test key', async () => {
       const agent = await admin();
       await agent.post(modelsUrl).send({}).expect(422).expect((r) => expect(r.body.code).toBe('PROVIDER_INCOMPLETE'));
-      await agent.post('/api/integrations/ai/compatible/models').send({ values: { apiKey: 'AIza-free-key-1234567890', baseUrl: 'https://10.0.0.5/v1' } }).expect(422);
+      await agent.post('/api/integrations/ai/compatible/models').send({ values: { apiKey: 'fake-free-key-for-tests', baseUrl: 'https://10.0.0.5/v1' } }).expect(422);
       await agent.post('/api/integrations/ai/openai/models').send({ values: VALUES }).expect(404);
       await (await signIn(ALL_KEYS.filter((k) => k !== CorePermission.IntegrationsAiTest))).post(modelsUrl).send({ values: VALUES }).expect(403);
       expect(t.ai.modelCalls).toHaveLength(0);

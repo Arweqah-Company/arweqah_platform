@@ -62,7 +62,7 @@ describe('Placing a title file with the AI (FR-127)', () => {
   });
 
   it('FR-127: reads the file through whichever provider is switched on: the free OpenAI-compatible one gets the same request and gives the same reading', async () => {
-    const s = await setup({ provider: ['compatible', { apiKey: 'AIza-free-key-1234567890' }] });
+    const s = await setup({ provider: ['compatible', { apiKey: 'fake-free-key-for-tests' }] });
     t.ai.answer(s.answer());
     const res = (await s.analyze().expect(200)).body as TitleFileResultDto;
     expect(res).toMatchObject({ source: 'ai', problems: [], counts: { indicators: 3, learningPeriods: 3 } });

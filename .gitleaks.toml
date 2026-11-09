@@ -13,4 +13,6 @@ regexes = [
   # CI-only secrets for the ephemeral test database and auth in GitHub Actions.
   '''ci_better_auth_secret_value_at_least_32_chars''',
   '''Y2ktZmllbGQtZW5jcnlwdGlvbi1rZXktMzItYnl0ZXM=''',
+  # A made-up key in an early version of a unit spec (it was renamed; the value stays in the history of the AI-settings branch).
+  '''AIza-key-1234567''',
 ]
