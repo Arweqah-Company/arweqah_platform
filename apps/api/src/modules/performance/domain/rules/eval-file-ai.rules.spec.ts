@@ -1,3 +1,4 @@
+import { ungroundedTexts } from '../../../../common/domain/grounding';
 import { describe, expect, it } from 'vitest';
 import { aiEvalFileSchema, contentFromAi, UNGROUNDED_MAX, ungroundedOf } from './eval-file-ai.rules';
 import { resultOfContent } from './eval-file-content.rules';
@@ -50,8 +51,7 @@ describe('The AI reading of an evaluation file (FR-118)', () => {
 });
 
 describe('grounding of short names', () => {
-  it('checks a three-letter name against the source but not a number or a range', async () => {
-    const { ungroundedTexts } = await import('../../../../common/domain/grounding');
+  it('checks a three-letter name against the source but not a number or a range', () => {
     expect(ungroundedTexts(['جيد', '95', '109.9', '60/40', '125%'], 'مستويات الأداء')).toEqual(['جيد']);
   });
 });
