@@ -31,6 +31,7 @@ function Chain({ cost, plan }: { cost: number; plan: RequestPlanKind }) {
       <Alert tone={preview.approverName ? 'info' : 'warning'}>
         <b>{t('requests.decides', { who: t(`requests.whoLevel.${preview.level}`) })}</b>
         <span className="block text-sm">{t(`requests.whyLevel.${preview.level}`)}. {left === null ? t('requests.noCap') : t('requests.left', { left: left.toLocaleString('en') })}</span>
+        {preview.level === 'direct' && <span className="block text-sm">{t('requests.directDeadline')}</span>}
         <span className="block text-sm">{preview.approverName ? t('requests.approver', { name: preview.approverName }) : t('requests.nobody')}</span>
       </Alert>
       {left !== null && cost > left && <Alert tone="warning">{t('requests.overBudget')}</Alert>}

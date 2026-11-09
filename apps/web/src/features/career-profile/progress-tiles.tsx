@@ -19,9 +19,9 @@ function Tile({ label, value, ratio, tone }: { label: string; value: string; rat
 function BudgetTile({ budget }: { budget: NonNullable<ReturnType<typeof useMyProgress>['data']>['budget'] }) {
   const { t } = useTranslation('career-profile');
   const { cap, spent } = budget;
-  const ratio = cap ? Math.min(1, spent / cap) : 0;
+  const ratio = cap ? spent / cap : 0; // the text shows the real share (an overspend is a warning, not a cap); the bar is clamped by its own max
   const amount = (n: number) => n.toLocaleString('en');
-  return <Tile label={cap ? t('tiles.budget', { spent: amount(spent), cap: amount(cap) }) : t('tiles.budgetNoCap', { spent: amount(spent) })} value={cap ? t('tiles.budgetValue', { percent: Math.round(ratio * 100) }) : amount(spent)} ratio={ratio} tone="warning" />;
+  return <Tile label={cap ? t('tiles.budget', { spent: amount(spent), cap: amount(cap) }) : t('tiles.budgetNoCap', { spent: amount(spent) })} value={cap ? t('tiles.budgetValue', { percent: Math.round(ratio * 100) }) : amount(spent)} ratio={Math.min(1, ratio)} tone="warning" />;
 }
 
 /** The units whose proof was approved, and the approved hours with the next medal: the numbers of the plan, from the proofs the reviewers approved. */

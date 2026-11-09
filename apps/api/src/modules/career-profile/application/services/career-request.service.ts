@@ -57,7 +57,16 @@ export class CareerRequestService {
   /** The approvers' page: the requests waiting for the viewer (`mine`), or those of the people their view scope reaches. */
   async list(ctx: AccessContext, query: RequestsQuery): Promise<RequestsPageDto> {
     const { items, total } = await this.requests.list(query, { userId: ctx.userId, filter: ctx.filterFor(CorePermission.CareerRequestsView) });
-    return { items: items.map((r) => toRequestDto(r, ctx.userId, null)), total, page: query.page, pageSize: query.pageSize };
+    const spent = await this.spentOf(items);
+    return { items: items.map((r) => toRequestDto(r, ctx.userId, spent.get(r.employeeId) ?? null)), total, page: query.page, pageSize: query.pageSize };
+  }
+
+  /** What each employee of the pending requests already had approved this year (the budget warning on the approvers' page). */
+  private async spentOf(rows: RequestRow[]): Promise<Map<string, number>> {
+    const { from, to } = budgetYear(riyadhToday(this.clock.now()));
+    const ids = [...new Set(rows.filter((r) => r.status === 'pending').map((r) => r.employeeId))];
+    const totals = await Promise.all(ids.map(async (id) => [id, await this.requests.approvedCost(id, from, to)] as const));
+    return new Map(totals);
   }
 
   async create(ctx: AccessContext, input: CreateRequestInput): Promise<DevelopmentRequestDto> {

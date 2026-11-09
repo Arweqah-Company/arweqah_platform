@@ -24,7 +24,7 @@ function PathSteps({ steps }: { steps: CareerContent['steps'] }) {
 function MyLevelCell({ status }: { status?: { mine: string | null; met: boolean } }) {
   const { t } = useTranslation('career-profile');
   if (!status) return <td className="px-3 py-2 text-center text-muted">—</td>;
-  return <td className="px-3 py-2 text-center">{status.met ? <Badge tone="success">{t('mine.met')}</Badge> : <span className="text-muted">{status.mine ?? t('mine.none')}</span>}</td>;
+  return <td className="px-3 py-2 text-center"><span className="inline-flex flex-wrap items-center justify-center gap-2">{status.mine && <span className="text-fg">{status.mine}</span>}{status.met ? <Badge tone="success">{t('mine.met')}</Badge> : !status.mine && <span className="text-muted">{t('mine.none')}</span>}</span></td>;
 }
 
 /** The technical competencies by level (a table on a wide screen, scrolling sideways on a phone). */

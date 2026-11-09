@@ -1148,7 +1148,7 @@ erDiagram
     uuid recorded_by
   }
   employees ||--o{ career_development_requests : "employee_id"
-  files ||--o{ career_development_requests : "agreement_file_id"
+  files |o--o{ career_development_requests : "agreement_file_id"
   employees ||--o{ career_employee_competency_levels : "employee_id"
   employees ||--o{ career_learning_records : "employee_id"
   job_titles ||--o{ career_learning_records : "title_id"

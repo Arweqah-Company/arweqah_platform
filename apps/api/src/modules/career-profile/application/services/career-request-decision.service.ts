@@ -86,14 +86,15 @@ export class CareerRequestDecisionService {
     const users = await this.approvers.usersFor(row.employeeId);
     const own = await this.employees.userOf(row.employeeId);
     const next = resolveApprover('sector', users, own ?? '');
+    if (!next) return; // nobody holds a higher post: the direct manager keeps the request and can still decide it
     await this.tx.run(async (tx) => {
-      const moved = await this.requests.escalate(row.id, 'direct', { level: next?.level ?? 'sector', approverUserId: next?.userId ?? null }, tx);
+      const moved = await this.requests.escalate(row.id, 'direct', { level: next.level, approverUserId: next.userId }, tx);
       if (!moved) return;
       const after = (await this.requests.findById(row.id, tx)) as RequestRow;
       await this.requestsService.tellApprover(after, tx);
       await this.tellWaiting(row, tx);
     });
-    this.events.emit(AUDIT_EVENT, { actorId: null, action: CAREER_AUDIT.requestEscalated, entityType: CAREER_REQUEST_ENTITY, entityId: row.id, changes: { to: next?.level ?? 'sector' } } satisfies AuditEvent);
+    this.events.emit(AUDIT_EVENT, { actorId: null, action: CAREER_AUDIT.requestEscalated, entityType: CAREER_REQUEST_ENTITY, entityId: row.id, changes: { to: next.level } } satisfies AuditEvent);
   }
 
   private async tellWaiting(row: RequestRow, tx: TransactionContext): Promise<void> {
