@@ -1,4 +1,4 @@
-import type { MyEvaluationDto, SaveSelfEvaluationInput, CatalogItemDto, CatalogItemInput, CycleDateKey, CycleStateDto, EvalFileInput, EvalFileResult, OpenCycleInput, SetCycleDateInput } from '@arweqah-platform/shared';
+import type { EvalFileContent, CatalogItemDto, CatalogItemInput, CycleDateKey, CycleStateDto, EvalFileInput, EvalFileResult, FiscalInput, MyEvaluationDto, OpenCycleInput, ReminderDto, ReminderInput, SaveSelfEvaluationInput, ScaleInput, SetCycleDateInput, StageTemplateInput, TemplatesDto } from '@arweqah-platform/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/core/api/api-client';
 
@@ -29,11 +29,37 @@ export function useRemoveItem() {
   return useMutation({ mutationFn: (id: string) => apiClient.delete(`/performance/cycle/catalog/${id}`), onSuccess: () => client.invalidateQueries({ queryKey: CYCLE_KEY }) });
 }
 
+/** The evaluation file as it is kept: the stage templates, the grade scale and the fiscal card (what the editors open). */
+export const TEMPLATES_KEY = ['performance', 'templates'] as const;
+export const useTemplates = () => useQuery({ queryKey: TEMPLATES_KEY, queryFn: () => apiClient.get<TemplatesDto>('/performance/templates') });
+
+/** A change to the templates or the reminders reads the page's state again (the readiness list and the lists are part of it). */
+function useWrite<TIn, TOut = unknown>(write: (input: TIn) => Promise<TOut>) {
+  const client = useQueryClient();
+  return useMutation({ mutationFn: write, onSuccess: () => Promise.all([client.invalidateQueries({ queryKey: CYCLE_KEY }), client.invalidateQueries({ queryKey: TEMPLATES_KEY })]) });
+}
+
+export const useSaveStage = () => useWrite(({ stage, ...input }: { stage: number } & StageTemplateInput) => apiClient.put<TemplatesDto>(`/performance/templates/stages/${stage}`, input));
+export const useRemoveStage = () => useWrite((stage: number) => apiClient.delete(`/performance/templates/stages/${stage}`));
+export const useSaveScale = () => useWrite((input: ScaleInput) => apiClient.put<TemplatesDto>('/performance/templates/scale', input));
+export const useSaveFiscal = () => useWrite((input: FiscalInput) => apiClient.put<TemplatesDto>('/performance/templates/fiscal-card', input));
+
+export const useAddReminder = () => useWrite((input: ReminderInput) => apiClient.post<ReminderDto>('/performance/cycle/reminders', input));
+export const useUpdateReminder = () => useWrite(({ id, ...input }: { id: string } & ReminderInput) => apiClient.put<ReminderDto>(`/performance/cycle/reminders/${id}`, input));
+export const useRemoveReminder = () => useWrite((id: string) => apiClient.delete(`/performance/cycle/reminders/${id}`));
+
 /** Reads the evaluation file on the server: with `dryRun` it only reports; saving refreshes the readiness list. */
 export const readEvalFile = (input: EvalFileInput) => apiClient.post<EvalFileResult>('/performance/templates/file', input);
+/** The AI reads the text and answers like a dry run (nothing is saved); the reviewed content is saved by `confirmEvalFile`. */
+export const analyzeEvalFile = (text: string) => apiClient.post<EvalFileResult>('/performance/templates/file/ai', { text });
+export function useConfirmEvalFile() {
+  const client = useQueryClient();
+  return useMutation({ mutationFn: (content: EvalFileContent) => apiClient.post<EvalFileResult>('/performance/templates/file/confirm', { content }), onSuccess: () => Promise.all([client.invalidateQueries({ queryKey: CYCLE_KEY }), client.invalidateQueries({ queryKey: TEMPLATES_KEY })]) });
+}
+
 export function useSaveEvalFile() {
   const client = useQueryClient();
-  return useMutation({ mutationFn: (text: string) => readEvalFile({ text, dryRun: false }), onSuccess: () => client.invalidateQueries({ queryKey: CYCLE_KEY }) });
+  return useMutation({ mutationFn: (text: string) => readEvalFile({ text, dryRun: false }), onSuccess: () => Promise.all([client.invalidateQueries({ queryKey: CYCLE_KEY }), client.invalidateQueries({ queryKey: TEMPLATES_KEY })]) });
 }
 
 export const MY_EVALUATION_KEY = ['performance', 'me'] as const;

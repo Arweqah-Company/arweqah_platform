@@ -1,5 +1,5 @@
 import { CATALOG_KINDS, CATALOG_POINTS_MAX, CATALOG_TITLE_MIN, CorePermission, type CatalogItemDto, type CatalogKind } from '@arweqah-platform/shared';
-import { ListPlus, Trash2 } from 'lucide-react';
+import { ListPlus, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -11,31 +11,35 @@ import { useListPage } from '@/shared/lib/use-list-page';
 import { Alert, Badge, Button, ConfirmDialog, DataTable, Dialog, DialogFooter, EmptyState, FormField, Input, ListToolbar, RowAction, Select, type Column } from '@/shared/ui';
 import { useAddItem, useRemoveItem } from './api';
 
+/** The new item: its name (three characters or more), its kind and its points (1 to 10, two to start with); a refused value is said in one sentence as it is typed. */
 function AddDialog({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation('performance');
   const add = useAddItem();
-  const [form, setForm] = useState({ kind: 'init' as CatalogKind, title: '', points: '' });
-  const titleOk = form.title.trim().length >= CATALOG_TITLE_MIN;
+  const initial = { kind: 'init' as CatalogKind, title: '', points: '2' };
+  const [form, setForm] = useState(initial);
   const points = Number(form.points);
-  const pointsOk = Number.isInteger(points) && points >= 1 && points <= CATALOG_POINTS_MAX;
+  const valid = form.title.trim().length >= CATALOG_TITLE_MIN && Number.isInteger(points) && points >= 1 && points <= CATALOG_POINTS_MAX;
   const [tried, setTried] = useState(false);
   const submit = () => {
     setTried(true);
-    if (titleOk && pointsOk) add.mutate({ kind: form.kind, title: form.title.trim(), points }, { onSuccess: () => { toast.success(t('catalog.added')); onClose(); } });
+    if (valid) add.mutate({ kind: form.kind, title: form.title.trim(), points }, { onSuccess: () => { toast.success(t('catalog.added')); onClose(); } });
   };
   return (
-    <Dialog open onOpenChange={(o) => !o && onClose()} title={t('catalog.add')} description={t('catalog.addHint')}>
-      <FormField label={t('catalog.columns.kind')}>{(p) => <Select {...p} value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as CatalogKind })}>{CATALOG_KINDS.map((k) => <option key={k} value={k}>{t(`catalog.kinds.${k}`)}</option>)}</Select>}</FormField>
-      <FormField label={t('catalog.columns.title')} error={tried && !titleOk ? t('catalog.titleShort', { min: CATALOG_TITLE_MIN }) : undefined}>{(p) => <Input {...p} maxLength={160} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />}</FormField>
-      <FormField label={t('catalog.columns.points')} error={tried && !pointsOk ? t('catalog.pointsRange', { max: CATALOG_POINTS_MAX }) : undefined}>{(p) => <Input {...p} inputMode="numeric" dir="ltr" value={form.points} onChange={(e) => setForm({ ...form, points: e.target.value.trim() })} />}</FormField>
-      {add.isError && <Alert tone="danger">{t('catalog.failed')}</Alert>}
-      <DialogFooter><Button disabled={add.isPending} onClick={submit}>{t('catalog.add')}</Button><Button variant="secondary" onClick={onClose}>{t('close')}</Button></DialogFooter>
+    <Dialog open onOpenChange={(o) => !o && onClose()} title={t('catalog.addTitle')}>
+      <div className="flex flex-col gap-4">
+        <FormField label={t('catalog.form.title')}>{(p) => <Input {...p} aria-required maxLength={160} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />}</FormField>
+        <FormField label={t('catalog.form.kind')}>{(p) => <Select {...p} value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as CatalogKind })}>{CATALOG_KINDS.map((k) => <option key={k} value={k}>{t(`catalog.kinds.${k}`)}</option>)}</Select>}</FormField>
+        <FormField label={t('catalog.form.points')}>{(p) => <Input {...p} aria-required type="number" min={1} max={CATALOG_POINTS_MAX} dir="ltr" value={form.points} onChange={(e) => setForm({ ...form, points: e.target.value.trim() })} />}</FormField>
+        <p role="alert" className="text-sm text-danger-text empty:hidden">{(tried || JSON.stringify(form) !== JSON.stringify(initial)) && !valid ? t('catalog.invalid') : undefined}</p>
+        {add.isError && <Alert tone="danger">{t('catalog.failed')}</Alert>}
+      </div>
+      <DialogFooter><Button disabled={add.isPending} onClick={submit}>{t('catalog.addConfirm')}</Button><Button variant="secondary" onClick={onClose}>{t('cancel')}</Button></DialogFooter>
     </Dialog>
   );
 }
 
 /** The catalog of the extra component: the items employees may choose, with their points; search, a filter by kind, export, add and delete. */
-export function CatalogTable({ items }: { items: CatalogItemDto[] }) {
+export function CatalogTable({ items, caps }: { items: CatalogItemDto[]; caps: { init: number; growth: number } }) {
   const { t } = useTranslation('performance');
   const list = useListPage('performance-catalog');
   const [adding, setAdding] = useState(false);
@@ -63,11 +67,12 @@ export function CatalogTable({ items }: { items: CatalogItemDto[] }) {
         view={list.view}
         rows={rows}
         rowKey={(i) => i.id}
-        toolbar={<ListToolbar listKey="performance-catalog" {...list.toolbar({ label: t('catalog.searchLabel'), placeholder: t('catalog.searchPlaceholder') }, fields)} actions={<><ExchangeButtons permissions={{ export: CorePermission.PerformanceCatalogExport }} exporting={exporting} /><Can permission={CorePermission.PerformanceCatalogManage}><Button variant="secondary" onClick={() => setAdding(true)}><ListPlus className="size-4" aria-hidden />{t('catalog.add')}</Button></Can></>} />}
+        toolbar={<ListToolbar listKey="performance-catalog" {...list.toolbar({ label: t('catalog.searchLabel'), placeholder: t('catalog.searchPlaceholder') }, fields)} actions={<><ExchangeButtons permissions={{ export: CorePermission.PerformanceCatalogExport }} exporting={exporting} /><Can permission={CorePermission.PerformanceCatalogManage}><Button variant="secondary" onClick={() => setAdding(true)}><Plus className="size-4" aria-hidden />{t('catalog.add')}</Button></Can></>} />}
         actions={(i) => <Can permission={CorePermission.PerformanceCatalogManage}><RowAction label={`${t('catalog.remove')}: ${i.title}`} icon={Trash2} danger onClick={() => setRemoving(i)} /></Can>}
         empty={<EmptyState icon={ListPlus} title={list.narrowed ? t('catalog.noMatches') : t('catalog.empty')} />}
         columns={columns}
       />
+      <p className="px-2 text-sm text-muted">{t('catalog.caps', caps)}</p>
       {adding && <AddDialog onClose={() => setAdding(false)} />}
       <ConfirmDialog open={!!removing} onOpenChange={(o) => { if (!o) { remove.reset(); setRemoving(null); } }} title={t('catalog.removeTitle')} description={removing?.title} tone="danger" confirmLabel={t('catalog.remove')} busy={remove.isPending} onConfirm={() => { if (removing) remove.mutate(removing.id, { onSuccess: () => { toast.success(t('catalog.removed')); setRemoving(null); } }); }}>
         {remove.isError && <Alert tone="danger">{t('catalog.removeFailed')}</Alert>}

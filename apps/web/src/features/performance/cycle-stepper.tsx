@@ -1,37 +1,28 @@
 import { CYCLE_STAGES, type CycleStage } from '@arweqah-platform/shared';
-import { Check } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { cn } from '@/shared/lib/cn';
 
-/** The stages in order, with the one before any cycle as the first: none, then the seven of the cycle. */
-export const STEPS = ['none', ...CYCLE_STAGES] as const;
-export type Step = (typeof STEPS)[number];
-
-/** Where a step stands for the stage the cycle is in: done, current or coming. */
-export function stepState(step: Step, stage: Step): 'done' | 'current' | 'next' {
-  const at = STEPS.indexOf(stage);
-  const me = STEPS.indexOf(step);
+/** Where a stage stands for the stage the cycle is in (`none` before any cycle is open: every stage is coming). */
+export function stepState(step: CycleStage, stage: CycleStage | 'none'): 'done' | 'current' | 'next' {
+  const at = stage === 'none' ? -1 : CYCLE_STAGES.indexOf(stage);
+  const me = CYCLE_STAGES.indexOf(step);
   return me < at ? 'done' : me === at ? 'current' : 'next';
 }
 
-const STATE_CLASS = {
-  done: 'border-green-800 bg-green-50 text-fg',
-  current: 'border-link bg-petrol-50 font-bold text-fg ring-2 ring-link',
-  next: 'border-neutral-300 bg-white text-muted',
-} as const;
-
-/** The stepper of the cycle: every stage is a button that opens what happens in it. */
-export function CycleStepper({ stage, onOpen }: { stage: CycleStage | 'none'; onOpen: (step: Step) => void }) {
+/** The seven stages as pills one after another; the stage the cycle is in is filled, and every stage opens what happens in it. */
+export function CycleStepper({ stage, onOpen }: { stage: CycleStage | 'none'; onOpen: (step: CycleStage) => void }) {
   const { t } = useTranslation('performance');
   return (
-    <ol className="flex flex-wrap gap-2" aria-label={t('stepper.label')} data-tour="performance-stepper">
-      {STEPS.map((step, i) => {
-        const state = stepState(step, stage);
+    <ol className="flex flex-wrap items-center gap-1.5" aria-label={t('stepper.label')} data-tour="performance-stepper">
+      {CYCLE_STAGES.map((step, i) => {
+        const current = stepState(step, stage) === 'current';
         return (
-          <li key={step}>
-            <button type="button" aria-current={state === 'current' ? 'step' : undefined} onClick={() => onOpen(step)} className={`flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm ${STATE_CLASS[state]}`}>
-              <span className="grid size-6 place-items-center rounded-full bg-petrol-800 text-xs font-bold text-cream" aria-hidden>{state === 'done' ? <Check className="size-3.5" /> : i + 1}</span>
+          <li key={step} className="flex items-center gap-1.5">
+            <button type="button" aria-current={current ? 'step' : undefined} onClick={() => onOpen(step)} className={cn('inline-flex min-h-10 items-center rounded-full border px-3.5 text-sm', current ? 'border-link bg-link text-on-primary' : 'border-neutral-200 bg-neutral-50 text-fg hover:border-link')}>
               {t(`stages.${step}.title`)}
             </button>
+            {i < CYCLE_STAGES.length - 1 && <ChevronRight className="size-4 text-muted rtl:rotate-180" aria-hidden />}
           </li>
         );
       })}

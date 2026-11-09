@@ -7,6 +7,20 @@ export class EvalFileNeedsReviewError extends BusinessRuleError {
   }
 }
 
+export class TemplateNeedsReviewError extends BusinessRuleError {
+  override readonly code = 'TEMPLATE_NEEDS_REVIEW';
+  constructor(problems: readonly string[]) {
+    super('The template has parts that failed a check and was not saved', { problems });
+  }
+}
+
+export class ReminderLimitError extends BusinessRuleError {
+  override readonly code = 'REMINDER_LIMIT';
+  constructor(limit: number) {
+    super(`The cycle can keep at most ${limit} reminders: remove one first`, { limit });
+  }
+}
+
 export class CycleAlreadyOpenError extends ConflictError {
   override readonly code = 'CYCLE_ALREADY_OPEN';
   constructor() {
@@ -67,5 +81,12 @@ export class SelfEvaluationInvalidError extends BusinessRuleError {
   override readonly code = 'SELF_EVALUATION_INVALID';
   constructor(problems: readonly { field: string; code: string }[]) {
     super('The self-evaluation is not complete', { problems });
+  }
+}
+
+export class EvalFileAiRateLimitedError extends BusinessRuleError {
+  override readonly code = 'EVAL_FILE_AI_RATE_LIMITED';
+  constructor() {
+    super('Too many evaluation files were sent to the AI service, try again later');
   }
 }

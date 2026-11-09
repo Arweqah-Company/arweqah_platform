@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { EvalFileContent } from './template-edit';
 
 /**
  * The evaluation file (FR-118; plan `docs/plans/phase-6-career-path-performance.md` §3.8): one file for the five development stages, then the grade
@@ -6,7 +7,9 @@ import { z } from 'zod';
  */
 export const PERFORMANCE_STAGES = [1, 2, 3, 4, 5] as const;
 export type PerformanceStage = (typeof PERFORMANCE_STAGES)[number];
-export const SCALE_LEVELS = 5;
+/** The grade scale has between two and ten levels (five to start with: below, needs improvement, meets, exceeds, exceptional). */
+export const SCALE_LEVELS_MIN = 2;
+export const SCALE_LEVELS_MAX = 10;
 export const FISCAL_MONTHS = 12;
 export const EVAL_FILE_MAX = 200_000;
 
@@ -68,7 +71,7 @@ export interface FiscalCard {
 }
 
 /** Why a part of the file cannot be saved: each code is one check that failed. */
-export const EVAL_PROBLEMS = ['basic_split', 'criteria_sum', 'cap_sum', 'no_criteria', 'no_behaviours', 'behaviour_question', 'duplicate_stage', 'stage_range'] as const;
+export const EVAL_PROBLEMS = ['basic_split', 'criteria_sum', 'cap_sum', 'no_criteria', 'no_behaviours', 'behaviour_question', 'behaviour_code', 'duplicate_stage', 'stage_range'] as const;
 export const SCALE_PROBLEMS = ['scale_levels', 'scale_range'] as const;
 export const FISCAL_PROBLEMS = ['fiscal_months'] as const;
 export type EvalProblem = (typeof EVAL_PROBLEMS)[number] | (typeof SCALE_PROBLEMS)[number] | (typeof FISCAL_PROBLEMS)[number];
@@ -88,6 +91,14 @@ export interface EvalFileResult {
   ignored: string[];
   /** Whether everything it holds is sound and was saved (always false for a dry run). */
   saved: boolean;
+  /** `ai` when the AI placed the parts (nothing was saved by it). */
+  source?: 'ai';
+  /** The texts the AI returned that are not in the file word for word (at most 25), for the reviewer to look at first. */
+  ungrounded?: string[];
+  /** An AI service is on (the dialog offers its button). */
+  aiAvailable?: boolean;
+  /** What the result stands for as forms: what a person confirms to save it. */
+  content?: EvalFileContent;
 }
 
 export const evalFileSchema = z.strictObject({

@@ -52,12 +52,15 @@ describe('The performance evaluation section of the career path (FR-119)', () =>
     fireEvent.click(await screen.findByRole('tab', { name: 'الأوزان والمعايير' }));
     expect(await screen.findByText('المهام المقبولة')).toBeInTheDocument();
     expect(screen.getByText('يقيم المدير المباشر كل موظف وحده')).toBeInTheDocument();
-    expect(screen.getByText('المجموع الأقصى للدرجة النهائية: 125 (السقف).')).toBeInTheDocument();
+    expect(screen.getByText('المجموع الأقصى للدرجة النهائية: 125% (السقف).')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: 'السلوكيات' }));
     expect(await screen.findByText(/هل يلتزم بالمواعيد/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: 'سلم الدرجات' }));
-    const steps = within(await screen.findByRole('list', { name: 'سلم الدرجات من الأدنى إلى الأعلى' })).getAllByRole('listitem');
+    const steps = within(await screen.findByRole('list', { name: 'سلم الدرجات من اليمين (الأدنى) إلى اليسار (الأعلى)' })).getAllByRole('listitem');
     expect(steps.map((s) => within(s).getByText(/^(استثنائي|يفوق التوقعات|يحقق التوقعات|يحتاج تحسينا|دون التوقعات)$/).textContent)).toEqual(['دون التوقعات', 'يحتاج تحسينا', 'يحقق التوقعات', 'يفوق التوقعات', 'استثنائي']);
+    expect(screen.getByText('الدرجة النهائية')).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('slider', { name: 'الدرجة النهائية التجريبية' }), { target: { value: '100' } }); // the level of the score is marked
+    expect(screen.getAllByText('هنا').length).toBeGreaterThan(0);
     fireEvent.click(screen.getByRole('tab', { name: 'بطاقة السنة' }));
     expect(await screen.findByText('أبريل')).toBeInTheDocument();
     expect(screen.getByText('المراجعة القصيرة الأولى في 15 يوليو', { exact: false })).toBeInTheDocument();
@@ -66,7 +69,7 @@ describe('The performance evaluation section of the career path (FR-119)', () =>
   it('shows «my evaluation» as not started with the deadline and the button to start', async () => {
     open(state('self'));
     expect(await screen.findByText('دورة التقييم مفتوحة: قيّم نفسك')).toBeInTheDocument();
-    expect(screen.getByText(/آخر موعد: 2027-03-10/)).toBeInTheDocument();
+    expect(screen.getByText(/آخر موعد: 10 مارس 2027/)).toBeInTheDocument();
     expect(screen.getByText('لم يبدأ')).toBeInTheDocument();
   });
 

@@ -27,6 +27,11 @@ export class TypeOrmPerformanceTemplateRepository extends PerformanceTemplateRep
     await repo.save(Object.assign(before ?? new PerformanceTemplate(), { stageNo: template.stage, name: template.name, template, sourceVersion: (before?.sourceVersion ?? 0) + 1, updatedBy: actorId }));
   }
 
+  async deleteStage(stage: number, tx: TransactionContext): Promise<boolean> {
+    const result = await managerOf(tx, this.ds.manager).getRepository(PerformanceTemplate).delete({ stageNo: stage });
+    return (result.affected ?? 0) > 0;
+  }
+
   async scale(): Promise<GradeBand[] | null> {
     return ((await this.settings.findOne({ where: { key: SETTING_KEYS.scale } }))?.value as GradeBand[] | undefined) ?? null;
   }

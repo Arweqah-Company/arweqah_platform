@@ -88,10 +88,12 @@ describe('parseEvalFile: what it refuses to call sound', () => {
     expect(parseEvalFile(none).stages[0]!.problems).toContain('no_behaviours');
   });
 
-  it('a stage that appears twice, a scale with fewer than five levels and a card with fewer than twelve months', () => {
+  it('a stage that appears twice, a scale with a single level and a card with fewer than twelve months', () => {
     expect(parseEvalFile(stageText(1) + '\n' + stageText(1)).stages.every((s) => s.problems.includes('duplicate_stage'))).toBe(true);
     const fewer = SAMPLE_EVAL_FILE.replace('دون التوقعات\nالنهائي أقل من 65\nلم يحقق الحد الأدنى في النتائج أو السلوك\n', '');
-    expect(parseEvalFile(fewer).scale?.problems).toContain('scale_levels');
+    expect(parseEvalFile(fewer).scale?.problems).not.toContain('scale_levels'); // four levels are fine now
+    const one = fewer.replace(/(يحتاج تحسينا|يحتاج تحسينًا)\nالنهائي 65 إلى 79.9\n[^\n]*\n/, '').replace(/يحقق التوقعات\nالنهائي 80 إلى 94.9\n[^\n]*\n/, '').replace(/يفوق التوقعات\nالنهائي 95 إلى 109.9\n[^\n]*\n/, '');
+    expect(parseEvalFile(one).scale?.problems).toContain('scale_levels');
     expect(parseEvalFile(SAMPLE_EVAL_FILE.replace('مارس\nمحطة\nأبريل', 'أبريل')).fiscal?.problems).toContain('fiscal_months');
   });
 

@@ -1,17 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { CYCLE_DATE_KEYS, type CatalogItemDto, type CatalogItemInput, type CycleDateKey, type CycleDto, type CycleStage, type CycleStateDto, type OpenCycleInput, type SetCycleDateInput } from '@arweqah-platform/shared';
+import { CYCLE_DATE_KEYS, dateProblems, withDate, type CatalogItemDto, type CatalogItemInput, type CycleDate, type CycleDateKey, type CycleDatesFor, type CycleDto, type CycleStage, type CycleStateDto, type OpenCycleInput, type SetCycleDateInput } from '@arweqah-platform/shared';
 import { Clock } from '../../../../common/application/clock';
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
 import { NotFoundError } from '../../../../common/domain/domain-error';
+import { todayInRiyadh } from '../../../../common/domain/riyadh-date';
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
 import { WorkflowEngine } from '../../../../core/workflow/application/workflow-engine';
 import { PerformanceEvaluationService } from './performance-evaluation.service';
+import { PerformanceReminderService } from './performance-reminder.service';
 import { PerformanceCycleRepository, type CycleRow } from '../../domain/contracts/performance-cycle.repository';
 import { PerformanceTemplateRepository } from '../../domain/contracts/performance-template.repository';
 import { CycleAlreadyOpenError, CycleDateInvalidError, CycleNotOpenError, CycleNotReadyError, CycleStageChangedError, CycleStageEndedError, CycleYearExistsError } from '../../domain/errors/performance.errors';
-import { dateProblems, withDate } from '../../domain/rules/cycle-dates.rules';
+import { catalogCaps } from '../../domain/rules/cycle-catalog.rules';
+import { effectiveDates, nextFiscalYear } from '../../domain/rules/cycle-dates.rules';
 import { cycleReadiness } from '../../domain/rules/cycle-readiness.rules';
 import { CYCLE_KEY } from '../../domain/rules/cycle.machine';
 import { PERFORMANCE_AUDIT, PERFORMANCE_CATALOG_ENTITY, PERFORMANCE_CYCLE_ENTITY } from '../messages/performance.messages';
@@ -26,15 +29,23 @@ function uniqueViolation(error: unknown, fiscalYear: number): Error | null {
   return driver.constraint === 'UQ_performance_cycles_year' ? new CycleYearExistsError(fiscalYear) : null;
 }
 
-const toDto = (c: CycleRow): CycleDto => ({ id: c.id, fiscalYear: c.fiscalYear, stage: c.stage, openedAt: c.openedAt.toISOString(), closedAt: c.closedAt ? c.closedAt.toISOString() : null, dates: c.dates });
+const toDto = (c: CycleRow): CycleDto => ({ id: c.id, fiscalYear: c.fiscalYear, stage: c.stage, openedAt: c.openedAt.toISOString(), closedAt: c.closedAt ? c.closedAt.toISOString() : null });
 
-/** The evaluation cycle (FR-118): its state with the readiness list and the catalog, opening it with a snapshot of the templates, moving it on, closing it, and its dates. */
+/** Whose dates are in play: the open cycle's, or the next cycle's (the year they are for). */
+interface DatesInPlay {
+  dates: CycleDate[];
+  datesFor: CycleDatesFor;
+  year: number;
+}
+
+/** The evaluation cycle (FR-118): its state with the readiness list, the dates, the reminder settings and the catalog, opening it with a snapshot of the templates, moving it on, closing it, and its dates. */
 @Injectable()
 export class PerformanceCycleService {
   constructor(
     private readonly cycles: PerformanceCycleRepository,
     private readonly templates: PerformanceTemplateRepository,
     private readonly evaluations: PerformanceEvaluationService,
+    private readonly reminders: PerformanceReminderService,
     private readonly workflow: WorkflowEngine,
     private readonly tx: TransactionRunner,
     private readonly clock: Clock,
@@ -44,8 +55,17 @@ export class PerformanceCycleService {
   async state(): Promise<CycleStateDto> {
     const cycle = await this.cycles.current();
     const open = cycle && cycle.stage !== 'closed' ? cycle : null;
-    const catalog = await this.cycles.catalog(open?.id ?? null);
-    return { cycle: cycle ? toDto(cycle) : null, readiness: await this.readiness(catalog.length), catalog };
+    const [catalog, stages, scale, fiscal, reminders, play] = await Promise.all([this.cycles.catalog(open?.id ?? null), this.templates.stages(), this.templates.scale(), this.templates.fiscal(), this.reminders.list(), this.datesInPlay(open)]);
+    return {
+      cycle: cycle ? toDto(cycle) : null,
+      readiness: cycleReadiness(stages, scale, fiscal, catalog.length),
+      catalog,
+      dates: play.dates,
+      datesFor: play.datesFor,
+      nextFiscalYear: this.nextYear(),
+      reminders,
+      catalogCaps: catalogCaps(stages),
+    };
   }
 
   /** Opens the cycle of a fiscal year with a snapshot of the templates; refused while another cycle is open, for a year that has one, or while the evaluation file is incomplete. */
@@ -57,8 +77,10 @@ export class PerformanceCycleService {
     const waiting = await this.cycles.catalog(null);
     const readiness = cycleReadiness(stages, scale, fiscal, waiting.length);
     if (!readiness.ready) throw new CycleNotReadyError(readiness);
+    const pending = await this.cycles.pendingDates();
+    const dates = effectiveDates(pending && pending.fiscalYear === input.fiscalYear ? pending.dates : [], input.fiscalYear);
     await this.tx.run(async (tx) => {
-      const row = await this.cycles.insert({ fiscalYear: input.fiscalYear, openedBy: ctx.userId, openedAt: this.clock.now(), snapshot: { stages, scale: scale ?? [], fiscal: fiscal ?? { months: [], notes: [] } } }, tx);
+      const row = await this.cycles.insert({ fiscalYear: input.fiscalYear, openedBy: ctx.userId, openedAt: this.clock.now(), dates, snapshot: { stages, scale: scale ?? [], fiscal: fiscal ?? { months: [], notes: [] } } }, tx);
       await this.cycles.adoptWaiting(row.id, tx);
       await this.evaluations.openFor(row.id, tx);
       await this.workflow.start({ definitionKey: CYCLE_KEY, entityType: PERFORMANCE_CYCLE_ENTITY, entityId: row.id, actorId: ctx.userId, tx });
@@ -84,14 +106,24 @@ export class PerformanceCycleService {
     return this.state();
   }
 
-  /** Sets one date of the cycle; it must fit the others (422 with the problems when it does not). */
+  /**
+   * Sets one date; it must fit the others (422 with the problems when it does not). With a cycle open it is a date of that cycle and everyone it evaluates
+   * (and their managers) is told; with none open it is kept for the next cycle, so HR can prepare the calendar before opening.
+   */
   async setDate(ctx: AccessContext, key: CycleDateKey, input: SetCycleDateInput): Promise<CycleStateDto> {
-    const cycle = await this.openCycle();
-    const next = { key, from: input.from, to: input.to };
-    const problems = dateProblems(cycle.dates, next);
+    const cycle = await this.cycles.current();
+    const open = cycle && cycle.stage !== 'closed' ? cycle : null;
+    const play = await this.datesInPlay(open);
+    const next: CycleDate = { key, from: input.from, to: input.to };
+    const problems = dateProblems(play.dates, next);
     if (problems.length) throw new CycleDateInvalidError(problems);
-    await this.tx.run((tx) => this.cycles.setDates(cycle.id, withDate(cycle.dates, next, CYCLE_DATE_KEYS), tx));
-    this.audit(ctx, PERFORMANCE_AUDIT.cycleDateSet, { fiscalYear: cycle.fiscalYear, key, from: input.from, to: input.to });
+    const dates = withDate(play.dates, next, CYCLE_DATE_KEYS);
+    await this.tx.run(async (tx) => {
+      if (!open) return this.cycles.savePendingDates({ fiscalYear: play.year, dates }, ctx.userId, tx);
+      await this.cycles.setDates(open.id, dates, tx);
+      await this.evaluations.tellDateChanged(next, tx);
+    });
+    this.audit(ctx, PERFORMANCE_AUDIT.cycleDateSet, { fiscalYear: play.year, key, from: input.from, to: input.to, for: play.datesFor });
     return this.state();
   }
 
@@ -126,12 +158,20 @@ export class PerformanceCycleService {
     await this.tx.run(async (tx) => {
       if (!(await this.cycles.setStage(cycle.id, { from: cycle.stage, to: step.stage }, step.by, tx))) throw new CycleStageChangedError();
       await this.workflow.send({ instanceId: instance.id, event: { type: step.event }, actorId: ctx.userId, tx });
+      await this.evaluations.tellStage(step.stage, tx);
     });
   }
 
-  private async readiness(catalogItems: number) {
-    const [stages, scale, fiscal] = await Promise.all([this.templates.stages(), this.templates.scale(), this.templates.fiscal()]);
-    return cycleReadiness(stages, scale, fiscal, catalogItems);
+  /** The seven dates of the open cycle, or of the next one (what HR prepared for its year, else the usual dates). */
+  private async datesInPlay(open: CycleRow | null): Promise<DatesInPlay> {
+    if (open) return { dates: effectiveDates(open.dates, open.fiscalYear), datesFor: 'cycle', year: open.fiscalYear };
+    const year = this.nextYear();
+    const pending = await this.cycles.pendingDates();
+    return { dates: effectiveDates(pending && pending.fiscalYear === year ? pending.dates : [], year), datesFor: 'next', year };
+  }
+
+  private nextYear(): number {
+    return nextFiscalYear(todayInRiyadh(this.clock.now()));
   }
 
   private audit(ctx: AccessContext, action: string, changes: Record<string, unknown>): void {

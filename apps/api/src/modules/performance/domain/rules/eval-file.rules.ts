@@ -1,8 +1,8 @@
 import type { BehaviourItem, EvalFileResult, EvalProblem, ExtraComponent, FiscalCard, GradeBand, ResultsCriterion, StageResult, StageTemplate } from '@arweqah-platform/shared';
-import { FISCAL_KINDS, FISCAL_MONTHS, PERFORMANCE_STAGES, SCALE_LEVELS } from '@arweqah-platform/shared';
+import { FISCAL_KINDS, FISCAL_MONTHS, FISCAL_MONTH_NAMES, SCALE_LEVELS_MAX, SCALE_LEVELS_MIN, stageProblems } from '@arweqah-platform/shared';
 
 /** The months of the fiscal year, in the order the file lists them (April to March). */
-const MONTHS = ['أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر', 'يناير', 'فبراير', 'مارس'];
+const MONTHS: readonly string[] = FISCAL_MONTH_NAMES;
 const MONTH_KINDS: readonly string[] = FISCAL_KINDS;
 const NOTE_MIN = 25;
 /** A range or a heading is a short line; the patterns that read them run only over short text, so a long line costs nothing. */
@@ -11,7 +11,6 @@ const RANGE_MAX = 60;
 
 const isPct = (x: string | undefined): boolean => /^\d+(\.\d+)?%$/.test(x ?? '');
 const pct = (x: string | undefined): number => parseFloat(x ?? '');
-const sum = (xs: readonly number[]): number => xs.reduce((a, b) => a + b, 0);
 const near = (a: number, b: number): boolean => Math.abs(a - b) < 0.001;
 
 type Section = '' | 'basic' | 'extra' | 'res' | 'beh';
@@ -134,19 +133,6 @@ function stageIdentity(heading: string, position: number): { stage: number; name
   return m ? { stage: Number(m[1]), name: m[2] ?? '' } : { stage: position, name: '' };
 }
 
-/** The checks of one stage: the weights, the shares, the cap, and that every behaviour has its question. */
-export function stageProblems(t: StageTemplate): EvalProblem[] {
-  const problems: EvalProblem[] = [];
-  if (!(PERFORMANCE_STAGES as readonly number[]).includes(t.stage)) problems.push('stage_range');
-  if (!near(t.resultsWeight + t.behaviourWeight, t.basicTotal)) problems.push('basic_split');
-  if (!t.criteria.length) problems.push('no_criteria');
-  else if (!near(sum(t.criteria.map((c) => c.share)), 100)) problems.push('criteria_sum');
-  if (!near(t.basicTotal + sum(t.extra.map((e) => e.points)), t.cap)) problems.push('cap_sum');
-  if (!t.behaviours.length) problems.push('no_behaviours');
-  else if (t.behaviours.some((b) => !b.question.trim())) problems.push('behaviour_question');
-  return problems;
-}
-
 /** The weights of the basic part and the weights at the heads of the results and behaviours say the same (when both are there). */
 function weightsAgree(block: Block): boolean {
   const pairs: [number | undefined, number | null][] = [[block.basic['النتائج'], block.resultsWeight], [block.basic['السلوك'], block.behaviourWeight]];
@@ -215,7 +201,7 @@ function readTail(L: readonly string[]): Tail {
 function scaleResult(tail: Tail): EvalFileResult['scale'] {
   if (!tail.bands.length) return null;
   const problems: EvalProblem[] = [];
-  if (tail.bands.length !== SCALE_LEVELS) problems.push('scale_levels');
+  if (tail.bands.length < SCALE_LEVELS_MIN || tail.bands.length > SCALE_LEVELS_MAX) problems.push('scale_levels');
   if (tail.bands.some((b) => parseRange(b.range) === null)) problems.push('scale_range');
   return { bands: tail.bands, problems };
 }

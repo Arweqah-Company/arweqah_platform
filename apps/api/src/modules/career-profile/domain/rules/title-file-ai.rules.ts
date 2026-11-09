@@ -2,6 +2,7 @@ import { CAREER_LEVELS, COMPETENCY_VALUES, LEARNING_PRIORITIES } from '@arweqah-
 import { z } from 'zod';
 import { deadlineOf } from './required-actions.rules';
 import { durationMinutes } from './learning-duration.rules';
+import { UNGROUNDED_MAX, ungroundedTexts } from '../../../../common/domain/grounding';
 import type { TitleFileParts } from './title-file.rules';
 
 /**
@@ -72,29 +73,12 @@ export function partsFromAi(ai: AiTitleFile): TitleFileParts {
 
 const clean = (value: string): string => value.replace(/\s+/g, ' ').trim();
 
-/** How many texts to show a person: the rest would only be noise. */
-export const UNGROUNDED_MAX = 25;
-/** A text shorter than this is a code or a number (a level, an hour count) and is not worth checking against the file. */
-const GROUNDING_MIN_CHARS = 4;
-
-/** Whitespace, final punctuation and the stretching mark do not count as a difference between what the file says and what the AI copied. */
-const normal = (value: string): string => withoutMarks(value).replace(/\s+/g, ' ').replace(/[.،؛:]+$/g, '').trim();
-
-/** The stretching mark and the invisible direction marks that a word processor leaves inside a text. */
-function withoutMarks(value: string): string {
-  const ignored = (code: number): boolean => code === 0x640 || (code >= 0x200b && code <= 0x200f) || (code >= 0x202a && code <= 0x202e);
-  return [...value].filter((char) => !ignored(char.codePointAt(0) ?? 0)).join('');
-}
-
 /**
  * The texts the AI returned that are not in the file word for word. The AI is told to copy, and a person confirms the result; this shows them
  * the places where it did not copy (a reworded task, an invented unit), so they look there first.
  */
 export function ungroundedOf(parts: TitleFileParts, source: string): string[] {
-  const haystack = normal(source);
-  const wanted = textsOf(parts).map(normal).filter((t) => t.length >= GROUNDING_MIN_CHARS);
-  const missing = wanted.filter((t) => !haystack.includes(t));
-  return [...new Set(missing)].slice(0, UNGROUNDED_MAX);
+  return ungroundedTexts(textsOf(parts), source);
 }
 
 function textsOf({ job, dev, learning, required }: TitleFileParts): string[] {
@@ -118,3 +102,5 @@ function textsOf({ job, dev, learning, required }: TitleFileParts): string[] {
     required.acknowledgement,
   ];
 }
+
+export { UNGROUNDED_MAX };

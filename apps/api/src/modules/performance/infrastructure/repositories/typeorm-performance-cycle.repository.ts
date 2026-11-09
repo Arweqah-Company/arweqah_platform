@@ -4,8 +4,10 @@ import { DataSource, IsNull, Repository } from 'typeorm';
 import type { CatalogItemDto, CatalogItemInput, CatalogKind, CycleDate, CycleStage, TemplateSnapshot } from '@arweqah-platform/shared';
 import { managerOf } from '../../../../common/infrastructure/typeorm-transaction-runner';
 import type { TransactionContext } from '../../../../common/domain/transaction-context';
-import { PerformanceCycleRepository, type CycleRow } from '../../domain/contracts/performance-cycle.repository';
+import { PerformanceCycleRepository, type CycleRow, type PendingDates } from '../../domain/contracts/performance-cycle.repository';
+import { SETTING_KEYS } from '../../domain/contracts/performance-template.repository';
 import { PerformanceCatalogItem, PerformanceCycle } from '../../domain/entities/performance-cycles.entities';
+import { PerformanceSetting } from '../../domain/entities/performance-templates.entities';
 
 const toRow = (c: PerformanceCycle): CycleRow => ({ id: c.id, fiscalYear: c.fiscalYear, stage: c.status as CycleStage, openedAt: c.openedAt, closedAt: c.closedAt, dates: c.dates, snapshot: c.templateSnapshot });
 const toItem = (i: PerformanceCatalogItem): CatalogItemDto => ({ id: i.id, kind: i.kind as CatalogKind, title: i.title, points: i.points });
@@ -15,6 +17,7 @@ export class TypeOrmPerformanceCycleRepository extends PerformanceCycleRepositor
   constructor(
     @InjectRepository(PerformanceCycle) private readonly cycles: Repository<PerformanceCycle>,
     @InjectRepository(PerformanceCatalogItem) private readonly items: Repository<PerformanceCatalogItem>,
+    @InjectRepository(PerformanceSetting) private readonly settings: Repository<PerformanceSetting>,
     private readonly ds: DataSource,
   ) {
     super();
@@ -39,8 +42,8 @@ export class TypeOrmPerformanceCycleRepository extends PerformanceCycleRepositor
     return this.cycles.exists({ where: { fiscalYear } });
   }
 
-  async insert(cycle: { fiscalYear: number; openedBy: string; openedAt: Date; snapshot: TemplateSnapshot }, tx: TransactionContext): Promise<CycleRow> {
-    const saved = await this.cycleRepo(tx).save(Object.assign(new PerformanceCycle(), { fiscalYear: cycle.fiscalYear, status: 'self', isOpen: true, openedBy: cycle.openedBy, openedAt: cycle.openedAt, dates: [], templateSnapshot: cycle.snapshot }));
+  async insert(cycle: { fiscalYear: number; openedBy: string; openedAt: Date; dates: CycleDate[]; snapshot: TemplateSnapshot }, tx: TransactionContext): Promise<CycleRow> {
+    const saved = await this.cycleRepo(tx).save(Object.assign(new PerformanceCycle(), { fiscalYear: cycle.fiscalYear, status: 'self', isOpen: true, openedBy: cycle.openedBy, openedAt: cycle.openedAt, dates: cycle.dates, templateSnapshot: cycle.snapshot }));
     return toRow(saved);
   }
 
@@ -52,6 +55,18 @@ export class TypeOrmPerformanceCycleRepository extends PerformanceCycleRepositor
 
   async setDates(id: string, dates: CycleDate[], tx: TransactionContext): Promise<void> {
     await this.cycleRepo(tx).update({ id }, { dates });
+  }
+
+  async pendingDates(): Promise<PendingDates | null> {
+    return ((await this.settings.findOne({ where: { key: SETTING_KEYS.cycleDates } }))?.value as PendingDates | undefined) ?? null;
+  }
+
+  savePendingDates(pending: PendingDates, actorId: string, tx: TransactionContext): Promise<void> {
+    return this.saveSetting(SETTING_KEYS.cycleDates, pending, actorId, tx);
+  }
+
+  private async saveSetting(key: string, value: unknown, actorId: string, tx: TransactionContext): Promise<void> {
+    await managerOf(tx, this.ds.manager).getRepository(PerformanceSetting).upsert({ key, value: value as object, updatedBy: actorId }, { conflictPaths: ['key'] });
   }
 
   async catalog(cycleId: string | null): Promise<CatalogItemDto[]> {

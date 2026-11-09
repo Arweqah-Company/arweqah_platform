@@ -3,50 +3,48 @@
   "save": "Save",
   "page": {
     "title": "Evaluation cycle",
-    "description": "Open the performance evaluation cycle, move it through its stages and close it; the dates of the stages, the evaluation file and the extra-component catalog.",
+    "description": "The fiscal year runs from April to March. HR opens the cycle and its stages move by their dates.",
     "loadFailed": "The evaluation cycle could not be loaded.",
     "notReady": "The cycle cannot open before the evaluation file is uploaded: the template of each of the five stages, the grade scale and the fiscal-year card.",
     "fiscalYear": "Cycle of fiscal year {{year}}"
   },
   "actions": {
-    "open": "Open the evaluation cycle",
+    "open": "Open the evaluation cycle and notify employees",
     "advance": "Move the cycle to the next stage",
     "close": "Close the cycle",
     "file": "Upload the evaluation file",
-    "failed": "The action failed: the stage of the cycle may have changed. Reload the page."
+    "failed": "The action failed: the stage of the cycle may have changed. Reload the page.",
+    "blocked": {
+      "closeNotOpen": "The cycle has not been opened yet.",
+      "closed": "The cycle is closed."
+    }
   },
   "stepper": {
     "label": "Stages of the evaluation cycle"
   },
   "stages": {
-    "none": {
-      "title": "Not opened",
-      "who": "Human resources",
-      "what": "HR uploads the evaluation file, prepares the catalog and the dates, then opens the cycle.",
-      "date": "Before the fiscal year starts"
-    },
     "self": {
       "title": "Self-evaluation",
       "who": "The employee",
-      "what": "Rates their behaviours, writes their achievements and picks from the catalog; the manager is told when it is sent.",
+      "what": "Rates their behaviours, writes their achievements and picks from the catalog of initiatives; their manager is notified when they send it.",
       "date": "Until 10 March"
     },
     "mgr": {
       "title": "Manager's evaluation",
-      "who": "The direct manager, then the one above",
-      "what": "Reviews the self-evaluation and enters the results and behaviour scores.",
+      "who": "The direct manager, then the upper manager",
+      "what": "Reviews the self-evaluation and enters the results and behaviour scores; evaluating indirect reports follows their direct manager's review.",
       "date": "After the self-evaluation"
     },
     "cal": {
       "title": "Calibration",
       "who": "The holder of the calibration key",
-      "what": "Compares the managers and adjusts, with a written reason.",
+      "what": "Compares scores between managers and adjusts with a written reason.",
       "date": "21 to 24 April"
     },
     "appr": {
       "title": "Approval",
       "who": "The holder of the approval key",
-      "what": "Approves the results and decides the objections.",
+      "what": "Approves the results and decides on objections.",
       "date": "27 April"
     },
     "notif": {
@@ -57,37 +55,46 @@
     },
     "obj": {
       "title": "Objection window",
-      "who": "The employee and the approver",
-      "what": "One reasoned objection per employee.",
+      "who": "The employee and the approval holder",
+      "what": "One reasoned objection on one item; the approver accepts it and returns it to the manager, or rejects it with a reason.",
       "date": "Five working days"
     },
     "closed": {
       "title": "Closed",
       "who": "The system",
-      "what": "The cycle is closed and the results stay in each employee's record.",
+      "what": "The cycle is closed and the results stay in the employee's record.",
       "date": "—"
     }
   },
   "stage": {
     "who": "Who works in it",
     "what": "What happens",
-    "date": "Usual date",
+    "date": "Date",
+    "go": "Go to this stage's screen",
+    "goSoon": "This stage's screen is built in a later delivery.",
     "state": {
-      "done": "Finished",
+      "done": "A finished stage",
       "current": "The current stage",
-      "next": "Coming"
+      "next": "A coming stage"
     }
   },
   "readiness": {
     "title": "Readiness to open the cycle",
-    "ready": "Ready",
-    "notReady": "Not ready",
-    "stage": "Template of stage {{stage}}",
+    "stage": "Evaluation of stage {{stage}} {{name}}",
+    "names": {
+      "1": "Foundation",
+      "2": "Specialization",
+      "3": "Mastery",
+      "4": "Operational leadership",
+      "5": "Institutional leadership"
+    },
     "scale": "Grade scale",
     "fiscal": "Fiscal-year card",
-    "catalog": "Catalog items: {{count}} (may be empty).",
+    "catalog": "Extra-component catalog",
+    "count": "{{count}} items",
     "yes": "Uploaded",
-    "no": "Not uploaded"
+    "no": "Not uploaded",
+    "snapshot": "The cycle takes a snapshot of each stage's template when it opens, so a past year's evaluation does not change if the file changes later."
   },
   "open": {
     "title": "Open the evaluation cycle",
@@ -107,19 +114,21 @@
     "done": "The cycle moved to the next stage."
   },
   "closeCycle": {
-    "title": "Close the cycle",
-    "description": "After closing, the evaluations cannot change and the results stay in each employee's record. Your name and the time are kept.",
-    "done": "The cycle was closed."
+    "title": "Confirm",
+    "description": "Close the cycle for good? The evaluations cannot change after that, and the results stay in each employee's record.",
+    "done": "The cycle was closed and your name and the time were saved."
   },
   "dates": {
-    "title": "Dates of the stages",
-    "stage": "Stage",
-    "from": "From",
-    "to": "To",
-    "toHint": "Optional: a single day when empty.",
-    "edit": "Change the date",
+    "title": "Stage dates",
+    "edit": "Change a date",
+    "editLabel": "Change the date of {{name}}",
+    "from": "From (or a single day) *",
+    "to": "To (optional)",
+    "note": "The change is recorded in the audit log and the people whose dates are affected are notified.",
+    "save": "Save the date",
     "saved": "The date was saved.",
     "failed": "The date could not be saved.",
+    "range": "{{from}} to {{to}}",
     "keys": {
       "final": "Final result after the numbers close",
       "calibration": "The two calibration meetings",
@@ -130,27 +139,25 @@
       "qualitative_close": "Close of the qualitative part (behaviour and evidence)"
     },
     "problems": {
-      "end_before_start": "The end is before the start.",
-      "before_previous": "It starts before the stage ahead of it ends.",
-      "after_next": "It ends after the stage behind it starts.",
+      "required": "The date is required.",
+      "end_before_start": "The end date is before the start.",
+      "before_previous": "The date is before the end of the stage ahead of it ({{date}}).",
+      "after_next": "The date runs past the start of the stage behind it ({{date}}).",
       "unknown": "The date does not fit the other dates."
     }
   },
   "catalog": {
-    "title": "Extra-component catalog",
+    "title": "This year's extra-component catalog",
     "searchLabel": "Search the catalog",
     "searchPlaceholder": "Search the items",
     "empty": "The catalog has no items yet.",
     "noMatches": "No item matches the search and filters.",
     "add": "Add an item",
-    "addHint": "An item the employee picks in their self-evaluation and the manager confirms.",
-    "added": "The item was added.",
+    "added": "The item was added to the catalog.",
     "remove": "Delete the item",
     "removeTitle": "Delete an item from the catalog",
     "removed": "The item was deleted.",
     "failed": "The item could not be added.",
-    "titleShort": "The name needs at least {{min}} characters.",
-    "pointsRange": "Points from 1 to {{max}}.",
     "columns": {
       "title": "Item",
       "kind": "Kind",
@@ -160,25 +167,31 @@
       "init": "Internal initiatives",
       "growth": "Contribution to growth"
     },
-    "removeFailed": "The item could not be deleted."
+    "removeFailed": "The item could not be deleted.",
+    "addTitle": "Add an item to the catalog",
+    "addConfirm": "Add",
+    "invalid": "Write the item name (3 characters) and points from 1 to 10.",
+    "caps": "Internal initiatives are capped at {{init}} and contribution to growth at {{growth}}. Learning comes automatically from the learning plan.",
+    "form": {
+      "title": "Item *",
+      "kind": "Kind",
+      "points": "Points *"
+    }
   },
   "file": {
-    "title": "Upload the evaluation file",
-    "description": "One file for the five stages, then the grade scale and the fiscal-year card. Nothing is saved before you review it.",
+    "title": "Upload the performance evaluation file (all stages)",
+    "description": "One file holds the five stages, then the grade scale and the fiscal-year card. Nothing is saved before you review it.",
     "pick": "Evaluation file",
     "hint": "txt, docx or pdf, read in the browser",
-    "paste": "Or paste the text of the file",
+    "paste": "Text of the evaluation file",
     "limit": "Up to {{max}} characters",
-    "check": "Check the file",
+    "check": "Extract",
     "checkFailed": "The file could not be checked.",
     "empty": "The text holds no stage, grade scale or fiscal card.",
-    "stage": "Stage {{stage}} {{name}}",
-    "scale": "Grade scale ({{count}} levels)",
-    "fiscal": "Fiscal-year card ({{count}} months)",
     "sound": "Sound",
     "needsReview": "Needs review",
-    "save": "Save the file",
-    "saved": "The evaluation file was saved.",
+    "save": "Save the evaluation of all stages",
+    "saved": "The evaluation of {{count}} stages was saved and now shows in the files of the title holders.",
     "saveRefused": "The file has parts that need review and was not saved.",
     "saveFailed": "The file could not be saved.",
     "readErrors": {
@@ -194,10 +207,43 @@
       "no_behaviours": "No behaviours.",
       "behaviour_question": "A behaviour has no question for the evaluator.",
       "duplicate_stage": "The stage appears twice in the file.",
-      "scale_levels": "The grade scale does not have five levels.",
+      "scale_levels": "The grade scale has from two to ten levels.",
       "scale_range": "A range of the grade scale is not understood.",
       "fiscal_months": "The fiscal-year card does not have twelve months.",
-      "stage_range": "The stage number is outside 1 to 5."
+      "stage_range": "The stage number is outside 1 to 5.",
+      "behaviour_code": "A behaviour code is wrong or repeated (the form is B1.1)."
+    },
+    "pastePlaceholder": "Paste the text of the evaluation file",
+    "pasteFirst": "Paste the text first.",
+    "saveOff": "Saving is enabled after a sound file is extracted with all its stages, its scale and its card.",
+    "table": {
+      "stage": "Stage",
+      "basic": "Basic",
+      "criteria": "Results shares",
+      "cap": "Extra and cap",
+      "behaviours": "Behaviours",
+      "state": "State"
+    },
+    "criteriaCount": "{{count}} criteria",
+    "behavioursCount": "{{count}} behaviours",
+    "soundStage": "Sound",
+    "reviewStage": "Needs review",
+    "shared": "Shared by the stages: a grade scale of {{scale}} levels, and a fiscal-year card of {{months}} months and {{notes}} notes.",
+    "fewStages": "Only {{count}} of 5 stages were found. The missing stages stay «not uploaded».",
+    "weightsNote": "An evaluation whose weights do not add up as expected is not saved.",
+    "ai": {
+      "button": "Analyse with AI",
+      "running": "The AI is reading the file… it may take a minute or two.",
+      "notice": "The text of the file is sent to the AI service switched on in the settings. It is company data, not employee data.",
+      "offer": "The AI can read the file in any order and put each part in its place; you review the result before anything is saved.",
+      "badge": "Arranged by the AI: review it before saving",
+      "ungroundedTitle": "These texts are not in the file word for word, check them before saving:",
+      "errors": {
+        "AI_NOT_CONFIGURED": "No AI service is switched on in the settings.",
+        "AI_UNAVAILABLE": "The AI service did not give a valid answer. Try again.",
+        "EVAL_FILE_AI_RATE_LIMITED": "Too many files were sent to the AI. Try again later.",
+        "generic": "The file could not be analysed."
+      }
     }
   },
   "tour": {
@@ -208,7 +254,10 @@
         "manage": "Open the cycle, move it on and change the dates",
         "close": "Close the cycle",
         "upload": "Upload the evaluation file",
-        "catalog": "Manage the extra-component catalog"
+        "catalog": "Manage the extra-component catalog",
+        "reminders": "Change the reminder settings",
+        "templates": "Add and change the evaluation file",
+        "ai": "Analyse the evaluation file with AI"
       }
     }
   },
@@ -231,16 +280,23 @@
     "results": "Results",
     "behaviour": "Behaviour",
     "extra": "Extra",
-    "cap": "The most the final score can be: {{cap}} (the cap).",
-    "criteria": "Results {{weight}}% of the basic part",
+    "cap": "The maximum of the final score: {{cap}}% (the cap).",
+    "criteria": "Results {{weight}}% of the basic: criteria of stage {{stage}} {{name}}",
     "criteriaHint": "Each criterion is a share of the results part (they add up to 100%).",
-    "behaviours": "Behaviour {{weight}}%",
+    "behaviours": "Behaviour {{weight}}%: behaviours of stage {{stage}} {{name}}",
     "question": "The evaluator's question",
-    "scale": "Grade scale (the final score out of {{cap}})",
+    "scale": "Grade scale (the final score out of {{cap}}%)",
     "scaleLabel": "The grade scale from the lowest to the highest",
     "final": "Final",
-    "scaleDirection": "Each level is higher than the one before it.",
-    "fiscal": "Fiscal-year card"
+    "scaleDirection": "It rises from the lowest to the highest: each level is higher than the one before it, and the cap is {{cap}}.",
+    "fiscal": "Fiscal-year card (April to March)",
+    "ladderLabel": "The grade scale from the highest to the lowest",
+    "finalScore": "Final score",
+    "capLine": "Cap {{cap}}",
+    "tryScore": "Try a final score",
+    "tryScoreLabel": "The trial final score",
+    "here": "Here",
+    "yours": "Your score"
   },
   "self": {
     "level": "My rating",
@@ -300,5 +356,162 @@
     "underReview": "Your evaluation is under review ({{stage}}).",
     "noScores": "Scores are not shown before the individual notification after the approval.",
     "managerStage": "The manager's stage: you can change your evaluation until your manager starts."
+  },
+  "cancel": "Cancel",
+  "reminders": {
+    "title": "Automatic reminders",
+    "note": "Reminders arrive as an in-app notice and an e-mail, and stop once the work is done. They are not sent at the weekend.",
+    "on": "On",
+    "off": "Off",
+    "add": "Add a reminder",
+    "addTitle": "Add a reminder",
+    "editTitle": "Change a reminder",
+    "edit": "Change the reminder",
+    "stop": "Switch the reminder off",
+    "start": "Switch the reminder on",
+    "remove": "Delete the reminder",
+    "removeTitle": "Delete a reminder",
+    "added": "The reminder was added.",
+    "updated": "The reminder was saved.",
+    "started": "The reminder is on.",
+    "stopped": "The reminder is off.",
+    "removed": "The reminder was deleted.",
+    "failed": "The reminder could not be saved.",
+    "removeFailed": "The reminder could not be deleted.",
+    "save": "Save",
+    "empty": "No reminders yet.",
+    "noMatches": "No reminder matches the search and filters.",
+    "searchLabel": "Search the reminders",
+    "searchPlaceholder": "Search titles and texts",
+    "dialogDescription": "An automatic reminder by in-app notice and e-mail; it stops once the work is done and is not sent at the weekend.",
+    "columns": {
+      "kind": "Kind",
+      "timing": "Timing",
+      "title": "Title",
+      "status": "State"
+    },
+    "kinds": {
+      "self": "Employee: self-evaluation",
+      "mgr": "Manager: an evaluation waiting for them",
+      "mile": "Milestones",
+      "appr": "Calibration and approval holder"
+    },
+    "summary": {
+      "self": "{{days}} days before the last day",
+      "mgr": "every {{n}} days",
+      "mile": "{{n}} days before the date",
+      "appr": "every {{n}} days"
+    },
+    "fields": {
+      "kind": "Kind",
+      "selfDays": "Days before the last day (comma separated) *",
+      "before": "Days before the date *",
+      "every": "Every (days) *",
+      "titleAr": "Title in Arabic *",
+      "bodyAr": "Text in Arabic *",
+      "titleEn": "Title in English",
+      "bodyEn": "Text in English",
+      "englishHint": "Optional: when empty, the Arabic title and text are sent.",
+      "on": "The reminder is on"
+    },
+    "invalid": {
+      "self": "The employee's days are from 1 to 30 (up to 10 days), separated by commas.",
+      "one": "Write a number from 1 to 14.",
+      "text": "Write at least 3 characters."
+    },
+    "separator": ", "
+  },
+  "templates": {
+    "title": "Evaluation file",
+    "searchLabel": "Search the evaluation file",
+    "searchPlaceholder": "Search the parts",
+    "noMatches": "No part matches the search and filters.",
+    "note": "A change to the evaluation file applies to the next cycles; the cycle in progress keeps its snapshot.",
+    "stage": "Stage {{stage}} {{name}}",
+    "kinds": {
+      "scale": "Grade scale",
+      "fiscal": "Fiscal-year card"
+    },
+    "filterKinds": {
+      "stage": "Stage",
+      "scale": "Grade scale",
+      "fiscal": "Fiscal-year card"
+    },
+    "columns": {
+      "part": "Part",
+      "details": "Details",
+      "status": "State",
+      "kind": "Kind"
+    },
+    "levels": "{{count}} levels",
+    "months": "{{months}} months and {{notes}} notes",
+    "edit": "Change",
+    "add": "Add",
+    "remove": "Delete the stage",
+    "removeTitle": "Delete the template of a stage",
+    "removeDescription": "«{{name}}» becomes not uploaded, and no new cycle opens until it is uploaded again. The cycle in progress is not affected.",
+    "removed": "The stage template was deleted.",
+    "removeFailed": "The stage template could not be deleted."
+  },
+  "editor": {
+    "save": "Save",
+    "saveFailed": "It could not be saved. Check the fields and try again.",
+    "complete": "Fill the required fields: the names, the numbers of the weights, points and shares, and the question of every behaviour.",
+    "remove": "Delete",
+    "stage": {
+      "title": "Template of stage {{stage}} {{name}}",
+      "description": "The weights, the extra components, the results criteria and the behaviours. The basic total and the cap follow from the weights and points.",
+      "basics": "Basic",
+      "basicTotal": "Basic = results weight + behaviour weight = {{total}}",
+      "name": "Name of the stage",
+      "resultsWeight": "Results weight",
+      "behaviourWeight": "Behaviour weight",
+      "ruleText": "Evaluation rule (who evaluates)",
+      "extra": "Extra component",
+      "cap": "Cap = basic + points of the extra components = {{cap}}",
+      "addExtra": "Add a component",
+      "extraName": "Component",
+      "points": "Points",
+      "criteria": "Results criteria",
+      "sharesSum": "Sum of the shares: {{sum}} of 100",
+      "resultsNote": "What the results mean in this stage",
+      "addCriterion": "Add a criterion",
+      "criterionName": "Criterion",
+      "share": "Share %",
+      "behaviours": "Behaviours",
+      "addBehaviour": "Add a behaviour",
+      "code": "Code",
+      "behaviourName": "Behaviour",
+      "question": "The evaluator's question",
+      "saved": "The stage template was saved."
+    },
+    "scale": {
+      "title": "Grade scale",
+      "description": "Two to ten levels from the highest to the lowest: the highest has no «to» and the lowest no «from». A new level is added at the bottom.",
+      "levels": "Levels",
+      "hint": "Write the limits of each level; the text of the ranges shows here once they are right.",
+      "name": "Name of the level",
+      "from": "From",
+      "to": "To",
+      "meaning": "What it means",
+      "rangeProblem": "The ranges must follow one another from the highest to the lowest without overlapping.",
+      "saved": "The grade scale was saved.",
+      "add": "Add a level"
+    },
+    "fiscal": {
+      "title": "Fiscal-year card",
+      "description": "Twelve months from April to March: each is a milestone or a month of daily follow-up.",
+      "months": "Months",
+      "monthsHint": "Each month has its kind.",
+      "kinds": {
+        "milestone": "Milestone",
+        "daily": "Daily follow-up"
+      },
+      "notes": "Notes",
+      "addNote": "Add a note",
+      "noteMonth": "Month",
+      "noteText": "Text of the note",
+      "saved": "The fiscal-year card was saved."
+    }
   }
 }

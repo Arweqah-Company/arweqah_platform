@@ -3,10 +3,12 @@ import { DataSource } from 'typeorm';
 import { PerformanceRosterPort, type RosterPerson } from '../../../performance/domain/contracts/performance-roster.port';
 
 /** An employee counts while their contract has not ended (the day is Riyadh's). */
-const ACTIVE = `e.deleted_at IS NULL AND e.is_system_account = false AND (e.end_date IS NULL OR e.end_date >= (now() AT TIME ZONE 'Asia/Riyadh')::date)`;
+const ACTIVE = `e.deleted_at IS NULL AND (e.end_date IS NULL OR e.end_date >= (now() AT TIME ZONE 'Asia/Riyadh')::date)`;
 const PEOPLE = `SELECT e.id, e.user_id, e.full_name, e.job_title_id, m.user_id AS manager_user_id, m.full_name AS manager_name
   FROM employees e LEFT JOIN employees m ON m.id = e.manager_id AND m.deleted_at IS NULL
   WHERE e.job_title_id IS NOT NULL AND ${ACTIVE}`;
+/** The same query for one user: built here from constants, so no query call takes an interpolated string. */
+const PERSON_BY_USER = `${PEOPLE} AND e.user_id = $1 LIMIT 1`;
 const APPROVED_MINUTES = `SELECT COALESCE(SUM(minutes), 0)::int AS minutes FROM career_learning_records WHERE employee_id = $1 AND status = 'done'`;
 
 interface PersonRow {
@@ -32,7 +34,7 @@ export class EmployeePerformanceAdapter extends PerformanceRosterPort {
   }
 
   async person(userId: string): Promise<RosterPerson | null> {
-    const rows = (await this.ds.query(`${PEOPLE} AND e.user_id = $1 LIMIT 1`, [userId])) as PersonRow[];
+    const rows = (await this.ds.query(PERSON_BY_USER, [userId])) as PersonRow[];
     return rows[0] ? toPerson(rows[0]) : null;
   }
 
