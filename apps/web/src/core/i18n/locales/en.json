@@ -40,7 +40,8 @@
     "jobTitles": "Job titles",
     "careerProfile": "Career path",
     "careerContent": "Career-path content",
-    "careerCertificates": "Certificate review"
+    "careerCertificates": "Certificate review",
+    "careerTeam": "My career team"
   },
   "actions": {
     "save": "Save",

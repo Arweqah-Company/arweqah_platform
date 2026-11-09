@@ -14,8 +14,12 @@ export class RolesCatalogSeeder {
   constructor(private readonly db: DataSource) {}
 
   async run(): Promise<void> {
+    await this.seedOwnerList();
+    await this.ensureRoles(); // after the owner's list: a role made here must not stop that list from being created
+  }
+
+  private async seedOwnerList(): Promise<void> {
     const repo = this.db.getRepository(Role);
-    await this.ensureRoles();
     if ((await repo.count({ where: { isSystem: false } })) > 0) return;
     for (const seed of ROLE_SEEDS) {
       const role = Object.assign(new Role(), { nameAr: seed.ar, nameEn: seed.en, description: seed.note ?? null, isSystem: false, assignment: seed.assignment, autoRule: seed.autoRule ?? null, permissions: [] });

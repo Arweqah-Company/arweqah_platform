@@ -4,6 +4,7 @@ import { PermissionCatalog } from '../../core/access/application/permission-cata
 import { WorkflowRegistry } from '../../core/workflow/application/workflow-definition';
 import { OrgModule } from '../org/org.module';
 import { CareerProgressService } from './application/services/career-progress.service';
+import { CareerReminderService } from './application/services/career-reminder.service';
 import { CareerTeamService } from './application/services/career-team.service';
 import { CareerProofService } from './application/services/career-proof.service';
 import { CareerReviewService } from './application/services/career-review.service';
@@ -23,6 +24,7 @@ import { CAREER_PROGRESS_ENTITIES } from './domain/entities/career-progress.enti
 import { CERTIFICATE_KEY, CERTIFICATE_VERSION, certificateMachine } from './domain/rules/certificate.machine';
 import { CAREER_CONTENT_ENTITIES } from './domain/entities/career-profile.entities';
 import { CAREER_PROFILE_PERMISSIONS } from './domain/permissions/career-profile.permissions';
+import { CareerRemindersJob } from './infrastructure/jobs/career-reminders.job';
 import { OrgTitleIdentityAdapter } from './infrastructure/adapters/org-title-identity.adapter';
 import { TypeOrmCareerLearningRepository } from './infrastructure/repositories/typeorm-career-learning.repository';
 import { TypeOrmCareerAcknowledgementRepository } from './infrastructure/repositories/typeorm-career-acknowledgement.repository';
@@ -46,6 +48,8 @@ import { CareerContentController } from './presentation/controllers/career-conte
     CareerProofService,
     CareerProgressService,
     CareerTeamService,
+    CareerReminderService,
+    CareerRemindersJob,
     CareerReviewService,
     CareerTitleListService,
     LearningLinksService,

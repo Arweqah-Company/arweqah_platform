@@ -1092,6 +1092,38 @@ erDiagram
     character_varying reason
     uuid reopened_by
   }
+  career_learning_records {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid employee_id FK,UK
+    uuid title_id FK
+    uuid unit_id UK
+    character_varying status
+    character_varying proof_kind
+    uuid file_id FK
+    character_varying note
+    integer minutes
+    timestamp_with_time_zone submitted_at
+    uuid decided_by
+    timestamp_with_time_zone decided_at
+    character_varying rejection_reason
+    integer rejection_count
+  }
+  career_required_progress {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid employee_id FK,UK
+    uuid title_id FK,UK
+    integer item_index UK
+    timestamp_with_time_zone done_at
+  }
+  employees ||--o{ career_learning_records : "employee_id"
+  job_titles ||--o{ career_learning_records : "title_id"
+  files ||--o{ career_learning_records : "file_id"
+  employees ||--o{ career_required_progress : "employee_id"
+  job_titles ||--o{ career_required_progress : "title_id"
   job_titles ||--o| career_title_content : "title_id"
   job_titles ||--o{ career_title_content_versions : "title_id"
   job_titles ||--o{ career_acknowledgements : "title_id"
@@ -1233,4 +1265,6 @@ erDiagram
 | `career_title_content` | The career-path content of one job title (one row per title): `content` (jsonb: summary, indicators, responsibilities, ladder, level path, competencies, required actions, acknowledgement sentence), `version` (grows by one per save), `status` (`draft` or `ready`: only a ready path is shown to the title's holders). |
 | `career_title_content_versions` | A snapshot of the content at each version (`title_id` + `version` unique), kept so what an employee acknowledged can be shown again. |
 | `career_acknowledgements` | An employee's acknowledgement of the career path of a title at a content version (`employee_id` + `title_id` + `content_version` unique; acknowledging the same version again only refreshes the time). The platform is held back until the latest one of the employee's title is later than the latest reopening. |
+| `career_learning_records` | The state of one learning unit for one employee (`employee_id` + `unit_id` unique; `unit_id` is the id of the unit inside the title's content document): the proof they sent (`proof_kind`, `file_id`, `note`), the unit's minutes at that time, and the decision (`status` wait / referred / done / rej, `decided_by`, `decided_at`, `rejection_reason`, `rejection_count`). A rejected proof is replaced by the next one; no row means «not started». |
+| `career_required_progress` | An employee ticked an item of «required» (`employee_id` + `title_id` + `item_index` unique; unticking deletes the row). |
 | `career_ack_reopenings` | HR asked the holders of a title to acknowledge again, with the reason: whoever acknowledged before it is asked once more. |

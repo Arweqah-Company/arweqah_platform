@@ -349,6 +349,20 @@
         "kind": "Kind of proof",
         "status": "State"
       }
+    },
+    "career-team": {
+      "name": "My career team",
+      "columns": {
+        "employee": "Employee",
+        "title": "Title",
+        "progress": "Mandatory and necessary done",
+        "hours": "Approved hours",
+        "late": "Late",
+        "status": "State"
+      },
+      "filters": {
+        "status": "State"
+      }
     }
   },
   "listHint": "The first column (the name) always stays.",

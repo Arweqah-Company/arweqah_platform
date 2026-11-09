@@ -272,6 +272,14 @@
         "refer": "Refer to the direct manager",
         "export": "Export the list"
       }
+    },
+    "career-team": {
+      "title": "My career team",
+      "body": "The paths of the people under you: what they finished and what they are late in. Open a member to see what waits for your decision.",
+      "can": {
+        "decide": "Decide a proof referred to you",
+        "export": "Export the list"
+      }
     }
   },
   "import": {
@@ -472,6 +480,36 @@
     "filters": {
       "kind": "Kind of proof",
       "status": "State"
+    }
+  },
+  "team": {
+    "title": "My career team",
+    "description": "The paths of the people under you: how much of the mandatory and necessary units they finished, their approved hours and what they are late in. Read only: you do not edit their path here.",
+    "searchLabel": "Search the team",
+    "searchPlaceholder": "Search by name",
+    "noMatches": "Nobody matches the search and the filters.",
+    "empty": "Nobody is in your team yet.",
+    "open": "Open the member",
+    "lateAlert": "{{count}} of your team are late in what is required.",
+    "required": "Mandatory and necessary",
+    "hours": "Approved hours",
+    "overdue": "Late items",
+    "waitingProofs": "Proofs waiting for a decision",
+    "noProofs": "No proofs are waiting for a decision.",
+    "loadFailed": "The member's proofs could not be loaded.",
+    "readOnly": "Read only: you do not edit their career file from here. You decide here only a proof referred to you.",
+    "columns": {
+      "employee": "Employee",
+      "title": "Title",
+      "progress": "Mandatory and necessary done",
+      "hours": "Approved hours",
+      "late": "Late",
+      "status": "State"
+    },
+    "status": {
+      "regular": "Regular",
+      "late": "Late",
+      "no_path": "No ready path"
     }
   }
 }

@@ -1,5 +1,6 @@
 import { CorePermission, type CareerContent, type CertificatesPageDto, type TeamMemberDetailDto, type TeamPageDto, type LearningRecordDto, type MyCareerProfileDto, type MyProgressDto, type PermissionGrant } from '@arweqah-platform/shared';
 import { describe, expect, it, vi } from 'vitest';
+import { CareerReminderService } from '../src/modules/career-profile/application/services/career-reminder.service';
 import { complete } from './helpers/career-content';
 import { chainScenario } from './helpers/title-chain';
 import { useTestApp } from './setup/test-app';
@@ -252,5 +253,42 @@ describe('«My career team» (FR-115)', () => {
     await s.viewer.post(`/api/career/team/${s.holder.employeeId}/proofs/00000000-0000-4000-8000-000000000000/approve`).expect(403);
     const none = await setup([{ key: CorePermission.CareerTeamDecide, scope: 'all' }]);
     await none.viewer.get('/api/career/team').expect(403);
+  });
+});
+
+describe('The reminders and the monthly report of the career path (FR-115)', () => {
+  const t = useTestApp();
+
+  async function setup(deadline: string | null) {
+    const s = await chainScenario(t);
+    const hr = await t.factories.signIn(await t.factories.user({ grants: grants(HR) }));
+    const manager = await t.factories.user();
+    const holder = await s.person(s.rep, s.group);
+    await t.db.query('UPDATE employees SET manager_id = $1 WHERE id = $2', [manager.employeeId, holder.employeeId]);
+    const content = { ...complete, required: [{ when: 'بند', lines: ['س'], deadline }] };
+    await hr.put(`/api/career/titles/${s.rep.id}/content`).send({ content }).expect(200);
+    await hr.post(`/api/career/titles/${s.rep.id}/publish`).expect(200);
+    return { ...s, me: await t.factories.signIn(holder), managerAgent: await t.factories.signIn(manager), service: t.app.get(CareerReminderService) };
+  }
+
+  const titles = async (agent: Awaited<ReturnType<typeof setup>>['me']): Promise<string[]> => ((await agent.get('/api/notifications').expect(200)).body.items as { titleAr: string }[]).map((n) => n.titleAr);
+
+  it('reminds an employee with a dated item past its date, not one who ticked it or whose date has not come', async () => {
+    const late = await setup('2020-01-01');
+    expect(await late.service.remindEmployees('2026-11-08')).toBeGreaterThanOrEqual(1);
+    await vi.waitFor(async () => expect(await titles(late.me)).toContain('عندك بنود متأخرة في مسارك الوظيفي'));
+    const ticked = await setup('2020-01-01');
+    await ticked.me.put('/api/career-profile/me/required/0').send({ done: true }).expect(200);
+    await ticked.service.remindEmployees('2026-11-08');
+    expect(await titles(ticked.me)).not.toContain('عندك بنود متأخرة في مسارك الوظيفي');
+    const future = await setup('2099-01-01');
+    await future.service.remindEmployees('2026-11-08');
+    expect(await titles(future.me)).not.toContain('عندك بنود متأخرة في مسارك الوظيفي');
+  });
+
+  it('tells the direct manager how many of their reports are late', async () => {
+    const s = await setup('2020-01-01');
+    expect(await s.service.reportToManagers('2026-11-08')).toBeGreaterThanOrEqual(1);
+    await vi.waitFor(async () => expect(await titles(s.managerAgent)).toContain('تقرير المسار المهني الشهري'));
   });
 });

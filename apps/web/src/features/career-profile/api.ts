@@ -12,6 +12,7 @@ import type {
   ReopenAcknowledgementInput,
   ReopenAcknowledgementResultDto,
   SubmitProofInput,
+  TeamMemberDetailDto,
   TitleFileResultDto,
 } from '@arweqah-platform/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -112,5 +113,18 @@ export function useDecideProof(id: string) {
     approve: useMutation({ mutationFn: () => apiClient.post(`/career/certificates/${id}/approve`, {}), onSuccess: done }),
     reject: useMutation({ mutationFn: (reason: string) => apiClient.post(`/career/certificates/${id}/reject`, { reason }), onSuccess: done }),
     refer: useMutation({ mutationFn: () => apiClient.post(`/career/certificates/${id}/refer`, {}), onSuccess: done }),
+  };
+}
+
+export const useTeamMember = (employeeId: string) => useQuery({ queryKey: ['career-team', 'member', employeeId], queryFn: () => apiClient.get<TeamMemberDetailDto>(`/career/team/${employeeId}`) });
+
+/** The manager's decision on a proof referred to them; the team page and the member are read again after it. */
+export function useTeamDecision(employeeId: string, proofId: string) {
+  const client = useQueryClient();
+  const done = () => client.invalidateQueries({ queryKey: ['career-team'] });
+  const base = `/career/team/${employeeId}/proofs/${proofId}`;
+  return {
+    approve: useMutation({ mutationFn: () => apiClient.post(`${base}/approve`, {}), onSuccess: done }),
+    reject: useMutation({ mutationFn: (reason: string) => apiClient.post(`${base}/reject`, { reason }), onSuccess: done }),
   };
 }

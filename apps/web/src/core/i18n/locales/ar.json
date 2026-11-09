@@ -40,7 +40,8 @@
     "jobTitles": "المسميات الوظيفية",
     "careerProfile": "المسار الوظيفي",
     "careerContent": "محتوى المسارات الوظيفية",
-    "careerCertificates": "مراجعة الشهادات"
+    "careerCertificates": "مراجعة الشهادات",
+    "careerTeam": "فريقي المهني"
   },
   "actions": {
     "save": "حفظ",
