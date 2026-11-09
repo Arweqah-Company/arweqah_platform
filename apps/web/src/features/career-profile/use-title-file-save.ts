@@ -18,7 +18,7 @@ export function useTitleFileSave(titleId: string, text: string, result: TitleFil
     onSaved();
   };
   const submit = () => {
-    if (result?.source === 'ai' && result.content) fromContent.mutate(result.content, { onSuccess: (saved) => done(saved.version) });
+    if (result?.source === 'ai' && result.content) fromContent.mutate({ content: result.content, expectedVersion: result.baseVersion ?? 0 }, { onSuccess: (saved) => done(saved.version) });
     else fromText.mutate({ text, dryRun: false }, { onSuccess: (saved) => done(saved.version) });
   };
   const failed = active.error instanceof ApiError ? t('file.saveRefused') : active.isError ? t('file.saveFailed') : null;

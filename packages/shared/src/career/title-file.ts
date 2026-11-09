@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { CareerContent } from './content';
+import { careerContentSchema, type CareerContent } from './content';
 
 /**
  * The title file (FR-113; plan `docs/plans/phase-6-career-path-performance.md` §2.7): one text per job title with the job description, the
@@ -56,6 +56,10 @@ export type TitleFileSource = 'rules' | 'ai';
 export const analyzeTitleFileSchema = z.strictObject({ text: z.string().min(1).max(TITLE_FILE_MAX_CHARS) });
 export type AnalyzeTitleFileInput = z.infer<typeof analyzeTitleFileSchema>;
 
+/** `POST /career/titles/:id/file/confirm`: the content a person reviewed, and the version of the content the AI read (a save in between is a 409 instead of being overwritten). */
+export const confirmTitleFileSchema = z.strictObject({ content: careerContentSchema, expectedVersion: z.number().int().min(0) });
+export type ConfirmTitleFileInput = z.infer<typeof confirmTitleFileSchema>;
+
 export interface TitleFileResultDto {
   dryRun: boolean;
   /** True when the career content was replaced by what the file says (never on a dry run, never with a problem). */
@@ -73,6 +77,8 @@ export interface TitleFileResultDto {
   content: CareerContent | null;
   /** Texts the AI returned that are not in the file word for word (at most 25): the person checks them before confirming. */
   ungrounded: string[];
+  /** The version of the content the AI read (what a confirm must send back as `expectedVersion`); null for the fixed reader. */
+  baseVersion: number | null;
   /** Whether an AI service is switched on (the dialog offers the AI button only then). */
   aiAvailable: boolean;
 }

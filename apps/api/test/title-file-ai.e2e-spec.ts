@@ -1,5 +1,6 @@
 import { CorePermission, TITLE_FILE_MAX_CHARS, type CareerContent, type CareerTitleContentDto, type PermissionGrant, type TitleFileResultDto } from '@arweqah-platform/shared';
 import { describe, expect, it, vi } from 'vitest';
+import { AiService } from '../src/core/integrations/application/services/ai.service';
 import { aiAnswerFor } from '../src/modules/career-profile/domain/rules/fixtures/ai-title-file.sample';
 import { SAMPLE_TITLE_FILE } from '../src/modules/career-profile/domain/rules/fixtures/title-file.sample';
 import { partsOf } from '../src/modules/career-profile/domain/rules/title-file.rules';
@@ -105,7 +106,7 @@ describe('Placing a title file with the AI (FR-127)', () => {
     t.ai.answer(s.answer());
     const { content } = (await s.analyze().expect(200)).body as TitleFileResultDto;
     const broken: CareerContent = { ...(content as CareerContent), summary: '', ladder: (content as CareerContent).ladder.map((l) => ({ ...l, current: false })) };
-    const res = await s.hr.post(`${s.url()}/file/confirm`).send({ content: broken }).expect(422);
+    const res = await s.hr.post(`${s.url()}/file/confirm`).send({ content: broken, expectedVersion: 0 }).expect(422);
     expect(res.body).toMatchObject({ code: 'TITLE_FILE_NEEDS_REVIEW', details: { problems: expect.arrayContaining(['summary_missing', 'current_title_unmarked']) } });
     expect(await s.stored()).toMatchObject({ version: 0 });
   });
@@ -114,7 +115,7 @@ describe('Placing a title file with the AI (FR-127)', () => {
     const s = await setup();
     t.ai.answer(aiAnswerFor(partsOf(SAMPLE_TITLE_FILE)));
     const { content } = (await s.analyze().expect(200)).body as TitleFileResultDto;
-    expect((await s.hr.post(`${s.url()}/file/confirm`).send({ content }).expect(422)).body.details.problems).toEqual(['code_mismatch']);
+    expect((await s.hr.post(`${s.url()}/file/confirm`).send({ content, expectedVersion: 0 }).expect(422)).body.details.problems).toEqual(['code_mismatch']);
     await s.hr.post(`${s.url()}/file/confirm`).send({ content: { summary: 'x' } }).expect(400);
     await s.hr.post(`${s.url()}/file/confirm`).send({}).expect(400);
   });
@@ -163,7 +164,7 @@ describe('Placing a title file with the AI (FR-127)', () => {
     const noAi = await setup({ grants: grants(CorePermission.CareerTitlefileAi) });
     await noAi.analyze().expect(403);
     const noUpload = await setup({ grants: grants(CorePermission.CareerTitlefileUpload) });
-    await noUpload.hr.post(`${noUpload.url()}/file/confirm`).send({ content: aiAnswerFor(partsOf(noUpload.file)) }).expect(403);
+    await noUpload.hr.post(`${noUpload.url()}/file/confirm`).send({ content: aiAnswerFor(partsOf(noUpload.file)), expectedVersion: 0 }).expect(403);
     expect(t.ai.calls).toHaveLength(0);
   });
 
@@ -187,5 +188,44 @@ describe('Placing a title file with the AI (FR-127)', () => {
   it('FR-127: with no AI service on, the ordinary reading never offers it', async () => {
     const s = await setup({ ai: false });
     expect(((await s.hr.post(`${s.url()}/file`).send({ text: 'ملخص الوظيفة\nنص' }).expect(200)).body as TitleFileResultDto).aiAvailable).toBe(false);
+  });
+
+  it('FR-127 (review): a failed AI call does not spend the hourly quota', async () => {
+    const s = await setup();
+    for (let i = 0; i < 6; i++) {
+      t.ai.fail({ kind: 'failed', message: '503: overloaded' });
+      await s.analyze().expect(502);
+    }
+    t.ai.answer(s.answer());
+    await s.analyze().expect(200);
+  });
+
+  it('FR-127 (review): the analysis says which version of the content it read, and a confirm without it is refused (400)', async () => {
+    const s = await setup();
+    t.ai.answer(s.answer());
+    const res = (await s.analyze().expect(200)).body as TitleFileResultDto & { baseVersion: number | null };
+    expect(res.baseVersion).toBe(0);
+    await s.hr.post(`${s.url()}/file/confirm`).send({ content: res.content }).expect(400);
+  });
+
+  it('FR-127 (review): a colleague\'s save during the analysis is not overwritten by the confirm (409 CAREER_CONTENT_STALE)', async () => {
+    const s = await setup();
+    t.ai.answer(s.answer());
+    const res = (await s.analyze().expect(200)).body as TitleFileResultDto & { baseVersion: number };
+    await s.hr.post(`${s.url()}/file`).send({ text: s.file.replace('تنسيق ودعم أعمال وحدة الاستقطاب', 'ملخص زميل'), dryRun: false }).expect(200);
+    await s.hr.post(`${s.url()}/file/confirm`).send({ content: res.content, expectedVersion: res.baseVersion }).expect(409).expect((r) => expect(r.body.code).toBe('CAREER_CONTENT_STALE'));
+    expect((await s.stored()).content.summary).toContain('ملخص زميل');
+  });
+
+  it('FR-127 (review): the ordinary reading still works when the AI settings cannot be read', async () => {
+    const s = await setup();
+    const spy = vi.spyOn(t.app.get(AiService), 'isActive').mockRejectedValue(new Error('cannot decrypt the provider data'));
+    try {
+      const res = (await s.hr.post(`${s.url()}/file`).send({ text: 'ملخص الوظيفة\nنص' }).expect(200)).body as TitleFileResultDto;
+      expect(res).toMatchObject({ aiAvailable: false, source: 'rules' });
+      expect(res.problems.length).toBeGreaterThan(0);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });

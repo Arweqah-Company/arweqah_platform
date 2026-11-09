@@ -94,7 +94,8 @@ function isLocalHost(host: string): boolean {
 function isPublicHttpsUrl(value: string): boolean {
   try {
     const url = new URL(value);
-    const host = url.hostname.toLowerCase();
+    // `localhost.` and `127.0.0.1.` are the same names with a root dot: look at them without it.
+    const host = url.hostname.toLowerCase().replace(/\.+$/, '');
     return url.protocol === 'https:' && !url.username && !url.password && !isNumericHost(host) && !isLocalHost(host);
   } catch {
     return false;

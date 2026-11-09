@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import type { AnalyzeTitleFileInput, CareerTitleContentDto, SaveCareerContentInput, TitleFileResultDto } from '@arweqah-platform/shared';
+import type { AnalyzeTitleFileInput, CareerTitleContentDto, ConfirmTitleFileInput, TitleFileResultDto } from '@arweqah-platform/shared';
 import { RateWindow } from '../../../../common/application/rate-window';
 import { AiService } from '../../../../core/integrations/application/services/ai.service';
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
@@ -30,14 +30,25 @@ export class TitleFileAiService {
   async analyze(titleId: string, input: AnalyzeTitleFileInput, actorId: string): Promise<TitleFileResultDto> {
     const title = await this.titles.identity(titleId);
     if (!this.window.take(actorId)) throw new TitleFileAiRateLimitedError();
-    const answer = await this.ai.jsonOf({ system: TITLE_FILE_AI_SYSTEM, user: titleFileAiUser(input.text, title.code), schema: aiTitleFileSchema, maxTokens: TITLE_FILE_AI_MAX_TOKENS });
+    const baseVersion = (await this.content.get(titleId)).version;
+    const answer = await this.ask(input.text, title.code, actorId);
     const parts = partsFromAi(answer.value);
     const reading = readingOf(parts, title.code);
     this.audit(actorId, CAREER_AUDIT.fileAnalysedAi, titleId, { model: answer.model, chars: input.text.length, inputUnits: answer.inputTokens, outputUnits: answer.outputTokens, ...reading.counts });
-    return { dryRun: true, saved: false, version: null, counts: reading.counts, problems: reading.problems, codeInFile: reading.codeInFile, ignored: [], source: 'ai', content: reading.content, ungrounded: ungroundedOf(parts, input.text), aiAvailable: true };
+    return { dryRun: true, saved: false, version: null, counts: reading.counts, problems: reading.problems, codeInFile: reading.codeInFile, ignored: [], source: 'ai', content: reading.content, ungrounded: ungroundedOf(parts, input.text), baseVersion, aiAvailable: true };
   }
 
-  async confirm(titleId: string, input: SaveCareerContentInput, actorId: string): Promise<CareerTitleContentDto> {
+  /** The AI call; a turn of the hourly limit is spent only when the service answered (an outage must not use up a person's six). */
+  private async ask(text: string, titleCode: string | null, actorId: string) {
+    try {
+      return await this.ai.jsonOf({ system: TITLE_FILE_AI_SYSTEM, user: titleFileAiUser(text, titleCode), schema: aiTitleFileSchema, maxTokens: TITLE_FILE_AI_MAX_TOKENS });
+    } catch (error) {
+      this.window.refund(actorId);
+      throw error;
+    }
+  }
+
+  async confirm(titleId: string, input: ConfirmTitleFileInput, actorId: string): Promise<CareerTitleContentDto> {
     const title = await this.titles.identity(titleId);
     const problems = contentProblems(input.content, title.code);
     if (problems.length) throw new TitleFileNeedsReviewError(problems);

@@ -10,7 +10,7 @@ import { TitleFileDialog } from './title-file-dialog';
 vi.mock('sonner', () => ({ toast: { info: vi.fn(), success: vi.fn(), error: vi.fn() } }));
 
 const counts = { indicators: 3, responsibilities: 4, tasks: 12, ladderLevels: 7, pathSteps: 4, competencies: 13, badges: 4, learningPeriods: 3, learningUnits: 30, learningMinutes: 2358, requiredItems: 6 };
-const result = (over: Partial<TitleFileResultDto>): TitleFileResultDto => ({ dryRun: true, saved: false, version: null, counts, problems: [], codeInFile: null, ignored: [], source: 'rules', content: null, ungrounded: [], aiAvailable: false, ...over });
+const result = (over: Partial<TitleFileResultDto>): TitleFileResultDto => ({ dryRun: true, saved: false, version: null, counts, problems: [], codeInFile: null, ignored: [], source: 'rules', content: null, ungrounded: [], baseVersion: null, aiAvailable: false, ...over });
 
 function open(answer: (dryRun: boolean) => { status?: number; body: unknown }, keys: string[] = []) {
   const sent: { dryRun: boolean; text: string }[] = [];
@@ -97,7 +97,7 @@ describe('The title-file dialog (FR-113)', () => {
 
 describe('analysis with AI (FR-127)', () => {
   const AI = [CorePermission.CareerTitlefileAi];
-  const placed = (over: Partial<TitleFileResultDto> = {}) => result({ source: 'ai', content: careerContent, aiAvailable: true, ...over });
+  const placed = (over: Partial<TitleFileResultDto> = {}) => result({ source: 'ai', content: careerContent, baseVersion: 4, aiAvailable: true, ...over });
 
   /** The ordinary reading finds a problem; the AI route and the confirm route answer as the server does. */
   function openWithAi(keys: string[], ai: { status?: number; body: unknown } = { body: placed() }) {
@@ -148,13 +148,28 @@ describe('analysis with AI (FR-127)', () => {
     await screen.findByText('رتّبه الذكاء الاصطناعي: راجعه قبل الحفظ');
     fireEvent.click(screen.getByRole('button', { name: 'حفظ المحتوى المستخرج' }));
     await waitFor(() => expect(closed).toHaveBeenCalled());
-    expect(calls).toEqual([{ url: 'ai', body: { text: 'ملف بترتيب آخر' } }, { url: 'confirm', body: { content: careerContent } }]);
+    expect(calls).toEqual([{ url: 'ai', body: { text: 'ملف بترتيب آخر' } }, { url: 'confirm', body: { content: careerContent, expectedVersion: 4 } }]);
   });
 
   it('FR-127: keeps «Save» off while the AI\'s reading still has something to fix', async () => {
     openWithAi(AI, { body: placed({ problems: ['code_mismatch'] }) });
     fireEvent.click(await screen.findByRole('button', { name: 'حلّل بالذكاء الاصطناعي' }));
     await screen.findByText('رتّبه الذكاء الاصطناعي: راجعه قبل الحفظ');
+    expect(screen.getByRole('button', { name: 'حفظ المحتوى المستخرج' })).toBeDisabled();
+  });
+
+  it('FR-127 (review): an AI answer that arrives after the text was changed is dropped, so Save never confirms a reading of old text', async () => {
+    let release: () => void = () => undefined;
+    const late = new Promise<void>((resolve) => { release = resolve; });
+    server.use(http.post('*/api/career/titles/t1/file/ai', async () => { await late; return HttpResponse.json(placed()); }));
+    open(() => ({ body: result({ problems: ['summary_missing'], aiAvailable: true }) }), AI);
+    paste('ملف بترتيب آخر');
+    fireEvent.click(screen.getByRole('button', { name: 'استخراج' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'حلّل بالذكاء الاصطناعي' }));
+    paste('نص جديد غيّرته أثناء التحليل');
+    release();
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    expect(screen.queryByText('رتّبه الذكاء الاصطناعي: راجعه قبل الحفظ')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'حفظ المحتوى المستخرج' })).toBeDisabled();
   });
 

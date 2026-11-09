@@ -51,14 +51,14 @@ describe('«Development requests» for the approvers (FR-116)', () => {
     fireEvent.click(await screen.findByText('منى الزهراني'));
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('link', { name: /agreement\.pdf/ })).toHaveAttribute('href', '/api/career/requests/q1/agreement');
-    fireEvent.click(within(dialog).getByRole('button', { name: 'اعتماد' }));
+    fireEvent.click(await within(dialog).findByRole('button', { name: 'اعتماد' }));
     await waitFor(() => expect(posted).toContainEqual({ url: '/api/career/requests/q1/approve', body: {} }));
   });
 
   it('rejects with a reason of at least five characters', async () => {
     const { posted } = open();
     fireEvent.click(await screen.findByText('منى الزهراني'));
-    fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'رفض' }));
+    fireEvent.click(await within(await screen.findByRole('dialog')).findByRole('button', { name: 'رفض' }));
     const dialog = await screen.findByRole('dialog');
     const confirm = within(dialog).getByRole('button', { name: 'رفض الطلب' });
     expect(confirm).toBeDisabled();

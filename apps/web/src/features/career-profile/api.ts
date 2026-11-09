@@ -72,7 +72,8 @@ export const useReadTitleFile = (titleId: string) => useTitleWrite(titleId, (inp
 
 /** The AI places the parts of a title file (nothing is saved); the reviewed content is then saved with `confirm` (§2.9, FR-127). */
 export const analyzeTitleFile = (titleId: string, input: AnalyzeTitleFileInput) => apiClient.post<TitleFileResultDto>(`/career/titles/${titleId}/file/ai`, input);
-export const useConfirmTitleFile = (titleId: string) => useTitleWrite(titleId, (content: CareerContent) => apiClient.post<CareerTitleContentDto>(`/career/titles/${titleId}/file/confirm`, { content }));
+export const useConfirmTitleFile = (titleId: string) =>
+  useTitleWrite(titleId, (input: { content: CareerContent; expectedVersion: number }) => apiClient.post<CareerTitleContentDto>(`/career/titles/${titleId}/file/confirm`, input));
 
 /** The learning-links sheet: with `dryRun` it only reports what each row would do. */
 export const importLearningLinks = (input: ImportLearningLinksInput) => apiClient.post<LearningImportResultDto>('/career/learning-links', input);

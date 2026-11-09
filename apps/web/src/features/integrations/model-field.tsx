@@ -1,5 +1,6 @@
 import { CorePermission, type ProviderKey } from '@arweqah-platform/shared';
 import { Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Can } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
@@ -59,6 +60,9 @@ function ListProblem({ list }: { list: ModelList }) {
  */
 export function ModelField({ providerKey, label, required, hint, error, value, disabled, sent, onChange, onBlur }: Props) {
   const list = useAiModels();
+  // The list belongs to the key and the address it was asked with: another key or address makes it stale (the model picked does not).
+  const asked = JSON.stringify([sent.apiKey ?? null, sent.baseUrl ?? null]);
+  useEffect(() => list.reset(), [asked]); // eslint-disable-line react-hooks/exhaustive-deps
   const names = namesOf(list, value);
   return (
     <div className="flex flex-col gap-2 sm:col-span-2">

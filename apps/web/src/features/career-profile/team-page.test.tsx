@@ -63,8 +63,8 @@ describe('«My career team» (FR-115)', () => {
     fireEvent.click(await screen.findByText('منى الزهراني'));
     const dialog = await screen.findByRole('dialog');
     await within(dialog).findByText('أمان العمل');
-    expect(within(dialog).getAllByRole('button', { name: 'اعتماد' })).toHaveLength(1); // the waiting certificate is the reviewer's
-    fireEvent.click(within(dialog).getByRole('button', { name: 'اعتماد' }));
+    expect(await within(dialog).findAllByRole('button', { name: 'اعتماد' })).toHaveLength(1); // the waiting certificate is the reviewer's
+    fireEvent.click(await within(dialog).findByRole('button', { name: 'اعتماد' }));
     await waitFor(() => expect(posted).toContainEqual({ url: '/api/career/team/e1/proofs/p1/approve', body: {} }));
   });
 

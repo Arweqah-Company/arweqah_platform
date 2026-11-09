@@ -48,7 +48,8 @@ describe('Development requests: the dialog (FR-116)', () => {
     expect(await within(dialog).findByText(/يعتمده: مدير القطاع/)).toBeInTheDocument(); // «outside the plan» is the default
     expect(within(dialog).getByText(/الباقي من ميزانيتك السنوية: 1,200 ريال/)).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('radio', { name: /^ضمن خطة التعلم/ }));
-    expect(await within(dialog).findByText(/يعتمده: المدير المباشر \(رد خلال 5 أيام عمل\)/)).toBeInTheDocument();
+    expect(await within(dialog).findByText(/يعتمده: المدير المباشر/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/يردّ خلال 7 أيام/)).toBeInTheDocument();
     fireEvent.change(within(dialog).getByLabelText('التكلفة بالريال'), { target: { value: '25000' } });
     expect(await within(dialog).findByText(/يعتمده: الرئيس التنفيذي/)).toBeInTheDocument();
     expect(asked.map((a) => a.cost)).toContain('25000');
@@ -133,5 +134,16 @@ describe('Development requests: my list and the cards (FR-116)', () => {
     const row = (await screen.findByText('الاتصال المباشر')).closest('tr') as HTMLElement;
     expect(within(row).getByText('محققة')).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'مستواي' })).toBeInTheDocument();
+  });
+
+  it('shows the real percentage of the budget when more than the cap was approved, and the recorded level next to «met»', async () => {
+    open();
+    server.use(http.get('*/api/career-profile/me/progress', () => HttpResponse.json({ ...progress(), budget: { cap: 3000, spent: 4500 }, competencies: [{ name: 'الاتصال المباشر', required: 'أساسي', mine: 'خبير', met: true }] })));
+    expect(await screen.findByText('150٪')).toBeInTheDocument();
+    await goTo('التطوير المهني');
+    fireEvent.click(await screen.findByRole('tab', { name: 'الجدارات الفنية' }));
+    const row = (await screen.findByText('الاتصال المباشر')).closest('tr') as HTMLElement;
+    expect(within(row).getByText('محققة')).toBeInTheDocument();
+    expect(within(row).getByText('خبير', { selector: 'span' })).toBeInTheDocument();
   });
 });

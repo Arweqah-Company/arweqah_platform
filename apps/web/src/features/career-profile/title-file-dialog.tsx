@@ -1,7 +1,7 @@
 import type { TitleFileResultDto } from '@arweqah-platform/shared';
 import { TITLE_FILE_MAX_CHARS } from '@arweqah-platform/shared';
 import { useMutation } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Badge, Button, Dialog, DialogFooter, FileDropzone, FormField, Textarea } from '@/shared/ui';
 import { readTitleFile } from './api';
@@ -69,6 +69,9 @@ export function TitleFileDialog({ titleId, titleName, titleCode = null, onClose 
   const { t } = useTranslation('career-profile');
   const { text, setText, result, setResult, readError, check, run, onFile } = useTitleFileReading(titleId);
   const save = useTitleFileSave(titleId, text, result, onClose);
+  // The text may be edited while the AI works: an answer about a text that is no longer in the box is dropped.
+  const latest = useRef(text);
+  useEffect(() => { latest.current = text; }, [text]);
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()} title={t('file.title', { name: titleName })} description={t('file.description')} xl>
       <div className="flex flex-col gap-4">
@@ -80,7 +83,7 @@ export function TitleFileDialog({ titleId, titleName, titleCode = null, onClose 
         <div><Button variant="secondary" disabled={!text.trim() || check.isPending} onClick={() => run(text)}>{t('file.extract')}</Button></div>
         {check.isError && <Alert tone="danger">{t('file.extractFailed')}</Alert>}
         {result && <Findings result={result} titleCode={titleCode} />}
-        {offersAi(result) && <AiOffer titleId={titleId} text={text} onResult={setResult} />}
+        {offersAi(result) && <AiOffer titleId={titleId} text={text} onResult={(answer, sent) => latest.current === sent && setResult(answer)} />}
         {save.failed && <Alert tone="danger">{save.failed}</Alert>}
       </div>
       <DialogFooter>

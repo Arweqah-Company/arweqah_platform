@@ -1,9 +1,9 @@
 import { CorePermission } from '@arweqah-platform/shared';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
-import { http, HttpResponse } from 'msw';
+import { delay, http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { careerContent, careerRow } from '../../../test/career-fixtures';
-import { me, server } from '../../../test/msw';
+import { access, me, server } from '../../../test/msw';
 import { orgTree } from '../../../test/org-fixtures';
 import { renderPage } from '../../../test/render';
 import { chooseOption } from '../../../test/select';
@@ -169,10 +169,11 @@ describe('The career-path content page: what the panel keeps and what an error h
     expect(screen.queryByText('تجاهل التعديلات غير المحفوظة؟')).not.toBeInTheDocument();
   });
 
-  it('after a failed reload leaves no titles to pick, no export and no actions on the stale panel', async () => {
+  it('after a failed reload leaves no titles to pick, no export and no actions on the stale panel, even when the permissions arrive after the rows', async () => {
     open();
+    server.use(http.get('*/api/me/access', async () => { await delay(300); return HttpResponse.json(access()); }));
     await screen.findByRole('heading', { level: 3, name: 'منسق الاستقطاب' });
-    expect(screen.getByRole('button', { name: /تصدير/ })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /تصدير/ })).toBeInTheDocument();
     server.use(http.get('*/api/career/titles', () => HttpResponse.json({ code: 'internal', message: 'x' }, { status: 500 })));
     fireEvent.change(screen.getByPlaceholderText('ابحث بالمسمى أو الرمز'), { target: { value: 'م' } });
     expect(await screen.findByRole('alert')).toHaveTextContent('تعذّر تحميل المسميات.');

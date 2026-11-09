@@ -26,6 +26,18 @@ Fields:
 
 /** The user turn: the title's code for reference, and the document in a fence the document cannot close. */
 export function titleFileAiUser(text: string, titleCode: string | null): string {
-  const safe = text.replaceAll('<document>', '').replaceAll('</document>', '');
+  const safe = withoutFence(text);
   return `Job title code (for reference only): ${titleCode ?? 'none'}\n\n<document>\n${safe}\n</document>`;
+}
+
+const FENCE_TAG = /<\/?\s*document\s*>/gi;
+
+/** The file with every opening or closing fence tag taken out, again and again: removing one can bring the pieces around it together into a new one. */
+function withoutFence(text: string): string {
+  let safe = text;
+  for (let before = ''; before !== safe; ) {
+    before = safe;
+    safe = safe.replace(FENCE_TAG, '');
+  }
+  return safe;
 }

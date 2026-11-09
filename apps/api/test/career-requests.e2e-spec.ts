@@ -14,7 +14,7 @@ describe('Development requests (FR-116)', () => {
   const t = useTestApp();
 
   /** An employee (Rep, specialization stage: cap 5,000), a direct manager, the sector head and the CEO, each with the keys to decide. */
-  async function setup(options: { ceo?: boolean } = {}) {
+  async function setup(options: { ceo?: boolean; sector?: boolean } = {}) {
     const s = await chainScenario(t);
     const holder = await s.person(s.rep, s.group);
     const me = await t.factories.signIn(holder);
@@ -22,7 +22,7 @@ describe('Development requests (FR-116)', () => {
     const sectorHead = await t.factories.user({ grants: grants(DECIDE) });
     const ceo = await t.factories.user({ grants: grants(DECIDE) });
     await t.db.query('UPDATE employees SET manager_id = $1 WHERE id = $2', [manager.employeeId, holder.employeeId]);
-    await t.db.query('UPDATE org_nodes SET manager_id = $1 WHERE id = $2', [sectorHead.employeeId, s.sector.id]);
+    if (options.sector !== false) await t.db.query('UPDATE org_nodes SET manager_id = $1 WHERE id = $2', [sectorHead.employeeId, s.sector.id]);
     if (options.ceo !== false) {
       const office = await t.factories.node({ key: 'office', parentId: null, name: 'CEO office' });
       await t.db.query('UPDATE org_nodes SET manager_id = $1 WHERE id = $2', [ceo.employeeId, office.id]);
@@ -177,6 +177,31 @@ describe('Development requests (FR-116)', () => {
     // a delayed message about a decided request changes nothing
     await t.app.get(CareerRequestDecisionService).onTransitioned({ instanceId: moved.id, definitionKey: 'career.development_request', entityType: 'career_development_request', entityId: sent.id, event: 'TIMEOUT', from: 'direct', to: 'sector', isDone: false, actorId: null });
     expect(((await s.me.get('/api/career-profile/me/requests').expect(200)).body as DevelopmentRequestDto[])[0]).toMatchObject({ status: 'approved' });
+  });
+
+  it('keeps a request with the direct manager when the deadline ends and nobody holds a higher post', async () => {
+    const s = await setup({ sector: false, ceo: false });
+    const sent = (await s.send({ cost: 3000 })).body as DevelopmentRequestDto;
+    const engine = t.app.get(WorkflowEngine);
+    const instance = await engine.findByEntity('career_development_request', sent.id);
+    const moved = await engine.send({ instanceId: instance!.id, event: { type: 'TIMEOUT' }, actorId: null, comment: 'timeout' });
+    await t.app.get(CareerRequestDecisionService).onTransitioned({ instanceId: moved.id, definitionKey: 'career.development_request', entityType: 'career_development_request', entityId: sent.id, event: 'TIMEOUT', from: 'direct', to: 'sector', isDone: false, actorId: null });
+    expect(((await s.me.get('/api/career-profile/me/requests').expect(200)).body as DevelopmentRequestDto[])[0]).toMatchObject({ level: 'direct', status: 'pending', approverName: expect.any(String) });
+    expect(await titles(s.me)).not.toContain('صُعِّد طلب تطويرك');
+    await s.manager.post(`/api/career/requests/${sent.id}/approve`).expect(204);
+  });
+
+  it('warns about the budget only on a pending request, and shows the warning to the approver too', async () => {
+    const s = await setup();
+    const a = (await s.send({ cost: 4000 })).body as DevelopmentRequestDto;
+    await s.manager.post(`/api/career/requests/${a.id}/approve`).expect(204);
+    expect(((await s.me.get('/api/career-profile/me/requests').expect(200)).body as DevelopmentRequestDto[])[0]).toMatchObject({ status: 'approved', overBudget: false });
+    const b = (await s.send({ cost: 2000 })).body as DevelopmentRequestDto;
+    const waiting = (await s.manager.get('/api/career/requests').query({ mine: 'true' }).expect(200)).body as RequestsPageDto;
+    expect(waiting.items.find((r) => r.id === b.id)).toMatchObject({ overBudget: true });
+    await s.manager.post(`/api/career/requests/${b.id}/reject`).send({ reason: 'تجاوز الميزانية' }).expect(204);
+    const all = (await s.manager.get('/api/career/requests').query({ status: 'approved' }).expect(200)).body as RequestsPageDto;
+    expect(all.items[0]).toMatchObject({ id: a.id, overBudget: false });
   });
 
   it('records every step in the audit trail without the reason text of other people', async () => {

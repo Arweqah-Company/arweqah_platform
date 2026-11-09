@@ -217,6 +217,24 @@ describe('The pick list of models (FR-126)', () => {
     expect(within(dialog).getByRole('button', { name: 'حدّث القائمة' })).toBeInTheDocument();
   });
 
+  it('FR-126 (review): drops the list when the key or the address changes, so a model of the old service cannot be picked', async () => {
+    const { dialog } = await openForm();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'اعرض النماذج المتاحة' }));
+    await within(dialog).findByText('النماذج المتاحة: 3');
+    fireEvent.change(within(dialog).getByLabelText(/عنوان الخدمة/), { target: { value: 'https://api.groq.com/openai/v1' } });
+    await waitFor(() => expect(within(dialog).queryByText('النماذج المتاحة: 3')).not.toBeInTheDocument());
+    expect(within(dialog).getByLabelText(/النموذج/)).toHaveValue('gemini-3.8-flash');
+    expect(within(dialog).getByRole('button', { name: 'اعرض النماذج المتاحة' })).toBeInTheDocument();
+  });
+
+  it('keeps the list when only the model is picked (it is not a reason to ask again)', async () => {
+    const { dialog } = await openForm();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'اعرض النماذج المتاحة' }));
+    await within(dialog).findByText('النماذج المتاحة: 3');
+    await chooseOption(within(dialog).getByRole('combobox', { name: 'النموذج' }), 'gemini-3.6-flash');
+    expect(within(dialog).getByText('النماذج المتاحة: 3')).toBeInTheDocument();
+  });
+
   it('puts the chosen model in the form, ready to be saved', async () => {
     const { dialog } = await openForm();
     fireEvent.click(within(dialog).getByRole('button', { name: 'اعرض النماذج المتاحة' }));

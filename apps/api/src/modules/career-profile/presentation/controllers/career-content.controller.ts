@@ -5,7 +5,7 @@
  *   PUT    /content     SaveCareerContentDto    career_content.edit: the whole document; `expectedVersion` stale = 409 CAREER_CONTENT_STALE
  *   POST   /file        TitleFileResultDto      career_titlefile.upload: `dryRun` (the default) only reports; a real run saves a new version, 422 TITLE_FILE_NEEDS_REVIEW with `details.problems`
  *   POST   /file/ai     TitleFileResultDto      career_titlefile.ai: the AI places the file's parts and answers like a dry run (`content`, `problems`, `ungrounded`); saves nothing; 422 AI_NOT_CONFIGURED, 502 AI_UNAVAILABLE
- *   POST   /file/confirm CareerTitleContentDto  career_titlefile.upload: saves the reviewed content as a new version; 422 TITLE_FILE_NEEDS_REVIEW, 409 CAREER_CONTENT_STALE
+ *   POST   /file/confirm CareerTitleContentDto  career_titlefile.upload: saves the reviewed content (with the `expectedVersion` the analysis read) as a new version; 422 TITLE_FILE_NEEDS_REVIEW, 409 CAREER_CONTENT_STALE
  *   POST   /reopen-acknowledgement ReopenAcknowledgementResultDto career_acknowledge.reopen: the holders are asked to acknowledge again (422 CAREER_PATH_NOT_READY unless the path is ready)
  *   POST   /publish     CareerTitleContentDto   career_titlefile.publish: 422 CAREER_CONTENT_NOT_READY with `details.problems`
  *   POST   /draft       CareerTitleContentDto   career_titlefile.publish
@@ -21,7 +21,7 @@ import { CareerContentService } from '../../application/services/career-content.
 import { CareerReopenService } from '../../application/services/career-reopen.service';
 import { TitleFileAiService } from '../../application/services/title-file-ai.service';
 import { TitleFileService } from '../../application/services/title-file.service';
-import { AnalyzeTitleFileDto, ExtractTitleFileDto, ReopenAcknowledgementDto, SaveCareerContentDto } from '../dtos/career-profile.dtos';
+import { AnalyzeTitleFileDto, ConfirmTitleFileDto, ExtractTitleFileDto, ReopenAcknowledgementDto, SaveCareerContentDto } from '../dtos/career-profile.dtos';
 
 @ApiTags('career-profile')
 @Controller('career/titles/:id')
@@ -62,7 +62,7 @@ export class CareerContentController {
   @Post('file/confirm')
   @HttpCode(200)
   @RequirePermission(CorePermission.CareerTitlefileUpload)
-  confirmFile(@Param() { id }: IdParam, @Body() body: SaveCareerContentDto, @CurrentUser() user: SessionUser): Promise<CareerTitleContentDto> {
+  confirmFile(@Param() { id }: IdParam, @Body() body: ConfirmTitleFileDto, @CurrentUser() user: SessionUser): Promise<CareerTitleContentDto> {
     return this.aiFiles.confirm(id, body, user.id);
   }
 

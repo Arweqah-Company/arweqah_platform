@@ -23,7 +23,7 @@ export class TitleFileService {
     const title = await this.titles.identity(titleId);
     const reading = readTitleFile(input.text, title.code);
     // Asked only when the reader found something to fix: the dialog offers the AI button then (and a save does not need to know).
-    const aiAvailable = reading.problems.length > 0 && (await this.ai.isActive());
+    const aiAvailable = reading.problems.length > 0 && (await safely(() => this.ai.isActive()));
     if (input.dryRun) return resultOf(reading, { dryRun: true, version: null, aiAvailable });
     if (reading.problems.length) throw new TitleFileNeedsReviewError(reading.problems);
     const saved = await this.content.save(titleId, { content: reading.content }, actorId);
@@ -32,6 +32,15 @@ export class TitleFileService {
   }
 }
 
+/** The AI hint is a convenience: a failure reading the AI settings must never stop the fixed reader (or a save). */
+async function safely(ask: () => Promise<boolean>): Promise<boolean> {
+  try {
+    return await ask();
+  } catch {
+    return false;
+  }
+}
+
 function resultOf(reading: TitleFileReading, run: { dryRun: boolean; version: number | null; aiAvailable: boolean }): TitleFileResultDto {
-  return { dryRun: run.dryRun, saved: run.version !== null, version: run.version, counts: reading.counts, problems: reading.problems, codeInFile: reading.codeInFile, ignored: reading.ignored, source: 'rules', content: null, ungrounded: [], aiAvailable: run.aiAvailable };
+  return { dryRun: run.dryRun, saved: run.version !== null, version: run.version, counts: reading.counts, problems: reading.problems, codeInFile: reading.codeInFile, ignored: reading.ignored, source: 'rules', content: null, ungrounded: [], baseVersion: null, aiAvailable: run.aiAvailable };
 }

@@ -42,7 +42,7 @@ describe('the address of an AI service (FR-126)', () => {
   });
 
   it('FR-126: refuses http, a local name, an IP number (the cloud metadata address, a private one), an IPv6 literal and credentials in the address', () => {
-    for (const bad of ['http://api.groq.com/v1', 'https://localhost/v1', 'https://app.localhost/v1', 'https://db.internal/v1', 'https://intranet/v1', 'https://169.254.169.254/latest', 'https://10.0.0.5/v1', 'https://127.0.0.1:8080/v1', 'https://2130706433/v1', 'https://[::1]/v1', 'https://user:pass@api.groq.com/v1', 'not a url']) {
+    for (const bad of ['http://api.groq.com/v1', 'https://localhost/v1', 'https://app.localhost/v1', 'https://db.internal/v1', 'https://intranet/v1', 'https://169.254.169.254/latest', 'https://10.0.0.5/v1', 'https://127.0.0.1:8080/v1', 'https://2130706433/v1', 'https://[::1]/v1', 'https://user:pass@api.groq.com/v1', 'not a url', 'https://localhost./v1', 'https://db.internal./v1', 'https://127.0.0.1./v1', 'https://intranet./v1', 'https://app.localhost../v1']) {
       expect(problems(bad), bad).toEqual(['baseUrl']);
     }
   });
