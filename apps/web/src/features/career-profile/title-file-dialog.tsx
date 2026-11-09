@@ -7,7 +7,8 @@ import { toast } from 'sonner';
 import { ApiError } from '@/core/api/api-client';
 import { Alert, Badge, Button, Dialog, DialogFooter, FileDropzone, FormField, Textarea } from '@/shared/ui';
 import { readTitleFile, useReadTitleFile } from './api';
-import { DocumentReadError, readDocumentText, TITLE_FILE_ACCEPT, TITLE_FILE_MAX_BYTES } from './read-document';
+import { TITLE_FILE_ACCEPT, TITLE_FILE_MAX_BYTES } from '@/shared/lib/read-document';
+import { useDocumentReader } from '@/shared/lib/use-document-reader';
 
 /** What the reader found: the counts of each part and what is still wrong, each in words. */
 function Findings({ result }: { result: TitleFileResultDto }) {
@@ -34,27 +35,17 @@ export function TitleFileDialog({ titleId, titleName, onClose }: { titleId: stri
   const { t } = useTranslation('career-profile');
   const [text, setText] = useState('');
   const [result, setResult] = useState<TitleFileResultDto | null>(null);
-  const [readError, setReadError] = useState<string | null>(null);
   const check = useMutation({ mutationFn: (value: string) => readTitleFile(titleId, { text: value, dryRun: true }), onSuccess: setResult });
   const save = useReadTitleFile(titleId);
   const run = (value: string) => { setResult(null); check.mutate(value); };
-  const onFile = async (files: File[]) => {
-    setReadError(null);
-    try {
-      const value = await readDocumentText(files[0] as File);
-      setText(value);
-      run(value);
-    } catch (e) {
-      setReadError(t(`file.readErrors.${e instanceof DocumentReadError ? e.reason : 'unreadable'}`));
-    }
-  };
+  const reader = useDocumentReader((value) => { setText(value); run(value); });
   const submit = () => save.mutate({ text, dryRun: false }, { onSuccess: (r) => { toast.success(t('file.saved', { version: r.version })); onClose(); } });
   const failed = save.error instanceof ApiError ? t('file.saveRefused') : save.isError ? t('file.saveFailed') : null;
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()} title={t('file.title', { name: titleName })} description={t('file.description')} xl>
       <div className="flex flex-col gap-4">
-        <FileDropzone label={t('file.pick')} accept={TITLE_FILE_ACCEPT} maxBytes={TITLE_FILE_MAX_BYTES} hint={t('file.hint')} busy={check.isPending} onFiles={(f) => void onFile(f)} />
-        {readError && <Alert tone="danger">{readError}</Alert>}
+        <FileDropzone label={t('file.pick')} accept={TITLE_FILE_ACCEPT} maxBytes={TITLE_FILE_MAX_BYTES} hint={t('file.hint')} busy={check.isPending} onFiles={(f) => void reader.read(f)} />
+        {reader.failure && <Alert tone="danger">{t(`file.readErrors.${reader.failure}`)}</Alert>}
         <FormField label={t('file.paste')} hint={t('file.limit', { max: TITLE_FILE_MAX_CHARS.toLocaleString() })}>
           {(props) => <Textarea {...props} rows={6} value={text} maxLength={TITLE_FILE_MAX_CHARS} onChange={(e) => { setText(e.target.value); setResult(null); }} />}
         </FormField>

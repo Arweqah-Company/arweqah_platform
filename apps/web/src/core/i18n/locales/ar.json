@@ -42,7 +42,8 @@
     "careerContent": "محتوى المسارات الوظيفية",
     "careerCertificates": "مراجعة الشهادات",
     "careerTeam": "فريقي المهني",
-    "careerRequests": "طلبات التطوير"
+    "careerRequests": "طلبات التطوير",
+    "performanceCycle": "دورة التقييم"
   },
   "actions": {
     "save": "حفظ",

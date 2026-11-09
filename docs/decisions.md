@@ -2,6 +2,20 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-09 — Performance, batch 5a (first delivery): the evaluation file and the cycle
+
+Plan: `docs/plans/phase-6-career-path-performance.md` §3.1, §3.7, §3.8 and §15.1 (a1 to a3).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 279 | **The evaluation file is parsed on the server by a pure rule ported from the concept** (`eval-file.rules.ts`, the concept's stage-1 text as the fixture; the other stages are made from it in the tests). Every part carries the checks it failed; a file with any failed part is 422 and nothing is saved, a stage missing from the file simply stays «not uploaded». A heading weight that disagrees with the basic weights is a `basic_split` problem. | The owner's rule: no sound weights, no save. | The real file for stages 2 to 5 differs in shape from stage 1. |
+| 280 | **A cycle is a row (`performance_cycles`) with a snapshot of the templates and a machine with no timers** (`performance.cycle`: stages move by `NEXT`, `CLOSE` from any stage). The snapshot is taken when it opens, so a later upload of the file changes nothing of a year that began. The catalog waits with `cycle_id` null and the cycle that opens takes it. | Plan P12; HR decides when a stage ends. | The owner wants stages to move on their dates (a scheduled job per date). |
+| 281 | **Assumed: the dates of the first five stages follow one another, the last two stand alone** (`dateProblems`), and a date not set yet is skipped, not guessed. The two the concept calls «last day of the self-evaluation» and «close of the qualitative part» only keep their own order. | The plan asks for an order check without saying which dates are chained. | The owner gives the exact order. |
+| 282 | **The evaluation file is uploaded from the cycle page, not from a tab of «career content».** The page that opens the cycle shows what is missing and holds the button; reading txt, Word and PDF moved from `career-profile` to `shared/lib/read-document` (with `useDocumentReader`) so both screens use one reader. | Readiness and upload belong together. | HR wants it in the shared lists. |
+| 283 | **Left for later in 5a and 5b on purpose:** the readiness check that the calibration and approval keys are granted (the keys come with 5b), reminders (5c), moving stages by date, the «go to this stage's screen» button of the stage window (the screens come next). | Nothing is invented before its screen exists. | Each screen lands. |
+| 284 | **Review fixes of PR 67:** one open cycle is enforced by the database (`is_open` with a partial unique index; the conflict is mapped to `CYCLE_ALREADY_OPEN` or `CYCLE_YEAR_EXISTS`); a stage move is written only while the cycle is still at the stage it was read at (`CYCLE_STAGE_CHANGED`, 409), so two advances at once move one stage and the row and the workflow agree; a stage number outside 1 to 5 is a problem (`stage_range`); the fiscal card needs twelve distinct months; ranges and headings are read only on short lines (a long line is not understood and costs nothing); the dialogs show failures (advance, close, catalog delete, date refusals with an unknown code), and a check that finishes after the text changed is never used. Each has a test that failed first (the concurrent-open race did not reproduce in a test, so the constraint is tested directly in the database). Plan row a2 now says what is built. | Review of the PR. | |
+
+
 ## 2026-11-09 — Career path, batch 4c: development requests, competency levels, the budget card
 
 Plan: `docs/plans/phase-6-career-path-performance.md` §2.6 and §15.1 (j1 to j4).
