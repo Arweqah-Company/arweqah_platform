@@ -73,7 +73,7 @@ function BoardContent({ state, empty, lanesBy }: { state: TaskListState; empty: 
 
 function BoardPanel({ state, toolbar, empty, lanesBy }: { state: TaskListState; toolbar: ReactNode; empty: ReactNode; lanesBy?: 'person' }) {
   return (
-    <div className="rounded-3xl border border-neutral-200 bg-white p-3 shadow-sm shadow-ink/5 sm:p-5">
+    <div data-tour="main-list" className="rounded-3xl border border-neutral-200 bg-white p-3 shadow-sm shadow-ink/5 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-end gap-3">{toolbar}</div>
       <BoardContent state={state} empty={empty} lanesBy={lanesBy} />
     </div>

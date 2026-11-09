@@ -145,5 +145,6 @@
     }
   },
   "navHint": "Open “{{page}}” from here at any time.",
-  "canTitle": "What you can do here"
+  "canTitle": "What you can do here",
+  "opening": "Opening the next step…"
 }

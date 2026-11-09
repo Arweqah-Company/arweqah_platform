@@ -1,7 +1,7 @@
 import { CorePermission } from '@arweqah-platform/shared';
 import { Settings } from 'lucide-react';
 import { redirect } from 'react-router';
-import { PAGE_TITLE_TARGET, type FeatureModule } from '@/core/feature';
+import { type FeatureModule } from '@/core/feature';
 import ar from './i18n/ar.json';
 import en from './i18n/en.json';
 
@@ -14,7 +14,7 @@ export const integrationsFeature: FeatureModule = {
   ],
   nav: [{ to: '/service-settings', labelKey: 'nav.serviceSettings', icon: Settings, group: 'administration', requiresAdminMode: true }],
   tour: [
-    { key: 'settings', target: PAGE_TITLE_TARGET, route: '/service-settings', placement: 'bottom', can: [{ id: 'translation', permission: CorePermission.IntegrationsTranslationEdit }, { id: 'email', permission: CorePermission.IntegrationsEmailEdit }, { id: 'email_templates', permission: CorePermission.TemplatesEmailEdit }, { id: 'notification_templates', permission: CorePermission.TemplatesNotificationEdit }] },
+    { key: 'settings', target: '[data-tour="settings-tab:translation"]', route: '/service-settings', placement: 'bottom', can: [{ id: 'translation', permission: CorePermission.IntegrationsTranslationEdit }, { id: 'email', permission: CorePermission.IntegrationsEmailEdit }, { id: 'email_templates', permission: CorePermission.TemplatesEmailEdit }, { id: 'notification_templates', permission: CorePermission.TemplatesNotificationEdit }] },
   ],
   i18n: { ar, en },
 };

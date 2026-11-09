@@ -1,5 +1,5 @@
 import { CorePermission } from '@arweqah-platform/shared';
-import { PAGE_TITLE_TARGET, type TourStepUi } from '@/core/feature';
+import type { TourStepUi } from '@/core/feature';
 
 /** The steps that point at the shell (header, account menu, sidebar); the steps of a page are declared by the feature that owns it. */
 export const SHELL_STEPS: TourStepUi[] = [
@@ -12,9 +12,9 @@ export const SHELL_STEPS: TourStepUi[] = [
   { key: 'language-theme', target: '[data-tour="language-theme"]', placement: 'bottom' },
   { key: 'notifications', target: '[data-tour="notifications"]', placement: 'bottom', can: [{ id: 'mark', permission: CorePermission.NotificationsMarkRead }, { id: 'export', permission: CorePermission.NotificationsExport }] },
   { key: 'sidebar', target: '[data-tour="sidebar"]', placement: 'end', menu: 'drawer' },
-  { key: 'finish', target: 'body', placement: 'center' },
+  { key: 'finish', target: 'body', route: '/', placement: 'center' },
   { key: 'admin-mode', target: '[data-tour="admin-mode"]', placement: 'bottom' },
-  { key: 'captcha-settings', target: PAGE_TITLE_TARGET, route: '/service-settings?tab=captcha', placement: 'bottom', can: [{ id: 'edit', permission: CorePermission.IntegrationsCaptchaEdit }, { id: 'test', permission: CorePermission.IntegrationsCaptchaTest }, { id: 'activate', permission: CorePermission.IntegrationsCaptchaActivate }, { id: 'export', permission: CorePermission.IntegrationsCaptchaExport }] },
-  { key: 'ai-settings', target: PAGE_TITLE_TARGET, route: '/service-settings?tab=ai', placement: 'bottom', can: [{ id: 'edit', permission: CorePermission.IntegrationsAiEdit }, { id: 'test', permission: CorePermission.IntegrationsAiTest }, { id: 'activate', permission: CorePermission.IntegrationsAiActivate }, { id: 'export', permission: CorePermission.IntegrationsAiExport }] },
-  { key: 'tour-settings', target: PAGE_TITLE_TARGET, route: '/service-settings?tab=tour-settings', placement: 'bottom', can: [{ id: 'edit', permission: CorePermission.TourSettingsEdit }, { id: 'reorder', permission: CorePermission.TourSettingsReorder }, { id: 'reset', permission: CorePermission.TourSettingsReset }, { id: 'export', permission: CorePermission.TourSettingsExport }] },
+  { key: 'captcha-settings', target: '[data-tour="settings-tab:captcha"]', route: '/service-settings?tab=captcha', placement: 'bottom', can: [{ id: 'edit', permission: CorePermission.IntegrationsCaptchaEdit }, { id: 'test', permission: CorePermission.IntegrationsCaptchaTest }, { id: 'activate', permission: CorePermission.IntegrationsCaptchaActivate }, { id: 'export', permission: CorePermission.IntegrationsCaptchaExport }] },
+  { key: 'ai-settings', target: '[data-tour="settings-tab:ai"]', route: '/service-settings?tab=ai', placement: 'bottom', can: [{ id: 'edit', permission: CorePermission.IntegrationsAiEdit }, { id: 'test', permission: CorePermission.IntegrationsAiTest }, { id: 'activate', permission: CorePermission.IntegrationsAiActivate }, { id: 'export', permission: CorePermission.IntegrationsAiExport }] },
+  { key: 'tour-settings', target: '[data-tour="settings-tab:tour-settings"]', route: '/service-settings?tab=tour-settings', placement: 'bottom', can: [{ id: 'edit', permission: CorePermission.TourSettingsEdit }, { id: 'reorder', permission: CorePermission.TourSettingsReorder }, { id: 'reset', permission: CorePermission.TourSettingsReset }, { id: 'export', permission: CorePermission.TourSettingsExport }] },
 ];

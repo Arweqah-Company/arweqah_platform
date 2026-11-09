@@ -1,6 +1,6 @@
 import { CorePermission } from '@arweqah-platform/shared';
 import { Users } from 'lucide-react';
-import { PAGE_TITLE_TARGET, type FeatureModule } from '@/core/feature';
+import { PAGE_MAIN_TARGET, type FeatureModule } from '@/core/feature';
 import ar from './i18n/ar.json';
 import en from './i18n/en.json';
 
@@ -17,11 +17,11 @@ export const employeesFeature: FeatureModule = {
   ],
   nav: [{ to: '/employees', labelKey: 'nav.employees', icon: Users, group: 'people', permission: CorePermission.EmployeesView, pageKey: 'employees' }],
   tour: [
-    { key: 'employees', target: PAGE_TITLE_TARGET, route: '/employees', placement: 'bottom', can: [{ id: 'create', permission: CorePermission.EmployeesCreate }, { id: 'update', permission: CorePermission.EmployeesUpdate }, { id: 'roles', permission: CorePermission.EmployeesAssignRoles }, { id: 'deactivate', permission: CorePermission.EmployeesDeactivate }, { id: 'sensitive', permission: CorePermission.EmployeesViewSensitive }, { id: 'import', permission: CorePermission.EmployeesImport }, { id: 'export', permission: CorePermission.EmployeesExport }, { id: 'impersonate', permission: CorePermission.ImpersonationStart }] },
-    { key: 'directory', target: PAGE_TITLE_TARGET, route: '/employees?tab=team', placement: 'bottom', can: [{ id: 'export', permission: CorePermission.DirectoryExport }] },
-    { key: 'employee-history', target: PAGE_TITLE_TARGET, route: '/employees', placement: 'bottom' },
-    { key: 'bulk-update', target: PAGE_TITLE_TARGET, route: '/employees', placement: 'bottom' },
-    { key: 'employee-photo', target: PAGE_TITLE_TARGET, route: '/employees', placement: 'bottom' },
+    { key: 'employees', target: PAGE_MAIN_TARGET, route: '/employees', placement: 'auto', can: [{ id: 'create', permission: CorePermission.EmployeesCreate }, { id: 'update', permission: CorePermission.EmployeesUpdate }, { id: 'roles', permission: CorePermission.EmployeesAssignRoles }, { id: 'deactivate', permission: CorePermission.EmployeesDeactivate }, { id: 'sensitive', permission: CorePermission.EmployeesViewSensitive }, { id: 'import', permission: CorePermission.EmployeesImport }, { id: 'export', permission: CorePermission.EmployeesExport }, { id: 'impersonate', permission: CorePermission.ImpersonationStart }] },
+    { key: 'directory', target: PAGE_MAIN_TARGET, route: '/employees?tab=team', placement: 'auto', can: [{ id: 'export', permission: CorePermission.DirectoryExport }] },
+    { key: 'employee-history', target: '[data-tour="first-row"]', route: '/employees', placement: 'bottom' },
+    { key: 'bulk-update', target: '[data-tour="select-all"]', route: '/employees', placement: 'bottom' },
+    { key: 'employee-photo', target: '[data-tour="first-row"]', route: '/employees', placement: 'bottom' },
   ],
   i18n: { ar, en },
 };

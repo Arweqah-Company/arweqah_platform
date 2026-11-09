@@ -67,7 +67,7 @@ export function NumbersSection({ tasks, tickets, showTasks, showTickets }: { tas
   const { t } = useTranslation('home');
   if (!showTasks && !showTickets) return null;
   return (
-    <section aria-label={t('numbers.title')} className="mt-8">
+    <section aria-label={t('numbers.title')} data-tour="main-list" className="mt-8">
       <h2 className="mb-4 text-lg font-bold">{t('numbers.title')}</h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {showTasks && <TaskTiles tasks={tasks} />}

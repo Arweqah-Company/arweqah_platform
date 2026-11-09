@@ -7,9 +7,10 @@ import type { FeatureModule } from '@/core/feature';
 import { playSteps, type OwnedStep } from './play-steps';
 import { PlayerContext, TourContext, type TourControls, type TourPlayer } from './tour-context';
 import { useTourAction, useTourQuery } from './tour.api';
+import { TourLoading } from './tour-loading';
 import { TourStage } from './tour-stage';
 import { useAutoStart } from './use-auto-start';
-import { useTourRunner } from './use-tour-runner';
+import { positionOf, useTourRunner } from './use-tour-runner';
 import { WhatsNew } from './whats-new';
 
 interface Props {
@@ -47,18 +48,17 @@ export function TourProvider({ features, setDrawer, children }: Props) {
   const owners = useMemo(() => new Map<string, OwnedStep>(features.flatMap((f) => (f.tour ?? []).map((ui): [string, OwnedStep] => [ui.key, { ui, ns: f.id }]))), [features]);
   const [menu, setMenu] = useState(false);
   const [nav, setNav] = useState<string | null>(null);
-  const navLabels = useMemo(() => new Map(features.flatMap((f) => (f.nav ?? []).filter((n) => !n.hideFromMenu).map((n): [string, string] => [n.to, n.labelKey]))), [features]);
   const record = useTourAction();
   const onEnd = useCallback((tour: TourId, how: 'completed' | 'skipped') => void record(tour, how === 'completed' ? 'complete' : 'skip'), [record]);
   const runner = useTourRunner({ setDrawer, setAccountMenu: setMenu, setNav, onEnd });
   const general = useTourQuery('general', signedIn);
   const admin = useTourQuery('admin', adminOn);
 
-  const begin = useCallback((tour: TourId, dto: TourDto, onlyNew: boolean) => runner.start(tour, playSteps(dto, owners, { onlyNew, lang: i18n.language, t, allowed: can, navLabel: (route) => (navLabels.has(route) ? t(navLabels.get(route)!) : undefined) })), [runner.start, owners, navLabels, can, i18n.language, t]); // eslint-disable-line react-hooks/exhaustive-deps
+  const begin = useCallback((tour: TourId, dto: TourDto, onlyNew: boolean) => runner.start(tour, playSteps(dto, owners, { onlyNew, lang: i18n.language, t, allowed: can })), [runner.start, owners, can, i18n.language, t]); // eslint-disable-line react-hooks/exhaustive-deps
   const offer = useAutoStart({ data: { general: general.data, admin: admin.data }, running: holdsOffers(runner.run, me), begin, dismiss: (tour) => void record(tour, 'skip') });
   const restart = useCallback(async (tour: TourId) => begin(tour, await record(tour, 'restart'), false), [begin, record]);
 
-  const player: TourPlayer = { index: runner.run?.index ?? 0, total: runner.run?.steps.length ?? 0, next: runner.next, back: runner.back, skip: runner.skip };
+  const player: TourPlayer = { ...positionOf(runner.run), next: runner.next, back: runner.back, skip: runner.skip };
   useTourKeys(!!runner.run, player, i18n.dir() === 'rtl');
   const defaultText = useCallback((key: string, lang: 'ar' | 'en') => {
     const owned = owners.get(key);
@@ -69,6 +69,7 @@ export function TourProvider({ features, setDrawer, children }: Props) {
   return (
     <TourContext.Provider value={controls}>
       {children}
+      {runner.run && !runner.ready && <TourLoading key={`${runner.run.tour}:${runner.run.index}`} />}
       {runner.run && runner.ready && runner.current && (
         <PlayerContext.Provider value={player}>
           <TourStage key={`${runner.run.tour}:${runner.current.key}`} step={runner.current} />

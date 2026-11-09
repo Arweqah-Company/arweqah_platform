@@ -28,10 +28,14 @@ export class TourService {
     };
   }
 
-  /** Finished or skipped: every step shown today counts as seen, so a later release offers only what is new. */
+  /**
+   * Finished or skipped: every step shown today counts as seen, so a later release offers only what is new. What was seen before stays seen:
+   * finishing with fewer steps visible (admin mode off, a page hidden meanwhile) must not make the others «new» the next time they show.
+   */
   async finish(ctx: AccessContext, tour: TourId, status: 'completed' | 'skipped'): Promise<TourDto> {
     const { steps } = await this.visible(ctx, tour);
-    await this.repo.saveProgress(ctx.userId, tour, status, steps.map((s) => s.key));
+    const before = (await this.repo.progress(ctx.userId, tour))?.seenSteps ?? [];
+    await this.repo.saveProgress(ctx.userId, tour, status, [...new Set([...before, ...steps.map((s) => s.key)])]);
     return this.get(ctx, tour);
   }
 

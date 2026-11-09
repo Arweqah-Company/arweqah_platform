@@ -43,7 +43,7 @@ export function SettingsPage() {
       <PageHeader title={t('title.settings')} description={t('description.settings')} />
       {current ? (
         <>
-          <Tabs tabs={tabs.map((x) => ({ id: x.id, label: t(`tabs.${x.id}`) }))} value={current.id} label={t('tabsLabel')} onChange={(id) => setParams({ tab: id }, { replace: true })} />
+          <Tabs tabs={tabs.map((x) => ({ id: x.id, label: t(`tabs.${x.id}`), tour: `settings-tab:${x.id}` }))} value={current.id} label={t('tabsLabel')} onChange={(id) => setParams({ tab: id }, { replace: true })} />
           <div key={current.id}>{current.content}</div>
         </>
       ) : (

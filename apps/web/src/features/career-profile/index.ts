@@ -1,6 +1,6 @@
 import { CorePermission } from '@arweqah-platform/shared';
 import { Award, FileStack, HandCoins, Route, Users } from 'lucide-react';
-import { PAGE_TITLE_TARGET, type FeatureModule } from '@/core/feature';
+import { PAGE_MAIN_TARGET, type FeatureModule } from '@/core/feature';
 import ar from './i18n/ar.json';
 import en from './i18n/en.json';
 
@@ -24,12 +24,12 @@ export const careerProfileFeature: FeatureModule = {
     { to: '/career-content', labelKey: 'nav.careerContent', icon: FileStack, group: 'people', permission: CorePermission.CareerContentView, pageKey: 'career-content' },
   ],
   tour: [
-    { key: 'career-profile', target: PAGE_TITLE_TARGET, route: '/career-profile', placement: 'bottom' },
+    { key: 'career-profile', target: '[data-tour="career-title-card"]', route: '/career-profile', placement: 'bottom' },
     {
       key: 'career-content',
-      target: PAGE_TITLE_TARGET,
+      target: PAGE_MAIN_TARGET,
       route: '/career-content',
-      placement: 'bottom',
+      placement: 'auto',
       can: [
         { id: 'upload', permission: CorePermission.CareerTitlefileUpload },
         { id: 'ai', permission: CorePermission.CareerTitlefileAi },
@@ -40,9 +40,9 @@ export const careerProfileFeature: FeatureModule = {
     },
     {
       key: 'career-team',
-      target: PAGE_TITLE_TARGET,
+      target: PAGE_MAIN_TARGET,
       route: '/career-team',
-      placement: 'bottom',
+      placement: 'auto',
       can: [
         { id: 'decide', permission: CorePermission.CareerTeamDecide },
         { id: 'export', permission: CorePermission.CareerTeamExport },
@@ -50,9 +50,9 @@ export const careerProfileFeature: FeatureModule = {
     },
     {
       key: 'career-requests',
-      target: PAGE_TITLE_TARGET,
+      target: PAGE_MAIN_TARGET,
       route: '/career-requests',
-      placement: 'bottom',
+      placement: 'auto',
       can: [
         { id: 'approve', permission: CorePermission.CareerRequestsApprove },
         { id: 'reject', permission: CorePermission.CareerRequestsReject },
@@ -61,9 +61,9 @@ export const careerProfileFeature: FeatureModule = {
     },
     {
       key: 'career-certificates',
-      target: PAGE_TITLE_TARGET,
+      target: PAGE_MAIN_TARGET,
       route: '/career-certificates',
-      placement: 'bottom',
+      placement: 'auto',
       can: [
         { id: 'approve', permission: CorePermission.CareerCertificatesApprove },
         { id: 'reject', permission: CorePermission.CareerCertificatesReject },

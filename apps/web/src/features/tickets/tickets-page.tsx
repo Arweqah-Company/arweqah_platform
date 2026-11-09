@@ -95,7 +95,7 @@ function TicketsBody({ tab, mode, groupBy, params, list, toolbar }: { tab: Ticke
   const empty = <EmptyState icon={LifeBuoy} title={list.narrowed ? t('noMatches') : t(`empty.${tab}`)} description={list.narrowed ? undefined : t(`emptyHint.${tab}`)} />;
   if (mode !== 'board') return <TicketsTable mode={mode} tab={tab} groupBy={groupBy} params={params} list={list} toolbar={toolbar} empty={empty} />;
   return (
-    <div className="rounded-3xl border border-neutral-200 bg-white p-3 shadow-sm shadow-ink/5 sm:p-5">
+    <div data-tour="main-list" className="rounded-3xl border border-neutral-200 bg-white p-3 shadow-sm shadow-ink/5 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-end gap-3">{toolbar}</div>
       <BoardContent params={params} empty={empty} />
     </div>

@@ -28,7 +28,7 @@ export function PermissionsPage() {
   return (
     <>
       <PageHeader title={t('title')} description={t('description')} />
-      <div className="flex flex-col gap-6">
+      <div data-tour="main-list" className="flex flex-col gap-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField label={t('kind')} hint={t('kindHint')}>
             {(p) => (
