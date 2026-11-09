@@ -41,3 +41,17 @@ export class CareerPathNotReadyError extends BusinessRuleError {
     super('Only a career path that is set ready can be reopened for acknowledgement');
   }
 }
+
+export class CareerProofRefusedError extends BusinessRuleError {
+  override readonly code = 'CAREER_PROOF_REFUSED';
+  constructor(reason: 'file_required' | 'already_sent' | 'already_done') {
+    super(`The proof cannot be sent: ${reason}`, { reason });
+  }
+}
+
+export class CareerRecordNotOpenError extends ConflictError {
+  override readonly code = 'CAREER_RECORD_NOT_OPEN';
+  constructor() {
+    super('The proof was already decided');
+  }
+}

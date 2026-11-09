@@ -89,6 +89,13 @@ export const CorePermission = {
   CareerTitlefileUpload: 'career_titlefile.upload',
   CareerTitlefilePublish: 'career_titlefile.publish',
   CareerTitlefilePreview: 'career_titlefile.preview',
+  CareerLearningUpload: 'career_learning.upload',
+  CareerCertificatesReview: 'career_certificates.review',
+  CareerCertificatesApprove: 'career_certificates.approve',
+  CareerCertificatesReject: 'career_certificates.reject',
+  CareerCertificatesRefer: 'career_certificates.refer',
+  CareerCertificatesExport: 'career_certificates.export',
+  CareerRequiredTick: 'career_required.tick',
   // My account
   ProfileView: 'profile.view',
   ProfileUpdate: 'profile.update',
@@ -209,6 +216,8 @@ const OWN_ACCOUNT_PERMISSIONS: { key: CorePermissionKey; scope: 'all' }[] = [
   { key: CorePermission.CareerProfileView, scope: 'all' },
   { key: CorePermission.CareerAcknowledgeCreate, scope: 'all' },
   { key: CorePermission.CareerLearningExport, scope: 'all' },
+  { key: CorePermission.CareerLearningUpload, scope: 'all' },
+  { key: CorePermission.CareerRequiredTick, scope: 'all' },
 ];
 
 /**

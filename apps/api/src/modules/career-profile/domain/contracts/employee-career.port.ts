@@ -14,4 +14,8 @@ export abstract class EmployeeCareerPort {
   abstract forUser(userId: string): Promise<CareerEmployee | null>;
   /** The active employees holding a title. */
   abstract holderCount(titleId: string): Promise<number>;
+  /** The user of the employee's direct manager; null when there is none or the manager has no account. */
+  /** The user account of an employee; null when they have none. */
+  abstract userOf(employeeId: string): Promise<string | null>;
+  abstract managerUserId(employeeId: string): Promise<string | null>;
 }

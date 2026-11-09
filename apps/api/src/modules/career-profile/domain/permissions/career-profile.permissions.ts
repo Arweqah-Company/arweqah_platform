@@ -14,4 +14,11 @@ export const CAREER_PROFILE_PERMISSIONS: PermissionDefinition[] = [
   { key: CorePermission.CareerTitlefileUpload, module: MODULE, labelAr: 'رفع ملف المسمى واستخراج المسار الوظيفي منه', labelEn: 'Upload a title file and read the career path from it', scopes: ['all'] },
   { key: CorePermission.CareerTitlefilePublish, module: MODULE, labelAr: 'تعيين المسار الوظيفي جاهزًا أو إرجاعه إلى مسودة', labelEn: 'Set a career path ready or back to draft', scopes: ['all'] },
   { key: CorePermission.CareerTitlefilePreview, module: MODULE, labelAr: 'معاينة المسار الوظيفي كما يراه الموظف', labelEn: 'Preview a career path as the employee sees it', scopes: ['all'] },
+  { key: CorePermission.CareerLearningUpload, module: MODULE, labelAr: 'رفع إثبات إنجاز وحدة تعلم', labelEn: 'Send a proof for a learning unit', scopes: ['all'] },
+  { key: CorePermission.CareerRequiredTick, module: MODULE, labelAr: 'تعليم بند من المطلوب بأنه تم', labelEn: 'Mark a required item as done', scopes: ['all'] },
+  { key: CorePermission.CareerCertificatesReview, module: MODULE, labelAr: 'عرض صفحة مراجعة الشهادات وملفاتها', labelEn: 'View the certificate review page and its files', scopes: ['all'] },
+  { key: CorePermission.CareerCertificatesApprove, module: MODULE, labelAr: 'اعتماد إثبات وحدة تعلم', labelEn: 'Approve the proof of a learning unit', scopes: ['all'] },
+  { key: CorePermission.CareerCertificatesReject, module: MODULE, labelAr: 'رفض إثبات وحدة تعلم بسبب', labelEn: 'Reject the proof of a learning unit with a reason', scopes: ['all'] },
+  { key: CorePermission.CareerCertificatesRefer, module: MODULE, labelAr: 'إحالة إثبات إلى المدير المباشر', labelEn: 'Refer a proof to the direct manager', scopes: ['all'] },
+  { key: CorePermission.CareerCertificatesExport, module: MODULE, labelAr: 'تصدير قائمة الشهادات', labelEn: 'Export the list of certificates', scopes: ['all'] },
 ];
