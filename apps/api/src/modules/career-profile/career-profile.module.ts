@@ -4,6 +4,7 @@ import { PermissionCatalog } from '../../core/access/application/permission-cata
 import { WorkflowRegistry } from '../../core/workflow/application/workflow-definition';
 import { OrgModule } from '../org/org.module';
 import { CareerProgressService } from './application/services/career-progress.service';
+import { CareerTeamService } from './application/services/career-team.service';
 import { CareerProofService } from './application/services/career-proof.service';
 import { CareerReviewService } from './application/services/career-review.service';
 import { CareerContentService } from './application/services/career-content.service';
@@ -27,6 +28,7 @@ import { TypeOrmCareerLearningRepository } from './infrastructure/repositories/t
 import { TypeOrmCareerAcknowledgementRepository } from './infrastructure/repositories/typeorm-career-acknowledgement.repository';
 import { TypeOrmCareerTitleListRepository } from './infrastructure/repositories/typeorm-career-title-list.repository';
 import { TypeOrmCareerContentRepository } from './infrastructure/repositories/typeorm-career-content.repository';
+import { CareerTeamController } from './presentation/controllers/career-team.controller';
 import { CareerCertificatesController } from './presentation/controllers/career-certificates.controller';
 import { CareerTitlesController } from './presentation/controllers/career-titles.controller';
 import { MyCareerController } from './presentation/controllers/my-career.controller';
@@ -35,7 +37,7 @@ import { CareerContentController } from './presentation/controllers/career-conte
 /** The career path of each job title (content now; the employee's page, the acknowledgement, the learning records and the requests come in later stages). */
 @Module({
   imports: [TypeOrmModule.forFeature([...CAREER_CONTENT_ENTITIES, ...CAREER_ACKNOWLEDGEMENT_ENTITIES, ...CAREER_PROGRESS_ENTITIES]), OrgModule],
-  controllers: [CareerContentController, CareerTitlesController, CareerCertificatesController, MyCareerController],
+  controllers: [CareerContentController, CareerTitlesController, CareerCertificatesController, CareerTeamController, MyCareerController],
   providers: [
     CareerContentService,
     TitleFileService,
@@ -43,6 +45,7 @@ import { CareerContentController } from './presentation/controllers/career-conte
     CareerReopenService,
     CareerProofService,
     CareerProgressService,
+    CareerTeamService,
     CareerReviewService,
     CareerTitleListService,
     LearningLinksService,

@@ -21,4 +21,7 @@ export const CAREER_PROFILE_PERMISSIONS: PermissionDefinition[] = [
   { key: CorePermission.CareerCertificatesReject, module: MODULE, labelAr: 'رفض إثبات وحدة تعلم بسبب', labelEn: 'Reject the proof of a learning unit with a reason', scopes: ['all'] },
   { key: CorePermission.CareerCertificatesRefer, module: MODULE, labelAr: 'إحالة إثبات إلى المدير المباشر', labelEn: 'Refer a proof to the direct manager', scopes: ['all'] },
   { key: CorePermission.CareerCertificatesExport, module: MODULE, labelAr: 'تصدير قائمة الشهادات', labelEn: 'Export the list of certificates', scopes: ['all'] },
+  { key: CorePermission.CareerTeamView, module: MODULE, labelAr: 'عرض «فريقي المهني»', labelEn: 'View «my career team»', scopes: ['unit', 'subtree', 'company', 'all'] },
+  { key: CorePermission.CareerTeamDecide, module: MODULE, labelAr: 'البتّ في إثبات أُحيل إلى المدير المباشر', labelEn: 'Decide a proof referred to the direct manager', scopes: ['unit', 'subtree', 'company', 'all'] },
+  { key: CorePermission.CareerTeamExport, module: MODULE, labelAr: 'تصدير قائمة «فريقي المهني»', labelEn: 'Export the «my career team» list', scopes: ['unit', 'subtree', 'company', 'all'] },
 ];

@@ -1,4 +1,4 @@
-import { CorePermission, type CareerContent, type CertificatesPageDto, type LearningRecordDto, type MyCareerProfileDto, type MyProgressDto, type PermissionGrant } from '@arweqah-platform/shared';
+import { CorePermission, type CareerContent, type CertificatesPageDto, type TeamMemberDetailDto, type TeamPageDto, type LearningRecordDto, type MyCareerProfileDto, type MyProgressDto, type PermissionGrant } from '@arweqah-platform/shared';
 import { describe, expect, it, vi } from 'vitest';
 import { complete } from './helpers/career-content';
 import { chainScenario } from './helpers/title-chain';
@@ -182,5 +182,75 @@ describe('The progress of the employee in their path (FR-114)', () => {
     await s.me.put('/api/career-profile/me/required/0').send({ done: 'yes' }).expect(400);
     const bare = await t.factories.signIn(await t.factories.user({ bare: true }));
     await bare.put('/api/career-profile/me/required/0').send({ done: true }).expect(403);
+  });
+});
+
+describe('«My career team» (FR-115)', () => {
+  const t = useTestApp();
+  const TEAM = [CorePermission.CareerTeamView, CorePermission.CareerTeamDecide];
+
+  async function setup(viewerGrants: PermissionGrant[] = TEAM.map((key) => ({ key, scope: 'all' as const }))) {
+    const s = await chainScenario(t);
+    const hr = await t.factories.signIn(await t.factories.user({ grants: grants(HR) }));
+    const holder = await s.person(s.rep, s.group);
+    const me = await t.factories.signIn(holder);
+    const viewer = await t.factories.signIn(await t.factories.user({ grants: viewerGrants }));
+    await hr.put(`/api/career/titles/${s.rep.id}/content`).send({ content: complete }).expect(200);
+    await hr.post(`/api/career/titles/${s.rep.id}/publish`).expect(200);
+    const unitId = (((await me.get('/api/career-profile/me').expect(200)).body as MyCareerProfileDto).content as CareerContent).learning.periods[0]!.units[0]!.id as string;
+    return { ...s, hr, holder, me, viewer, unitId };
+  }
+
+  it('lists the people the scope reaches with their numbers, marks one with no ready path, searches and filters by state', async () => {
+    const s = await setup();
+    const page = (await s.viewer.get('/api/career/team').expect(200)).body as TeamPageDto;
+    const mine = page.items.find((m) => m.employeeId === s.holder.employeeId);
+    expect(mine).toMatchObject({ name: expect.any(String), status: expect.stringMatching(/regular|late/), requiredTotal: expect.any(Number), approvedMinutes: 0, waiting: 0 });
+    expect(page.items.every((m) => m.employeeId !== undefined)).toBe(true);
+    expect(((await s.viewer.get('/api/career/team').query({ search: 'لا-أحد-بهذا-الاسم' }).expect(200)).body as TeamPageDto).items).toHaveLength(0);
+    const bare = await s.person(s.lead, s.group);
+    const noPath = ((await s.viewer.get('/api/career/team').query({ status: 'no_path' }).expect(200)).body as TeamPageDto).items;
+    expect(noPath.map((m) => m.employeeId)).toContain(bare.employeeId);
+    await s.viewer.get('/api/career/team').query({ status: 'zzz' }).expect(400);
+  });
+
+  it('shows one member with the proofs waiting for a decision, and answers 404 for a person the scope does not reach', async () => {
+    const s = await setup();
+    const fileId = ((await s.me.post('/api/files').attach('file', PNG, 'c.png').expect(201)).body as { id: string }).id;
+    await s.me.post('/api/career-profile/me/learning').send({ unitId: s.unitId, kind: 'certificate', fileId }).expect(201);
+    const detail = (await s.viewer.get(`/api/career/team/${s.holder.employeeId}`).expect(200)).body as TeamMemberDetailDto;
+    expect(detail.proofs).toHaveLength(1);
+    expect(detail.waiting).toBe(1);
+    await s.viewer.get('/api/career/team/00000000-0000-4000-8000-000000000000').expect(404);
+    const own = await t.factories.signIn(s.holder);
+    await own.get('/api/career/team').expect(403);
+  });
+
+  it('lets the manager decide a proof that was referred to them, and only that one', async () => {
+    const s = await setup();
+    const app = (await s.me.post('/api/career-profile/me/learning').send({ unitId: s.unitId, kind: 'application', note: 'طبّقتها' }).expect(201)).body as LearningRecordDto;
+    expect(app.status).toBe('referred');
+    await s.viewer.post(`/api/career/team/${s.holder.employeeId}/proofs/${app.id}/approve`).expect(204);
+    expect(((await s.me.get('/api/career-profile/me/learning').expect(200)).body as LearningRecordDto[])[0]).toMatchObject({ status: 'done' });
+    await s.viewer.post(`/api/career/team/${s.holder.employeeId}/proofs/${app.id}/approve`).expect(409);
+    const other = await setup();
+    const waiting = (await other.me.post('/api/career-profile/me/learning').send({ unitId: other.unitId, kind: 'output' }).expect(201)).body as LearningRecordDto;
+    await other.viewer.post(`/api/career/team/${other.holder.employeeId}/proofs/${waiting.id}/reject`).send({ reason: 'سبب كافٍ' }).expect(409); // still with the reviewer, not the manager
+    await other.viewer.post(`/api/career/team/${s.holder.employeeId}/proofs/${waiting.id}/approve`).expect(404); // another person's proof
+  });
+
+  it('keeps a narrower scope to its own units: a viewer who leads another unit sees nobody of this one (404 for a person, an empty team)', async () => {
+    const s = await setup([{ key: CorePermission.CareerTeamView, scope: 'subtree' }]);
+    const elsewhere = await t.factories.node({ key: 'sector', parentId: null, name: 'Elsewhere', mode: 'per_company' });
+    const outsider = await t.factories.signIn(await t.factories.user({ unit: elsewhere, grants: [{ key: CorePermission.CareerTeamView, scope: 'subtree' }] }));
+    await outsider.get(`/api/career/team/${s.holder.employeeId}`).expect(404);
+    expect(((await outsider.get('/api/career/team').expect(200)).body as TeamPageDto).items.some((m) => m.employeeId === s.holder.employeeId)).toBe(false);
+  });
+
+  it('403 without the key of each route', async () => {
+    const s = await setup([{ key: CorePermission.CareerTeamView, scope: 'all' }]);
+    await s.viewer.post(`/api/career/team/${s.holder.employeeId}/proofs/00000000-0000-4000-8000-000000000000/approve`).expect(403);
+    const none = await setup([{ key: CorePermission.CareerTeamDecide, scope: 'all' }]);
+    await none.viewer.get('/api/career/team').expect(403);
   });
 });

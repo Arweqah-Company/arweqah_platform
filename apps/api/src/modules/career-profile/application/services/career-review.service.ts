@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PROOF_REJECTIONS_BEFORE_MANAGER, type CertificateReviewItemDto, type CertificatesPageDto, type CertificatesQuery, type RejectProofInput } from '@arweqah-platform/shared';
+import { CorePermission, PROOF_REJECTIONS_BEFORE_MANAGER, type CertificateReviewItemDto, type CertificatesPageDto, type CertificatesQuery, type RejectProofInput } from '@arweqah-platform/shared';
 import { Clock } from '../../../../common/application/clock';
 import { TransactionRunner, type TransactionContext } from '../../../../common/application/transaction-runner';
 import { NotFoundError } from '../../../../common/domain/domain-error';
@@ -11,6 +11,7 @@ import { NotificationsService } from '../../../../core/notifications/application
 import { WorkflowEngine } from '../../../../core/workflow/application/workflow-engine';
 import { CareerContentRepository } from '../../domain/contracts/career-content.repository';
 import { CareerLearningRepository } from '../../domain/contracts/career-learning.repository';
+import { CareerTeamPort } from '../../domain/contracts/career-team.port';
 import { EmployeeCareerPort } from '../../domain/contracts/employee-career.port';
 import { CareerRecordNotOpenError } from '../../domain/errors/career-profile.errors';
 import { findUnit } from '../../domain/rules/learning-proof.rules';
@@ -26,6 +27,7 @@ export class CareerReviewService {
     private readonly records: CareerLearningRepository,
     private readonly content: CareerContentRepository,
     private readonly employees: EmployeeCareerPort,
+    private readonly team: CareerTeamPort,
     private readonly files: FilesService,
     private readonly workflow: WorkflowEngine,
     private readonly notifications: NotificationsService,
@@ -53,6 +55,26 @@ export class CareerReviewService {
 
   reject(ctx: AccessContext, id: string, input: RejectProofInput): Promise<void> {
     return this.decide(ctx, id, { event: 'REJECT', change: { status: 'rej', rejectionReason: input.reason, rejectionIncrement: 1 }, action: CAREER_AUDIT.proofRejected });
+  }
+
+  /** The direct manager (or whoever the team scope gives the key) approves a proof that was referred to them. */
+  async teamApprove(ctx: AccessContext, employeeId: string, id: string): Promise<void> {
+    await this.referredOf(ctx, employeeId, id);
+    return this.approve(ctx, id);
+  }
+
+  async teamReject(ctx: AccessContext, employeeId: string, id: string, input: RejectProofInput): Promise<void> {
+    await this.referredOf(ctx, employeeId, id);
+    return this.reject(ctx, id, input);
+  }
+
+  /** The proof must belong to a person the team scope reaches (404 otherwise) and be with the manager (409 otherwise). */
+  private async referredOf(ctx: AccessContext, employeeId: string, id: string): Promise<void> {
+    const filter = ctx.filterFor(CorePermission.CareerTeamDecide);
+    const person = filter ? await this.team.member(filter, employeeId) : null;
+    const record = person ? await this.records.findById(id) : null;
+    if (!person || !record || record.employeeId !== employeeId) throw new NotFoundError('Proof', id);
+    if (record.status !== 'referred') throw new CareerRecordNotOpenError();
   }
 
   async refer(ctx: AccessContext, id: string): Promise<void> {

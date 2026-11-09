@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import type { CertificatesQuery, ProofKind, RecordStatus } from '@arweqah-platform/shared';
 import { managerOf } from '../../../../common/infrastructure/typeorm-transaction-runner';
 import type { TransactionContext } from '../../../../common/domain/transaction-context';
@@ -85,6 +85,18 @@ export class TypeOrmCareerLearningRepository extends CareerLearningRepository {
   async queue(query: CertificatesQuery): Promise<{ items: QueueRow[]; total: number }> {
     const rows: QueueSqlRow[] = await this.ds.query(QUEUE_SQL, [query.status ?? null, query.kind ?? null, query.search ? likeContains(query.search) : null, query.pageSize, (query.page - 1) * query.pageSize]);
     return { items: rows.map(toQueueRow), total: Number(rows[0]?.total ?? 0) };
+  }
+
+  async forEmployees(employeeIds: readonly string[]): Promise<LearningRecordRow[]> {
+    if (!employeeIds.length) return [];
+    const rows = await this.records.find({ where: { employeeId: In([...employeeIds]) } });
+    return Promise.all(rows.map((r) => this.toRow(r)));
+  }
+
+  async requiredDoneFor(employeeIds: readonly string[]): Promise<{ employeeId: string; titleId: string; index: number }[]> {
+    if (!employeeIds.length) return [];
+    const rows = await this.ds.getRepository(CareerRequiredProgress).find({ where: { employeeId: In([...employeeIds]) } });
+    return rows.map((r) => ({ employeeId: r.employeeId, titleId: r.titleId, index: r.itemIndex }));
   }
 
   async requiredDone(employeeId: string, titleId: string): Promise<number[]> {

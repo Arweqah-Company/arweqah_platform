@@ -96,6 +96,9 @@ export const CorePermission = {
   CareerCertificatesRefer: 'career_certificates.refer',
   CareerCertificatesExport: 'career_certificates.export',
   CareerRequiredTick: 'career_required.tick',
+  CareerTeamView: 'career_team.view',
+  CareerTeamDecide: 'career_team.decide',
+  CareerTeamExport: 'career_team.export',
   // My account
   ProfileView: 'profile.view',
   ProfileUpdate: 'profile.update',
@@ -270,6 +273,10 @@ export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 's
   // people of the unit and below
   { key: CorePermission.EmployeesView, scope: 'subtree' },
   { key: CorePermission.EmployeesHistoryView, scope: 'subtree' },
+  // the career path of the unit and below: the team page, the proofs referred to the manager, the export
+  { key: CorePermission.CareerTeamView, scope: 'subtree' },
+  { key: CorePermission.CareerTeamDecide, scope: 'subtree' },
+  { key: CorePermission.CareerTeamExport, scope: 'subtree' },
   // tasks of the unit and below
   { key: CorePermission.TasksTeamView, scope: 'subtree' },
   { key: CorePermission.TasksMatrixView, scope: 'subtree' },

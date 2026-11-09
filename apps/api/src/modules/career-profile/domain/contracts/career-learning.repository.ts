@@ -17,4 +17,8 @@ export abstract class CareerLearningRepository {
   abstract requiredDone(employeeId: string, titleId: string): Promise<number[]>;
   /** Ticks (or unticks) one item; ticking an item that is ticked changes nothing. */
   abstract setRequired(tick: RequiredTick, tx: TransactionContext): Promise<void>;
+  /** The records of several employees at once (the team page). */
+  abstract forEmployees(employeeIds: readonly string[]): Promise<LearningRecordRow[]>;
+  /** The ticks of «required» of several employees at once, each with the title it was ticked for. */
+  abstract requiredDoneFor(employeeIds: readonly string[]): Promise<{ employeeId: string; titleId: string; index: number }[]>;
 }
