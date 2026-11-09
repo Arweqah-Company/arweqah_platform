@@ -4,7 +4,7 @@ import { PAGE_TITLE_TARGET, type FeatureModule } from '@/core/feature';
 import ar from './i18n/ar.json';
 import en from './i18n/en.json';
 
-export { CareerGate } from './career-gate';
+export { CareerGate, useCareerHold } from './career-gate';
 
 /** The career path: the employee's own page (read in order until acknowledged) and, for HR, the content of each title's path. */
 export const careerProfileFeature: FeatureModule = {
@@ -17,7 +17,7 @@ export const careerProfileFeature: FeatureModule = {
     { path: '/career-content', lazy: () => import('./content-page').then((m) => ({ Component: m.CareerContentPage })) },
   ],
   nav: [
-    { to: '/career-profile', labelKey: 'nav.careerProfile', icon: Route, group: 'people', permission: CorePermission.CareerProfileView, pageKey: 'career-profile' },
+    { to: '/career-profile', labelKey: 'nav.careerProfile', icon: Route, rank: 1, permission: CorePermission.CareerProfileView, pageKey: 'career-profile' },
     { to: '/career-team', labelKey: 'nav.careerTeam', icon: Users, group: 'people', permission: CorePermission.CareerTeamView, pageKey: 'career-team' },
     { to: '/career-certificates', labelKey: 'nav.careerCertificates', icon: Award, group: 'people', permission: CorePermission.CareerCertificatesReview, pageKey: 'career-certificates' },
     { to: '/career-requests', labelKey: 'nav.careerRequests', icon: HandCoins, group: 'people', permission: CorePermission.CareerRequestsView, pageKey: 'career-requests' },

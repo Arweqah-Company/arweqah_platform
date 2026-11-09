@@ -42,7 +42,9 @@
     "careerContent": "محتوى المسارات الوظيفية",
     "careerCertificates": "مراجعة الشهادات",
     "careerTeam": "فريقي المهني",
-    "careerRequests": "طلبات التطوير"
+    "careerRequests": "طلبات التطوير",
+    "locked": "القائمة مغلقة حتى تُقرّ بمسارك الوظيفي.",
+    "lockedHint": "اقرأ مسارك الوظيفي وأقرّ به أولًا"
   },
   "actions": {
     "save": "حفظ",

@@ -6,6 +6,7 @@ import { ApiError } from '@/core/api/api-client';
 import { Alert } from '@/shared/ui';
 import { useAcknowledge } from './api';
 import { ReadingBar } from './reading-bar';
+import { useReadingCoverage } from './reading-coverage';
 import { ReadingTabs } from './reading-tabs';
 import { isOpen, nextOf, reachedAfter, stepIndex, type ReadStep } from './read-steps';
 import { SectionBody } from './section-body';
@@ -35,7 +36,9 @@ export function ReadingFlow({ me }: { me: MyCareerProfileDto }) {
   const [reached, setReached] = useState(0);
   const [checked, setChecked] = useState(false);
   const marker = useRef<HTMLDivElement>(null);
-  const atEnd = useReachedEnd(marker, step);
+  const { provider, pending } = useReadingCoverage();
+  const unopened = pending(step);
+  const atEnd = useReachedEnd(marker, step) && unopened.length === 0;
   const acknowledge = useAcknowledge();
   useEffect(() => window.scrollTo({ top: 0 }), [step]);
   const go = (to: ReadStep) => (isOpen(to, reached) ? setStep(to) : toast.info(t('gate.lockedToast')));
@@ -53,12 +56,14 @@ export function ReadingFlow({ me }: { me: MyCareerProfileDto }) {
       {acknowledge.isError && <Alert tone="danger">{stale ? t('gate.stale') : t('gate.failed')}</Alert>}
       <div className="rounded-3xl border border-neutral-200 bg-white p-4">
         <ReadingTabs step={step} reached={reached} onChoose={go} />
-        <div role="tabpanel" aria-labelledby={`read-tab-${step}`} tabIndex={-1}>
-          {step === 'ack' ? <AckStep content={content} /> : <SectionBody section={step as CareerSectionKey} content={content} stage={me.stage} />}
-          <div ref={marker} className="h-px" aria-hidden data-step={stepIndex(step)} />
-        </div>
+        {provider(
+          <div role="tabpanel" aria-labelledby={`read-tab-${step}`} tabIndex={-1}>
+            {step === 'ack' ? <AckStep content={content} /> : <SectionBody section={step as CareerSectionKey} content={content} stage={me.stage} />}
+            <div ref={marker} className="h-px" aria-hidden data-step={stepIndex(step)} />
+          </div>,
+        )}
       </div>
-      <ReadingBar me={me} step={step} reached={reached} atEnd={atEnd} checked={checked} busy={acknowledge.isPending} onChecked={setChecked} onMove={go} onNext={next} onAcknowledge={send} />
+      <ReadingBar me={me} step={step} reached={reached} atEnd={atEnd} unopened={unopened} checked={checked} busy={acknowledge.isPending} onChecked={setChecked} onMove={go} onNext={next} onAcknowledge={send} />
     </div>
   );
 }

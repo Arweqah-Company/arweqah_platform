@@ -11,6 +11,8 @@ export interface NavItem {
   icon: LucideIcon;
   /** Puts the link under a collapsible menu in the sidebar; no group = a top-level link. */
   group?: NavGroupId;
+  /** Where the link stands in the sidebar: lower first, 50 when not given, equal ranks keep the order of the features (Home 0, My career path 1). */
+  rank?: number;
   /** Hidden from users without it (the API enforces it regardless). */
   permission?: string;
   /** Highlight this link only on its exact address (it is the start of its siblings' addresses). */

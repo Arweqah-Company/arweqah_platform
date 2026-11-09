@@ -1,4 +1,4 @@
-import { careerContentSchema, type CareerContent,  type TitleFileCountsDto, type TitleFileProblem } from '@arweqah-platform/shared';
+import { careerContentSchema, orderedLadder, type CareerContent,  type TitleFileCountsDto, type TitleFileProblem } from '@arweqah-platform/shared';
 import { parseDevelopment, type ParsedDevelopment } from './development.rules';
 import { parseJobDescription, type ParsedJobDescription } from './job-description.rules';
 import { parseLearningPlan, type ParsedLearningPlan } from './learning-plan.rules';
@@ -66,7 +66,7 @@ function buildContent(job: ParsedJobDescription, dev: ParsedDevelopment, require
     summary: job.summary,
     kpis: job.kpis,
     responsibilities: job.groups,
-    ladder: dev.ladder.map((l) => ({ level: l.level as CareerContent['ladder'][number]['level'], title: l.title, current: l.current })),
+    ladder: orderedLadder(dev.ladder.map((l) => ({ level: l.level as CareerContent['ladder'][number]['level'], title: l.title, current: l.current }))),
     transitionRule: dev.condition,
     pathUnit: dev.unit,
     pathTitle: dev.title,

@@ -64,4 +64,13 @@ describe('Placing a title file with the AI (FR-127)', () => {
     expect(contentProblems({ ...strict.content, summary: '' }, CODE)).toEqual(['summary_missing']);
     expect(contentProblems(strict.content, 'GRW.01.00.00-L7P-01')).toEqual(['code_mismatch']);
   });
+
+  it('FR-127: a ladder listed from the top down (L1 first) is stored in the order it is climbed, like one listed from the entry up', () => {
+    const topDown = { ...ai, ladder: [...ai.ladder].reverse() };
+    const placed = readingOf(partsFromAi(topDown), CODE).content;
+    expect(placed.ladder).toEqual(strict.content.ladder);
+    expect(placed.ladder.map((l) => l.level)).toEqual(['L9', 'L7', 'L6', 'L5', 'L4', 'L3', 'L2', 'L1'].filter((l) => placed.ladder.some((s) => s.level === l)));
+    expect(placed.ladder[0]).toMatchObject({ current: true });
+  });
 });
+

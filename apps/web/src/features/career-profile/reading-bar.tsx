@@ -9,6 +9,8 @@ interface Props {
   step: ReadStep;
   reached: number;
   atEnd: boolean;
+  /** The tabs of this section the reader has not opened yet (their names). */
+  unopened: string[];
   checked: boolean;
   busy: boolean;
   onChecked: (value: boolean) => void;
@@ -18,8 +20,8 @@ interface Props {
 }
 
 /** Where the reader is, and «Previous» / «Next» (Next waits for the end of the section). */
-function Navigation({ step, reached, atEnd, onMove, onNext }: Pick<Props, 'step' | 'reached' | 'atEnd' | 'onMove' | 'onNext'>) {
-  const { t } = useTranslation('career-profile');
+function Navigation({ step, reached, atEnd, unopened, onMove, onNext }: Pick<Props, 'step' | 'reached' | 'atEnd' | 'unopened' | 'onMove' | 'onNext'>) {
+  const { t, i18n } = useTranslation('career-profile');
   const previous = previousOf(step);
   const next = nextOf(step);
   const nextOk = canGoNext(step, reached, atEnd);
@@ -28,7 +30,7 @@ function Navigation({ step, reached, atEnd, onMove, onNext }: Pick<Props, 'step'
     <div className="flex flex-wrap items-center gap-2">
       <span className="font-medium text-fg max-sm:basis-full">{label}</span>
       <span className="flex-1 max-sm:hidden" />
-      {!nextOk && step !== 'ack' && <span role="status" className="text-sm text-muted max-sm:order-last max-sm:basis-full">{t('gate.scrollHint')}</span>}
+      {!nextOk && step !== 'ack' && <span role="status" className="text-sm text-muted max-sm:order-last max-sm:basis-full">{unopened.length > 0 ? t('gate.tabsHint', { tabs: new Intl.ListFormat(i18n.language, { type: 'conjunction' }).format(unopened) }) : t('gate.scrollHint')}</span>}
       <div className="flex gap-2 max-sm:w-full [&>*]:max-sm:flex-1">
         <Button variant="secondary" disabled={!previous} onClick={() => previous && onMove(previous)}><ArrowRight className="size-4 ltr:rotate-180" aria-hidden />{t('gate.previous')}</Button>
         {next && <Button disabled={!nextOk} onClick={onNext}>{t(next === 'ack' ? 'gate.nextAck' : 'gate.next', { section: next === 'ack' ? '' : t(`sections.${next}`) })}<ArrowLeft className="size-4 ltr:rotate-180" aria-hidden /></Button>}
@@ -57,12 +59,12 @@ function AckBox({ me, ready, checked, onChecked }: Pick<Props, 'me' | 'checked' 
 }
 
 /** The bar kept at the bottom while reading: where the reader is, «Previous» / «Next», and the acknowledgement box, which stays off until the last step. */
-export function ReadingBar({ me, step, reached, atEnd, checked, busy, onChecked, onMove, onNext, onAcknowledge }: Props) {
+export function ReadingBar({ me, step, reached, atEnd, unopened, checked, busy, onChecked, onMove, onNext, onAcknowledge }: Props) {
   const { t } = useTranslation('career-profile');
   const ready = canAcknowledge(step, reached);
   return (
     <div className="sticky bottom-2 z-10 flex flex-col gap-2 rounded-3xl border border-neutral-200 bg-white p-3 shadow-md" data-tour="career-reading-bar">
-      <Navigation step={step} reached={reached} atEnd={atEnd} onMove={onMove} onNext={onNext} />
+      <Navigation step={step} reached={reached} atEnd={atEnd} unopened={unopened} onMove={onMove} onNext={onNext} />
       <div className="flex flex-wrap items-center gap-3">
         <AckBox me={me} ready={ready} checked={checked} onChecked={onChecked} />
         <Button disabled={!ready || !checked || busy} onClick={onAcknowledge}>{t('gate.ackButton')}</Button>

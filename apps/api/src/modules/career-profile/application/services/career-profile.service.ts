@@ -17,7 +17,7 @@ import { CAREER_AUDIT, CAREER_ENTITY } from '../messages/career-profile.messages
 const NOT_AVAILABLE: MyCareerProfileDto = {
   available: false, titleId: null, titleCode: null, titleNameAr: null, titleNameEn: null, grade: null, track: null, unitCode: null, unitNameAr: null, unitNameEn: null,
   employeeName: null, managerName: null, stage: null, contentVersion: null, content: null,
-  ackRequired: false, ackReason: null, acknowledgedAt: null, acknowledgedVersion: null,
+  ackRequired: false, adminModeExempt: false, ackReason: null, acknowledgedAt: null, acknowledgedVersion: null,
 };
 
 /** The signed-in employee's own career path and its acknowledgement (FR-111, FR-112). */
@@ -44,12 +44,12 @@ export class CareerProfileService {
       this.acks.countFor(employee.employeeId).then((n) => n > 0),
     ]);
     const state = acknowledgementState({ latest, reopenedAt, everAcknowledged });
-    const held = state.pending && !employee.isSystemAccount && !impersonationStamp.getStore();
+    const held = state.pending && !impersonationStamp.getStore();
     return {
       available: true, titleId, titleCode: title.code, titleNameAr: title.nameAr, titleNameEn: title.nameEn, grade: title.grade, track: title.track,
       unitCode: title.unit.code, unitNameAr: title.unit.nameAr, unitNameEn: title.unit.nameEn, employeeName: employee.fullName, managerName: employee.managerName, stage: title.stage,
       contentVersion: stored.version, content: stored.content,
-      ackRequired: held, ackReason: state.pending ? state.reason : null,
+      ackRequired: held, adminModeExempt: employee.isSystemAccount, ackReason: state.pending ? state.reason : null,
       acknowledgedAt: latest?.acknowledgedAt.toISOString() ?? null, acknowledgedVersion: latest?.contentVersion ?? null,
     };
   }

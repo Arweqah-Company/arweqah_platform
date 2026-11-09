@@ -9,7 +9,10 @@ Five `.txt` title files for the page «محتوى المسارات الوظيف�
 | 03-…-أخصائي-تطوير-أعمال | GRW.01.00.00-L7P-01 |
 | 04-…-منسق-الشراكات-وعلاقات-العملاء | GRW.03.00.00-L9P-01 |
 | 05-…-أخصائي-أبحاث | CON.01.00.00-L7P-01 |
+| 06-…-مهندس-برمجيات-أول-غير-مرتب | OPS.03.01.03-L6P-01 |
 
 Use: open the title in the list → «رفع ملف المسمى» → drop the file (or paste its text) → the review table must show every part «سليم» → save. Every file was checked with `readTitleFile` (no problems).
 
 Format rules the reader depends on: `apps/api/src/modules/career-profile/domain/rules/*.rules.ts` (job-description, development, learning-plan, required-actions). Reference sample: `domain/rules/fixtures/title-file.sample.ts`.
+
+**File 06 is deliberately messy** (a job posting copy): the parts come in another order (required items first, then the learning plan, then the description), with other headings, bullets and a table written with `|`, and with text that is not career content (company story, benefits and salary, contact details, the department list, page buttons). The fixed reader finds only the required items, so the dialog offers «Analyse with AI»; the AI should still place every part. Use it on the title «مهندس برمجيات أول».

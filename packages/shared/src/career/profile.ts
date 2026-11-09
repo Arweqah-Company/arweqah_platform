@@ -32,8 +32,10 @@ export interface MyCareerProfileDto {
   /** The version of the content shown (what an acknowledgement records). */
   contentVersion: number | null;
   content: CareerContent | null;
-  /** True while the platform is held back until the employee acknowledges; never for the system account or a «sign in as» session. */
+  /** True while the platform is held back until the employee acknowledges; never for a «sign in as» session. */
   ackRequired: boolean;
+  /** The system account: it is held back like anyone, except while platform admin mode is on (so the administration keeps working). The web applies it. */
+  adminModeExempt: boolean;
   ackReason: CareerAckReason | null;
   acknowledgedAt: string | null;
   acknowledgedVersion: number | null;

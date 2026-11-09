@@ -1,4 +1,4 @@
-import type { CareerContent } from '@arweqah-platform/shared';
+import { orderedLadder, type CareerContent } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/shared/ui';
 
@@ -25,9 +25,10 @@ function LadderStep({ step, index, current, onPreview }: { step: Step; index: nu
   );
 }
 
-/** The ladder as rising steps from the first (right, in Arabic) to the highest (left); on a phone the steps stack with the highest on top. */
-export function LadderGraph({ ladder, preview = false }: { ladder: CareerContent['ladder']; preview?: boolean }) {
+/** The ladder as rising steps from the entry level (right, in Arabic) to the highest (left), in the order it is climbed whatever order the file listed it in; on a phone the steps stack with the highest on top. */
+export function LadderGraph({ ladder: listed, preview = false }: { ladder: CareerContent['ladder']; preview?: boolean }) {
   const { t } = useTranslation('career-profile');
+  const ladder = orderedLadder(listed);
   const current = ladder.findIndex((s) => s.current);
   return (
     <>

@@ -51,6 +51,7 @@ export * from './templates/schemas';
 export * from './tour/catalog';
 export * from './tour/schemas';
 export * from './career/content';
+export * from './career/ladder';
 export * from './career/title-file';
 export * from './career/profile';
 export * from './career/proof';

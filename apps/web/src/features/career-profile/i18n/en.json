@@ -81,7 +81,12 @@
       "state": "Proof state"
     },
     "reached": "Reached",
-    "notYet": "Not yet"
+    "notYet": "Not yet",
+    "hoursDone": "hours done",
+    "nextMedal": "Next medal: {{name}} · at {{hours}} hours",
+    "allMedals": "You reached every medal",
+    "progressOf": "{{done}} of {{hours}} hours",
+    "threshold": "Threshold: {{hours}} hours"
   },
   "required": {
     "overdue": "Overdue",
@@ -116,7 +121,8 @@
     "ackButton": "Acknowledge and continue",
     "done": "Acknowledged. You can keep using the platform.",
     "stale": "The content of your path changed while you were reading. Reload the page and read the new version.",
-    "failed": "The acknowledgement could not be recorded. Try again."
+    "failed": "The acknowledgement could not be recorded. Try again.",
+    "tabsHint": "Open every tab of this section before you continue. Left: {{tabs}}"
   },
   "content": {
     "title": "Career-path content",

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Badge, Tabs } from '@/shared/ui';
 import { useMyProgress } from './api';
 import { LadderGraph } from './ladder-graph';
+import { useTabCoverage } from './reading-coverage';
 
 /** The steps of the level path: label, what to do, and how it is evidenced. */
 function PathSteps({ steps }: { steps: CareerContent['steps'] }) {
@@ -95,6 +96,7 @@ function PathPanel({ content }: { content: CareerContent }) {
 export function DevelopmentSection({ content, stage, preview = false }: { content: CareerContent; stage?: DevelopmentStageDto | null; preview?: boolean }) {
   const { t } = useTranslation('career-profile');
   const [sub, setSub] = useState<SubTab>('ladder');
+  useTabCoverage('development', 'development.sub', SUB_TABS.map((id) => ({ id, label: t(`development.sub.${id}`) })), sub);
   return (
     <div className="flex flex-col gap-4">
       {stage && <StageTiles stage={stage} />}
