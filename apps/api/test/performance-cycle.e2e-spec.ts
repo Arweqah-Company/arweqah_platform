@@ -31,7 +31,9 @@ describe('The evaluation cycle (FR-118)', () => {
   it('opens a cycle with a snapshot of the templates; a later change of the templates does not change it', async () => {
     const agent = await withFile();
     const opened = (await agent.post('/api/performance/cycle/open').send({ fiscalYear: 2026 }).expect(200)).body as CycleStateDto;
-    expect(opened.cycle).toMatchObject({ fiscalYear: 2026, stage: 'self', closedAt: null, dates: [] });
+    expect(opened.cycle).toMatchObject({ fiscalYear: 2026, stage: 'self', closedAt: null });
+    expect(opened).toMatchObject({ datesFor: 'cycle', dates: expect.any(Array) });
+    expect(opened.dates).toHaveLength(7);
     const [row] = (await t.db.query('SELECT template_snapshot FROM performance_cycles')) as { template_snapshot: { stages: { stage: number; cap: number }[]; scale: unknown[] } }[];
     expect(row!.template_snapshot.stages.map((s) => s.stage)).toEqual([1, 2, 3, 4, 5]);
     expect(row!.template_snapshot.scale).toHaveLength(5);
@@ -96,11 +98,10 @@ describe('The evaluation cycle (FR-118)', () => {
 
   it('sets the dates of the stages and refuses one that does not fit the others (422 with the problems)', async () => {
     const agent = await withFile();
-    await agent.put('/api/performance/cycle/dates/final').send({ from: '2027-04-15', to: '2027-04-20' }).expect(409); // no cycle yet
     await agent.post('/api/performance/cycle/open').send({ fiscalYear: 2026 }).expect(200);
     await agent.put('/api/performance/cycle/dates/final').send({ from: '2027-04-15', to: '2027-04-20' }).expect(200);
     const s = (await agent.put('/api/performance/cycle/dates/calibration').send({ from: '2027-04-21', to: '2027-04-24' }).expect(200)).body as CycleStateDto;
-    expect(s.cycle!.dates.map((d) => d.key)).toEqual(['final', 'calibration']);
+    expect(s.dates.map((d) => d.key)).toEqual(['final', 'calibration', 'approval', 'notification', 'objection', 'self_deadline', 'qualitative_close']);
     const bad = await agent.put('/api/performance/cycle/dates/calibration').send({ from: '2027-04-10', to: '2027-04-24' }).expect(422);
     expect(bad.body).toMatchObject({ code: 'CYCLE_DATE_INVALID' });
     expect(bad.body.details.problems).toContain('before_previous');
@@ -146,6 +147,7 @@ describe('The evaluation cycle (FR-118)', () => {
     await viewer.post('/api/performance/cycle/advance').expect(403);
     await viewer.post('/api/performance/cycle/close').expect(403);
     await viewer.put('/api/performance/cycle/dates/final').send({ from: '2027-04-15' }).expect(403);
+    await viewer.post('/api/performance/cycle/reminders').send({ kind: 'mgr', on: true, days: [2], titleAr: 'تذكير للمدير', titleEn: '', bodyAr: 'تقييم ينتظر مراجعتك', bodyEn: '' }).expect(403);
     await viewer.post('/api/performance/cycle/catalog').send({ kind: 'init', title: 'عنوان', points: 3 }).expect(403);
     await viewer.post('/api/performance/cycle/open').send({ fiscalYear: 2030 }).expect(403);
     const manager = await only(CorePermission.PerformanceCycleManage);

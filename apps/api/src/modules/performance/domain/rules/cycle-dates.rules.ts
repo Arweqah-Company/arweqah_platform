@@ -1,46 +1,33 @@
-import { CYCLE_DATE_CHAIN, type CycleDate, type CycleDateKey, type CycleDateProblem } from '@arweqah-platform/shared';
-
-const endOf = (d: CycleDate): string => d.to ?? d.from;
+import { CYCLE_DATE_KEYS, type CycleDate, type CycleDateKey } from '@arweqah-platform/shared';
 
 /**
- * Checks a date set in a cycle against the others: its end is not before its start; and the first five dates follow one another, so a date does not
- * start before the one ahead of it ends nor end after the one behind it starts. A date of the chain that is not set yet is skipped, never guessed.
- * The two dates outside the chain (the self-evaluation deadline and the close of the qualitative part) only have the first check, and the deadline
- * is not after the close.
+ * The usual dates of the fiscal year `year` (April `year` to March `year + 1`): the self-evaluation closes on 10 March and the qualitative part on 25 March of the
+ * year after, then the final numbers 15 to 20 April, the calibration meetings 21 to 24, the approval on 27, the individual notification on 30 April and the objection
+ * window 3 to 7 May. Assumed from the concept's example (plan §3.7b); HR changes any of them.
  */
-export function dateProblems(dates: readonly CycleDate[], next: CycleDate): CycleDateProblem[] {
-  const problems: CycleDateProblem[] = [];
-  if (next.to !== null && next.to < next.from) problems.push('end_before_start');
-  const others = new Map(dates.filter((d) => d.key !== next.key).map((d) => [d.key, d]));
-  problems.push(...chainProblems(others, next), ...pairProblems(others, next));
-  return problems;
+export function defaultCycleDates(year: number): CycleDate[] {
+  const next = year + 1;
+  const on = (key: CycleDateKey, from: string, to: string | null): CycleDate => ({ key, from: `${next}-${from}`, to: to ? `${next}-${to}` : null });
+  const usual = [
+    on('final', '04-15', '04-20'),
+    on('calibration', '04-21', '04-24'),
+    on('approval', '04-27', null),
+    on('notification', '04-30', null),
+    on('objection', '05-03', '05-07'),
+    on('self_deadline', '03-10', null),
+    on('qualitative_close', '03-25', null),
+  ];
+  return usual.sort((a, b) => CYCLE_DATE_KEYS.indexOf(a.key) - CYCLE_DATE_KEYS.indexOf(b.key));
 }
 
-/** The first set date behind (or ahead of) a chain date: a chain date not set yet is skipped. */
-const nearest = (others: ReadonlyMap<CycleDateKey, CycleDate>, keys: readonly CycleDateKey[]): CycleDate | undefined => keys.map((k) => others.get(k)).find(Boolean);
-
-/** A chain date starts no earlier than the one ahead of it ends, and ends no later than the one behind it starts. */
-function chainProblems(others: ReadonlyMap<CycleDateKey, CycleDate>, next: CycleDate): CycleDateProblem[] {
-  const at = CYCLE_DATE_CHAIN.indexOf(next.key);
-  if (at < 0) return [];
-  const before = nearest(others, CYCLE_DATE_CHAIN.slice(0, at).reverse());
-  const after = nearest(others, CYCLE_DATE_CHAIN.slice(at + 1));
-  const problems: CycleDateProblem[] = [];
-  if (before && next.from < endOf(before)) problems.push('before_previous');
-  if (after && endOf(next) > after.from) problems.push('after_next');
-  return problems;
+/** The seven dates of a cycle: what was set for each key, else its usual date, in the order of the keys. */
+export function effectiveDates(stored: readonly CycleDate[], year: number): CycleDate[] {
+  const set = new Map(stored.map((d) => [d.key, d]));
+  return defaultCycleDates(year).map((usual) => set.get(usual.key) ?? usual);
 }
 
-/** The self-evaluation deadline is no later than the close of the qualitative part. */
-function pairProblems(others: ReadonlyMap<CycleDateKey, CycleDate>, next: CycleDate): CycleDateProblem[] {
-  const close = others.get('qualitative_close');
-  const deadline = others.get('self_deadline');
-  if (next.key === 'self_deadline' && close && next.from > close.from) return ['after_next'];
-  if (next.key === 'qualitative_close' && deadline && next.from < deadline.from) return ['before_previous'];
-  return [];
-}
-
-/** The dates with this one set (replacing the one with the same key), in the order of the keys. */
-export function withDate(dates: readonly CycleDate[], next: CycleDate, order: readonly CycleDateKey[]): CycleDate[] {
-  return [...dates.filter((d) => d.key !== next.key), next].sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
+/** The fiscal year the next cycle belongs to, from today's date (YYYY-MM-DD, Riyadh): the year whose April is the latest one that began. */
+export function nextFiscalYear(today: string): number {
+  const year = Number(today.slice(0, 4));
+  return Number(today.slice(5, 7)) >= 4 ? year : year - 1;
 }

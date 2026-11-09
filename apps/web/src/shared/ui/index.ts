@@ -17,6 +17,8 @@ export { Combobox, type ComboboxOption } from './combobox';
 export { MultiCombobox } from './multi-combobox';
 export { TreeSelect, type TreeSelectItem } from './tree-select';
 export { ConfirmDialog } from './confirm-dialog';
+export { EditorBlock, EditorRow } from './editor-blocks';
+export { GuardedButton } from './guarded-button';
 export { EmptyState } from './empty-state';
 export { SectionCard } from './section-card';
 export { StatTile } from './stat-tile';

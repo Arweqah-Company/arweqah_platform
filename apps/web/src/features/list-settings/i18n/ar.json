@@ -419,6 +419,31 @@
       "filters": {
         "kind": "النوع"
       }
+    },
+    "performance-templates": {
+      "name": "ملف التقييم",
+      "columns": {
+        "part": "الجزء",
+        "details": "التفاصيل",
+        "status": "الحالة"
+      },
+      "filters": {
+        "kind": "النوع",
+        "status": "الحالة"
+      }
+    },
+    "performance-reminders": {
+      "name": "التذكيرات التلقائية",
+      "columns": {
+        "kind": "النوع",
+        "timing": "التوقيت",
+        "title": "العنوان",
+        "status": "الحالة"
+      },
+      "filters": {
+        "kind": "النوع",
+        "status": "الحالة"
+      }
     }
   },
   "listHint": "العمود الأول (الاسم) يبقى دائمًا.",

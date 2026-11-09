@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { ReminderDto } from './reminders';
 import type { FiscalCard, GradeBand, StageTemplate } from './template';
 
 /**
@@ -17,6 +18,8 @@ export const CATALOG_KINDS = ['init', 'growth'] as const;
 export type CatalogKind = (typeof CATALOG_KINDS)[number];
 export const CATALOG_POINTS_MAX = 10;
 export const CATALOG_TITLE_MIN = 3;
+/** The caps of the two catalog kinds when no stage template says otherwise (the formula of plan §3.3: initiatives 10, growth 5). */
+export const CATALOG_CAPS_DEFAULT = { init: 10, growth: 5 } as const;
 
 export const openCycleSchema = z.strictObject({ fiscalYear: z.number().int().min(2020).max(2100) });
 export type OpenCycleInput = z.infer<typeof openCycleSchema>;
@@ -72,12 +75,23 @@ export interface CycleDto {
   stage: CycleStage;
   openedAt: string;
   closedAt: string | null;
-  dates: CycleDate[];
 }
+
+/** Whose dates the page shows: the cycle in progress, or the next one when none is open (HR may prepare them before opening). */
+export type CycleDatesFor = 'cycle' | 'next';
 
 export interface CycleStateDto {
   /** The cycle in progress, or the one closed last; null before any cycle was opened. */
   cycle: CycleDto | null;
   readiness: ReadinessDto;
   catalog: CatalogItemDto[];
+  /** The seven dates, always all of them: what HR set, else the usual date of the fiscal year (`defaultCycleDates` on the server). */
+  dates: CycleDate[];
+  datesFor: CycleDatesFor;
+  /** The fiscal year of the next cycle: the year its April falls in (the dialog of opening starts with it). */
+  nextFiscalYear: number;
+  /** The automatic reminders HR keeps (the sending is a later delivery). */
+  reminders: ReminderDto[];
+  /** The caps of the two catalog kinds, from the first stage template that is kept (else the defaults). */
+  catalogCaps: { init: number; growth: number };
 }

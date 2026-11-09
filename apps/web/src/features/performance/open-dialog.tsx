@@ -5,11 +5,11 @@ import { ApiError } from '@/core/api/api-client';
 import { Alert, Button, Dialog, DialogFooter, FormField, Input } from '@/shared/ui';
 import { useOpenCycle } from './api';
 
-/** Opens the cycle of a fiscal year: it freezes a snapshot of the templates as they are now. */
-export function OpenDialog({ onClose }: { onClose: () => void }) {
+/** Opens the cycle of a fiscal year (the next one is proposed): it freezes a snapshot of the templates as they are now and takes the dates HR prepared. */
+export function OpenDialog({ initialYear, onClose }: { initialYear: number; onClose: () => void }) {
   const { t } = useTranslation('performance');
   const open = useOpenCycle();
-  const [year, setYear] = useState(String(new Date().getFullYear()));
+  const [year, setYear] = useState(String(initialYear));
   const valid = /^\d{4}$/.test(year) && Number(year) >= 2020 && Number(year) <= 2100;
   const code = open.error instanceof ApiError ? open.error.code : null;
   return (
@@ -19,7 +19,7 @@ export function OpenDialog({ onClose }: { onClose: () => void }) {
       {open.isError && <Alert tone="danger">{t(code === 'CYCLE_YEAR_EXISTS' ? 'open.yearExists' : code === 'CYCLE_NOT_READY' ? 'open.notReady' : 'open.failed')}</Alert>}
       <DialogFooter>
         <Button disabled={!valid || open.isPending} onClick={() => open.mutate({ fiscalYear: Number(year) }, { onSuccess: () => { toast.success(t('open.done')); onClose(); } })}>{t('open.confirm')}</Button>
-        <Button variant="secondary" onClick={onClose}>{t('close')}</Button>
+        <Button variant="secondary" onClick={onClose}>{t('cancel')}</Button>
       </DialogFooter>
     </Dialog>
   );

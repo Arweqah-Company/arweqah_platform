@@ -42,7 +42,7 @@ describe('The self-evaluation (FR-119)', () => {
     const s = await setup();
     await s.open();
     const m = await s.mine();
-    expect(m.cycle).toMatchObject({ fiscalYear: 2026, stage: 'self', selfDeadline: null });
+    expect(m.cycle).toMatchObject({ fiscalYear: 2026, stage: 'self', selfDeadline: '2027-03-10' });
     expect(m.evaluation).toMatchObject({ stage: 2, stageName: 'التخصص', editable: true, managerName: expect.any(String), learning: { approvedMinutes: 0, stageMinutes: 48 * 60 } });
     expect(m.evaluation!.template.behaviours.map((b) => b.code)).toEqual(['B2.1', 'B2.2', 'B2.3', 'B2.4']);
     expect(m.evaluation!.self).toEqual({ behaviours: {}, achievements: {}, initIds: [], growthIds: [], sentAt: null });

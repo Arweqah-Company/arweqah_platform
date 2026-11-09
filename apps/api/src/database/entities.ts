@@ -37,6 +37,7 @@ import { CAREER_ACKNOWLEDGEMENT_ENTITIES } from '../modules/career-profile/domai
 import { CAREER_PROGRESS_ENTITIES } from '../modules/career-profile/domain/entities/career-progress.entities';
 import { PERFORMANCE_EVALUATION_ENTITIES } from '../modules/performance/domain/entities/performance-evaluations.entities';
 import { PERFORMANCE_CYCLE_ENTITIES } from '../modules/performance/domain/entities/performance-cycles.entities';
+import { PERFORMANCE_REMINDER_ENTITIES } from '../modules/performance/domain/entities/performance-reminders.entities';
 import { PERFORMANCE_TEMPLATE_ENTITIES } from '../modules/performance/domain/entities/performance-templates.entities';
 import { CAREER_REQUEST_ENTITIES } from '../modules/career-profile/domain/entities/career-requests.entities';
 import { CAREER_CONTENT_ENTITIES } from '../modules/career-profile/domain/entities/career-profile.entities';
@@ -92,6 +93,7 @@ export const ENTITIES = [
   ...PERFORMANCE_TEMPLATE_ENTITIES,
   ...PERFORMANCE_CYCLE_ENTITIES,
   ...PERFORMANCE_EVALUATION_ENTITIES,
+  ...PERFORMANCE_REMINDER_ENTITIES,
   Employee,
   EmployeeAssignment,
 ];

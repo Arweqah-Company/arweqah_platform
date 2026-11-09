@@ -2,6 +2,7 @@ import type { MyEvaluationDto } from '@arweqah-platform/shared';
 import { Clock, Lock, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { formatLongDate } from '@/shared/lib/format-date';
 import { Alert, Badge, Button } from '@/shared/ui';
 import { SelfForm } from './self-form';
 
@@ -34,14 +35,14 @@ export function selfState(evaluation: Evaluation): 'sent' | 'draft' | 'none' {
 
 /** The status card: not started, a draft, or sent; with the button to start or change it while it can be changed. */
 function StatusCard({ mine, evaluation, onEdit }: { mine: MyEvaluationDto; evaluation: Evaluation; onEdit: () => void }) {
-  const { t } = useTranslation('performance');
+  const { t, i18n } = useTranslation('performance');
   const state = selfState(evaluation);
   const sent = state === 'sent';
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4">
       <div className="min-w-[14rem] flex-1">
         <b className="text-fg">{t(`self.status.${state}.title`)}</b>
-        <p className="text-sm text-muted">{sent ? t('self.status.sent.body', { manager: evaluation.managerName ?? t('self.status.noManager') }) : t('self.status.none.body', { date: mine.cycle?.selfDeadline ?? t('self.status.noDate') })}</p>
+        <p className="text-sm text-muted">{sent ? t('self.status.sent.body', { manager: evaluation.managerName ?? t('self.status.noManager') }) : t('self.status.none.body', { date: mine.cycle?.selfDeadline ? formatLongDate(mine.cycle.selfDeadline, i18n.language) : t('self.status.noDate') })}</p>
       </div>
       <Badge tone={sent ? 'success' : 'warning'}>{t(`self.status.${state}.badge`)}</Badge>
       {evaluation.editable && <Button onClick={onEdit}><Pencil className="size-4" aria-hidden />{t(sent ? 'self.edit' : 'self.start')}</Button>}

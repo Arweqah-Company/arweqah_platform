@@ -1188,6 +1188,19 @@ erDiagram
     character_varying title
     integer points
   }
+  performance_reminders {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    character_varying kind
+    boolean is_on
+    jsonb days
+    character_varying title_ar
+    character_varying title_en
+    character_varying body_ar
+    character_varying body_en
+    uuid updated_by
+  }
   performance_evaluations {
     uuid id PK
     timestamp_with_time_zone created_at
@@ -1363,9 +1376,10 @@ erDiagram
 | `career_development_requests` | A development request (FR-116): the course, its cost in whole riyals, `plan` (`in` the learning plan or `out` of it), the `level` that decides it now (`direct`, `sector`, `ceo`) and `approver_user_id` (the person who holds that post for the employee; changes when the request goes up), `status` (`pending`, `approved`, `rejected`), the retention agreement (`agreement_file_id`), the yearly cap of the employee's stage on the day it was sent (`budget_cap`), the decision (who, when, the reason of a rejection). The workflow `career.development_request` carries its state and the seven-day deadline of the direct manager. |
 | `career_employee_competency_levels` | The level (`أساسي` or `خبير`) of one technical competency of the employee's title that their manager recorded (`employee_id` + `competency` unique; the competency is the one of the title's content, by name; taking the record back deletes the row). |
 | `performance_templates` | The template of one development stage as the evaluation file gave it (FR-118): one row per stage (`stage_no` unique), the whole template in `template` (weights, extra components, cap, results criteria, behaviours), and `source_version`, which grows with each upload of the stage. |
-| `performance_settings` | A setting shared by every stage, by `key`: `grade_scale` (the five bands with their ranges) and `fiscal_card` (the twelve months and their notes). |
+| `performance_settings` | A setting shared by every stage, by `key`: `grade_scale` (the five bands with their ranges), `fiscal_card` (the twelve months and their notes), `cycle_dates` (the dates HR prepared for the next cycle, with the fiscal year they are for; the cycle that opens for that year takes them). |
 | `performance_cycles` | An evaluation cycle, one per fiscal year (`fiscal_year` unique): `status` is the stage of the machine `performance.cycle` (self, mgr, cal, appr, notif, obj, closed), who opened and closed it and when, `is_open` (true until closed; a partial unique index lets only one cycle be open), `dates` (the date of each stage) and `template_snapshot` (the templates frozen when it opened). |
 | `performance_catalog_items` | An item of the extra component HR offers (`kind` init or growth, `title`, `points` 1 to 10). `cycle_id` is null while the item waits for the next cycle, which takes it when it opens. |
+| `performance_reminders` | An automatic reminder of the evaluation cycle that HR keeps (FR-124): `kind` (`self` the employee before the self-evaluation deadline, `mgr` the manager about an evaluation waiting, `mile` a milestone, `appr` the holder of calibration and approval), `days` (the days before the date, or the one number of «every N days»), `is_on`, and the words HR wrote, `title_ar` / `body_ar` required and `title_en` / `body_en` optional (the Arabic is sent when they are empty). Up to 30 rows; the migration seeds the four of the concept while the table is empty. Only the list lives here; the sending is a later delivery. |
 | `performance_evaluations` | One employee's evaluation in one cycle (`cycle_id` + `employee_id` unique): the stage they are evaluated by (from their grade and track when the cycle opened or when they first asked) and the user of their direct manager at that time. |
 | `performance_self_evaluations` | What the employee wrote about themselves, one document per evaluation (`content`: the level and note of each behaviour, the achievements per criterion, the catalog items picked) and `sent_at` (null until the first send). |
 | `career_ack_reopenings` | HR asked the holders of a title to acknowledge again, with the reason: whoever acknowledged before it is asked once more. |

@@ -419,6 +419,31 @@
       "filters": {
         "kind": "Kind"
       }
+    },
+    "performance-templates": {
+      "name": "Evaluation file",
+      "columns": {
+        "part": "Part",
+        "details": "Details",
+        "status": "State"
+      },
+      "filters": {
+        "kind": "Kind",
+        "status": "State"
+      }
+    },
+    "performance-reminders": {
+      "name": "Automatic reminders",
+      "columns": {
+        "kind": "Kind",
+        "timing": "Timing",
+        "title": "Title",
+        "status": "State"
+      },
+      "filters": {
+        "kind": "Kind",
+        "status": "State"
+      }
     }
   },
   "listHint": "The first column (the name) always stays.",
