@@ -55,3 +55,17 @@ export class CycleDateInvalidError extends BusinessRuleError {
     super('The date does not fit the cycle', { problems });
   }
 }
+
+export class SelfEvaluationClosedError extends ConflictError {
+  override readonly code = 'SELF_EVALUATION_CLOSED';
+  constructor() {
+    super('The self-evaluation can no longer be changed: its stage ended or the manager started');
+  }
+}
+
+export class SelfEvaluationInvalidError extends BusinessRuleError {
+  override readonly code = 'SELF_EVALUATION_INVALID';
+  constructor(problems: readonly { field: string; code: string }[]) {
+    super('The self-evaluation is not complete', { problems });
+  }
+}

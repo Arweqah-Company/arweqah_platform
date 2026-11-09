@@ -53,6 +53,10 @@ export interface GradeBand {
   description: string;
 }
 
+/** The two kinds of month the fiscal-year card knows: a milestone month and a month of daily follow-up (the words the file uses). */
+export const FISCAL_KINDS = ['محطة', 'متابعة يومية'] as const;
+export const FISCAL_MILESTONE = FISCAL_KINDS[0];
+
 export interface FiscalMonth {
   month: string;
   kind: string;

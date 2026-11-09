@@ -1,15 +1,11 @@
 import { CorePermission, type CatalogItemDto, type CycleStateDto, type PermissionGrant } from '@arweqah-platform/shared';
 import { describe, expect, it, vi } from 'vitest';
 import { SAMPLE_EVAL_FILE } from '../src/modules/performance/domain/rules/fixtures/eval-file.sample';
+import { FULL_EVAL_FILE as FULL } from './helpers/eval-file';
 import { useTestApp } from './setup/test-app';
 
 const grants = (keys: string[]): PermissionGrant[] => keys.map((key) => ({ key, scope: 'all' as const }));
 const ALL = [CorePermission.PerformanceCycleView, CorePermission.PerformanceTemplateUpload, CorePermission.PerformanceCycleManage, CorePermission.PerformanceCycleClose, CorePermission.PerformanceCatalogManage];
-const STAGE_NAMES = ['', 'التأسيس', 'التخصص', 'البراعة', 'القيادة التشغيلية', 'القيادة المؤسسية'];
-const AT = SAMPLE_EVAL_FILE.indexOf('سلم الدرجات');
-const stageText = (n: number) => SAMPLE_EVAL_FILE.slice(0, AT).replace(/المرحلة 1 التأسيس/g, `المرحلة ${n} ${STAGE_NAMES[n]}`).replace(/B1\./g, `B${n}.`);
-const FULL = [1, 2, 3, 4, 5].map(stageText).join('\n') + '\n' + SAMPLE_EVAL_FILE.slice(AT);
-
 describe('The evaluation cycle (FR-118)', () => {
   const t = useTestApp();
   const hr = async (keys: string[] = ALL) => t.factories.signIn(await t.factories.user({ grants: grants(keys) }));

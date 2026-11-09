@@ -1,4 +1,4 @@
-import type { CatalogItemDto, CatalogItemInput, CycleDateKey, CycleStateDto, EvalFileInput, EvalFileResult, OpenCycleInput, SetCycleDateInput } from '@arweqah-platform/shared';
+import type { MyEvaluationDto, SaveSelfEvaluationInput, CatalogItemDto, CatalogItemInput, CycleDateKey, CycleStateDto, EvalFileInput, EvalFileResult, OpenCycleInput, SetCycleDateInput } from '@arweqah-platform/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/core/api/api-client';
 
@@ -35,3 +35,17 @@ export function useSaveEvalFile() {
   const client = useQueryClient();
   return useMutation({ mutationFn: (text: string) => readEvalFile({ text, dryRun: false }), onSuccess: () => client.invalidateQueries({ queryKey: CYCLE_KEY }) });
 }
+
+export const MY_EVALUATION_KEY = ['performance', 'me'] as const;
+
+/** The employee's own evaluation: where the cycle is and, when they have one, the template of their stage and what they wrote. */
+export const useMyEvaluation = () => useQuery({ queryKey: MY_EVALUATION_KEY, queryFn: () => apiClient.get<MyEvaluationDto>('/performance/me') });
+
+/** Keeping or sending the form replaces the cached evaluation with the answer. */
+function useSelfWrite(call: (input: SaveSelfEvaluationInput) => Promise<MyEvaluationDto>) {
+  const client = useQueryClient();
+  return useMutation({ mutationFn: call, onSuccess: (mine) => client.setQueryData(MY_EVALUATION_KEY, mine) });
+}
+
+export const useSaveSelf = () => useSelfWrite((input) => apiClient.put<MyEvaluationDto>('/performance/me/self', input));
+export const useSendSelf = () => useSelfWrite((input) => apiClient.post<MyEvaluationDto>('/performance/me/self/send', input));

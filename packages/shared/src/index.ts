@@ -64,3 +64,4 @@ export * from './career/duration';
 export * from './career/readiness';
 export * from './performance/template';
 export * from './performance/cycle';
+export * from './performance/self-evaluation';

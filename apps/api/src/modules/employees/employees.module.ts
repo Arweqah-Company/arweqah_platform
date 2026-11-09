@@ -3,6 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PermissionCatalog } from '../../core/access/application/permission-catalog';
 import { LookupsModule } from '../lookups/lookups.module';
 import { CareerTeamPort } from '../career-profile/domain/contracts/career-team.port';
+import { PerformanceRosterPort } from '../performance/domain/contracts/performance-roster.port';
+import { EmployeePerformanceAdapter } from './infrastructure/adapters/employee-performance.adapter';
 import { CareerApproverPort } from '../career-profile/domain/contracts/career-approver.port';
 import { EmployeeCareerPort } from '../career-profile/domain/contracts/employee-career.port';
 import { EmployeePlacementPort } from '../org/domain/contracts/employee-placement.port';
@@ -69,8 +71,9 @@ import { ProfileController } from './presentation/controllers/profile.controller
     { provide: EmployeeCareerPort, useClass: EmployeeCareerAdapter },
     { provide: CareerTeamPort, useClass: EmployeeTeamAdapter },
     { provide: CareerApproverPort, useClass: EmployeeApproverAdapter },
+    { provide: PerformanceRosterPort, useClass: EmployeePerformanceAdapter },
   ],
-  exports: [EmployeePlacementPort, EmployeeCareerPort, CareerTeamPort, CareerApproverPort, EmployeeLifecycleJob, EmployeeAssignmentsService, EmployeeAutoManagerService],
+  exports: [EmployeePlacementPort, EmployeeCareerPort, CareerTeamPort, CareerApproverPort, PerformanceRosterPort, EmployeeLifecycleJob, EmployeeAssignmentsService, EmployeeAutoManagerService],
 })
 export class EmployeesModule implements OnModuleInit {
   constructor(private readonly catalog: PermissionCatalog) {}

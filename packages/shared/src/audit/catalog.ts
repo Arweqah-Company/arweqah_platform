@@ -83,6 +83,8 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'performance.cycle.date_set': a('organization', 'عدّل موعد مرحلة في دورة التقييم', 'Changed the date of a stage of the evaluation cycle'),
   'performance.catalog.added': a('organization', 'أضاف بندًا إلى كتالوج المكوّن الإضافي', 'Added an item to the extra-component catalog'),
   'performance.catalog.removed': a('organization', 'حذف بندًا من كتالوج المكوّن الإضافي', 'Removed an item from the extra-component catalog'),
+  'performance.self.sent': a('organization', 'أرسل تقييمه الذاتي', 'Sent their self-evaluation'),
+  'performance.self.edited': a('organization', 'عدّل تقييمه الذاتي بعد إرساله', 'Changed their self-evaluation after sending it'),
   'career.content.drafted': a('organization', 'أرجع المسار الوظيفي لمسمى إلى مسودة', 'Set the career path of a job title back to draft'),
   'org.levels.changed': a('organization', 'غيّر مستويات الهيكل', 'Changed the structure levels'),
   'org.levels.copied': a('organization', 'نسخ مستويات الهيكل من شركة أخرى', 'Copied the structure levels from another company'),
