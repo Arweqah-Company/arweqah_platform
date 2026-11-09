@@ -18,6 +18,7 @@ import { LearningLinksService } from './application/services/learning-links.serv
 import { CareerTitleListService } from './application/services/career-title-list.service';
 import { CareerProfileService } from './application/services/career-profile.service';
 import { CareerReopenService } from './application/services/career-reopen.service';
+import { TitleFileAiService } from './application/services/title-file-ai.service';
 import { TitleFileService } from './application/services/title-file.service';
 import { CareerLearningRepository } from './domain/contracts/career-learning.repository';
 import { CareerAcknowledgementRepository } from './domain/contracts/career-acknowledgement.repository';
@@ -55,6 +56,7 @@ import { CareerContentController } from './presentation/controllers/career-conte
   providers: [
     CareerContentService,
     TitleFileService,
+    TitleFileAiService,
     CareerProfileService,
     CareerReopenService,
     CareerProofService,

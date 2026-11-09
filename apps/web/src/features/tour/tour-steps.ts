@@ -15,5 +15,6 @@ export const SHELL_STEPS: TourStepUi[] = [
   { key: 'finish', target: 'body', placement: 'center' },
   { key: 'admin-mode', target: '[data-tour="admin-mode"]', placement: 'bottom' },
   { key: 'captcha-settings', target: PAGE_TITLE_TARGET, route: '/service-settings?tab=captcha', placement: 'bottom', can: [{ id: 'edit', permission: CorePermission.IntegrationsCaptchaEdit }, { id: 'test', permission: CorePermission.IntegrationsCaptchaTest }, { id: 'activate', permission: CorePermission.IntegrationsCaptchaActivate }, { id: 'export', permission: CorePermission.IntegrationsCaptchaExport }] },
+  { key: 'ai-settings', target: PAGE_TITLE_TARGET, route: '/service-settings?tab=ai', placement: 'bottom', can: [{ id: 'edit', permission: CorePermission.IntegrationsAiEdit }, { id: 'test', permission: CorePermission.IntegrationsAiTest }, { id: 'activate', permission: CorePermission.IntegrationsAiActivate }, { id: 'export', permission: CorePermission.IntegrationsAiExport }] },
   { key: 'tour-settings', target: PAGE_TITLE_TARGET, route: '/service-settings?tab=tour-settings', placement: 'bottom', can: [{ id: 'edit', permission: CorePermission.TourSettingsEdit }, { id: 'reorder', permission: CorePermission.TourSettingsReorder }, { id: 'reset', permission: CorePermission.TourSettingsReset }, { id: 'export', permission: CorePermission.TourSettingsExport }] },
 ];

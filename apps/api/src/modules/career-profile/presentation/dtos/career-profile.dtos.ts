@@ -1,8 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
-import { teamQuerySchema, setRequiredSchema, certificatesQuerySchema, rejectProofSchema, submitProofSchema, acknowledgeCareerSchema, importLearningLinksSchema, careerTitlesQuerySchema, extractTitleFileSchema, reopenAcknowledgementSchema, saveCareerContentSchema, createRequestSchema, rejectRequestSchema, requestsQuerySchema, requestPreviewQuerySchema, recordCompetencySchema } from '@arweqah-platform/shared';
+import { teamQuerySchema, setRequiredSchema, certificatesQuerySchema, rejectProofSchema, submitProofSchema, acknowledgeCareerSchema, importLearningLinksSchema, careerTitlesQuerySchema, extractTitleFileSchema, analyzeTitleFileSchema, reopenAcknowledgementSchema, saveCareerContentSchema, createRequestSchema, rejectRequestSchema, requestsQuerySchema, requestPreviewQuerySchema, recordCompetencySchema } from '@arweqah-platform/shared';
 
 export class SaveCareerContentDto extends createZodDto(saveCareerContentSchema) {}
 export class ExtractTitleFileDto extends createZodDto(extractTitleFileSchema) {}
+export class AnalyzeTitleFileDto extends createZodDto(analyzeTitleFileSchema) {}
 export class AcknowledgeCareerDto extends createZodDto(acknowledgeCareerSchema) {}
 export class ReopenAcknowledgementDto extends createZodDto(reopenAcknowledgementSchema) {}
 export class CareerTitlesQueryDto extends createZodDto(careerTitlesQuerySchema) {}

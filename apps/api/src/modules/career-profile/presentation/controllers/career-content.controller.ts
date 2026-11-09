@@ -4,6 +4,8 @@
  *   GET    /content     CareerTitleContentDto   career_content.view
  *   PUT    /content     SaveCareerContentDto    career_content.edit: the whole document; `expectedVersion` stale = 409 CAREER_CONTENT_STALE
  *   POST   /file        TitleFileResultDto      career_titlefile.upload: `dryRun` (the default) only reports; a real run saves a new version, 422 TITLE_FILE_NEEDS_REVIEW with `details.problems`
+ *   POST   /file/ai     TitleFileResultDto      career_titlefile.ai: the AI places the file's parts and answers like a dry run (`content`, `problems`, `ungrounded`); saves nothing; 422 AI_NOT_CONFIGURED, 502 AI_UNAVAILABLE
+ *   POST   /file/confirm CareerTitleContentDto  career_titlefile.upload: saves the reviewed content as a new version; 422 TITLE_FILE_NEEDS_REVIEW, 409 CAREER_CONTENT_STALE
  *   POST   /reopen-acknowledgement ReopenAcknowledgementResultDto career_acknowledge.reopen: the holders are asked to acknowledge again (422 CAREER_PATH_NOT_READY unless the path is ready)
  *   POST   /publish     CareerTitleContentDto   career_titlefile.publish: 422 CAREER_CONTENT_NOT_READY with `details.problems`
  *   POST   /draft       CareerTitleContentDto   career_titlefile.publish
@@ -17,8 +19,9 @@ import { IdParam } from '../../../../common/presentation/zod-query';
 import { RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
 import { CareerContentService } from '../../application/services/career-content.service';
 import { CareerReopenService } from '../../application/services/career-reopen.service';
+import { TitleFileAiService } from '../../application/services/title-file-ai.service';
 import { TitleFileService } from '../../application/services/title-file.service';
-import { ExtractTitleFileDto, ReopenAcknowledgementDto, SaveCareerContentDto } from '../dtos/career-profile.dtos';
+import { AnalyzeTitleFileDto, ExtractTitleFileDto, ReopenAcknowledgementDto, SaveCareerContentDto } from '../dtos/career-profile.dtos';
 
 @ApiTags('career-profile')
 @Controller('career/titles/:id')
@@ -26,6 +29,7 @@ export class CareerContentController {
   constructor(
     private readonly content: CareerContentService,
     private readonly files: TitleFileService,
+    private readonly aiFiles: TitleFileAiService,
     private readonly reopening: CareerReopenService,
   ) {}
 
@@ -46,6 +50,20 @@ export class CareerContentController {
   @RequirePermission(CorePermission.CareerTitlefileUpload)
   readFile(@Param() { id }: IdParam, @Body() body: ExtractTitleFileDto, @CurrentUser() user: SessionUser): Promise<TitleFileResultDto> {
     return this.files.extract(id, body, user.id);
+  }
+
+  @Post('file/ai')
+  @HttpCode(200)
+  @RequirePermission(CorePermission.CareerTitlefileAi)
+  analyzeFile(@Param() { id }: IdParam, @Body() body: AnalyzeTitleFileDto, @CurrentUser() user: SessionUser): Promise<TitleFileResultDto> {
+    return this.aiFiles.analyze(id, body, user.id);
+  }
+
+  @Post('file/confirm')
+  @HttpCode(200)
+  @RequirePermission(CorePermission.CareerTitlefileUpload)
+  confirmFile(@Param() { id }: IdParam, @Body() body: SaveCareerContentDto, @CurrentUser() user: SessionUser): Promise<CareerTitleContentDto> {
+    return this.aiFiles.confirm(id, body, user.id);
   }
 
   @Post('reopen-acknowledgement')

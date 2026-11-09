@@ -19,23 +19,46 @@ export interface TitleFileReading {
 
 const TITLE_CODE_LINE = /^[A-Z]{3}\./;
 
+/** The four parts of a title file, however they were found: by the fixed reader or placed by the AI (§2.9). */
+export interface TitleFileParts {
+  job: ParsedJobDescription;
+  dev: ParsedDevelopment;
+  learning: ParsedLearningPlan;
+  required: ParsedRequiredActions;
+}
+
 /** Reads a whole title file: the four parts, what they hold, and what is still wrong with them (nothing is saved here). */
 export function readTitleFile(text: string, titleCode: string | null): TitleFileReading {
+  return readingOf(partsOf(text), titleCode);
+}
+
+/** The four parts of a pasted file, found by their headings. */
+export function partsOf(text: string): TitleFileParts {
   const lines = fileLines(text);
-  const job = parseJobDescription(lines);
-  const dev = parseDevelopment(lines);
-  const learning = parseLearningPlan(lines);
-  const required = parseRequiredActions(lines);
+  return { job: parseJobDescription(lines), dev: parseDevelopment(lines), learning: parseLearningPlan(lines), required: parseRequiredActions(lines) };
+}
+
+/** What the four parts say as career content, their counts, and what is still wrong with them: one set of checks for both ways of reading. */
+export function readingOf({ job, dev, learning, required }: TitleFileParts, titleCode: string | null): TitleFileReading {
   const content = buildContent(job, dev, required, learning);
-  const codeInFile = required.items.flatMap((i) => i.lines).find((l) => TITLE_CODE_LINE.test(l)) ?? null;
+  const codeInFile = codeInRequired(content);
   return {
     content,
     learning,
     counts: countsOf(job, dev, learning, required),
-    problems: problemsOf(content, learning, codeInFile, titleCode),
+    problems: problemsOf(content, learningTotalMismatch(learning), codeInFile, titleCode),
     codeInFile,
     ignored: [...job.ignored, ...dev.ignored, ...learning.ignored, ...required.ignored],
   };
+}
+
+/** What would stop a content (placed by the AI and reviewed by a person) from being saved: the same checks, from the content alone. */
+export function contentProblems(content: CareerContent, titleCode: string | null): TitleFileProblem[] {
+  return problemsOf(content, false, codeInRequired(content), titleCode);
+}
+
+function codeInRequired(content: CareerContent): string | null {
+  return content.required.flatMap((i) => i.lines).find((l) => TITLE_CODE_LINE.test(l)) ?? null;
 }
 
 function buildContent(job: ParsedJobDescription, dev: ParsedDevelopment, required: ParsedRequiredActions, learning: ParsedLearningPlan): CareerContent {
@@ -86,7 +109,7 @@ function countsOf(job: ParsedJobDescription, dev: ParsedDevelopment, learning: P
   };
 }
 
-function problemsOf(c: CareerContent, learning: ParsedLearningPlan, codeInFile: string | null, titleCode: string | null): TitleFileProblem[] {
+function problemsOf(c: CareerContent, totalMismatch: boolean, codeInFile: string | null, titleCode: string | null): TitleFileProblem[] {
   const checks: [boolean, TitleFileProblem][] = [
     [!c.summary, 'summary_missing'],
     [c.kpis.length === 0, 'indicators_missing'],
@@ -95,9 +118,9 @@ function problemsOf(c: CareerContent, learning: ParsedLearningPlan, codeInFile: 
     [c.steps.length === 0, 'path_steps_missing'],
     [!c.transitionRule, 'transition_rule_missing'],
     [c.competencies.length === 0, 'competencies_missing'],
-    [!learning.periods.some((p) => p.units.length > 0), 'learning_missing'],
-    [learningTotalMismatch(learning), 'learning_total_mismatch'],
-    [learning.badges.length === 0, 'badges_missing'],
+    [!c.learning.periods.some((p) => p.units.length > 0), 'learning_missing'],
+    [totalMismatch, 'learning_total_mismatch'],
+    [c.learning.badges.length === 0, 'badges_missing'],
     [c.required.length === 0, 'required_missing'],
     [!c.ackText, 'acknowledgement_missing'],
     [!!codeInFile && !!titleCode && codeInFile !== titleCode, 'code_mismatch'],

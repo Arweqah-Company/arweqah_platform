@@ -12,7 +12,7 @@ import { KIND_SETTINGS } from './keys';
 import { ProvidersPage } from './providers-page';
 
 interface SettingsTab {
-  id: 'translation' | 'email' | 'captcha' | 'email-templates' | 'notification-templates' | 'tour-settings' | 'security-settings';
+  id: 'translation' | 'email' | 'captcha' | 'ai' | 'email-templates' | 'notification-templates' | 'tour-settings' | 'security-settings';
   /** The permission that shows the tab, and the page an administrator can hide it with. */
   view: string;
   page: HideablePage;
@@ -23,6 +23,7 @@ const TABS: SettingsTab[] = [
   { id: 'translation', view: KIND_SETTINGS.translation.view, page: 'translation-settings', content: <ProvidersPage kind="translation" /> },
   { id: 'email', view: KIND_SETTINGS.email.view, page: 'email-settings', content: <ProvidersPage kind="email" /> },
   { id: 'captcha', view: KIND_SETTINGS.captcha.view, page: 'captcha-settings', content: <ProvidersPage kind="captcha" /> },
+  { id: 'ai', view: KIND_SETTINGS.ai.view, page: 'ai-settings', content: <ProvidersPage kind="ai" /> },
   { id: 'email-templates', view: TEMPLATE_KEYS.email.view, page: 'email-templates', content: <TemplatesTab kind="email" /> },
   { id: 'notification-templates', view: TEMPLATE_KEYS.notification.view, page: 'notification-templates', content: <TemplatesTab kind="notification" /> },
   { id: 'tour-settings', view: TOUR_KEYS.view, page: 'tour-settings', content: <TourStepsTab /> },

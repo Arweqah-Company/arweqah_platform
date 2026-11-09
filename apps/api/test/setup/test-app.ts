@@ -15,7 +15,9 @@ import { LookupsSeeder } from '../../src/database/seeds/lookups.seeder';
 import { OrgLevelsSeeder } from '../../src/database/seeds/org-levels.seeder';
 import { Factories } from '../factories/factories';
 import { AdminModeProbeController } from '../fakes/admin-mode-probe.controller';
+import { AiClient } from '../../src/core/integrations/domain/contracts/ai-client';
 import { CaptchaVerifier } from '../../src/core/integrations/domain/contracts/captcha-verifier';
+import { FakeAiClient } from '../fakes/fake-ai-client';
 import { FakeCaptchaVerifier } from '../fakes/fake-captcha-verifier';
 import { FakeMailSender } from '../fakes/fake-mail-sender';
 import { FakeMailTransportFactory, FakeProviders, FakeTranslatorFactory } from '../fakes/fake-provider-factories';
@@ -42,6 +44,7 @@ export interface TestContext {
   translator: FakeTranslator;
   providers: FakeProviders;
   captcha: FakeCaptchaVerifier;
+  ai: FakeAiClient;
 }
 
 /**
@@ -55,6 +58,7 @@ export function useTestApp(): TestContext {
     ctx.translator = new FakeTranslator();
     ctx.providers = new FakeProviders();
     ctx.captcha = new FakeCaptchaVerifier();
+    ctx.ai = new FakeAiClient();
     const moduleRef = await Test.createTestingModule({ imports: [AppModule], controllers: [AdminModeProbeController] })
       .overrideProvider(MailSender)
       .useValue(ctx.mail)
@@ -64,6 +68,8 @@ export function useTestApp(): TestContext {
       .useValue(new FakeTranslatorFactory(ctx.providers))
       .overrideProvider(CaptchaVerifier)
       .useValue(ctx.captcha)
+      .overrideProvider(AiClient)
+      .useValue(ctx.ai)
       .overrideProvider(MailTransportFactory)
       .useValue(new FakeMailTransportFactory(ctx.providers))
       .compile();
@@ -96,6 +102,8 @@ async function resetBetweenTests(ctx: TestContext): Promise<void> {
   ctx.translator.calls.length = 0;
   ctx.providers.reset();
   ctx.captcha.calls.length = 0;
+  ctx.ai.reset();
+  ctx.app.get(ActiveProviders).invalidate('ai');
   ctx.app.get(ActiveProviders).invalidate('captcha');
   ctx.app.get(ActiveProviders).invalidate('translation');
   ctx.app.get(ActiveProviders).invalidate('email');

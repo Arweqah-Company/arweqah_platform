@@ -76,3 +76,10 @@ export class CareerRequestNoApproverError extends BusinessRuleError {
     super('Nobody holds a post that can decide this request yet: ask HR to set the leader of the unit');
   }
 }
+
+export class TitleFileAiRateLimitedError extends BusinessRuleError {
+  override readonly code = 'TITLE_FILE_AI_RATE_LIMITED';
+  constructor() {
+    super('Too many title files were sent to the AI service, try again later');
+  }
+}

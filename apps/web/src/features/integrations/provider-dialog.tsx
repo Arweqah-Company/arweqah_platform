@@ -37,6 +37,7 @@ function ProviderFields({ provider, editor, readOnly }: { provider: ProviderDto;
               saved={!!field.secret && provider.secretsSet.includes(field.key)}
               disabled={readOnly}
               onChange={(value) => editor.change(field.key, !!field.secret, value)}
+              sent={toSent(provider.providerKey, editor.form)}
             />
           ))}
     </div>

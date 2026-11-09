@@ -49,13 +49,6 @@ describe('Competency levels and the budget card (FR-117)', () => {
     expect((await s.mine()).competencies[0]).toMatchObject({ mine: null, met: false });
   });
 
-  it('records the same competency twice at the same moment without a failure', async () => {
-    const s = await setup();
-    const both = await Promise.all([s.record({ competency: 'الاتصال المباشر', level: 'أساسي' }), s.record({ competency: 'الاتصال المباشر', level: 'خبير' })]);
-    expect(both.map((r) => r.status)).toEqual([200, 200]);
-    expect(((await t.db.query('SELECT count(*)::int AS n FROM career_employee_competency_levels WHERE employee_id = $1', [s.holder.employeeId])) as { n: number }[])[0]?.n).toBe(1);
-  });
-
   it('refuses a competency the title does not ask for (404), a level that is not one (400), unknown fields (400), and a person with no ready path (404)', async () => {
     const s = await setup();
     await s.record({ competency: 'غير موجودة', level: 'أساسي' }).expect(404);

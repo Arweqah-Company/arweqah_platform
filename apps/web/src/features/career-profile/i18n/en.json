@@ -247,6 +247,24 @@
       "acknowledgement_missing": "The acknowledgement text is missing",
       "code_mismatch": "The title code in the file is not this title's code",
       "content_invalid": "Text in the file is over an allowed limit, or a duration is not understood"
+    },
+    "ai": {
+      "button": "Analyse with AI",
+      "running": "The AI is reading the file… this can take a minute or two.",
+      "notice": "The text of the file will be sent to the AI service switched on in the settings. It holds company data, not employees' data.",
+      "offer": "The fixed reader could not place every part. The AI can read the file in any order and put each part in its place; you review the result before anything is saved.",
+      "badge": "Placed by AI: review before saving",
+      "ungroundedTitle": "These texts are not in the file word for word: check them before saving:",
+      "errors": {
+        "AI_NOT_CONFIGURED": "No AI service is switched on in the settings.",
+        "AI_UNAVAILABLE": "The AI service did not give a usable answer. Try again.",
+        "TITLE_FILE_AI_RATE_LIMITED": "Too many files were sent to the AI. Try again later.",
+        "generic": "The file could not be analysed."
+      }
+    },
+    "saveOff": {
+      "noReading": "Saving opens after the file is checked («Extract») and every part is sound.",
+      "problems": "Saving is off because the file has parts that need review (listed above)."
     }
   },
   "tour": {
@@ -261,7 +279,8 @@
         "upload": "Upload and read a title file",
         "publish": "Set a path ready or back to draft",
         "reopen": "Reopen the acknowledgement for a title's holders",
-        "import": "Import learning-unit links from an Excel file"
+        "import": "Import learning-unit links from an Excel file",
+        "ai": "Analyse a title file with AI"
       }
     },
     "career-certificates": {
@@ -353,7 +372,8 @@
     "saveFailed": "The content could not be saved. Try again.",
     "invalid": "A field of the content is missing or not valid. Fix the marked fields before saving.",
     "evaluationNote": "Performance evaluation belongs to the development stage, not to the title: the evaluation file for all stages is uploaded once from «Shared lists» when the evaluation cycle is built.",
-    "listsNote": "The shared lists (stages, criteria, behaviours and the evaluation file) are built with the evaluation cycle."
+    "listsNote": "The shared lists (stages, criteria, behaviours and the evaluation file) are built with the evaluation cycle.",
+    "saveOff": "There are no changes to save. What came from a title file was saved when it was uploaded."
   },
   "editor": {
     "required": "This field is required",
@@ -547,7 +567,7 @@
     "noCap": "No budget cap is set for your stage yet, so the cost is compared to nothing.",
     "overBudget": "The cost is above what is left of your yearly budget (the cap of your stage). You can still send it and the approver decides.",
     "whoLevel": {
-      "direct": "The direct manager",
+      "direct": "The direct manager (answers within 5 working days)",
       "sector": "The sector head",
       "ceo": "The CEO"
     },
@@ -623,8 +643,7 @@
       "confirm": "Reject the request",
       "done": "The request was rejected and the employee was told."
     },
-    "decideFailed": "The decision could not be made: someone else may have decided it.",
-    "directDeadline": "7 days to answer (about 5 working days), then the request goes to the sector head."
+    "decideFailed": "The decision could not be made: someone else may have decided it."
   },
   "mine": {
     "level": "My level",

@@ -28,7 +28,7 @@ export class TypeOrmCareerCompetencyRepository extends CareerCompetencyRepositor
       await repo.delete({ employeeId, competency });
       return;
     }
-    // one atomic statement: two first recordings of the same competency at the same moment both succeed
-    await repo.upsert({ employeeId, competency, level: write.level, reachedAt: write.at, recordedBy: write.recordedBy, updatedAt: write.at }, { conflictPaths: ['employeeId', 'competency'] });
+    const before = await repo.findOne({ where: { employeeId, competency } });
+    await repo.save(Object.assign(before ?? new CareerEmployeeCompetencyLevel(), { employeeId, competency, level: write.level, reachedAt: write.at, recordedBy: write.recordedBy }));
   }
 }

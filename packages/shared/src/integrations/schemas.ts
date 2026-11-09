@@ -51,6 +51,13 @@ export interface TestResultDto {
   text: string | null;
 }
 
+/** The models an AI service offers to a key (`POST /integrations/ai/:providerKey/models`); a service that cannot be asked is `ok: false` with its own words. */
+export interface AiModelsDto {
+  ok: boolean;
+  models: string[];
+  message: string | null;
+}
+
 /** What the sign-in page needs to show the bot check: the public site key, or nothing when no provider is active. */
 export interface CaptchaConfigDto {
   provider: 'turnstile' | null;

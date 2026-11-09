@@ -1148,7 +1148,7 @@ erDiagram
     uuid recorded_by
   }
   employees ||--o{ career_development_requests : "employee_id"
-  files |o--o{ career_development_requests : "agreement_file_id"
+  files ||--o{ career_development_requests : "agreement_file_id"
   employees ||--o{ career_employee_competency_levels : "employee_id"
   employees ||--o{ career_learning_records : "employee_id"
   job_titles ||--o{ career_learning_records : "title_id"
@@ -1280,7 +1280,7 @@ erDiagram
 | `scheduled_jobs` | Durable timers (reminders, timeouts) run by the scheduler. |
 | `notifications` | In-app notifications per user: bilingual title and body, link, read time. |
 | `email_logs` | Every e-mail sent or failed, for support. |
-| `integration_providers` | External services (e-mail, translation, Turnstile…): provider key, encrypted config, last verified test, active flag. |
+| `integration_providers` | External services (e-mail, translation, Turnstile, AI…; `kind` = `translation`, `email`, `captcha`, `ai`): provider key, encrypted config, last verified test, active flag. |
 | `message_templates` | Editable e-mail / message templates. |
 | `template_settings` | Per template kind: whether changes need approval. |
 | `workflow_instances` | Running XState approval workflows: definition, state, entity, snapshot. |

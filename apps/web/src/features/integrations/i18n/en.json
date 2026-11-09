@@ -3,18 +3,21 @@
     "translation": "Translation settings",
     "email": "E-mail settings",
     "settings": "Settings",
-    "captcha": "Bot protection"
+    "captcha": "Bot protection",
+    "ai": "AI service"
   },
   "description": {
     "translation": "Choose which service translates Arabic into English while people type. A service is switched on only after it passes a test with its saved data.",
     "email": "Choose how the platform sends e-mail (sign-in links, invitations, notices). A service is switched on only after it passes a test with its saved data.",
     "settings": "Translation, e-mail services, and the wording of e-mails and notifications, in one page.",
-    "captcha": "Cloudflare Turnstile check on the e-mail sign-in page. With no service switched on no check is asked. A service is switched on only after it passes a test with its keys."
+    "captcha": "Cloudflare Turnstile check on the e-mail sign-in page. With no service switched on no check is asked. A service is switched on only after it passes a test with its keys.",
+    "ai": "The AI service that places the parts of an uploaded job-title file when the fixed reader cannot read it (the text of the file is sent to the service). A service is switched on only after it passes a test with its key."
   },
   "serverSettings": {
     "translation": "No service is switched on here, so the settings on the server are used (if there are none, translation is off).",
     "email": "No service is switched on here, so the e-mail settings on the server are used.",
-    "captcha": "No service is switched on, so no check is asked at sign-in."
+    "captcha": "No service is switched on, so no check is asked at sign-in.",
+    "ai": "No service is switched on, so the «Analyse with AI» button is not offered."
   },
   "providers": {
     "aws": "Amazon Translate",
@@ -24,7 +27,9 @@
     "ses": "Amazon SES",
     "sendgrid": "SendGrid",
     "graph": "Microsoft 365 (Graph)",
-    "turnstile": "Cloudflare Turnstile"
+    "turnstile": "Cloudflare Turnstile",
+    "anthropic": "Anthropic (Claude)",
+    "compatible": "OpenAI-compatible service (free Gemini, Groq…)"
   },
   "columns": {
     "provider": "Service",
@@ -76,7 +81,8 @@
     "description": {
       "translation": "Type Arabic on the right side; the English appears by itself. Nothing is saved from this box.",
       "email": "Send a short message to any address with the data in the form.",
-      "captcha": "The real Cloudflare check appears with the site key, and its answer is verified with the secret key. Nothing is saved from this window."
+      "captcha": "The real Cloudflare check appears with the site key, and its answer is verified with the secret key. Nothing is saved from this window.",
+      "ai": "Sends one short request with the key and the model in the form. Nothing is saved from this window."
     },
     "arabic": "Arabic",
     "arabicHint": "Type any Arabic text.",
@@ -94,7 +100,10 @@
     "check": "Verify the answer",
     "checking": "Verifying…",
     "captchaWorks": "The test passed: both keys belong to the same widget.",
-    "captchaNeedsForm": "Save the site key first, or type it in the form, then try again."
+    "captchaNeedsForm": "Save the site key first, or type it in the form, then try again.",
+    "run": "Run the test",
+    "running": "Testing…",
+    "aiWorks": "The test passed: the key and the model are accepted."
   },
   "fields": {
     "aws": {
@@ -137,6 +146,15 @@
     "turnstile": {
       "siteKey": "Site key",
       "secretKey": "Secret key"
+    },
+    "anthropic": {
+      "apiKey": "API key",
+      "model": "Model"
+    },
+    "compatible": {
+      "apiKey": "API key",
+      "baseUrl": "Service address",
+      "model": "Model"
     }
   },
   "hints": {
@@ -168,6 +186,15 @@
     "turnstile": {
       "siteKey": "Cloudflare dashboard → Turnstile → your widget → «Site key». A public key shown on the sign-in page.",
       "secretKey": "From the same widget → «Secret key». It is not shown after saving, and must belong to the widget that owns the site key."
+    },
+    "anthropic": {
+      "apiKey": "Starts with sk-ant-. Created in the Anthropic console and shown only once.",
+      "model": "A model name: claude-opus-5-5 (the most accurate) or claude-sonnet-5-5 (cheaper). Leave it as is if unsure."
+    },
+    "compatible": {
+      "apiKey": "The key of that service. For the free Gemini option: «Get API key» in Google AI Studio.",
+      "baseUrl": "A public https address that ends before «/chat/completions». Gemini: https://generativelanguage.googleapis.com/v1beta/openai · Groq: https://api.groq.com/openai/v1 · OpenRouter: https://openrouter.ai/api/v1",
+      "model": "A model of that service that supports structured JSON answers. Free Gemini: gemini-3.8-flash."
     }
   },
   "tabs": {
@@ -177,7 +204,8 @@
     "notification-templates": "Notification templates",
     "tour-settings": "Welcome tour",
     "security-settings": "Security",
-    "captcha": "Bot protection"
+    "captcha": "Bot protection",
+    "ai": "AI"
   },
   "tabsLabel": "Services",
   "noTabs": "You may not view any of these settings.",
@@ -309,6 +337,38 @@
           "siteKey": "A public key shown on the sign-in page; it usually starts with 0x4.",
           "secretKey": "A secret key that stays on the server and is never shown after saving."
         }
+      },
+      "anthropic": {
+        "summary": "Claude, by Anthropic, reads a title file in any order and puts each part in its place. You pay Anthropic by use; reading one title file usually costs well under one dollar.",
+        "steps": [
+          "Open console.anthropic.com and sign in (or create an account for the organisation).",
+          "Under Billing, add a payment method and a small credit.",
+          "Open Settings → API keys → Create key and name it «Arweqah platform».",
+          "Copy the key at once (it is shown only once) and paste it into «API key» here.",
+          "Leave the model as it is, or type another model name from the console.",
+          "Press «Try». When the test passes, press «Activate»."
+        ],
+        "fields": {
+          "apiKey": "The secret key from the console. It stays on the server and is never shown after saving.",
+          "model": "The model that reads the files. The default is the most accurate; a cheaper one may miss details."
+        },
+        "note": "The text of every title file analysed with AI is sent to Anthropic. It holds company data, not employees' data: do not paste personal data into it."
+      },
+      "compatible": {
+        "summary": "Any service that speaks the OpenAI protocol, so you can use a free one (Google Gemini's free tier needs no card) and keep Claude as the other option. Only one AI service is switched on at a time.",
+        "steps": [
+          "Open aistudio.google.com and sign in with a Google account.",
+          "Choose «Get API key» then «Create API key» and copy the key.",
+          "Paste it into «API key» here. Leave the address and the model as they are to use the free Gemini.",
+          "For another service (Groq, OpenRouter…) type its address and a model it offers that supports structured JSON answers.",
+          "Press «Try». When the test passes, press «Activate»."
+        ],
+        "fields": {
+          "apiKey": "The secret key of the service. It stays on the server and is never shown after saving.",
+          "baseUrl": "Where the service answers: the platform adds «/chat/completions» to it. It must be a public https address.",
+          "model": "The model that reads the files. Free models are less exact than Claude and have rate limits."
+        },
+        "note": "Google's free tier may use what you send to improve its products, and other free services have their own terms. A title file holds company data, not employees' data: do not put personal data in it. The AI's reading is always reviewed by a person before it is saved."
       }
     }
   },
@@ -323,5 +383,11 @@
         "notification_templates": "Reword the notifications"
       }
     }
+  },
+  "models": {
+    "load": "Show the available models",
+    "reload": "Refresh the list",
+    "failed": "The models could not be listed (you can still type the name)",
+    "count": "Models available: {{count}}"
   }
 }

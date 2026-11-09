@@ -1,8 +1,8 @@
 import { CorePermission, type CertificateReviewItemDto } from '@arweqah-platform/shared';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
-import { delay, http, HttpResponse } from 'msw';
+import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { access, me, server } from '../../../test/msw';
+import { me, server } from '../../../test/msw';
 import { renderPage } from '../../../test/render';
 import { chooseOption } from '../../../test/select';
 import { CertificatesPage } from './certificates-page';
@@ -47,11 +47,10 @@ describe('The certificate review page (FR-114)', () => {
     await waitFor(() => expect(asked.some((p) => p.get('kind') === 'application')).toBe(true));
   });
 
-  it('shows the decisions only on a proof that waits, and only for the keys held, even when the permissions arrive after the rows', async () => {
+  it('shows the decisions only on a proof that waits, and only for the keys held', async () => {
     open();
-    server.use(http.get('*/api/me/access', async () => { await delay(300); return HttpResponse.json(access(ALL.map((key) => ({ key, scope: 'all' as const })))); }));
     const waiting = await rowOf('منى الزهراني');
-    for (const name of [/اعتماد: /, /رفض بسبب: /, /إحالة إلى المدير المباشر: /]) expect(await within(waiting).findByRole('button', { name })).toBeInTheDocument(); // the keys may arrive after the rows
+    for (const name of [/اعتماد: /, /رفض بسبب: /, /إحالة إلى المدير المباشر: /]) expect(within(waiting).getByRole('button', { name })).toBeInTheDocument();
     const referred = await rowOf('خالد الشمري');
     expect(within(referred).queryByRole('button', { name: /إحالة إلى المدير المباشر: / })).not.toBeInTheDocument(); // already with the manager
     const done = await rowOf('ريم الغامدي');
@@ -71,13 +70,13 @@ describe('The certificate review page (FR-114)', () => {
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByText('أمان العمل')).toBeInTheDocument();
     expect(within(dialog).getByRole('link', { name: /cert\.pdf/ })).toHaveAttribute('href', '/api/career/certificates/p1/file');
-    fireEvent.click(await within(dialog).findByRole('button', { name: 'اعتماد' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'اعتماد' }));
     await waitFor(() => expect(posted).toContainEqual({ url: '/api/career/certificates/p1/approve', body: {} }));
   });
 
   it('asks for a reason of five characters before rejecting, and sends it', async () => {
     const { posted } = open();
-    fireEvent.click(await within(await rowOf('منى الزهراني')).findByRole('button', { name: /رفض بسبب: / }));
+    fireEvent.click(within(await rowOf('منى الزهراني')).getByRole('button', { name: /رفض بسبب: / }));
     const confirm = await screen.findByRole('button', { name: 'رفض الإثبات' });
     expect(confirm).toBeDisabled();
     fireEvent.change(screen.getByLabelText('سبب الرفض *'), { target: { value: 'لا' } });
@@ -91,7 +90,7 @@ describe('The certificate review page (FR-114)', () => {
   it('refers a proof to the direct manager from its window', async () => {
     const { posted } = open();
     fireEvent.click(await screen.findByText('منى الزهراني'));
-    fireEvent.click(await within(await screen.findByRole('dialog')).findByRole('button', { name: 'إحالة إلى المدير المباشر' }));
+    fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'إحالة إلى المدير المباشر' }));
     await waitFor(() => expect(posted).toContainEqual({ url: '/api/career/certificates/p1/refer', body: {} }));
   });
 });

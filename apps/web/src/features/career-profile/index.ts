@@ -32,6 +32,7 @@ export const careerProfileFeature: FeatureModule = {
       placement: 'bottom',
       can: [
         { id: 'upload', permission: CorePermission.CareerTitlefileUpload },
+        { id: 'ai', permission: CorePermission.CareerTitlefileAi },
         { id: 'publish', permission: CorePermission.CareerTitlefilePublish },
         { id: 'reopen', permission: CorePermission.CareerAcknowledgeReopen },
         { id: 'import', permission: CorePermission.CareerContentImport },
