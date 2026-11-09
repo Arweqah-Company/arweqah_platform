@@ -99,6 +99,12 @@ export const CorePermission = {
   CareerTeamView: 'career_team.view',
   CareerTeamDecide: 'career_team.decide',
   CareerTeamExport: 'career_team.export',
+  CareerRequestsCreate: 'career_requests.create',
+  CareerRequestsView: 'career_requests.view',
+  CareerRequestsApprove: 'career_requests.approve',
+  CareerRequestsReject: 'career_requests.reject',
+  CareerRequestsExport: 'career_requests.export',
+  CareerCompetencyRecord: 'career_competency.record',
   // My account
   ProfileView: 'profile.view',
   ProfileUpdate: 'profile.update',
@@ -221,6 +227,7 @@ const OWN_ACCOUNT_PERMISSIONS: { key: CorePermissionKey; scope: 'all' }[] = [
   { key: CorePermission.CareerLearningExport, scope: 'all' },
   { key: CorePermission.CareerLearningUpload, scope: 'all' },
   { key: CorePermission.CareerRequiredTick, scope: 'all' },
+  { key: CorePermission.CareerRequestsCreate, scope: 'all' },
 ];
 
 /**
@@ -277,6 +284,11 @@ export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 's
   { key: CorePermission.CareerTeamView, scope: 'subtree' },
   { key: CorePermission.CareerTeamDecide, scope: 'subtree' },
   { key: CorePermission.CareerTeamExport, scope: 'subtree' },
+  { key: CorePermission.CareerRequestsView, scope: 'subtree' },
+  { key: CorePermission.CareerRequestsApprove, scope: 'subtree' },
+  { key: CorePermission.CareerRequestsReject, scope: 'subtree' },
+  { key: CorePermission.CareerRequestsExport, scope: 'subtree' },
+  { key: CorePermission.CareerCompetencyRecord, scope: 'subtree' },
   // tasks of the unit and below
   { key: CorePermission.TasksTeamView, scope: 'subtree' },
   { key: CorePermission.TasksMatrixView, scope: 'subtree' },

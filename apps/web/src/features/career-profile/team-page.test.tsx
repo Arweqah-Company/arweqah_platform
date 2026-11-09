@@ -10,17 +10,18 @@ beforeEach(() => window.localStorage.clear());
 
 const member = (over: Partial<TeamMemberDto> = {}): TeamMemberDto => ({ employeeId: 'e1', name: 'منى الزهراني', titleNameAr: 'منسق الاستقطاب', titleNameEn: 'Coordinator', requiredDone: 1, requiredTotal: 4, approvedMinutes: 720, yearMinutes: 2400, overdue: 1, waiting: 1, status: 'late', ...over });
 const MEMBERS = [member(), member({ employeeId: 'e2', name: 'خالد الشمري', requiredDone: 3, overdue: 0, status: 'regular' }), member({ employeeId: 'e3', name: 'ريم الغامدي', status: 'no_path', requiredDone: 0, requiredTotal: 0, overdue: 0 })];
-const ALL = [CorePermission.CareerTeamView, CorePermission.CareerTeamDecide, CorePermission.CareerTeamExport];
+const ALL = [CorePermission.CareerTeamView, CorePermission.CareerTeamDecide, CorePermission.CareerTeamExport, CorePermission.CareerCompetencyRecord];
 
 function open(keys: string[] = ALL) {
   window.localStorage.setItem('view:career-team', 'table');
   const asked: URLSearchParams[] = [];
   const posted: { url: string; body: unknown }[] = [];
-  const detail: TeamMemberDetailDto = { ...member(), proofs: [{ id: 'p1', unitTitle: 'أمان العمل', kind: 'application', status: 'referred', submittedAt: '2026-11-08T10:00:00.000Z', note: 'طبّقتها' }, { id: 'p2', unitTitle: 'الكتابة المهنية', kind: 'certificate', status: 'wait', submittedAt: '2026-11-08T10:00:00.000Z', note: null }] };
+  const detail: TeamMemberDetailDto = { ...member(), proofs: [{ id: 'p1', unitTitle: 'أمان العمل', kind: 'application', status: 'referred', submittedAt: '2026-11-08T10:00:00.000Z', note: 'طبّقتها' }, { id: 'p2', unitTitle: 'الكتابة المهنية', kind: 'certificate', status: 'wait', submittedAt: '2026-11-08T10:00:00.000Z', note: null }], competencies: [{ name: 'الاتصال المباشر', required: 'أساسي', mine: null, met: false }] };
   server.use(
     http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'subtree' as const }))))),
     http.get('*/api/career/team', ({ request }) => { asked.push(new URL(request.url).searchParams); return HttpResponse.json({ items: MEMBERS, total: 3, page: 1, pageSize: 20, lateCount: 1 }); }),
     http.get('*/api/career/team/:id', () => HttpResponse.json(detail)),
+    http.put('*/api/career/team/:id/competencies', async ({ request }) => { posted.push({ url: new URL(request.url).pathname, body: await request.json() }); return HttpResponse.json([]); }),
     http.post('*/api/career/team/:id/proofs/:proof/:action', async ({ request }) => { posted.push({ url: new URL(request.url).pathname, body: await request.json() }); return new HttpResponse(null, { status: 204 }); }),
   );
   renderPage(<CareerTeamPage />);
@@ -73,5 +74,25 @@ describe('«My career team» (FR-115)', () => {
     const dialog = await screen.findByRole('dialog');
     await within(dialog).findByText('أمان العمل');
     expect(within(dialog).queryByRole('button', { name: 'اعتماد' })).not.toBeInTheDocument();
+  });
+
+  it('shows the competencies of the member\'s title and records the level the manager picks (FR-117)', async () => {
+    const { posted } = open();
+    fireEvent.click(await screen.findByText('منى الزهراني'));
+    const dialog = await screen.findByRole('dialog');
+    expect(await within(dialog).findByText('الاتصال المباشر')).toBeInTheDocument();
+    expect(within(dialog).getByText('المطلوب: أساسي')).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole('combobox', { name: /المستوى المسجّل: الاتصال المباشر/ }));
+    fireEvent.click(await screen.findByRole('option', { name: 'أساسي' }));
+    await waitFor(() => expect(posted).toContainEqual({ url: '/api/career/team/e1/competencies', body: { competency: 'الاتصال المباشر', level: 'أساسي' } }));
+  });
+
+  it('shows the recorded level as text, without a picker, when the key to record is missing', async () => {
+    open([CorePermission.CareerTeamView]);
+    fireEvent.click(await screen.findByText('منى الزهراني'));
+    const dialog = await screen.findByRole('dialog');
+    expect(await within(dialog).findByText('الاتصال المباشر')).toBeInTheDocument();
+    expect(within(dialog).queryByRole('combobox')).not.toBeInTheDocument();
+    expect(within(dialog).getByText('لم يُسجَّل')).toBeInTheDocument();
   });
 });

@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PermissionCatalog } from '../../core/access/application/permission-catalog';
 import { LookupsModule } from '../lookups/lookups.module';
 import { CareerTeamPort } from '../career-profile/domain/contracts/career-team.port';
+import { CareerApproverPort } from '../career-profile/domain/contracts/career-approver.port';
 import { EmployeeCareerPort } from '../career-profile/domain/contracts/employee-career.port';
 import { EmployeePlacementPort } from '../org/domain/contracts/employee-placement.port';
 import { OrgModule } from '../org/org.module';
@@ -33,6 +34,7 @@ import { DIRECTORY_PERMISSIONS, EMPLOYEE_PERMISSIONS } from './domain/permission
 import { EmployeeRepository } from './domain/contracts/employee.repository';
 import { EmployeeCareerAdapter } from './infrastructure/adapters/employee-career.adapter';
 import { EmployeeTeamAdapter } from './infrastructure/adapters/employee-team.adapter';
+import { EmployeeApproverAdapter } from './infrastructure/adapters/employee-approver.adapter';
 import { EmployeePlacementAdapter } from './infrastructure/adapters/employee-placement.adapter';
 import { TypeOrmEmployeeRepository } from './infrastructure/repositories/typeorm-employee.repository';
 import { EmployeesController } from './presentation/controllers/employees.controller';
@@ -66,8 +68,9 @@ import { ProfileController } from './presentation/controllers/profile.controller
     { provide: EmployeePlacementPort, useClass: EmployeePlacementAdapter },
     { provide: EmployeeCareerPort, useClass: EmployeeCareerAdapter },
     { provide: CareerTeamPort, useClass: EmployeeTeamAdapter },
+    { provide: CareerApproverPort, useClass: EmployeeApproverAdapter },
   ],
-  exports: [EmployeePlacementPort, EmployeeCareerPort, CareerTeamPort, EmployeeLifecycleJob, EmployeeAssignmentsService, EmployeeAutoManagerService],
+  exports: [EmployeePlacementPort, EmployeeCareerPort, CareerTeamPort, CareerApproverPort, EmployeeLifecycleJob, EmployeeAssignmentsService, EmployeeAutoManagerService],
 })
 export class EmployeesModule implements OnModuleInit {
   constructor(private readonly catalog: PermissionCatalog) {}

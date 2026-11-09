@@ -7,6 +7,11 @@ import { CareerProgressService } from './application/services/career-progress.se
 import { CareerReminderService } from './application/services/career-reminder.service';
 import { CareerTeamService } from './application/services/career-team.service';
 import { CareerProofService } from './application/services/career-proof.service';
+import { CareerCompetencyService } from './application/services/career-competency.service';
+import { CareerCompetencyRepository } from './domain/contracts/career-competency.repository';
+import { TypeOrmCareerCompetencyRepository } from './infrastructure/repositories/typeorm-career-competency.repository';
+import { CareerRequestService } from './application/services/career-request.service';
+import { CareerRequestDecisionService } from './application/services/career-request-decision.service';
 import { CareerReviewService } from './application/services/career-review.service';
 import { CareerContentService } from './application/services/career-content.service';
 import { LearningLinksService } from './application/services/learning-links.service';
@@ -21,6 +26,13 @@ import { CareerContentRepository } from './domain/contracts/career-content.repos
 import { TitleIdentityPort } from './domain/contracts/title-identity.port';
 import { CAREER_ACKNOWLEDGEMENT_ENTITIES } from './domain/entities/career-acknowledgement.entities';
 import { CAREER_PROGRESS_ENTITIES } from './domain/entities/career-progress.entities';
+import { CAREER_REQUEST_ENTITIES } from './domain/entities/career-requests.entities';
+import { CareerRequestRepository } from './domain/contracts/career-request.repository';
+import { DEV_REQUEST_KEY, DEV_REQUEST_VERSION, developmentRequestMachine } from './domain/rules/development-request.machine';
+import { TypeOrmCareerRequestRepository } from './infrastructure/repositories/typeorm-career-request.repository';
+import { CareerRequestEscalationConsumer } from './infrastructure/jobs/career-request-escalation.consumer';
+import { MyRequestsController } from './presentation/controllers/my-requests.controller';
+import { CareerRequestsController } from './presentation/controllers/career-requests.controller';
 import { CERTIFICATE_KEY, CERTIFICATE_VERSION, certificateMachine } from './domain/rules/certificate.machine';
 import { CAREER_CONTENT_ENTITIES } from './domain/entities/career-profile.entities';
 import { CAREER_PROFILE_PERMISSIONS } from './domain/permissions/career-profile.permissions';
@@ -38,8 +50,8 @@ import { CareerContentController } from './presentation/controllers/career-conte
 
 /** The career path of each job title (content now; the employee's page, the acknowledgement, the learning records and the requests come in later stages). */
 @Module({
-  imports: [TypeOrmModule.forFeature([...CAREER_CONTENT_ENTITIES, ...CAREER_ACKNOWLEDGEMENT_ENTITIES, ...CAREER_PROGRESS_ENTITIES]), OrgModule],
-  controllers: [CareerContentController, CareerTitlesController, CareerCertificatesController, CareerTeamController, MyCareerController],
+  imports: [TypeOrmModule.forFeature([...CAREER_CONTENT_ENTITIES, ...CAREER_ACKNOWLEDGEMENT_ENTITIES, ...CAREER_PROGRESS_ENTITIES, ...CAREER_REQUEST_ENTITIES]), OrgModule],
+  controllers: [CareerContentController, CareerTitlesController, CareerCertificatesController, CareerTeamController, MyCareerController, MyRequestsController, CareerRequestsController],
   providers: [
     CareerContentService,
     TitleFileService,
@@ -51,10 +63,16 @@ import { CareerContentController } from './presentation/controllers/career-conte
     CareerReminderService,
     CareerRemindersJob,
     CareerReviewService,
+    CareerRequestService,
+    CareerCompetencyService,
+    CareerRequestDecisionService,
+    CareerRequestEscalationConsumer,
     CareerTitleListService,
     LearningLinksService,
     { provide: CareerContentRepository, useClass: TypeOrmCareerContentRepository },
     { provide: CareerTitleListRepository, useClass: TypeOrmCareerTitleListRepository },
+    { provide: CareerCompetencyRepository, useClass: TypeOrmCareerCompetencyRepository },
+    { provide: CareerRequestRepository, useClass: TypeOrmCareerRequestRepository },
     { provide: CareerLearningRepository, useClass: TypeOrmCareerLearningRepository },
     { provide: CareerAcknowledgementRepository, useClass: TypeOrmCareerAcknowledgementRepository },
     { provide: TitleIdentityPort, useClass: OrgTitleIdentityAdapter },
@@ -69,5 +87,6 @@ export class CareerProfileModule implements OnModuleInit {
   onModuleInit(): void {
     this.catalog.register(CAREER_PROFILE_PERMISSIONS);
     this.workflows.register({ key: CERTIFICATE_KEY, version: CERTIFICATE_VERSION, machine: certificateMachine });
+    this.workflows.register({ key: DEV_REQUEST_KEY, version: DEV_REQUEST_VERSION, machine: developmentRequestMachine });
   }
 }

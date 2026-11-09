@@ -27,5 +27,7 @@ export abstract class EmployeeCareerPort {
   /** Every active employee who holds a title (the reminders and the monthly report read them). */
   abstract holders(): Promise<CareerHolder[]>;
   abstract userOf(employeeId: string): Promise<string | null>;
+  /** The full name of the employee behind a user; null when there is none. */
+  abstract nameOfUser(userId: string): Promise<string | null>;
   abstract managerUserId(employeeId: string): Promise<string | null>;
 }

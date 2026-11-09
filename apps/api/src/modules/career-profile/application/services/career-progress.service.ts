@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import type { MyProgressDto, SetRequiredInput } from '@arweqah-platform/shared';
+import { riyadhToday, type MyProgressDto, type SetRequiredInput } from '@arweqah-platform/shared';
 import { Clock } from '../../../../common/application/clock';
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
 import { NotFoundError } from '../../../../common/domain/domain-error';
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
 import { CareerContentRepository } from '../../domain/contracts/career-content.repository';
+import { CareerCompetencyService } from './career-competency.service';
+import { CareerRequestRepository } from '../../domain/contracts/career-request.repository';
+import { TitleIdentityPort } from '../../domain/contracts/title-identity.port';
+import { budgetYear } from '../../domain/rules/development-request.rules';
 import { CareerLearningRepository } from '../../domain/contracts/career-learning.repository';
 import { EmployeeCareerPort } from '../../domain/contracts/employee-career.port';
 import { CareerPathNotAvailableError } from '../../domain/errors/career-profile.errors';
@@ -22,6 +26,9 @@ export class CareerProgressService {
     private readonly employees: EmployeeCareerPort,
     private readonly content: CareerContentRepository,
     private readonly records: CareerLearningRepository,
+    private readonly requests: CareerRequestRepository,
+    private readonly titles: TitleIdentityPort,
+    private readonly competencies: CareerCompetencyService,
     private readonly tx: TransactionRunner,
     private readonly clock: Clock,
     private readonly events: EventEmitter2,
@@ -31,7 +38,11 @@ export class CareerProgressService {
     const { employeeId, titleId, stored } = await this.path(ctx.userId);
     const [records, ticked] = await Promise.all([this.records.forEmployee(employeeId), this.records.requiredDone(employeeId, titleId)]);
     const minutes = approvedMinutes(records);
+    const { from, to } = budgetYear(riyadhToday(this.clock.now()));
+    const [identity, spent, competencies] = await Promise.all([this.titles.identity(titleId), this.requests.approvedCost(employeeId, from, to), this.competencies.statuses(employeeId, stored.content)]);
     return {
+      budget: { cap: identity.stage?.budgetCap ?? null, spent },
+      competencies,
       requiredDone: validRequiredIndexes(stored.content, ticked),
       unitsDone: records.filter((r) => r.status === 'done').length,
       unitsTotal: unitCount(stored.content),

@@ -7,6 +7,7 @@ import { Can } from '@/core/permissions/can';
 import { Alert, Badge, Button, Dialog, FormField, Input } from '@/shared/ui';
 import { useTeamDecision, useTeamMember } from './api';
 import { formatMinutes } from './format-minutes';
+import { TeamCompetencies } from './team-competencies';
 
 /** One number of the member: a label, the figure and, where it has one, a bar. */
 function Figure({ label, value, ratio }: { label: string; value: string; ratio?: number }) {
@@ -55,24 +56,41 @@ function ReferredProof({ employeeId, proof }: { employeeId: string; proof: TeamW
   );
 }
 
-/** The window of a member: three numbers, the proofs waiting for a decision, and a reminder that their path is read only from here. */
+/** The three numbers of the member. */
+function MemberFigures({ data }: { data: TeamMemberDetailDto }) {
+  const { t } = useTranslation('career-profile');
+  const year = data.yearMinutes;
+  return (
+    <div className="grid gap-3 sm:grid-cols-3">
+      <Figure label={t('team.required')} value={t('tiles.unitsValue', { done: data.requiredDone, total: data.requiredTotal })} ratio={data.requiredTotal ? data.requiredDone / data.requiredTotal : 0} />
+      <Figure label={t('team.hours')} value={year ? `${formatMinutes(data.approvedMinutes, t)} / ${formatMinutes(year, t)}` : formatMinutes(data.approvedMinutes, t)} ratio={year ? data.approvedMinutes / year : undefined} />
+      <Figure label={t('team.overdue')} value={String(data.overdue)} />
+    </div>
+  );
+}
+
+/** The proofs waiting for a decision. */
+function WaitingProofs({ data, loaded, failed }: { data: TeamMemberDetailDto; loaded: boolean; failed: boolean }) {
+  const { t } = useTranslation('career-profile');
+  return (
+    <div><h3 className="mb-2 font-heading text-base font-bold text-fg">{t('team.waitingProofs')}</h3>
+      {failed && <Alert tone="danger">{t('team.loadFailed')}</Alert>}
+      {loaded && data.proofs.length === 0 && <p className="text-sm text-muted">{t('team.noProofs')}</p>}
+      <ul className="flex flex-col gap-2">{data.proofs.map((p) => <ReferredProof key={p.id} employeeId={data.employeeId} proof={p} />)}</ul>
+    </div>
+  );
+}
+
+/** The window of a member: three numbers, the proofs waiting for a decision, the competencies of their title, and a reminder that their path is read only from here. */
 export function TeamMemberDialog({ member, onClose }: { member: TeamMemberDto; onClose: () => void }) {
   const { t } = useTranslation('career-profile');
   const detail = useTeamMember(member.employeeId);
-  const data: TeamMemberDetailDto = { ...member, proofs: detail.data?.proofs ?? [] };
-  const year = data.yearMinutes;
+  const data: TeamMemberDetailDto = { ...member, proofs: detail.data?.proofs ?? [], competencies: detail.data?.competencies ?? [] };
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()} title={data.name} description={data.titleNameAr ?? undefined} wide>
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Figure label={t('team.required')} value={t('tiles.unitsValue', { done: data.requiredDone, total: data.requiredTotal })} ratio={data.requiredTotal ? data.requiredDone / data.requiredTotal : 0} />
-        <Figure label={t('team.hours')} value={year ? `${formatMinutes(data.approvedMinutes, t)} / ${formatMinutes(year, t)}` : formatMinutes(data.approvedMinutes, t)} ratio={year ? data.approvedMinutes / year : undefined} />
-        <Figure label={t('team.overdue')} value={String(data.overdue)} />
-      </div>
-      <div><h3 className="mb-2 font-heading text-base font-bold text-fg">{t('team.waitingProofs')}</h3>
-        {detail.isError && <Alert tone="danger">{t('team.loadFailed')}</Alert>}
-        {detail.data && data.proofs.length === 0 && <p className="text-sm text-muted">{t('team.noProofs')}</p>}
-        <ul className="flex flex-col gap-2">{data.proofs.map((p) => <ReferredProof key={p.id} employeeId={data.employeeId} proof={p} />)}</ul>
-      </div>
+      <MemberFigures data={data} />
+      <WaitingProofs data={data} loaded={!!detail.data} failed={detail.isError} />
+      {detail.data && <TeamCompetencies employeeId={data.employeeId} competencies={data.competencies} />}
       <Alert tone="info">{t('team.readOnly')}</Alert>
     </Dialog>
   );

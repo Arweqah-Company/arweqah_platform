@@ -363,6 +363,38 @@
       "filters": {
         "status": "الحالة"
       }
+    },
+    "career-requests": {
+      "name": "طلبات التطوير",
+      "columns": {
+        "employee": "الموظف",
+        "course": "الكورس",
+        "cost": "التكلفة",
+        "plan": "الخطة",
+        "level": "يعتمده",
+        "status": "الحالة",
+        "submitted": "قُدّم في"
+      },
+      "filters": {
+        "status": "الحالة",
+        "level": "المعتمِد",
+        "plan": "ضمن الخطة أو خارجها"
+      }
+    },
+    "career-my-requests": {
+      "name": "طلباتي للتعلّم",
+      "columns": {
+        "course": "الكورس",
+        "cost": "التكلفة",
+        "plan": "الخطة",
+        "level": "يعتمده",
+        "status": "الحالة",
+        "submitted": "قُدّم في"
+      },
+      "filters": {
+        "status": "الحالة",
+        "plan": "ضمن الخطة أو خارجها"
+      }
     }
   },
   "listHint": "العمود الأول (الاسم) يبقى دائمًا.",

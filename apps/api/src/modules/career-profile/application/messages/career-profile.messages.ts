@@ -12,8 +12,15 @@ export const CAREER_AUDIT = {
   proofRejected: 'career.proof.rejected',
   proofReferred: 'career.proof.referred',
   requiredTicked: 'career.required.ticked',
+  requestSubmitted: 'career.request.submitted',
+  requestApproved: 'career.request.approved',
+  requestRejected: 'career.request.rejected',
+  requestEscalated: 'career.request.escalated',
+  competencyRecorded: 'career.competency.recorded',
 } as const;
 
 export const CAREER_ENTITY = 'career_title_content';
 
 export const CAREER_PROOF_ENTITY = 'career_learning_record';
+
+export const CAREER_REQUEST_ENTITY = 'career_development_request';

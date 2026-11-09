@@ -24,4 +24,10 @@ export const CAREER_PROFILE_PERMISSIONS: PermissionDefinition[] = [
   { key: CorePermission.CareerTeamView, module: MODULE, labelAr: 'عرض «فريقي المهني»', labelEn: 'View «my career team»', scopes: ['unit', 'subtree', 'company', 'all'] },
   { key: CorePermission.CareerTeamDecide, module: MODULE, labelAr: 'البتّ في إثبات أُحيل إلى المدير المباشر', labelEn: 'Decide a proof referred to the direct manager', scopes: ['unit', 'subtree', 'company', 'all'] },
   { key: CorePermission.CareerTeamExport, module: MODULE, labelAr: 'تصدير قائمة «فريقي المهني»', labelEn: 'Export the «my career team» list', scopes: ['unit', 'subtree', 'company', 'all'] },
+  { key: CorePermission.CareerRequestsCreate, module: MODULE, labelAr: 'تقديم طلب تعلّم (طلب تطوير)', labelEn: 'Send a development request', scopes: ['all'] },
+  { key: CorePermission.CareerRequestsView, module: MODULE, labelAr: 'عرض صفحة «طلبات التطوير»', labelEn: 'View the «development requests» page', scopes: ['unit', 'subtree', 'company', 'all'] },
+  { key: CorePermission.CareerRequestsApprove, module: MODULE, labelAr: 'اعتماد طلب تطوير', labelEn: 'Approve a development request', scopes: ['unit', 'subtree', 'company', 'all'] },
+  { key: CorePermission.CareerRequestsReject, module: MODULE, labelAr: 'رفض طلب تطوير بسبب', labelEn: 'Reject a development request with a reason', scopes: ['unit', 'subtree', 'company', 'all'] },
+  { key: CorePermission.CareerRequestsExport, module: MODULE, labelAr: 'تصدير قائمة طلبات التطوير', labelEn: 'Export the list of development requests', scopes: ['unit', 'subtree', 'company', 'all'] },
+  { key: CorePermission.CareerCompetencyRecord, module: MODULE, labelAr: 'تسجيل مستوى جدارة لعضو الفريق', labelEn: 'Record a competency level for a team member', scopes: ['unit', 'subtree', 'company', 'all'] },
 ];

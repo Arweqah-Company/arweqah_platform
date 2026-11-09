@@ -3,6 +3,7 @@ import { CorePermission, riyadhToday, type TeamMemberDetailDto, type TeamMemberD
 import { Clock } from '../../../../common/application/clock';
 import { NotFoundError } from '../../../../common/domain/domain-error';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
+import { CareerCompetencyService } from './career-competency.service';
 import { CareerContentRepository } from '../../domain/contracts/career-content.repository';
 import { CareerLearningRepository } from '../../domain/contracts/career-learning.repository';
 import { CareerTeamPort, type TeamPerson } from '../../domain/contracts/career-team.port';
@@ -19,6 +20,7 @@ export class CareerTeamService {
     private readonly content: CareerContentRepository,
     private readonly records: CareerLearningRepository,
     private readonly titles: TitleIdentityPort,
+    private readonly competencies: CareerCompetencyService,
     private readonly clock: Clock,
   ) {}
 
@@ -37,7 +39,8 @@ export class CareerTeamService {
     const [row] = await this.rows([person]);
     const records = (await this.records.forEmployees([employeeId])).filter((r) => r.status === 'wait' || r.status === 'referred');
     const stored = person.titleId ? await this.content.find(person.titleId) : null;
-    return { ...(row as TeamMemberDto), proofs: records.map((r) => ({ id: r.id, unitTitle: this.unitTitle(stored, r), kind: r.proofKind, status: r.status, submittedAt: r.submittedAt.toISOString(), note: r.note })) };
+    const competencies = stored?.status === 'ready' ? await this.competencies.statuses(employeeId, stored.content) : [];
+    return { ...(row as TeamMemberDto), competencies, proofs: records.map((r) => ({ id: r.id, unitTitle: this.unitTitle(stored, r), kind: r.proofKind, status: r.status, submittedAt: r.submittedAt.toISOString(), note: r.note })) };
   }
 
   private unitTitle(stored: StoredCareerContent | null, record: LearningRecordRow): string {

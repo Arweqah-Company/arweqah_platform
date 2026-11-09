@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { Employee } from '../../domain/entities/employee.entity';
 import { EmployeeCareerPort, type CareerEmployee, type CareerHolder } from '../../../career-profile/domain/contracts/employee-career.port';
 
 /** An employee counts while their contract has not ended (the day is Riyadh's). */
@@ -36,6 +37,11 @@ export class EmployeeCareerAdapter extends EmployeeCareerPort {
   async userOf(employeeId: string): Promise<string | null> {
     const rows: { user_id: string | null }[] = await this.ds.query(USER_OF, [employeeId]);
     return rows[0]?.user_id ?? null;
+  }
+
+  async nameOfUser(userId: string): Promise<string | null> {
+    const employee = await this.ds.getRepository(Employee).findOne({ select: { fullName: true }, where: { userId } }); // a plain read by key: TypeORM (it leaves out the deleted)
+    return employee?.fullName ?? null;
   }
 
   async holders(): Promise<CareerHolder[]> {

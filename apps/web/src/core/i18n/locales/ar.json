@@ -41,7 +41,8 @@
     "careerProfile": "المسار الوظيفي",
     "careerContent": "محتوى المسارات الوظيفية",
     "careerCertificates": "مراجعة الشهادات",
-    "careerTeam": "فريقي المهني"
+    "careerTeam": "فريقي المهني",
+    "careerRequests": "طلبات التطوير"
   },
   "actions": {
     "save": "حفظ",

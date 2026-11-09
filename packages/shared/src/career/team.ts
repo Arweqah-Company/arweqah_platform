@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { paginationQuerySchema, type Paginated } from '../common/pagination';
+import type { CompetencyStatusDto } from './competency';
 import type { ProofKind, RecordStatus } from './proof';
 
 /**
@@ -43,4 +44,6 @@ export interface TeamWaitingProofDto {
 }
 export interface TeamMemberDetailDto extends TeamMemberDto {
   proofs: TeamWaitingProofDto[];
+  /** The competencies of their title with the level recorded for each (the manager records them from here). */
+  competencies: CompetencyStatusDto[];
 }
