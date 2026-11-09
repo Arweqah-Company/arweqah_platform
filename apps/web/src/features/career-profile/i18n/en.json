@@ -409,7 +409,7 @@
       },
       "application": {
         "title": "Applied at work",
-        "hint": "Your direct manager approves it, then the development officer, after you describe what you applied."
+        "hint": "Your direct manager approves it after you describe what you applied."
       },
       "output": {
         "title": "Written output",

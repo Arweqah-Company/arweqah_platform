@@ -180,6 +180,7 @@ describe('The progress of the employee in their path (FR-114)', () => {
     expect(((await other.get('/api/career-profile/me/progress').expect(200)).body as MyProgressDto).requiredDone).toEqual([]);
     expect(((await s.me.put('/api/career-profile/me/required/0').send({ done: false }).expect(200)).body as MyProgressDto).requiredDone).toEqual([]);
     await s.me.put('/api/career-profile/me/required/99').send({ done: true }).expect(404);
+    await s.me.put('/api/career-profile/me/required/-1').send({ done: true }).expect(404); // a negative index is not an item either
     await s.me.put('/api/career-profile/me/required/0').send({ done: 'yes' }).expect(400);
     const bare = await t.factories.signIn(await t.factories.user({ bare: true }));
     await bare.put('/api/career-profile/me/required/0').send({ done: true }).expect(403);
@@ -284,6 +285,18 @@ describe('The reminders and the monthly report of the career path (FR-115)', () 
     const future = await setup('2099-01-01');
     await future.service.remindEmployees('2026-11-08');
     expect(await titles(future.me)).not.toContain('عندك بنود متأخرة في مسارك الوظيفي');
+  });
+
+  it('still reminds an employee who has an unread notice about a proof (the reminder has a link of its own)', async () => {
+    const s = await setup('2020-01-01');
+    const reviewer = await t.factories.signIn(await t.factories.user({ grants: grants(REVIEW) }));
+    const content = ((await s.me.get('/api/career-profile/me').expect(200)).body as MyCareerProfileDto).content as CareerContent;
+    const fileId = ((await s.me.post('/api/files').attach('file', PNG, 'c.png').expect(201)).body as { id: string }).id;
+    const sent = (await s.me.post('/api/career-profile/me/learning').send({ unitId: content.learning.periods[0]!.units[0]!.id, kind: 'certificate', fileId }).expect(201)).body as LearningRecordDto;
+    await reviewer.post(`/api/career/certificates/${sent.id}/approve`).expect(204);
+    await vi.waitFor(async () => expect(await titles(s.me)).toContain('اعتُمد إثباتك')); // unread, link /career-profile
+    await s.service.remindEmployees('2026-11-08');
+    await vi.waitFor(async () => expect(await titles(s.me)).toContain('عندك بنود متأخرة في مسارك الوظيفي'));
   });
 
   it('tells the direct manager how many of their reports are late', async () => {

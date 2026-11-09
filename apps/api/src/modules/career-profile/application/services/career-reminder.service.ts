@@ -6,6 +6,9 @@ import { CareerLearningRepository } from '../../domain/contracts/career-learning
 import { EmployeeCareerPort, type CareerHolder } from '../../domain/contracts/employee-career.port';
 import { teamNumbers } from '../../domain/rules/team.rules';
 
+/** Where a reminder opens: the same page as the proof notices, with a query of its own so one unread notice never silences the other. */
+const REMINDER_LINK = '/career-profile?reminder=late';
+
 /** The late people found by one pass: who they are and who they report to. */
 interface Late {
   holder: CareerHolder;
@@ -28,7 +31,7 @@ export class CareerReminderService {
     const late = await this.findLate(today);
     for (const { holder, overdue } of late) {
       await this.notifications.notify({
-        userIds: [holder.userId], link: '/career-profile', coalesce: true,
+        userIds: [holder.userId], link: REMINDER_LINK, coalesce: true,
         titleAr: 'عندك بنود متأخرة في مسارك الوظيفي', titleEn: 'You have late items in your career path',
         bodyAr: `${overdue} من المطلوب تجاوز موعده.`, bodyEn: `${overdue} required item(s) are past their date.`,
       });

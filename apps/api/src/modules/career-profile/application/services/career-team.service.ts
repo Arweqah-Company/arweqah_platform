@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CorePermission, type TeamMemberDetailDto, type TeamMemberDto, type TeamPageDto, type TeamQuery } from '@arweqah-platform/shared';
+import { CorePermission, riyadhToday, type TeamMemberDetailDto, type TeamMemberDto, type TeamPageDto, type TeamQuery } from '@arweqah-platform/shared';
 import { Clock } from '../../../../common/application/clock';
 import { NotFoundError } from '../../../../common/domain/domain-error';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
@@ -53,7 +53,7 @@ export class CareerTeamService {
   private async rows(people: TeamPerson[]): Promise<TeamMemberDto[]> {
     const ids = people.map((p) => p.employeeId);
     const [records, ticks] = await Promise.all([this.records.forEmployees(ids), this.records.requiredDoneFor(ids)]);
-    const today = this.clock.now().toISOString().slice(0, 10);
+    const today = riyadhToday(this.clock.now());
     const out: TeamMemberDto[] = [];
     for (const person of people) out.push(await this.row(person, { records: records.filter((r) => r.employeeId === person.employeeId), ticks: ticks.filter((t) => t.employeeId === person.employeeId && t.titleId === person.titleId).map((t) => t.index), today }));
     return out;

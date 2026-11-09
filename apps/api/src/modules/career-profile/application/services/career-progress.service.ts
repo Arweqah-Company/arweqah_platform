@@ -43,7 +43,7 @@ export class CareerProgressService {
   /** Ticks or unticks an item of «required» of the title the person holds; an index the content does not have is a 404. */
   async setRequired(ctx: AccessContext, index: number, input: SetRequiredInput): Promise<MyProgressDto> {
     const { employeeId, titleId, stored } = await this.path(ctx.userId);
-    if (index >= stored.content.required.length) throw new NotFoundError('Required item', String(index));
+    if (index < 0 || index >= stored.content.required.length) throw new NotFoundError('Required item', String(index));
     await this.tx.run((tx) => this.records.setRequired({ employeeId, titleId, index, done: input.done, at: this.clock.now() }, tx));
     this.events.emit(AUDIT_EVENT, { actorId: ctx.userId, action: CAREER_AUDIT.requiredTicked, entityType: CAREER_ENTITY, entityId: titleId, changes: { index, done: input.done } } satisfies AuditEvent);
     return this.mine(ctx);
