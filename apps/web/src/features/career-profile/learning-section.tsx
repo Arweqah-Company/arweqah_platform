@@ -2,13 +2,16 @@ import type { CareerContent } from '@arweqah-platform/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Badge, Tabs } from '@/shared/ui';
+import { useMyProgress } from './api';
 import { LearningUnits } from './learning-units';
 import { Part } from './career-parts';
 
 
 /** The badges the hours earn, and how they are awarded. */
-function Badges({ learning }: { learning: CareerContent['learning'] }) {
+function Badges({ learning, preview }: { learning: CareerContent['learning']; preview: boolean }) {
   const { t } = useTranslation('career-profile');
+  const progress = useMyProgress(!preview).data;
+  const reached = new Set(progress?.badges.filter((b) => b.reached).map((b) => b.name));
   return (
     <>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -16,7 +19,10 @@ function Badges({ learning }: { learning: CareerContent['learning'] }) {
           <div key={b.name} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
             <b className="text-fg">{b.name}</b>
             <p className="text-sm text-muted">{b.condition}</p>
-            <Badge tone="info">{t('learning.hours', { count: b.hours })}</Badge>
+            <div className="flex flex-wrap gap-2">
+              <Badge tone="info">{t('learning.hours', { count: b.hours })}</Badge>
+              {progress && <Badge tone={reached.has(b.name) ? 'success' : 'neutral'}>{t(reached.has(b.name) ? 'learning.reached' : 'learning.notYet')}</Badge>}
+            </div>
           </div>
         ))}
       </div>
@@ -45,7 +51,7 @@ export function LearningSection({ content, preview = false }: { content: CareerC
             <LearningUnits key={current?.name} period={current} preview={preview} />
           </>
         )}
-        {sub === 'badges' && <Part title={t('learning.badges')}><Badges learning={content.learning} /></Part>}
+        {sub === 'badges' && <Part title={t('learning.badges')}><Badges learning={content.learning} preview={preview} /></Part>}
       </div>
     </div>
   );

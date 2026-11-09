@@ -39,7 +39,8 @@
     "serviceSettings": "Settings",
     "jobTitles": "Job titles",
     "careerProfile": "Career path",
-    "careerContent": "Career-path content"
+    "careerContent": "Career-path content",
+    "careerCertificates": "Certificate review"
   },
   "actions": {
     "save": "Save",

@@ -39,7 +39,8 @@
     "serviceSettings": "الإعدادات",
     "jobTitles": "المسميات الوظيفية",
     "careerProfile": "المسار الوظيفي",
-    "careerContent": "محتوى المسارات الوظيفية"
+    "careerContent": "محتوى المسارات الوظيفية",
+    "careerCertificates": "مراجعة الشهادات"
   },
   "actions": {
     "save": "حفظ",

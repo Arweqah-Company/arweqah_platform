@@ -326,11 +326,28 @@
         "unit": "Unit",
         "duration": "Duration",
         "language": "Language",
-        "link": "Link"
+        "link": "Link",
+        "state": "Proof state"
       },
       "filters": {
         "priority": "Priority",
-        "language": "Language"
+        "language": "Language",
+        "state": "Proof state"
+      }
+    },
+    "career-certificates": {
+      "name": "Certificate review",
+      "columns": {
+        "employee": "Employee",
+        "unit": "Unit",
+        "proof": "Proof",
+        "minutes": "Hours",
+        "submitted": "Sent on",
+        "status": "State"
+      },
+      "filters": {
+        "kind": "Kind of proof",
+        "status": "State"
       }
     }
   },

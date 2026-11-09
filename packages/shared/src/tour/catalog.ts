@@ -50,6 +50,7 @@ export const TOUR_STEPS = [
   { key: 'title-card', tour: 'general', permission: CorePermission.JobTitlesView, page: 'job-titles' },
   { key: 'career-profile', tour: 'general', permission: CorePermission.CareerProfileView, page: 'career-profile' },
   { key: 'career-content', tour: 'general', permission: CorePermission.CareerContentView, page: 'career-content' },
+  { key: 'career-certificates', tour: 'general', permission: CorePermission.CareerCertificatesReview, page: 'career-certificates' },
   { key: 'finish', tour: 'general' },
   { key: 'admin-mode', tour: 'admin', permission: CorePermission.AdminModeUse },
   { key: 'companies', tour: 'admin', permission: CorePermission.CompaniesView, page: 'companies' },
