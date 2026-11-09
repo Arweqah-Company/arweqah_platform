@@ -61,7 +61,6 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'org.unit.deleted': a('organization', 'حذف وحدة تنظيمية', 'Deleted an organizational unit'),
   'career.content.saved': a('organization', 'حفظ محتوى المسار الوظيفي لمسمى', 'Saved the career-path content of a job title'),
   'career.content.file_uploaded': a('organization', 'رفع ملف المسمى لمحتوى المسار الوظيفي', 'Uploaded the title file of a career path'),
-  'career.content.file_analysed_ai': a('organization', 'حلّل ملف مسمى بالذكاء الاصطناعي', 'Analysed a title file with AI'),
   'career.acknowledged': a('organization', 'أقرّ بمساره الوظيفي', 'Acknowledged their career path'),
   'career.acknowledgement.reopened': a('organization', 'أعاد فتح الإقرار بالمسار الوظيفي لشاغلي مسمى', 'Reopened the acknowledgement of a career path for a title\'s holders'),
   'career.learning_links.imported': a('organization', 'استورد روابط وحدات التعلم من ملف', 'Imported learning-unit links from a file'),

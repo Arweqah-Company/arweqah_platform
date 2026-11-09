@@ -18,9 +18,4 @@ export const INTEGRATIONS_PERMISSIONS: PermissionDefinition[] = [
   { key: CorePermission.IntegrationsCaptchaTest, module: MODULE, labelAr: 'تجربة مفاتيح الحماية من الروبوتات', labelEn: 'Try the bot protection keys', scopes: ['all'] },
   { key: CorePermission.IntegrationsCaptchaActivate, module: MODULE, labelAr: 'تفعيل الحماية من الروبوتات وإيقافها', labelEn: 'Switch the bot protection on and off', scopes: ['all'] },
   { key: CorePermission.IntegrationsCaptchaExport, module: MODULE, labelAr: 'تصدير قائمة مزودي الحماية من الروبوتات', labelEn: 'Export the list of bot protection providers', scopes: ['all'] },
-  { key: CorePermission.IntegrationsAiView, module: MODULE, labelAr: 'عرض صفحة إعدادات الذكاء الاصطناعي', labelEn: 'View the AI settings page', scopes: ['all'] },
-  { key: CorePermission.IntegrationsAiEdit, module: MODULE, labelAr: 'تعديل مفتاح الذكاء الاصطناعي ونموذجه', labelEn: 'Edit the AI key and model', scopes: ['all'] },
-  { key: CorePermission.IntegrationsAiTest, module: MODULE, labelAr: 'تجربة مفتاح الذكاء الاصطناعي', labelEn: 'Try the AI key', scopes: ['all'] },
-  { key: CorePermission.IntegrationsAiActivate, module: MODULE, labelAr: 'تفعيل الذكاء الاصطناعي وإيقافه', labelEn: 'Switch the AI service on and off', scopes: ['all'] },
-  { key: CorePermission.IntegrationsAiExport, module: MODULE, labelAr: 'تصدير قائمة مزودي الذكاء الاصطناعي', labelEn: 'Export the list of AI providers', scopes: ['all'] },
 ];

@@ -10,10 +10,6 @@ export const TESTS_PER_MINUTE = 10;
 export const TEST_WINDOW_MS = 60_000;
 export const TEST_TIMEOUT_MS = 20_000;
 
-/** A title file can take a minute or two to read; a probe is a few words and the dashboard's own timeout cuts it short. */
-export const AI_TIMEOUT_MS = 300_000;
-export const AI_PROBE_MAX_TOKENS = 2_048;
-
 export const CAPTCHA_AUDIT_UNAVAILABLE = 'captcha.unavailable';
 export const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 export const CAPTCHA_TIMEOUT_MS = 4_000;
