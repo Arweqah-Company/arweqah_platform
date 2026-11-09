@@ -1,4 +1,4 @@
-import type { IntegrationCatalogDto, IntegrationKind, ProviderDto, ProviderValue, TestResultDto } from '@arweqah-platform/shared';
+import type { AiModelsDto, IntegrationCatalogDto, IntegrationKind, ProviderDto, ProviderValue, TestResultDto } from '@arweqah-platform/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/core/api/api-client';
 
@@ -24,3 +24,6 @@ export const useTestProvider = (kind: IntegrationKind) =>
 export const useActivateProvider = (kind: IntegrationKind) => useProviderMutation(kind, (providerKey: string) => apiClient.post<IntegrationCatalogDto>(path(kind, `/${providerKey}/activate`)));
 
 export const useDeactivateProvider = (kind: IntegrationKind) => useProviderMutation(kind, () => apiClient.post<IntegrationCatalogDto>(path(kind, '/deactivate')));
+
+/** The models an AI service offers to the key in the form (the saved key fills in when the form has none); nothing is saved by asking. */
+export const useAiModels = () => useMutation({ mutationFn: ({ providerKey, values }: { providerKey: string; values?: SentValues }) => apiClient.post<AiModelsDto>(path('ai', `/${providerKey}/models`), { values }) });

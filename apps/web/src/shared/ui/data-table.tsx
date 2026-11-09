@@ -227,7 +227,7 @@ function selectColumn<T>(selection: TableSelection, rows: T[] | undefined, rowKe
     header: labels.all,
     isSelect: true,
     className: 'w-px',
-    headerCell: <input type="checkbox" className={checkbox} aria-label={labels.all} checked={ids.length > 0 && chosen === ids.length} ref={(el) => { if (el) el.indeterminate = chosen > 0 && chosen < ids.length; }} onChange={togglePage} />,
+    headerCell: <input type="checkbox" data-tour="select-all" className={checkbox} aria-label={labels.all} checked={ids.length > 0 && chosen === ids.length} ref={(el) => { if (el) el.indeterminate = chosen > 0 && chosen < ids.length; }} onChange={togglePage} />,
     cell: (row) => <input type="checkbox" className={checkbox} aria-label={labels.row} checked={selection.selected.has(rowKey(row))} onChange={() => toggle(rowKey(row))} />,
   };
 }
@@ -243,7 +243,7 @@ export function DataTable<T>({ listKey, caption, columns: allColumns, rows, rowK
   const cards = (view ?? (phone ? 'cards' : 'table')) === 'cards';
   if (error) return <QueryError error={error} />;
   return (
-    <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm shadow-ink/5">
+    <div data-tour="main-list" className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm shadow-ink/5">
       <TopBar title={title} toolbar={toolbar} />
       <div className="p-3 sm:p-5">
         {cards ? <RowCards columns={columns} rows={rows} rowKey={rowKey} groupOf={groupOf} onRowClick={onRowClick} rowClassName={rowClassName} /> : <RowTable caption={caption} columns={columns} rows={rows} rowKey={rowKey} isLoading={isLoading} groupOf={groupOf} sort={sort} onSort={onSort} onRowClick={onRowClick} rowClassName={rowClassName} />}

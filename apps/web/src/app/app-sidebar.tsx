@@ -7,6 +7,8 @@ import { SidebarNav } from './sidebar-nav';
 
 interface SidebarProps {
   items: NavItem[];
+  /** Nothing in the menu can be opened (the career-path acknowledgement is pending). */
+  locked: boolean;
   /** Mobile drawer state. */
   open: boolean;
   /** Desktop: icons only. */
@@ -16,8 +18,15 @@ interface SidebarProps {
   onSignOut: () => void;
 }
 
+/** Why the menu cannot be used: the career-path acknowledgement is pending. */
+function LockedNotice({ locked, collapsed }: { locked: boolean; collapsed: boolean }) {
+  const { t } = useTranslation();
+  if (!locked) return null;
+  return <p role="status" className={cn('mb-3 rounded-[var(--radius-button)] bg-cream/10 px-3 py-2 text-xs text-cream', collapsed && 'lg:sr-only')}>{t('nav.locked')}</p>;
+}
+
 /** A white rounded frame holding the dark panel: logo + collapse button, section label, links (the active one is cream). */
-export function AppSidebar({ items, open, collapsed, onToggleCollapsed, onNavigate, onSignOut }: SidebarProps) {
+export function AppSidebar({ items, locked, open, collapsed, onToggleCollapsed, onNavigate, onSignOut }: SidebarProps) {
   const { t } = useTranslation();
   return (
     <aside
@@ -44,7 +53,8 @@ export function AppSidebar({ items, open, collapsed, onToggleCollapsed, onNaviga
       </div>
       <nav aria-label={t('appName')} className="flex-1 px-3 py-5">
         <p className={cn('mb-3 px-3 text-xs text-cream/70', collapsed && 'lg:sr-only')}>{t('nav.sections')}</p>
-        <SidebarNav items={items} collapsed={collapsed} onNavigate={onNavigate} />
+        <LockedNotice locked={locked} collapsed={collapsed} />
+        <SidebarNav items={items} locked={locked} collapsed={collapsed} onNavigate={onNavigate} />
       </nav>
       <div className="border-t border-cream/10 p-3 lg:hidden">
         <button type="button" className="flex min-h-11 w-full items-center gap-3 rounded-[var(--radius-button)] px-4 text-sm font-medium text-cream/85 transition-colors hover:bg-cream/10 hover:text-cream" onClick={onSignOut}>

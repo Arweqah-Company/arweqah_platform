@@ -6,6 +6,7 @@ import { Alert, Dialog } from '@/shared/ui';
 export function ProviderHelpDialog({ providerKey, onClose }: { providerKey: ProviderKey; onClose: () => void }) {
   const { t } = useTranslation('integrations');
   const steps = t(`help.providers.${providerKey}.steps`, { returnObjects: true }) as string[];
+  const note = t(`help.providers.${providerKey}.note`, { defaultValue: '' });
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()} wide title={t('help.title', { name: t(`providers.${providerKey}`) })} description={t(`help.providers.${providerKey}.summary`)}>
       <div className="flex flex-col gap-5">
@@ -24,6 +25,7 @@ export function ProviderHelpDialog({ providerKey, onClose }: { providerKey: Prov
             ))}
           </dl>
         </section>
+        {note && <Alert tone="info">{note}</Alert>}
         <Alert tone="warning">{t('help.warn')}</Alert>
       </div>
     </Dialog>

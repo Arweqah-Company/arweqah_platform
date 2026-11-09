@@ -1,6 +1,6 @@
 import { CorePermission } from '@arweqah-platform/shared';
 import { BarChart3, LifeBuoy, SlidersHorizontal } from 'lucide-react';
-import { PAGE_TITLE_TARGET, type FeatureModule } from '@/core/feature';
+import { PAGE_MAIN_TARGET, type FeatureModule } from '@/core/feature';
 import ar from './i18n/ar.json';
 import en from './i18n/en.json';
 
@@ -19,7 +19,7 @@ export const ticketsFeature: FeatureModule = {
     { to: '/tickets/figures', labelKey: 'nav.ticketFigures', icon: BarChart3, group: 'tickets', requiresAdminMode: true, pageKey: 'ticket-figures' },
   ],
   tour: [
-    { key: 'tickets', target: PAGE_TITLE_TARGET, route: '/tickets', placement: 'bottom', can: [{ id: 'create', permission: CorePermission.TicketsCreate }, { id: 'reply', permission: CorePermission.TicketsReply }, { id: 'request_close', permission: CorePermission.TicketsRequestClose }, { id: 'confirm_close', permission: CorePermission.TicketsConfirmClose }, { id: 'reopen', permission: CorePermission.TicketsReopen }, { id: 'setup', permission: CorePermission.TicketsSetupView }, { id: 'figures', permission: CorePermission.TicketsFiguresView }] },
+    { key: 'tickets', target: PAGE_MAIN_TARGET, route: '/tickets', placement: 'auto', can: [{ id: 'create', permission: CorePermission.TicketsCreate }, { id: 'reply', permission: CorePermission.TicketsReply }, { id: 'request_close', permission: CorePermission.TicketsRequestClose }, { id: 'confirm_close', permission: CorePermission.TicketsConfirmClose }, { id: 'reopen', permission: CorePermission.TicketsReopen }, { id: 'setup', permission: CorePermission.TicketsSetupView }, { id: 'figures', permission: CorePermission.TicketsFiguresView }] },
     { key: 'ticket-new', target: '[data-tour="ticket-new"]', route: '/tickets', placement: 'bottom', can: [{ id: 'reply', permission: CorePermission.TicketsReply }] },
     { key: 'ticket-views', target: '[data-tour="view-switch"]', route: '/tickets', placement: 'bottom', can: [{ id: 'reply', permission: CorePermission.TicketsReply }, { id: 'request_close', permission: CorePermission.TicketsRequestClose }, { id: 'confirm_close', permission: CorePermission.TicketsConfirmClose }] },
   ],

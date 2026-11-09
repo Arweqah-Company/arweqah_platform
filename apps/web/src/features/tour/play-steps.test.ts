@@ -7,7 +7,7 @@ const owner = (key: string, ns = 'tour'): [string, OwnedStep] => [key, { ui: { k
 const owners = new Map([owner('welcome'), owner('tickets', 'tickets'), owner('finish')]);
 const step = (key: string, over: object = {}) => ({ key, titleAr: null, titleEn: null, bodyAr: null, bodyEn: null, ...over }) as TourDto['steps'][number];
 const dto = (over: Partial<TourDto> = {}): TourDto => ({ tour: 'general', status: 'none', steps: [step('welcome'), step('tickets'), step('finish')], newSteps: [], ...over });
-const play = (d: TourDto, onlyNew = false, lang = 'ar') => playSteps(d, owners, { onlyNew, lang, t, allowed: () => true, navLabel: () => undefined });
+const play = (d: TourDto, onlyNew = false, lang = 'ar') => playSteps(d, owners, { onlyNew, lang, t, allowed: () => true });
 
 describe('playSteps (FR-67)', () => {
   it('uses the code’s wording from the feature that owns the step', () => {
@@ -28,30 +28,27 @@ describe('playSteps (FR-67)', () => {
     expect(play(dto({ steps: [step('welcome'), step('nowhere')] })).map((s) => s.key)).toEqual(['welcome']);
   });
 
-  describe('the sidebar step before a page', () => {
-    const page = (key: string, route: string, menu?: 'account'): [string, OwnedStep] => [key, { ui: { key, target: 'x', route, menu }, ns: 'tour' }];
-    const pages = new Map([page('tickets', '/tickets'), page('tasks', '/tasks'), page('task-new', '/tasks'), page('profile', '/profile', 'account'), page('hidden', '/page-visibility')]);
-    const labels: Record<string, string> = { '/tickets': 'التذاكر', '/tasks': 'المهام', '/profile': 'ملفي' };
-    const run = (...keys: string[]) => playSteps(dto({ steps: keys.map((k) => step(k)) }), pages, { onlyNew: false, lang: 'ar', t, allowed: () => true, navLabel: (r) => labels[r] });
+  describe('one step for a page, never a second one with the same name (FR-67)', () => {
+    const page = (key: string, route: string, menu?: 'account'): [string, OwnedStep] => [key, { ui: { key, target: '[data-tour="main-list"]', route, menu }, ns: 'tour' }];
+    const pages = new Map([page('tickets', '/tickets'), page('tasks', '/tasks'), page('task-new', '/tasks'), page('profile', '/profile', 'account')]);
+    const run = (...keys: string[]) => playSteps(dto({ steps: keys.map((k) => step(k)) }), pages, { onlyNew: false, lang: 'ar', t, allowed: () => true });
 
-    it('shows the page’s link in the sidebar first, then the page’s own step', () => {
-      const steps = run('tickets');
-      expect(steps.map((s) => s.key)).toEqual(['tickets:nav', 'tickets']);
-      expect(steps[0]).toMatchObject({ title: 'التذاكر', ui: { target: '[data-tour="nav:/tickets"]', navOpen: '/tickets', menu: 'drawer' } });
+    it('plays the page’s own step only: there is no extra bubble on its sidebar link', () => {
+      expect(run('tickets').map((s) => s.key)).toEqual(['tickets']);
+      expect(run('tasks', 'task-new').map((s) => s.key)).toEqual(['tasks', 'task-new']);
     });
 
-    it('does it once per page, however many steps the page has', () => {
-      expect(run('tasks', 'task-new').map((s) => s.key)).toEqual(['tasks:nav', 'tasks', 'task-new']);
-    });
-
-    it('adds nothing for a page without a sidebar link or a step inside a menu', () => {
-      expect(run('hidden', 'profile').map((s) => s.key)).toEqual(['hidden', 'profile']);
+    it('never shows two steps with the same title in a row, and none points at the page title', () => {
+      const steps = run('tickets', 'tasks', 'task-new', 'profile');
+      const titles = steps.map((s) => s.title);
+      expect(titles.every((t, i) => t !== titles[i - 1])).toBe(true);
+      expect(steps.every((s) => !s.ui.target.includes('page-title') && !s.ui.target.includes('nav:'))).toBe(true);
     });
   });
 
   describe('what the person can do on the page', () => {
     const abilities = new Map<string, OwnedStep>([['tasks', { ns: 'tasks', ui: { key: 'tasks', target: 'x', can: [{ id: 'team', permission: 'tasks.team_view' }, { id: 'assign', permission: 'tasks.assign' }] } }]]);
-    const lines = (held: string[]) => playSteps(dto({ steps: [step('tasks')] }), abilities, { onlyNew: false, lang: 'ar', t, allowed: (p) => held.includes(p), navLabel: () => undefined })[0]!.can;
+    const lines = (held: string[]) => playSteps(dto({ steps: [step('tasks')] }), abilities, { onlyNew: false, lang: 'ar', t, allowed: (p) => held.includes(p) })[0]!.can;
 
     it('lists a line for every permission the person holds, in the code’s order', () => {
       expect(lines(['tasks.assign', 'tasks.team_view'])).toEqual(['tasks:tour.tasks.can.team', 'tasks:tour.tasks.can.assign']);

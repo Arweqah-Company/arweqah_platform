@@ -105,3 +105,21 @@ describe('Bot protection try-out popup (FR-78)', () => {
     delete window.turnstile;
   });
 });
+
+describe('AI service try-out popup (FR-126)', () => {
+  it('sends one short request with the key and model in the form and says the key is accepted', async () => {
+    const sent: unknown[] = [];
+    server.use(http.post('*/api/integrations/ai/anthropic/test', async ({ request }) => { sent.push(await request.json()); return HttpResponse.json({ ok: true, message: null, text: null }); }));
+    renderPage(<TestDialog kind="ai" providerKey="anthropic" providerName="أنثروبيك (Claude)" values={{ apiKey: 'sk-ant-key-1234', model: 'claude-opus-5-5' }} onClose={() => undefined} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'شغّل التجربة' }));
+    expect(await screen.findByText('نجحت التجربة: المفتاح والنموذج مقبولان.')).toBeInTheDocument();
+    expect(sent).toEqual([{ values: { apiKey: 'sk-ant-key-1234', model: 'claude-opus-5-5' } }]);
+  });
+
+  it('shows what the service said when it refuses the key', async () => {
+    server.use(http.post('*/api/integrations/ai/anthropic/test', () => HttpResponse.json({ ok: false, message: '401: invalid x-api-key', text: null })));
+    renderPage(<TestDialog kind="ai" providerKey="anthropic" providerName="أنثروبيك (Claude)" onClose={() => undefined} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'شغّل التجربة' }));
+    expect(await screen.findByText('401: invalid x-api-key')).toBeInTheDocument();
+  });
+});

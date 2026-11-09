@@ -35,4 +35,12 @@ export const KIND_SETTINGS: Record<IntegrationKind, KindSettings> = {
     exportKey: CorePermission.IntegrationsCaptchaExport,
     listKey: 'captcha-providers',
   },
+  ai: {
+    view: CorePermission.IntegrationsAiView,
+    edit: CorePermission.IntegrationsAiEdit,
+    test: CorePermission.IntegrationsAiTest,
+    activate: CorePermission.IntegrationsAiActivate,
+    exportKey: CorePermission.IntegrationsAiExport,
+    listKey: 'ai-providers',
+  },
 };

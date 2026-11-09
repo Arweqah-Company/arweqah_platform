@@ -1,7 +1,9 @@
-import { providerFieldError, type FieldFormat, type ProviderField, type ProviderKey } from '@arweqah-platform/shared';
+import { AI_PROVIDERS, providerFieldError, type FieldFormat, type ProviderField, type ProviderKey } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { useLiveError } from '@/shared/lib/live-validation';
 import { FormField, Input, Textarea } from '@/shared/ui';
+import type { SentValues } from './api';
+import { ModelField } from './model-field';
 
 interface Props {
   providerKey: ProviderKey;
@@ -11,10 +13,12 @@ interface Props {
   saved: boolean;
   disabled: boolean;
   onChange: (value: string | number | boolean) => void;
+  /** What is in the form, for a field that asks the service something (the AI model list). */
+  sent?: SentValues;
 }
 
 /** One field of a provider's form; its own component so "touched" starts fresh each time the dialog opens. */
-export function ProviderFieldInput({ providerKey, field, value, saved, disabled, onChange }: Props) {
+export function ProviderFieldInput({ providerKey, field, value, saved, disabled, onChange, sent = {} }: Props) {
   const { t } = useTranslation('integrations');
   const { t: tc } = useTranslation();
   const live = useLiveError(value, (v: string | number | boolean | undefined) => {
@@ -25,6 +29,9 @@ export function ProviderFieldInput({ providerKey, field, value, saved, disabled,
   });
   const label = t(`fields.${providerKey}.${field.key}`);
   const hint = field.secret && saved ? t('secretSaved') : t(`hints.${providerKey}.${field.key}`, { defaultValue: '' }) || undefined;
+  if (field.key === 'model' && (AI_PROVIDERS as readonly string[]).includes(providerKey)) {
+    return <ModelField providerKey={providerKey} label={label} required={field.required} hint={hint} error={live.error} value={String(value ?? '')} disabled={disabled} sent={sent} onBlur={live.onBlur} onChange={onChange} />;
+  }
   if (field.type === 'boolean') {
     return <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" className="size-4 accent-petrol-800" disabled={disabled} checked={value === true} onChange={(e) => onChange(e.target.checked)} />{label}</label>;
   }

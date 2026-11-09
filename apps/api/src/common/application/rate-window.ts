@@ -18,6 +18,12 @@ export class RateWindow {
     return true;
   }
 
+  /** Gives back the last turn of the key (the work it was taken for did not happen). */
+  refund(key: string): void {
+    const turns = this.turns.get(key);
+    if (turns?.length) this.turns.set(key, turns.slice(0, -1));
+  }
+
   /** Forgets the keys that have no turn left in the window, so the map does not grow with every address ever seen. */
   prune(now = Date.now()): void {
     for (const [key, turns] of this.turns) if (!turns.some((at) => now - at < this.windowMs)) this.turns.delete(key);

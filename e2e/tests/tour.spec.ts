@@ -8,7 +8,9 @@ import { ensureTeamSample } from '../support/org-data';
 class Screen extends BasePage {}
 test.use({ storageState: ADMIN_STATE });
 
-const GENERAL = ['أهلًا بك في منصة أروقة', 'حسابك', 'ملفي الشخصي', 'الأمان', 'صلاحياتي', 'تسجيل الخروج', 'اللغة والمظهر', 'الإشعارات', 'القائمة الجانبية', 'الصفحة الرئيسية', 'التذاكر', 'التذاكر', 'تذكرة جديدة', 'طرق عرض التذاكر', 'مهامي', 'المهام', 'مهمة جديدة', 'جدول أم لوحة Kanban', 'افتح المهمة وعدّلها', 'الموظفون', 'الموظفون', 'سجل الموظف', 'الصورة الشخصية', 'فريقي', 'الهيكل التنظيمي', 'الهيكل التنظيمي', 'طرق عرض الهيكل', 'المسار الوظيفي', 'مسارك الوظيفي', 'انتهت الجولة'];
+const GENERAL = ['أهلًا بك في منصة أروقة', 'حسابك', 'ملفي الشخصي', 'الأمان', 'صلاحياتي', 'تسجيل الخروج', 'اللغة والمظهر', 'الإشعارات', 'القائمة الجانبية', 'الصفحة الرئيسية', 'التذاكر', 'تذكرة جديدة', 'طرق عرض التذاكر', 'المهام', 'مهمة جديدة', 'جدول أم لوحة Kanban', 'افتح المهمة وعدّلها', 'الموظفون', 'سجل الموظف', 'الصورة الشخصية', 'فريقي', 'الهيكل التنظيمي', 'طرق عرض الهيكل', 'انتهت الجولة'];
+/** Each page has one step, on its feature (never a second one for its sidebar link, never on its title): the administration tour in order. */
+const ADMIN = ['وضع المدير', 'الشركات', 'تقسيمات الهيكل', 'إضافة وحدة', 'ميثاق الوحدة', 'الأدوار', 'الاستثناءات', 'صفحة الصلاحيات', 'سجل التدقيق', 'سجل البريد', 'الإعدادات', 'الحماية من الروبوتات', 'خدمة الذكاء الاصطناعي', 'إعدادات جولة الترحيب'];
 const bubble = (page: Page) => page.getByRole('alertdialog');
 const title = (page: Page) => bubble(page).getByRole('heading', { level: 2 });
 const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))));
@@ -39,7 +41,8 @@ test.describe('Welcome tour (FR-67)', () => {
     await new Screen(page).expectNoSeriousA11yIssues();
     for (const [i, name] of GENERAL.entries()) {
       await expect(title(page)).toHaveText(name);
-      await expect(bubble(page).getByText(`${i + 1} من ${GENERAL.length}`)).toBeVisible();
+      // the total shrinks as steps whose element is not on this screen are found out; the position is of the steps really shown
+      await expect(bubble(page).getByText(new RegExp(`^${i + 1} من \\d+$`))).toBeVisible();
       if (name === 'الصفحة الرئيسية') await expect(bubble(page).getByText('ما يمكنك فعله هنا')).toBeVisible();
       if (i < GENERAL.length - 1) await bubble(page).getByRole('button', { name: 'التالي' }).click();
     }
@@ -47,9 +50,53 @@ test.describe('Welcome tour (FR-67)', () => {
     await bubble(page).getByRole('button', { name: 'تم' }).click();
     await saved;
     await expect(bubble(page)).toHaveCount(0);
+    // the tour ends on the home page, not on whichever page its last step was on
+    await expect(page).toHaveURL(/\/$/);
     await page.reload();
     await page.waitForTimeout(2_000);
     await expect(bubble(page)).toHaveCount(0);
+  });
+
+  test('the administration tour walks every administration page once, each on its own feature', async ({ page }) => {
+    test.setTimeout(180_000);
+    await ensureTeamSample(page, test.info().project.name);
+    await setTour(page, 'admin', 'restart');
+    await adminModeOnViaApi(page);
+    await page.goto('/');
+    const seen: string[] = [];
+    for (let i = 0; i < ADMIN.length; i++) {
+      await expect(title(page)).toHaveText(ADMIN[i]!, { timeout: 40_000 });
+      seen.push(await title(page).innerText());
+      // the ring is never on the page's own heading
+      await expect(page.locator('[data-tour="page-title"]').first()).not.toHaveCSS('outline-style', 'solid').catch(() => undefined);
+      if (i < ADMIN.length - 1) await bubble(page).getByRole('button', { name: 'التالي' }).click();
+    }
+    expect(new Set(seen).size).toBe(seen.length);
+    await page.keyboard.press('Escape');
+    await adminModeOffViaApi(page);
+  });
+
+  test('the page step of tickets and tasks plays also when the list is shown as a board (it went straight to the add button)', async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.addInitScript(() => { for (const key of ['tickets-mode', 'my-tasks-mode', 'tasks-mode']) localStorage.setItem(`view:${key}`, 'board'); });
+    await page.request.post('/api/tasks', { data: { title: 'Tour sample task' }, headers: { origin: 'http://localhost:4173' } });
+    await adminModeOffViaApi(page);
+    await setTour(page, 'general', 'restart');
+    await page.goto('/');
+    const seen: string[] = [];
+    for (let i = 0; i < 40; i++) {
+      const name = await title(page).innerText();
+      seen.push(name);
+      if (name === 'انتهت الجولة') break;
+      await bubble(page).getByRole('button', { name: 'التالي' }).click();
+      await expect(title(page)).not.toHaveText(name, { timeout: 20_000 });
+    }
+    // each page is introduced before its first button
+    expect(seen.indexOf('التذاكر')).toBeGreaterThan(-1);
+    expect(seen.indexOf('تذكرة جديدة')).toBe(seen.indexOf('التذاكر') + 1);
+    expect(seen.indexOf('المهام')).toBeGreaterThan(-1);
+    expect(seen.indexOf('مهمة جديدة')).toBe(seen.indexOf('المهام') + 1);
+    await page.keyboard.press('Escape');
   });
 
   test('goes back, skips with Esc and remembers it', async ({ page }) => {

@@ -34,29 +34,14 @@ interface PlayOptions {
   t: TFunction;
   /** Does the person hold this permission? */
   allowed: (permission: string) => boolean;
-  /** The sidebar link's label for a route, when the page has one. */
-  navLabel: (route: string) => string | undefined;
 }
 
-/** Before a page's own step, the sidebar link that opens it is shown first (once per page, however many steps the page has). */
-function navStep(step: PlayStep, shown: Set<string>, { navLabel, t }: PlayOptions): PlayStep[] {
-  const route = step.ui.route?.split(/[?#]/)[0];
-  const label = route ? navLabel(route) : undefined;
-  // The home page is where the tour already is, and a step inside a menu has no sidebar link of its own.
-  if (!route || route === '/' || !label || step.ui.menu || shown.has(route)) return [];
-  shown.add(route);
-  const ui: TourStepUi = { key: `${step.key}:nav`, target: `[data-tour="nav:${route}"]`, placement: 'end', menu: 'drawer', navOpen: route };
-  return [{ key: ui.key, ui, title: label, body: t('navHint', { ns: 'tour', page: label }), can: [] }];
-}
-
-/** The steps to play from what the API sent: all of them, or only the new ones; a step no feature points anywhere is left out. */
+/** The steps to play from what the API sent: all of them, or only the new ones; a step no feature points anywhere is left out. A page has no step of its own for its sidebar link: the app already shows the open page's link, and a second bubble with the same name was a repeat. */
 export function playSteps(dto: TourDto, owners: ReadonlyMap<string, OwnedStep>, options: PlayOptions): PlayStep[] {
   const fresh = new Set<string>(dto.newSteps);
-  const shown = new Set<string>();
   return dto.steps.flatMap((s) => {
     const owned = owners.get(s.key);
     if (!owned || (options.onlyNew && !fresh.has(s.key))) return [];
-    const step = toPlayStep(s, owned, options.lang, options);
-    return [...navStep(step, shown, options), step];
+    return [toPlayStep(s, owned, options.lang, options)];
   });
 }

@@ -43,6 +43,7 @@ export const myCareer = (over: Partial<MyCareerProfileDto> = {}): MyCareerProfil
   contentVersion: 3,
   content: careerContent,
   ackRequired: true,
+  adminModeExempt: false,
   ackReason: 'first',
   acknowledgedAt: null,
   acknowledgedVersion: null,

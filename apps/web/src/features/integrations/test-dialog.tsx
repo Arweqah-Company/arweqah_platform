@@ -74,10 +74,11 @@ function useSiteKey(kind: IntegrationKind, providerKey: ProviderKey, values?: Se
   return typeof key === 'string' ? key : '';
 }
 
-function CaptchaResult({ result }: { result?: { ok: boolean; message: string | null } }) {
+/** What the service answered to a test: it works (the text depends on the kind), or the reason it refused. */
+function ProbeResult({ result, success }: { result?: { ok: boolean; message: string | null }; success: string }) {
   const { t } = useTranslation('integrations');
   if (!result) return null;
-  if (result.ok) return <Alert tone="success">{t('test.captchaWorks')}</Alert>;
+  if (result.ok) return <Alert tone="success">{t(success)}</Alert>;
   return <Alert>{t('test.problem')}: <span dir="auto" className="break-words">{result.message || t('test.failed')}</span></Alert>;
 }
 
@@ -95,12 +96,26 @@ function CaptchaTest({ kind, providerKey, values }: Omit<Props, 'onClose' | 'pro
       <div className="flex justify-end">
         <Button disabled={!token || test.isPending} onClick={run}>{test.isPending ? t('test.checking') : t('test.check')}</Button>
       </div>
-      <CaptchaResult result={test.data} />
+      <ProbeResult result={test.data} success="test.captchaWorks" />
     </div>
   );
 }
 
-const BODIES = { translation: TranslationTest, email: EmailTest, captcha: CaptchaTest } as const;
+/** The AI service has nothing to type: one short real request with the key and the model in the form. */
+function AiTest({ kind, providerKey, values }: Omit<Props, 'onClose' | 'providerName'>) {
+  const { t } = useTranslation('integrations');
+  const test = useTestProvider(kind);
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex justify-end">
+        <Button disabled={test.isPending} onClick={() => test.mutate({ providerKey, values })}>{test.isPending ? t('test.running') : t('test.run')}</Button>
+      </div>
+      <ProbeResult result={test.data} success="test.aiWorks" />
+    </div>
+  );
+}
+
+const BODIES = { translation: TranslationTest, email: EmailTest, captcha: CaptchaTest, ai: AiTest } as const;
 
 export function TestDialog({ kind, providerKey, providerName, values, onClose }: Props) {
   const { t } = useTranslation('integrations');

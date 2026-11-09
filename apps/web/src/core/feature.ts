@@ -11,6 +11,8 @@ export interface NavItem {
   icon: LucideIcon;
   /** Puts the link under a collapsible menu in the sidebar; no group = a top-level link. */
   group?: NavGroupId;
+  /** Where the link stands in the sidebar: lower first, 50 when not given, equal ranks keep the order of the features (Home 0, My career path 1). */
+  rank?: number;
   /** Hidden from users without it (the API enforces it regardless). */
   permission?: string;
   /** Highlight this link only on its exact address (it is the start of its siblings' addresses). */
@@ -32,7 +34,7 @@ export interface TourStepUi {
   /** Opened first when the person is on another page. */
   route?: string;
   /** `start` and `end` follow the reading direction; `center` needs no element. */
-  placement?: 'top' | 'bottom' | 'start' | 'end' | 'center';
+  placement?: 'top' | 'bottom' | 'start' | 'end' | 'center' | 'auto';
   /** The step points into the account menu or the phone's side drawer, which the tour opens for it. */
   menu?: 'account' | 'drawer';
   /** What the person can do on the page, one line each: shown only for those whose permission the person holds (`tour.<key>.can.<id>`). */
@@ -42,7 +44,8 @@ export interface TourStepUi {
 }
 
 /** The target of a page's heading: every page has one (`PageHeader`). */
-export const PAGE_TITLE_TARGET = '[data-tour="page-title"]';
+/** The main thing a page is about (its list, chart, matrix or numbers): what a page's step highlights, never the title. */
+export const PAGE_MAIN_TARGET = '[data-tour="main-list"]';
 
 /**
  * What a feature contributes to the app. Adding a feature = writing its folder

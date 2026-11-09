@@ -87,6 +87,16 @@
         "activate": "Switch the check on and off",
         "export": "Export the list of providers"
       }
+    },
+    "ai-settings": {
+      "title": "AI service",
+      "body": "Switch on the AI that places the parts of a title file when the fixed reader cannot: enter the Anthropic key, try it, and it can be activated only after the test passes. With no active service the «Analyse with AI» button is not offered.",
+      "can": {
+        "edit": "Edit the key and the model",
+        "test": "Try the key",
+        "activate": "Switch the AI service on and off",
+        "export": "Export the list of providers"
+      }
     }
   },
   "settings": {
@@ -135,5 +145,6 @@
     }
   },
   "navHint": "Open “{{page}}” from here at any time.",
-  "canTitle": "What you can do here"
+  "canTitle": "What you can do here",
+  "opening": "Opening the next step…"
 }

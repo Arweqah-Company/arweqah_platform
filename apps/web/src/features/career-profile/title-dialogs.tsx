@@ -73,7 +73,7 @@ export function TitleDialogs({ state, onClose }: { state: TitleDialogState; onCl
   if (!state) return null;
   const { kind, title } = state;
   if (kind === 'preview') return <PreviewDialog title={title} onClose={onClose} />;
-  if (kind === 'file') return <TitleFileDialog titleId={title.id} titleName={nameOf(title, i18n.language === 'ar')} onClose={onClose} />;
+  if (kind === 'file') return <TitleFileDialog titleId={title.id} titleName={nameOf(title, i18n.language === 'ar')} titleCode={title.code} onClose={onClose} />;
   if (kind === 'reopen') return <ReopenDialog title={title} onClose={onClose} />;
   return <StatusDialog kind={kind} title={title} onClose={onClose} />;
 }

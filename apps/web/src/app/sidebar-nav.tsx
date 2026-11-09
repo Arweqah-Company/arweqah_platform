@@ -9,6 +9,8 @@ import { cn } from '@/shared/lib/cn';
 
 interface Props {
   items: NavItem[];
+  /** Every entry is shown but cannot be opened. */
+  locked: boolean;
   /** Desktop icon-only mode: menus are flattened so every icon stays one click away. */
   collapsed: boolean;
   onNavigate: () => void;
@@ -21,9 +23,17 @@ const linkClass = (isActive: boolean, extra?: string) =>
     extra,
   );
 
-function SidebarLink({ item, collapsed, onNavigate, nested }: { item: NavItem; collapsed: boolean; onNavigate: () => void; nested?: boolean }) {
+function SidebarLink({ item, collapsed, onNavigate, nested, locked }: { item: NavItem; collapsed: boolean; onNavigate: () => void; nested?: boolean; locked: boolean }) {
   const { t } = useTranslation();
   const Icon = item.icon;
+  if (locked) {
+    return (
+      <button type="button" disabled data-tour={`nav:${item.to}`} title={t('nav.lockedHint')} className={cn(linkClass(false, cn('w-full cursor-not-allowed opacity-45 hover:bg-transparent hover:text-cream/85', collapsed && 'lg:justify-center lg:px-0', nested && 'py-2.5')))}>
+        <Icon className="size-5 shrink-0" aria-hidden />
+        <span className={cn('text-start', collapsed && 'lg:sr-only')}>{t(item.labelKey)}</span>
+      </button>
+    );
+  }
   return (
     <NavLink to={item.to} data-tour={`nav:${item.to}`} end={item.to === '/' || item.end} onClick={onNavigate} title={collapsed ? t(item.labelKey) : undefined} className={({ isActive }) => linkClass(isActive, cn(collapsed && 'lg:justify-center lg:px-0', nested && 'py-2.5'))}>
       <Icon className="size-5 shrink-0" aria-hidden />
@@ -32,7 +42,7 @@ function SidebarLink({ item, collapsed, onNavigate, nested }: { item: NavItem; c
   );
 }
 
-function SidebarMenu({ id, items, open, onToggle, onNavigate }: { id: NavGroupId; items: NavItem[]; open: boolean; onToggle: () => void; onNavigate: () => void }) {
+function SidebarMenu({ id, items, open, onToggle, onNavigate, locked }: { id: NavGroupId; items: NavItem[]; open: boolean; onToggle: () => void; onNavigate: () => void; locked: boolean }) {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const group = NAV_GROUPS[id];
@@ -40,7 +50,7 @@ function SidebarMenu({ id, items, open, onToggle, onNavigate }: { id: NavGroupId
   const hasActive = items.some((i) => (i.to === '/' ? pathname === '/' : pathname.startsWith(i.to)));
   return (
     <li>
-      <button type="button" aria-expanded={open} aria-controls={`menu-${id}`} onClick={onToggle} className={cn(linkClass(false, 'w-full'), hasActive && 'text-cream')}>
+      <button type="button" aria-expanded={open} aria-controls={`menu-${id}`} disabled={locked} title={locked ? t('nav.lockedHint') : undefined} onClick={onToggle} className={cn(linkClass(false, 'w-full'), hasActive && 'text-cream', locked && 'cursor-not-allowed opacity-45 hover:bg-transparent hover:text-cream/85')}>
         <Icon className="size-5 shrink-0" aria-hidden />
         <span className="flex-1 text-start">{t(group.labelKey)}</span>
         <ChevronDown className={cn('size-4 transition-transform duration-200', open && 'rotate-180')} aria-hidden />
@@ -49,7 +59,7 @@ function SidebarMenu({ id, items, open, onToggle, onNavigate }: { id: NavGroupId
         <ul id={`menu-${id}`} className="ms-6 mt-1 flex flex-col gap-1 border-s border-cream/15 ps-3">
           {items.map((item) => (
             <li key={item.to}>
-              <SidebarLink item={item} collapsed={false} onNavigate={onNavigate} nested />
+              <SidebarLink item={item} collapsed={false} onNavigate={onNavigate} nested locked={locked} />
             </li>
           ))}
         </ul>
@@ -59,7 +69,7 @@ function SidebarMenu({ id, items, open, onToggle, onNavigate }: { id: NavGroupId
 }
 
 /** Top-level links and collapsible menus with their sub-links; the menu holding the current page opens by itself. */
-export function SidebarNav({ items, collapsed, onNavigate }: Props) {
+export function SidebarNav({ items, locked, collapsed, onNavigate }: Props) {
   const { pathname } = useLocation();
   const entries = buildNavEntries(items);
   const activeGroup = entries.find((e) => e.kind === 'group' && e.items.some((i) => pathname.startsWith(i.to)));
@@ -73,12 +83,12 @@ export function SidebarNav({ items, collapsed, onNavigate }: Props) {
   return (
     <ul className="flex flex-col gap-1">
       {collapsed
-        ? items.map((item) => <li key={item.to}><SidebarLink item={item} collapsed onNavigate={onNavigate} /></li>)
+        ? items.map((item) => <li key={item.to}><SidebarLink item={item} collapsed onNavigate={onNavigate} locked={locked} /></li>)
         : entries.map((e) =>
             e.kind === 'link' ? (
-              <li key={e.item.to}><SidebarLink item={e.item} collapsed={false} onNavigate={onNavigate} /></li>
+              <li key={e.item.to}><SidebarLink item={e.item} collapsed={false} onNavigate={onNavigate} locked={locked} /></li>
             ) : (
-              <SidebarMenu key={e.id} id={e.id} items={e.items} open={isOpen(e.id)} onToggle={() => toggle(e.id)} onNavigate={onNavigate} />
+              <SidebarMenu key={e.id} id={e.id} items={e.items} open={isOpen(e.id)} onToggle={() => toggle(e.id)} onNavigate={onNavigate} locked={locked} />
             ),
           )}
     </ul>

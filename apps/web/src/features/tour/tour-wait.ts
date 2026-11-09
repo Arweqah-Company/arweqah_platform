@@ -7,8 +7,9 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 function placeOf(selector: string): string | null {
   const el = document.querySelector(selector);
   if (!el || el.getClientRects().length === 0) return null;
-  const { top, left, width, height } = el.getBoundingClientRect();
-  return `${Math.round(top)}:${Math.round(left)}:${Math.round(width)}:${Math.round(height)}`;
+  // The height is left out: a list that fills in with its rows grows under the ring, and waiting for it to stop growing froze the tour for seconds.
+  const { top, left, width } = el.getBoundingClientRect();
+  return `${Math.round(top)}:${Math.round(left)}:${Math.round(width)}`;
 }
 
 /** Waits until the router has really arrived at the page (the old page has the same headings, so an element alone proves nothing). */

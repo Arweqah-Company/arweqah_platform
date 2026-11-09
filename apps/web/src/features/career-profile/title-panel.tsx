@@ -108,7 +108,12 @@ export function TitlePanel({ title, stale = false, onAction, onDirtyChange }: { 
       <Tabs tabs={TABS.map((id) => ({ id, label: t(`workspace.tabs.${id}`) }))} value={tab} label={t('workspace.tabsLabel')} onChange={setTab} />
       {doc.content && <WorkspaceBody content={doc.content} tab={tab} canEdit={canEdit} onChange={doc.setDraft} />}
       <Notices doc={doc} />
-      {canEdit && <div><Button disabled={!doc.dirty || !doc.valid || doc.save.isPending} onClick={doc.submit}>{t('workspace.save')}</Button></div>}
+      {canEdit && (
+        <div className="flex flex-wrap items-center gap-3">
+          <Button disabled={!doc.dirty || !doc.valid || doc.save.isPending} onClick={doc.submit}>{t('workspace.save')}</Button>
+          {!doc.dirty && <span className="text-sm text-muted">{t('workspace.saveOff')}</span>}
+        </div>
+      )}
     </section>
   );
 }

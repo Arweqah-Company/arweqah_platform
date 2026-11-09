@@ -396,6 +396,19 @@
         "plan": "In or outside the plan"
       }
     },
+    "ai-providers": {
+      "name": "AI service providers",
+      "columns": {
+        "provider": "Service",
+        "status": "Status",
+        "tested": "Last test",
+        "active": "In use"
+      },
+      "filters": {
+        "status": "Status",
+        "active": "In use"
+      }
+    },
     "performance-catalog": {
       "name": "Extra-component catalog",
       "columns": {

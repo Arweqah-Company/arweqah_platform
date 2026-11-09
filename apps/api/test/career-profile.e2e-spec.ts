@@ -88,12 +88,14 @@ describe('The employee\'s own career path and its acknowledgement (FR-111, FR-11
     expect(await s.mine()).toMatchObject({ titleId: s.lead.id, ackRequired: true, ackReason: 'title' });
   });
 
-  it('never holds back the system account', async () => {
+  it('holds back the system account like anyone, and says it is exempt while platform admin mode is on (the web applies that)', async () => {
     const s = await setup();
     await s.ready(s.rep.id);
-    expect(await s.mine()).toMatchObject({ ackRequired: true });
+    expect(await s.mine()).toMatchObject({ ackRequired: true, adminModeExempt: false });
     await t.db.query('UPDATE employees SET is_system_account = true WHERE id = $1', [s.holder.employeeId]);
-    expect(await s.mine()).toMatchObject({ available: true, ackRequired: false });
+    expect(await s.mine()).toMatchObject({ available: true, ackRequired: true, adminModeExempt: true });
+    await s.me.post('/api/career-profile/me/acknowledge').send({ contentVersion: 1 }).expect(200);
+    expect(await s.mine()).toMatchObject({ ackRequired: false, adminModeExempt: true });
   });
 
   it('answers 403 without the key of each route, and 404 when HR reopens a title that does not exist', async () => {

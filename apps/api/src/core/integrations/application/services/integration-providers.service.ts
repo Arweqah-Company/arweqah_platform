@@ -23,7 +23,7 @@ import { IntegrationProviderRepository } from '../../domain/contracts/integratio
 import type { IntegrationProvider } from '../../domain/entities/integration-provider.entity';
 import { ProviderIncompleteError, ProviderNotTestedError, ProviderTestRateLimitedError } from '../../domain/errors/integrations.errors';
 import { changedFields, mergeValues, redactSecrets } from '../../domain/rules/provider-config.rules';
-import { AUDIT, TESTS_PER_MINUTE, TEST_TIMEOUT_MS, TEST_WINDOW_MS } from '../messages/integrations.messages';
+import { AI_TEST_TIMEOUT_MS, AUDIT, TESTS_PER_MINUTE, TEST_TIMEOUT_MS, TEST_WINDOW_MS } from '../messages/integrations.messages';
 import { toProviderDto } from '../transformers/provider.transformer';
 import { ActiveProviders } from './active-providers.service';
 import { ProbeRegistry } from './probe-registry';
@@ -73,7 +73,7 @@ export class IntegrationProvidersService {
     const row = await this.repo.find(kind, key);
     const values = mergeValues(key, row ? this.codec.decrypt(key, row.config) : {}, input.values);
     this.assertComplete(key, values);
-    const result = await withTimeout(this.probes.get(kind).run(key, values, input), TEST_TIMEOUT_MS, (): TestResultDto => ({ ok: false, message: 'The service did not answer in time', text: null }));
+    const result = await withTimeout(this.probes.get(kind).run(key, values, input), kind === 'ai' ? AI_TEST_TIMEOUT_MS : TEST_TIMEOUT_MS, (): TestResultDto => ({ ok: false, message: 'The service did not answer in time', text: null }));
     const safe = result.ok ? result : { ...result, message: redactSecrets(key, values, result.message ?? '') };
     await this.remember({ kind, key, row }, values, safe.ok, actorId);
     this.audit(actorId, AUDIT.tested, { kind, key }, { ok: safe.ok });
@@ -128,7 +128,7 @@ export class IntegrationProvidersService {
   }
 
   private serverSettingsExist(kind: IntegrationKind): boolean {
-    if (kind === 'captcha') return false;
+    if (kind === 'captcha' || kind === 'ai') return false;
     return kind === 'email' || this.config.translate !== null;
   }
 

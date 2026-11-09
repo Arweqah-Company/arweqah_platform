@@ -1,6 +1,6 @@
 import { CorePermission } from '@arweqah-platform/shared';
 import { ClipboardCheck } from 'lucide-react';
-import { PAGE_TITLE_TARGET, type FeatureModule } from '@/core/feature';
+import { PAGE_MAIN_TARGET, type FeatureModule } from '@/core/feature';
 import ar from './i18n/ar.json';
 import en from './i18n/en.json';
 
@@ -12,9 +12,9 @@ export const performanceFeature: FeatureModule = {
   tour: [
     {
       key: 'performance-cycle',
-      target: PAGE_TITLE_TARGET,
+      target: PAGE_MAIN_TARGET,
       route: '/performance-cycle',
-      placement: 'bottom',
+      placement: 'auto',
       can: [
         { id: 'manage', permission: CorePermission.PerformanceCycleManage },
         { id: 'close', permission: CorePermission.PerformanceCycleClose },

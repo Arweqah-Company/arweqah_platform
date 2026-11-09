@@ -1,22 +1,29 @@
 /**
- * The outside services the platform can use for translation and e-mail, and the data each one needs. One description
+ * The outside services the platform can use (translation, e-mail, bot protection, AI), and the data each one needs. One description
  * drives the API (what is required, what is secret, what is valid) and the web (which fields the form shows), so a
  * provider is added here once. Secrets are stored encrypted and never sent back to the browser.
  */
-export const INTEGRATION_KINDS = ['translation', 'email', 'captcha'] as const;
+export const INTEGRATION_KINDS = ['translation', 'email', 'captcha', 'ai'] as const;
 export type IntegrationKind = (typeof INTEGRATION_KINDS)[number];
 
 export const TRANSLATION_PROVIDERS = ['aws', 'google', 'azure'] as const;
 export const EMAIL_PROVIDERS = ['smtp', 'ses', 'sendgrid', 'graph'] as const;
 export const CAPTCHA_PROVIDERS = ['turnstile'] as const;
-export const PROVIDERS_OF = { translation: TRANSLATION_PROVIDERS, email: EMAIL_PROVIDERS, captcha: CAPTCHA_PROVIDERS } as const;
+export const AI_PROVIDERS = ['anthropic', 'compatible'] as const;
+export const PROVIDERS_OF = { translation: TRANSLATION_PROVIDERS, email: EMAIL_PROVIDERS, captcha: CAPTCHA_PROVIDERS, ai: AI_PROVIDERS } as const;
+/** The model used until the administrator picks another one in the AI settings. */
+export const AI_DEFAULT_MODEL = 'claude-opus-5-5';
+/** The free option out of the box: Google Gemini's OpenAI-compatible address and one of its free-tier models (Google's pricing page, 2026-11-09). */
+export const COMPATIBLE_DEFAULT_URL = 'https://generativelanguage.googleapis.com/v1beta/openai';
+export const COMPATIBLE_DEFAULT_MODEL = 'gemini-3.8-flash';
 export type TranslationProviderKey = (typeof TRANSLATION_PROVIDERS)[number];
 export type EmailProviderKey = (typeof EMAIL_PROVIDERS)[number];
 export type CaptchaProviderKey = (typeof CAPTCHA_PROVIDERS)[number];
-export type ProviderKey = TranslationProviderKey | EmailProviderKey | CaptchaProviderKey;
+export type AiProviderKey = (typeof AI_PROVIDERS)[number];
+export type ProviderKey = TranslationProviderKey | EmailProviderKey | CaptchaProviderKey | AiProviderKey;
 
 /** How a value is checked beyond "not empty". */
-export type FieldFormat = 'sender' | 'email' | 'url' | 'service-account-json';
+export type FieldFormat = 'sender' | 'email' | 'url' | 'public-url' | 'service-account-json';
 
 export interface ProviderField {
   key: string;
@@ -51,6 +58,10 @@ export const PROVIDER_FIELDS: Record<ProviderKey, ProviderField[]> = {
   sendgrid: [secret('apiKey'), sender()],
   // The site key is public (the sign-in page needs it); the secret key never leaves the server.
   turnstile: [text('siteKey'), secret('secretKey')],
+  // The model is a name the administrator can change (a cheaper one, a newer one); the key never leaves the server.
+  anthropic: [secret('apiKey'), text('model', { defaultValue: AI_DEFAULT_MODEL })],
+  // Any service that speaks the OpenAI `chat/completions` protocol (Gemini's free tier, Groq, OpenRouter…): its address, its key and a model it offers.
+  compatible: [secret('apiKey'), text('baseUrl', { format: 'public-url', defaultValue: COMPATIBLE_DEFAULT_URL }), text('model', { defaultValue: COMPATIBLE_DEFAULT_MODEL })],
   graph: [text('tenantId'), text('clientId'), secret('clientSecret'), text('sender', { format: 'email' })],
 };
 
@@ -64,6 +75,28 @@ const EMAIL = /^[^<>@\s]+@[^<>@\s]+\.[^<>@\s]+$/;
 function isHttpsUrl(value: string): boolean {
   try {
     return new URL(value).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+/** A host given by number (a dotted or whole number, an IPv6 literal): it would reach the internal network or the cloud metadata address. */
+function isNumericHost(host: string): boolean {
+  return host.includes(':') || host.startsWith('[') || host.split('.').every((part) => part !== '' && /^\d+$/.test(part));
+}
+
+/** A name that only means something inside a network. */
+function isLocalHost(host: string): boolean {
+  return host === 'localhost' || !host.includes('.') || ['.localhost', '.local', '.internal'].some((suffix) => host.endsWith(suffix));
+}
+
+/** An address the server may call on an administrator's word: https, a public name, and no credentials in it. */
+function isPublicHttpsUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    // `localhost.` and `127.0.0.1.` are the same names with a root dot: look at them without it.
+    const host = url.hostname.toLowerCase().replace(/\.+$/, '');
+    return url.protocol === 'https:' && !url.username && !url.password && !isNumericHost(host) && !isLocalHost(host);
   } catch {
     return false;
   }
@@ -86,6 +119,8 @@ function formatProblem(format: FieldFormat, value: string): boolean {
       return !EMAIL.test(value.trim());
     case 'url':
       return !isHttpsUrl(value.trim());
+    case 'public-url':
+      return !isPublicHttpsUrl(value.trim());
     case 'service-account-json':
       return serviceAccountProblem(value);
   }

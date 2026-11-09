@@ -33,6 +33,7 @@ function open(profile = myCareer()) {
   server.use(
     http.get('*/api/me', () => HttpResponse.json(person)),
     http.get('*/api/career-profile/me', () => HttpResponse.json(profile)),
+    http.get('*/api/career-profile/me/requests', () => HttpResponse.json([])),
     http.post('*/api/career-profile/me/acknowledge', async ({ request }) => {
       posted.push(await request.json());
       return HttpResponse.json(myCareer({ ackRequired: false, ackReason: null, acknowledgedVersion: 3, acknowledgedAt: '2026-11-08T10:00:00.000Z' }));
@@ -41,6 +42,9 @@ function open(profile = myCareer()) {
   renderPage(<MyCareerPage />);
   return { posted };
 }
+
+/** Opens tabs inside a section, one after the other, the way a reader does. */
+const openTabs = (...names: string[]) => names.forEach((name) => fireEvent.click(screen.getByRole('tab', { name: (accessible) => accessible.startsWith(name) })));
 
 const tab = (name: string) => screen.getByRole('tab', { name: (accessible) => accessible.includes(name) });
 
@@ -87,6 +91,8 @@ describe('Reading the career path in order before acknowledging it (FR-112, deci
     const { posted } = open();
     await screen.findByText(careerContent.summary);
     for (let i = 0; i < 5; i++) {
+      if (i === 2) openTabs('مسار المستوى', 'الجدارات الفنية');
+      if (i === 3) openTabs('الأوسمة', 'طلباتي', 'وحدات التعلم', 'السنة 2');
       FakeObserver.reachEnd();
       fireEvent.click(await screen.findByRole('button', { name: /^التالي/ }));
     }
@@ -101,6 +107,65 @@ describe('Reading the career path in order before acknowledging it (FR-112, deci
     expect(await screen.findByText('أقررتَ بإصدار المحتوى 3')).toBeInTheDocument();
     expect(posted).toEqual([{ contentVersion: 3 }]);
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+  });
+
+
+});
+
+describe('Opening every tab of a section before «Next» works (FR-112)', () => {
+  /** Goes to the section by pressing «Next» as far as it, scrolling to the end of each section before it. */
+  async function goTo(section: 'development' | 'learning') {
+    await screen.findByText(careerContent.summary);
+    const steps = section === 'development' ? 2 : 3;
+    for (let i = 0; i < steps; i++) {
+      if (i === 2) openTabs('مسار المستوى', 'الجدارات الفنية');
+      FakeObserver.reachEnd();
+      fireEvent.click(await screen.findByRole('button', { name: /^التالي/ }));
+    }
+  }
+
+  it('keeps «Next» off in the development section until all three sub-tabs were opened, and says which are left', async () => {
+    open();
+    await goTo('development');
+    FakeObserver.reachEnd();
+    const next = screen.getByRole('button', { name: /^التالي/ });
+    expect(next).toBeDisabled();
+    expect(screen.getByText(/افتح كل التبويبات في هذا القسم قبل المتابعة. بقي: مسار المستوى والجدارات الفنية/)).toBeInTheDocument();
+    openTabs('مسار المستوى');
+    expect(screen.getByText(/بقي: الجدارات الفنية$/)).toBeInTheDocument();
+    expect(next).toBeDisabled();
+    openTabs('الجدارات الفنية');
+    expect(screen.queryByText(/افتح كل التبويبات/)).not.toBeInTheDocument();
+    expect(next).toBeEnabled();
+  });
+
+  it('asks for every sub-tab and every year of the learning plan before «Next» works there', async () => {
+    open();
+    await goTo('learning');
+    FakeObserver.reachEnd();
+    const next = screen.getByRole('button', { name: /^التالي/ });
+    expect(next).toBeDisabled();
+    expect(screen.getByText(/بقي: السنة 2 والأوسمة وطلباتي/)).toBeInTheDocument();
+    openTabs('الأوسمة', 'طلباتي');
+    expect(screen.getByText(/بقي: السنة 2$/)).toBeInTheDocument();
+    openTabs('وحدات التعلم', 'السنة 2');
+    expect(next).toBeEnabled();
+  });
+
+  it('remembers what was opened: going back to a section and forward again does not ask again', async () => {
+    open();
+    await goTo('development');
+    openTabs('مسار المستوى', 'الجدارات الفنية');
+    FakeObserver.reachEnd();
+    fireEvent.click(screen.getByRole('button', { name: /^التالي/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /السابق/ }));
+    expect(await screen.findByRole('button', { name: /^التالي/ })).toBeEnabled();
+  });
+
+  it('does not ask for any tab outside the reading: the path of an acknowledged person is free', async () => {
+    open(myCareer({ ackRequired: false, ackReason: null, acknowledgedVersion: 3 }));
+    await screen.findByText('المؤشر الحاكم');
+    expect(screen.queryByText(/افتح كل التبويبات/)).not.toBeInTheDocument();
   });
 
 });

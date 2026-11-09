@@ -396,6 +396,19 @@
         "plan": "ضمن الخطة أو خارجها"
       }
     },
+    "ai-providers": {
+      "name": "مزودو الذكاء الاصطناعي",
+      "columns": {
+        "provider": "الخدمة",
+        "status": "الحالة",
+        "tested": "آخر تجربة",
+        "active": "قيد الاستخدام"
+      },
+      "filters": {
+        "status": "الحالة",
+        "active": "قيد الاستخدام"
+      }
+    },
     "performance-catalog": {
       "name": "كتالوج المكوّن الإضافي",
       "columns": {

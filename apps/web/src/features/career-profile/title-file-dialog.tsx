@@ -1,17 +1,17 @@
 import type { TitleFileResultDto } from '@arweqah-platform/shared';
 import { TITLE_FILE_MAX_CHARS } from '@arweqah-platform/shared';
 import { useMutation } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
-import { ApiError } from '@/core/api/api-client';
 import { Alert, Badge, Button, Dialog, DialogFooter, FileDropzone, FormField, Textarea } from '@/shared/ui';
-import { readTitleFile, useReadTitleFile } from './api';
+import { readTitleFile } from './api';
 import { TITLE_FILE_ACCEPT, TITLE_FILE_MAX_BYTES } from '@/shared/lib/read-document';
 import { useDocumentReader } from '@/shared/lib/use-document-reader';
+import { AiNotes, AiOffer } from './title-file-ai';
+import { useTitleFileSave } from './use-title-file-save';
 
 /** What the reader found: the counts of each part and what is still wrong, each in words. */
-function Findings({ result }: { result: TitleFileResultDto }) {
+function Findings({ result, titleCode }: { result: TitleFileResultDto; titleCode: string | null }) {
   const { t } = useTranslation('career-profile');
   const counts = Object.entries(result.counts);
   return (
@@ -22,25 +22,46 @@ function Findings({ result }: { result: TitleFileResultDto }) {
       ) : (
         <Alert tone="warning">
           <b>{t('file.needsReview')}</b>
-          <ul className="mt-1 list-disc ps-5">{result.problems.map((p) => <li key={p}>{t(`file.problems.${p}`)}</li>)}</ul>
+          <ul className="mt-1 list-disc ps-5">{result.problems.map((p) => <li key={p}>{t(`file.problems.${p}`)}{p === 'code_mismatch' && <> <bdi dir="ltr" className="font-latin">({result.codeInFile ?? '—'} ≠ {titleCode ?? '—'})</bdi></>}</li>)}</ul>
         </Alert>
       )}
+      <AiNotes result={result} />
       {result.ignored.length > 0 && <Alert tone="info">{t('file.ignored', { lines: result.ignored.join(' • ') })}</Alert>}
     </div>
   );
 }
 
-/** The dialog that reads a title file: pasted text, or a txt, Word or PDF file read in the browser; nothing is saved before «Save». */
-export function TitleFileDialog({ titleId, titleName, onClose }: { titleId: string; titleName: string; onClose: () => void }) {
+/** Saving needs a reading with nothing left to fix. */
+const canSave = (result: TitleFileResultDto | null): boolean => !!result && result.problems.length === 0;
+
+/** The AI is offered after the ordinary reading found something to fix and an AI service is on (its own reading is not offered again). */
+const offersAi = (result: TitleFileResultDto | null): boolean => result?.source === 'rules' && result.aiAvailable;
+
+/** Why «Save» is off, in words, so a disabled button is never a mystery. */
+function SaveOff({ result }: { result: TitleFileResultDto | null }) {
   const { t } = useTranslation('career-profile');
+  if (canSave(result)) return null;
+  return <p className="me-auto text-sm text-muted">{t(result ? 'file.saveOff.problems' : 'file.saveOff.noReading')}</p>;
+}
+
+/** The text of the file (pasted or read from a document), what the ordinary reader found in it, and the way to read it again. */
+function useTitleFileReading(titleId: string) {
   const [text, setText] = useState('');
   const [result, setResult] = useState<TitleFileResultDto | null>(null);
   const check = useMutation({ mutationFn: (value: string) => readTitleFile(titleId, { text: value, dryRun: true }), onSuccess: setResult });
-  const save = useReadTitleFile(titleId);
   const run = (value: string) => { setResult(null); check.mutate(value); };
   const reader = useDocumentReader((value) => { setText(value); run(value); });
-  const submit = () => save.mutate({ text, dryRun: false }, { onSuccess: (r) => { toast.success(t('file.saved', { version: r.version })); onClose(); } });
-  const failed = save.error instanceof ApiError ? t('file.saveRefused') : save.isError ? t('file.saveFailed') : null;
+  return { text, setText, result, setResult, reader, check, run };
+}
+
+/** The dialog that reads a title file: pasted text, or a txt, Word or PDF file read in the browser; nothing is saved before «Save». */
+export function TitleFileDialog({ titleId, titleName, titleCode = null, onClose }: { titleId: string; titleName: string; titleCode?: string | null; onClose: () => void }) {
+  const { t } = useTranslation('career-profile');
+  const { text, setText, result, setResult, reader, check, run } = useTitleFileReading(titleId);
+  const save = useTitleFileSave(titleId, text, result, onClose);
+  // The text may be edited while the AI works: an answer about a text that is no longer in the box is dropped.
+  const latest = useRef(text);
+  useEffect(() => { latest.current = text; }, [text]);
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()} title={t('file.title', { name: titleName })} description={t('file.description')} xl>
       <div className="flex flex-col gap-4">
@@ -51,11 +72,13 @@ export function TitleFileDialog({ titleId, titleName, onClose }: { titleId: stri
         </FormField>
         <div><Button variant="secondary" disabled={!text.trim() || check.isPending} onClick={() => run(text)}>{t('file.extract')}</Button></div>
         {check.isError && <Alert tone="danger">{t('file.extractFailed')}</Alert>}
-        {result && <Findings result={result} />}
-        {failed && <Alert tone="danger">{failed}</Alert>}
+        {result && <Findings result={result} titleCode={titleCode} />}
+        {offersAi(result) && <AiOffer titleId={titleId} text={text} onResult={(answer, sent) => latest.current === sent && setResult(answer)} />}
+        {save.failed && <Alert tone="danger">{save.failed}</Alert>}
       </div>
       <DialogFooter>
-        <Button disabled={!result || result.problems.length > 0 || save.isPending} onClick={submit}>{t('file.save')}</Button>
+        <SaveOff result={result} />
+        <Button disabled={!canSave(result) || save.pending} onClick={save.submit}>{t('file.save')}</Button>
         <Button variant="secondary" onClick={onClose}>{t('file.close')}</Button>
       </DialogFooter>
     </Dialog>

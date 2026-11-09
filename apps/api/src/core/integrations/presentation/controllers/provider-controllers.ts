@@ -21,3 +21,10 @@ export const CaptchaProvidersController = integrationsController('captcha', 'cap
   test: CorePermission.IntegrationsCaptchaTest,
   activate: CorePermission.IntegrationsCaptchaActivate,
 });
+
+export const AiProvidersController = integrationsController('ai', 'ai-settings', {
+  view: CorePermission.IntegrationsAiView,
+  edit: CorePermission.IntegrationsAiEdit,
+  test: CorePermission.IntegrationsAiTest,
+  activate: CorePermission.IntegrationsAiActivate,
+});

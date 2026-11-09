@@ -158,5 +158,5 @@ export function ListToolbar({ listKey, search, filters: allFilters, view, action
 
 /** The panel that holds a list's toolbar when the list is not a table (it has a chart view too): the same rounded white surface as the table's top bar. */
 export function ListToolbarPanel({ children }: { children: ReactNode }) {
-  return <div className="mb-4 flex flex-wrap items-center gap-3 rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm shadow-ink/5">{children}</div>;
+  return <div data-tour="main-list" className="mb-4 flex flex-wrap items-center gap-3 rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm shadow-ink/5">{children}</div>;
 }

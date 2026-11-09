@@ -12,6 +12,7 @@ export const CAREER_PROFILE_PERMISSIONS: PermissionDefinition[] = [
   { key: CorePermission.CareerContentImport, module: MODULE, labelAr: 'استيراد روابط وحدات التعلم من ملف', labelEn: 'Import learning-unit links from a file', scopes: ['all'] },
   { key: CorePermission.CareerContentExport, module: MODULE, labelAr: 'تصدير قائمة المسميات وحالة مساراتها', labelEn: 'Export the list of titles and the state of their paths', scopes: ['all'] },
   { key: CorePermission.CareerTitlefileUpload, module: MODULE, labelAr: 'رفع ملف المسمى واستخراج المسار الوظيفي منه', labelEn: 'Upload a title file and read the career path from it', scopes: ['all'] },
+  { key: CorePermission.CareerTitlefileAi, module: MODULE, labelAr: 'تحليل ملف المسمى بالذكاء الاصطناعي', labelEn: 'Analyse a title file with AI', scopes: ['all'] },
   { key: CorePermission.CareerTitlefilePublish, module: MODULE, labelAr: 'تعيين المسار الوظيفي جاهزًا أو إرجاعه إلى مسودة', labelEn: 'Set a career path ready or back to draft', scopes: ['all'] },
   { key: CorePermission.CareerTitlefilePreview, module: MODULE, labelAr: 'معاينة المسار الوظيفي كما يراه الموظف', labelEn: 'Preview a career path as the employee sees it', scopes: ['all'] },
   { key: CorePermission.CareerLearningUpload, module: MODULE, labelAr: 'رفع إثبات إنجاز وحدة تعلم', labelEn: 'Send a proof for a learning unit', scopes: ['all'] },

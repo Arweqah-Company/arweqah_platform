@@ -60,6 +60,21 @@ describe('Welcome tour (FR-67)', () => {
       expect((await agent.get('/api/me/tour/general').expect(200)).body.newSteps).toEqual(['home']);
     });
 
+    it('never forgets a step already seen: finishing again with fewer steps visible (admin mode off, a page hidden) does not make them «new» later', async () => {
+      const admin = await t.factories.signInAdminMode(await t.factories.user({ grants: [...MANAGER, grant(CorePermission.PagesView), grant(CorePermission.PagesManage), grant(CorePermission.RolesView)] }));
+      const role = await t.factories.role([grant(CorePermission.TicketsView)]);
+      const user = await t.factories.user();
+      await t.app.get(UserAccessService).replaceRoles(user.id, [role.id]);
+      const agent = await t.factories.signIn(user);
+      await agent.post('/api/me/tour/general/complete').expect(200); // saw everything, tickets included
+      await admin.put(`/api/page-visibility/roles/${role.id}`).send({ hiddenPages: ['tickets'] }).expect(200);
+      await agent.post('/api/me/tour/general/complete').expect(200); // finished again while fewer steps were visible
+      await admin.put(`/api/page-visibility/roles/${role.id}`).send({ hiddenPages: [] }).expect(200);
+      const body = (await agent.get('/api/me/tour/general').expect(200)).body;
+      expect(keys(body)).toContain('tickets');
+      expect(body.newSteps).toEqual([]);
+    });
+
     it('keeps each person’s progress to themselves', async () => {
       const a = await t.factories.signIn(await t.factories.user());
       const b = await t.factories.signIn(await t.factories.user());

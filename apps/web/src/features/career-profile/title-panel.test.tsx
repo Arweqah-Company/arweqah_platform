@@ -34,6 +34,7 @@ describe('The workspace of a title: editing a path field by field (FR-113)', () 
     expect(summary).toHaveValue(careerContent.summary);
     for (const name of ['الوصف الوظيفي', 'السلم والمسار', 'الجدارات الفنية', 'خطة التعلم', 'المطلوب', 'التقييم', 'القوائم المشتركة']) expect(tab(name)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'حفظ التعديلات' })).toBeDisabled();
+    expect(screen.getByText(/لا توجد تعديلات لحفظها/)).toBeInTheDocument();
     expect(screen.getByText('كل الأجزاء مكتملة ويمكن تعيين المسار جاهزًا.')).toBeInTheDocument();
   });
 
