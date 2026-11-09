@@ -3,14 +3,20 @@ import type {
   CareerListStatus,
   CareerTitleContentDto,
   CareerTitleListItemDto,
+  CompetencyStatusDto,
+  CreateRequestInput,
+  DevelopmentRequestDto,
   ExtractTitleFileInput,
   ImportLearningLinksInput,
   LearningRecordDto,
   LearningImportResultDto,
   MyCareerProfileDto,
   MyProgressDto,
+  RecordCompetencyInput,
   ReopenAcknowledgementInput,
   ReopenAcknowledgementResultDto,
+  RequestPlanKind,
+  RequestPreviewDto,
   SubmitProofInput,
   TeamMemberDetailDto,
   TitleFileResultDto,
@@ -127,4 +133,50 @@ export function useTeamDecision(employeeId: string, proofId: string) {
     approve: useMutation({ mutationFn: () => apiClient.post(`${base}/approve`, {}), onSuccess: done }),
     reject: useMutation({ mutationFn: (reason: string) => apiClient.post(`${base}/reject`, { reason }), onSuccess: done }),
   };
+}
+
+export const MY_REQUESTS_KEY = ['career-profile', 'requests'] as const;
+export const REQUESTS_KEY = 'career-requests';
+
+/** The signed-in employee's own development requests. */
+export const useMyRequests = (enabled = true) => useQuery({ queryKey: MY_REQUESTS_KEY, enabled, queryFn: () => apiClient.get<DevelopmentRequestDto[]>('/career-profile/me/requests') });
+
+/** Who would decide a request of this cost and plan, and what is left of the yearly budget (read while the person types). */
+export const useRequestPreview = (cost: number, plan: RequestPlanKind, enabled = true) =>
+  useQuery({ enabled, queryKey: [...MY_REQUESTS_KEY, 'preview', cost, plan], placeholderData: (previous) => previous, queryFn: () => apiClient.get<RequestPreviewDto>(`/career-profile/me/requests/preview?cost=${cost}&plan=${plan}`) });
+
+/** Sends a request: the agreement file first (when there is one), then the request that points at it. */
+export function useCreateRequest() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ file, ...input }: Omit<CreateRequestInput, 'agreementFileId'> & { file?: File }) => {
+      let agreementFileId: string | undefined;
+      if (file) {
+        const form = new FormData();
+        form.append('file', file);
+        agreementFileId = (await apiClient.post<{ id: string }>('/files', form)).id;
+      }
+      return apiClient.post<DevelopmentRequestDto>('/career-profile/me/requests', { ...input, ...(agreementFileId ? { agreementFileId } : {}) });
+    },
+    onSuccess: () => Promise.all([client.invalidateQueries({ queryKey: MY_REQUESTS_KEY }), client.invalidateQueries({ queryKey: MY_PROGRESS_KEY })]),
+  });
+}
+
+/** One decision on a request that is with the signed-in person; every list of requests and the budget card are read again after it. */
+export function useDecideRequest(id: string) {
+  const client = useQueryClient();
+  const done = () => Promise.all([REQUESTS_KEY, 'career-profile'].map((key) => client.invalidateQueries({ queryKey: [key] })));
+  return {
+    approve: useMutation({ mutationFn: () => apiClient.post(`/career/requests/${id}/approve`, {}), onSuccess: done }),
+    reject: useMutation({ mutationFn: (reason: string) => apiClient.post(`/career/requests/${id}/reject`, { reason }), onSuccess: done }),
+  };
+}
+
+/** The manager records (or takes back) the level an employee reached in a competency of their title. */
+export function useRecordCompetency(employeeId: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (input: RecordCompetencyInput) => apiClient.put<CompetencyStatusDto[]>(`/career/team/${employeeId}/competencies`, input),
+    onSuccess: () => Promise.all([client.invalidateQueries({ queryKey: ['career-team', 'member', employeeId] }), client.invalidateQueries({ queryKey: MY_PROGRESS_KEY })]),
+  });
 }

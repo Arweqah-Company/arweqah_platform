@@ -1,15 +1,16 @@
 import { CorePermission, LEARNING_PRIORITIES, type CareerContent, type LearningRecordDto } from '@arweqah-platform/shared';
-import { Eye, ExternalLink, GraduationCap, Upload } from 'lucide-react';
+import { Eye, ExternalLink, GraduationCap, Plus, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Can } from '@/core/permissions/can';
 import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import { useListPage } from '@/shared/lib/use-list-page';
-import { Badge, DataTable, DetailsDialog, EmptyState, ListToolbar, RowAction, type Column } from '@/shared/ui';
+import { Badge, Button, DataTable, DetailsDialog, EmptyState, ListToolbar, RowAction, type Column } from '@/shared/ui';
 import { useMyLearning } from './api';
 import { formatMinutes } from './format-minutes';
 import { filterUnits, learningExportColumns, learningFilterFields, type LearningRow } from './learning-list';
 import { ProofDialog } from './proof-dialog';
+import { RequestDialog } from './request-dialog';
 import { byUnit, STATE_TONE, stateOf } from './proof-status';
 
 const PRIORITY_TONE: Record<LearningRow['priority'], 'danger' | 'warning' | 'info'> = { [LEARNING_PRIORITIES[0]]: 'danger', [LEARNING_PRIORITIES[1]]: 'warning', [LEARNING_PRIORITIES[2]]: 'info' };
@@ -94,10 +95,16 @@ export function LearningUnits({ period, preview }: { period: CareerContent['lear
   const list = useListPage('career-learning');
   const records = byUnit(useMyLearning(!preview).data);
   const [shown, setShown] = useState<Shown>(null);
+  const [requesting, setRequesting] = useState(false);
   const all = unitRows(period, preview, records);
   const rows = filterUnits(all, list.term, list.filters.values);
   const columns = useUnitColumns(preview, records);
-  const exchange = preview ? undefined : <ExchangeButtons permissions={{ export: CorePermission.CareerLearningExport }} exporting={{ columns: learningExportColumns(t, true), filename: 'career-learning', pageRows: rows, total: rows.length, loadAll: async () => rows }} />;
+  const exchange = preview ? undefined : (
+    <>
+      <ExchangeButtons permissions={{ export: CorePermission.CareerLearningExport }} exporting={{ columns: learningExportColumns(t, true), filename: 'career-learning', pageRows: rows, total: rows.length, loadAll: async () => rows }} />
+      <Can permission={CorePermission.CareerRequestsCreate}><Button variant="secondary" onClick={() => setRequesting(true)}><Plus className="size-4" aria-hidden />{t('requests.open')}</Button></Can>
+    </>
+  );
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm text-muted">{t('learning.periodTotal', { count: all.length, duration: formatMinutes(all.reduce((sum, u) => sum + u.minutes, 0), t) })}</p>
@@ -114,6 +121,7 @@ export function LearningUnits({ period, preview }: { period: CareerContent['lear
         columns={columns}
       />
       <UnitDialogs shown={shown} records={records} onClose={() => setShown(null)} />
+      {requesting && <RequestDialog onClose={() => setRequesting(false)} />}
     </div>
   );
 }

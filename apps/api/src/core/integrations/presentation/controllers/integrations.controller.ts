@@ -18,7 +18,7 @@ interface Keys {
  * One controller per kind of provider, built from the same code: the routes are identical and only the path, the page
  * that can hide them and the four permission keys differ (translation and e-mail are separate pages with separate keys).
  */
-export function integrationsController(kind: IntegrationKind, page: 'translation-settings' | 'email-settings' | 'captcha-settings', keys: Keys): Type<unknown> {
+export function integrationsController(kind: IntegrationKind, page: 'translation-settings' | 'email-settings' | 'captcha-settings' | 'ai-settings', keys: Keys): Type<unknown> {
   @ApiTags('integrations')
   @Controller(`integrations/${kind}`)
   @RequireAdminMode()

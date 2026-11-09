@@ -41,7 +41,8 @@
     "careerProfile": "Career path",
     "careerContent": "Career-path content",
     "careerCertificates": "Certificate review",
-    "careerTeam": "My career team"
+    "careerTeam": "My career team",
+    "careerRequests": "Development requests"
   },
   "actions": {
     "save": "Save",

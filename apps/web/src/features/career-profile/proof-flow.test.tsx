@@ -10,7 +10,7 @@ import { FreeReading } from './free-reading';
 const UNIT = '11111111-1111-4111-8111-111111111111';
 const KEYS = [CorePermission.CareerProfileView, CorePermission.CareerLearningUpload, CorePermission.CareerRequiredTick];
 const record = (over: Partial<LearningRecordDto> = {}): LearningRecordDto => ({ id: 'r1', unitId: UNIT, status: 'wait', kind: 'certificate', note: null, fileName: 'cert.pdf', minutes: 120, submittedAt: '2026-11-08T10:00:00.000Z', decidedAt: null, rejectionReason: null, rejectionCount: 0, ...over });
-const progress = (over: Partial<MyProgressDto> = {}): MyProgressDto => ({ requiredDone: [], approvedMinutes: 0, unitsDone: 0, unitsTotal: 2, waiting: 0, badges: [{ name: 'وسام الأساس', hours: 35, reached: false }], nextBadge: { name: 'وسام الأساس', hours: 35, missingMinutes: 2100 }, ...over });
+const progress = (over: Partial<MyProgressDto> = {}): MyProgressDto => ({ requiredDone: [], approvedMinutes: 0, unitsDone: 0, unitsTotal: 2, waiting: 0, badges: [{ name: 'وسام الأساس', hours: 35, reached: false }], nextBadge: { name: 'وسام الأساس', hours: 35, missingMinutes: 2100 }, budget: { cap: 3000, spent: 1800 }, competencies: [], ...over });
 
 function open(records: LearningRecordDto[] = [], state: MyProgressDto = progress(), keys: string[] = KEYS) {
   const sent: unknown[] = [];

@@ -1,19 +1,23 @@
 /**
- * The outside services the platform can use for translation and e-mail, and the data each one needs. One description
+ * The outside services the platform can use (translation, e-mail, bot protection, AI), and the data each one needs. One description
  * drives the API (what is required, what is secret, what is valid) and the web (which fields the form shows), so a
  * provider is added here once. Secrets are stored encrypted and never sent back to the browser.
  */
-export const INTEGRATION_KINDS = ['translation', 'email', 'captcha'] as const;
+export const INTEGRATION_KINDS = ['translation', 'email', 'captcha', 'ai'] as const;
 export type IntegrationKind = (typeof INTEGRATION_KINDS)[number];
 
 export const TRANSLATION_PROVIDERS = ['aws', 'google', 'azure'] as const;
 export const EMAIL_PROVIDERS = ['smtp', 'ses', 'sendgrid', 'graph'] as const;
 export const CAPTCHA_PROVIDERS = ['turnstile'] as const;
-export const PROVIDERS_OF = { translation: TRANSLATION_PROVIDERS, email: EMAIL_PROVIDERS, captcha: CAPTCHA_PROVIDERS } as const;
+export const AI_PROVIDERS = ['anthropic'] as const;
+export const PROVIDERS_OF = { translation: TRANSLATION_PROVIDERS, email: EMAIL_PROVIDERS, captcha: CAPTCHA_PROVIDERS, ai: AI_PROVIDERS } as const;
+/** The model used until the administrator picks another one in the AI settings. */
+export const AI_DEFAULT_MODEL = 'claude-opus-5-5';
 export type TranslationProviderKey = (typeof TRANSLATION_PROVIDERS)[number];
 export type EmailProviderKey = (typeof EMAIL_PROVIDERS)[number];
 export type CaptchaProviderKey = (typeof CAPTCHA_PROVIDERS)[number];
-export type ProviderKey = TranslationProviderKey | EmailProviderKey | CaptchaProviderKey;
+export type AiProviderKey = (typeof AI_PROVIDERS)[number];
+export type ProviderKey = TranslationProviderKey | EmailProviderKey | CaptchaProviderKey | AiProviderKey;
 
 /** How a value is checked beyond "not empty". */
 export type FieldFormat = 'sender' | 'email' | 'url' | 'service-account-json';
@@ -51,6 +55,8 @@ export const PROVIDER_FIELDS: Record<ProviderKey, ProviderField[]> = {
   sendgrid: [secret('apiKey'), sender()],
   // The site key is public (the sign-in page needs it); the secret key never leaves the server.
   turnstile: [text('siteKey'), secret('secretKey')],
+  // The model is a name the administrator can change (a cheaper one, a newer one); the key never leaves the server.
+  anthropic: [secret('apiKey'), text('model', { defaultValue: AI_DEFAULT_MODEL })],
   graph: [text('tenantId'), text('clientId'), secret('clientSecret'), text('sender', { format: 'email' })],
 };
 

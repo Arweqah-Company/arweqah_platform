@@ -51,6 +51,7 @@ export const TOUR_STEPS = [
   { key: 'career-profile', tour: 'general', permission: CorePermission.CareerProfileView, page: 'career-profile' },
   { key: 'career-content', tour: 'general', permission: CorePermission.CareerContentView, page: 'career-content' },
   { key: 'career-certificates', tour: 'general', permission: CorePermission.CareerCertificatesReview, page: 'career-certificates' },
+  { key: 'career-requests', tour: 'general', permission: CorePermission.CareerRequestsView, page: 'career-requests' },
   { key: 'career-team', tour: 'general', permission: CorePermission.CareerTeamView, page: 'career-team' },
   { key: 'finish', tour: 'general' },
   { key: 'admin-mode', tour: 'admin', permission: CorePermission.AdminModeUse },
@@ -65,6 +66,7 @@ export const TOUR_STEPS = [
   { key: 'email-log', tour: 'admin', permission: CorePermission.EmailLogView, page: 'email-log' },
   { key: 'settings', tour: 'admin', permission: CorePermission.IntegrationsEmailView, page: 'email-settings' },
   { key: 'captcha-settings', tour: 'admin', permission: CorePermission.IntegrationsCaptchaView, page: 'captcha-settings' },
+  { key: 'ai-settings', tour: 'admin', permission: CorePermission.IntegrationsAiView, page: 'ai-settings' },
   { key: 'tour-settings', tour: 'admin', permission: CorePermission.TourSettingsView, page: 'tour-settings' },
 ] as const satisfies readonly TourStepDef[];
 

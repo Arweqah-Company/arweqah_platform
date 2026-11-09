@@ -363,6 +363,38 @@
       "filters": {
         "status": "State"
       }
+    },
+    "career-requests": {
+      "name": "Development requests",
+      "columns": {
+        "employee": "Employee",
+        "course": "Course",
+        "cost": "Cost",
+        "plan": "Plan",
+        "level": "Decided by",
+        "status": "State",
+        "submitted": "Sent on"
+      },
+      "filters": {
+        "status": "State",
+        "level": "Approver",
+        "plan": "In or outside the plan"
+      }
+    },
+    "career-my-requests": {
+      "name": "My learning requests",
+      "columns": {
+        "course": "Course",
+        "cost": "Cost",
+        "plan": "Plan",
+        "level": "Decided by",
+        "status": "State",
+        "submitted": "Sent on"
+      },
+      "filters": {
+        "status": "State",
+        "plan": "In or outside the plan"
+      }
     }
   },
   "listHint": "The first column (the name) always stays.",

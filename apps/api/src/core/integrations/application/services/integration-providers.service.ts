@@ -128,7 +128,7 @@ export class IntegrationProvidersService {
   }
 
   private serverSettingsExist(kind: IntegrationKind): boolean {
-    if (kind === 'captcha') return false;
+    if (kind === 'captcha' || kind === 'ai') return false;
     return kind === 'email' || this.config.translate !== null;
   }
 

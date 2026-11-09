@@ -8,6 +8,7 @@ const FOR_USER = `SELECT e.id, e.job_title_id, e.is_system_account, e.full_name,
 const MANAGER_USER = `SELECT m.user_id FROM employees e JOIN employees m ON m.id = e.manager_id WHERE e.id = $1 AND m.deleted_at IS NULL`;
 const USER_OF = `SELECT user_id FROM employees WHERE id = $1 AND deleted_at IS NULL`;
 const HOLDERS = `SELECT e.id, e.user_id, e.job_title_id, m.user_id AS manager_user_id FROM employees e LEFT JOIN employees m ON m.id = e.manager_id AND m.deleted_at IS NULL WHERE e.job_title_id IS NOT NULL AND e.deleted_at IS NULL AND e.is_system_account = false AND (e.end_date IS NULL OR e.end_date >= (now() AT TIME ZONE 'Asia/Riyadh')::date)`;
+const NAME_OF_USER = `SELECT full_name FROM employees WHERE user_id = $1 AND deleted_at IS NULL LIMIT 1`;
 const HOLDER_COUNT = `SELECT count(*) AS n FROM employees WHERE job_title_id = $1 AND ${ACTIVE}`;
 
 /** What the career path asks of the employees. Direct SQL on purpose: the career module never depends on this one. */
@@ -36,6 +37,11 @@ export class EmployeeCareerAdapter extends EmployeeCareerPort {
   async userOf(employeeId: string): Promise<string | null> {
     const rows: { user_id: string | null }[] = await this.ds.query(USER_OF, [employeeId]);
     return rows[0]?.user_id ?? null;
+  }
+
+  async nameOfUser(userId: string): Promise<string | null> {
+    const rows: { full_name: string }[] = await this.ds.query(NAME_OF_USER, [userId]);
+    return rows[0]?.full_name ?? null;
   }
 
   async holders(): Promise<CareerHolder[]> {

@@ -62,7 +62,8 @@
     "badges": "Badges",
     "sub": {
       "units": "Learning units",
-      "badges": "Badges"
+      "badges": "Badges",
+      "requests": "My requests"
     },
     "subLabel": "Learning plan sections",
     "searchLabel": "Search the units",
@@ -280,6 +281,15 @@
         "decide": "Decide a proof referred to you",
         "export": "Export the list"
       }
+    },
+    "career-requests": {
+      "title": "Development requests",
+      "body": "The learning requests your team raises with their costs: open a request, then approve it, or reject it with a reason if it is with you.",
+      "can": {
+        "approve": "Approve the request",
+        "reject": "Reject the request with a reason",
+        "export": "Export the list"
+      }
     }
   },
   "import": {
@@ -443,7 +453,12 @@
     "units": "Learning units done",
     "unitsValue": "{{done}} of {{total}}",
     "hours": "Hours done",
-    "hoursNext": "Hours done · next medal: {{name}} at {{hours}} hours"
+    "hoursNext": "Hours done · next medal: {{name}} at {{hours}} hours",
+    "budget": "Budget: {{spent}} of {{cap}} riyals",
+    "budgetNoCap": "Budget spent: {{spent}} riyals",
+    "budgetValue": "{{percent}}%",
+    "competencies": "Core competencies of your level met",
+    "competenciesValue": "{{met}} of {{total}}"
   },
   "certs": {
     "title": "Certificate review",
@@ -511,5 +526,122 @@
       "late": "Late",
       "no_path": "No ready path"
     }
+  },
+  "requests": {
+    "open": "Request learning outside the plan",
+    "title": "Learning request",
+    "description": "It is approved by cost: the direct manager, then the sector head, then the CEO.",
+    "course": "Course name",
+    "cost": "Cost in riyals",
+    "plan": "In the plan?",
+    "planLabel": "Is the course in your learning plan?",
+    "planIn": "In the learning plan",
+    "planInHint": "A unit of your plan that you want at another provider.",
+    "planOut": "Outside the plan",
+    "planOutHint": "Needs the sector head at least.",
+    "agreement": "Retention agreement for funded training",
+    "agreementHint": "Optional: a PDF or an image, attached for the approver to see.",
+    "chosenFile": "Chosen file: {{name}}",
+    "decides": "Decided by: {{who}}",
+    "left": "Left of your yearly budget: {{left}} riyals.",
+    "noCap": "No budget cap is set for your stage yet, so the cost is compared to nothing.",
+    "overBudget": "The cost is above what is left of your yearly budget (the cap of your stage). You can still send it and the approver decides.",
+    "whoLevel": {
+      "direct": "The direct manager (answers within 5 working days)",
+      "sector": "The sector head",
+      "ceo": "The CEO"
+    },
+    "whyLevel": {
+      "direct": "In the plan and up to 5,000 riyals",
+      "sector": "Outside the plan or between 5,000 and 20,000 riyals",
+      "ceo": "Above 20,000 riyals"
+    },
+    "approver": "Approver: {{name}}",
+    "nobody": "Nobody holds the approver post yet: ask HR to set the unit leader.",
+    "send": "Send the request",
+    "sent": "The request was sent for approval.",
+    "failed": "The request could not be sent.",
+    "nameRequired": "The course name is required.",
+    "costRequired": "The cost is required (a whole number of riyals).",
+    "mineTitle": "My requests",
+    "mineSearchLabel": "Search my requests",
+    "mineSearchPlaceholder": "Search by course name",
+    "mineEmpty": "You have not sent a request yet.",
+    "mineNoMatches": "No request matches the search and filters.",
+    "status": {
+      "pending": "Waiting",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "planKind": {
+      "in": "In the plan",
+      "out": "Outside the plan"
+    },
+    "columns": {
+      "employee": "Employee",
+      "course": "Course",
+      "cost": "Cost",
+      "plan": "Plan",
+      "level": "Decided by",
+      "status": "State",
+      "submitted": "Sent on"
+    },
+    "filters": {
+      "status": "State",
+      "level": "Approver",
+      "plan": "In or outside the plan"
+    },
+    "riyals": "{{amount}} riyals",
+    "details": "Request details",
+    "rejectedBecause": "Reason of the rejection",
+    "decidedAt": "Decided on",
+    "agreementFile": "Retention agreement",
+    "noAgreement": "No agreement attached",
+    "over": "Above the budget left",
+    "nobodyYet": "Nobody",
+    "page": {
+      "title": "Development requests",
+      "description": "The learning requests of employees with their costs. You decide only what reaches you in the chain: direct manager, sector head, then the CEO.",
+      "searchLabel": "Search the requests",
+      "searchPlaceholder": "Search by employee or course",
+      "empty": "There are no development requests yet.",
+      "noMatches": "No request matches the search and filters.",
+      "scope": "Here is what waits for your decision and what belongs to the people your permission reaches.",
+      "waiting": "Waiting for me",
+      "all": "All requests",
+      "tabs": "Requests view",
+      "open": "Open the request",
+      "notYours": "The request is with another approver and you see it read only."
+    },
+    "approve": "Approve",
+    "approved": "The request was approved.",
+    "reject": {
+      "action": "Reject",
+      "title": "Reject the request",
+      "reason": "Reason",
+      "short": "The reason needs at least five characters.",
+      "confirm": "Reject the request",
+      "done": "The request was rejected and the employee was told."
+    },
+    "decideFailed": "The decision could not be made: someone else may have decided it."
+  },
+  "mine": {
+    "level": "My level",
+    "met": "Met",
+    "notMet": "Not met yet",
+    "none": "—",
+    "unrequired": "Not required",
+    "recorded": "Recorded by your manager"
+  },
+  "competencyRecord": {
+    "title": "Competencies of the title",
+    "hint": "Record the level the employee reached in each competency their title asks for. They see it in the «My level» column.",
+    "level": "Recorded level",
+    "none": "Not recorded",
+    "required": "Required",
+    "saved": "The competency level was recorded.",
+    "failed": "The level could not be recorded.",
+    "empty": "The title asks for no competency.",
+    "take": "Take back"
   }
 }

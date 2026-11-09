@@ -1119,6 +1119,37 @@ erDiagram
     integer item_index UK
     timestamp_with_time_zone done_at
   }
+  career_development_requests {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid employee_id FK
+    character_varying course_name
+    integer cost
+    character_varying plan
+    character_varying status
+    character_varying level
+    uuid approver_user_id
+    uuid agreement_file_id FK
+    integer budget_cap
+    character_varying rejection_reason
+    uuid decided_by
+    timestamp_with_time_zone decided_at
+    timestamp_with_time_zone submitted_at
+  }
+  career_employee_competency_levels {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid employee_id FK,UK
+    character_varying competency UK
+    character_varying level
+    timestamp_with_time_zone reached_at
+    uuid recorded_by
+  }
+  employees ||--o{ career_development_requests : "employee_id"
+  files ||--o{ career_development_requests : "agreement_file_id"
+  employees ||--o{ career_employee_competency_levels : "employee_id"
   employees ||--o{ career_learning_records : "employee_id"
   job_titles ||--o{ career_learning_records : "title_id"
   files ||--o{ career_learning_records : "file_id"
@@ -1267,4 +1298,6 @@ erDiagram
 | `career_acknowledgements` | An employee's acknowledgement of the career path of a title at a content version (`employee_id` + `title_id` + `content_version` unique; acknowledging the same version again only refreshes the time). The platform is held back until the latest one of the employee's title is later than the latest reopening. |
 | `career_learning_records` | The state of one learning unit for one employee (`employee_id` + `unit_id` unique; `unit_id` is the id of the unit inside the title's content document): the proof they sent (`proof_kind`, `file_id`, `note`), the unit's minutes at that time, and the decision (`status` wait / referred / done / rej, `decided_by`, `decided_at`, `rejection_reason`, `rejection_count`). A rejected proof is replaced by the next one; no row means «not started». |
 | `career_required_progress` | An employee ticked an item of «required» (`employee_id` + `title_id` + `item_index` unique; unticking deletes the row). |
+| `career_development_requests` | A development request (FR-116): the course, its cost in whole riyals, `plan` (`in` the learning plan or `out` of it), the `level` that decides it now (`direct`, `sector`, `ceo`) and `approver_user_id` (the person who holds that post for the employee; changes when the request goes up), `status` (`pending`, `approved`, `rejected`), the retention agreement (`agreement_file_id`), the yearly cap of the employee's stage on the day it was sent (`budget_cap`), the decision (who, when, the reason of a rejection). The workflow `career.development_request` carries its state and the seven-day deadline of the direct manager. |
+| `career_employee_competency_levels` | The level (`أساسي` or `خبير`) of one technical competency of the employee's title that their manager recorded (`employee_id` + `competency` unique; the competency is the one of the title's content, by name; taking the record back deletes the row). |
 | `career_ack_reopenings` | HR asked the holders of a title to acknowledge again, with the reason: whoever acknowledged before it is asked once more. |

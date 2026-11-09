@@ -58,6 +58,11 @@ export const CorePermission = {
   IntegrationsCaptchaTest: 'integrations.captcha_test',
   IntegrationsCaptchaActivate: 'integrations.captcha_activate',
   IntegrationsCaptchaExport: 'integrations.captcha_export',
+  IntegrationsAiView: 'integrations.ai_view',
+  IntegrationsAiEdit: 'integrations.ai_edit',
+  IntegrationsAiTest: 'integrations.ai_test',
+  IntegrationsAiActivate: 'integrations.ai_activate',
+  IntegrationsAiExport: 'integrations.ai_export',
   TemplatesEmailView: 'templates.email_view',
   TemplatesEmailEdit: 'templates.email_edit',
   TemplatesEmailReset: 'templates.email_reset',
@@ -87,6 +92,7 @@ export const CorePermission = {
   CareerContentImport: 'career_content.import',
   CareerContentExport: 'career_content.export',
   CareerTitlefileUpload: 'career_titlefile.upload',
+  CareerTitlefileAi: 'career_titlefile.ai',
   CareerTitlefilePublish: 'career_titlefile.publish',
   CareerTitlefilePreview: 'career_titlefile.preview',
   CareerLearningUpload: 'career_learning.upload',
@@ -99,6 +105,12 @@ export const CorePermission = {
   CareerTeamView: 'career_team.view',
   CareerTeamDecide: 'career_team.decide',
   CareerTeamExport: 'career_team.export',
+  CareerRequestsCreate: 'career_requests.create',
+  CareerRequestsView: 'career_requests.view',
+  CareerRequestsApprove: 'career_requests.approve',
+  CareerRequestsReject: 'career_requests.reject',
+  CareerRequestsExport: 'career_requests.export',
+  CareerCompetencyRecord: 'career_competency.record',
   // My account
   ProfileView: 'profile.view',
   ProfileUpdate: 'profile.update',
@@ -221,6 +233,7 @@ const OWN_ACCOUNT_PERMISSIONS: { key: CorePermissionKey; scope: 'all' }[] = [
   { key: CorePermission.CareerLearningExport, scope: 'all' },
   { key: CorePermission.CareerLearningUpload, scope: 'all' },
   { key: CorePermission.CareerRequiredTick, scope: 'all' },
+  { key: CorePermission.CareerRequestsCreate, scope: 'all' },
 ];
 
 /**
@@ -277,6 +290,11 @@ export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 's
   { key: CorePermission.CareerTeamView, scope: 'subtree' },
   { key: CorePermission.CareerTeamDecide, scope: 'subtree' },
   { key: CorePermission.CareerTeamExport, scope: 'subtree' },
+  { key: CorePermission.CareerRequestsView, scope: 'subtree' },
+  { key: CorePermission.CareerRequestsApprove, scope: 'subtree' },
+  { key: CorePermission.CareerRequestsReject, scope: 'subtree' },
+  { key: CorePermission.CareerRequestsExport, scope: 'subtree' },
+  { key: CorePermission.CareerCompetencyRecord, scope: 'subtree' },
   // tasks of the unit and below
   { key: CorePermission.TasksTeamView, scope: 'subtree' },
   { key: CorePermission.TasksMatrixView, scope: 'subtree' },

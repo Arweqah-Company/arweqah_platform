@@ -55,6 +55,8 @@ export * from './career/title-file';
 export * from './career/profile';
 export * from './career/proof';
 export * from './career/team';
+export * from './career/requests';
+export * from './career/competency';
 export * from './career/title-list';
 export * from './career/learning-import';
 export * from './career/duration';

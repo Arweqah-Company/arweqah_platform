@@ -1,7 +1,8 @@
 import type { CareerContent, DevelopmentStageDto } from '@arweqah-platform/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Tabs } from '@/shared/ui';
+import { Alert, Badge, Tabs } from '@/shared/ui';
+import { useMyProgress } from './api';
 import { LadderGraph } from './ladder-graph';
 
 /** The steps of the level path: label, what to do, and how it is evidenced. */
@@ -19,9 +20,17 @@ function PathSteps({ steps }: { steps: CareerContent['steps'] }) {
   );
 }
 
-/** The technical competencies by level (a table on a wide screen, scrolling sideways on a phone). */
-function Competencies({ content }: { content: CareerContent }) {
+/** What the manager recorded for the competency and whether it is met; a competency the title does not ask for shows nothing. */
+function MyLevelCell({ status }: { status?: { mine: string | null; met: boolean } }) {
   const { t } = useTranslation('career-profile');
+  if (!status) return <td className="px-3 py-2 text-center text-muted">—</td>;
+  return <td className="px-3 py-2 text-center">{status.met ? <Badge tone="success">{t('mine.met')}</Badge> : <span className="text-muted">{status.mine ?? t('mine.none')}</span>}</td>;
+}
+
+/** The technical competencies by level (a table on a wide screen, scrolling sideways on a phone). */
+function Competencies({ content, preview }: { content: CareerContent; preview: boolean }) {
+  const { t } = useTranslation('career-profile');
+  const mine = new Map(useMyProgress(!preview).data?.competencies.map((c) => [c.name, c]));
   return (
     <div className="overflow-x-auto rounded-2xl border border-neutral-200">
       <table className="w-full min-w-[32rem] text-sm">
@@ -31,6 +40,7 @@ function Competencies({ content }: { content: CareerContent }) {
             {content.competencyColumns.map((c) => (
               <th key={c} scope="col" className="px-3 py-2 text-center font-medium">{c}</th>
             ))}
+            {!preview && <th scope="col" className="px-3 py-2 text-center font-medium">{t('mine.level')}</th>}
           </tr>
         </thead>
         <tbody>
@@ -40,6 +50,7 @@ function Competencies({ content }: { content: CareerContent }) {
               {row.values.map((v, i) => (
                 <td key={content.competencyColumns[i] ?? i} className="px-3 py-2 text-center text-fg">{v}</td>
               ))}
+              {!preview && <MyLevelCell status={mine.get(row.name)} />}
             </tr>
           ))}
         </tbody>
@@ -91,7 +102,7 @@ export function DevelopmentSection({ content, stage, preview = false }: { conten
       <div role="tabpanel" className="flex flex-col gap-3">
         {sub === 'ladder' && <><LadderGraph ladder={content.ladder} preview={preview} /><Alert tone="info"><b>{t('development.condition')}:</b> {content.transitionRule}</Alert></>}
         {sub === 'path' && <PathPanel content={content} />}
-        {sub === 'competencies' && <><Competencies content={content} /><p className="text-sm text-muted">{t('development.competenciesNote')}</p></>}
+        {sub === 'competencies' && <><Competencies content={content} preview={preview} /><p className="text-sm text-muted">{t('development.competenciesNote')}</p></>}
       </div>
     </div>
   );

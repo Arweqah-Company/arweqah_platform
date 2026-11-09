@@ -1,4 +1,4 @@
-import type { CareerContent, CareerContentStatus, DevelopmentStageDto, ProofKind, RecordStatus, TitleTrack } from '@arweqah-platform/shared';
+import type { CareerContent, CareerContentStatus, DevelopmentStageDto, ProofKind, RecordStatus, RequestLevel, RequestPlanKind, RequestStatus, TitleTrack } from '@arweqah-platform/shared';
 
 /** The stored content of one title: null content = nothing saved yet. */
 export interface StoredCareerContent {
@@ -87,4 +87,53 @@ export interface RequiredTick {
   index: number;
   done: boolean;
   at: Date;
+}
+
+/** A development request as the services read it (with the names of the employee, the approver and the agreement file). */
+export interface RequestRow {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  courseName: string;
+  cost: number;
+  plan: RequestPlanKind;
+  status: RequestStatus;
+  level: RequestLevel;
+  approverUserId: string | null;
+  approverName: string | null;
+  agreementFileId: string | null;
+  agreementName: string | null;
+  budgetCap: number | null;
+  rejectionReason: string | null;
+  submittedAt: Date;
+  decidedAt: Date | null;
+}
+
+/** What sending a request writes. */
+export interface RequestWrite {
+  employeeId: string;
+  courseName: string;
+  cost: number;
+  plan: RequestPlanKind;
+  level: RequestLevel;
+  approverUserId: string | null;
+  agreementFileId: string | null;
+  budgetCap: number | null;
+  submittedAt: Date;
+}
+
+/** A decision of the person the request is with. */
+export interface RequestDecision {
+  status: 'approved' | 'rejected';
+  decidedBy: string;
+  decidedAt: Date;
+  rejectionReason: string | null;
+}
+
+/** The level of a competency the manager recorded for an employee. */
+export interface CompetencyLevelRow {
+  employeeId: string;
+  competency: string;
+  level: string;
+  reachedAt: Date;
 }

@@ -55,3 +55,24 @@ export class CareerRecordNotOpenError extends ConflictError {
     super('The proof was already decided');
   }
 }
+
+export class CareerRequestNotOpenError extends ConflictError {
+  override readonly code = 'CAREER_REQUEST_NOT_OPEN';
+  constructor() {
+    super('The request was already decided');
+  }
+}
+
+export class CareerRequestNotYoursError extends ForbiddenError {
+  override readonly code = 'CAREER_REQUEST_NOT_YOURS';
+  constructor() {
+    super('The request is with another approver');
+  }
+}
+
+export class CareerRequestNoApproverError extends BusinessRuleError {
+  override readonly code = 'CAREER_REQUEST_NO_APPROVER';
+  constructor() {
+    super('Nobody holds a post that can decide this request yet: ask HR to set the leader of the unit');
+  }
+}

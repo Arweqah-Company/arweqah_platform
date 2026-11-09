@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { paginationQuerySchema, type Paginated } from '../common/pagination';
+import type { BudgetDto, CompetencyStatusDto } from './competency';
 
 /**
  * Proof of a learning unit and its review (FR-114; plan `docs/plans/phase-6-career-path-performance.md` §2.4).
@@ -91,4 +92,8 @@ export interface MyProgressDto {
   badges: { name: string; hours: number; reached: boolean }[];
   /** The next medal not yet reached, with the hours still missing; null when all are reached or the plan has none. */
   nextBadge: { name: string; hours: number; missingMinutes: number } | null;
+  /** The yearly budget of the stage and what was approved of it this year (the budget card). */
+  budget: BudgetDto;
+  /** The competencies the title asks for at the employee's level, with what the manager recorded (the «my level» column and the competencies card). */
+  competencies: CompetencyStatusDto[];
 }

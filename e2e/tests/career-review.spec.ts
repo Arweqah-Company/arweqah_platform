@@ -6,7 +6,7 @@ import { ADMIN_STATE } from '../support/fixtures';
 test.use({ storageState: ADMIN_STATE });
 test.describe.configure({ timeout: 120_000 });
 
-test.describe('Certificate review and my career team (FR-114, FR-115)', () => {
+test.describe('Certificate review, my career team and development requests (FR-114, FR-115, FR-116)', () => {
   test('the certificate review page opens for the administrator with its list, filters and export, and is accessible', async ({ page }) => {
     await adminModeOnViaApi(page);
     await page.goto('/career-certificates');
@@ -27,6 +27,23 @@ test.describe('Certificate review and my career team (FR-114, FR-115)', () => {
   test('an employee (admin mode off) is not offered the review page and sees the no-permission page', async ({ page }) => {
     await adminModeOffViaApi(page);
     await page.goto('/career-certificates');
+    await expect(page.getByRole('heading', { level: 1, name: 'ليس لديك صلاحية للدخول إلى هذه الصفحة' })).toBeVisible();
+  });
+
+  test('the development requests page opens with «waiting for me», «all», its search and export, and is accessible', async ({ page }) => {
+    await adminModeOnViaApi(page);
+    await page.goto('/career-requests');
+    await expect(page.getByRole('heading', { level: 1, name: 'طلبات التطوير' })).toBeVisible();
+    await expect(page.getByRole('tab', { name: 'بانتظار قراري' })).toBeVisible();
+    await page.getByRole('tab', { name: 'كل الطلبات' }).click();
+    await expect(page.getByPlaceholder('ابحث بالموظف أو الكورس')).toBeVisible();
+    await expect(page.getByRole('button', { name: /تصدير/ })).toBeVisible();
+    await new ListPage(page).expectNoSeriousA11yIssues();
+  });
+
+  test('an employee (admin mode off) is not offered the development requests page', async ({ page }) => {
+    await adminModeOffViaApi(page);
+    await page.goto('/career-requests');
     await expect(page.getByRole('heading', { level: 1, name: 'ليس لديك صلاحية للدخول إلى هذه الصفحة' })).toBeVisible();
   });
 });

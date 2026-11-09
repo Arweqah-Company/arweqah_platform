@@ -35,6 +35,7 @@ import { TASK_COMMENT_ENTITIES } from '../modules/tasks/domain/entities/task-com
 import { TOUR_ENTITIES } from '../modules/tour/domain/entities/tour.entities';
 import { CAREER_ACKNOWLEDGEMENT_ENTITIES } from '../modules/career-profile/domain/entities/career-acknowledgement.entities';
 import { CAREER_PROGRESS_ENTITIES } from '../modules/career-profile/domain/entities/career-progress.entities';
+import { CAREER_REQUEST_ENTITIES } from '../modules/career-profile/domain/entities/career-requests.entities';
 import { CAREER_CONTENT_ENTITIES } from '../modules/career-profile/domain/entities/career-profile.entities';
 import { TICKET_ENTITIES } from '../modules/tickets/domain/entities/ticket.entities';
 
@@ -84,6 +85,7 @@ export const ENTITIES = [
   ...CAREER_CONTENT_ENTITIES,
   ...CAREER_ACKNOWLEDGEMENT_ENTITIES,
   ...CAREER_PROGRESS_ENTITIES,
+  ...CAREER_REQUEST_ENTITIES,
   Employee,
   EmployeeAssignment,
 ];
