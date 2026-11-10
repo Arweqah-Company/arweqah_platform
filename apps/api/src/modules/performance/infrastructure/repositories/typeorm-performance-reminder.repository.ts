@@ -45,4 +45,13 @@ export class TypeOrmPerformanceReminderRepository extends PerformanceReminderRep
     const result = await this.repo(tx).delete({ id });
     return (result.affected ?? 0) > 0;
   }
+
+  async lastSent(): Promise<Map<string, string>> {
+    const rows = await this.reminders.find({ select: { id: true, lastSentOn: true } });
+    return new Map(rows.filter((r) => r.lastSentOn).map((r) => [r.id, r.lastSentOn as string]));
+  }
+
+  async markSent(id: string, day: string): Promise<void> {
+    await this.reminders.update({ id }, { lastSentOn: day });
+  }
 }

@@ -16,6 +16,8 @@ import { PerformanceMilestoneRepository } from './domain/contracts/performance-m
 import { PERFORMANCE_MILESTONE_ENTITIES } from './domain/entities/performance-milestones.entities';
 import { TypeOrmPerformanceMilestoneRepository } from './infrastructure/repositories/typeorm-performance-milestone.repository';
 import { PerformanceMilestonesController } from './presentation/controllers/performance-milestones.controller';
+import { PerformanceReminderSendService } from './application/services/performance-reminder-send.service';
+import { PerformanceRemindersJob } from './infrastructure/jobs/performance-reminders.job';
 import { PerformanceScoreService } from './application/services/performance-score.service';
 import { PerformanceCalibrationRepository } from './domain/contracts/performance-calibration.repository';
 import { PERFORMANCE_RESULT_ENTITIES } from './domain/entities/performance-results.entities';
@@ -64,6 +66,8 @@ import { PerformanceTemplatesController } from './presentation/controllers/perfo
     PerformanceScoreService,
     PerformanceCalibrationService,
     PerformanceApprovalService,
+    PerformanceReminderSendService,
+    PerformanceRemindersJob,
     PerformanceMilestoneService,
     { provide: PerformanceMilestoneRepository, useClass: TypeOrmPerformanceMilestoneRepository },
     PerformanceObjectionService,
