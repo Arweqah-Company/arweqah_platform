@@ -136,6 +136,16 @@ const path = (s: Awaited<ReturnType<typeof setup>>) => `/api/performance/team/${
     expect((await s.employee.get('/api/performance/me').expect(200)).body.evaluation.editable).toBe(false);
   });
 
+  it('lets someone in scope evaluate an employee who has no direct manager (nobody above them to wait for)', async () => {
+    const s = await setup();
+    await s.open();
+    await s.stageTo('mgr');
+    await t.db.query('UPDATE employees SET manager_id = NULL WHERE id = $1', [s.employeeUser.employeeId]);
+    const form = await s.complete();
+    const sent = (await s.upper.post(`${path(s)}/send`).send(form).expect(200)).body as TeamEvaluationDto;
+    expect(sent).toMatchObject({ level: 'direct', block: null });
+  });
+
   it('answers 403 without the keys and 404 for a person outside the scope or without an evaluation', async () => {
     const s = await setup();
     await s.open();

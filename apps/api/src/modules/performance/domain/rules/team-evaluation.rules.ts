@@ -11,8 +11,8 @@ export function evalBlock(stage: CycleStage | null, level: ReviewerLevel, direct
   return level === 'upper' && !directSent ? 'wait_direct' : null;
 }
 
-/** The direct manager writes at the direct level; anyone else in scope (the upper manager) at the upper one. */
-export const reviewerLevel = (viewerUserId: string, directManagerUserId: string | null): ReviewerLevel => (viewerUserId === directManagerUserId ? 'direct' : 'upper');
+/** The direct manager writes at the direct level, and so does anyone in scope when the employee has no direct manager (there is nobody to wait for); anyone else in scope (the upper manager) writes at the upper one. */
+export const reviewerLevel = (viewerUserId: string, directManagerUserId: string | null): ReviewerLevel => (!directManagerUserId || viewerUserId === directManagerUserId ? 'direct' : 'upper');
 
 export const reviewState = (review: { sentAt: Date | null } | undefined): ReviewState => (!review ? 'none' : review.sentAt ? 'sent' : 'draft');
 

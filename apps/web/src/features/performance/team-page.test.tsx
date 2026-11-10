@@ -150,6 +150,18 @@ describe('The team evaluation page (FR-120)', () => {
     expect(screen.queryByRole('button', { name: 'حفظ مسودة' })).not.toBeInTheDocument();
   });
 
+  it('never seeds the form from a cached copy: reopening a member shows what the server holds now', async () => {
+    let dto = DTO();
+    open(PAGE([ROW()]), dto);
+    server.use(http.get('*/api/performance/team/:id', () => HttpResponse.json(dto)));
+    await openRow();
+    await screen.findByRole('dialog', { name: 'تقييم سارة أحمد' });
+    fireEvent.click(screen.getByRole('button', { name: 'إغلاق' }));
+    dto = DTO({ form: { ...EMPTY, results: { '0': 66 } } });
+    await openRow();
+    await waitFor(() => expect((screen.getAllByRole('spinbutton')[0] as HTMLInputElement).value).toBe('66'));
+  });
+
   it('hides the export for a person without its key', async () => {
     open(PAGE([ROW()]), DTO(), [CorePermission.PerformanceTeamView]);
     await screen.findByRole('table', { name: 'تقييم فريقي' });

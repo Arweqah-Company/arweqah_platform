@@ -53,7 +53,7 @@ describe('The rules of the manager\'s evaluation (FR-120)', () => {
   it('writes at the direct level only for the direct manager, and at the upper level for anyone else in scope', () => {
     expect(reviewerLevel('u1', 'u1')).toBe('direct');
     expect(reviewerLevel('u2', 'u1')).toBe('upper');
-    expect(reviewerLevel('u2', null)).toBe('upper');
+    expect(reviewerLevel('u2', null)).toBe('direct'); // nobody is above to wait for: the first in scope is the direct level
   });
 
   it('names the state of a document: none, a draft, or sent', () => {

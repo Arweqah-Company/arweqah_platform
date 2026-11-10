@@ -78,7 +78,7 @@ export const useSendSelf = () => useSelfWrite((input) => apiClient.post<MyEvalua
 
 export const TEAM_KEY = ['performance', 'team'] as const;
 export const teamMemberKey = (employeeId: string) => [...TEAM_KEY, 'member', employeeId] as const;
-export const useTeamMember = (employeeId: string) => useQuery({ queryKey: teamMemberKey(employeeId), queryFn: () => apiClient.get<TeamEvaluationDto>(`/performance/team/${employeeId}`) });
+export const useTeamMember = (employeeId: string) => useQuery({ queryKey: teamMemberKey(employeeId), queryFn: () => apiClient.get<TeamEvaluationDto>(`/performance/team/${employeeId}`), gcTime: 0 }); // never kept: the form is seeded once from it, so a cached copy would seed it with old state
 
 /** Writing a member's evaluation: the answer replaces the member in the cache and the list is reloaded (the state of the row changed). */
 function useTeamWrite(employeeId: string, call: (input: SaveTeamEvaluationInput) => Promise<TeamEvaluationDto>) {

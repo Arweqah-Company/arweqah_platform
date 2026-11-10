@@ -18,10 +18,10 @@ export const careerProfileFeature: FeatureModule = {
   ],
   nav: [
     { to: '/career-profile', labelKey: 'nav.careerProfile', icon: Route, rank: 1, permission: CorePermission.CareerProfileView, pageKey: 'career-profile' },
-    { to: '/career-team', labelKey: 'nav.careerTeam', icon: Users, group: 'people', permission: CorePermission.CareerTeamView, pageKey: 'career-team' },
-    { to: '/career-certificates', labelKey: 'nav.careerCertificates', icon: Award, group: 'people', permission: CorePermission.CareerCertificatesReview, pageKey: 'career-certificates' },
-    { to: '/career-requests', labelKey: 'nav.careerRequests', icon: HandCoins, group: 'people', permission: CorePermission.CareerRequestsView, pageKey: 'career-requests' },
-    { to: '/career-content', labelKey: 'nav.careerContent', icon: FileStack, group: 'people', permission: CorePermission.CareerContentView, pageKey: 'career-content' },
+    { to: '/career-team', labelKey: 'nav.careerTeam', icon: Users, group: 'career', permission: CorePermission.CareerTeamView, pageKey: 'career-team' },
+    { to: '/career-certificates', labelKey: 'nav.careerCertificates', icon: Award, group: 'career', permission: CorePermission.CareerCertificatesReview, pageKey: 'career-certificates' },
+    { to: '/career-requests', labelKey: 'nav.careerRequests', icon: HandCoins, group: 'career', permission: CorePermission.CareerRequestsView, pageKey: 'career-requests' },
+    { to: '/career-content', labelKey: 'nav.careerContent', icon: FileStack, group: 'career', permission: CorePermission.CareerContentView, pageKey: 'career-content' },
   ],
   tour: [
     { key: 'career-profile', target: '[data-tour="career-title-card"]', route: '/career-profile', placement: 'bottom' },

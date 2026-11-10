@@ -14,8 +14,8 @@ export const performanceFeature: FeatureModule = {
     { path: '/performance-team', lazy: () => import('./team-page').then((m) => ({ Component: m.TeamEvaluationPage })) },
   ],
   nav: [
-    { to: '/performance-team', labelKey: 'nav.performanceTeam', icon: ClipboardList, group: 'people', permission: CorePermission.PerformanceTeamView, pageKey: 'performance-team' },
-    { to: '/performance-cycle', labelKey: 'nav.performanceCycle', icon: ClipboardCheck, group: 'people', permission: CorePermission.PerformanceCycleView, pageKey: 'performance-cycle' },
+    { to: '/performance-team', labelKey: 'nav.performanceTeam', icon: ClipboardList, group: 'career', permission: CorePermission.PerformanceTeamView, pageKey: 'performance-team' },
+    { to: '/performance-cycle', labelKey: 'nav.performanceCycle', icon: ClipboardCheck, group: 'career', permission: CorePermission.PerformanceCycleView, pageKey: 'performance-cycle' },
   ],
   tour: [
     {

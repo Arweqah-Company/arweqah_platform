@@ -23,6 +23,19 @@ test.describe('The team evaluation page (FR-120)', () => {
     await new ListPage(page).expectNoSeriousA11yIssues();
   });
 
+  test('every page of the career file stands under one sidebar menu, «الملف المهني»', async ({ page }) => {
+    await page.goto('/performance-team');
+    const menu = page.getByRole('button', { name: 'الملف المهني' });
+    if ((await menu.getAttribute('aria-expanded')) !== 'true') await menu.click();
+    const links = page.locator('#menu-career').getByRole('link');
+    await expect(links.filter({ hasText: 'تقييم فريقي' })).toHaveCount(1);
+    await expect(links.filter({ hasText: 'دورة التقييم' })).toHaveCount(1);
+    await expect(links.filter({ hasText: 'مراجعة الشهادات' })).toHaveCount(1);
+    await expect(links.filter({ hasText: 'طلبات التطوير' })).toHaveCount(1);
+    await expect(links.filter({ hasText: 'محتوى المسارات الوظيفية' })).toHaveCount(1);
+    await expect(page.getByRole('button', { name: 'الموارد البشرية' }).locator('xpath=..').getByRole('link', { name: 'تقييم فريقي' })).toHaveCount(0);
+  });
+
   test('the stage of the manager sends to this page, and the sidebar has a link to it', async ({ page }) => {
     await page.goto('/performance-cycle');
     await page.getByRole('list', { name: 'مراحل دورة التقييم' }).getByRole('button', { name: 'تقييم المدير' }).click();
