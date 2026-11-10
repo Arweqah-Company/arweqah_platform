@@ -34,6 +34,17 @@ describe('A leader takes the unit and the title they lead with; the employee for
     expect(fields).toEqual(expect.arrayContaining(['org_node', 'job_title'])); // the move is in the placement history, with its reason
   });
 
+  it('needs no reason: the history says the leader was appointed from the structure, and a reason that is written is kept', async () => {
+    const s = await setup();
+    const res = await s.agent.put(`/api/org/nodes/${s.support.id}/leaders`).send({ kind: 'leader', companyId: s.group, employeeId: s.person.employeeId, validFrom: todayInRiyadh(), jobTitleId: s.support.titleId }).expect(200);
+    expect(res.body.items[0].reason).toBe('Appointed from the structure');
+    const reasons = ((await t.db.query(`SELECT reason FROM employee_assignments WHERE employee_id = $1`, [s.person.employeeId])) as { reason: string }[]).map((r) => r.reason);
+    expect(reasons).toContain('Appointed from the structure'); // the move carries the same words
+    const kept = await s.agent.put(`/api/org/nodes/${s.sales.id}/leaders`).send({ kind: 'leader', companyId: s.group, employeeId: s.person.employeeId, validFrom: todayInRiyadh(), reason: 'سبب مكتوب' }).expect(200);
+    expect(kept.body.items[0].reason).toBe('سبب مكتوب');
+    await s.agent.put(`/api/org/nodes/${s.sales.id}/leaders`).send({ kind: 'leader', companyId: s.group, employeeId: s.person.employeeId, validFrom: todayInRiyadh(), reason: 'ab' }).expect(400); // a written reason must still be a reason
+  });
+
   it('keeps the person where they are when no title is sent (the old behaviour), and does nothing twice when they already sit there with that title', async () => {
     const s = await setup();
     await s.lead(s.support, {}).expect(200);

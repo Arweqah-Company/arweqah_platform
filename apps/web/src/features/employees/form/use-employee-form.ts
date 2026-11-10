@@ -52,12 +52,6 @@ function useServerErrors(form: UseFormReturn<FormState>) {
 const savedExpiries = (employee: { roles: { id: string; expiresAt: string | null }[] } | undefined): Record<string, string> =>
   Object.fromEntries((employee?.roles ?? []).filter((r) => r.expiresAt).map((r) => [r.id, r.expiresAt as string]));
 
-/** Did the person change the unit, the job title or the manager (the change then needs a reason)? */
-const placementChanged = (form: UseFormReturn<FormState>): boolean => {
-  const { dirtyFields } = form.formState;
-  return !!(dirtyFields.orgNodeId || dirtyFields.jobTitleId || dirtyFields.managerId);
-};
-
 /** Saving: a new employee is created with the roles of the form; an edited one is updated, and its roles saved when they or their end dates changed. */
 function useSaveEmployee(form: UseFormReturn<FormState>, id: string | undefined, fail: (error: unknown) => boolean) {
   const { t } = useTranslation('employees');
@@ -68,11 +62,7 @@ function useSaveEmployee(form: UseFormReturn<FormState>, id: string | undefined,
   const assignRoles = useAssignRoles(id ?? '');
   const { can } = usePermissions();
   const editing = !!id;
-  const saveEdit = async (values: FormState, payload: never, onInvalid?: () => void) => {
-    if (placementChanged(form) && !values.changeReason.trim()) {
-      form.setError('changeReason', { type: 'rule', message: t('placementChange.reasonRequired') });
-      return onInvalid?.(); // the reason is a field of the first step: take the person back to it
-    }
+  const saveEdit = async (values: FormState, payload: never) => {
     await update.mutateAsync(payload);
     const { dirtyFields } = form.formState;
     if (can(CorePermission.EmployeesAssignRoles) && (dirtyFields.roleIds || dirtyFields.roleExpiries)) {
@@ -86,7 +76,7 @@ function useSaveEmployee(form: UseFormReturn<FormState>, id: string | undefined,
       const withRoles = can(CorePermission.EmployeesAssignRoles) && can(CorePermission.RolesView);
       // Without the roles step the server gives the default roles (Employee and the role of the job title).
       const payload = (editing || withRoles ? toPayload(values, editing) : { ...toPayload(values, false), roleIds: undefined, roleExpiries: undefined }) as never;
-      if (editing) return await saveEdit(values, payload, onInvalid);
+      if (editing) return await saveEdit(values, payload);
       const result = await create.mutateAsync(payload);
       navigate(`/employees/${result.employee.id}`, { state: { invitation: result.invitation } });
     } catch (error) {

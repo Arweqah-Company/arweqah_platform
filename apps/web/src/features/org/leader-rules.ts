@@ -28,8 +28,11 @@ export function windowProblem(form: LeaderForm, today: string): 'fromPast' | 'to
   return form.validTo && form.validTo < form.validFrom ? 'toBeforeFrom' : undefined;
 }
 
+/** The reason is optional; when it is written it has at least three letters. */
+export const reasonOk = (reason: string): boolean => !reason.trim() || reason.trim().length >= REASON_MIN;
+
 export const leaderFormValid = (form: LeaderForm, today: string): boolean =>
-  !!form.companyId && !!form.employeeId && (form.kind === 'acting' || !!form.jobTitleId) && !!form.validFrom && form.reason.trim().length >= REASON_MIN && !windowProblem(form, today);
+  !!form.companyId && !!form.employeeId && (form.kind === 'acting' || !!form.jobTitleId) && !!form.validFrom && reasonOk(form.reason) && !windowProblem(form, today);
 
 /** The request for a valid form. */
 export const toSetLeaderInput = (form: LeaderForm): SetLeaderInput => ({
@@ -39,5 +42,5 @@ export const toSetLeaderInput = (form: LeaderForm): SetLeaderInput => ({
   ...(form.kind === 'leader' && form.jobTitleId ? { jobTitleId: form.jobTitleId } : {}),
   validFrom: form.validFrom,
   validTo: form.validTo || null,
-  reason: form.reason.trim(),
+  ...(form.reason.trim() ? { reason: form.reason.trim() } : {}),
 });

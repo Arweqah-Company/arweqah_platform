@@ -66,19 +66,18 @@ describe('The two steps of the employee form', () => {
     expect(within(document.body).getByText('البريد مستخدم لموظف آخر')).toBeInTheDocument();
   });
 
-  it('takes the person back to the first step when a change of the manager (or the unit or the title) lacks its reason, instead of leaving the error where it cannot be seen', async () => {
-    const { calls } = open(() => HttpResponse.json(SAVED));
+  it('saves a change of the manager (or the unit or the title) without a reason: the reason is optional', async () => {
+    const { bodies } = open(() => HttpResponse.json(SAVED));
     await screen.findByRole('heading', { name: 'تعديل بيانات الموظف' });
     await waitFor(() => expect(screen.getByRole('combobox', { name: 'الوحدة' })).toBeEnabled());
     await waitFor(() => expect(screen.getByLabelText(/الاسم الكامل/)).toHaveValue('سارة أحمد'));
     fireEvent.click(screen.getByRole('combobox', { name: 'المدير المباشر' }));
     fireEvent.click(await screen.findByText('خالد المدير'));
-    await screen.findByLabelText(/سبب التغيير/); // the reason is asked for, and left empty
+    expect(await screen.findByLabelText('سبب التغيير')).toBeInTheDocument(); // asked for, with no asterisk
     fireEvent.click(await screen.findByRole('button', { name: 'التالي: الأدوار' }));
     fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
-    expect(await screen.findByRole('heading', { level: 2, name: 'بيانات العمل' })).toBeInTheDocument(); // back on the first step
-    expect(screen.getByLabelText(/سبب التغيير/)).toHaveAttribute('aria-invalid', 'true');
-    expect(calls).toEqual([]);
+    await waitFor(() => expect(bodies).toHaveLength(1));
+    expect(bodies[0]).not.toHaveProperty('changeReason');
   });
 
   describe('«this employee leads the unit» (FR-100)', () => {

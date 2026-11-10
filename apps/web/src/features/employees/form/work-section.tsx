@@ -35,7 +35,7 @@ function PlacementChangeFields() {
   return (
     <>
       <TextField name="effectiveFrom" label={t('placementChange.effectiveFrom')} type="date" required hint={t('placementChange.effectiveFromHint')} />
-      <TextField name="changeReason" label={t('placementChange.changeReason')} required hint={t('placementChange.changeReasonHint')} />
+      <TextField name="changeReason" label={t('placementChange.changeReason')} hint={t('placementChange.changeReasonHint')} />
     </>
   );
 }

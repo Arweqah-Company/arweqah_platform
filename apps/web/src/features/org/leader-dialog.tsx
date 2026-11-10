@@ -73,7 +73,7 @@ export function LeaderDialog({ node, leaders, companyId = null, onClose }: Props
   const allowed = useMemo(() => leaderCompanies(leaders.effectiveMode, leaders.groupCompanyId, companies ?? []), [leaders, companies]);
   const [form, setForm] = useState<LeaderForm>({ companyId: leaders.effectiveMode === 'shared' ? leaders.groupCompanyId : companyId, employeeId: null, kind: 'leader', jobTitleId: null, validFrom: today, validTo: '', reason: '' });
   const set = useSetLeader(node.id);
-  const reason = useLiveError(form.reason, rules.text(REASON_MIN));
+  const reason = useLiveError(form.reason, (v: string) => (v.trim() ? rules.text(REASON_MIN)(v) : undefined));
   const submit = async () => {
     try {
       await set.mutateAsync(toSetLeaderInput(form));
@@ -108,7 +108,7 @@ export function LeaderDialog({ node, leaders, companyId = null, onClose }: Props
         <EmployeeField companyId={form.companyId} value={form.employeeId} onChange={(employeeId) => setForm({ ...form, employeeId })} />
         {form.kind === 'acting' ? <Alert tone="info">{t('leaders.actingRule')}</Alert> : <TitleField node={node} value={form.jobTitleId} onChange={(jobTitleId) => setForm({ ...form, jobTitleId })} />}
         <WindowFields form={form} setForm={setForm} today={today} />
-        <FormField label={`${t('leaders.reason')} *`} error={reason.error}>{(p) => <Textarea {...p} rows={2} onBlur={reason.onBlur} value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} />}</FormField>
+        <FormField label={t('leaders.reason')} error={reason.error}>{(p) => <Textarea {...p} rows={2} onBlur={reason.onBlur} value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} />}</FormField>
         <DialogFooter>
           <Button variant="secondary" onClick={onClose}>{tc('actions.cancel')}</Button>
           <Button disabled={!leaderFormValid(form, today) || set.isPending} onClick={() => void submit()}>{tc('actions.save')}</Button>

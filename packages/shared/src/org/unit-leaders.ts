@@ -23,7 +23,8 @@ export const setLeaderSchema = z
     jobTitleId: z.uuid().optional(),
     validFrom: z.iso.date(),
     validTo: z.iso.date().nullable().optional(),
-    reason: changeReasonSchema,
+    /** Optional: when it is left out the history says the leader was appointed from the structure. */
+    reason: changeReasonSchema.optional(),
   })
   .refine((v) => !v.validTo || v.validTo >= v.validFrom, { path: ['validTo'], message: 'The end cannot be before the start' });
 export type SetLeaderInput = z.infer<typeof setLeaderSchema>;

@@ -25,7 +25,7 @@ import { assertActing, assertLeaderCompany, escalateLeader, isActiveLeader, plan
 import { effectiveModes } from '../../domain/rules/org-visibility.rules';
 import type { LeaderRow } from '../../domain/types/org-leader.types';
 import type { NodeView } from '../../domain/types/org.types';
-import { ORG_AUDIT } from '../messages/org.messages';
+import { LEADER_DEFAULT_REASON, ORG_AUDIT } from '../messages/org.messages';
 import { assertCompanyAccess, ORG_LEADERS_MANAGE } from '../policies/org-access.policy';
 import { companyRows, toLeaderDto } from '../transformers/org-leader.transformer';
 import { OrgVisibilityService } from './org-visibility.service';
@@ -66,7 +66,8 @@ export class OrgLeadersService {
     return this.describe(await this.mustNode(nodeId));
   }
 
-  async set(ctx: AccessContext, nodeId: string, input: SetLeaderInput, actorId: string): Promise<OrgNodeLeadersDto> {
+  async set(ctx: AccessContext, nodeId: string, given: SetLeaderInput, actorId: string): Promise<OrgNodeLeadersDto> {
+    const input = { ...given, reason: given.reason?.trim() || LEADER_DEFAULT_REASON };
     const node = await this.mustNode(nodeId);
     assertCompanyAccess(ctx, ORG_LEADERS_MANAGE, node.companyId);
     await this.assertPerson(node, input);
@@ -171,7 +172,7 @@ export class OrgLeadersService {
     if (!(await this.employees.exists(input.employeeId, input.companyId))) throw new OrgLeaderEmployeeError();
   }
 
-  private async write(node: NodeView, input: SetLeaderInput, actorId: string, tx: TransactionContext): Promise<void> {
+  private async write(node: NodeView, input: SetLeaderInput & { reason: string }, actorId: string, tx: TransactionContext): Promise<void> {
     const rows = (await this.leaders.rowsOf(node.id, tx)).filter((r) => r.companyId === input.companyId);
     const request = { kind: input.kind, employeeId: input.employeeId, validFrom: input.validFrom, validTo: input.validTo ?? null };
     const today = todayInRiyadh();

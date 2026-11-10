@@ -25,3 +25,6 @@ export const ORG_AUDIT = {
 
 /** The reason written on a dated change when the caller gave none (an edit of a unit from its form). */
 export const DEFAULT_VERSION_REASON = 'Edited from the unit form';
+
+/** What the history of a leader says when the person who appointed them wrote no reason. */
+export const LEADER_DEFAULT_REASON = 'Appointed from the structure';
