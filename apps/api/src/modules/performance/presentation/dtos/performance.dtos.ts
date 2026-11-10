@@ -1,6 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { CYCLE_DATE_KEYS, adjustCalibrationSchema, calibrationQuerySchema, analyzeEvalFileSchema, confirmEvalFileSchema, catalogItemSchema, evalFileSchema, fiscalInputSchema, openCycleSchema, reminderSchema, evalTeamQuerySchema, saveSelfEvaluationSchema, saveTeamEvaluationSchema, scaleInputSchema, setCycleDateSchema, stageTemplateInputSchema } from '@arweqah-platform/shared';
+import { raiseObjectionSchema, rejectObjectionSchema, CYCLE_DATE_KEYS, adjustCalibrationSchema, calibrationQuerySchema, analyzeEvalFileSchema, confirmEvalFileSchema, catalogItemSchema, evalFileSchema, fiscalInputSchema, openCycleSchema, reminderSchema, evalTeamQuerySchema, saveSelfEvaluationSchema, saveTeamEvaluationSchema, scaleInputSchema, setCycleDateSchema, stageTemplateInputSchema } from '@arweqah-platform/shared';
 
 export class EvalFileDto extends createZodDto(evalFileSchema) {}
 export class OpenCycleDto extends createZodDto(openCycleSchema) {}
@@ -19,3 +19,5 @@ export class SaveTeamEvaluationDto extends createZodDto(saveTeamEvaluationSchema
 export class TeamEvaluationQueryDto extends createZodDto(evalTeamQuerySchema) {}
 export class AdjustCalibrationDto extends createZodDto(adjustCalibrationSchema) {}
 export class CalibrationQueryDto extends createZodDto(calibrationQuerySchema) {}
+export class RaiseObjectionDto extends createZodDto(raiseObjectionSchema) {}
+export class RejectObjectionDto extends createZodDto(rejectObjectionSchema) {}

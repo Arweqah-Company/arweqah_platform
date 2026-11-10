@@ -119,3 +119,45 @@ export class CalibrationWaitingError extends ConflictError {
     super('Some evaluations have no sent manager score yet', { waiting });
   }
 }
+
+export class ApprovalNotOpenError extends ConflictError {
+  override readonly code = 'APPROVAL_NOT_OPEN';
+  constructor() {
+    super('Approval is not open now: the cycle is not in the approval stage');
+  }
+}
+
+export class ObjectionWindowClosedError extends ConflictError {
+  override readonly code = 'OBJECTION_WINDOW_CLOSED';
+  constructor() {
+    super('The objection window is not open: there is no notified result, or the five working days are over');
+  }
+}
+
+export class ObjectionExistsError extends ConflictError {
+  override readonly code = 'OBJECTION_EXISTS';
+  constructor() {
+    super('One objection per evaluation: it was already raised');
+  }
+}
+
+export class ObjectionStateError extends ConflictError {
+  override readonly code = 'OBJECTION_STATE';
+  constructor(status: string) {
+    super('The objection is not in the state this decision needs', { status });
+  }
+}
+
+export class ObjectionPendingError extends ConflictError {
+  override readonly code = 'OBJECTION_PENDING';
+  constructor(count: number) {
+    super('The cycle cannot be closed while an objection is being decided', { count });
+  }
+}
+
+export class ObjectionItemInvalidError extends BusinessRuleError {
+  override readonly code = 'OBJECTION_ITEM_INVALID';
+  constructor() {
+    super('The item the objection names is not in the evaluation');
+  }
+}

@@ -44,6 +44,9 @@ describe('The rules of the manager\'s evaluation (FR-120)', () => {
   it('blocks with the reason: no cycle, the self stage, the upper manager before the direct one, and the stages after the manager\'s', () => {
     expect(evalBlock(null, 'direct', false)).toBe('no_cycle');
     expect(evalBlock('self', 'direct', false)).toBe('not_started');
+    expect(evalBlock('obj', 'direct', true, true)).toBeNull(); // an objection sent it back: open in any stage
+    expect(evalBlock('obj', 'upper', false, true)).toBe('wait_direct');
+    expect(evalBlock(null, 'direct', true, true)).toBe('no_cycle');
     expect(evalBlock('mgr', 'upper', false)).toBe('wait_direct');
     expect(evalBlock('mgr', 'upper', true)).toBeNull();
     expect(evalBlock('mgr', 'direct', false)).toBeNull();

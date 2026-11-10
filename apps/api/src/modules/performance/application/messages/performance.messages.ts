@@ -24,6 +24,11 @@ export const PERFORMANCE_AUDIT = {
   teamEdited: 'performance.team.edited',
   calibrationAdjusted: 'performance.calibration.adjusted',
   calibrationFinished: 'performance.calibration.finished',
+  resultsApproved: 'performance.results.approved',
+  objectionRaised: 'performance.objection.raised',
+  objectionReturned: 'performance.objection.returned',
+  objectionRejected: 'performance.objection.rejected',
+  objectionFinalized: 'performance.objection.finalized',
 } as const;
 
 export const PERFORMANCE_TEMPLATE_ENTITY = 'performance_template';

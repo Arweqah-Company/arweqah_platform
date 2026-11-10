@@ -1,0 +1,143 @@
+import { CorePermission, addWorkingDays, riyadhToday, type CalibrationPageDto, type CatalogItemDto, type MyEvaluationDto, type ObjectionListDto, type SaveTeamEvaluationInput, type TeamEvaluationDto } from '@arweqah-platform/shared';
+import { describe, expect, it, vi } from 'vitest';
+import { evaluationScenario, grants } from './helpers/performance-keys';
+import { useTestApp } from './setup/test-app';
+
+const TEAM = [CorePermission.PerformanceTeamView, CorePermission.PerformanceTeamEvaluate];
+const HOLDER = [CorePermission.PerformanceCalibrationView, CorePermission.PerformanceCalibrate, CorePermission.PerformanceApprove];
+const OWN = [CorePermission.PerformanceSelfEvaluate, CorePermission.PerformanceObject, CorePermission.PerformanceExport];
+
+describe('Approval, the individual result and the objection (FR-122, FR-123)', () => {
+  const t = useTestApp();
+
+  /** The employee (Rep) reports to the direct manager (Lead) who sent a complete evaluation; the cycle is in calibration and Rep is the only one in it. */
+  async function setup() {
+    const { hr, ...s } = await evaluationScenario(t);
+    const directUser = await s.person(s.lead, s.group, grants(TEAM));
+    const employeeUser = await s.person(s.rep, s.group, grants(OWN));
+    await t.db.query('UPDATE employees SET manager_id = $1 WHERE id = $2', [directUser.employeeId, employeeUser.employeeId]);
+    const direct = await t.factories.signIn(directUser);
+    const employee = await t.factories.signIn(employeeUser);
+    const holder = await t.factories.signIn(await t.factories.user({ grants: grants(HOLDER) }));
+    const init = (await hr.post('/api/performance/cycle/catalog').send({ kind: 'init', title: 'قيادة مبادرة تحسين', points: 4 }).expect(201)).body as CatalogItemDto;
+    await hr.post('/api/performance/cycle/open').send({ fiscalYear: 2026 }).expect(200);
+    await hr.post('/api/performance/cycle/advance').expect(200); // mgr
+    const path = `/api/performance/team/${employeeUser.employeeId}`;
+    const dto = (await direct.get(path).expect(200)).body as TeamEvaluationDto;
+    const form: SaveTeamEvaluationInput = {
+      results: Object.fromEntries(dto.template.criteria.map((_, i) => [String(i), 80])),
+      behaviours: Object.fromEntries(dto.template.behaviours.map((b) => [b.code, { level: 75, note: '' }])),
+      initIds: [init.id], growthIds: [],
+    };
+    const sent = (await direct.post(`${path}/send`).send(form).expect(200)).body as TeamEvaluationDto;
+    await hr.post('/api/performance/cycle/advance').expect(200); // cal
+    await t.db.query('DELETE FROM performance_evaluations WHERE employee_id <> $1', [employeeUser.employeeId]);
+    const toApproval = () => holder.post('/api/performance/calibration/finish').expect(204);
+    const approve = async () => { await toApproval(); await holder.post('/api/performance/calibration/approve').expect(204); };
+    const me = async () => (await employee.get('/api/performance/me').expect(200)).body as MyEvaluationDto;
+    const objection = { itemKind: 'criterion', itemRef: '0', reason: 'أرى أن إنجازي في هذا المعيار أعلى' };
+    return { ...s, hr, holder, direct, employee, employeeUser, managerScore: sent.score!.final, path, form, toApproval, approve, me, objection };
+  }
+
+  it('hides the score from the employee until the approval: the answer has no result, not even when the manager has sent', async () => {
+    const s = await setup();
+    expect((await s.me()).result ?? null).toBeNull();
+    expect(JSON.stringify(await s.me())).not.toContain('finalScore');
+    await s.toApproval();
+    expect((await s.me()).result ?? null).toBeNull();
+    await s.employee.post('/api/performance/me/objection').send(s.objection).expect(409);
+  });
+
+  it('approves: freezes the result with the calibration, tells everyone, moves to the notification stage, and the employee sees it', async () => {
+    const s = await setup();
+    await s.holder.put(`/api/performance/calibration/${s.employeeUser.employeeId}`).send({ adjustment: 1, reason: 'مقارنة بأقرانه في الوحدة' }).expect(200);
+    await s.approve();
+    const result = (await s.me()).result!;
+    expect(result).toMatchObject({ finalScore: Math.round((s.managerScore + 1) * 10) / 10, canObject: true, objection: null, objectionUntil: addWorkingDays(riyadhToday(), 5) });
+    expect(result.breakdown).toMatchObject({ managerScore: s.managerScore, adjustment: 1, reason: 'مقارنة بأقرانه في الوحدة' });
+    expect(result.levelName).toEqual(expect.any(String));
+    expect(((await s.holder.get('/api/performance/calibration').expect(200)).body as CalibrationPageDto).cycle).toMatchObject({ stage: 'notif' });
+    await vi.waitFor(async () => expect(await t.db.query(`SELECT 1 FROM audit_logs WHERE action = 'performance.results.approved'`)).toHaveLength(1));
+    await s.holder.post('/api/performance/calibration/approve').expect(409); // not in approval any more
+  });
+
+  it('refuses to approve outside the approval stage, and to anyone without the approval key', async () => {
+    const s = await setup();
+    expect((await s.holder.post('/api/performance/calibration/approve').expect(409)).body).toMatchObject({ code: 'APPROVAL_NOT_OPEN' });
+    await s.toApproval();
+    await s.employee.post('/api/performance/calibration/approve').expect(403);
+    const calibrateOnly = await t.factories.signIn(await t.factories.user({ grants: grants([CorePermission.PerformanceCalibrate]) }));
+    await calibrateOnly.post('/api/performance/calibration/approve').expect(403);
+  });
+
+  it('takes one objection per employee, inside the window: validation, the item must exist, a second one is refused', async () => {
+    const s = await setup();
+    await s.approve();
+    await s.employee.post('/api/performance/me/objection').send({ ...s.objection, reason: 'قصير' }).expect(400);
+    await s.employee.post('/api/performance/me/objection').send({ ...s.objection, itemRef: '99' }).expect(422);
+    await s.employee.post('/api/performance/me/objection').send({ itemKind: 'behaviour', itemRef: 'X9.9', reason: 'سبب مكتوب كافٍ للاعتراض' }).expect(422);
+    const raised = (await s.employee.post('/api/performance/me/objection').send(s.objection).expect(200)).body;
+    expect(raised.objection).toMatchObject({ status: 'open', itemKind: 'criterion', itemRef: '0' });
+    expect(raised.canObject).toBe(false);
+    expect((await s.employee.post('/api/performance/me/objection').send(s.objection).expect(409)).body).toMatchObject({ code: 'OBJECTION_EXISTS' });
+  });
+
+  it('blocks closing the cycle while an objection is open (409 OBJECTION_PENDING)', async () => {
+    const s = await setup();
+    await s.approve();
+    await s.employee.post('/api/performance/me/objection').send(s.objection).expect(200);
+    expect((await s.hr.post('/api/performance/cycle/close').expect(409)).body).toMatchObject({ code: 'OBJECTION_PENDING' });
+  });
+
+  it('refuses an objection once the five working days have passed (409 OBJECTION_WINDOW_CLOSED)', async () => {
+    const s = await setup();
+    await s.approve();
+    await t.db.query(`UPDATE performance_results SET objection_until = '2000-01-01'`);
+    expect((await s.me()).result).toMatchObject({ canObject: false });
+    expect((await s.employee.post('/api/performance/me/objection').send(s.objection).expect(409)).body).toMatchObject({ code: 'OBJECTION_WINDOW_CLOSED' });
+  });
+
+  it('rejects an objection with a written reason; the employee sees it and the cycle can be closed', async () => {
+    const s = await setup();
+    await s.approve();
+    await s.employee.post('/api/performance/me/objection').send(s.objection).expect(200);
+    const [row] = ((await s.holder.get('/api/performance/objections').expect(200)).body as ObjectionListDto).items;
+    expect(row).toMatchObject({ status: 'open', employeeId: s.employeeUser.employeeId });
+    await s.holder.post(`/api/performance/objections/${row!.id}/reject`).send({ reason: 'قصير' }).expect(400);
+    await s.holder.post(`/api/performance/objections/${row!.id}/reject`).send({ reason: 'التقييم موثّق ببيانات المعيار' }).expect(204);
+    expect((await s.me()).result!.objection).toMatchObject({ status: 'rejected', decisionReason: 'التقييم موثّق ببيانات المعيار' });
+    await s.holder.post(`/api/performance/objections/${row!.id}/reject`).send({ reason: 'التقييم موثّق ببيانات المعيار' }).expect(409);
+    await s.hr.post('/api/performance/cycle/close').expect(200);
+  });
+
+  it('accepts an objection: the manager can write again in any stage, then the holder approves the revised evaluation and the result changes', async () => {
+    const s = await setup();
+    await s.approve();
+    await s.employee.post('/api/performance/me/objection').send(s.objection).expect(200);
+    const [row] = ((await s.holder.get('/api/performance/objections').expect(200)).body as ObjectionListDto).items;
+    await s.holder.post(`/api/performance/objections/${row!.id}/finalize`).expect(409); // the manager has not re-sent
+    await s.direct.put(s.path).send(s.form).expect(409); // closed to the manager until the objection is accepted
+    await s.holder.post(`/api/performance/objections/${row!.id}/return`).expect(204);
+    expect((await s.me()).result!.objection).toMatchObject({ status: 'returned' });
+    const before = (await s.me()).result!.finalScore;
+    const revised = { ...s.form, results: Object.fromEntries(Object.keys(s.form.results).map((k) => [k, 100])) };
+    const sent = (await s.direct.post(`${s.path}/send`).send(revised).expect(200)).body as TeamEvaluationDto;
+    expect((await s.hr.post('/api/performance/cycle/close').expect(409)).body).toMatchObject({ code: 'OBJECTION_PENDING' });
+    await s.holder.post(`/api/performance/objections/${row!.id}/finalize`).expect(204);
+    const after = (await s.me()).result!;
+    expect(after.finalScore).toBe(sent.score!.final);
+    expect(after.finalScore).toBeGreaterThan(before);
+    expect(after.objection).toMatchObject({ status: 'finalized' });
+    await s.hr.post('/api/performance/cycle/close').expect(200);
+  });
+
+  it('answers 403 and 404 for the objection screens: no key, wrong id, a decision on a missing objection', async () => {
+    const s = await setup();
+    await s.approve();
+    await s.employee.get('/api/performance/objections').expect(403);
+    await s.employee.post('/api/performance/objections/33333333-3333-4333-8333-333333333333/return').expect(403);
+    await s.holder.post('/api/performance/objections/33333333-3333-4333-8333-333333333333/return').expect(404);
+    const stranger = await t.factories.signIn(await t.factories.user({ grants: grants([CorePermission.PerformanceObject]) }));
+    await stranger.post('/api/performance/me/objection').send(s.objection).expect(404); // holds the key but has no evaluation in the cycle
+  });
+});

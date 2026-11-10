@@ -11,8 +11,9 @@ import { WorkflowEngine } from '../../../../core/workflow/application/workflow-e
 import { PerformanceEvaluationService } from './performance-evaluation.service';
 import { PerformanceReminderService } from './performance-reminder.service';
 import { PerformanceCycleRepository, type CycleRow } from '../../domain/contracts/performance-cycle.repository';
+import { PerformanceObjectionRepository } from '../../domain/contracts/performance-result.repository';
 import { PerformanceTemplateRepository } from '../../domain/contracts/performance-template.repository';
-import { CycleAlreadyOpenError, CycleDateInvalidError, CycleNotOpenError, CycleNotReadyError, CycleStageChangedError, CycleStageEndedError, CycleYearExistsError } from '../../domain/errors/performance.errors';
+import { CycleAlreadyOpenError, CycleDateInvalidError, CycleNotOpenError, CycleNotReadyError, CycleStageChangedError, CycleStageEndedError, CycleYearExistsError, ObjectionPendingError } from '../../domain/errors/performance.errors';
 import { catalogCaps } from '../../domain/rules/cycle-catalog.rules';
 import { effectiveDates, nextFiscalYear } from '../../domain/rules/cycle-dates.rules';
 import { cycleReadiness } from '../../domain/rules/cycle-readiness.rules';
@@ -44,6 +45,7 @@ export class PerformanceCycleService {
   constructor(
     private readonly cycles: PerformanceCycleRepository,
     private readonly templates: PerformanceTemplateRepository,
+    private readonly objections: PerformanceObjectionRepository,
     private readonly evaluations: PerformanceEvaluationService,
     private readonly reminders: PerformanceReminderService,
     private readonly workflow: WorkflowEngine,
@@ -101,6 +103,8 @@ export class PerformanceCycleService {
 
   async close(ctx: AccessContext): Promise<CycleStateDto> {
     const cycle = await this.openCycle();
+    const pending = await this.objections.pendingCount(cycle.id);
+    if (pending > 0) throw new ObjectionPendingError(pending);
     await this.move(ctx, cycle, { event: 'CLOSE', stage: 'closed', by: { userId: ctx.userId, at: this.clock.now() } });
     this.audit(ctx, PERFORMANCE_AUDIT.cycleClosed, { fiscalYear: cycle.fiscalYear, from: cycle.stage });
     return this.state();

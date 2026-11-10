@@ -50,7 +50,7 @@ describe('Calibration: the holder compares the managers\' scores and adjusts the
     expect(page.distribution.reduce((n, d) => n + d.count, 0)).toBe(page.total - page.waitingCount);
     const filtered = (await s.holder.get('/api/performance/calibration?adjusted=yes').expect(200)).body as CalibrationPageDto;
     expect(filtered.total).toBe(0);
-    expect(((await s.holder.get(`/api/performance/calibration?search=${encodeURIComponent(s.employeeUser.name ?? 'zzzzzz')}`).expect(200)).body as CalibrationPageDto).total).toBeGreaterThanOrEqual(0);
+    expect(((await s.holder.get('/api/performance/calibration?search=zzzzzz').expect(200)).body as CalibrationPageDto).total).toBe(0);
   });
 
   it('adjusts by half-point steps with a reason: the calibrated score moves, the audit is written, zero clears the reason', async () => {
@@ -88,7 +88,7 @@ describe('Calibration: the holder compares the managers\' scores and adjusts the
     expect((await s.holder.put(s.adjust).send({ adjustment: 0.5, reason: 'سبب مكتوب كافٍ' }).expect(409)).body).toMatchObject({ code: 'CALIBRATION_NOT_OPEN' });
     expect((await s.holder.post('/api/performance/calibration/finish').expect(409)).body).toMatchObject({ code: 'CALIBRATION_NOT_OPEN' });
     await s.toCalibration();
-    const [other] = (await t.db.query(`SELECT employee_id FROM performance_evaluations WHERE employee_id <> $1 LIMIT 1`, [s.employeeUser.employeeId])) as { employee_id: string }[];
+    const [other] = ((await t.db.query(`SELECT employee_id FROM performance_evaluations WHERE employee_id <> $1 LIMIT 1`, [s.employeeUser.employeeId])) as { employee_id: string }[]) as [{ employee_id: string }];
     expect((await s.holder.put(`/api/performance/calibration/${other.employee_id}`).send({ adjustment: 0.5, reason: 'سبب مكتوب كافٍ' }).expect(409)).body).toMatchObject({ code: 'CALIBRATION_WAITING' });
     await s.holder.put('/api/performance/calibration/33333333-3333-4333-8333-333333333333').send({ adjustment: 0 }).expect(404);
   });

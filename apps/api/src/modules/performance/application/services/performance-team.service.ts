@@ -8,6 +8,7 @@ import type { AccessContext } from '../../../../core/access/domain/access-contex
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
 import { NotificationsService } from '../../../../core/notifications/application/notifications.service';
 import { PerformanceCycleRepository, type CycleRow } from '../../domain/contracts/performance-cycle.repository';
+import { PerformanceObjectionRepository } from '../../domain/contracts/performance-result.repository';
 import { PerformanceEvaluationRepository, type EvaluationRow, type ReviewRow, type SelfRow } from '../../domain/contracts/performance-evaluation.repository';
 import { PerformanceRosterPort, PerformanceStagePort, PerformanceTeamPort, type TeamPerson } from '../../domain/contracts/performance-roster.port';
 import { EvaluationBlockedError, TeamEvaluationInvalidError } from '../../domain/errors/performance.errors';
@@ -23,6 +24,8 @@ interface Target {
   evaluation: EvaluationRow;
   reviews: ReviewRow[];
   level: ReviewerLevel;
+  /** An accepted objection sent this evaluation back to its managers: it can be written in any stage. */
+  returned?: boolean;
 }
 
 const levelNameOf = (scale: Parameters<typeof levelOf>[0], score: { final: number } | null): string | null => (score ? levelOf(scale, score.final)?.name ?? null : null);
@@ -48,6 +51,7 @@ export class PerformanceTeamService {
     private readonly stages: PerformanceStagePort,
     private readonly cycles: PerformanceCycleRepository,
     private readonly evaluations: PerformanceEvaluationRepository,
+    private readonly objections: PerformanceObjectionRepository,
     private readonly notifications: NotificationsService,
     private readonly tx: TransactionRunner,
     private readonly clock: Clock,
@@ -112,6 +116,7 @@ export class PerformanceTeamService {
     await this.tx.run(async (tx) => {
       await this.evaluations.saveReview({ evaluationId: t.evaluation.id, level: t.level, reviewerUserId: ctx.userId, content: cleanTeam(input, catalog), sentAt: own?.sentAt ?? this.clock.now() }, tx);
       if (first && t.level === 'direct' && t.person.upperManagerUserId) await this.tellUpper(t, tx);
+      if (t.returned) await this.objections.markReevaluated(t.evaluation.id, tx);
     });
     this.audit(ctx, first ? PERFORMANCE_AUDIT.teamSent : PERFORMANCE_AUDIT.teamEdited, t.evaluation.id);
     return this.one(ctx, employeeId);
@@ -145,8 +150,8 @@ export class PerformanceTeamService {
     return t;
   }
 
-  private blockOf(t: Pick<Target, 'cycle' | 'level' | 'reviews'>): EvalBlock | null {
-    return evalBlock(t.cycle.stage, t.level, t.reviews.some((r) => r.level === 'direct' && !!r.sentAt));
+  private blockOf(t: Pick<Target, 'cycle' | 'level' | 'reviews' | 'returned'>): EvalBlock | null {
+    return evalBlock(t.cycle.stage, t.level, t.reviews.some((r) => r.level === 'direct' && !!r.sentAt), t.returned);
   }
 
   private async target(ctx: AccessContext, key: string, employeeId: string): Promise<Target> {
@@ -155,8 +160,8 @@ export class PerformanceTeamService {
     const person = filter ? await this.team.member(filter, employeeId) : null;
     const evaluation = cycle && person ? (await this.evaluations.forEmployees(cycle.id, [employeeId]))[0] : undefined;
     if (!cycle || !person || !evaluation) throw new NotFoundError('Evaluation', employeeId);
-    const reviews = await this.evaluations.reviews([evaluation.id]);
-    return { cycle, person, evaluation, reviews, level: reviewerLevel(ctx.userId, person.managerUserId, reviewOf(reviews, 'direct')?.reviewerUserId ?? null) };
+    const [reviews, objection] = await Promise.all([this.evaluations.reviews([evaluation.id]), this.objections.forEvaluation(evaluation.id)]);
+    return { cycle, person, evaluation, reviews, returned: objection?.status === 'returned', level: reviewerLevel(ctx.userId, person.managerUserId, reviewOf(reviews, 'direct')?.reviewerUserId ?? null) };
   }
 
   private async row(t: Omit<Target, 'level'>, viewerUserId: string, selfSent: boolean): Promise<TeamEvaluationRowDto> {

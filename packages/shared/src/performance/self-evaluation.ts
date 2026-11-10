@@ -1,3 +1,4 @@
+import type { MyResultDto } from './result';
 import { z } from 'zod';
 import type { CatalogItemDto, CycleStage } from './cycle';
 import type { FiscalCard, GradeBand, StageTemplate } from './template';
@@ -62,4 +63,6 @@ export interface MyEvaluationDto {
     managerName: string | null;
     learning: { approvedMinutes: number; stageMinutes: number };
   } | null;
+  /** The frozen result: present only after the individual notification, never before (the server leaves it out). */
+  result?: MyResultDto | null;
 }

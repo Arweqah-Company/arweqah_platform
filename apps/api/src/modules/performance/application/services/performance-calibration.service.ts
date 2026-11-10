@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { calibratedScore, levelOf, type AdjustCalibrationInput, type CalibrationPageDto, type CalibrationQuery, type CalibrationRowDto, type GradeBand } from '@arweqah-platform/shared';
+import { calibratedScore, levelOf, type AdjustCalibrationInput, type CalibrationPageDto, type CalibrationQuery, type CalibrationRowDto, type GradeBand, type ScoreParts, type StageTemplate } from '@arweqah-platform/shared';
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
 import { NotFoundError } from '../../../../common/domain/domain-error';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
@@ -13,6 +13,17 @@ import { CalibrationNotOpenError, CalibrationWaitingError } from '../../domain/e
 import { PERFORMANCE_AUDIT, PERFORMANCE_EVALUATION_ENTITY } from '../messages/performance.messages';
 import { PerformanceCycleService } from './performance-cycle.service';
 import { PerformanceScoreService } from './performance-score.service';
+
+/** One person of the cycle with the manager score parts (null while no manager evaluation was sent) and the calibration adjustment. */
+export interface ScoredPerson {
+  evaluation: EvaluationRow;
+  person: RosterPerson;
+  template: StageTemplate;
+  review: ReviewRow | undefined;
+  parts: ScoreParts | null;
+  adjustment: number;
+  reason: string | null;
+}
 
 /** The manager score that calibration starts from: the upper manager's sent evaluation when there is one, else the direct manager's. */
 export const sentReview = (reviews: readonly ReviewRow[]): ReviewRow | undefined => reviews.find((r) => r.level === 'upper' && r.sentAt) ?? reviews.find((r) => r.level === 'direct' && r.sentAt);
@@ -87,28 +98,35 @@ export class PerformanceCalibrationService {
 
   /** The rows of the given evaluations, or of every evaluation of the cycle. */
   private async rowsOf(cycle: CycleRow, only?: readonly EvaluationRow[]): Promise<CalibrationRowDto[]> {
-    const people = new Map((await this.roster.everyone()).map((p) => [p.employeeId, p]));
-    const evaluations = only ?? (await this.evaluations.forEmployees(cycle.id, [...people.keys()]));
-    const ids = evaluations.map((e) => e.id);
-    const [reviews, adjustments, catalog] = await Promise.all([this.evaluations.reviews(ids), this.calibrations.forEvaluations(ids), this.scores.catalogOf(cycle.id)]);
     const names = new Map<string, Promise<{ nameAr: string; nameEn: string }>>();
-    const rows = await Promise.all(evaluations.filter((e) => people.has(e.employeeId)).map((e) => {
-      const person = people.get(e.employeeId) as RosterPerson;
-      if (!names.has(person.titleId)) names.set(person.titleId, this.stages.titleNames(person.titleId));
-      return this.row({ cycle, evaluation: e, person, catalog, review: sentReview(reviews.filter((r) => r.evaluationId === e.id)), adjustment: adjustments.find((a) => a.evaluationId === e.id), titleNames: names.get(person.titleId) as Promise<{ nameAr: string; nameEn: string }> }, cycle.snapshot.scale);
+    const scored = await this.scored(cycle, only);
+    const rows = await Promise.all(scored.map(async (p) => {
+      if (!names.has(p.person.titleId)) names.set(p.person.titleId, this.stages.titleNames(p.person.titleId));
+      const title = await (names.get(p.person.titleId) as Promise<{ nameAr: string; nameEn: string }>);
+      const calibrated = p.parts ? calibratedScore(p.parts.final, p.adjustment, p.template.cap) : null;
+      return {
+        employeeId: p.person.employeeId, name: p.person.name, titleNameAr: title.nameAr, titleNameEn: title.nameEn, managerName: p.person.managerName, stage: p.evaluation.stageNo,
+        managerScore: p.parts?.final ?? null, adjustment: p.adjustment, reason: p.reason, calibrated, levelName: calibrated === null ? null : levelOf(cycle.snapshot.scale, calibrated)?.name ?? null,
+      } satisfies CalibrationRowDto;
     }));
     return rows.sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  private async row(t: { cycle: CycleRow; evaluation: EvaluationRow; person: RosterPerson; catalog: Parameters<PerformanceScoreService['of']>[0]['catalog']; review: ReviewRow | undefined; adjustment: { adjustment: number; reason: string | null } | undefined; titleNames: Promise<{ nameAr: string; nameEn: string }> }, scale: readonly GradeBand[]): Promise<CalibrationRowDto> {
-    const template = t.cycle.snapshot.stages.find((s) => s.stage === t.evaluation.stageNo);
-    const managerScore = t.review && template ? (await this.scores.of({ employeeId: t.person.employeeId, titleId: t.person.titleId, template, catalog: t.catalog, form: t.review.content })).final : null;
-    const adjustment = t.adjustment?.adjustment ?? 0;
-    const calibrated = managerScore === null || !template ? null : calibratedScore(managerScore, adjustment, template.cap);
-    const names = await t.titleNames;
-    return {
-      employeeId: t.person.employeeId, name: t.person.name, titleNameAr: names.nameAr, titleNameEn: names.nameEn, managerName: t.person.managerName, stage: t.evaluation.stageNo,
-      managerScore, adjustment, reason: t.adjustment?.reason ?? null, calibrated, levelName: calibrated === null ? null : levelOf(scale, calibrated)?.name ?? null,
-    };
+  /** Everyone of the cycle (or the given evaluations) with the sent manager review, its score parts and the calibration adjustment: the base of the list, the approval and the final result. */
+  async scored(cycle: CycleRow, only?: readonly EvaluationRow[]): Promise<ScoredPerson[]> {
+    const people = new Map((await this.roster.everyone()).map((p) => [p.employeeId, p]));
+    const evaluations = (only ?? (await this.evaluations.forEmployees(cycle.id, [...people.keys()]))).filter((e) => people.has(e.employeeId));
+    const ids = evaluations.map((e) => e.id);
+    const [reviews, adjustments, catalog] = await Promise.all([this.evaluations.reviews(ids), this.calibrations.forEvaluations(ids), this.scores.catalogOf(cycle.id)]);
+    const out: ScoredPerson[] = [];
+    for (const evaluation of evaluations) {
+      const template = cycle.snapshot.stages.find((s) => s.stage === evaluation.stageNo);
+      if (!template) continue;
+      const person = people.get(evaluation.employeeId) as RosterPerson;
+      const review = sentReview(reviews.filter((r) => r.evaluationId === evaluation.id));
+      const adj = adjustments.find((a) => a.evaluationId === evaluation.id);
+      out.push({ evaluation, person, template, review, parts: review ? await this.scores.of({ employeeId: person.employeeId, titleId: person.titleId, template, catalog, form: review.content }) : null, adjustment: adj?.adjustment ?? 0, reason: adj?.reason ?? null });
+    }
+    return out;
   }
 }

@@ -1,4 +1,5 @@
 import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
+import type { ResultBreakdown } from '@arweqah-platform/shared';
 import { BaseEntity } from '../../../../common/domain/base.entity';
 
 /** PostgreSQL returns `numeric` as text; the columns below are plain numbers in the code. */
@@ -44,7 +45,7 @@ export class PerformanceResult extends BaseEntity {
 
   /** The parts of the score, the criteria and behaviours with their scores and the notes, the calibration adjustment and its reason: frozen. */
   @Column({ type: 'jsonb' })
-  breakdown: Record<string, unknown>;
+  breakdown: ResultBreakdown;
 
   @Column({ name: 'approved_by', type: 'uuid' })
   approvedBy: string;
