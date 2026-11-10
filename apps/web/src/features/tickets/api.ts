@@ -21,6 +21,10 @@ export const useTicketCatalog = (enabled = true) => useQuery({ queryKey: [KEY, '
 
 export const useTicketOptions = () => useQuery({ queryKey: [KEY, 'options'], queryFn: () => apiClient.get<TicketFilterOptionsDto>('/tickets/options') });
 
+/** The @ list of a ticket's reply box: people matching what was typed after the @ (only while the list is open). */
+export const useTicketMentionables = (ticketId: string, search: string, enabled: boolean) =>
+  useQuery({ queryKey: [KEY, 'mentionables', ticketId, search], enabled, staleTime: 30_000, queryFn: () => apiClient.get<PersonRefDto[]>(`/tickets/${ticketId}/mentionables`, { search }) });
+
 export const useTicket = (id: string | undefined) => useQuery({ queryKey: [KEY, 'one', id], enabled: !!id, queryFn: () => apiClient.get<TicketDto>(`/tickets/${id}`) });
 
 /** Every change refreshes the lists, the open ticket and the figures. */

@@ -6,7 +6,7 @@ import type { MentionableDto, TaskConversationDto } from '@arweqah-platform/shar
 import { IdParam } from '../../../../common/presentation/zod-query';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
 import { Access, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
-import { sendOpenedFile } from '../../../../core/files/presentation/send-file';
+import { sendOpenedFile, sendPreviewStream } from '../../../../core/files/presentation/send-file';
 import { TaskViewerFactory } from '../../application/policies/task-viewer';
 import { TaskCommentService } from '../../application/services/task-comment.service';
 import { CommentFileParam, CommentParam, CreateCommentBody, EditCommentBody, MentionablesQueryDto } from '../dtos/tasks.dtos';
@@ -58,6 +58,13 @@ export class TaskCommentsController {
   @RequirePermission(CorePermission.TasksCommentView)
   async remove(@Access() ctx: AccessContext, @Param() { id, commentId }: CommentParam): Promise<TaskConversationDto> {
     return this.comments.remove(await this.viewers.of(ctx), id, commentId);
+  }
+
+  @Get(':commentId/files/:fileId/preview')
+  @RequirePermission(CorePermission.TasksCommentView)
+  async previewFile(@Access() ctx: AccessContext, @Param() { id, commentId, fileId }: CommentFileParam, @Res() res: Response): Promise<void> {
+    const { file, stream } = await this.comments.previewFile(await this.viewers.of(ctx), id, commentId, fileId);
+    sendPreviewStream(res, file, stream);
   }
 
   @Get(':commentId/files/:fileId')

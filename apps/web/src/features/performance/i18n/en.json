@@ -94,7 +94,10 @@
     "count": "{{count}} items",
     "yes": "Uploaded",
     "no": "Not uploaded",
-    "snapshot": "The cycle takes a snapshot of each stage's template when it opens, so a past year's evaluation does not change if the file changes later."
+    "snapshot": "The cycle takes a snapshot of each stage's template when it opens, so a past year's evaluation does not change if the file changes later.",
+    "calibrate": "Who holds the calibration key",
+    "approve": "Who holds the approval key",
+    "holders": "{{count}} (a warning at zero: nobody could calibrate or approve)"
   },
   "open": {
     "title": "Open the evaluation cycle",
@@ -136,7 +139,11 @@
       "notification": "Individual notification with an exportable copy",
       "objection": "Objection window (five working days from the notification)",
       "self_deadline": "Last day of the self-evaluation",
-      "qualitative_close": "Close of the qualitative part (behaviour and evidence)"
+      "qualitative_close": "Close of the qualitative part (behaviour and evidence)",
+      "review_jan": "Milestone: short review (January)",
+      "pulse_mar": "Milestone: pulse (March)",
+      "review_jul": "Milestone: short review (July)",
+      "pulse_sep": "Milestone: pulse (September)"
     },
     "problems": {
       "required": "The date is required.",
@@ -262,10 +269,19 @@
     },
     "performance-team": {
       "title": "Team evaluation",
-      "body": "Here you evaluate the members of your team in the manager's stage: open each employee's evaluation, enter the results and behaviour scores, and see the final score live.",
+      "body": "Here you evaluate your team members in the manager's stage: open each employee's evaluation, enter the results and behaviour scores, and watch the final score live. The «Milestones» button on each row records the minutes of the milestones of the year.",
       "can": {
         "evaluate": "Evaluate team members and send the evaluation",
         "export": "Export the team evaluation list"
+      }
+    },
+    "performance-calibration": {
+      "title": "Calibration and approval",
+      "body": "Here the calibration key holder compares the managers' scores and adjusts them by half points with a written reason, then approves the results, tells everyone individually and decides the objections.",
+      "can": {
+        "calibrate": "Calibrate the scores and finish calibration",
+        "approve": "Approve the results and decide the objections",
+        "export": "Export the calibration list"
       }
     }
   },
@@ -282,7 +298,9 @@
       "weights": "Weights and criteria",
       "behaviours": "Behaviours",
       "scale": "Grade scale",
-      "calendar": "Fiscal-year card"
+      "calendar": "Fiscal-year card",
+      "result": "My result",
+      "milestones": "Milestones"
     },
     "basic": "Basic {{total}}%",
     "results": "Results",
@@ -608,7 +626,8 @@
     "edited": "The change was saved.",
     "draftSaved": "The draft was saved.",
     "failed": "Could not save the evaluation. Try again.",
-    "failedRefused": "The server refused the evaluation: check the fields, or that the stage is still open."
+    "failedRefused": "The server refused the evaluation: check the fields, or that the stage is still open.",
+    "milestones": "Milestones"
   },
   "notice": {
     "label": "Evaluation cycle notice",
@@ -619,7 +638,177 @@
     "day": "{{date}}",
     "go": {
       "self": "Go to my evaluation",
-      "team": "Go to team evaluation"
+      "team": "Go to team evaluation",
+      "calibrate": "Go to calibration",
+      "approve": "Go to approval"
+    },
+    "calibrate": "You can calibrate the employees' scores before the deadline",
+    "approve": "You can approve the results before the deadline"
+  },
+  "calibration": {
+    "title": "Calibration and approval",
+    "description": "Compare the managers' scores and adjust them by half points with a written reason, then approve the results and tell everyone individually.",
+    "noCycle": "The evaluation cycle is not open yet.",
+    "tabsLabel": "Calibration and approval sections",
+    "tabs": {
+      "calibration": "Calibration",
+      "approval": "Approval and objections"
+    },
+    "distribution": "Distribution of the levels",
+    "searchLabel": "Search the calibration",
+    "searchPlaceholder": "Search by employee name",
+    "noMatches": "No matches",
+    "empty": "No evaluations in this cycle yet.",
+    "waiting": "Waiting for the manager",
+    "waitingCount": "{{count}} employees whose manager has not sent the evaluation yet; calibration cannot be finished before that.",
+    "columns": {
+      "employee": "Employee",
+      "title": "Title",
+      "manager": "Direct manager",
+      "managerScore": "Manager's score",
+      "adjustment": "Adjustment",
+      "calibrated": "After calibration",
+      "level": "Level"
+    },
+    "filters": {
+      "level": "Level",
+      "stage": "Career stage",
+      "adjusted": "Score adjusted"
+    },
+    "adjusted": {
+      "yes": "Yes",
+      "no": "No"
+    },
+    "stageN": "Stage {{n}}",
+    "adjust": "Adjust the score",
+    "adjustTitle": "Calibration adjustment: {{name}}",
+    "adjustHint": "Manager's score: {{score}}",
+    "adjustmentHint": "From −10 to +10 in half-point steps.",
+    "adjustmentInvalid": "Enter a multiple of 0.5 between −10 and +10.",
+    "reason": "Reason",
+    "reasonHint": "Required for any adjustment (at least {{count}} characters); the employee sees it after the notification.",
+    "reasonShort": "Write the reason (at least {{count}} characters).",
+    "after": "Score after calibration",
+    "save": "Save",
+    "saved": "The adjustment was saved.",
+    "failed": "Could not save: check that the calibration stage is on and the employee's manager has sent the evaluation.",
+    "finish": "Finish calibration and send it to approval",
+    "finishTitle": "Finish calibration?",
+    "finishBody": "The cycle moves to the approval stage and scores can no longer be adjusted.",
+    "finishDone": "The cycle moved to approval.",
+    "approve": "Approve the results and tell everyone individually",
+    "approveTitle": "Approve the results?",
+    "approveBody": "Each employee's final result is frozen and they are told; the objection window (five working days) begins.",
+    "approveDone": "The results were approved and the employees told.",
+    "notCalibration": "Available in the calibration stage only",
+    "notApproval": "Available in the approval stage only",
+    "adjustment": "Adjustment (points)"
+  },
+  "objections": {
+    "title": "Objections",
+    "empty": "No objections.",
+    "columns": {
+      "employee": "Employee",
+      "item": "Item",
+      "reason": "Reason",
+      "status": "Status"
+    },
+    "kinds": {
+      "criterion": "Criterion",
+      "behaviour": "Behaviour",
+      "extra": "Extra component"
+    },
+    "status": {
+      "open": "With the approver",
+      "returned": "Back with the manager",
+      "reevaluated": "Waiting for the revised evaluation to be approved",
+      "finalized": "Revised evaluation approved",
+      "rejected": "Rejected"
+    },
+    "return": "Accept and return to the manager",
+    "returned": "The evaluation went back to the manager.",
+    "reject": "Reject",
+    "rejectTitle": "Reject the objection of {{name}}",
+    "rejectReason": "Reason for rejecting",
+    "rejectHint": "The employee reads it (at least {{count}} characters).",
+    "rejected": "The objection was rejected.",
+    "finalize": "Approve the revised evaluation",
+    "finalized": "The revised evaluation was approved.",
+    "failed": "The decision could not be made; the objection may have changed.",
+    "raiseTitle": "Objection to the evaluation result",
+    "raiseHint": "You have one objection to one item, within five working days of the notification.",
+    "item": "Item",
+    "reasonLabel": "Reason for the objection",
+    "reasonHint": "At least {{count}} characters.",
+    "send": "Send the objection",
+    "sent": "Your objection was sent."
+  },
+  "result": {
+    "yourScore": "Your final score",
+    "export": "Printable copy",
+    "window": "The objection window is open until {{date}}.",
+    "object": "Object to a criterion or behaviour",
+    "criteria": "Your results",
+    "criterion": "Criterion",
+    "share": "Share",
+    "myScore": "Your score",
+    "points": "Points",
+    "behaviours": "Your behaviours",
+    "extraTitle": "Extra component",
+    "part": "Item",
+    "calibration": "Calibration adjustment",
+    "extra": {
+      "learning": "Learning",
+      "init": "Initiatives",
+      "growth": "Growth"
+    },
+    "objection": {
+      "open": "Your objection is with the approver",
+      "returned": "Your objection was accepted and went back to your manager",
+      "reevaluated": "Your manager revised the evaluation; it waits for approval",
+      "finalized": "Your manager revised the evaluation and the final approval is the result above",
+      "rejected": "Your objection was rejected"
     }
+  },
+  "milestones": {
+    "title": "Milestones of the year",
+    "columns": {
+      "milestone": "Milestone",
+      "date": "Date",
+      "state": "State",
+      "actions": "Actions"
+    },
+    "names": {
+      "review_jan": "Short review (January)",
+      "pulse_mar": "Pulse (March)",
+      "review_jul": "Short review (July)",
+      "pulse_sep": "Pulse (September)",
+      "warning_oct": "Warning grade (October)"
+    },
+    "state": {
+      "none": "Not recorded",
+      "recorded": "Recorded",
+      "acknowledged": "Recorded and read by the employee",
+      "skipped": "Does not run this year"
+    },
+    "memberTitle": "Milestones of {{name}}",
+    "memberHint": "Record the minutes of each milestone; the employee is told and acknowledges reading them.",
+    "record": "Record the minutes",
+    "edit": "Edit the minutes",
+    "recordTitle": "Minutes: {{name}}",
+    "recordHint": "The employee sees them and acknowledges reading them.",
+    "fields": {
+      "whereWeAre": "Where are we?",
+      "obstacle": "What is in the way?",
+      "agreedAction": "The agreed action",
+      "note": "Short note"
+    },
+    "actionHint": "Required (at least {{count}} characters).",
+    "save": "Save the minutes",
+    "saved": "The minutes were saved.",
+    "failed": "The minutes could not be saved.",
+    "loadFailed": "The milestones could not be loaded.",
+    "acknowledge": "I read the minutes",
+    "acknowledged": "Your acknowledgement was recorded."
   }
 }

@@ -2,7 +2,7 @@ import { CorePermission } from '@arweqah-platform/shared';
 import { Body, Controller, Get, HttpCode, Param, Post, Query, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
-import type { TicketCatalogDto, TicketDto, TicketFilterOptionsDto, TicketsPageDto } from '@arweqah-platform/shared';
+import type { PersonRefDto, TicketCatalogDto, TicketDto, TicketFilterOptionsDto, TicketsPageDto } from '@arweqah-platform/shared';
 import { IdParam } from '../../../../common/presentation/zod-query';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
 import { Access, HiddenWithPage, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
@@ -10,8 +10,8 @@ import { viewerOf } from '../../application/policies/ticket-viewer';
 import { TicketCatalogService } from '../../application/services/ticket-catalog.service';
 import { TicketLifecycleService, type PersonAction } from '../../application/services/ticket-lifecycle.service';
 import { TicketsService } from '../../application/services/tickets.service';
-import { sendOpenedFile } from '../../../../core/files/presentation/send-file';
-import { AttachmentParam, CreateTicketBody, TicketActionBody, TicketReplyBody, TicketsQueryDto } from '../dtos/tickets.dtos';
+import { sendOpenedFile, sendPreviewStream } from '../../../../core/files/presentation/send-file';
+import { AttachmentParam, CreateTicketBody, TicketActionBody, MentionablesQueryDto, TicketReplyBody, TicketsQueryDto } from '../dtos/tickets.dtos';
 
 /**
  * Every action has its own key (the Employee role holds them); on top of that, what else a person sees or does with a ticket
@@ -55,6 +55,12 @@ export class TicketsController {
   @RequirePermission(CorePermission.TicketsView)
   get(@Access() ctx: AccessContext, @Param() { id }: IdParam): Promise<TicketDto> {
     return this.tickets.get(viewerOf(ctx), id);
+  }
+
+  @Get(':id/mentionables')
+  @RequirePermission(CorePermission.TicketsCommentMention)
+  mentionables(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Query() { search }: MentionablesQueryDto): Promise<PersonRefDto[]> {
+    return this.tickets.mentionables(viewerOf(ctx), id, search);
   }
 
   @Post(':id/replies')
@@ -103,6 +109,13 @@ export class TicketsController {
   async attachment(@Access() ctx: AccessContext, @Param() { id, fileId }: AttachmentParam, @Res() res: Response): Promise<void> {
     const { file, opened } = await this.tickets.openAttachment(viewerOf(ctx), id, fileId);
     sendOpenedFile(res, file, opened);
+  }
+
+  @Get(':id/attachments/:fileId/preview')
+  @RequirePermission(CorePermission.TicketsView)
+  async previewAttachment(@Access() ctx: AccessContext, @Param() { id, fileId }: AttachmentParam, @Res() res: Response): Promise<void> {
+    const { file, stream } = await this.tickets.previewAttachment(viewerOf(ctx), id, fileId);
+    sendPreviewStream(res, file, stream);
   }
 
   private async act(ctx: AccessContext, id: string, action: PersonAction, body: TicketActionBody): Promise<TicketDto> {

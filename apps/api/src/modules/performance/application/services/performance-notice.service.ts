@@ -9,6 +9,8 @@ import { PerformanceTeamService } from './performance-team.service';
 const TASKS: Record<NoticeKind, { path: string; date: CycleDateKey }> = {
   self: { path: '/career-profile', date: 'self_deadline' },
   team: { path: '/performance-team', date: 'final' },
+  calibrate: { path: '/performance-calibration', date: 'calibration' },
+  approve: { path: '/performance-calibration', date: 'approval' },
 };
 
 /** The evaluation tasks open for the signed-in person right now, each with its deadline: the bar under the header. */
@@ -23,7 +25,8 @@ export class PerformanceNoticeService {
   async mine(ctx: AccessContext): Promise<EvaluationNoticesDto> {
     const cycle = await this.cycles.current();
     if (!cycle || cycle.stage === 'closed') return { items: [] };
-    const kinds = [(await this.selfOpen(ctx, cycle)) && 'self', (await this.teamOpen(ctx, cycle)) && 'team'].filter((k): k is NoticeKind => !!k);
+    const holds = (key: string, stage: CycleRow['stage'], kind: NoticeKind) => cycle.stage === stage && !!ctx.filterFor(key) && kind;
+    const kinds = [(await this.selfOpen(ctx, cycle)) && 'self', (await this.teamOpen(ctx, cycle)) && 'team', holds(CorePermission.PerformanceCalibrate, 'cal', 'calibrate'), holds(CorePermission.PerformanceApprove, 'appr', 'approve')].filter((k): k is NoticeKind => !!k);
     return { items: kinds.map((kind) => notice(kind, cycle)) };
   }
 

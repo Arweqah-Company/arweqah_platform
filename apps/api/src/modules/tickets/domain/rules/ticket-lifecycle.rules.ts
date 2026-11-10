@@ -42,7 +42,7 @@ export function abilitiesFor(relations: readonly TicketRelation[], status: Ticke
   const unit = UNIT_SIDE.some((relation) => relations.includes(relation));
   const live = status !== 'closed';
   return {
-    reply: live && (sender || unit),
+    reply: live && (sender || unit || relations.includes('mentioned')),
     requestClose: unit && status === 'open',
     closeWithoutExecution: unit && live,
     confirmClose: sender && status === 'close_requested',

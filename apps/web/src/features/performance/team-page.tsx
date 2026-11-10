@@ -1,5 +1,5 @@
 import { CorePermission, EVAL_TEAM_SCOPES, EVAL_TEAM_STATUSES, type CycleStage, type TeamEvaluationPageDto, type TeamEvaluationRowDto } from '@arweqah-platform/shared';
-import { Eye, Pencil, Users } from 'lucide-react';
+import { CalendarCheck, Eye, Pencil, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
@@ -8,6 +8,8 @@ import { useServerList } from '@/shared/lib/use-server-list';
 import { Alert, DataTable, EmptyState, ListToolbar, PageHeader, RowAction, type FilterField } from '@/shared/ui';
 import { CycleStepper } from './cycle-stepper';
 import { StageDialog } from './stage-dialog';
+import { Can } from '@/core/permissions/can';
+import { MemberMilestonesDialog } from './member-milestones-dialog';
 import { TeamDialog, useBlockText } from './team-dialog';
 import { useTeamColumns } from './team-columns';
 
@@ -22,10 +24,15 @@ function useTeamQuery(list: ReturnType<typeof useListPage>) {
 }
 
 /** The row's own action: «evaluate» when the viewer can write now, «view» otherwise (the window says why it is read only). */
-function RowOpen({ row, onOpen }: { row: TeamEvaluationRowDto; onOpen: (row: TeamEvaluationRowDto) => void }) {
+function RowOpen({ row, onOpen, onMilestones }: { row: TeamEvaluationRowDto; onOpen: (row: TeamEvaluationRowDto) => void; onMilestones: (row: TeamEvaluationRowDto) => void }) {
   const { t } = useTranslation('performance');
   const write = !row.block;
-  return <RowAction label={`${t(write ? 'team.evaluate' : 'team.view')}: ${row.name}`} icon={write ? Pencil : Eye} onClick={() => onOpen(row)} />;
+  return (
+    <>
+      <RowAction label={`${t(write ? 'team.evaluate' : 'team.view')}: ${row.name}`} icon={write ? Pencil : Eye} onClick={() => onOpen(row)} />
+      <Can permission={CorePermission.PerformanceMilestoneView}><RowAction label={`${t('team.milestones')}: ${row.name}`} icon={CalendarCheck} onClick={() => onMilestones(row)} /></Can>
+    </>
+  );
 }
 
 /** The notices box: how many people wait for the viewer's evaluation, and a hint at the first one's name (a click opens them). */
@@ -60,6 +67,7 @@ export function TeamEvaluationPage() {
   const { columns, exportColumns } = useTeamColumns();
   const [open, setOpen] = useState<TeamEvaluationRowDto | null>(null);
   const [step, setStep] = useState<CycleStage | null>(null);
+  const [milestones, setMilestones] = useState<TeamEvaluationRowDto | null>(null);
   const exporting = { columns: exportColumns, filename: 'performance-team', pageRows: items, total, loadAll };
   return (
     <div className="flex flex-col gap-4">
@@ -74,11 +82,12 @@ export function TeamEvaluationPage() {
         toolbar={<ListToolbar listKey="performance-team" {...list.toolbar({ label: t('team.searchLabel'), placeholder: t('team.searchPlaceholder') }, fields)} actions={<ExchangeButtons permissions={{ export: CorePermission.PerformanceTeamExport }} exporting={exporting} />} />}
         rowKey={(x) => x.employeeId}
         onRowClick={setOpen}
-        actions={(x) => <RowOpen row={x} onOpen={setOpen} />}
+        actions={(x) => <RowOpen row={x} onOpen={setOpen} onMilestones={setMilestones} />}
         empty={<EmptyState icon={Users} title={list.narrowed ? t('team.noMatches') : t('team.empty')} />}
         columns={columns}
       />
       {open && <TeamDialog row={open} onClose={() => setOpen(null)} />}
+      {milestones && <MemberMilestonesDialog employeeId={milestones.employeeId} name={milestones.name} onClose={() => setMilestones(null)} />}
       {step && <StageDialog step={step} stage={stage} onClose={() => setStep(null)} />}
     </div>
   );

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { CorePermission, emptyTeamForm, levelOf, scoreOf, teamProblems, type EvalBlock, type ReviewerLevel, type SaveTeamEvaluationInput, type SelfEvaluationDto, type TeamEvaluationDto, type TeamEvaluationPageDto, type TeamEvaluationQuery, type TeamEvaluationRowDto } from '@arweqah-platform/shared';
+import { CorePermission, emptyTeamForm, levelOf, teamProblems, type EvalBlock, type ReviewerLevel, type SaveTeamEvaluationInput, type SelfEvaluationDto, type TeamEvaluationDto, type TeamEvaluationPageDto, type TeamEvaluationQuery, type TeamEvaluationRowDto } from '@arweqah-platform/shared';
 import { Clock } from '../../../../common/application/clock';
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
 import { NotFoundError } from '../../../../common/domain/domain-error';
@@ -8,11 +8,13 @@ import type { AccessContext } from '../../../../core/access/domain/access-contex
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
 import { NotificationsService } from '../../../../core/notifications/application/notifications.service';
 import { PerformanceCycleRepository, type CycleRow } from '../../domain/contracts/performance-cycle.repository';
+import { PerformanceObjectionRepository } from '../../domain/contracts/performance-result.repository';
 import { PerformanceEvaluationRepository, type EvaluationRow, type ReviewRow, type SelfRow } from '../../domain/contracts/performance-evaluation.repository';
 import { PerformanceRosterPort, PerformanceStagePort, PerformanceTeamPort, type TeamPerson } from '../../domain/contracts/performance-roster.port';
 import { EvaluationBlockedError, TeamEvaluationInvalidError } from '../../domain/errors/performance.errors';
 import { emptySelf } from '../../domain/rules/self-evaluation.rules';
-import { cleanTeam, evalBlock, pickedPoints, reviewState, reviewerLevel } from '../../domain/rules/team-evaluation.rules';
+import { cleanTeam, evalBlock, reviewState, reviewerLevel } from '../../domain/rules/team-evaluation.rules';
+import { PerformanceScoreService } from './performance-score.service';
 import { PERFORMANCE_AUDIT, PERFORMANCE_EVALUATION_ENTITY } from '../messages/performance.messages';
 
 /** One member in the cycle: the person, their evaluation, and the documents written so far. */
@@ -22,9 +24,13 @@ interface Target {
   evaluation: EvaluationRow;
   reviews: ReviewRow[];
   level: ReviewerLevel;
+  /** An accepted objection sent this evaluation back to its managers: it can be written in any stage. */
+  returned?: boolean;
 }
 
 const levelNameOf = (scale: Parameters<typeof levelOf>[0], score: { final: number } | null): string | null => (score ? levelOf(scale, score.final)?.name ?? null : null);
+/** An accepted objection keeps the evaluation open to its managers until the revised one is approved. */
+const reopened = (status: string | undefined): boolean => status === 'returned' || status === 'reevaluated';
 const iso = (d: Date | null | undefined): string | null => (d ? d.toISOString() : null);
 const reviewOf = (reviews: readonly ReviewRow[], level: ReviewerLevel): ReviewRow | undefined => reviews.find((r) => r.level === level);
 
@@ -43,9 +49,11 @@ export class PerformanceTeamService {
   constructor(
     private readonly team: PerformanceTeamPort,
     private readonly roster: PerformanceRosterPort,
+    private readonly scores: PerformanceScoreService,
     private readonly stages: PerformanceStagePort,
     private readonly cycles: PerformanceCycleRepository,
     private readonly evaluations: PerformanceEvaluationRepository,
+    private readonly objections: PerformanceObjectionRepository,
     private readonly notifications: NotificationsService,
     private readonly tx: TransactionRunner,
     private readonly clock: Clock,
@@ -61,8 +69,8 @@ export class PerformanceTeamService {
     const people = await this.team.members(filter, { search: query.search, directOnly: query.scope === 'direct' });
     const evaluations = await this.evaluations.forEmployees(cycle.id, people.map((p) => p.employeeId));
     const ids = evaluations.map((e) => e.id);
-    const [reviews, selfSent] = await Promise.all([this.evaluations.reviews(ids), this.evaluations.selfSentIds(ids)]);
-    const rows = await Promise.all(evaluations.map((e) => this.row({ cycle, evaluation: e, person: people.find((p) => p.employeeId === e.employeeId) as TeamPerson, reviews: reviews.filter((r) => r.evaluationId === e.id) }, ctx.userId, selfSent.has(e.id))));
+    const [reviews, selfSent, reopenedIds] = await Promise.all([this.evaluations.reviews(ids), this.evaluations.selfSentIds(ids), this.reopenedIds(cycle.id)]);
+    const rows = await Promise.all(evaluations.map((e) => this.row({ cycle, evaluation: e, person: people.find((p) => p.employeeId === e.employeeId) as TeamPerson, reviews: reviews.filter((r) => r.evaluationId === e.id), returned: reopenedIds.has(e.id) }, ctx.userId, selfSent.has(e.id))));
     const shown = rows.filter((r) => !query.status || (query.status === 'done') === (r.mine === 'sent'));
     const start = (query.page - 1) * query.pageSize;
     return { cycle: { fiscalYear: cycle.fiscalYear, stage: cycle.stage }, items: shown.slice(start, start + query.pageSize), total: shown.length, page: query.page, pageSize: query.pageSize, waitingCount: rows.filter((r) => r.mine !== 'sent' && !r.block).length };
@@ -75,13 +83,18 @@ export class PerformanceTeamService {
     if (!filter || !cycle) return 0;
     const people = await this.team.members(filter, {});
     const evaluations = await this.evaluations.forEmployees(cycle.id, people.map((p) => p.employeeId));
-    const reviews = await this.evaluations.reviews(evaluations.map((e) => e.id));
-    return evaluations.filter((e) => this.waitsForViewer({ cycle, person: people.find((p) => p.employeeId === e.employeeId) as TeamPerson, reviews: reviews.filter((r) => r.evaluationId === e.id) }, ctx.userId)).length;
+    const [reviews, reopenedIds] = await Promise.all([this.evaluations.reviews(evaluations.map((e) => e.id)), this.reopenedIds(cycle.id)]);
+    return evaluations.filter((e) => this.waitsForViewer({ cycle, person: people.find((p) => p.employeeId === e.employeeId) as TeamPerson, reviews: reviews.filter((r) => r.evaluationId === e.id), returned: reopenedIds.has(e.id) }, ctx.userId)).length;
   }
 
-  private waitsForViewer(t: Pick<Target, 'cycle' | 'person' | 'reviews'>, viewerUserId: string): boolean {
+  /** The evaluations an accepted objection keeps open to their managers (the list and the waiting count must agree with the window). */
+  private async reopenedIds(cycleId: string): Promise<Set<string>> {
+    return new Set((await this.objections.forCycle(cycleId)).filter((o) => reopened(o.status)).map((o) => o.evaluationId));
+  }
+
+  private waitsForViewer(t: Pick<Target, 'cycle' | 'person' | 'reviews' | 'returned'>, viewerUserId: string): boolean {
     const level = reviewerLevel(viewerUserId, t.person.managerUserId, reviewOf(t.reviews, 'direct')?.reviewerUserId ?? null);
-    return reviewState(reviewOf(t.reviews, level)) !== 'sent' && !this.blockOf({ cycle: t.cycle, level, reviews: t.reviews });
+    return reviewState(reviewOf(t.reviews, level)) !== 'sent' && !this.blockOf({ cycle: t.cycle, level, reviews: t.reviews, returned: t.returned });
   }
 
   /** One member's evaluation for the viewer; a person the scope does not reach, or without an evaluation, is a 404. */
@@ -110,6 +123,7 @@ export class PerformanceTeamService {
     await this.tx.run(async (tx) => {
       await this.evaluations.saveReview({ evaluationId: t.evaluation.id, level: t.level, reviewerUserId: ctx.userId, content: cleanTeam(input, catalog), sentAt: own?.sentAt ?? this.clock.now() }, tx);
       if (first && t.level === 'direct' && t.person.upperManagerUserId) await this.tellUpper(t, tx);
+      if (t.returned) await this.objections.markReevaluated(t.evaluation.id, tx);
     });
     this.audit(ctx, first ? PERFORMANCE_AUDIT.teamSent : PERFORMANCE_AUDIT.teamEdited, t.evaluation.id);
     return this.one(ctx, employeeId);
@@ -143,8 +157,8 @@ export class PerformanceTeamService {
     return t;
   }
 
-  private blockOf(t: Pick<Target, 'cycle' | 'level' | 'reviews'>): EvalBlock | null {
-    return evalBlock(t.cycle.stage, t.level, t.reviews.some((r) => r.level === 'direct' && !!r.sentAt));
+  private blockOf(t: Pick<Target, 'cycle' | 'level' | 'reviews' | 'returned'>): EvalBlock | null {
+    return evalBlock(t.cycle.stage, t.level, t.reviews.some((r) => r.level === 'direct' && !!r.sentAt), t.returned);
   }
 
   private async target(ctx: AccessContext, key: string, employeeId: string): Promise<Target> {
@@ -153,8 +167,8 @@ export class PerformanceTeamService {
     const person = filter ? await this.team.member(filter, employeeId) : null;
     const evaluation = cycle && person ? (await this.evaluations.forEmployees(cycle.id, [employeeId]))[0] : undefined;
     if (!cycle || !person || !evaluation) throw new NotFoundError('Evaluation', employeeId);
-    const reviews = await this.evaluations.reviews([evaluation.id]);
-    return { cycle, person, evaluation, reviews, level: reviewerLevel(ctx.userId, person.managerUserId, reviewOf(reviews, 'direct')?.reviewerUserId ?? null) };
+    const [reviews, objection] = await Promise.all([this.evaluations.reviews([evaluation.id]), this.objections.forEvaluation(evaluation.id)]);
+    return { cycle, person, evaluation, reviews, returned: reopened(objection?.status), level: reviewerLevel(ctx.userId, person.managerUserId, reviewOf(reviews, 'direct')?.reviewerUserId ?? null) };
   }
 
   private async row(t: Omit<Target, 'level'>, viewerUserId: string, selfSent: boolean): Promise<TeamEvaluationRowDto> {
@@ -170,15 +184,7 @@ export class PerformanceTeamService {
   }
 
   private async score(t: Pick<Target, 'cycle' | 'evaluation' | 'person'>, form: SaveTeamEvaluationInput) {
-    const template = this.template(t.cycle, t.evaluation);
-    const [catalog, minutes, stage] = await Promise.all([this.cycles.catalog(t.cycle.id), this.roster.approvedLearningMinutes(t.person.employeeId), this.stages.stageOf(t.person.titleId)]);
-    return scoreOf({
-      template, results: template.criteria.map((_, i) => form.results[String(i)]),
-      behaviours: Object.fromEntries(Object.entries(form.behaviours).map(([code, v]) => [code, v.level])) as never,
-      learning: { approvedMinutes: minutes, stageMinutes: (stage?.hoursPerYear ?? 0) * 60 },
-      picks: { init: pickedPoints(form.initIds, 'init', catalog), growth: pickedPoints(form.growthIds, 'growth', catalog) },
-      caps: { init: template.extra[1]?.points ?? 0, growth: template.extra[2]?.points ?? 0 },
-    });
+    return this.scores.of({ employeeId: t.person.employeeId, titleId: t.person.titleId, template: this.template(t.cycle, t.evaluation), catalog: await this.scores.catalogOf(t.cycle.id), form });
   }
 
   private async view(t: Target): Promise<TeamEvaluationDto> {

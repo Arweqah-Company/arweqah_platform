@@ -50,6 +50,8 @@ export interface GrantSourceRow {
 
 export abstract class UserAccessRepository {
   abstract loadAccess(userId: string): Promise<UserAccessRecord | null>;
+  /** The ids of the active users (the people whose permissions «who holds this key» looks at). */
+  abstract activeUserIds(): Promise<string[]>;
   abstract rolesOf(userIds: string[]): Promise<Map<string, Role[]>>;
   /** Every permission the person holds, one row per source (a role, a group of roles, a group of people, or the person alone). */
   abstract grantSourcesOf(userId: string): Promise<GrantSourceRow[]>;

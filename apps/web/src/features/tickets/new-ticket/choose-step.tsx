@@ -1,10 +1,12 @@
 import type { CatalogDeskDto, CatalogTypeDto, TicketCatalogDto } from '@arweqah-platform/shared';
-import { Building2, Search } from 'lucide-react';
+import { LayoutList, List, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Badge, Button, EmptyState } from '@/shared/ui';
+import { Alert, Badge, EmptyState, Select, ViewSwitch } from '@/shared/ui';
+import { useViewMode } from '@/shared/lib/use-view-mode';
 import { matchesText } from '@/shared/lib/text-match';
 import { cn } from '@/shared/lib/cn';
+import { TypeList, type TypeEntry } from './type-list';
 import type { Choice } from './use-new-ticket';
 
 interface Props {
@@ -46,34 +48,33 @@ function DeskGroup({ desk, types, onChoose }: { desk: CatalogDeskDto; types: Cat
   );
 }
 
-/** A grid of all departments with how many kinds of ticket each takes; picking one narrows the list to it. */
-function DeskGrid({ desks, onPick }: { desks: CatalogDeskDto[]; onPick: (deskId: string) => void }) {
-  const { t, i18n } = useTranslation('tickets');
-  return (
-    <ul className="grid gap-2 sm:grid-cols-2">
-      {desks.map((d) => (
-        <li key={d.deskId}>
-          <button type="button" onClick={() => onPick(d.deskId)} className="flex w-full items-center gap-3 rounded-2xl border border-neutral-200 p-3 text-start hover:border-link hover:bg-petrol-50">
-            <Building2 className="size-5 text-link" aria-hidden />
-            <span className="flex flex-col"><span className="font-medium">{i18n.language === 'ar' ? d.nameAr : d.nameEn}</span><span className="text-xs text-muted">{t('choose.typesCount', { count: d.types.length })}</span></span>
-          </button>
-        </li>
-      ))}
-    </ul>
-  );
+type Kind = 'all' | 'personal' | 'regular';
+type CatalogView = 'groups' | 'list';
+const VIEWS = { modes: ['groups', 'list'], phoneDefault: 'list' } as const;
+
+/** The kinds that match the words typed, the department and the kind chosen, each with its department. */
+function matching(catalog: TicketCatalogDto, ar: boolean, filter: { query: string; deskId: string; kind: Kind }): TypeEntry[] {
+  return catalog.desks
+    .filter((d) => !filter.deskId || d.deskId === filter.deskId)
+    .flatMap((desk) => desk.types.map((type) => ({ desk, type })))
+    .filter(({ desk, type }) => (filter.kind === 'all' || type.isPersonal === (filter.kind === 'personal')) && matchesText([ar ? type.nameAr : type.nameEn, ar ? type.descriptionAr : type.descriptionEn, ar ? desk.nameAr : desk.nameEn], filter.query));
 }
 
-/** Step 1: "what do you need?" filters the kinds of ticket as you type; browsing the departments is one click away. */
+function byDesk(entries: TypeEntry[]): { desk: CatalogDeskDto; types: CatalogTypeDto[] }[] {
+  const groups = new Map<string, { desk: CatalogDeskDto; types: CatalogTypeDto[] }>();
+  for (const { desk, type } of entries) groups.set(desk.deskId, { desk, types: [...(groups.get(desk.deskId)?.types ?? []), type] });
+  return [...groups.values()];
+}
+
+/** Step 1: «what do you need?» searches the kinds of ticket as you type, narrows them by department and kind, and shows them grouped by department or as one compact list. */
 export function ChooseStep({ catalog, onChoose }: Props) {
   const { t, i18n } = useTranslation('tickets');
   const ar = i18n.language === 'ar';
   const [query, setQuery] = useState('');
-  const [browse, setBrowse] = useState(false);
-  const [deskId, setDeskId] = useState<string | null>(null);
-  const groups = catalog.desks
-    .filter((d) => !deskId || d.deskId === deskId)
-    .map((d) => ({ desk: d, types: d.types.filter((x) => matchesText([ar ? x.nameAr : x.nameEn, ar ? x.descriptionAr : x.descriptionEn, ar ? d.nameAr : d.nameEn], query)) }))
-    .filter((g) => g.types.length > 0);
+  const [deskId, setDeskId] = useState('');
+  const [kind, setKind] = useState<Kind>('all');
+  const [view, setView] = useViewMode<CatalogView>('ticket-types', VIEWS);
+  const entries = matching(catalog, ar, { query, deskId, kind });
   return (
     <div className="flex flex-col gap-4">
       <Alert tone="info">{t('choose.personalNotice')}</Alert>
@@ -81,12 +82,22 @@ export function ChooseStep({ catalog, onChoose }: Props) {
         <Search className="size-4 text-muted" aria-hidden />
         <input className="h-full flex-1 bg-transparent text-sm outline-none" aria-label={t('choose.search')} placeholder={t('choose.search')} value={query} onChange={(e) => setQuery(e.target.value)} autoFocus />
       </label>
-      <div className="flex items-center justify-between gap-2">
-        <Button variant="ghost" size="sm" onClick={() => setBrowse(!browse)}>{browse ? t('choose.hideBrowse') : t('choose.browse')}</Button>
-        {deskId && <Button variant="soft" size="sm" onClick={() => setDeskId(null)}>{t('choose.allDesks')}</Button>}
+      <div className="flex flex-wrap items-center gap-2">
+        <Select aria-label={t('choose.deskFilter')} className="min-w-48 flex-1" searchable value={deskId} onChange={(e) => setDeskId(e.target.value)}>
+          <option value="">{t('choose.allDesks')}</option>
+          {catalog.desks.map((d) => <option key={d.deskId} value={d.deskId}>{ar ? d.nameAr : d.nameEn}</option>)}
+        </Select>
+        <Select aria-label={t('choose.kindFilter')} className="min-w-40" value={kind} onChange={(e) => setKind(e.target.value as Kind)}>
+          <option value="all">{t('choose.kindAll')}</option>
+          <option value="regular">{t('choose.kindRegular')}</option>
+          <option value="personal">{t('choose.kindPersonal')}</option>
+        </Select>
+        <ViewSwitch value={view} onChange={setView} choices={[{ id: 'groups', label: t('choose.viewGroups'), icon: LayoutList }, { id: 'list', label: t('choose.viewList'), icon: List }]} />
       </div>
-      {browse && <DeskGrid desks={catalog.desks} onPick={(id) => { setDeskId(id); setBrowse(false); }} />}
-      {groups.length === 0 ? <EmptyState icon={Search} title={t('choose.noMatches')} /> : groups.map((g) => <DeskGroup key={g.desk.deskId} desk={g.desk} types={g.types} onChoose={onChoose} />)}
+      <p role="status" className="text-xs text-muted">{t('choose.typesCount', { count: entries.length })}</p>
+      {entries.length === 0 && <EmptyState icon={Search} title={t('choose.noMatches')} />}
+      {entries.length > 0 && view === 'list' && <TypeList entries={entries} onChoose={onChoose} />}
+      {entries.length > 0 && view === 'groups' && byDesk(entries).map((g) => <DeskGroup key={g.desk.deskId} desk={g.desk} types={g.types} onChoose={onChoose} />)}
     </div>
   );
 }

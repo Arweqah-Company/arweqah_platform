@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { me, server } from '../../../test/msw';
@@ -36,5 +36,28 @@ describe('Tickets Kanban board (FR-48)', () => {
     renderPage(<TicketsPage />);
     const group = await screen.findByRole('group', { name: 'طريقة العرض' });
     expect(within(group).getAllByRole('button').map((b) => b.textContent || b.getAttribute('aria-label'))).toEqual(['جدول', 'لوحة كانبان', 'بطاقات']);
+  });
+
+  it('replies from a card without leaving the board, and offers it on no closed ticket (FR-128)', async () => {
+    const sent: unknown[] = [];
+    server.use(
+      http.get('*/api/me', () => HttpResponse.json(me())),
+      http.get('*/api/tickets/options', () => HttpResponse.json({ desks: [], types: [], assignees: [], hasInbox: false, hasTeam: false })),
+      http.get('*/api/tickets', () => HttpResponse.json({ items: [ticket('a', 1, 'open'), ticket('b', 2, 'closed')], total: 2, page: 1, pageSize: 100, groupBy: null })),
+      http.post('*/api/tickets/a/replies', async ({ request }) => {
+        sent.push(await request.json());
+        return HttpResponse.json({});
+      }),
+    );
+    renderPage(<TicketsPage />);
+    fireEvent.click(await screen.findByRole('button', { name: 'لوحة كانبان', exact: true } as never));
+    const closed = await screen.findByRole('region', { name: 'مغلقة' });
+    expect(within(closed).queryByRole('button', { name: 'ردّ سريع' })).not.toBeInTheDocument();
+    fireEvent.click(within(screen.getByRole('region', { name: 'مفتوحة' })).getByRole('button', { name: 'ردّ سريع' }));
+    const dialog = await screen.findByRole('dialog', { name: /ردّ سريع على TKT-000001/ });
+    fireEvent.change(within(dialog).getByRole('textbox', { name: 'ردّك' }), { target: { value: 'تم الاستلام' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'إرسال الردّ' }));
+    await waitFor(() => expect(sent).toEqual([{ body: 'تم الاستلام', fileIds: [] }]));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 });

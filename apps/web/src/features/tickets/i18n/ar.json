@@ -71,10 +71,21 @@
     "description": "اختر الجهة والنوع، ثم اكتب طلبك."
   },
   "choose": {
+    "deskFilter": "الجهة",
+    "kindFilter": "نوع الطلب",
+    "kindAll": "كل الأنواع",
+    "kindRegular": "عادي",
+    "kindPersonal": "شخصي",
+    "viewGroups": "حسب الجهة",
+    "viewList": "قائمة مضغوطة",
+    "durationShort_one": "يوم عمل",
+    "durationShort_two": "يوما عمل",
+    "durationShort_few": "{{count}} أيام عمل",
+    "durationShort_many": "{{count}} يوم عمل",
+    "durationShort_other": "{{count}} يوم عمل",
+    "showMore": "عرض المزيد ({{count}} متبقٍ)",
     "personalNotice": "الشكاوى والأمور الشخصية تُرفع إلى الموارد البشرية مباشرة.",
     "search": "ماذا تحتاج؟",
-    "browse": "تصفّح الجهات",
-    "hideBrowse": "إخفاء الجهات",
     "allDesks": "كل الجهات",
     "noMatches": "لا يوجد نوع مطابق لبحثك.",
     "nothing": "لا توجد جهات تستقبل التذاكر الآن.",
@@ -116,12 +127,19 @@
     "neededByHint_other": "يُقترح بعد {{count}} يوم عمل"
   },
   "reply": {
+    "answer": "ردّ على هذا الردّ",
+    "answerTo": "ردّك على {{name}}",
+    "inReplyTo": "ردًّا على {{name}}",
+    "mentionList": "زملاء يمكن ذكرهم",
+    "hint": "اكتب @ لذكر زميل. Ctrl+Enter للإرسال.",
     "label": "ردّك",
     "send": "إرسال الردّ",
     "sent": "أُرسل الردّ.",
     "closedNote": "التذكرة مغلقة، فلا تقبل ردودًا جديدة."
   },
+  "card": { "label": "التذكرة" },
   "timeline": {
+    "heading": "المحادثة والردود",
     "label": "سجل التذكرة",
     "system": "النظام"
   },
@@ -216,6 +234,8 @@
     "calendarDays": "بالأيام التقويمية",
     "daysRange": "عدد صحيح من {{min}} إلى {{max}}.",
     "saved": "حُفظت الإعدادات.",
+    "tabsLabel": "أقسام إعداد الجهة",
+    "tabs": { "settings": "الإعدادات", "types": "الأنواع" },
     "typesTitle": "أنواع التذاكر",
     "typesIntro": "لكل نوع اسم ووصف ومسؤول ومدة خاصة اختيارية.",
     "noTypes": "لا أنواع بعد. أضف نوعًا لتستقبل الجهة التذاكر.",
@@ -290,6 +310,8 @@
     "desk": "الجهة"
   },
   "board": {
+    "quickReply": "ردّ سريع",
+    "quickReplyTitle": "ردّ سريع على {{number}}",
     "label": "لوحة التذاكر",
     "assignee": "المسؤول: {{name}}",
     "sender": "المرسل: {{name}}",
@@ -305,6 +327,8 @@
         "request_close": "تطلب إغلاق تذكرة بعد التنفيذ",
         "confirm_close": "تؤكد إغلاق تذكرة أو ترفضه",
         "reopen": "تعيد فتح تذكرة أُغلقت",
+        "comment_reply": "تردّ على ردّ داخل التذكرة",
+        "comment_mention": "تذكر زميلًا بـ @ في ردّ",
         "setup": "تضبط قسمك وأنواع تذاكره ومدد الإنجاز",
         "figures": "تطّلع على أرقام الأقسام وأدائها"
       }

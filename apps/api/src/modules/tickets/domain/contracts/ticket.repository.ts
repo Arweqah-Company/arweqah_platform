@@ -2,6 +2,7 @@ import type { Paginated, TicketGrouping } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../../common/domain/transaction-context';
 import type {
   AttachmentRow,
+  MentionRow,
   FilterOptionsRows,
   NewEvent,
   NewTicket,
@@ -22,6 +23,9 @@ export abstract class TicketRepository {
   abstract list(filters: TicketListFilters): Promise<Paginated<TicketRow> & { groupBy: TicketGrouping | null }>;
   abstract events(ticketId: string): Promise<TicketEventRow[]>;
   abstract attachments(eventIds: string[]): Promise<AttachmentRow[]>;
+  abstract mentions(eventIds: string[]): Promise<MentionRow[]>;
+  /** A reply or the opening entry of the ticket (what a reply may answer), or null. */
+  abstract answerableEvent(ticketId: string, eventId: string): Promise<{ id: string; parentEventId: string | null; actorUserId: string | null } | null>;
   /** A file attached to this ticket (to authorize its download), or null. */
   abstract attachedFile(ticketId: string, fileId: string): Promise<boolean>;
   abstract filterOptions(viewer: TicketViewer): Promise<FilterOptionsRows>;

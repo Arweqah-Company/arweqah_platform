@@ -1,11 +1,10 @@
 import type { TaskCommentDto, TaskConversationDto } from '@arweqah-platform/shared';
-import { MessageSquareReply, Paperclip, Pencil, Trash2 } from 'lucide-react';
+import { MessageSquareReply, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
-import { ConfirmDialog, RowAction } from '@/shared/ui';
-import { CommentBody } from './comment-body';
+import { ConfirmDialog, FileChip, MentionedText, RowAction } from '@/shared/ui';
 import { CommentComposer } from './comment-composer';
 import { commentFileUrl, useDeleteComment } from './comments.api';
 
@@ -24,12 +23,7 @@ function Files({ taskId, comment }: { taskId: string; comment: TaskCommentDto })
   return (
     <ul className="mt-2 flex flex-wrap gap-2">
       {comment.files.map((f) => (
-        <li key={f.id}>
-          <a href={commentFileUrl(taskId, comment.id, f.id)} className="inline-flex items-center gap-1.5 rounded-full bg-neutral-50 px-3 py-1 text-xs text-link hover:underline">
-            <Paperclip className="size-3.5" aria-hidden />
-            <span dir="ltr">{f.name}</span>
-          </a>
-        </li>
+        <li key={f.id}><FileChip file={{ name: f.name, contentType: f.contentType, previewPath: `/tasks/${taskId}/comments/${comment.id}/files/${f.id}/preview`, downloadUrl: commentFileUrl(taskId, comment.id, f.id) }} /></li>
       ))}
     </ul>
   );
@@ -78,7 +72,7 @@ export function CommentItem({ taskId, conversation, comment, replying, onReply, 
       <div className="mt-2">
         {comment.isDeleted && <p className="text-sm italic text-muted">{t('comments.deleted')}</p>}
         {!comment.isDeleted && editing && <CommentComposer taskId={taskId} conversation={conversation} target={{ type: 'edit', comment }} onDone={() => { setEditing(false); onDone(); }} />}
-        {!comment.isDeleted && !editing && <CommentBody body={comment.body} people={comment.mentions} />}
+        {!comment.isDeleted && !editing && <MentionedText body={comment.body} people={comment.mentions} />}
         <Files taskId={taskId} comment={comment} />
       </div>
       {replying && <div className="mt-3 border-t border-neutral-200 pt-3"><CommentComposer taskId={taskId} conversation={conversation} target={{ type: 'reply', comment }} onDone={onDone} /></div>}

@@ -2,10 +2,11 @@ import type { CatalogItemDto, CycleStage, EvalBlock, ReviewState, ReviewerLevel,
 
 /**
  * Why a manager cannot write an evaluation now (plan §3.2): no cycle, the manager's stage has not begun, the upper manager before the direct
- * manager sent, or the stage is over. `null` when they can.
+ * manager sent, or the stage is over. `null` when they can. An evaluation returned by an accepted objection is open to its managers in any stage (FR-123).
  */
-export function evalBlock(stage: CycleStage | null, level: ReviewerLevel, directSent: boolean): EvalBlock | null {
+export function evalBlock(stage: CycleStage | null, level: ReviewerLevel, directSent: boolean, returned = false): EvalBlock | null {
   if (!stage) return 'no_cycle';
+  if (returned) return level === 'upper' && !directSent ? 'wait_direct' : null;
   if (stage === 'self') return 'not_started';
   if (stage !== 'mgr') return 'stage_over';
   return level === 'upper' && !directSent ? 'wait_direct' : null;

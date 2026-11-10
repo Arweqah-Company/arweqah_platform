@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { KanbanColumn } from '@/shared/ui';
 import { TicketFlags } from '../ticket-badges';
+import { QuickReply } from './quick-reply';
 
 function TicketCard({ ticket }: { ticket: TicketListItemDto }) {
   const { t, i18n } = useTranslation('tickets');
@@ -18,6 +19,7 @@ function TicketCard({ ticket }: { ticket: TicketListItemDto }) {
       <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
         <span dir="ltr" className="text-muted">{ticket.neededBy}</span>
         <TicketFlags ticket={ticket} />
+        <span className="ms-auto"><QuickReply ticket={ticket} /></span>
       </div>
     </li>
   );

@@ -1,4 +1,4 @@
-import { BusinessRuleError, ConflictError, NotFoundError } from '../../../../common/domain/domain-error';
+import { BusinessRuleError, ConflictError, ForbiddenError, NotFoundError } from '../../../../common/domain/domain-error';
 
 export class TicketNotFoundError extends NotFoundError {
   constructor() {
@@ -108,5 +108,27 @@ export class NotDeskManagerError extends BusinessRuleError {
   override readonly code = 'NOT_DESK_MANAGER';
   constructor() {
     super('Only the manager of this department can do this');
+  }
+}
+
+/** The person may reply to the ticket but their role lacks the key of this action (answering a reply, or mentioning). */
+export class TicketCommentNotAllowedError extends ForbiddenError {
+  override readonly code = 'TICKET_COMMENT_NOT_ALLOWED';
+  constructor(action: string) {
+    super(`You may not ${action} in this ticket`);
+  }
+}
+
+export class TicketMentionInvalidError extends BusinessRuleError {
+  override readonly code = 'TICKET_MENTION_INVALID';
+  constructor() {
+    super('Only active employees of the ticket’s company can be mentioned, and nobody outside the two sides of a personal ticket');
+  }
+}
+
+export class TicketReplyTargetInvalidError extends BusinessRuleError {
+  override readonly code = 'TICKET_REPLY_TARGET_INVALID';
+  constructor() {
+    super('That reply cannot be answered');
   }
 }

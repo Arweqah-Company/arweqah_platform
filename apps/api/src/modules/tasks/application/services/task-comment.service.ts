@@ -85,10 +85,20 @@ export class TaskCommentService {
 
   /** The stream of a file of a live comment, for somebody who may read the conversation. */
   async openFile(viewer: TaskViewer, taskId: string, commentId: string, fileId: string) {
+    const file = await this.granted(viewer, taskId, commentId, fileId);
+    return { file, opened: await this.files.open(file) };
+  }
+
+  /** The same file for the preview window (images and PDF only). */
+  async previewFile(viewer: TaskViewer, taskId: string, commentId: string, fileId: string) {
+    const file = await this.granted(viewer, taskId, commentId, fileId);
+    return { file, stream: await this.files.preview(file) };
+  }
+
+  private async granted(viewer: TaskViewer, taskId: string, commentId: string, fileId: string) {
     await this.access.open(viewer, taskId);
     if (!(await this.comments.attachedFile(taskId, commentId, fileId))) throw new TaskCommentNotFoundError();
-    const file = await this.files.getGranted(fileId);
-    return { file, opened: await this.files.open(file) };
+    return this.files.getGranted(fileId);
   }
 
   /** The @ list: active employees of the task's company, for somebody who may mention. */

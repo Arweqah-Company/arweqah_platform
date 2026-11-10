@@ -13,3 +13,10 @@ export class FileTooLargeError extends BusinessRuleError {
     super('The file is too large');
   }
 }
+
+export class FileNotPreviewableError extends BusinessRuleError {
+  override readonly code = 'FILE_NOT_PREVIEWABLE';
+  constructor() {
+    super('This file type cannot be shown in the window; download it instead');
+  }
+}

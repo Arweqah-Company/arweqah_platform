@@ -12,7 +12,7 @@ import {
 } from '@arweqah-platform/shared';
 import { abilitiesFor, reopenDaysLeft } from '../../domain/rules/ticket-lifecycle.rules';
 import { isNewTicket, isOverdue, isStale } from '../../domain/rules/ticket-flags.rules';
-import type { AttachmentRow, DeskRecord, DepartmentFacts, TicketEventRow, TicketRow, TypeRecord } from '../../domain/types/ticket.types';
+import type { AttachmentRow, MentionRow, DeskRecord, DepartmentFacts, TicketEventRow, TicketRow, TypeRecord } from '../../domain/types/ticket.types';
 
 export interface DeskNames {
   nameAr: string;
@@ -51,7 +51,7 @@ export class TicketTransformer {
     };
   }
 
-  toDetail(input: { row: TicketRow; desk: DeskNames | undefined; relations: TicketRelation[]; events: TicketEventRow[]; attachments: AttachmentRow[]; now: Date }): TicketDto {
+  toDetail(input: { row: TicketRow; desk: DeskNames | undefined; relations: TicketRelation[]; events: TicketEventRow[]; attachments: AttachmentRow[]; mentions: MentionRow[]; now: Date }): TicketDto {
     const { row, relations, now } = input;
     const left = reopenDaysLeft(row.status, row.closedAt, row.deskReopenWindowDays, now);
     return {
@@ -59,20 +59,23 @@ export class TicketTransformer {
       details: row.details,
       relations,
       abilities: abilitiesFor(relations, row.status, left),
-      events: input.events.map((e) => this.toEvent(e, input.attachments)),
+      events: input.events.map((e) => this.toEvent(e, input.attachments, input.mentions)),
       reopenDaysLeft: left,
       closeRequestedAt: row.closeRequestedAt?.toISOString() ?? null,
       closedAt: row.closedAt?.toISOString() ?? null,
     };
   }
 
-  private toEvent(e: TicketEventRow, attachments: AttachmentRow[]): TicketEventDto {
+  private toEvent(e: TicketEventRow, attachments: AttachmentRow[], mentions: MentionRow[]): TicketEventDto {
     const files: TicketAttachmentDto[] = attachments.filter((a) => a.eventId === e.id).map(({ fileId, originalName, contentType, size }) => ({ fileId, originalName, contentType, size }));
     return {
       id: e.id,
       type: e.type,
       actor: e.actorUserId ? { id: e.actorUserId, name: e.actorName ?? '' } : null,
       body: e.body,
+      parentId: e.parentEventId,
+      replyTo: e.replyToUserId ? { id: e.replyToUserId, name: e.replyToName ?? '' } : null,
+      mentions: mentions.filter((m) => m.eventId === e.id).map((m) => ({ id: m.userId, name: m.name })),
       attachments: files,
       createdAt: e.createdAt.toISOString(),
     };

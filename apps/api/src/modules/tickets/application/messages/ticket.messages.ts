@@ -17,4 +17,4 @@ export const TICKET_AUDIT = {
 
 export const TICKET_TOPICS = { autoClose: 'tickets.auto-close' } as const;
 
-export type NoticeKind = 'created' | 'reply' | 'closeRequested' | 'closedNotExecuted' | 'autoClosed' | 'reopened' | 'stale' | 'personalMoved';
+export type NoticeKind = 'created' | 'reply' | 'closeRequested' | 'closedNotExecuted' | 'autoClosed' | 'reopened' | 'stale' | 'personalMoved' | 'mentioned' | 'replyAnswered';

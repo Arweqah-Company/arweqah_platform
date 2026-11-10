@@ -27,6 +27,11 @@ const MANAGED = `SELECT d."orgNodeId" AS id FROM (${DEPARTMENTS}) d WHERE $1 = A
 const ACTIVE_EMPLOYEE = `SELECT u.id, COALESCE(e.full_name, u.name) AS name FROM users u JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE u.id = $1 AND u.is_active`;
 const PEOPLE = `SELECT u.id, COALESCE(e.full_name, u.name) AS name FROM users u LEFT JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE u.id = ANY($1)`;
 
+const COMPANIES_OF = `SELECT u.id, e.company_id AS "companyId" FROM users u JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE u.is_active AND u.id = ANY($1)`;
+const MENTIONABLES = `SELECT u.id, COALESCE(e.full_name, u.name) AS name FROM users u JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE u.is_active AND e.company_id = $1`;
+const MENTIONABLES_BY_NAME = `${MENTIONABLES} AND COALESCE(e.full_name, u.name) ILIKE $2 ORDER BY name LIMIT 20`;
+const MENTIONABLES_ALL = `${MENTIONABLES} ORDER BY name LIMIT 20`;
+
 @Injectable()
 export class TypeOrmTicketDirectory extends TicketDirectory {
   constructor(private readonly ds: DataSource) {
@@ -40,6 +45,16 @@ export class TypeOrmTicketDirectory extends TicketDirectory {
   async managedDepartmentIds(userId: string): Promise<string[]> {
     const rows: { id: string }[] = await this.ds.query(MANAGED, [userId]);
     return rows.map((r) => r.id);
+  }
+
+  async companiesOf(userIds: string[]): Promise<Map<string, string>> {
+    if (!userIds.length) return new Map();
+    const rows: { id: string; companyId: string }[] = await this.ds.query(COMPANIES_OF, [userIds]);
+    return new Map(rows.map((r) => [r.id, r.companyId]));
+  }
+
+  mentionables(companyId: string, search?: string): Promise<PersonRecord[]> {
+    return search ? this.ds.query(MENTIONABLES_BY_NAME, [companyId, likeContains(search)]) : this.ds.query(MENTIONABLES_ALL, [companyId]);
   }
 
   async activeEmployee(userId: string): Promise<PersonRecord | null> {

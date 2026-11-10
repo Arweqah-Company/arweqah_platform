@@ -48,6 +48,16 @@ class ApiClient {
     return data as T;
   }
 
+  /** A file's bytes (the preview window shows them from an object URL, so the API's own security headers stay as strict as they are). */
+  async blob(path: string): Promise<Blob> {
+    const res = await fetch(this.url(path), { credentials: 'include' });
+    if (!res.ok) {
+      const data: unknown = res.headers.get('content-type')?.includes('json') ? await res.json() : null;
+      throw this.fail(res.status, data as Partial<ApiErrorBody> | null);
+    }
+    return res.blob();
+  }
+
   get<T>(path: string, query?: Query): Promise<T> {
     return this.request<T>(path, { query });
   }

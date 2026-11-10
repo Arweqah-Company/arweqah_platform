@@ -12,6 +12,7 @@ import { SessionSwitcher } from './domain/session-switcher';
 import { BetterAuthSessionSwitcher } from './infrastructure/better-auth-session-switcher';
 import { TypeOrmImpersonationRepository } from './infrastructure/typeorm-impersonation.repository';
 import { ImpersonationController } from './presentation/impersonation.controller';
+import { PermissionHoldersService } from './application/permission-holders.service';
 import { AccessContextService } from './application/access-context.service';
 import { PageVisibilityService } from './application/page-visibility.service';
 import { MyAccessService } from './application/my-access.service';
@@ -61,6 +62,7 @@ import { RolesController } from './presentation/roles.controller';
   providers: [
     PermissionCatalog,
     AccessContextService,
+    PermissionHoldersService,
     AbilityFactory,
     RolesService,
     RoleGroupsService,
@@ -89,7 +91,7 @@ import { RolesController } from './presentation/roles.controller';
     { provide: ProfileRepository, useClass: TypeOrmProfileRepository },
     { provide: UserAccessRepository, useClass: TypeOrmUserAccessRepository },
   ],
-  exports: [PermissionCatalog, PageVisibilityService, RoleGroupsService, AutoRolesService, JobTitleRolesService, AccessContextService, AbilityFactory, PermissionsGuard, UserAccessService, AdminModeService, AdminModeEligibility, ImpersonationService],
+  exports: [PermissionCatalog, PageVisibilityService, RoleGroupsService, AutoRolesService, JobTitleRolesService, AccessContextService, PermissionHoldersService, AbilityFactory, PermissionsGuard, UserAccessService, AdminModeService, AdminModeEligibility, ImpersonationService],
 })
 export class AccessModule implements OnModuleInit {
   constructor(private readonly catalog: PermissionCatalog) {}

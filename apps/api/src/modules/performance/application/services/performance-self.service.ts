@@ -14,6 +14,7 @@ import { SelfEvaluationClosedError, SelfEvaluationInvalidError } from '../../dom
 import { cleanSelf, emptySelf, selfEditable, selfProblems } from '../../domain/rules/self-evaluation.rules';
 import { PERFORMANCE_AUDIT, PERFORMANCE_EVALUATION_ENTITY } from '../messages/performance.messages';
 import { PerformanceEvaluationService } from './performance-evaluation.service';
+import { PerformanceResultService } from './performance-result.service';
 
 interface Mine {
   person: RosterPerson;
@@ -30,6 +31,7 @@ export class PerformanceSelfService {
     private readonly cycles: PerformanceCycleRepository,
     private readonly evaluations: PerformanceEvaluationRepository,
     private readonly made: PerformanceEvaluationService,
+    private readonly results: PerformanceResultService,
     private readonly notifications: NotificationsService,
     private readonly tx: TransactionRunner,
     private readonly clock: Clock,
@@ -42,7 +44,8 @@ export class PerformanceSelfService {
     const person = await this.roster.person(ctx.userId);
     const evaluation = cycle && person ? await this.made.ensure(cycle.id, person, cycle.stage !== 'closed', (work) => this.tx.run(work)) : null;
     const head = cycle ? { fiscalYear: cycle.fiscalYear, stage: cycle.stage, selfDeadline: cycle.dates.find((d) => d.key === 'self_deadline')?.from ?? null } : null;
-    return { cycle: head, evaluation: cycle && person && evaluation ? await this.view({ person, cycle, evaluation }) : null };
+    if (!cycle || !person || !evaluation) return { cycle: head, evaluation: null, result: null };
+    return { cycle: head, evaluation: await this.view({ person, cycle, evaluation }), result: await this.results.mine(cycle, evaluation) };
   }
 
   /** Keeps the form. Before the first send it is a draft (anything goes); after it, the form must stay complete. */

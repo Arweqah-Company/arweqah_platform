@@ -20,6 +20,8 @@ export const TICKET_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.TicketsDeclineClose, 'رفض إغلاق التذكرة', 'Reject the closing of a ticket'),
   def(CorePermission.TicketsCloseWithoutExecution, 'إغلاق التذكرة بلا تنفيذ', 'Close a ticket without executing it'),
   def(CorePermission.TicketsReopen, 'إعادة فتح تذكرة مغلقة', 'Reopen a closed ticket'),
+  def(CorePermission.TicketsCommentReply, 'الرد على رد داخل التذكرة', 'Answer a reply inside a ticket'),
+  def(CorePermission.TicketsCommentMention, 'ذكر موظف بـ @ في ردّ على تذكرة', 'Mention a colleague with @ in a ticket reply'),
   def(CorePermission.TicketsSetupView, 'عرض صفحة إعداد التذاكر', 'View the ticket setup page', WIDE),
   def(CorePermission.TicketsSetupEdit, 'تعديل استقبال الجهة ومُهَلها', 'Edit a unit\'s reception and durations', WIDE),
   def(CorePermission.TicketsTypeCreate, 'إضافة نوع تذكرة', 'Add a ticket type', WIDE),

@@ -5,6 +5,7 @@ import {
   ticketActionSchema,
   ticketDeskSettingsSchema,
   ticketFiguresQuerySchema,
+  ticketMentionablesQuerySchema,
   ticketReplySchema,
   ticketTypeInputSchema,
   ticketsQuerySchema,
@@ -12,6 +13,7 @@ import {
 
 export class CreateTicketBody extends createZodDto(createTicketSchema) {}
 export class TicketReplyBody extends createZodDto(ticketReplySchema) {}
+export class MentionablesQueryDto extends createZodDto(ticketMentionablesQuerySchema) {}
 export class TicketActionBody extends createZodDto(ticketActionSchema) {}
 export class TicketsQueryDto extends createZodDto(ticketsQuerySchema) {}
 export class DeskSettingsBody extends createZodDto(ticketDeskSettingsSchema) {}

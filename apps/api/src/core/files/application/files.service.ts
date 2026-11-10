@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type { Readable } from 'node:stream';
-import { ALLOWED_UPLOAD_TYPES, MAX_UPLOAD_BYTES, type FileDto } from '@arweqah-platform/shared';
+import { ALLOWED_UPLOAD_TYPES, MAX_UPLOAD_BYTES, isPreviewable, type FileDto } from '@arweqah-platform/shared';
 import { NotFoundError } from '../../../common/domain/domain-error';
-import { FileTooLargeError, FileTypeNotAllowedError } from '../domain/errors';
+import { FileNotPreviewableError, FileTooLargeError, FileTypeNotAllowedError } from '../domain/errors';
 import { StoredFile } from '../domain/stored-file.entity';
 import { ContentInspector, FileStorage } from './file-storage';
 import { FileRepository } from '../domain/file.repository';
@@ -59,6 +59,12 @@ export class FilesService {
     const file = await this.repo.findById(id);
     if (!file) throw new NotFoundError('File', id);
     return file;
+  }
+
+  /** The bytes of an image or a PDF for the preview window (never a redirect: the screen reads them itself); other types are refused. */
+  async preview(file: StoredFile): Promise<Readable> {
+    if (!isPreviewable(file.contentType)) throw new FileNotPreviewableError();
+    return this.storage.read(file.storageKey);
   }
 
   async open(file: StoredFile): Promise<{ url: string } | { stream: Readable }> {

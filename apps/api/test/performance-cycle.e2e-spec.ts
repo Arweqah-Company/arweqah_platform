@@ -33,7 +33,7 @@ describe('The evaluation cycle (FR-118)', () => {
     const opened = (await agent.post('/api/performance/cycle/open').send({ fiscalYear: 2026 }).expect(200)).body as CycleStateDto;
     expect(opened.cycle).toMatchObject({ fiscalYear: 2026, stage: 'self', closedAt: null });
     expect(opened).toMatchObject({ datesFor: 'cycle', dates: expect.any(Array) });
-    expect(opened.dates).toHaveLength(7);
+    expect(opened.dates).toHaveLength(11);
     const [row] = (await t.db.query('SELECT template_snapshot FROM performance_cycles')) as { template_snapshot: { stages: { stage: number; cap: number }[]; scale: unknown[] } }[];
     expect(row!.template_snapshot.stages.map((s) => s.stage)).toEqual([1, 2, 3, 4, 5]);
     expect(row!.template_snapshot.scale).toHaveLength(5);
@@ -101,7 +101,7 @@ describe('The evaluation cycle (FR-118)', () => {
     await agent.post('/api/performance/cycle/open').send({ fiscalYear: 2026 }).expect(200);
     await agent.put('/api/performance/cycle/dates/final').send({ from: '2027-04-15', to: '2027-04-20' }).expect(200);
     const s = (await agent.put('/api/performance/cycle/dates/calibration').send({ from: '2027-04-21', to: '2027-04-24' }).expect(200)).body as CycleStateDto;
-    expect(s.dates.map((d) => d.key)).toEqual(['final', 'calibration', 'approval', 'notification', 'objection', 'self_deadline', 'qualitative_close']);
+    expect(s.dates.map((d) => d.key)).toEqual(['final', 'calibration', 'approval', 'notification', 'objection', 'self_deadline', 'qualitative_close', 'review_jan', 'pulse_mar', 'review_jul', 'pulse_sep']);
     const bad = await agent.put('/api/performance/cycle/dates/calibration').send({ from: '2027-04-10', to: '2027-04-24' }).expect(422);
     expect(bad.body).toMatchObject({ code: 'CYCLE_DATE_INVALID' });
     expect(bad.body.details.problems).toContain('before_previous');

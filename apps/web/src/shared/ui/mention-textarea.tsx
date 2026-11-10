@@ -1,12 +1,15 @@
 import { useId, useRef, useState, type KeyboardEvent } from 'react';
-import { useTranslation } from 'react-i18next';
-import { cn } from '@/shared/lib/cn';
-import { Textarea } from '@/shared/ui';
-import { useMentionables } from './comments.api';
-import { insertMention, mentionQueryAt, type Mentioned } from './mention-text';
+import { cn } from '../lib/cn';
+import { insertMention, mentionQueryAt, type Mentioned } from '../lib/mention-text';
+import { Textarea } from './form-field';
 
 interface Props {
-  taskId: string;
+  /** The query hook of the people to offer for what was typed after the `@` (only enabled while the list is open). */
+  usePeople: (scopeId: string, search: string, enabled: boolean) => { data?: Mentioned[] };
+  /** What the people belong to (the task or the ticket id), handed to `usePeople`. */
+  scopeId: string;
+  /** Accessible name of the list of people. */
+  listLabel: string;
   value: string;
   onChange: (text: string) => void;
   /** Everyone chosen from the list so far (their names are turned into mentions when the comment is sent). */
@@ -30,15 +33,14 @@ function keyAction(event: KeyboardEvent, listOpen: boolean): KeyAction | null {
 }
 
 /** A text area in which typing `@` opens the list of people to mention (arrow keys, Enter or a click choose; Escape closes). */
-export function MentionTextarea({ taskId, value, onChange, onPick, label, mayMention, rows = 3, maxLength, onSubmit }: Props) {
-  const { t } = useTranslation('tasks');
+export function MentionTextarea({ usePeople, scopeId, listLabel, value, onChange, onPick, label, mayMention, rows = 3, maxLength, onSubmit }: Props) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const listId = useId();
   const [caret, setCaret] = useState(0);
   const [active, setActive] = useState(0);
   const [dismissed, setDismissed] = useState(false);
   const at = mayMention && !dismissed ? mentionQueryAt(value, caret) : null;
-  const people = useMentionables(taskId, at?.query ?? '', at !== null).data ?? [];
+  const people = usePeople(scopeId, at?.query ?? '', at !== null).data ?? [];
 
   const choose = (person: Mentioned) => {
     const next = insertMention(value, caret, person);
@@ -79,7 +81,7 @@ export function MentionTextarea({ taskId, value, onChange, onPick, label, mayMen
         onKeyDown={onKeyDown}
       />
       {at && people.length > 0 && (
-        <ul id={listId} role="listbox" tabIndex={0} aria-label={t('comments.mentionList')} className="absolute inset-x-0 top-full z-20 mt-1 max-h-56 overflow-auto rounded-xl border border-neutral-200 bg-white p-1 shadow-lg">
+        <ul id={listId} role="listbox" tabIndex={0} aria-label={listLabel} className="absolute inset-x-0 top-full z-20 mt-1 max-h-56 overflow-auto rounded-xl border border-neutral-200 bg-white p-1 shadow-lg">
           {people.map((p, i) => (
             <li key={p.id} role="option" aria-selected={i === active} className={cn('cursor-pointer rounded-lg px-3 py-2 text-sm', i === active ? 'bg-petrol-50 text-link' : 'hover:bg-neutral-50')} onMouseDown={(e) => { e.preventDefault(); choose(p); }}>
               {p.name}

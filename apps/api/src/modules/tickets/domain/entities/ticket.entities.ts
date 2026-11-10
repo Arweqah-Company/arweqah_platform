@@ -198,12 +198,28 @@ export class TicketEvent {
   @Column({ type: 'text', nullable: true })
   body: string | null;
 
+  /** The first-level reply this reply answers (an answer to an answer is filed under the first one). */
+  @Column({ name: 'parent_event_id', type: 'uuid', nullable: true })
+  parentEventId: string | null;
+
+  /** Whom this reply answers. */
+  @Column({ name: 'reply_to_user_id', type: 'uuid', nullable: true })
+  replyToUserId: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 
   @ManyToOne('Ticket', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'ticket_id', foreignKeyConstraintName: 'FK_ticket_events_ticket' })
   private readonly ticketFk?: unknown;
+
+  @ManyToOne('TicketEvent', { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'parent_event_id', foreignKeyConstraintName: 'FK_ticket_events_parent' })
+  private readonly parentFk?: unknown;
+
+  @ManyToOne('User', { onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'reply_to_user_id', foreignKeyConstraintName: 'FK_ticket_events_reply_to' })
+  private readonly replyToFk?: unknown;
 
   @ManyToOne('User', { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'actor_user_id', foreignKeyConstraintName: 'FK_ticket_events_actor' })
@@ -227,4 +243,23 @@ export class TicketAttachment {
   private readonly fileFk?: unknown;
 }
 
-export const TICKET_ENTITIES = [TicketDesk, TicketType, Ticket, TicketEvent, TicketAttachment];
+/** The people a reply names with @. They may read and answer the ticket (relation `mentioned`). */
+@Entity('ticket_event_mentions')
+@Index('IDX_ticket_event_mentions_user', ['userId'])
+export class TicketEventMention {
+  @PrimaryColumn({ name: 'event_id', type: 'uuid' })
+  eventId: string;
+
+  @PrimaryColumn({ name: 'user_id', type: 'uuid' })
+  userId: string;
+
+  @ManyToOne('TicketEvent', { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'event_id', foreignKeyConstraintName: 'FK_ticket_event_mentions_event' })
+  private readonly eventFk?: unknown;
+
+  @ManyToOne('User', { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id', foreignKeyConstraintName: 'FK_ticket_event_mentions_user' })
+  private readonly userFk?: unknown;
+}
+
+export const TICKET_ENTITIES = [TicketDesk, TicketType, Ticket, TicketEvent, TicketAttachment, TicketEventMention];

@@ -18,4 +18,13 @@ export const PERFORMANCE_PERMISSIONS: PermissionDefinition[] = [
   { key: CorePermission.PerformanceTeamView, module: MODULE, labelAr: 'عرض صفحة «تقييم فريقي»', labelEn: 'View the «team evaluation» page', scopes: ['subtree', 'all'] },
   { key: CorePermission.PerformanceTeamEvaluate, module: MODULE, labelAr: 'تقييم أعضاء الفريق وإرسال التقييم', labelEn: 'Evaluate team members and send the evaluation', scopes: ['subtree', 'all'] },
   { key: CorePermission.PerformanceTeamExport, module: MODULE, labelAr: 'تصدير قائمة «تقييم فريقي»', labelEn: 'Export the «team evaluation» list', scopes: ['subtree', 'all'] },
+  { key: CorePermission.PerformanceCalibrationView, module: MODULE, labelAr: 'عرض صفحة «المعايرة والاعتماد»', labelEn: 'View the «calibration and approval» page', scopes: ['all'] },
+  { key: CorePermission.PerformanceCalibrate, module: MODULE, labelAr: 'معايرة درجات الموظفين وإنهاء المعايرة', labelEn: 'Calibrate the scores of employees and finish calibration', scopes: ['all'] },
+  { key: CorePermission.PerformanceApprove, module: MODULE, labelAr: 'اعتماد النتائج والبتّ في الاعتراضات', labelEn: 'Approve the results and decide the objections', scopes: ['all'] },
+  { key: CorePermission.PerformanceCalibrationExport, module: MODULE, labelAr: 'تصدير قائمة المعايرة والاعتماد', labelEn: 'Export the calibration and approval list', scopes: ['all'] },
+  { key: CorePermission.PerformanceObject, module: MODULE, labelAr: 'الاعتراض على نتيجة تقييمي', labelEn: 'Object to the result of my evaluation', scopes: ['all'] },
+  { key: CorePermission.PerformanceExport, module: MODULE, labelAr: 'تصدير نسخة من نتيجة تقييمي', labelEn: 'Export a copy of my evaluation result', scopes: ['all'] },
+  { key: CorePermission.PerformanceMilestoneView, module: MODULE, labelAr: 'عرض محطات الفريق ومحاضرها', labelEn: "View the team's milestones and their minutes", scopes: ['subtree', 'all'] },
+  { key: CorePermission.PerformanceMilestoneRecord, module: MODULE, labelAr: 'تسجيل محضر محطة لعضو الفريق', labelEn: 'Record the minutes of a milestone for a team member', scopes: ['subtree', 'all'] },
+  { key: CorePermission.PerformanceMilestoneAck, module: MODULE, labelAr: 'الإقرار باطلاعي على محضر محطتي', labelEn: 'Acknowledge reading the minutes of my milestone', scopes: ['all'] },
 ];

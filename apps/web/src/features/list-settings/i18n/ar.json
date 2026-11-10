@@ -460,6 +460,35 @@
         "scope": "النطاق",
         "status": "حالة التقييم"
       }
+    },
+    "performance-calibration": {
+      "name": "المعايرة",
+      "columns": {
+        "employee": "الموظف",
+        "title": "المسمى",
+        "manager": "المدير المباشر",
+        "managerScore": "درجة المدير",
+        "adjustment": "التعديل",
+        "calibrated": "بعد المعايرة",
+        "level": "المستوى"
+      },
+      "filters": {
+        "level": "المستوى",
+        "stage": "المرحلة المهنية",
+        "adjusted": "عُدّلت درجته"
+      }
+    },
+    "performance-objections": {
+      "name": "الاعتراضات",
+      "columns": {
+        "employee": "الموظف",
+        "item": "البند",
+        "reason": "السبب",
+        "status": "الحالة"
+      },
+      "filters": {
+        "status": "الحالة"
+      }
     }
   },
   "listHint": "العمود الأول (الاسم) يبقى دائمًا.",

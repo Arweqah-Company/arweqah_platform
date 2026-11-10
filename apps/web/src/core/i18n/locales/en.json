@@ -46,7 +46,8 @@
     "locked": "The menu is locked until you acknowledge your career path.",
     "lockedHint": "Read and acknowledge your career path first",
     "performanceCycle": "Evaluation cycle",
-    "performanceTeam": "Team evaluation"
+    "performanceTeam": "Team evaluation",
+    "performanceCalibration": "Calibration and approval"
   },
   "actions": {
     "save": "Save",
@@ -170,6 +171,10 @@
     "TASK_COMMENT_NOT_ALLOWED": "You may not do this in the task conversation.",
     "TASK_COMMENT_EMPTY": "Write some text or attach a file.",
     "TASK_COMMENT_TOO_MANY_FILES": "There are more files than a comment may carry.",
+    "TICKET_COMMENT_NOT_ALLOWED": "You do not have the permission for this action in the ticket (answering a reply or mentioning a colleague).",
+    "TICKET_MENTION_INVALID": "You can mention active employees of the ticket's company only, and nobody but its two sides on a personal ticket.",
+    "TICKET_REPLY_TARGET_INVALID": "This item cannot be answered.",
+    "FILE_NOT_PREVIEWABLE": "This type of file cannot be shown here; download it to open it.",
     "TASK_COMMENT_MENTION_INVALID": "You can mention active employees of the task's company only.",
     "TASK_COMMENT_REPLY_INVALID": "This comment cannot be answered.",
     "TASK_COMMENT_EDIT_EXPIRED": "The time to edit or delete the comment has passed.",
@@ -367,11 +372,22 @@
     "badType": "This file type is not allowed.",
     "tooBig": "The file is bigger than the limit ({{mb}} MB)."
   },
+  "files": {
+    "approximate": "An approximate view inside the system; download the file for the original.",
+    "unreadable": "The file could not be read for the preview. Download it to open it.",
+    "emptySheet": "This sheet is empty.",
+    "truncated": "Only part of the sheet is shown (the first 200 rows and 30 columns). Download the file to see the rest.",
+    "sheets": "Sheets of the file",
+    "loading": "Loading the file…",
+    "notPreviewable": "This type of file cannot be shown here. Download it to open it.",
+    "download": "Download",
+    "viewNamed": "View {{name}}"
+  },
   "attachments": {
     "remove": "Remove {{name}}",
     "tooMany": "At most {{max}} files.",
     "failed": "The file could not be uploaded.",
-    "hint": "Optional. Images, PDF files or documents."
+    "hint": "Optional. Images, PDF, Word (.docx) or Excel (.xlsx) files."
   },
   "groups": {
     "nameAr": "Name in Arabic",

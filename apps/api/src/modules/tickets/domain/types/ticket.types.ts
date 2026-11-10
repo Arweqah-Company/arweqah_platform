@@ -88,6 +88,8 @@ export interface TicketRow {
   deskStaleAfterDays: number;
   deskReopenWindowDays: number;
   deskAutoCloseDays: number;
+  /** The people named with @ in the replies of this ticket (they may read and answer it). */
+  mentionedUserIds: string[];
 }
 
 export interface NewTicket {
@@ -108,6 +110,9 @@ export interface NewEvent {
   actorUserId: string | null;
   body: string | null;
   fileIds: string[];
+  parentEventId?: string | null;
+  replyToUserId?: string | null;
+  mentionIds?: string[];
 }
 
 export interface TicketEventRow {
@@ -116,7 +121,16 @@ export interface TicketEventRow {
   actorUserId: string | null;
   actorName: string | null;
   body: string | null;
+  parentEventId: string | null;
+  replyToUserId: string | null;
+  replyToName: string | null;
   createdAt: Date;
+}
+
+export interface MentionRow {
+  eventId: string;
+  userId: string;
+  name: string;
 }
 
 export interface AttachmentRow {
@@ -144,6 +158,9 @@ export type ViewerScope = { kind: 'none' } | { kind: 'nodes'; ids: readonly stri
 /** Who is looking: the person, how far their view permission reaches, and which departments they may handle. */
 export interface TicketViewer {
   userId: string;
+  /** Whether the person's role has the two comment keys (the reply button on a reply, and @). */
+  canAnswerReply: boolean;
+  canMention: boolean;
   view: ViewerScope;
   handle: ViewerScope;
 }

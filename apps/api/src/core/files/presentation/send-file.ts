@@ -9,3 +9,11 @@ export function sendOpenedFile(res: Response, file: StoredFile, opened: { url: s
   res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(file.originalName)}`);
   opened.stream.pipe(res);
 }
+
+/** The bytes of a previewable file (see `FilesService.preview`) shown by the screen itself: inline, never cached or sniffed. */
+export function sendPreviewStream(res: Response, file: StoredFile, stream: Readable): void {
+  res.setHeader('Content-Type', file.contentType);
+  res.setHeader('Content-Disposition', `inline; filename*=UTF-8''${encodeURIComponent(file.originalName)}`);
+  res.setHeader('Cache-Control', 'private, no-store');
+  stream.pipe(res);
+}

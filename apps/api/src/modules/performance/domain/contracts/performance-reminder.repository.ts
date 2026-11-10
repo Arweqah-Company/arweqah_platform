@@ -10,4 +10,7 @@ export abstract class PerformanceReminderRepository {
   abstract update(id: string, input: ReminderInput, actorId: string, tx: TransactionContext): Promise<ReminderDto | null>;
   /** False when it is not there. */
   abstract remove(id: string, tx: TransactionContext): Promise<boolean>;
+  /** The day each reminder was last sent (by id); a reminder never sent has no entry. */
+  abstract lastSent(): Promise<Map<string, string>>;
+  abstract markSent(id: string, day: string): Promise<void>;
 }

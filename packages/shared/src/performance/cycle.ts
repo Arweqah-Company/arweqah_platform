@@ -9,8 +9,8 @@ import type { FiscalCard, GradeBand, StageTemplate } from './template';
 export const CYCLE_STAGES = ['self', 'mgr', 'cal', 'appr', 'notif', 'obj', 'closed'] as const;
 export type CycleStage = (typeof CYCLE_STAGES)[number];
 
-/** The dates of a cycle: the first five follow one another (each starts no earlier than the one before ends), the last two stand on their own. */
-export const CYCLE_DATE_KEYS = ['final', 'calibration', 'approval', 'notification', 'objection', 'self_deadline', 'qualitative_close'] as const;
+/** The dates of a cycle: the first five follow one another (each starts no earlier than the one before ends); the others stand on their own: the self-evaluation deadline, the close of the qualitative part and the four milestones of the year (the dates HR sets for them). */
+export const CYCLE_DATE_KEYS = ['final', 'calibration', 'approval', 'notification', 'objection', 'self_deadline', 'qualitative_close', 'review_jan', 'pulse_mar', 'review_jul', 'pulse_sep'] as const;
 export type CycleDateKey = (typeof CYCLE_DATE_KEYS)[number];
 export const CYCLE_DATE_CHAIN: readonly CycleDateKey[] = ['final', 'calibration', 'approval', 'notification', 'objection'];
 
@@ -92,6 +92,8 @@ export interface CycleStateDto {
   nextFiscalYear: number;
   /** The automatic reminders HR keeps (the sending is a later delivery). */
   reminders: ReminderDto[];
+  /** How many people hold the calibration key and the approval key: zero is a warning on the readiness card (it does not stop the cycle from opening). */
+  holders: { calibrate: number; approve: number };
   /** The caps of the two catalog kinds, from the first stage template that is kept (else the defaults). */
   catalogCaps: { init: number; growth: number };
 }

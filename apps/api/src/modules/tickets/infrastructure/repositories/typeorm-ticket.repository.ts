@@ -8,6 +8,7 @@ import { managerOf } from '../../../../common/infrastructure/typeorm-transaction
 import { TicketRepository } from '../../domain/contracts/ticket.repository';
 import type {
   AttachmentRow,
+  MentionRow,
   FilterOptionsRows,
   NewEvent,
   NewTicket,
@@ -76,8 +77,9 @@ export class TypeOrmTicketRepository extends TicketRepository {
 
   async appendEvent(e: NewEvent, tx: TransactionContext): Promise<string> {
     const m = this.m(tx);
-    const rows: { id: string }[] = await m.query('INSERT INTO ticket_events (ticket_id, type, actor_user_id, body) VALUES ($1, $2, $3, $4) RETURNING id', [e.ticketId, e.type, e.actorUserId, e.body]);
+    const rows: { id: string }[] = await m.query('INSERT INTO ticket_events (ticket_id, type, actor_user_id, body, parent_event_id, reply_to_user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id', [e.ticketId, e.type, e.actorUserId, e.body, e.parentEventId ?? null, e.replyToUserId ?? null]);
     const id = rows[0]?.id as string;
+    for (const userId of e.mentionIds ?? []) await m.query('INSERT INTO ticket_event_mentions (event_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [id, userId]);
     for (const fileId of e.fileIds) await m.query('INSERT INTO ticket_attachments (event_id, file_id) VALUES ($1, $2)', [id, fileId]);
     return id;
   }
@@ -139,8 +141,10 @@ export class TypeOrmTicketRepository extends TicketRepository {
 
   async events(ticketId: string): Promise<TicketEventRow[]> {
     return this.ds.query(
-      `SELECT ev.id, ev.type, ev.actor_user_id AS "actorUserId", COALESCE(e.full_name, u.name) AS "actorName", ev.body, ev.created_at AS "createdAt"
+      `SELECT ev.id, ev.type, ev.actor_user_id AS "actorUserId", COALESCE(e.full_name, u.name) AS "actorName", ev.body, ev.created_at AS "createdAt",
+              ev.parent_event_id AS "parentEventId", ev.reply_to_user_id AS "replyToUserId", COALESCE(re.full_name, ru.name) AS "replyToName"
        FROM ticket_events ev LEFT JOIN users u ON u.id = ev.actor_user_id LEFT JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL
+       LEFT JOIN users ru ON ru.id = ev.reply_to_user_id LEFT JOIN employees re ON re.user_id = ru.id AND re.deleted_at IS NULL
        WHERE ev.ticket_id = $1 ORDER BY ev.created_at, ev.id`,
       [ticketId],
     );
@@ -153,6 +157,20 @@ export class TypeOrmTicketRepository extends TicketRepository {
        FROM ticket_attachments a JOIN files f ON f.id = a.file_id WHERE a.event_id = ANY($1) ORDER BY f.original_name`,
       [eventIds],
     );
+  }
+
+  mentions(eventIds: string[]): Promise<MentionRow[]> {
+    if (!eventIds.length) return Promise.resolve([]);
+    return this.ds.query(
+      `SELECT m.event_id AS "eventId", m.user_id AS "userId", COALESCE(e.full_name, u.name) AS name
+       FROM ticket_event_mentions m JOIN users u ON u.id = m.user_id LEFT JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE m.event_id = ANY($1)`,
+      [eventIds],
+    );
+  }
+
+  async answerableEvent(ticketId: string, eventId: string): Promise<{ id: string; parentEventId: string | null; actorUserId: string | null } | null> {
+    const rows = await this.ds.query(`SELECT id, parent_event_id AS "parentEventId", actor_user_id AS "actorUserId" FROM ticket_events WHERE ticket_id = $1 AND id = $2 AND type = 'reply'`, [ticketId, eventId]);
+    return rows[0] ?? null;
   }
 
   async attachedFile(ticketId: string, fileId: string): Promise<boolean> {

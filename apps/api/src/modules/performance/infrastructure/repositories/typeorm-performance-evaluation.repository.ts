@@ -64,6 +64,10 @@ export class TypeOrmPerformanceEvaluationRepository extends PerformanceEvaluatio
     await managerOf(tx, this.ds.manager).getRepository(PerformanceManagerReview).upsert(row, { conflictPaths: ['evaluationId', 'level'] });
   }
 
+  async unsendReviews(evaluationId: string, tx: TransactionContext): Promise<void> {
+    await managerOf(tx, this.ds.manager).getRepository(PerformanceManagerReview).update({ evaluationId }, { sentAt: null });
+  }
+
   directStarted(evaluationId: string): Promise<boolean> {
     return this.managerReviews.exists({ where: { evaluationId, level: 'direct' } });
   }

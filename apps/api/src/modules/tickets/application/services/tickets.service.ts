@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { riyadhToday, type CreateTicketInput, type Paginated, type TicketDto, type TicketFilterOptionsDto, type TicketReplyInput, type TicketsPageDto, type TicketsQuery } from '@arweqah-platform/shared';
+import { riyadhToday, type CreateTicketInput, type Paginated, type TicketDto, type TicketFilterOptionsDto, type PersonRefDto, type TicketRelation, type TicketReplyInput, type TicketsPageDto, type TicketsQuery } from '@arweqah-platform/shared';
 import { Clock } from '../../../../common/application/clock';
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
@@ -18,6 +18,7 @@ import {
   DueDateTooEarlyError,
   NotADepartmentError,
   PersonalNotAcceptedError,
+  TicketCommentNotAllowedError,
   TicketNotFoundError,
   TicketRevisionConflictError,
   TicketStateInvalidError,
@@ -30,8 +31,10 @@ import { earliestNeededBy, resolveNeededBy } from '../../domain/rules/working-da
 import type { DeskRecord, DepartmentFacts, TicketRow, TicketViewer, TypeRecord } from '../../domain/types/ticket.types';
 import { TICKET_AUDIT } from '../messages/ticket.messages';
 import { TicketAccessPolicy } from '../policies/ticket-access.policy';
+import { TicketReplyPolicy } from '../policies/ticket-reply.policy';
 import { TicketTransformer, type DeskNames } from '../transformers/ticket.transformer';
 import { TicketNotifier } from './ticket-notifier.service';
+import { TicketReplyNotices } from './ticket-reply-notices.service';
 
 const REASON_ERRORS = { stopped: DeskStoppedError, paused: DeskPausedError, not_started: DeskNotStartedError, no_manager: DeskNoManagerError } as const;
 
@@ -47,6 +50,8 @@ export class TicketsService {
     private readonly policy: TicketAccessPolicy,
     private readonly transformer: TicketTransformer,
     private readonly notifier: TicketNotifier,
+    private readonly replyPolicy: TicketReplyPolicy,
+    private readonly replyNotices: TicketReplyNotices,
     private readonly tx: TransactionRunner,
     private readonly clock: Clock,
     private readonly events: EventEmitter2,
@@ -85,8 +90,9 @@ export class TicketsService {
     const relations = this.policy.assertCanView(viewer, row);
     const found = row as TicketRow;
     const events = await this.tickets.events(id);
-    const [attachments, names] = await Promise.all([this.tickets.attachments(events.map((e) => e.id)), this.deskNames([found.deskId])]);
-    return this.transformer.toDetail({ row: found, desk: names.get(found.deskId), relations, events, attachments, now: this.clock.now() });
+    const ids = events.map((e) => e.id);
+    const [attachments, mentions, names] = await Promise.all([this.tickets.attachments(ids), this.tickets.mentions(ids), this.deskNames([found.deskId])]);
+    return this.transformer.toDetail({ row: found, desk: names.get(found.deskId), relations, events, attachments, mentions, now: this.clock.now() });
   }
 
   async reply(viewer: TicketViewer, id: string, input: TicketReplyInput): Promise<TicketDto> {
@@ -97,16 +103,33 @@ export class TicketsService {
     const now = this.clock.now();
     if (!abilitiesFor(relations, found.status, reopenDaysLeft(found.status, found.closedAt, found.deskReopenWindowDays, now)).reply) throw new TicketStateInvalidError('reply', found.status);
     await this.assertFiles(userId, input.fileIds);
+    const resolved = await this.replyPolicy.resolve(viewer, found, input);
     const fromUnit = relations.includes('assignee') || relations.includes('manager') || relations.includes('desk');
     const senderAnswersClosing = relations.includes('sender') && !fromUnit && found.status === 'close_requested';
+    const audience = this.replyAudience(found, relations, fromUnit);
     await this.tx.run(async (tx) => {
       const patch = { lastActivityAt: now, ...(fromUnit && !found.firstResponseAt ? { firstResponseAt: now } : {}), ...(senderAnswersClosing ? { ...nextState('sender_reply', found.status), closeRequestedAt: null } : {}) };
       await this.patchOrFail(found, patch, tx);
-      await this.tickets.appendEvent({ ticketId: id, type: 'reply', actorUserId: userId, body: input.body, fileIds: input.fileIds }, tx);
-      await this.notifier.send({ kind: 'reply', ticket: found, recipients: fromUnit ? [found.senderUserId] : this.policy.unitRecipients(found), actorUserId: userId, tx });
+      await this.tickets.appendEvent({ ticketId: id, type: 'reply', actorUserId: userId, body: input.body, fileIds: input.fileIds, ...resolved }, tx);
+      await this.replyNotices.send({ ...resolved, ticket: found, actorUserId: userId, audience }, tx);
     });
-    this.audit(userId, TICKET_AUDIT.replied, id, { files: input.fileIds.length });
+    this.audit(userId, TICKET_AUDIT.replied, id, { files: input.fileIds.length, mentions: resolved.mentionIds.length, answer: resolved.parentEventId !== null });
     return this.get(viewer, id);
+  }
+
+  /** Who gets the plain "new reply" notice: the sender for the unit's reply, the unit for the sender's, and both for somebody who was only mentioned. */
+  private replyAudience(ticket: TicketRow, relations: TicketRelation[], fromUnit: boolean): string[] {
+    if (fromUnit) return [ticket.senderUserId];
+    const unit = this.policy.unitRecipients(ticket);
+    return relations.includes('sender') ? unit : [ticket.senderUserId, ...unit];
+  }
+
+  /** The @ list for the reply box: active employees of the ticket's company, for somebody who may mention. */
+  async mentionables(viewer: TicketViewer, id: string, search?: string): Promise<PersonRefDto[]> {
+    const row = await this.tickets.find(id);
+    this.policy.assertCanView(viewer, row);
+    if (!viewer.canMention) throw new TicketCommentNotAllowedError('mention people');
+    return (await this.directory.mentionables((row as TicketRow).deskCompanyId, search)).map((p) => ({ id: p.id, name: p.name }));
   }
 
   async options(viewer: TicketViewer): Promise<TicketFilterOptionsDto> {
@@ -117,10 +140,20 @@ export class TicketsService {
 
   /** The stream of an attachment, for someone who may see the ticket it belongs to. */
   async openAttachment(viewer: TicketViewer, ticketId: string, fileId: string) {
+    const file = await this.attachment(viewer, ticketId, fileId);
+    return { file, opened: await this.files.open(file) };
+  }
+
+  /** The same attachment for the preview window (images and PDF only). */
+  async previewAttachment(viewer: TicketViewer, ticketId: string, fileId: string) {
+    const file = await this.attachment(viewer, ticketId, fileId);
+    return { file, stream: await this.files.preview(file) };
+  }
+
+  private async attachment(viewer: TicketViewer, ticketId: string, fileId: string) {
     this.policy.assertCanView(viewer, await this.tickets.find(ticketId));
     if (!(await this.tickets.attachedFile(ticketId, fileId))) throw new TicketNotFoundError();
-    const file = await this.files.getGranted(fileId);
-    return { file, opened: await this.files.open(file) };
+    return this.files.getGranted(fileId);
   }
 
   // -------------------------------------------------------------------- helpers
