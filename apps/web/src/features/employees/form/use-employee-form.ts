@@ -23,14 +23,19 @@ interface Issue {
 
 const isFormField = (key: unknown): key is keyof FormState => typeof key === 'string' && key in EMPTY_FORM;
 
+/** The fields of the roles step: an error on them is not a problem of the first step, so the person stays where they are and is told in words. */
+const ROLES_FIELDS: readonly string[] = ['roleIds', 'roleExpiries'];
+
 /** Puts what the API rejected under its field: its validation issues, or a business rule that names a field; the rest is a toast. */
 function useServerErrors(form: UseFormReturn<FormState>) {
   const { i18n } = useTranslation('employees');
   const { t: tc } = useTranslation();
-  const place = (issues: Issue[]): boolean => {
+  /** Puts the issues under their fields; `onDetails` is true when one of them belongs to the first step (the roles step has no field to show it under, so it is said in a toast). */
+  const place = (issues: Issue[]): { placed: boolean; onDetails: boolean } => {
     const placed = issues.filter((issue) => isFormField(issue.path?.[0]));
     for (const issue of placed) form.setError(issue.path?.[0] as keyof FormState, { type: 'server', message: issue.message });
-    return placed.length > 0;
+    for (const issue of placed.filter((i) => ROLES_FIELDS.includes(String(i.path?.[0])))) toast.error(issue.message ?? '');
+    return { placed: placed.length > 0, onDetails: placed.some((i) => !ROLES_FIELDS.includes(String(i.path?.[0]))) };
   };
   /** A business rule of the API that names the field it is about. */
   const placeRule = (rule: RuleDetails | undefined, fallback: string): boolean => {
@@ -38,10 +43,14 @@ function useServerErrors(form: UseFormReturn<FormState>) {
     form.setError(rule.path as keyof FormState, { type: 'server', message: (i18n.language === 'ar' ? rule.messageAr : rule.messageEn) ?? fallback });
     return true;
   };
-  return (error: unknown) => {
+  /** True when the error was put under a field of the form (the person may be on another step and must be taken to it). */
+  return (error: unknown): boolean => {
     const details = error instanceof ApiError ? error.details : undefined;
-    if (Array.isArray(details) && place(details as Issue[])) return;
-    if (!placeRule(details as RuleDetails | undefined, errorMessage(tc, error))) toast.error(errorMessage(tc, error));
+    const issues = Array.isArray(details) ? place(details as Issue[]) : { placed: false, onDetails: false };
+    if (issues.placed) return issues.onDetails;
+    if (placeRule(details as RuleDetails | undefined, errorMessage(tc, error))) return true;
+    toast.error(errorMessage(tc, error));
+    return false;
   };
 }
 
@@ -56,7 +65,7 @@ const placementChanged = (form: UseFormReturn<FormState>): boolean => {
 };
 
 /** Saving: a new employee is created with the roles of the form; an edited one is updated, and its roles saved when they or their end dates changed. */
-function useSaveEmployee(form: UseFormReturn<FormState>, id: string | undefined, fail: (error: unknown) => void) {
+function useSaveEmployee(form: UseFormReturn<FormState>, id: string | undefined, fail: (error: unknown) => boolean) {
   const { t } = useTranslation('employees');
   const navigate = useNavigate();
   const employee = useEmployee(id);
@@ -75,7 +84,7 @@ function useSaveEmployee(form: UseFormReturn<FormState>, id: string | undefined,
     toast.success(t('saved'));
     navigate(`/employees/${id}`);
   };
-  const save = async (values: FormState) => {
+  const save = async (values: FormState, onInvalid?: () => void) => {
     try {
       const withRoles = can(CorePermission.EmployeesAssignRoles) && can(CorePermission.RolesView);
       // Without the roles step the server gives the default roles (Employee and the role of the job title).
@@ -84,11 +93,11 @@ function useSaveEmployee(form: UseFormReturn<FormState>, id: string | undefined,
       const result = await create.mutateAsync(payload);
       navigate(`/employees/${result.employee.id}`, { state: { invitation: result.invitation } });
     } catch (error) {
-      fail(error);
+      if (fail(error)) onInvalid?.(); // a field of the first step was refused: go back to it
     }
   };
-  /** Saves the form; `onInvalid` runs when a field of the first step is wrong (the form goes back to it). */
-  return (event: React.BaseSyntheticEvent, onInvalid?: () => void) => form.handleSubmit(save, onInvalid)(event);
+  /** Saves the form; `onInvalid` runs when a field of the first step is wrong, here or on the server (the form goes back to it and says so). */
+  return (event: React.BaseSyntheticEvent, onInvalid?: () => void) => form.handleSubmit((values) => save(values, onInvalid), onInvalid)(event);
 }
 
 /** The form's data and behaviour: load, validate with the shared rules, save, and put API rule errors under their field. */
