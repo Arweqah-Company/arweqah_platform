@@ -119,7 +119,7 @@ describe('Ticket replies to replies and mentions (FR-128)', () => {
     await w.agents.colleague.get(url).expect(404);
   });
 
-  it('accepts Word and Excel files on a reply and offers them for download, never for the preview window (FR-128)', async () => {
+  it('accepts Word and Excel files on a reply and serves their bytes to the preview window, to the people of the ticket only (FR-128)', async () => {
     const w = await world();
     const upload = async (buffer: Buffer, name: string) => (await w.agents.sender.post('/api/files').attach('file', buffer, name).expect(201)).body as { id: string; contentType: string };
     const docx = await upload(DOCX, 'report.docx');
@@ -129,7 +129,10 @@ describe('Ticket replies to replies and mentions (FR-128)', () => {
     const posted = (await w.agents.sender.post(`/api/tickets/${w.ticket.id}/replies`).send({ body: 'ملفات', fileIds: [docx.id, xlsx.id] }).expect(201)).body as TicketDto;
     expect(posted.events.at(-1)!.attachments.map((a) => a.originalName).sort()).toEqual(['figures.xlsx', 'report.docx']);
     await w.agents.assignee.get(`/api/tickets/${w.ticket.id}/attachments/${docx.id}`).expect(200);
-    expect((await w.agents.assignee.get(`/api/tickets/${w.ticket.id}/attachments/${docx.id}/preview`).expect(422)).body.code).toBe('FILE_NOT_PREVIEWABLE');
+    const preview = await w.agents.assignee.get(`/api/tickets/${w.ticket.id}/attachments/${docx.id}/preview`).buffer(true).parse((r, done) => { const chunks: Buffer[] = []; r.on('data', (c: Buffer) => chunks.push(c)); r.on('end', () => done(null, Buffer.concat(chunks))); }).expect(200);
+    expect(preview.headers['content-type']).toContain('wordprocessingml.document');
+    expect((preview.body as Buffer).equals(DOCX)).toBe(true);
+    await w.agents.colleague.get(`/api/tickets/${w.ticket.id}/attachments/${docx.id}/preview`).expect(404);
     await w.agents.sender.post('/api/files').attach('file', DOCX, 'macro.docm').expect((r) => expect(r.status).toBe(201)); // the bytes decide, not the name
     await w.agents.sender.post('/api/files').attach('file', Buffer.from('MZ not an office file'), 'x.docx').expect(422);
   });

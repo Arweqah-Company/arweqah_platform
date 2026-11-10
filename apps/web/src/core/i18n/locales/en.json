@@ -373,6 +373,11 @@
     "tooBig": "The file is bigger than the limit ({{mb}} MB)."
   },
   "files": {
+    "approximate": "An approximate view inside the system; download the file for the original.",
+    "unreadable": "The file could not be read for the preview. Download it to open it.",
+    "emptySheet": "This sheet is empty.",
+    "truncated": "Only part of the sheet is shown (the first 200 rows and 30 columns). Download the file to see the rest.",
+    "sheets": "Sheets of the file",
     "loading": "Loading the file…",
     "notPreviewable": "This type of file cannot be shown here. Download it to open it.",
     "download": "Download",
