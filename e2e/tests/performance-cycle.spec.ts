@@ -23,7 +23,7 @@ test.describe('The evaluation cycle page, as the concept draws it (FR-118)', () 
     await expect(page.getByRole('button', { name: /فتح دورة التقييم وإبلاغ الموظفين|نقل الدورة للمرحلة التالية/ })).toBeVisible();
     const stepper = page.getByRole('list', { name: 'مراحل دورة التقييم' });
     await expect(stepper.getByRole('button')).toHaveText(STAGES);
-    await expect(page.getByRole('table', { name: 'مواعيد المراحل' }).getByRole('row')).toHaveCount(7);
+    await expect(page.getByRole('table', { name: 'مواعيد المراحل' }).getByRole('row')).toHaveCount(11); // the seven stage dates and the four milestones
     await expect(page.getByRole('heading', { name: 'جاهزية فتح الدورة' })).toBeVisible();
     await expect(page.getByRole('table', { name: 'ملف التقييم' }).getByRole('row')).toHaveCount(8); // the header, five stages, the scale and the card
     await expect(page.getByRole('table', { name: 'التذكيرات التلقائية' })).toBeVisible();
@@ -34,13 +34,17 @@ test.describe('The evaluation cycle page, as the concept draws it (FR-118)', () 
     await new ListPage(page).expectNoSeriousA11yIssues();
   });
 
-  test('a stage opens to say who works in it; the button to its screen is dimmed and explains when that screen is not built yet', async ({ page }) => {
+  test('a stage opens to say who works in it; the button to its screen works for the calibration stage and is dimmed and explains for the closed one that has none', async ({ page }) => {
     await page.goto('/performance-cycle');
-    await page.getByRole('list', { name: 'مراحل دورة التقييم' }).getByRole('button', { name: 'المعايرة' }).click();
+    const stepper = page.getByRole('list', { name: 'مراحل دورة التقييم' });
+    await stepper.getByRole('button', { name: 'المعايرة' }).click();
     const dialog = page.getByRole('dialog');
     await expect(dialog.getByText('حامل مفتاح المعايرة')).toBeVisible();
     await expect(dialog.getByText('21 إلى 24 أبريل')).toBeVisible();
-    const go = dialog.getByRole('button', { name: 'اذهب إلى شاشة هذه المرحلة' });
+    await expect(dialog.getByRole('button', { name: 'اذهب إلى شاشة هذه المرحلة' })).not.toHaveAttribute('aria-disabled', 'true');
+    await page.keyboard.press('Escape');
+    await stepper.getByRole('button', { name: 'مغلقة' }).click();
+    const go = page.getByRole('dialog').getByRole('button', { name: 'اذهب إلى شاشة هذه المرحلة' });
     await expect(go).toHaveAttribute('aria-disabled', 'true');
     await go.click({ force: true }); // dimmed, not disabled: it answers with the reason
     await expect(page.getByText('شاشة هذه المرحلة تُبنى في دفعة لاحقة.')).toBeVisible();
