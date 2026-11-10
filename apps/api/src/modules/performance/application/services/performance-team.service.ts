@@ -137,11 +137,12 @@ export class PerformanceTeamService {
     const person = filter ? await this.team.member(filter, employeeId) : null;
     const evaluation = cycle && person ? (await this.evaluations.forEmployees(cycle.id, [employeeId]))[0] : undefined;
     if (!cycle || !person || !evaluation) throw new NotFoundError('Evaluation', employeeId);
-    return { cycle, person, evaluation, reviews: await this.evaluations.reviews([evaluation.id]), level: reviewerLevel(ctx.userId, person.managerUserId) };
+    const reviews = await this.evaluations.reviews([evaluation.id]);
+    return { cycle, person, evaluation, reviews, level: reviewerLevel(ctx.userId, person.managerUserId, reviewOf(reviews, 'direct')?.reviewerUserId ?? null) };
   }
 
   private async row(t: Omit<Target, 'level'>, viewerUserId: string, selfSent: boolean): Promise<TeamEvaluationRowDto> {
-    const level = reviewerLevel(viewerUserId, t.person.managerUserId);
+    const level = reviewerLevel(viewerUserId, t.person.managerUserId, reviewOf(t.reviews, 'direct')?.reviewerUserId ?? null);
     const shown = [reviewOf(t.reviews, 'upper'), reviewOf(t.reviews, 'direct')].find((r) => r?.sentAt);
     const score = shown ? await this.score(t, shown.content) : null;
     const names = await this.stages.titleNames(t.person.titleId);

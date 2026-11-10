@@ -26,7 +26,8 @@ export class CareerTeamService {
 
   async list(ctx: AccessContext, query: TeamQuery): Promise<TeamPageDto> {
     const people = await this.team.members(this.scope(ctx), query.search);
-    const all = await this.rows(people);
+    // A person whose title has no published path has nothing to follow: they are not part of this list (nor of its counts).
+    const all = (await this.rows(ctx, people)).filter((m) => m.status !== 'no_path');
     const shown = query.status ? all.filter((m) => m.status === query.status) : all;
     const start = (query.page - 1) * query.pageSize;
     return { items: shown.slice(start, start + query.pageSize), total: shown.length, page: query.page, pageSize: query.pageSize, lateCount: all.filter((m) => m.status === 'late').length };
@@ -36,7 +37,7 @@ export class CareerTeamService {
   async member(ctx: AccessContext, employeeId: string): Promise<TeamMemberDetailDto> {
     const person = await this.team.member(this.scope(ctx), employeeId);
     if (!person) throw new NotFoundError('Employee', employeeId);
-    const [row] = await this.rows([person]);
+    const [row] = await this.rows(ctx, [person]);
     const records = (await this.records.forEmployees([employeeId])).filter((r) => r.status === 'wait' || r.status === 'referred');
     const stored = person.titleId ? await this.content.find(person.titleId) : null;
     const competencies = stored?.status === 'ready' ? await this.competencies.statuses(employeeId, stored.content) : [];
@@ -53,17 +54,18 @@ export class CareerTeamService {
     return filter;
   }
 
-  private async rows(people: TeamPerson[]): Promise<TeamMemberDto[]> {
+  private async rows(ctx: AccessContext, people: TeamPerson[]): Promise<TeamMemberDto[]> {
+    const withContact = !!ctx.filterFor(CorePermission.DirectoryView);
     const ids = people.map((p) => p.employeeId);
     const [records, ticks] = await Promise.all([this.records.forEmployees(ids), this.records.requiredDoneFor(ids)]);
     const today = riyadhToday(this.clock.now());
     const out: TeamMemberDto[] = [];
-    for (const person of people) out.push(await this.row(person, { records: records.filter((r) => r.employeeId === person.employeeId), ticks: ticks.filter((t) => t.employeeId === person.employeeId && t.titleId === person.titleId).map((t) => t.index), today }));
+    for (const person of people) out.push(await this.row(person, { records: records.filter((r) => r.employeeId === person.employeeId), ticks: ticks.filter((t) => t.employeeId === person.employeeId && t.titleId === person.titleId).map((t) => t.index), today }, withContact));
     return out;
   }
 
-  private async row(person: TeamPerson, data: { records: LearningRecordRow[]; ticks: number[]; today: string }): Promise<TeamMemberDto> {
-    const base = { employeeId: person.employeeId, name: person.name };
+  private async row(person: TeamPerson, data: { records: LearningRecordRow[]; ticks: number[]; today: string }, withContact: boolean): Promise<TeamMemberDto> {
+    const base = { employeeId: person.employeeId, name: person.name, contact: withContact ? person.contact : null };
     const stored = person.titleId ? await this.content.find(person.titleId) : null;
     if (!person.titleId || stored?.status !== 'ready') return { ...base, titleNameAr: null, titleNameEn: null, requiredDone: 0, requiredTotal: 0, approvedMinutes: 0, yearMinutes: null, overdue: 0, waiting: 0, status: 'no_path' };
     const title = await this.titles.identity(person.titleId);

@@ -16,6 +16,16 @@ export const teamQuerySchema = paginationQuerySchema.extend({
 });
 export type TeamQuery = z.infer<typeof teamQuerySchema>;
 
+/** Where the person sits and how to reach them at work: the columns of the former «My team» list, sent only to a viewer who holds `directory.view`. */
+export interface TeamContactDto {
+  unitNameAr: string | null;
+  unitNameEn: string | null;
+  companyNameAr: string;
+  companyNameEn: string;
+  workEmail: string;
+  workPhone: string | null;
+}
+
 export interface TeamMemberDto {
   employeeId: string;
   name: string;
@@ -31,6 +41,8 @@ export interface TeamMemberDto {
   overdue: number;
   waiting: number;
   status: TeamStatus;
+  /** Work details (unit, company, e-mail, phone); null without `directory.view`. */
+  contact: TeamContactDto | null;
 }
 export type TeamPageDto = Paginated<TeamMemberDto> & { lateCount: number };
 

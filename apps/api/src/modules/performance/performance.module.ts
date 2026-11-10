@@ -6,6 +6,7 @@ import { MyPerformanceController } from './presentation/controllers/my-performan
 import { PerformanceEvaluationService } from './application/services/performance-evaluation.service';
 import { PerformanceTeamService } from './application/services/performance-team.service';
 import { PerformanceTeamController } from './presentation/controllers/performance-team.controller';
+import { PerformanceNoticeService } from './application/services/performance-notice.service';
 import { PerformanceSelfService } from './application/services/performance-self.service';
 import { PerformanceEvaluationRepository } from './domain/contracts/performance-evaluation.repository';
 import { PerformanceStagePort } from './domain/contracts/performance-roster.port';
@@ -43,6 +44,7 @@ import { PerformanceTemplatesController } from './presentation/controllers/perfo
     PerformanceEvaluationService,
     PerformanceSelfService,
     PerformanceTeamService,
+    PerformanceNoticeService,
     { provide: PerformanceStagePort, useClass: OrgStageAdapter },
     { provide: PerformanceEvaluationRepository, useClass: TypeOrmPerformanceEvaluationRepository },
     { provide: PerformanceTemplateRepository, useClass: TypeOrmPerformanceTemplateRepository },

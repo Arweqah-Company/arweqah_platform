@@ -16,7 +16,7 @@ export const LIST_CATALOG = {
   org: { columns: ['name', 'code', 'level', 'mode', 'leader', 'manager', 'employees', 'titles', 'status'], filters: ['level', 'mode', 'status', 'employees', 'manager'] },
   'job-titles': { columns: ['code', 'name', 'unit', 'grade', 'track', 'occupants'], filters: ['sector', 'department', 'section', 'grade', 'track', 'vacant'] },
   'career-learning': { columns: ['priority', 'unit', 'duration', 'language', 'state', 'link'], filters: ['priority', 'language', 'state'] },
-  'career-team': { columns: ['employee', 'title', 'progress', 'hours', 'late', 'status'], filters: ['status'] },
+  'career-team': { columns: ['employee', 'title', 'progress', 'hours', 'late', 'status', 'unit', 'company', 'email', 'phone'], filters: ['status'] },
   'career-requests': { columns: ['employee', 'course', 'cost', 'plan', 'level', 'status', 'submitted'], filters: ['status', 'level', 'plan'] },
   'career-my-requests': { columns: ['course', 'cost', 'plan', 'level', 'status', 'submitted'], filters: ['status', 'plan'] },
   'performance-catalog': { columns: ['title', 'kind', 'points'], filters: ['kind'] },

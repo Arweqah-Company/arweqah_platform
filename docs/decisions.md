@@ -2,6 +2,13 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-10 — Home page charts
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 326 | **«My team» and «My career team» are one table in one tab titled «My career team»** (Employees page, `?tab=team`). With `career_team.view` it lists the people of the viewer's scope with the numbers of their path; holding `directory.view` too adds the columns unit, company, work e-mail and phone (the API sends `contact` only then). With `directory.view` only, the tab is the old colleagues table of the viewer's own unit. There is no sub-switch, no separate page (`/career-team` redirects), and the list leaves out people whose title has no published path. «Team evaluation» stays its own page. | Owner's request: one table, columns appear by permission. | Team evaluation is merged too, or directory-only viewers need the same table. |
+| 325 | **`recharts` 3.10.1 (exact, released 2026-07-25) draws the home charts**, wrapped in `shared/ui/charts.tsx` (`DonutChart`, `BarsChart`, brand `fill-*` classes, legend with words and counts) and loaded lazily. «Shortcuts» and «Recent activity» are removed from the home page. | Owner's request; the charts reuse the existing summaries (no API change) and keep the main bundle small. | A chart needs data the summaries lack. |
+
 ## 2026-11-10 — The organization structure on the server
 
 | # | Decision | Why | Revisit when |

@@ -10,7 +10,7 @@ export const homeFeature: FeatureModule = {
   routes: [{ index: true, Component: HomePage }],
   nav: [{ to: '/', labelKey: 'nav.home', icon: House, rank: 0 }],
   tour: [
-    { key: 'home', target: PAGE_MAIN_TARGET, route: '/', placement: 'auto', can: [{ id: 'tasks', permission: CorePermission.TasksView }, { id: 'tickets', permission: CorePermission.TicketsView }, { id: 'matrix', permission: CorePermission.TasksMatrixView }, { id: 'employees', permission: CorePermission.EmployeesView }, { id: 'audit', permission: CorePermission.AuditView }] },
+    { key: 'home', target: PAGE_MAIN_TARGET, route: '/', placement: 'auto', can: [{ id: 'tasks', permission: CorePermission.TasksView }, { id: 'tickets', permission: CorePermission.TicketsView }, { id: 'matrix', permission: CorePermission.TasksMatrixView }, { id: 'employees', permission: CorePermission.EmployeesView }] },
   ],
   i18n: { ar, en },
 };

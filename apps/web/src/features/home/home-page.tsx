@@ -1,10 +1,7 @@
-import { CorePermission, type AuditLogDto, type EmployeesSummaryDto, type Paginated } from '@arweqah-platform/shared';
-import { useQuery } from '@tanstack/react-query';
+import { CorePermission, type EmployeesSummaryDto } from '@arweqah-platform/shared';
+import { lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
-import { apiClient } from '@/core/api/api-client';
 import { useMe } from '@/core/auth/session';
-import { useNavItems } from '@/core/navigation';
 import { usePermissions } from '@/core/permissions/can';
 import { useReach } from '@/core/permissions/use-access';
 import { StatTile } from '@/shared/ui';
@@ -13,6 +10,8 @@ import { useEmployeesSummary } from '../employees/api';
 import { useTicketSummary } from './api';
 import { NumbersSection } from './numbers-section';
 import { TicketsPanel } from './tickets-panel';
+
+const ChartsSection = lazy(() => import('./charts-section'));
 
 const attention = (count: number | undefined) => (count ? 'attention' : 'neutral');
 
@@ -29,43 +28,13 @@ function StatsSection({ summary }: { summary: EmployeesSummaryDto | undefined })
   );
 }
 
-function Shortcuts() {
+function HomeCharts({ h }: { h: ReturnType<typeof useHomeData> }) {
   const { t } = useTranslation('home');
-  const { t: tc } = useTranslation();
-  const items = useNavItems().filter((n) => n.to !== '/');
+  if (!h.showTasks && !h.showTickets && !h.canSeeEmployees) return null;
   return (
-    <section>
-      <h2 className="text-lg font-bold">{t('shortcuts')}</h2>
-      <ul className="mt-4">
-        {items.map(({ to, labelKey, icon: Icon }) => (
-          <li key={to}>
-            <Link to={to} className="group flex items-center gap-3 rounded-[var(--radius-control)] border-b border-neutral-200 px-2 py-3 transition-colors duration-150 hover:bg-petrol-50 hover:text-link">
-              <Icon className="size-4 text-link transition-transform duration-150 group-hover:scale-110" aria-hidden />
-              {tc(labelKey)}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function RecentActivity() {
-  const { t } = useTranslation('home');
-  const entries = useQuery({ queryKey: ['audit', 'recent'], queryFn: () => apiClient.get<Paginated<AuditLogDto>>('/audit-logs', { pageSize: 5 }) }).data?.items ?? [];
-  if (!entries.length) return null;
-  return (
-    <section>
-      <h2 className="text-lg font-bold">{t('recent')}</h2>
-      <ul className="mt-4 flex flex-col gap-2 text-sm">
-        {entries.map((entry) => (
-          <li key={entry.id} className="flex justify-between gap-3 border-b border-neutral-200 pb-2">
-            <span dir="ltr">{entry.action}</span>
-            <span className="text-xs text-muted" dir="ltr">{new Date(entry.createdAt).toLocaleString()}</span>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <Suspense fallback={<div role="status" aria-label={t('loading')} className="mt-8 h-56 animate-pulse rounded-3xl bg-neutral-50" />}>
+      <ChartsSection tasks={h.tasks} tickets={h.tickets} employees={h.employees} showTasks={h.showTasks} showTickets={h.showTickets} showEmployees={h.canSeeEmployees} />
+    </Suspense>
   );
 }
 
@@ -93,7 +62,7 @@ function useHomeData() {
   };
 }
 
-/** The landing page: my numbers, my tasks and tickets, the employee counts for those who may see them, recent activity, and shortcuts. */
+/** The landing page: my numbers, my tasks and tickets, charts of the same numbers, and the employee counts for those who may see them. */
 export function HomePage() {
   const { t } = useTranslation('home');
   const h = useHomeData();
@@ -108,12 +77,9 @@ export function HomePage() {
           {h.showTickets && <TicketsPanel summary={h.tickets} />}
         </div>
       )}
+      <HomeCharts h={h} />
       {h.showMatrix && <MatrixSection />}
       {h.canSeeEmployees && <StatsSection summary={h.employees} />}
-      <div className="mt-10 grid gap-8 lg:grid-cols-2">
-        <Shortcuts />
-        {h.can(CorePermission.AuditView) && <RecentActivity />}
-      </div>
     </div>
   );
 }

@@ -2,8 +2,6 @@
   "greeting": "Hello {{name}}",
   "intro": "From here you reach whatever your permissions allow.",
   "stats": "Employee indicators",
-  "shortcuts": "Shortcuts",
-  "recent": "Recent activity",
   "tiles": {
     "total": "Employees",
     "active": "Active",
@@ -49,9 +47,24 @@
         "tasks": "See the numbers of your open, late and soon-due tasks",
         "tickets": "See the numbers of the tickets you sent or handle",
         "matrix": "See the task matrix by importance and urgency",
-        "employees": "See the employee statistics within your scope",
-        "audit": "See the latest activity recorded on the platform"
+        "employees": "See the employee statistics within your scope"
       }
     }
+  },
+  "charts": {
+    "title": "Charts",
+    "empty": "No data to show yet.",
+    "tasksByStatus": "My open tasks by status",
+    "tasksByStatusLabel": "Donut chart of your open tasks by status",
+    "tasksOnTime": "Finished tasks: on time and late",
+    "tasksOnTimeLabel": "Bars: tasks finished on time, finished late, and open tasks overdue",
+    "onTime": "Finished on time",
+    "late": "Finished late",
+    "overdueOpen": "Open and overdue",
+    "ticketsByStatus": "My tickets by status",
+    "ticketsByStatusLabel": "Donut chart of your tickets by status",
+    "sentInProgress": "Sent and still open",
+    "employees": "Employees: active, IDs and contracts",
+    "employeesLabel": "Bars: active employees, IDs expired or expiring, and contracts ending soon"
   }
 }

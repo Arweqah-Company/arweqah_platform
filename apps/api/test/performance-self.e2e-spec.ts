@@ -136,4 +136,15 @@ describe('The self-evaluation (FR-119)', () => {
     await without.put('/api/performance/me/self').send({ behaviours: {}, achievements: {}, initIds: [], growthIds: [] }).expect(403);
     await without.post('/api/performance/me/self/send').send({ behaviours: {}, achievements: {}, initIds: [], growthIds: [] }).expect(403);
   });
+
+  it('shows the bar «the cycle is open» (plan §15.2): nothing without a cycle, the self-evaluation with its deadline while it is unsent, nothing once it is sent', async () => {
+    const s = await setup();
+    const notices = async (agent = s.me) => (await agent.get('/api/performance/me/notices').expect(200)).body as { items: { kind: string; path: string; due: { from: string; to: string | null } | null }[] };
+    expect((await notices()).items).toEqual([]);
+    await s.open();
+    expect((await notices()).items).toEqual([{ kind: 'self', path: '/career-profile', due: { from: '2027-03-10', to: null } }]);
+    expect((await notices(await t.factories.signIn(await t.factories.user()))).items).toEqual([]);
+    await s.me.post('/api/performance/me/self/send').send(s.complete()).expect(200);
+    expect((await notices()).items).toEqual([]);
+  });
 });

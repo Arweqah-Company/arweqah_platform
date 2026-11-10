@@ -70,4 +70,5 @@ export * from './performance/cycle-dates';
 export * from './performance/self-evaluation';
 export * from './performance/score';
 export * from './performance/team-evaluation';
+export * from './performance/notices';
 export * from './performance/picks';

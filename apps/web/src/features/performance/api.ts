@@ -1,7 +1,8 @@
-import type { EvalFileContent, CatalogItemDto, CatalogItemInput, CycleDateKey, CycleStateDto, EvalFileInput, EvalFileResult, FiscalInput, MyEvaluationDto, OpenCycleInput, ReminderDto, ReminderInput, SaveSelfEvaluationInput, SaveTeamEvaluationInput, ScaleInput, SetCycleDateInput, StageTemplateInput, TeamEvaluationDto, TemplatesDto } from '@arweqah-platform/shared';
+import type { EvaluationNoticesDto, EvalFileContent, CatalogItemDto, CatalogItemInput, CycleDateKey, CycleStateDto, EvalFileInput, EvalFileResult, FiscalInput, MyEvaluationDto, OpenCycleInput, ReminderDto, ReminderInput, SaveSelfEvaluationInput, SaveTeamEvaluationInput, ScaleInput, SetCycleDateInput, StageTemplateInput, TeamEvaluationDto, TemplatesDto } from '@arweqah-platform/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/core/api/api-client';
 
+export const NOTICES_KEY = ['performance', 'notices'] as const;
 export const CYCLE_KEY = ['performance', 'cycle'] as const;
 
 /** The cycle in progress (or the last), the readiness list and the catalog. */
@@ -70,7 +71,7 @@ export const useMyEvaluation = () => useQuery({ queryKey: MY_EVALUATION_KEY, que
 /** Keeping or sending the form replaces the cached evaluation with the answer. */
 function useSelfWrite(call: (input: SaveSelfEvaluationInput) => Promise<MyEvaluationDto>) {
   const client = useQueryClient();
-  return useMutation({ mutationFn: call, onSuccess: (mine) => client.setQueryData(MY_EVALUATION_KEY, mine) });
+  return useMutation({ mutationFn: call, onSuccess: (mine) => { client.setQueryData(MY_EVALUATION_KEY, mine); return client.invalidateQueries({ queryKey: NOTICES_KEY }); } });
 }
 
 export const useSaveSelf = () => useSelfWrite((input) => apiClient.put<MyEvaluationDto>('/performance/me/self', input));
@@ -83,7 +84,11 @@ export const useTeamMember = (employeeId: string) => useQuery({ queryKey: teamMe
 /** Writing a member's evaluation: the answer replaces the member in the cache and the list is reloaded (the state of the row changed). */
 function useTeamWrite(employeeId: string, call: (input: SaveTeamEvaluationInput) => Promise<TeamEvaluationDto>) {
   const client = useQueryClient();
-  return useMutation({ mutationFn: call, onSuccess: (dto) => { client.setQueryData(teamMemberKey(employeeId), dto); return client.invalidateQueries({ queryKey: TEAM_KEY }); } });
+  return useMutation({ mutationFn: call, onSuccess: (dto) => { client.setQueryData(teamMemberKey(employeeId), dto); return Promise.all([client.invalidateQueries({ queryKey: TEAM_KEY }), client.invalidateQueries({ queryKey: NOTICES_KEY })]); } });
 }
 export const useSaveTeam = (employeeId: string) => useTeamWrite(employeeId, (input) => apiClient.put<TeamEvaluationDto>(`/performance/team/${employeeId}`, input));
 export const useSendTeam = (employeeId: string) => useTeamWrite(employeeId, (input) => apiClient.post<TeamEvaluationDto>(`/performance/team/${employeeId}/send`, input));
+
+
+/** The evaluation tasks open for the person now (the bar under the header); asked again after a self-evaluation is sent. */
+export const useEvaluationNotices = () => useQuery({ queryKey: NOTICES_KEY, staleTime: 5 * 60_000, queryFn: () => apiClient.get<EvaluationNoticesDto>('/performance/me/notices') });

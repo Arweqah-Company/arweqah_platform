@@ -609,5 +609,17 @@
     "draftSaved": "The draft was saved.",
     "failed": "Could not save the evaluation. Try again.",
     "failedRefused": "The server refused the evaluation: check the fields, or that the stage is still open."
+  },
+  "notice": {
+    "label": "Evaluation cycle notice",
+    "open": "The evaluation cycle is open:",
+    "self": "you can start your self-evaluation before the deadline",
+    "team": "you can evaluate your team before the deadline",
+    "range": "{{from}} to {{to}}",
+    "day": "{{date}}",
+    "go": {
+      "self": "Go to my evaluation",
+      "team": "Go to team evaluation"
+    }
   }
 }

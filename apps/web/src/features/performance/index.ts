@@ -5,6 +5,7 @@ import ar from './i18n/ar.json';
 import en from './i18n/en.json';
 
 export { EvaluationSection } from './evaluation-section';
+export { EvaluationNoticeBanner } from './notice-banner';
 
 /** Performance evaluation: the cycle for HR (stepper, evaluation file, dates, catalog), the employee's self-evaluation and the manager's team evaluation; calibration, approval and objections come next. */
 export const performanceFeature: FeatureModule = {

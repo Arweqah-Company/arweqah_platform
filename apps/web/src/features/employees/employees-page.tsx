@@ -13,9 +13,9 @@ import { toEmployeesQuery, useEmployeeFilterFields } from './employees-filters';
 import { EmployeeRowActions } from './employee-row-actions';
 import { useEmployeesImport } from './employees-import';
 import { EmployeesTabs, useEmployeesTab } from './employees-tabs';
-import { TeamTab } from './team-tab';
+import { TeamSection } from './team-section';
 
-/** The Employees page: its list (who the person reaches) and, in a second tab, «My team» (FR-92). */
+/** The Employees page: its list (who the person reaches) and, in a second tab, «My team» (FR-92) with the career path of the team. */
 export function EmployeesPage() {
   const { t } = useTranslation('employees');
   const tabs = useEmployeesTab();
@@ -24,7 +24,8 @@ export function EmployeesPage() {
     <>
       <PageHeader title={t('title')} description={t('description')} actions={onList && <Can permission={CorePermission.EmployeesCreate}><Button asChild><Link to="/employees/new">{t('add')}</Link></Button></Can>} />
       <EmployeesTabs {...tabs} />
-      {onList ? <EmployeesList /> : <TeamTab />}
+      {tabs.tab === 'list' && <EmployeesList />}
+      {tabs.tab === 'team' && <TeamSection />}
     </>
   );
 }

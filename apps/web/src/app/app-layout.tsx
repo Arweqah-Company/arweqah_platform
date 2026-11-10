@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useMe, useSignOut } from '@/core/auth/session';
 import { CareerGate, useCareerHold } from '@/features/career-profile';
+import { EvaluationNoticeBanner } from '@/features/performance';
 import { TourProvider } from '@/features/tour';
 import { ListSettingsProvider } from '@/shared/lib/list-settings';
 import { NavContext } from '@/core/navigation';
@@ -40,6 +41,7 @@ export function AppLayout() {
         {open && <div className="fixed inset-0 z-20 bg-ink/40 lg:hidden" onClick={() => setOpen(false)} aria-hidden />}
         <div className="flex min-w-0 flex-1 flex-col gap-5">
           <AppHeader me={me} accountItems={accountItems} menuOpen={open} onToggleMenu={() => setOpen(!open)} onSignOut={() => void signOut()} />
+          <EvaluationNoticeBanner />
           <main id="main" className="flex-1 px-1 pb-6 sm:px-2">
             <div className="animate-fade-in">
               <CareerGate>

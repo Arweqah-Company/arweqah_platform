@@ -146,6 +146,21 @@ const path = (s: Awaited<ReturnType<typeof setup>>) => `/api/performance/team/${
     expect(sent).toMatchObject({ level: 'direct', block: null });
   });
 
+  it('without a direct manager the first writer keeps the direct copy and the next evaluator writes their own, never over it', async () => {
+    const s = await setup();
+    await s.open();
+    await s.stageTo('mgr');
+    await t.db.query('UPDATE employees SET manager_id = NULL WHERE id = $1', [s.employeeUser.employeeId]);
+    const form = await s.complete();
+    await s.direct.post(`${path(s)}/send`).send(form).expect(200);
+    const other = await s.one(s.upper);
+    expect(other).toMatchObject({ level: 'upper', directForm: form, block: null });
+    const changed = { ...form, results: all(form, 100) };
+    await s.upper.post(`${path(s)}/send`).send(changed).expect(200);
+    expect((await s.one(s.direct)).form.results).toEqual(form.results);
+    expect((await s.one(s.direct)).level).toBe('direct');
+  });
+
   it('answers 403 without the keys and 404 for a person outside the scope or without an evaluation', async () => {
     const s = await setup();
     await s.open();
@@ -159,5 +174,15 @@ const path = (s: Awaited<ReturnType<typeof setup>>) => `/api/performance/team/${
     await outside.put(path(s)).send({ results: {}, behaviours: {}, initIds: [], growthIds: [] }).expect(404);
     await s.direct.get('/api/performance/team/33333333-3333-4333-8333-333333333333').expect(404);
     await s.direct.get('/api/performance/team/not-an-id').expect(400);
+  });
+
+  it('shows the manager the bar «the cycle is open» only in the managers\' stage, with the deadline and the team page (plan §15.2)', async () => {
+    const s = await setup();
+    const notices = async (agent: typeof s.direct) => ((await agent.get('/api/performance/me/notices').expect(200)).body as { items: { kind: string; path: string; due: { from: string } | null }[] }).items.filter((n) => n.kind === 'team');
+    await s.open();
+    expect(await notices(s.direct)).toEqual([]);
+    await s.stageTo('mgr');
+    expect(await notices(s.direct)).toEqual([expect.objectContaining({ kind: 'team', path: '/performance-team', due: expect.objectContaining({ from: expect.any(String) }) })]);
+    expect(await notices(s.employee)).toEqual([]);
   });
 });
