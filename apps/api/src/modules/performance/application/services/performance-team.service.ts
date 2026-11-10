@@ -29,6 +29,8 @@ interface Target {
 }
 
 const levelNameOf = (scale: Parameters<typeof levelOf>[0], score: { final: number } | null): string | null => (score ? levelOf(scale, score.final)?.name ?? null : null);
+/** An accepted objection keeps the evaluation open to its managers until the revised one is approved. */
+const reopened = (status: string | undefined): boolean => status === 'returned' || status === 'reevaluated';
 const iso = (d: Date | null | undefined): string | null => (d ? d.toISOString() : null);
 const reviewOf = (reviews: readonly ReviewRow[], level: ReviewerLevel): ReviewRow | undefined => reviews.find((r) => r.level === level);
 
@@ -161,7 +163,7 @@ export class PerformanceTeamService {
     const evaluation = cycle && person ? (await this.evaluations.forEmployees(cycle.id, [employeeId]))[0] : undefined;
     if (!cycle || !person || !evaluation) throw new NotFoundError('Evaluation', employeeId);
     const [reviews, objection] = await Promise.all([this.evaluations.reviews([evaluation.id]), this.objections.forEvaluation(evaluation.id)]);
-    return { cycle, person, evaluation, reviews, returned: objection?.status === 'returned', level: reviewerLevel(ctx.userId, person.managerUserId, reviewOf(reviews, 'direct')?.reviewerUserId ?? null) };
+    return { cycle, person, evaluation, reviews, returned: reopened(objection?.status), level: reviewerLevel(ctx.userId, person.managerUserId, reviewOf(reviews, 'direct')?.reviewerUserId ?? null) };
   }
 
   private async row(t: Omit<Target, 'level'>, viewerUserId: string, selfSent: boolean): Promise<TeamEvaluationRowDto> {

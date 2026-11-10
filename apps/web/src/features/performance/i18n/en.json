@@ -94,7 +94,10 @@
     "count": "{{count}} items",
     "yes": "Uploaded",
     "no": "Not uploaded",
-    "snapshot": "The cycle takes a snapshot of each stage's template when it opens, so a past year's evaluation does not change if the file changes later."
+    "snapshot": "The cycle takes a snapshot of each stage's template when it opens, so a past year's evaluation does not change if the file changes later.",
+    "calibrate": "Who holds the calibration key",
+    "approve": "Who holds the approval key",
+    "holders": "{{count}} (a warning at zero: nobody could calibrate or approve)"
   },
   "open": {
     "title": "Open the evaluation cycle",
@@ -136,7 +139,11 @@
       "notification": "Individual notification with an exportable copy",
       "objection": "Objection window (five working days from the notification)",
       "self_deadline": "Last day of the self-evaluation",
-      "qualitative_close": "Close of the qualitative part (behaviour and evidence)"
+      "qualitative_close": "Close of the qualitative part (behaviour and evidence)",
+      "review_jan": "Milestone: short review (January)",
+      "pulse_mar": "Milestone: pulse (March)",
+      "review_jul": "Milestone: short review (July)",
+      "pulse_sep": "Milestone: pulse (September)"
     },
     "problems": {
       "required": "The date is required.",

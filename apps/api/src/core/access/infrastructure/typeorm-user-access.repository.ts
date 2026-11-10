@@ -115,6 +115,11 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
     super();
   }
 
+  async activeUserIds(): Promise<string[]> {
+    const rows: { id: string }[] = await this.userRoles.manager.query(`SELECT id FROM users WHERE is_active = true`);
+    return rows.map((r) => r.id);
+  }
+
   async loadAccess(userId: string): Promise<UserAccessRecord | null> {
     const user = await this.userRoles.manager
       .createQueryBuilder()

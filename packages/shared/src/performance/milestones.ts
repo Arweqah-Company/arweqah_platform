@@ -1,8 +1,9 @@
 import { z } from 'zod';
 
 /**
- * The milestones of the year (FR-121; plan §3.5c): two short reviews, two pulses, and the warning grade that does not run this year. The calendar is fixed here:
- * the dates come from the fiscal card of the evaluation file (the milestone months), not from a table of their own.
+
+ * The milestones of the year (FR-121; plan §3.5c and §3.6c): two short reviews, two pulses, and the warning grade that does not run this year. The date of each is a date of
+ * the cycle that HR sets (usual: the 15th of January and March of the year after the fiscal year starts, of July and September in it).
  */
 export const MILESTONE_KINDS = ['review', 'pulse', 'warning'] as const;
 export type MilestoneKind = (typeof MILESTONE_KINDS)[number];
@@ -10,18 +11,16 @@ export type MilestoneKind = (typeof MILESTONE_KINDS)[number];
 export interface MilestoneDef {
   key: string;
   kind: MilestoneKind;
-  month: number;
-  day: number;
   /** The milestone does not run this year (the warning grade). */
   skipped: boolean;
 }
 
 export const MILESTONES: readonly MilestoneDef[] = [
-  { key: 'review_jan', kind: 'review', month: 1, day: 15, skipped: false },
-  { key: 'pulse_mar', kind: 'pulse', month: 3, day: 15, skipped: false },
-  { key: 'review_jul', kind: 'review', month: 7, day: 15, skipped: false },
-  { key: 'pulse_sep', kind: 'pulse', month: 9, day: 15, skipped: false },
-  { key: 'warning_oct', kind: 'warning', month: 10, day: 20, skipped: true },
+  { key: 'review_jan', kind: 'review', skipped: false },
+  { key: 'pulse_mar', kind: 'pulse', skipped: false },
+  { key: 'review_jul', kind: 'review', skipped: false },
+  { key: 'pulse_sep', kind: 'pulse', skipped: false },
+  { key: 'warning_oct', kind: 'warning', skipped: true },
 ];
 export const MILESTONE_KEYS = MILESTONES.map((m) => m.key) as [string, ...string[]];
 
@@ -54,8 +53,8 @@ export interface MilestoneRecordDto extends RecordMilestoneInput {
 export interface MilestoneRowDto {
   key: string;
   kind: MilestoneKind;
-  month: number;
-  day: number;
+  /** The date HR set for it in the cycle (YYYY-MM-DD); null for the milestone that does not run. */
+  date: string | null;
   state: MilestoneState;
   record: MilestoneRecordDto | null;
 }

@@ -123,4 +123,30 @@ describe('Approval, the individual result and the objection (FR-122, FR-123)', (
     const stranger = await t.factories.signIn(await t.factories.user({ grants: grants([CorePermission.PerformanceObject]) }));
     await stranger.post('/api/performance/me/objection').send(s.objection).expect(404); // holds the key but has no evaluation in the cycle
   });
+
+  it('tells the holders of the approval key when an objection is raised', async () => {
+    const s = await setup();
+    await s.approve();
+    await s.employee.post('/api/performance/me/objection').send(s.objection).expect(200);
+    await vi.waitFor(async () => expect(((await s.holder.get('/api/notifications').expect(200)).body.items as { titleAr: string }[]).map((n) => n.titleAr)).toContain('اعتراض جديد على نتيجة تقييم'));
+  });
+
+  it('after an accepted objection the direct manager sends again and then the upper manager reviews again; the approval waits for both (409 OBJECTION_STATE)', async () => {
+    const s = await setup();
+    const upperUser = await s.person(s.head, s.group, grants([CorePermission.PerformanceTeamView, CorePermission.PerformanceTeamEvaluate]));
+    const upper = await t.factories.signIn(upperUser);
+    const [direct] = (await t.db.query('SELECT manager_id FROM employees WHERE id = $1', [s.employeeUser.employeeId])) as { manager_id: string }[];
+    await t.db.query('UPDATE employees SET manager_id = $1 WHERE id = $2', [upperUser.employeeId, direct!.manager_id]);
+    await t.db.query(`INSERT INTO performance_manager_reviews (evaluation_id, level, reviewer_user_id, content, sent_at) SELECT evaluation_id, 'upper', $1, content, now() FROM performance_manager_reviews WHERE level = 'direct'`, [upperUser.id]);
+    await s.approve();
+    await s.employee.post('/api/performance/me/objection').send(s.objection).expect(200);
+    const [row] = ((await s.holder.get('/api/performance/objections').expect(200)).body as ObjectionListDto).items;
+    await s.holder.post(`/api/performance/objections/${row!.id}/return`).expect(204);
+    expect((await t.db.query(`SELECT sent_at FROM performance_manager_reviews`) as { sent_at: unknown }[]).every((r) => r.sent_at === null)).toBe(true); // both copies are drafts again
+    expect((await upper.put(s.path).send(s.form).expect(409)).body).toMatchObject({ code: 'EVALUATION_BLOCKED', details: { block: 'wait_direct' } }); // the direct manager goes first
+    await s.direct.post(`${s.path}/send`).send(s.form).expect(200);
+    await s.holder.post(`/api/performance/objections/${row!.id}/finalize`).expect(409); // the upper manager has not sent again
+    await upper.post(`${s.path}/send`).send(s.form).expect(200);
+    await s.holder.post(`/api/performance/objections/${row!.id}/finalize`).expect(204);
+  });
 });

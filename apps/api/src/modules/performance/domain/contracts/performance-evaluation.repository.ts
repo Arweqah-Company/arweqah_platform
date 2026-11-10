@@ -37,6 +37,8 @@ export abstract class PerformanceEvaluationRepository {
   abstract reviews(evaluationIds: readonly string[]): Promise<ReviewRow[]>;
   /** Keeps one level's document; a draft has no `sentAt`. */
   abstract saveReview(row: ReviewRow, tx: TransactionContext): Promise<void>;
+  /** An accepted objection sends the evaluation back: the managers' documents stay as drafts and must be sent again (the direct manager first). */
+  abstract unsendReviews(evaluationId: string, tx: TransactionContext): Promise<void>;
   /** The direct manager has begun this evaluation (a draft or a send): the employee can no longer change their self-evaluation. */
   abstract directStarted(evaluationId: string): Promise<boolean>;
 }

@@ -53,6 +53,7 @@ export function cycleState(stage: CycleStage | null, over: Partial<CycleStateDto
     datesFor: stage && stage !== 'closed' ? 'cycle' : 'next',
     nextFiscalYear: 2026,
     reminders: REMINDERS,
+    holders: { calibrate: 1, approve: 1 },
     catalogCaps: { init: 10, growth: 5 },
     ...over,
   };

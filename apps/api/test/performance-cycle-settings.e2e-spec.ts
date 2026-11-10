@@ -31,10 +31,10 @@ describe('The dates, the reminders and the caps of the evaluation cycle page (FR
     return { agent, me: await t.factories.signIn(holder), boss: await t.factories.signIn(manager) };
   }
 
-  it('gives all seven usual dates before any cycle exists, with the fiscal year the next cycle belongs to', async () => {
+  it('gives all eleven usual dates before any cycle exists, with the fiscal year the next cycle belongs to', async () => {
     const s = await state(await hr());
     expect(s).toMatchObject({ cycle: null, datesFor: 'next', nextFiscalYear: year });
-    expect(s.dates.map((d) => d.key)).toEqual(['final', 'calibration', 'approval', 'notification', 'objection', 'self_deadline', 'qualitative_close']);
+    expect(s.dates.map((d) => d.key)).toEqual(['final', 'calibration', 'approval', 'notification', 'objection', 'self_deadline', 'qualitative_close', 'review_jan', 'pulse_mar', 'review_jul', 'pulse_sep']);
     expect(s.dates.find((d) => d.key === 'calibration')).toEqual({ key: 'calibration', from: `${year + 1}-04-21`, to: `${year + 1}-04-24` });
     expect(s.dates.find((d) => d.key === 'self_deadline')).toEqual({ key: 'self_deadline', from: `${year + 1}-03-10`, to: null });
   });
@@ -52,7 +52,7 @@ describe('The dates, the reminders and the caps of the evaluation cycle page (FR
     const opened = (await agent.post('/api/performance/cycle/open').send({ fiscalYear: year }).expect(200)).body as CycleStateDto;
     expect(opened.datesFor).toBe('cycle');
     expect(opened.dates.find((d) => d.key === 'approval')!.from).toBe(`${year + 1}-04-28`);
-    expect(((await t.db.query('SELECT dates FROM performance_cycles')) as { dates: unknown[] }[])[0]!.dates).toHaveLength(7);
+    expect(((await t.db.query('SELECT dates FROM performance_cycles')) as { dates: unknown[] }[])[0]!.dates).toHaveLength(11);
   });
 
   it('does not give the prepared dates of one year to a cycle of another year; after the cycle closes the page shows the next cycle\'s dates', async () => {

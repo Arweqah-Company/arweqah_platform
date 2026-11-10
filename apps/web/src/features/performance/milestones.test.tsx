@@ -12,11 +12,11 @@ const record = { whereWeAre: 'نسير وفق الخطة', obstacle: 'ضيق ا�
 const LIST = (over: Partial<MilestoneListDto['items'][number]> = {}): MilestoneListDto => ({
   fiscalYear: 2026,
   items: [
-    { key: 'review_jan', kind: 'review', month: 1, day: 15, state: 'none', record: null },
-    { key: 'pulse_mar', kind: 'pulse', month: 3, day: 15, state: 'none', record: null },
-    { key: 'review_jul', kind: 'review', month: 7, day: 15, state: 'recorded', record, ...over },
-    { key: 'pulse_sep', kind: 'pulse', month: 9, day: 15, state: 'none', record: null },
-    { key: 'warning_oct', kind: 'warning', month: 10, day: 20, state: 'skipped', record: null },
+    { key: 'review_jan', kind: 'review', date: '2027-01-15', state: 'none', record: null },
+    { key: 'pulse_mar', kind: 'pulse', date: '2027-03-15', state: 'none', record: null },
+    { key: 'review_jul', kind: 'review', date: '2026-07-15', state: 'recorded', record, ...over },
+    { key: 'pulse_sep', kind: 'pulse', date: '2026-09-15', state: 'none', record: null },
+    { key: 'warning_oct', kind: 'warning', date: null, state: 'skipped', record: null },
   ],
 });
 

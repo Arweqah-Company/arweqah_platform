@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { type MyResultDto, type ObjectionListDto, type RaiseObjectionInput, type RejectObjectionInput, type StageTemplate } from '@arweqah-platform/shared';
+import { CorePermission, type MyResultDto, type ObjectionListDto, type RaiseObjectionInput, type RejectObjectionInput, type StageTemplate } from '@arweqah-platform/shared';
 import { NotFoundError } from '../../../../common/domain/domain-error';
 import { NotificationsService } from '../../../../core/notifications/application/notifications.service';
 import { Clock } from '../../../../common/application/clock';
@@ -12,6 +12,7 @@ import { PerformanceEvaluationRepository } from '../../domain/contracts/performa
 import { PerformanceObjectionRepository, PerformanceResultRepository } from '../../domain/contracts/performance-result.repository';
 import { PerformanceRosterPort } from '../../domain/contracts/performance-roster.port';
 import { ObjectionExistsError, ObjectionItemInvalidError, ObjectionStateError, ObjectionWindowClosedError } from '../../domain/errors/performance.errors';
+import { PermissionHoldersService } from '../../../../core/access/application/permission-holders.service';
 import { PERFORMANCE_AUDIT, PERFORMANCE_EVALUATION_ENTITY } from '../messages/performance.messages';
 import { frozenResult } from './performance-approval.service';
 import { PerformanceCalibrationService } from './performance-calibration.service';
@@ -38,6 +39,7 @@ export class PerformanceObjectionService {
     private readonly calibration: PerformanceCalibrationService,
     private readonly roster: PerformanceRosterPort,
     private readonly notifications: NotificationsService,
+    private readonly holders: PermissionHoldersService,
     private readonly tx: TransactionRunner,
     private readonly clock: Clock,
     private readonly events: EventEmitter2,
@@ -54,7 +56,12 @@ export class PerformanceObjectionService {
     const template = cycle.snapshot.stages.find((s) => s.stage === evaluation.stageNo);
     if (!template || !itemExists(template, input)) throw new ObjectionItemInvalidError();
     if (await this.objections.forEvaluation(evaluation.id)) throw new ObjectionExistsError();
-    await this.tx.run((tx) => this.objections.create({ evaluationId: evaluation.id, ...input }, tx)).catch((error: unknown) => {
+    const who = (person as NonNullable<typeof person>).name;
+    const approvers = await this.holders.holdersOf(CorePermission.PerformanceApprove);
+    await this.tx.run(async (tx) => {
+      await this.objections.create({ evaluationId: evaluation.id, ...input }, tx);
+      if (approvers.length) await this.notifications.notify({ userIds: approvers, tx, link: '/performance-calibration', titleAr: 'اعتراض جديد على نتيجة تقييم', titleEn: 'A new objection to an evaluation result', bodyAr: `${who} اعترض على نتيجة تقييمه وينتظر قرارك.`, bodyEn: `${who} objected to their evaluation result and waits for your decision.` });
+    }).catch((error: unknown) => {
       if ((error as { driverError?: { code?: string } } | null)?.driverError?.code === '23505') throw new ObjectionExistsError();
       throw error;
     });
@@ -75,6 +82,7 @@ export class PerformanceObjectionService {
     const found = await this.pending(id, 'open');
     await this.tx.run(async (tx) => {
       await this.moveOrFail(id, { from: 'open', to: 'returned', decidedBy: ctx.userId, decidedAt: this.clock.now() }, tx);
+      await this.evaluations.unsendReviews(found.evaluationId, tx);
       await this.tell(found.employeeId, 'returned', tx);
     });
     this.audit(ctx, PERFORMANCE_AUDIT.objectionReturned, found.evaluationId);
@@ -94,6 +102,7 @@ export class PerformanceObjectionService {
   async finalize(ctx: AccessContext, id: string): Promise<void> {
     const found = await this.pending(id, 'reevaluated');
     const cycle = found.cycle;
+    if ((await this.evaluations.reviews([found.evaluationId])).some((r) => !r.sentAt)) throw new ObjectionStateError('waiting_manager');
     const evaluation = (await this.evaluations.forEmployees(cycle.id, [found.employeeId]))[0];
     const person = evaluation ? (await this.calibration.scored(cycle, [evaluation]))[0] : undefined;
     if (!person?.parts) throw new ObjectionStateError('no_evaluation');

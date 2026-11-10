@@ -30,7 +30,9 @@ describe('The milestones of the year: the manager records the minutes, the emplo
     const list = (await s.manager.get(s.base).expect(200)).body as MilestoneListDto;
     expect(list.fiscalYear).toBe(2026);
     expect(list.items.map((i) => [i.key, i.state])).toEqual([['review_jan', 'none'], ['pulse_mar', 'none'], ['review_jul', 'none'], ['pulse_sep', 'none'], ['warning_oct', 'skipped']]);
-    expect(state(list, 'review_jul')).toMatchObject({ kind: 'review', month: 7, day: 15, record: null });
+    expect(state(list, 'review_jan').date).toBe('2027-01-15'); // January and March fall in the year after the fiscal year starts
+    expect(state(list, 'warning_oct').date).toBeNull();
+    expect(state(list, 'review_jul')).toMatchObject({ kind: 'review', date: '2026-07-15', record: null });
   });
 
   it('records the minutes of a review (the agreed action is required) and tells the employee; the employee sees them and acknowledges', async () => {

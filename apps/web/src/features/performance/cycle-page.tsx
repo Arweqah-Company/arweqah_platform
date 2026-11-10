@@ -44,7 +44,7 @@ function CycleBody({ state, onDialog }: { state: CycleStateDto; onDialog: (d: Cy
       {state.cycle && <p className="text-sm text-muted">{t('page.fiscalYear', { year: state.cycle.fiscalYear })}</p>}
       <div className="grid items-start gap-4 lg:grid-cols-2 [&>*]:min-w-0">
         <DatesCard dates={state.dates} />
-        <ReadinessCard readiness={state.readiness} />
+        <ReadinessCard readiness={state.readiness} holders={state.holders} />
       </div>
       {templates.data && <TemplatesList templates={templates.data} onUpload={() => onDialog('file')} />}
       <RemindersList reminders={state.reminders} />

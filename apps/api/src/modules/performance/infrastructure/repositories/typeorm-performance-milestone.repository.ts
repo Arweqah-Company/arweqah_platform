@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import type { RecordMilestoneInput } from '@arweqah-platform/shared';
 import { managerOf } from '../../../../common/infrastructure/typeorm-transaction-runner';
 import type { TransactionContext } from '../../../../common/domain/transaction-context';
@@ -20,6 +20,14 @@ export class TypeOrmPerformanceMilestoneRepository extends PerformanceMilestoneR
     return (await this.milestones.find({ where: { evaluationId } })).map((m) => ({
       evaluationId, milestoneKey: m.milestoneKey, whereWeAre: m.whereWeAre, obstacle: m.obstacle, agreedAction: m.agreedAction, note: m.note, recordedBy: m.recordedBy, recordedAt: m.updatedAt, acknowledgedAt: m.acknowledgedAt,
     }));
+  }
+
+  async recordedAmong(key: string, evaluationIds: readonly string[]): Promise<Set<string>> {
+    const found = new Set<string>();
+    for (let i = 0; i < evaluationIds.length; i += 1000) {
+      (await this.milestones.find({ where: { milestoneKey: key, evaluationId: In(evaluationIds.slice(i, i + 1000)) }, select: { evaluationId: true } })).forEach((m) => found.add(m.evaluationId));
+    }
+    return found;
   }
 
   async save(row: { evaluationId: string; key: string; input: RecordMilestoneInput; recordedBy: string }, tx: TransactionContext): Promise<void> {

@@ -30,7 +30,7 @@ describe('The self-evaluation (FR-119)', () => {
 
   it('has nothing to show before a cycle is opened', async () => {
     const s = await setup();
-    expect(await s.mine()).toEqual({ cycle: null, evaluation: null });
+    expect(await s.mine()).toEqual({ cycle: null, evaluation: null, result: null });
   });
 
   it('opens an evaluation for each employee with a title: the template of their stage, an empty form, the learning card, and the employee is told', async () => {
@@ -60,7 +60,8 @@ describe('The self-evaluation (FR-119)', () => {
     await s.open();
     const saved = (await s.me.put('/api/performance/me/self').send({ behaviours: { 'B2.1': { level: 75, note: '' } }, achievements: { '0': 'مسودة' }, initIds: [s.init.id, s.growth.id, '33333333-3333-4333-8333-333333333333'], growthIds: [] }).expect(200)).body as MyEvaluationDto;
     expect(saved.evaluation!.self).toMatchObject({ behaviours: { 'B2.1': { level: 75 } }, achievements: { '0': 'مسودة' }, initIds: [s.init.id], sentAt: null });
-    expect(JSON.stringify(saved)).not.toMatch(/"(score|final|finalScore|result)"/);
+    expect(JSON.stringify(saved)).not.toMatch(/"(score|final|finalScore)"/);
+    expect(saved.result).toBeNull(); // the result is there only after the individual notification
   });
 
   it('refuses to send an incomplete form (422 with each field and its problem) and sends a complete one', async () => {

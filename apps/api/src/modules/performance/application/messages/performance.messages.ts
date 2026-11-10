@@ -48,6 +48,10 @@ export const CYCLE_DATE_LABELS: Record<CycleDateKey, { ar: string; en: string }>
   objection: { ar: 'نافذة الاعتراض', en: 'Objection window' },
   self_deadline: { ar: 'آخر موعد للتقييم الذاتي', en: 'Self-evaluation deadline' },
   qualitative_close: { ar: 'إغلاق الختامي النوعي', en: 'Close of the qualitative part' },
+  review_jan: { ar: 'مراجعة قصيرة (يناير)', en: 'Short review (January)' },
+  pulse_mar: { ar: 'نبض (مارس)', en: 'Pulse (March)' },
+  review_jul: { ar: 'مراجعة قصيرة (يوليو)', en: 'Short review (July)' },
+  pulse_sep: { ar: 'نبض (سبتمبر)', en: 'Pulse (September)' },
 };
 
 /** The AI analysis of an evaluation file: six a person an hour (it costs money), and the room the model may use for its answer. */
