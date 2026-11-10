@@ -136,7 +136,7 @@ function checkConditionalFields(v: Draft, issue: Issue): void {
 }
 
 export const createEmployeeSchema = z
-  .strictObject({ ...employeeShape, /** Left out = the default roles (Employee and the role of the job title); an empty list = none. */ roleIds: z.array(z.uuid()).max(20).optional(), roleExpiries: roleExpiriesSchema.optional() })
+  .strictObject({ ...employeeShape, /** Left out = the default roles (Employee and the role of the job title); an empty list = none. */ roleIds: z.array(z.uuid()).max(20).optional(), roleExpiries: roleExpiriesSchema.optional(), /** Make the person the leader of the unit they are placed in (needs `org.leaders_manage`; FR-100). */ leadsUnit: z.boolean().optional() })
   .superRefine(refineEmployee);
 export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
 
@@ -149,6 +149,8 @@ export const updateEmployeeSchema = z
     /** The day a change of unit, job title or manager starts (left out = today) and why (FR-89). */
     effectiveFrom: isoDate.optional(),
     changeReason: text(500).optional(),
+    /** Make the person the leader of the unit they are placed in (needs `org.leaders_manage`; FR-100). */
+    leadsUnit: z.boolean().optional(),
   })
   .superRefine(refineEmployee);
 export type UpdateEmployeeInput = z.infer<typeof updateEmployeeSchema>;

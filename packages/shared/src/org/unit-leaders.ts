@@ -19,6 +19,8 @@ export const setLeaderSchema = z
     companyId: z.uuid(),
     employeeId: z.uuid(),
     kind: z.enum(LEADER_KINDS).default('leader'),
+    /** The job title of the unit the leader takes: a leader (not an acting one) is placed in the unit with it from `validFrom`. Optional for the API; the screen always asks for it. */
+    jobTitleId: z.uuid().optional(),
     validFrom: z.iso.date(),
     validTo: z.iso.date().nullable().optional(),
     reason: changeReasonSchema,

@@ -81,7 +81,8 @@
     "monthlyGrossSalary": "Monthly gross salary",
     "salaryCurrencyCountryId": "Currency",
     "iban": "IBAN",
-    "notes": "Notes"
+    "notes": "Notes",
+    "leadsUnit": "Leader of this unit"
   },
   "gender": {
     "male": "Male",

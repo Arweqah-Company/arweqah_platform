@@ -35,4 +35,9 @@ export abstract class EmployeePlacementPort {
   abstract holdersByTitle(): Promise<Map<string, Map<string, TitleHolders>>>;
   /** The active employees placed in any of the titles. */
   abstract placedEmployees(titleIds: string[]): Promise<PlacedEmployee[]>;
+  /**
+   * Places the employee in the unit with the job title from a day (a dated change in their history, with the reason; the same unit and title is no change).
+   * Refused (a business error) when the unit or the title does not fit the employee.
+   */
+  abstract place(input: { employeeId: string; orgNodeId: string; jobTitleId: string; validFrom: string; reason: string; actorId: string }): Promise<void>;
 }

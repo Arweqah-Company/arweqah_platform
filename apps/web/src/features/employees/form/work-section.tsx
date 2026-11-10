@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useFormContext, useFormState } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { CorePermission } from '@arweqah-platform/shared';
+import { usePermissions } from '@/core/permissions/can';
 import { SectionCard } from '@/shared/ui';
 import { useJobTitleOptions, useManagerSearch, useOrgNodeOptions } from '../api';
-import { ComboField, SelectField, TextField, useLock } from './fields';
+import { CheckField, ComboField, SelectField, TextField, useLock } from './fields';
 import type { FormState } from './form-state';
 import type { EmployeeOptions } from './use-options';
 
@@ -49,6 +51,7 @@ export function WorkSection({ options, currentManager, employeeId }: Props) {
   const orgNodeId = watch('orgNodeId');
   const nodes = useOrgNodeOptions(companyId || undefined);
   const titles = useJobTitleOptions(orgNodeId || undefined);
+  const { can } = usePermissions();
   const managers = useManagerSearch(search, employeeId, !useLock('managerId').locked);
 
   const nodeOptions = useMemo(() => (nodes.data ?? []).map((n) => ({ value: n.id, label: i18n.language === 'en' ? n.nameEn : n.nameAr })), [nodes.data, i18n.language]);
@@ -77,6 +80,7 @@ export function WorkSection({ options, currentManager, employeeId }: Props) {
       <SelectField name="relationTypeId" label={t('fields.relationTypeId')} options={options.relationTypes} />
       <ComboField name="orgNodeId" label={t('fields.orgNodeId')} options={nodeOptions} required disabled={!companyId} hint={companyId ? undefined : t('hints.pickCompanyFirst')} onPick={() => setValue('jobTitleId', '')} />
       <SelectField name="jobTitleId" label={t('fields.jobTitleId')} options={titleOptions} required hint={orgNodeId ? undefined : t('hints.pickUnitFirst')} />
+      {orgNodeId && can(CorePermission.OrgLeadersManage) && <CheckField name="leadsUnit" label={t('fields.leadsUnit')} />}
       <ComboField name="managerId" label={t('fields.managerId')} options={managerOptions} onSearch={setSearch} onPick={() => setChosenByHand(true)} clearable hint={t('hints.managerDefault')} />
       {employeeId && <PlacementChangeFields />}
       <TextField name="workLocation" label={t('fields.workLocation')} />

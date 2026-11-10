@@ -52,6 +52,7 @@ describe('Assign a leader or an acting leader (FR-100)', () => {
     renderPage(<LeaderDialog node={node} leaders={leadersDto()} onClose={() => undefined} />);
     await chooseOption(await screen.findByLabelText('الموظف'), 'emp-1');
     await chooseOption(screen.getByLabelText('النوع *'), 'acting');
+    expect(screen.queryByLabelText('مسماه في الوحدة *')).not.toBeInTheDocument(); // an acting leader stays where they are
     expect(await screen.findByText(/القائم بالأعمال يحمل دور القائد طوال مدته فقط/)).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('السبب *'), { target: { value: 'ab' } });
     expect(await screen.findByText('يجب ألا يقل عن 3 أحرف.')).toBeInTheDocument();
@@ -72,10 +73,12 @@ describe('Assign a leader or an acting leader (FR-100)', () => {
     renderPage(<LeaderDialog node={node} leaders={leadersDto()} onClose={onClose} />);
     await chooseOption(await screen.findByLabelText('الموظف'), 'emp-1');
     fireEvent.change(screen.getByLabelText('السبب *'), { target: { value: 'تعيين جديد' } });
+    expect(screen.getByRole('button', { name: 'حفظ' })).toBeDisabled(); // a leader always chooses the title they lead with
+    await chooseOption(screen.getByLabelText('مسماه في الوحدة *'), 't1');
     await waitFor(() => expect(screen.getByRole('button', { name: 'حفظ' })).toBeEnabled());
     fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
     await waitFor(() => expect(onClose).toHaveBeenCalled());
-    expect(sent[0]).toMatchObject({ companyId: GROUP_COMPANY, employeeId: 'emp-1', kind: 'leader', validTo: null, reason: 'تعيين جديد' });
+    expect(sent[0]).toMatchObject({ companyId: GROUP_COMPANY, employeeId: 'emp-1', kind: 'leader', jobTitleId: 't1', validTo: null, reason: 'تعيين جديد' });
   });
 
   it('shows the API refusal inside the dialog', async () => {
@@ -84,6 +87,7 @@ describe('Assign a leader or an acting leader (FR-100)', () => {
     renderPage(<LeaderDialog node={node} leaders={leadersDto()} onClose={() => undefined} />);
     await chooseOption(await screen.findByLabelText('الموظف'), 'emp-1');
     fireEvent.change(screen.getByLabelText('السبب *'), { target: { value: 'تعيين جديد' } });
+    await chooseOption(screen.getByLabelText('مسماه في الوحدة *'), 't1');
     await waitFor(() => expect(screen.getByRole('button', { name: 'حفظ' })).toBeEnabled());
     fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
     const dialog = screen.getByRole('dialog');

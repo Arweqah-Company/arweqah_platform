@@ -46,6 +46,8 @@ export interface FormState {
   iban: string;
   notes: string;
   roleIds: string[];
+  /** Make the person the leader of the unit chosen above when saved (needs the leaders key). */
+  leadsUnit: boolean;
   /** The last day of a role, by role id (a role with no end date is not in it). */
   roleExpiries: Record<string, string>;
   /** Edit only: from which day a changed unit, title or manager holds, and why (FR-89). */
@@ -65,7 +67,7 @@ export const EMPTY_FORM: FormState = {
   workPhone: '', personalPhone: '', employeeNumber: '', fullName: '', fullNameEn: '', gender: '', birthDate: '', nationalityId: '', maritalStatusId: '',
   residencyStatusId: '', idTypeId: '', idNumber: '', idExpiryDate: '', startDate: '', endDate: '', contractTypeId: '', contractTypeOther: '', contractCompanyId: '',
   gosiCompanyId: '', healthInsuranceCompanyId: '', isGosiRegistered: false, gosiRegistrationDate: '', gosiSystemId: '', profession: '', isQiwaContract: false,
-  hasMedicalInsurance: false, terminationReasonId: '', terminationReasonOther: '', monthlyGrossSalary: '', salaryCurrencyCountryId: '', iban: '', notes: '', roleIds: [], roleExpiries: {}, effectiveFrom: '', changeReason: '',
+  hasMedicalInsurance: false, terminationReasonId: '', terminationReasonOther: '', monthlyGrossSalary: '', salaryCurrencyCountryId: '', iban: '', notes: '', roleIds: [], roleExpiries: {}, effectiveFrom: '', changeReason: '', leadsUnit: false,
 };
 
 const blank = (value: string): string | null => (value.trim() === '' ? null : value.trim());
@@ -114,6 +116,7 @@ function payloadFields(form: FormState): Record<string, unknown> & { roleIds: st
     hasMedicalInsurance: form.hasMedicalInsurance,
     monthlyGrossSalary: blank(form.monthlyGrossSalary) === null ? null : Number(form.monthlyGrossSalary),
     roleIds: form.roleIds,
+    ...(form.leadsUnit ? { leadsUnit: true } : {}),
   };
 }
 

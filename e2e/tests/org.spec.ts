@@ -245,6 +245,9 @@ test.describe('Organization: the leaders, the charter and the history of a unit 
     await expect(dialog.getByRole('button', { name: 'حفظ' })).toBeDisabled();
     await choose(dialog.getByRole('combobox', { name: 'الموظف' }), name);
     await dialog.getByLabel('السبب *').fill('تعيين من اختبار المتصفح');
+    await expect(dialog.getByRole('button', { name: 'حفظ' })).toBeDisabled(); // a leader always chooses the title they lead with
+    await dialog.getByRole('combobox', { name: 'مسماه في الوحدة' }).click();
+    await page.getByRole('option').nth(1).click(); // the first real title (the first option is the placeholder)
     await list.expectNoSeriousA11yIssues();
     await dialog.getByRole('button', { name: 'حفظ' }).click();
     await expect(dialog).toBeHidden();

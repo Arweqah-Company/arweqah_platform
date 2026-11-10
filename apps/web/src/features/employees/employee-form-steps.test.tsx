@@ -15,9 +15,10 @@ const SAVED = {
 type Call = { method: string; url: string };
 
 /** The form of a saved employee for a person who may give roles (so it has two steps). `reply` answers the save. */
-function open(reply: () => Response) {
+function open(reply: () => Response, moreKeys: string[] = []) {
   const calls: Call[] = [];
-  const keys = ['employees.update', 'employees.view', 'employees.assign_roles', 'roles.view'];
+  const bodies: Record<string, unknown>[] = [];
+  const keys = ['employees.update', 'employees.view', 'employees.assign_roles', 'roles.view', ...moreKeys];
   server.use(
     http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'all' as const }))))),
     http.get('*/api/lookups/companies', () => HttpResponse.json([{ id: '11111111-1111-4111-8111-111111111111', code: 'ARW', nameAr: 'أروقة الريادة', nameEn: 'Arweqah Alreyadah' }])),
@@ -26,10 +27,10 @@ function open(reply: () => Response) {
     http.get('*/api/employees/managers', () => HttpResponse.json([])),
     http.get('*/api/roles', () => HttpResponse.json(roles)),
     http.get('*/api/employees/e1', () => HttpResponse.json(SAVED)),
-    http.put('*/api/employees/e1', ({ request }) => { calls.push({ method: request.method, url: new URL(request.url).pathname }); return reply(); }),
+    http.put('*/api/employees/e1', async ({ request }) => { calls.push({ method: request.method, url: new URL(request.url).pathname }); bodies.push((await request.json()) as Record<string, unknown>); return reply(); }),
   );
   renderRoute([{ path: '/employees/:id/edit', element: <EmployeeFormPage /> }], '/employees/e1/edit');
-  return { calls };
+  return { calls, bodies };
 }
 
 /** Waits for the saved employee to fill the form, then presses «Next». */
@@ -60,5 +61,36 @@ describe('The two steps of the employee form', () => {
     const details = await screen.findByRole('heading', { level: 2, name: 'بيانات العمل' }); // the first step is showing again
     expect(details).toBeInTheDocument();
     expect(within(document.body).getByText('البريد مستخدم لموظف آخر')).toBeInTheDocument();
+  });
+
+  describe('«this employee leads the unit» (FR-100)', () => {
+    it('is not offered to a person who may not appoint leaders', async () => {
+      open(() => HttpResponse.json(SAVED));
+      await screen.findByRole('heading', { name: 'تعديل بيانات الموظف' });
+      await waitFor(() => expect(screen.getByLabelText(/الاسم الكامل/)).toHaveValue('سارة أحمد'));
+      expect(screen.queryByLabelText('قائد هذه الوحدة')).not.toBeInTheDocument();
+    });
+
+    it('sends «leads the unit» with the save when it is ticked', async () => {
+      const { bodies } = open(() => HttpResponse.json(SAVED), ['org.leaders_manage']);
+      await screen.findByRole('heading', { name: 'تعديل بيانات الموظف' });
+      await waitFor(() => expect(screen.getByLabelText(/الاسم الكامل/)).toHaveValue('سارة أحمد'));
+      fireEvent.click(await screen.findByLabelText('قائد هذه الوحدة'));
+      fireEvent.click(await screen.findByRole('button', { name: 'التالي: الأدوار' }));
+      fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
+      await waitFor(() => expect(bodies).toHaveLength(1));
+      expect(bodies[0]).toMatchObject({ leadsUnit: true });
+    });
+
+    it('does not send it when it is not ticked', async () => {
+      const { bodies } = open(() => HttpResponse.json(SAVED), ['org.leaders_manage']);
+      await screen.findByRole('heading', { name: 'تعديل بيانات الموظف' });
+      await waitFor(() => expect(screen.getByLabelText(/الاسم الكامل/)).toHaveValue('سارة أحمد'));
+      await screen.findByLabelText('قائد هذه الوحدة');
+      fireEvent.click(await screen.findByRole('button', { name: 'التالي: الأدوار' }));
+      fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
+      await waitFor(() => expect(bodies).toHaveLength(1));
+      expect(bodies[0]).not.toHaveProperty('leadsUnit');
+    });
   });
 });

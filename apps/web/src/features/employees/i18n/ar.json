@@ -81,7 +81,8 @@
     "monthlyGrossSalary": "إجمالي الراتب الشهري",
     "salaryCurrencyCountryId": "العملة",
     "iban": "الآيبان",
-    "notes": "ملاحظات"
+    "notes": "ملاحظات",
+    "leadsUnit": "قائد هذه الوحدة"
   },
   "gender": {
     "male": "ذكر",

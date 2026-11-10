@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { NotFoundError } from '../../../../common/domain/domain-error';
+import { EmployeeAssignmentsService } from '../../application/services/employee-assignments.service';
+import { AssignmentNoChangeError } from '../../domain/errors/assignment.errors';
+import { EmployeeRepository } from '../../domain/contracts/employee.repository';
 import { EmployeePlacementPort, type PlacedEmployee, type TitleHolders } from '../../../org/domain/contracts/employee-placement.port';
 
 const COUNT_BY_COMPANY = 'SELECT company_id AS id, count(*) AS n FROM employees WHERE company_id = ANY($1) AND deleted_at IS NULL GROUP BY company_id';
@@ -17,8 +21,21 @@ const counts = (rows: { id: string; n: string }[]): Map<string, number> => new M
  */
 @Injectable()
 export class EmployeePlacementAdapter extends EmployeePlacementPort {
-  constructor(private readonly ds: DataSource) {
+  constructor(
+    private readonly ds: DataSource,
+    private readonly assignments: EmployeeAssignmentsService,
+    private readonly employees: EmployeeRepository,
+  ) {
     super();
+  }
+
+  async place(input: { employeeId: string; orgNodeId: string; jobTitleId: string; validFrom: string; reason: string; actorId: string }): Promise<void> {
+    const employee = await this.employees.findById(input.employeeId);
+    if (!employee) throw new NotFoundError('Employee', input.employeeId);
+    const change = { orgNodeId: input.orgNodeId, jobTitleId: input.jobTitleId, validFrom: input.validFrom, reason: input.reason };
+    await this.assignments.apply(employee, change, { actorId: input.actorId, dryRun: false }).catch((error: unknown) => {
+      if (!(error instanceof AssignmentNoChangeError)) throw error; // already in that unit with that title
+    });
   }
 
   private async countBy(sql: string, ids: string[]): Promise<Map<string, number>> {
