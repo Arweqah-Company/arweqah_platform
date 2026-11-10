@@ -314,7 +314,11 @@
     "remove": "Remove",
     "removeTitle": "Remove the appointment?",
     "removeBody": "The appointment of {{name}} is removed because it has not started yet.",
-    "removed": "The appointment was removed."
+    "removed": "The appointment was removed.",
+    "jobTitle": "Title in the unit",
+    "jobTitleHint": "The leader moves to this unit with this title from the start day, and it shows in their record.",
+    "chooseJobTitle": "Choose the title",
+    "noTitles": "This unit has no active title. Add one first so the leader can take it."
   },
   "charter": {
     "loading": "Loading the charter…",

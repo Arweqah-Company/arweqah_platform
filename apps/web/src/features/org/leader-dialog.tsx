@@ -32,6 +32,23 @@ function EmployeeField({ companyId, value, onChange }: { companyId: string | nul
   );
 }
 
+/** The title of this unit the leader takes: chosen every time, from the unit's active titles; the leader moves to the unit with it from the first day. */
+function TitleField({ node, value, onChange }: { node: OrgNode; value: string | null; onChange: (id: string | null) => void }) {
+  const { t, i18n } = useTranslation('org');
+  const titles = node.titles.filter((x) => x.isActive);
+  if (!titles.length) return <Alert tone="warning">{t('leaders.noTitles')}</Alert>;
+  return (
+    <FormField label={`${t('leaders.jobTitle')} *`} hint={t('leaders.jobTitleHint')}>
+      {(p) => (
+        <Select {...p} value={value ?? ''} onChange={(e) => onChange(e.target.value || null)}>
+          <option value="">{t('leaders.chooseJobTitle')}</option>
+          {titles.map((x) => <option key={x.id} value={x.id}>{i18n.language === 'ar' ? x.nameAr : x.nameEn}</option>)}
+        </Select>
+      )}
+    </FormField>
+  );
+}
+
 function WindowFields({ form, setForm, today }: { form: LeaderForm; setForm: (next: LeaderForm) => void; today: string }) {
   const { t } = useTranslation('org');
   const problem = windowProblem(form, today);
@@ -54,9 +71,9 @@ export function LeaderDialog({ node, leaders, companyId = null, onClose }: Props
   const ar = i18n.language === 'ar';
   const companies = useCompanyOptions().data;
   const allowed = useMemo(() => leaderCompanies(leaders.effectiveMode, leaders.groupCompanyId, companies ?? []), [leaders, companies]);
-  const [form, setForm] = useState<LeaderForm>({ companyId: leaders.effectiveMode === 'shared' ? leaders.groupCompanyId : companyId, employeeId: null, kind: 'leader', validFrom: today, validTo: '', reason: '' });
+  const [form, setForm] = useState<LeaderForm>({ companyId: leaders.effectiveMode === 'shared' ? leaders.groupCompanyId : companyId, employeeId: null, kind: 'leader', jobTitleId: null, validFrom: today, validTo: '', reason: '' });
   const set = useSetLeader(node.id);
-  const reason = useLiveError(form.reason, rules.text(REASON_MIN));
+  const reason = useLiveError(form.reason, (v: string) => (v.trim() ? rules.text(REASON_MIN)(v) : undefined));
   const submit = async () => {
     try {
       await set.mutateAsync(toSetLeaderInput(form));
@@ -89,9 +106,9 @@ export function LeaderDialog({ node, leaders, companyId = null, onClose }: Props
           </FormField>
         </div>
         <EmployeeField companyId={form.companyId} value={form.employeeId} onChange={(employeeId) => setForm({ ...form, employeeId })} />
-        {form.kind === 'acting' && <Alert tone="info">{t('leaders.actingRule')}</Alert>}
+        {form.kind === 'acting' ? <Alert tone="info">{t('leaders.actingRule')}</Alert> : <TitleField node={node} value={form.jobTitleId} onChange={(jobTitleId) => setForm({ ...form, jobTitleId })} />}
         <WindowFields form={form} setForm={setForm} today={today} />
-        <FormField label={`${t('leaders.reason')} *`} error={reason.error}>{(p) => <Textarea {...p} rows={2} onBlur={reason.onBlur} value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} />}</FormField>
+        <FormField label={t('leaders.reason')} error={reason.error}>{(p) => <Textarea {...p} rows={2} onBlur={reason.onBlur} value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} />}</FormField>
         <DialogFooter>
           <Button variant="secondary" onClick={onClose}>{tc('actions.cancel')}</Button>
           <Button disabled={!leaderFormValid(form, today) || set.isPending} onClick={() => void submit()}>{tc('actions.save')}</Button>

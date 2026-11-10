@@ -25,7 +25,7 @@ import { assertActing, assertLeaderCompany, escalateLeader, isActiveLeader, plan
 import { effectiveModes } from '../../domain/rules/org-visibility.rules';
 import type { LeaderRow } from '../../domain/types/org-leader.types';
 import type { NodeView } from '../../domain/types/org.types';
-import { ORG_AUDIT } from '../messages/org.messages';
+import { LEADER_DEFAULT_REASON, ORG_AUDIT } from '../messages/org.messages';
 import { assertCompanyAccess, ORG_LEADERS_MANAGE } from '../policies/org-access.policy';
 import { companyRows, toLeaderDto } from '../transformers/org-leader.transformer';
 import { OrgVisibilityService } from './org-visibility.service';
@@ -66,10 +66,13 @@ export class OrgLeadersService {
     return this.describe(await this.mustNode(nodeId));
   }
 
-  async set(ctx: AccessContext, nodeId: string, input: SetLeaderInput, actorId: string): Promise<OrgNodeLeadersDto> {
+  async set(ctx: AccessContext, nodeId: string, given: SetLeaderInput, actorId: string): Promise<OrgNodeLeadersDto> {
+    const input = { ...given, reason: given.reason?.trim() || LEADER_DEFAULT_REASON };
     const node = await this.mustNode(nodeId);
     assertCompanyAccess(ctx, ORG_LEADERS_MANAGE, node.companyId);
     await this.assertPerson(node, input);
+    await this.assertRules(node, input); // before the move: a refusal by the leader rules must leave the employee where they are
+    if (input.kind === 'leader' && input.jobTitleId) await this.employees.place({ employeeId: input.employeeId, orgNodeId: nodeId, jobTitleId: input.jobTitleId, validFrom: input.validFrom, reason: input.reason, actorId });
     const before = await this.leaders.employeesOf(nodeId);
     await this.tx.run(async (tx) => {
       await this.leaders.lock(nodeId, tx);
@@ -79,6 +82,37 @@ export class OrgLeadersService {
     this.audit(actorId, ORG_AUDIT.unitLeaderSet, nodeId, { companyId: input.companyId, employeeId: input.employeeId, kind: input.kind, validFrom: input.validFrom, validTo: input.validTo ?? null, reason: input.reason });
     await this.changed(nodeId, ...before, ...(node.managerId ? [node.managerId] : []));
     return this.describe(node);
+  }
+
+  /** What the leader rules say about this appointment, read now (the write checks again under the unit's lock). */
+  private async assertRules(node: NodeView, input: { companyId: string; employeeId: string; kind: 'leader' | 'acting'; validFrom: string; validTo?: string | null }): Promise<void> {
+    const rows = (await this.leaders.rowsOf(node.id)).filter((r) => r.companyId === input.companyId);
+    const request = { kind: input.kind, employeeId: input.employeeId, validFrom: input.validFrom, validTo: input.validTo ?? null };
+    if (input.kind === 'acting') assertActing(rows, request, todayInRiyadh());
+    else planLeader(rows, request, todayInRiyadh());
+  }
+
+  /**
+   * Asks, before an employee is saved, whether the leader rules would let them lead this unit for their company from `validFrom`: the access to the unit's company,
+   * the company rule of a shared unit, and the dates of the leaders already there. Nothing is written; someone who already leads the unit passes. The employee form
+   * calls it first so a refusal leaves nothing half done (the employee is only saved, then made the leader).
+   */
+  async assertCanAppoint(ctx: AccessContext, nodeId: string, input: { employeeId?: string; companyId: string; validFrom: string }): Promise<void> {
+    const node = await this.mustNode(nodeId);
+    assertCompanyAccess(ctx, ORG_LEADERS_MANAGE, node.companyId);
+    assertLeaderCompany((await this.repo.effectiveModesOf([node.id])).get(node.id) ?? 'per_company', input.companyId, await this.groupCompanyId());
+    if (input.employeeId && (await this.describe(node)).companies.some((c) => c.companyId === input.companyId && c.leader?.employeeId === input.employeeId)) return;
+    await this.assertRules(node, { ...input, employeeId: input.employeeId ?? '', kind: 'leader' });
+  }
+
+  /**
+   * Makes the employee the leader of the unit for their company from `validFrom`, as the employee form asks; nothing happens when they are the leader in force
+   * (or already scheduled from that day), so pressing save again does not close and reopen the same leader.
+   */
+  async appoint(ctx: AccessContext, nodeId: string, input: { employeeId: string; companyId: string; validFrom: string; reason: string }, actorId: string): Promise<void> {
+    const node = await this.mustNode(nodeId);
+    const already = (await this.describe(node)).companies.some((c) => c.companyId === input.companyId && c.leader?.employeeId === input.employeeId);
+    if (!already) await this.set(ctx, nodeId, { ...input, kind: 'leader' }, actorId);
   }
 
   /** Ends a leader in force on `endDate` (the last day): today, or a later day. */
@@ -160,7 +194,7 @@ export class OrgLeadersService {
     if (!(await this.employees.exists(input.employeeId, input.companyId))) throw new OrgLeaderEmployeeError();
   }
 
-  private async write(node: NodeView, input: SetLeaderInput, actorId: string, tx: TransactionContext): Promise<void> {
+  private async write(node: NodeView, input: SetLeaderInput & { reason: string }, actorId: string, tx: TransactionContext): Promise<void> {
     const rows = (await this.leaders.rowsOf(node.id, tx)).filter((r) => r.companyId === input.companyId);
     const request = { kind: input.kind, employeeId: input.employeeId, validFrom: input.validFrom, validTo: input.validTo ?? null };
     const today = todayInRiyadh();

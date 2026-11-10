@@ -81,7 +81,8 @@
     "monthlyGrossSalary": "Monthly gross salary",
     "salaryCurrencyCountryId": "Currency",
     "iban": "IBAN",
-    "notes": "Notes"
+    "notes": "Notes",
+    "leadsUnit": "Leader of this unit"
   },
   "gender": {
     "male": "Male",
@@ -300,8 +301,7 @@
     "effectiveFrom": "Effective from",
     "effectiveFromHint": "Today or a later date; a later change waits for its day.",
     "changeReason": "Reason for the change",
-    "changeReasonHint": "Shown in the employee's history.",
-    "reasonRequired": "Write the reason for changing the unit, title or manager."
+    "changeReasonHint": "Shown in the employee's history."
   },
   "photo": {
     "section": "Profile photo",

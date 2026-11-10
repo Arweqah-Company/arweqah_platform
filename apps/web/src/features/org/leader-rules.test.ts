@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { leaderCompanies, leaderFormValid, toSetLeaderInput, windowProblem, type LeaderForm } from './leader-rules';
 
 const TODAY = '2026-11-05';
-const form = (over: Partial<LeaderForm> = {}): LeaderForm => ({ companyId: 'c1', employeeId: 'e1', kind: 'leader', validFrom: TODAY, validTo: '', reason: 'تعيين جديد', ...over });
+const form = (over: Partial<LeaderForm> = {}): LeaderForm => ({ companyId: 'c1', employeeId: 'e1', kind: 'leader', jobTitleId: 't1', validFrom: TODAY, validTo: '', reason: 'تعيين جديد', ...over });
 
 describe('Who may be set as a leader (FR-100)', () => {
   const companies = [{ id: 'group' }, { id: 'c2' }];
@@ -13,6 +13,10 @@ describe('Who may be set as a leader (FR-100)', () => {
 
   it('offers every company for a unit managed per company', () => {
     expect(leaderCompanies('per_company', 'group', companies)).toHaveLength(2);
+  });
+
+  it('sends no reason when none is written', () => {
+    expect(toSetLeaderInput(form({ reason: '   ' }))).not.toHaveProperty('reason');
   });
 });
 
@@ -36,14 +40,21 @@ describe('The dates of a leader (FR-100)', () => {
 });
 
 describe('The leader form (FR-100)', () => {
-  it('needs the company, the employee and a reason of three letters', () => {
+  it('needs the company and the employee; the reason is optional but, when written, has three letters', () => {
     expect(leaderFormValid(form(), TODAY)).toBe(true);
+    expect(leaderFormValid(form({ reason: '' }), TODAY)).toBe(true);
     expect(leaderFormValid(form({ companyId: null }), TODAY)).toBe(false);
     expect(leaderFormValid(form({ employeeId: null }), TODAY)).toBe(false);
-    expect(leaderFormValid(form({ reason: 'ab' }), TODAY)).toBe(false);
+    expect(leaderFormValid(form({ reason: 'ab' }), TODAY)).toBe(false); // a reason that is written must be a reason
   });
 
-  it('writes an empty end as null and trims the reason', () => {
-    expect(toSetLeaderInput(form({ reason: '  سبب  ' }))).toEqual({ companyId: 'c1', employeeId: 'e1', kind: 'leader', validFrom: TODAY, validTo: null, reason: 'سبب' });
+  it('needs the title a leader takes, but not for an acting leader who stays where they are', () => {
+    expect(leaderFormValid(form({ jobTitleId: null }), TODAY)).toBe(false);
+    expect(leaderFormValid(form({ kind: 'acting', jobTitleId: null, validTo: '2026-12-01' }), TODAY)).toBe(true);
+    expect(toSetLeaderInput(form({ kind: 'acting', validTo: '2026-12-01' }))).not.toHaveProperty('jobTitleId');
+  });
+
+  it('writes an empty end as null, trims the reason and leaves it out when empty', () => {
+    expect(toSetLeaderInput(form({ reason: '  سبب  ' }))).toEqual({ companyId: 'c1', employeeId: 'e1', kind: 'leader', jobTitleId: 't1', validFrom: TODAY, validTo: null, reason: 'سبب' });
   });
 });

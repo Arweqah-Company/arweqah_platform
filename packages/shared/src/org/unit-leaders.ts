@@ -19,9 +19,12 @@ export const setLeaderSchema = z
     companyId: z.uuid(),
     employeeId: z.uuid(),
     kind: z.enum(LEADER_KINDS).default('leader'),
+    /** The job title of the unit the leader takes: a leader (not an acting one) is placed in the unit with it from `validFrom`. Optional for the API; the screen always asks for it. */
+    jobTitleId: z.uuid().optional(),
     validFrom: z.iso.date(),
     validTo: z.iso.date().nullable().optional(),
-    reason: changeReasonSchema,
+    /** Optional: when it is left out the history says the leader was appointed from the structure. */
+    reason: changeReasonSchema.optional(),
   })
   .refine((v) => !v.validTo || v.validTo >= v.validFrom, { path: ['validTo'], message: 'The end cannot be before the start' });
 export type SetLeaderInput = z.infer<typeof setLeaderSchema>;

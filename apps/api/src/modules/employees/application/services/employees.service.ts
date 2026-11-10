@@ -19,6 +19,7 @@ import {
   type UpdateEmployeeInput,
 } from '@arweqah-platform/shared';
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
+import { OrgLeadersService } from '../../../org/application/services/org-leaders.service';
 import { ForbiddenError, NotFoundError } from '../../../../common/domain/domain-error';
 import { AbilityFactory } from '../../../../core/access/application/ability.factory';
 import { AllowedEmailDomainsService } from '../../../../core/auth/application/allowed-email-domains.service';
@@ -39,7 +40,7 @@ import { EmployeeTransformer } from '../transformers/employee.transformer';
 import type { EmployeeInput } from '../../domain/rules/employee-flags.rules';
 import { EmployeeValidationService } from './employee-validation.service';
 import { EmployeeAssignmentsService } from './employee-assignments.service';
-import { EMPLOYEE_AUDIT, FORM_CHANGE_REASON } from '../messages/employee.messages';
+import { EMPLOYEE_AUDIT, FORM_CHANGE_REASON, FORM_LEADER_REASON } from '../messages/employee.messages';
 import { ASSIGNMENT_COLUMN, type AssignmentColumn, type PlacementChange } from '../../domain/types/assignment.types';
 import { EmployeeReachPolicy } from '../policies/employee-reach.policy';
 import { EmployeeEditPolicy } from '../policies/employee-edit.policy';
@@ -75,6 +76,7 @@ export class EmployeesService {
     private readonly editing: EmployeeEditPolicy,
     private readonly reach: EmployeeReachPolicy,
     private readonly auditor: EmployeeAuditService,
+    private readonly leaders: OrgLeadersService,
   ) {}
 
   async list(ctx: AccessContext, query: EmployeesQuery): Promise<Paginated<EmployeeListItemDto>> {
@@ -100,7 +102,8 @@ export class EmployeesService {
 
   /** Creates the person's record and sign-in account, assigns roles, then e-mails the activation link. */
   async create(ctx: AccessContext, input: CreateEmployeeInput, actorId: string): Promise<CreateEmployeeResultDto> {
-    const { roleIds: chosen, roleExpiries, ...fields } = input;
+    const { roleIds: chosen, roleExpiries, leadsUnit, ...fields } = input;
+    await this.assertCanLead(ctx, leadsUnit, { orgNodeId: input.orgNodeId, companyId: input.companyId, from: [todayInRiyadh(), input.startDate].sort().at(-1) as string });
     this.assertInScope(ctx, P.EmployeesCreate, { companyId: input.companyId, orgNodeId: input.orgNodeId });
     await this.assertEmailDomainAllowed(input.workEmail);
     const defaults = await this.access.defaultRoleIds(input.jobTitleId, await this.isLimited(input.relationTypeId));
@@ -123,6 +126,7 @@ export class EmployeesService {
       throw error;
     }
     await this.events.emitAsync(EMPLOYEES_CHANGED);
+    if (leadsUnit) await this.lead(ctx, created, { from: [todayInRiyadh(), input.startDate].sort().at(-1) as string, actorId });
     this.auditor.record(actorId, EMPLOYEE_AUDIT.created, created.id, { companyId: created.companyId, roles: roleIds.length });
     return { employee: await this.dto(ctx, created), invitation: await this.invite(userId) };
   }
@@ -133,7 +137,8 @@ export class EmployeesService {
       throw new FieldRuleError('workEmail', 'The work email is the sign-in identity and cannot be changed here', { ar: 'بريد العمل هو هوية الدخول ولا يمكن تغييره من هنا', en: 'The work email is the sign-in identity and cannot be changed here' });
     }
     this.assertInScope(ctx, P.EmployeesUpdate, { companyId: input.companyId, orgNodeId: input.orgNodeId, ownerId: existing.userId });
-    const { effectiveFrom, changeReason, ...rest } = input;
+    const { effectiveFrom, changeReason, leadsUnit, ...rest } = input;
+    await this.assertCanLead(ctx, leadsUnit, { orgNodeId: input.orgNodeId, companyId: input.companyId, employeeId: id, from: effectiveFrom ?? todayInRiyadh() });
     const fields: EmployeeInput = { ...rest, workEmail: existing.workEmail };
     const { values } = await this.validation.prepare(ctx, fields, existing);
     this.assertFieldRules(ctx, existing, values);
@@ -142,8 +147,25 @@ export class EmployeesService {
     await this.swapBaseRoleIfRelationChanged(existing, values.relationTypeId ?? null);
     this.events.emit(ACCESS_CHANGED, { userId: existing.userId });
     await this.events.emitAsync(EMPLOYEES_CHANGED);
+    if (leadsUnit) await this.lead(ctx, (await this.repo.findById(id)) as Employee, { from: effectiveFrom ?? todayInRiyadh(), actorId });
     this.auditor.record(actorId, EMPLOYEE_AUDIT.updated, id, { fields: changedFields(existing, values) });
     return this.dto(ctx, (await this.repo.findById(id)) as Employee);
+  }
+
+  /**
+   * «Make the person the unit's leader» is checked before anything is saved, so a refusal leaves nothing half done: the leaders key, then what the leader rules say
+   * about this unit, company and day (access to the unit's company, the company rule of a shared unit, the dates of the leaders already there).
+   */
+  private async assertCanLead(ctx: AccessContext, leadsUnit: boolean | undefined, plan: { orgNodeId: string; companyId: string; employeeId?: string; from: string }): Promise<void> {
+    if (!leadsUnit) return;
+    if (!ctx.filterFor(CorePermission.OrgLeadersManage)) throw new ForbiddenError();
+    await this.leaders.assertCanAppoint(ctx, plan.orgNodeId, { employeeId: plan.employeeId, companyId: plan.companyId, validFrom: plan.from });
+  }
+
+  /** The person leads the unit they are placed in, from `from` (a leader needs the unit's company access, checked by the org service). */
+  private async lead(ctx: AccessContext, employee: Employee, how: { from: string; actorId: string }): Promise<void> {
+    if (!employee.orgNodeId) return;
+    await this.leaders.appoint(ctx, employee.orgNodeId, { employeeId: employee.id, companyId: employee.companyId, validFrom: how.from, reason: FORM_LEADER_REASON }, how.actorId);
   }
 
   /**

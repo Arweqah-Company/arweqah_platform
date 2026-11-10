@@ -81,7 +81,8 @@
     "monthlyGrossSalary": "إجمالي الراتب الشهري",
     "salaryCurrencyCountryId": "العملة",
     "iban": "الآيبان",
-    "notes": "ملاحظات"
+    "notes": "ملاحظات",
+    "leadsUnit": "قائد هذه الوحدة"
   },
   "gender": {
     "male": "ذكر",
@@ -300,8 +301,7 @@
     "effectiveFrom": "يسري من",
     "effectiveFromHint": "اليوم أو تاريخ لاحق؛ التغيير اللاحق ينتظر يومه.",
     "changeReason": "سبب التغيير",
-    "changeReasonHint": "يظهر في سجل الموظف.",
-    "reasonRequired": "اكتب سبب تغيير الوحدة أو المسمى أو المدير."
+    "changeReasonHint": "يظهر في سجل الموظف."
   },
   "photo": {
     "section": "الصورة الشخصية",

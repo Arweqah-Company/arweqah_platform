@@ -16,21 +16,25 @@ const SAVED = {
 type Call = { method: string; url: string };
 
 /** The form of a saved employee for a person who may give roles (so it has two steps). `reply` answers the save. */
-function open(reply: () => Response) {
+function open(reply: () => Response, moreKeys: string[] = []) {
   const calls: Call[] = [];
-  const keys = ['employees.update', 'employees.view', 'employees.assign_roles', 'roles.view'];
+  const bodies: Record<string, unknown>[] = [];
+  const keys = ['employees.update', 'employees.view', 'employees.assign_roles', 'roles.view', ...moreKeys];
   server.use(
     http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'all' as const }))))),
     http.get('*/api/lookups/companies', () => HttpResponse.json([{ id: '11111111-1111-4111-8111-111111111111', code: 'ARW', nameAr: 'أروقة الريادة', nameEn: 'Arweqah Alreyadah' }])),
-    http.get('*/api/lookups/org-nodes', () => HttpResponse.json([{ id: '22222222-2222-4222-8222-222222222222', path: 'قطاع › وحدة', pathAr: 'قطاع › وحدة', pathEn: 'Sector › Unit', nameAr: 'وحدة', nameEn: 'Unit', defaultManagerId: null }])),
+    http.get('*/api/lookups/org-nodes', () => HttpResponse.json([
+      { id: '22222222-2222-4222-8222-222222222222', path: 'قطاع › وحدة', pathAr: 'قطاع › وحدة', pathEn: 'Sector › Unit', nameAr: 'وحدة', nameEn: 'Unit', defaultManagerId: null },
+      { id: '55555555-5555-4555-8555-555555555555', path: 'قطاع › وحدة ثانية', pathAr: 'قطاع › وحدة ثانية', pathEn: 'Sector › Second unit', nameAr: 'وحدة ثانية', nameEn: 'Second unit', defaultManagerId: null },
+    ])),
     http.get('*/api/lookups/job-titles', () => HttpResponse.json([{ id: '33333333-3333-4333-8333-333333333333', name: 'مطور', nameAr: 'مطور', nameEn: 'Developer' }])),
-    http.get('*/api/employees/managers', () => HttpResponse.json([])),
+    http.get('*/api/employees/managers', () => HttpResponse.json([{ id: '66666666-6666-4666-8666-666666666666', employeeNumber: 'N1', fullName: 'خالد المدير' }])),
     http.get('*/api/roles', () => HttpResponse.json(roles)),
     http.get('*/api/employees/e1', () => HttpResponse.json(SAVED)),
-    http.put('*/api/employees/e1', ({ request }) => { calls.push({ method: request.method, url: new URL(request.url).pathname }); return reply(); }),
+    http.put('*/api/employees/e1', async ({ request }) => { calls.push({ method: request.method, url: new URL(request.url).pathname }); bodies.push((await request.json()) as Record<string, unknown>); return reply(); }),
   );
   renderRoute([{ path: '/employees/:id/edit', element: <EmployeeFormPage /> }], '/employees/e1/edit');
-  return { calls };
+  return { calls, bodies };
 }
 
 /** Waits for the saved employee to fill the form, then presses «Next». */
@@ -63,6 +67,51 @@ describe('The two steps of the employee form', () => {
     const details = await screen.findByRole('heading', { level: 2, name: 'بيانات العمل' }); // the first step is showing again
     expect(details).toBeInTheDocument();
     expect(within(document.body).getByText('البريد مستخدم لموظف آخر')).toBeInTheDocument();
+  });
+
+  it('saves a change of the manager (or the unit or the title) without a reason: the reason is optional', async () => {
+    const { bodies } = open(() => HttpResponse.json(SAVED));
+    await screen.findByRole('heading', { name: 'تعديل بيانات الموظف' });
+    await waitFor(() => expect(screen.getByRole('combobox', { name: 'الوحدة' })).toBeEnabled());
+    await waitFor(() => expect(screen.getByLabelText(/الاسم الكامل/)).toHaveValue('سارة أحمد'));
+    fireEvent.click(screen.getByRole('combobox', { name: 'المدير المباشر' }));
+    fireEvent.click(await screen.findByText('خالد المدير'));
+    expect(await screen.findByLabelText('سبب التغيير')).toBeInTheDocument(); // asked for, with no asterisk
+    fireEvent.click(await screen.findByRole('button', { name: 'التالي: الأدوار' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
+    await waitFor(() => expect(bodies).toHaveLength(1));
+    expect(bodies[0]).not.toHaveProperty('changeReason');
+  });
+
+  describe('«this employee leads the unit» (FR-100)', () => {
+    it('is not offered to a person who may not appoint leaders', async () => {
+      open(() => HttpResponse.json(SAVED));
+      await screen.findByRole('heading', { name: 'تعديل بيانات الموظف' });
+      await waitFor(() => expect(screen.getByLabelText(/الاسم الكامل/)).toHaveValue('سارة أحمد'));
+      expect(screen.queryByLabelText('قائد هذه الوحدة')).not.toBeInTheDocument();
+    });
+
+    it('sends «leads the unit» with the save when it is ticked', async () => {
+      const { bodies } = open(() => HttpResponse.json(SAVED), ['org.leaders_manage']);
+      await screen.findByRole('heading', { name: 'تعديل بيانات الموظف' });
+      await waitFor(() => expect(screen.getByLabelText(/الاسم الكامل/)).toHaveValue('سارة أحمد'));
+      fireEvent.click(await screen.findByLabelText('قائد هذه الوحدة'));
+      fireEvent.click(await screen.findByRole('button', { name: 'التالي: الأدوار' }));
+      fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
+      await waitFor(() => expect(bodies).toHaveLength(1));
+      expect(bodies[0]).toMatchObject({ leadsUnit: true });
+    });
+
+    it('does not send it when it is not ticked', async () => {
+      const { bodies } = open(() => HttpResponse.json(SAVED), ['org.leaders_manage']);
+      await screen.findByRole('heading', { name: 'تعديل بيانات الموظف' });
+      await waitFor(() => expect(screen.getByLabelText(/الاسم الكامل/)).toHaveValue('سارة أحمد'));
+      await screen.findByLabelText('قائد هذه الوحدة');
+      fireEvent.click(await screen.findByRole('button', { name: 'التالي: الأدوار' }));
+      fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
+      await waitFor(() => expect(bodies).toHaveLength(1));
+      expect(bodies[0]).not.toHaveProperty('leadsUnit');
+    });
   });
 
   it('keeps the person on the roles step when the server refuses a role end date, and says why (it is not a problem of the first step)', async () => {

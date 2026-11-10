@@ -22,3 +22,4 @@ export const EMPLOYEE_AUDIT = {
 
 /** The reason kept in the placement history when the employee form changes the unit, the title or the manager without stating one. */
 export const FORM_CHANGE_REASON = 'Edited from the employee form';
+export const FORM_LEADER_REASON = 'Made the leader of the unit from the employee form';
