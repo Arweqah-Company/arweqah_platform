@@ -31,17 +31,22 @@ export class PerformanceReminderSendService {
     const cycle = await this.cycles.current();
     if (!cycle || cycle.stage === 'closed') return 0;
     const lastSent = await this.reminders.lastSent();
+    const deadline = cycle.dates.find((d) => d.key === 'self_deadline')?.from ?? null;
     let told = 0;
     for (const reminder of await this.reminders.list()) {
-      const deadline = cycle.dates.find((d) => d.key === 'self_deadline')?.from ?? null;
-      if (!reminder.on || !reminderDue({ kind: reminder.kind, days: reminder.days, today, deadline, lastSentOn: lastSent.get(reminder.id) ?? null })) continue;
-      const people = await this.audience(cycle, reminder);
-      if (!people.length) continue;
-      await this.notifications.notify({ userIds: people, link: reminder.kind === 'self' ? '/career-profile' : '/performance-team', ...words(reminder) });
-      await this.reminders.markSent(reminder.id, today);
-      told += people.length;
+      const due = reminder.on && reminderDue({ kind: reminder.kind, days: reminder.days, today, deadline, lastSentOn: lastSent.get(reminder.id) ?? null });
+      if (due) told += await this.send(cycle, reminder, today);
     }
     return told;
+  }
+
+  /** Tells the people the reminder is for (nobody when the work is done) and marks it sent today. */
+  private async send(cycle: CycleRow, reminder: ReminderDto, today: string): Promise<number> {
+    const people = await this.audience(cycle, reminder);
+    if (!people.length) return 0;
+    await this.notifications.notify({ userIds: people, link: reminder.kind === 'self' ? '/career-profile' : '/performance-team', ...words(reminder) });
+    await this.reminders.markSent(reminder.id, today);
+    return people.length;
   }
 
   private async audience(cycle: CycleRow, reminder: ReminderDto): Promise<string[]> {
