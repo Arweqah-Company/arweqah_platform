@@ -19,7 +19,7 @@ test.describe('Certificate review, my career team and development requests (FR-1
   test('my career team opens with its list and is accessible', async ({ page }) => {
     await adminModeOnViaApi(page);
     await page.goto('/employees?tab=team');
-    await expect(page.getByRole('heading', { level: 1, name: 'فريقي المهني' })).toBeVisible();
+    await expect(page.getByRole('tab', { name: 'فريقي المهني', selected: true })).toBeVisible();
     await expect(page.getByPlaceholder('ابحث بالاسم')).toBeVisible();
     await new ListPage(page).expectNoSeriousA11yIssues();
   });

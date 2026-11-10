@@ -54,7 +54,7 @@
   "charts": {
     "title": "Charts",
     "empty": "No data to show yet.",
-    "tasksByStatus": "My open tasks by status",
+    "tasksByStatus": "Open tasks by status",
     "tasksByStatusLabel": "Donut chart of your open tasks by status",
     "tasksOnTime": "Finished tasks: on time and late",
     "tasksOnTimeLabel": "Bars: tasks finished on time, finished late, and open tasks overdue",
