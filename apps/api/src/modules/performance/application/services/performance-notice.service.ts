@@ -35,7 +35,7 @@ export class PerformanceNoticeService {
 
   private async teamOpen(ctx: AccessContext, cycle: CycleRow): Promise<boolean> {
     if (cycle.stage !== 'mgr' || !ctx.filterFor(CorePermission.PerformanceTeamEvaluate) || !ctx.filterFor(CorePermission.PerformanceTeamView)) return false;
-    return (await this.team.list(ctx, { scope: 'all', page: 1, pageSize: 1 })).waitingCount > 0;
+    return (await this.team.waitingCount(ctx)) > 0;
   }
 }
 

@@ -20,7 +20,7 @@ export interface ChartsData {
 
 /** Finished in the last 30 days split by on time and late, next to what is overdue now. */
 function onTimeParts(tasks: TaskSummaryDto, label: (key: string) => string): ChartPart[] {
-  const onTime = Math.round((tasks.doneRecently * (tasks.onTimeRate ?? 0)) / 100);
+  const onTime = Math.min(tasks.doneRecently, Math.max(0, Math.round((tasks.doneRecently * (tasks.onTimeRate ?? 0)) / 100)));
   return [
     { key: 'onTime', label: label('onTime'), value: onTime, fill: 'fill-green-400' },
     { key: 'late', label: label('late'), value: tasks.doneRecently - onTime, fill: 'fill-orange-500' },

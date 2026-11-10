@@ -68,6 +68,22 @@ export class PerformanceTeamService {
     return { cycle: { fiscalYear: cycle.fiscalYear, stage: cycle.stage }, items: shown.slice(start, start + query.pageSize), total: shown.length, page: query.page, pageSize: query.pageSize, waitingCount: rows.filter((r) => r.mine !== 'sent' && !r.block).length };
   }
 
+  /** How many people wait for the viewer, and nothing else: no score and no title lookups (the bar under the header asks on every page load). */
+  async waitingCount(ctx: AccessContext): Promise<number> {
+    const filter = ctx.filterFor(CorePermission.PerformanceTeamView);
+    const cycle = await this.cycles.current();
+    if (!filter || !cycle) return 0;
+    const people = await this.team.members(filter, {});
+    const evaluations = await this.evaluations.forEmployees(cycle.id, people.map((p) => p.employeeId));
+    const reviews = await this.evaluations.reviews(evaluations.map((e) => e.id));
+    return evaluations.filter((e) => this.waitsForViewer({ cycle, person: people.find((p) => p.employeeId === e.employeeId) as TeamPerson, reviews: reviews.filter((r) => r.evaluationId === e.id) }, ctx.userId)).length;
+  }
+
+  private waitsForViewer(t: Pick<Target, 'cycle' | 'person' | 'reviews'>, viewerUserId: string): boolean {
+    const level = reviewerLevel(viewerUserId, t.person.managerUserId, reviewOf(t.reviews, 'direct')?.reviewerUserId ?? null);
+    return reviewState(reviewOf(t.reviews, level)) !== 'sent' && !this.blockOf({ cycle: t.cycle, level, reviews: t.reviews });
+  }
+
   /** One member's evaluation for the viewer; a person the scope does not reach, or without an evaluation, is a 404. */
   async one(ctx: AccessContext, employeeId: string): Promise<TeamEvaluationDto> {
     return this.view(await this.target(ctx, CorePermission.PerformanceTeamView, employeeId));
