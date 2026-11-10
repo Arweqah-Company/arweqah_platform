@@ -11,6 +11,11 @@ import { PerformanceResultService } from './application/services/performance-res
 import { PerformanceObjectionRepository, PerformanceResultRepository } from './domain/contracts/performance-result.repository';
 import { TypeOrmPerformanceObjectionRepository, TypeOrmPerformanceResultRepository } from './infrastructure/repositories/typeorm-performance-result.repository';
 import { PerformanceObjectionsController } from './presentation/controllers/performance-objections.controller';
+import { PerformanceMilestoneService } from './application/services/performance-milestone.service';
+import { PerformanceMilestoneRepository } from './domain/contracts/performance-milestone.repository';
+import { PERFORMANCE_MILESTONE_ENTITIES } from './domain/entities/performance-milestones.entities';
+import { TypeOrmPerformanceMilestoneRepository } from './infrastructure/repositories/typeorm-performance-milestone.repository';
+import { PerformanceMilestonesController } from './presentation/controllers/performance-milestones.controller';
 import { PerformanceScoreService } from './application/services/performance-score.service';
 import { PerformanceCalibrationRepository } from './domain/contracts/performance-calibration.repository';
 import { PERFORMANCE_RESULT_ENTITIES } from './domain/entities/performance-results.entities';
@@ -46,8 +51,8 @@ import { PerformanceTemplatesController } from './presentation/controllers/perfo
 
 /** Performance evaluation: the evaluation file and its templates, and the cycle now; the self-evaluation, the manager's evaluation, the calibration and the objections come in later stages. */
 @Module({
-  imports: [TypeOrmModule.forFeature([...PERFORMANCE_TEMPLATE_ENTITIES, ...PERFORMANCE_CYCLE_ENTITIES, ...PERFORMANCE_EVALUATION_ENTITIES, ...PERFORMANCE_REMINDER_ENTITIES, ...PERFORMANCE_RESULT_ENTITIES]), OrgModule],
-  controllers: [PerformanceTemplatesController, PerformanceCycleController, MyPerformanceController, PerformanceTeamController, PerformanceCalibrationController, PerformanceObjectionsController],
+  imports: [TypeOrmModule.forFeature([...PERFORMANCE_TEMPLATE_ENTITIES, ...PERFORMANCE_CYCLE_ENTITIES, ...PERFORMANCE_EVALUATION_ENTITIES, ...PERFORMANCE_REMINDER_ENTITIES, ...PERFORMANCE_RESULT_ENTITIES, ...PERFORMANCE_MILESTONE_ENTITIES]), OrgModule],
+  controllers: [PerformanceTemplatesController, PerformanceCycleController, MyPerformanceController, PerformanceTeamController, PerformanceCalibrationController, PerformanceObjectionsController, PerformanceMilestonesController],
   providers: [
     PerformanceTemplateService,
     PerformanceTemplateAiService,
@@ -59,6 +64,8 @@ import { PerformanceTemplatesController } from './presentation/controllers/perfo
     PerformanceScoreService,
     PerformanceCalibrationService,
     PerformanceApprovalService,
+    PerformanceMilestoneService,
+    { provide: PerformanceMilestoneRepository, useClass: TypeOrmPerformanceMilestoneRepository },
     PerformanceObjectionService,
     PerformanceResultService,
     { provide: PerformanceResultRepository, useClass: TypeOrmPerformanceResultRepository },
