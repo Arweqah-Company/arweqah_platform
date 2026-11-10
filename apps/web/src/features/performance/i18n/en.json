@@ -262,7 +262,7 @@
     },
     "performance-team": {
       "title": "Team evaluation",
-      "body": "Here you evaluate the members of your team in the manager's stage: open each employee's evaluation, enter the results and behaviour scores, and see the final score live.",
+      "body": "Here you evaluate your team members in the manager's stage: open each employee's evaluation, enter the results and behaviour scores, and watch the final score live. The «Milestones» button on each row records the minutes of the milestones of the year.",
       "can": {
         "evaluate": "Evaluate team members and send the evaluation",
         "export": "Export the team evaluation list"
@@ -292,7 +292,8 @@
       "behaviours": "Behaviours",
       "scale": "Grade scale",
       "calendar": "Fiscal-year card",
-      "result": "My result"
+      "result": "My result",
+      "milestones": "Milestones"
     },
     "basic": "Basic {{total}}%",
     "results": "Results",
@@ -618,7 +619,8 @@
     "edited": "The change was saved.",
     "draftSaved": "The draft was saved.",
     "failed": "Could not save the evaluation. Try again.",
-    "failedRefused": "The server refused the evaluation: check the fields, or that the stage is still open."
+    "failedRefused": "The server refused the evaluation: check the fields, or that the stage is still open.",
+    "milestones": "Milestones"
   },
   "notice": {
     "label": "Evaluation cycle notice",
@@ -756,5 +758,46 @@
       "finalized": "Your manager revised the evaluation and the final approval is the result above",
       "rejected": "Your objection was rejected"
     }
+  },
+  "milestones": {
+    "title": "Milestones of the year",
+    "columns": {
+      "milestone": "Milestone",
+      "date": "Date",
+      "state": "State",
+      "actions": "Actions"
+    },
+    "names": {
+      "review_jan": "Short review (January)",
+      "pulse_mar": "Pulse (March)",
+      "review_jul": "Short review (July)",
+      "pulse_sep": "Pulse (September)",
+      "warning_oct": "Warning grade (October)"
+    },
+    "state": {
+      "none": "Not recorded",
+      "recorded": "Recorded",
+      "acknowledged": "Recorded and read by the employee",
+      "skipped": "Does not run this year"
+    },
+    "memberTitle": "Milestones of {{name}}",
+    "memberHint": "Record the minutes of each milestone; the employee is told and acknowledges reading them.",
+    "record": "Record the minutes",
+    "edit": "Edit the minutes",
+    "recordTitle": "Minutes: {{name}}",
+    "recordHint": "The employee sees them and acknowledges reading them.",
+    "fields": {
+      "whereWeAre": "Where are we?",
+      "obstacle": "What is in the way?",
+      "agreedAction": "The agreed action",
+      "note": "Short note"
+    },
+    "actionHint": "Required (at least {{count}} characters).",
+    "save": "Save the minutes",
+    "saved": "The minutes were saved.",
+    "failed": "The minutes could not be saved.",
+    "loadFailed": "The milestones could not be loaded.",
+    "acknowledge": "I read the minutes",
+    "acknowledged": "Your acknowledgement was recorded."
   }
 }

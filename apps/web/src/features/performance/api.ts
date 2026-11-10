@@ -1,4 +1,4 @@
-import type { AdjustCalibrationInput, CalibrationRowDto, MyResultDto, ObjectionListDto, RaiseObjectionInput, EvaluationNoticesDto, EvalFileContent, CatalogItemDto, CatalogItemInput, CycleDateKey, CycleStateDto, EvalFileInput, EvalFileResult, FiscalInput, MyEvaluationDto, OpenCycleInput, ReminderDto, ReminderInput, SaveSelfEvaluationInput, SaveTeamEvaluationInput, ScaleInput, SetCycleDateInput, StageTemplateInput, TeamEvaluationDto, TemplatesDto } from '@arweqah-platform/shared';
+import type { MilestoneListDto, RecordMilestoneInput, AdjustCalibrationInput, CalibrationRowDto, MyResultDto, ObjectionListDto, RaiseObjectionInput, EvaluationNoticesDto, EvalFileContent, CatalogItemDto, CatalogItemInput, CycleDateKey, CycleStateDto, EvalFileInput, EvalFileResult, FiscalInput, MyEvaluationDto, OpenCycleInput, ReminderDto, ReminderInput, SaveSelfEvaluationInput, SaveTeamEvaluationInput, ScaleInput, SetCycleDateInput, StageTemplateInput, TeamEvaluationDto, TemplatesDto } from '@arweqah-platform/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/core/api/api-client';
 
@@ -110,3 +110,17 @@ export const useReturnObjection = () => useCalibrationWrite((id: string) => apiC
 export const useRejectObjection = () => useCalibrationWrite(({ id, reason }: { id: string; reason: string }) => apiClient.post(`/performance/objections/${id}/reject`, { reason }));
 export const useFinalizeObjection = () => useCalibrationWrite((id: string) => apiClient.post(`/performance/objections/${id}/finalize`, {}));
 export const useRaiseObjection = () => useCalibrationWrite((input: RaiseObjectionInput) => apiClient.post<MyResultDto | null>('/performance/me/objection', input));
+
+export const milestonesKey = (employeeId: string | 'me') => ['performance', 'milestones', employeeId] as const;
+/** A team member's milestones (for the manager). */
+export const useMemberMilestones = (employeeId: string) => useQuery({ queryKey: milestonesKey(employeeId), queryFn: () => apiClient.get<MilestoneListDto>(`/performance/team/${employeeId}/milestones`) });
+/** The signed-in employee's own milestones. */
+export const useMyMilestones = () => useQuery({ queryKey: milestonesKey('me'), queryFn: () => apiClient.get<MilestoneListDto>('/performance/me/milestones') });
+
+/** Every write answers with the new list, which replaces the cached one. */
+function useMilestoneWrite<TIn>(employeeId: string | 'me', write: (input: TIn) => Promise<MilestoneListDto>) {
+  const client = useQueryClient();
+  return useMutation({ mutationFn: write, onSuccess: (list) => client.setQueryData(milestonesKey(employeeId), list) });
+}
+export const useRecordMilestone = (employeeId: string) => useMilestoneWrite(employeeId, ({ key, ...input }: { key: string } & RecordMilestoneInput) => apiClient.put<MilestoneListDto>(`/performance/team/${employeeId}/milestones/${key}`, input));
+export const useAckMilestone = () => useMilestoneWrite('me', (key: string) => apiClient.post<MilestoneListDto>(`/performance/me/milestones/${key}/acknowledge`, {}));

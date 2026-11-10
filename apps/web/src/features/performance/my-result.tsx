@@ -25,7 +25,7 @@ export function MyResult({ result }: { result: MyResultDto }) {
   const [objecting, setObjecting] = useState(false);
   const cap = result.template.cap;
   return (
-    <div className="flex flex-col gap-4" data-tour="performance-result">
+    <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-neutral-200 bg-white p-5">
         <div className="min-w-[12rem] flex-1">
           <p className="text-sm text-muted">{t('result.yourScore')}</p>

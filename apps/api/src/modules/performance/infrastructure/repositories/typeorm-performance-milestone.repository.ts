@@ -22,7 +22,8 @@ export class TypeOrmPerformanceMilestoneRepository extends PerformanceMilestoneR
     }));
   }
 
-  async save(evaluationId: string, key: string, input: RecordMilestoneInput, recordedBy: string, tx: TransactionContext): Promise<void> {
+  async save(row: { evaluationId: string; key: string; input: RecordMilestoneInput; recordedBy: string }, tx: TransactionContext): Promise<void> {
+    const { evaluationId, key, input, recordedBy } = row;
     await managerOf(tx, this.ds.manager).getRepository(PerformanceMilestone).upsert({ evaluationId, milestoneKey: key, ...input, recordedBy, acknowledgedAt: null }, { conflictPaths: ['evaluationId', 'milestoneKey'] });
   }
 

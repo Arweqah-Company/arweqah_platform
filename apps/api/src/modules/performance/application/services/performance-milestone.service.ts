@@ -46,7 +46,7 @@ export class PerformanceMilestoneService {
     const problems = milestoneProblems(def.kind, input);
     if (problems.length) throw new MilestoneInvalidError(problems);
     await this.tx.run(async (tx) => {
-      await this.milestones.save(evaluation.id, key, input, ctx.userId, tx);
+      await this.milestones.save({ evaluationId: evaluation.id, key, input, recordedBy: ctx.userId }, tx);
       await this.notifications.notify({ userIds: [person.userId], tx, link: '/career-profile', titleAr: 'سُجّل محضر محطة لك', titleEn: 'The minutes of a milestone were recorded for you', bodyAr: 'اطّلع عليه في قسم «تقييم الأداء» وأقرّ باطلاعك.', bodyEn: 'Read it in the «performance evaluation» section and acknowledge reading it.' });
     });
     this.audit(ctx, PERFORMANCE_AUDIT.milestoneRecorded, evaluation.id);

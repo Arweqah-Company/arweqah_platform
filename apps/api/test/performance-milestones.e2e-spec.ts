@@ -77,7 +77,7 @@ describe('The milestones of the year: the manager records the minutes, the emplo
   });
 
   it('has no milestones before a cycle is open (404)', async () => {
-    const { hr: _hr, ...s } = await evaluationScenario(t);
+    const s = await evaluationScenario(t);
     const manager = await t.factories.signIn(await s.person(s.lead, s.group, grants(MANAGER)));
     await manager.get(`/api/performance/team/${s.rep.id}/milestones`).expect(404);
   });

@@ -12,7 +12,7 @@ export interface MilestoneRow extends RecordMilestoneInput {
 export abstract class PerformanceMilestoneRepository {
   abstract forEvaluation(evaluationId: string): Promise<MilestoneRow[]>;
   /** Keeps the minutes; writing them again clears the employee's acknowledgement (they read it anew). */
-  abstract save(evaluationId: string, key: string, input: RecordMilestoneInput, recordedBy: string, tx: TransactionContext): Promise<void>;
+  abstract save(row: { evaluationId: string; key: string; input: RecordMilestoneInput; recordedBy: string }, tx: TransactionContext): Promise<void>;
   /** True when the milestone has minutes to acknowledge. */
   abstract acknowledge(evaluationId: string, key: string, at: Date, tx: TransactionContext): Promise<boolean>;
 }

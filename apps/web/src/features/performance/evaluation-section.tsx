@@ -7,10 +7,11 @@ import { useMyEvaluation } from './api';
 import { FiscalCardTab } from './fiscal-card';
 import { GradeScale } from './grade-scale';
 import { MyEvaluation } from './my-evaluation';
+import { MyMilestones } from './my-milestones';
 import { MyResult } from './my-result';
 import { BehavioursTab, WeightsTab } from './stage-info';
 
-const TABS = ['result', 'me', 'weights', 'behaviours', 'scale', 'calendar'] as const;
+const TABS = ['result', 'me', 'weights', 'behaviours', 'scale', 'calendar', 'milestones'] as const;
 type Tab = (typeof TABS)[number];
 
 /** The panel of the selected tab. */
@@ -19,6 +20,7 @@ function Panel({ tab, mine, evaluation }: { tab: Tab; mine: MyEvaluationDto; eva
   if (tab === 'me') return <MyEvaluation mine={mine} evaluation={evaluation} />;
   if (tab === 'weights') return <WeightsTab template={evaluation.template} />;
   if (tab === 'behaviours') return <BehavioursTab template={evaluation.template} />;
+  if (tab === 'milestones') return <MyMilestones />;
   return tab === 'scale' ? <GradeScale bands={evaluation.scale} cap={evaluation.template.cap} /> : <FiscalCardTab card={evaluation.fiscal} />;
 }
 
