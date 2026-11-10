@@ -1218,9 +1218,20 @@ erDiagram
     jsonb content
     timestamp_with_time_zone sent_at
   }
+  performance_manager_reviews {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid evaluation_id FK,UK
+    character_varying level UK
+    uuid reviewer_user_id
+    jsonb content
+    timestamp_with_time_zone sent_at
+  }
   performance_cycles ||--o{ performance_evaluations : "cycle_id"
   employees ||--o{ performance_evaluations : "employee_id"
   performance_evaluations ||--o| performance_self_evaluations : "evaluation_id"
+  performance_evaluations ||--o{ performance_manager_reviews : "evaluation_id"
   performance_cycles ||--o{ performance_catalog_items : "cycle_id"
   employees ||--o{ career_development_requests : "employee_id"
   files |o--o{ career_development_requests : "agreement_file_id"
@@ -1382,4 +1393,5 @@ erDiagram
 | `performance_reminders` | An automatic reminder of the evaluation cycle that HR keeps (FR-124): `kind` (`self` the employee before the self-evaluation deadline, `mgr` the manager about an evaluation waiting, `mile` a milestone, `appr` the holder of calibration and approval), `days` (the days before the date, or the one number of «every N days»), `is_on`, and the words HR wrote, `title_ar` / `body_ar` required and `title_en` / `body_en` optional (the Arabic is sent when they are empty). Up to 30 rows; the migration seeds the four of the concept while the table is empty. Only the list lives here; the sending is a later delivery. |
 | `performance_evaluations` | One employee's evaluation in one cycle (`cycle_id` + `employee_id` unique): the stage they are evaluated by (from their grade and track when the cycle opened or when they first asked) and the user of their direct manager at that time. |
 | `performance_self_evaluations` | What the employee wrote about themselves, one document per evaluation (`content`: the level and note of each behaviour, the achievements per criterion, the catalog items picked) and `sent_at` (null until the first send). |
+| `performance_manager_reviews` | What a manager wrote about one evaluation, one document per reviewer level (`level`: `direct`, then `upper`; unique with the evaluation) so the direct manager's copy is never lost when the upper manager changes it: `content` (the score of each results criterion, the level and note of each behaviour, the catalog items picked) and `sent_at` (null while it is a draft). The first save of the direct level is what stops the employee from changing their self-evaluation. |
 | `career_ack_reopenings` | HR asked the holders of a title to acknowledge again, with the reason: whoever acknowledged before it is asked once more. |

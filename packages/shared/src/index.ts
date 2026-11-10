@@ -68,3 +68,6 @@ export * from './performance/reminders';
 export * from './performance/cycle';
 export * from './performance/cycle-dates';
 export * from './performance/self-evaluation';
+export * from './performance/score';
+export * from './performance/team-evaluation';
+export * from './performance/picks';

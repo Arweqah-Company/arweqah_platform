@@ -19,6 +19,9 @@ export const PERFORMANCE_AUDIT = {
   catalogRemoved: 'performance.catalog.removed',
   selfSent: 'performance.self.sent',
   selfEdited: 'performance.self.edited',
+  teamSaved: 'performance.team.saved',
+  teamSent: 'performance.team.sent',
+  teamEdited: 'performance.team.edited',
 } as const;
 
 export const PERFORMANCE_TEMPLATE_ENTITY = 'performance_template';

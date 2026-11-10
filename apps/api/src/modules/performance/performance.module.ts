@@ -4,6 +4,8 @@ import { PermissionCatalog } from '../../core/access/application/permission-cata
 import { WorkflowRegistry } from '../../core/workflow/application/workflow-definition';
 import { MyPerformanceController } from './presentation/controllers/my-performance.controller';
 import { PerformanceEvaluationService } from './application/services/performance-evaluation.service';
+import { PerformanceTeamService } from './application/services/performance-team.service';
+import { PerformanceTeamController } from './presentation/controllers/performance-team.controller';
 import { PerformanceSelfService } from './application/services/performance-self.service';
 import { PerformanceEvaluationRepository } from './domain/contracts/performance-evaluation.repository';
 import { PerformanceStagePort } from './domain/contracts/performance-roster.port';
@@ -32,7 +34,7 @@ import { PerformanceTemplatesController } from './presentation/controllers/perfo
 /** Performance evaluation: the evaluation file and its templates, and the cycle now; the self-evaluation, the manager's evaluation, the calibration and the objections come in later stages. */
 @Module({
   imports: [TypeOrmModule.forFeature([...PERFORMANCE_TEMPLATE_ENTITIES, ...PERFORMANCE_CYCLE_ENTITIES, ...PERFORMANCE_EVALUATION_ENTITIES, ...PERFORMANCE_REMINDER_ENTITIES]), OrgModule],
-  controllers: [PerformanceTemplatesController, PerformanceCycleController, MyPerformanceController],
+  controllers: [PerformanceTemplatesController, PerformanceCycleController, MyPerformanceController, PerformanceTeamController],
   providers: [
     PerformanceTemplateService,
     PerformanceTemplateAiService,
@@ -40,6 +42,7 @@ import { PerformanceTemplatesController } from './presentation/controllers/perfo
     PerformanceReminderService,
     PerformanceEvaluationService,
     PerformanceSelfService,
+    PerformanceTeamService,
     { provide: PerformanceStagePort, useClass: OrgStageAdapter },
     { provide: PerformanceEvaluationRepository, useClass: TypeOrmPerformanceEvaluationRepository },
     { provide: PerformanceTemplateRepository, useClass: TypeOrmPerformanceTemplateRepository },

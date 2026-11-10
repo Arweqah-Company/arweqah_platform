@@ -259,6 +259,14 @@
         "templates": "Add and change the evaluation file",
         "ai": "Analyse the evaluation file with AI"
       }
+    },
+    "performance-team": {
+      "title": "Team evaluation",
+      "body": "Here you evaluate the members of your team in the manager's stage: open each employee's evaluation, enter the results and behaviour scores, and see the final score live.",
+      "can": {
+        "evaluate": "Evaluate team members and send the evaluation",
+        "export": "Export the team evaluation list"
+      }
     }
   },
   "evaluation": {
@@ -513,5 +521,93 @@
       "noteText": "Text of the note",
       "saved": "The fiscal-year card was saved."
     }
+  },
+  "team": {
+    "title": "Team evaluation",
+    "description": "Evaluate the members of your team in the manager's stage: the direct manager first, then the upper manager.",
+    "chain": "The chain: the direct manager evaluates first, then the upper manager reviews and may change it, then calibration. The employee sees no scores before the individual notification.",
+    "noCycle": "The evaluation cycle is not open yet.",
+    "waiting": "{{count}} of your team are waiting for your evaluation.",
+    "notices": "Evaluation notices",
+    "notice": "{{name}} sent their self-evaluation and is waiting for your review",
+    "searchLabel": "Search the team",
+    "searchPlaceholder": "Search by employee name",
+    "noMatches": "No matching results",
+    "empty": "Nobody in your team has an evaluation in this cycle.",
+    "evaluate": "Evaluate",
+    "view": "View",
+    "you": "You",
+    "indirect": "Indirect",
+    "selfDone": "Sent",
+    "selfWaiting": "Not sent",
+    "columns": {
+      "employee": "Employee",
+      "title": "Title",
+      "manager": "Direct manager",
+      "self": "Self-evaluation",
+      "mine": "Your evaluation",
+      "score": "Score",
+      "level": "Level"
+    },
+    "mine": {
+      "none": "Not started",
+      "draft": "Draft",
+      "sent": "Sent"
+    },
+    "filters": {
+      "scope": "Scope",
+      "status": "Evaluation status"
+    },
+    "scopes": {
+      "all": "Everyone below me, all levels",
+      "direct": "Direct reports only"
+    },
+    "statuses": {
+      "waiting": "Waiting for your evaluation",
+      "done": "Evaluated"
+    },
+    "block": {
+      "no_cycle": "The evaluation cycle is not open yet.",
+      "not_started": "The manager's stage has not started yet; the current stage is {{stage}}.",
+      "wait_direct": "Waiting for the review of {{manager}} (their direct manager) first.",
+      "stage_over": "The manager's stage is over: the evaluation is read only."
+    },
+    "dialogTitle": "Evaluation of {{name}}",
+    "dialogDescription": "Results, behaviours and the extra component, with the final score live below.",
+    "loadFailed": "Could not load the evaluation.",
+    "selfSent": "The employee sent their self-evaluation: it is shown under each behaviour and does not bind you.",
+    "selfNotSent": "The employee has not sent their self-evaluation yet; you can evaluate without it.",
+    "next": {
+      "direct": "After you send, the evaluation goes to {{upper}}, then calibration.",
+      "upper": "You review the evaluation of {{direct}} and may change it; the scores then go to calibration.",
+      "calibration": "the upper manager"
+    },
+    "results": "Results",
+    "resultHint": "From 0 to 100",
+    "resultInvalid": "Enter a number from 0 to 100.",
+    "yourLevel": "Your rating",
+    "said": "{{who}}: {{level}}",
+    "theEmployee": "The employee",
+    "direct": "The direct manager",
+    "claimed": "Claimed by the employee",
+    "card": {
+      "title": "Live final score",
+      "outOf": "of {{cap}}",
+      "results": "Results",
+      "behaviour": "Behaviour",
+      "basic": "Basic",
+      "learning": "Learning",
+      "init": "Initiatives",
+      "growth": "Growth",
+      "formula": "Basic = results × their weight + behaviour × theirs, then learning, initiatives and growth are added (up to their caps); the score never goes above the cap of the stage."
+    },
+    "saveDraft": "Save draft",
+    "send": "Send the evaluation",
+    "saveEdit": "Save the change",
+    "sentDone": "The evaluation was sent.",
+    "edited": "The change was saved.",
+    "draftSaved": "The draft was saved.",
+    "failed": "Could not save the evaluation. Try again.",
+    "failedRefused": "The server refused the evaluation: check the fields, or that the stage is still open."
   }
 }

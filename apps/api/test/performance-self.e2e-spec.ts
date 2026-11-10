@@ -1,20 +1,15 @@
-import { CorePermission, type CatalogItemDto, type MyEvaluationDto, type PermissionGrant, type SaveSelfEvaluationInput } from '@arweqah-platform/shared';
+import { type CatalogItemDto, type MyEvaluationDto, type SaveSelfEvaluationInput } from '@arweqah-platform/shared';
 import { describe, expect, it, vi } from 'vitest';
-import { FULL_EVAL_FILE } from './helpers/eval-file';
-import { chainScenario } from './helpers/title-chain';
+import { evaluationScenario } from './helpers/performance-keys';
 import { useTestApp } from './setup/test-app';
 
-const grants = (keys: string[]): PermissionGrant[] => keys.map((key) => ({ key, scope: 'all' as const }));
-const HR = [CorePermission.PerformanceCycleView, CorePermission.PerformanceTemplateUpload, CorePermission.PerformanceCycleManage, CorePermission.PerformanceCycleClose, CorePermission.PerformanceCatalogManage];
 
 describe('The self-evaluation (FR-119)', () => {
   const t = useTestApp();
 
   /** A department with an employee (Rep, grade 7 P: the specialization stage) under a manager, and HR holding the cycle keys with the evaluation file saved. */
   async function setup() {
-    const s = await chainScenario(t);
-    const hr = await t.factories.signIn(await t.factories.user({ grants: grants(HR) }));
-    await hr.post('/api/performance/templates/file').send({ text: FULL_EVAL_FILE, dryRun: false }).expect(200);
+    const { hr, ...s } = await evaluationScenario(t);
     const manager = await t.factories.user();
     const holder = await s.person(s.rep, s.group);
     await t.db.query('UPDATE employees SET manager_id = $1 WHERE id = $2', [manager.employeeId, holder.employeeId]);

@@ -1,5 +1,5 @@
 import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
-import type { SaveSelfEvaluationInput } from '@arweqah-platform/shared';
+import type { ReviewerLevel, SaveSelfEvaluationInput, SaveTeamEvaluationInput } from '@arweqah-platform/shared';
 import { BaseEntity } from '../../../../common/domain/base.entity';
 
 /** One employee's evaluation in one cycle (FR-119): the stage they are evaluated by (from their grade and track) and who their direct manager was when the cycle opened. */
@@ -47,4 +47,28 @@ export class PerformanceSelfEvaluation extends BaseEntity {
   sentAt: Date | null;
 }
 
-export const PERFORMANCE_EVALUATION_ENTITIES = [PerformanceEvaluation, PerformanceSelfEvaluation];
+/** What a manager wrote about one evaluation, one document per reviewer level (the direct manager, then the upper one): kept apart so what the first entered is never lost. `sent_at` is null while it is a draft. */
+@Entity('performance_manager_reviews')
+@Index('UQ_performance_manager_reviews', ['evaluationId', 'level'], { unique: true })
+export class PerformanceManagerReview extends BaseEntity {
+  @ManyToOne('PerformanceEvaluation', { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'evaluation_id', foreignKeyConstraintName: 'FK_performance_manager_reviews_evaluation' })
+  evaluation?: unknown;
+
+  @Column({ name: 'evaluation_id', type: 'uuid' })
+  evaluationId: string;
+
+  @Column({ type: 'varchar', length: 8 })
+  level: ReviewerLevel;
+
+  @Column({ name: 'reviewer_user_id', type: 'uuid' })
+  reviewerUserId: string;
+
+  @Column({ type: 'jsonb' })
+  content: SaveTeamEvaluationInput;
+
+  @Column({ name: 'sent_at', type: 'timestamptz', nullable: true })
+  sentAt: Date | null;
+}
+
+export const PERFORMANCE_EVALUATION_ENTITIES = [PerformanceEvaluation, PerformanceSelfEvaluation, PerformanceManagerReview];

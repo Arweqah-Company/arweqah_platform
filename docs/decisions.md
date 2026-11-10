@@ -2,6 +2,25 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-10 — The organization structure on the server
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 322 | **The structure on the server is replaced by hand with `scripts/server/reset-org.sh`** (typed database name, backup first, then `reset-org-structure.js` and the seed). The reset guard now also accepts `ORG_RESET_CONFIRM` equal to `DB_NAME`; without it the rule of decision 248 (development, local host) is unchanged. The script is copied to the server by the deploy workflow but never run by it. | The seed builds the structure only while the company has no units, so the server kept the old structure after the owner's new file; the reset was local only. The server data was confirmed to be sample data. | Real data exists on the server (then a mapping by unit, never a wipe). |
+
+## 2026-11-10 — Performance, batch 5a (third delivery): the manager's evaluation of the team
+
+Plan: `docs/plans/phase-6-career-path-performance.md` §3.5b and §15.1 (a5).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 316 | **One document per reviewer level instead of the planned score tables** (`performance_manager_reviews`: `level` `direct` or `upper`, `content` jsonb, `sent_at`), the same shape as the self-evaluation. The plan named `performance_scores` and `performance_behaviour_scores`. | Nothing reads a single score on its own: the score is always computed from the whole form, and calibration (5b) needs only the totals. One document keeps the draft, the send and the two copies in one place with one upsert. | A report must filter by a single criterion across the company. |
+| 317 | **The direct manager is the one who is `employees.manager_id` now; the upper manager is that person's manager; anyone else in scope writes at the upper level.** Read from the structure on each request, not frozen at the cycle opening. | A manager who changes during the cycle should be the one who evaluates; the stored `manager_user_id` still tells the employee whom their self-evaluation was sent to. **Assumed:** a leader above the second level writes at the upper level and is blocked until the direct manager sent. | The owner wants a fixed chain per cycle. |
+| 318 | **The score is shown to the manager only from their own form, and the list shows the upper manager's score once it was sent, else the direct manager's.** The employee still gets no number (decision of 3.4): the cycle's notification stage comes in 5b. | Plan §3.5: the card is live for the manager; §3.4: employees see results after the individual notification. | 5b adds calibration, which replaces the number shown. |
+| 319 | **The employee can change their self-evaluation until the direct manager saves anything** (a draft counts), then 409 `SELF_EVALUATION_CLOSED`. This replaces decision 286's «the manager started is not known yet». | The concept says it stays open «until the manager starts»; the first save of the direct level is the start. | The owner wants the start to be the send. |
+| 320 | **Three keys, none of them `export` for the cycle:** `performance.team_view` (the page and its list), `performance.team_evaluate` (write and send), `performance.team_export`; all at `subtree`, all in the head role of every unit (migration `1794301000300`). `performance.milestone_record` comes with 5c. | Standing rules 5 and 17. | — |
+| 321 | **«Team evaluation» opens the window for every row, also when writing is blocked:** the window says why in words and locks the fields; the send button is dimmed and says the same when pressed (P18). A blocked write is also refused by the server (409). | A click should always lead somewhere and explain. | — |
+
 ## 2026-11-09 — Performance, batch 5a: the evaluation cycle page as the concept draws it
 
 Plan: `docs/plans/phase-6-career-path-performance.md` §3.7b and §15.1 (a3b).

@@ -21,6 +21,7 @@ export const LIST_CATALOG = {
   'career-my-requests': { columns: ['course', 'cost', 'plan', 'level', 'status', 'submitted'], filters: ['status', 'plan'] },
   'performance-catalog': { columns: ['title', 'kind', 'points'], filters: ['kind'] },
   'performance-templates': { columns: ['part', 'details', 'status'], filters: ['kind', 'status'] },
+  'performance-team': { columns: ['employee', 'title', 'manager', 'self', 'mine', 'score', 'level'], filters: ['scope', 'status'] },
   'performance-reminders': { columns: ['kind', 'timing', 'title', 'status'], filters: ['kind', 'status'] },
   'career-certificates': { columns: ['employee', 'unit', 'proof', 'minutes', 'submitted', 'status'], filters: ['kind', 'status'] },
   'career-content': { columns: ['code', 'name', 'unit', 'grade', 'track', 'status', 'holders'], filters: ['status', 'grade', 'track', 'unit'] },

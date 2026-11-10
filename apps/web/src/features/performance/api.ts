@@ -1,4 +1,4 @@
-import type { EvalFileContent, CatalogItemDto, CatalogItemInput, CycleDateKey, CycleStateDto, EvalFileInput, EvalFileResult, FiscalInput, MyEvaluationDto, OpenCycleInput, ReminderDto, ReminderInput, SaveSelfEvaluationInput, ScaleInput, SetCycleDateInput, StageTemplateInput, TemplatesDto } from '@arweqah-platform/shared';
+import type { EvalFileContent, CatalogItemDto, CatalogItemInput, CycleDateKey, CycleStateDto, EvalFileInput, EvalFileResult, FiscalInput, MyEvaluationDto, OpenCycleInput, ReminderDto, ReminderInput, SaveSelfEvaluationInput, SaveTeamEvaluationInput, ScaleInput, SetCycleDateInput, StageTemplateInput, TeamEvaluationDto, TemplatesDto } from '@arweqah-platform/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/core/api/api-client';
 
@@ -75,3 +75,15 @@ function useSelfWrite(call: (input: SaveSelfEvaluationInput) => Promise<MyEvalua
 
 export const useSaveSelf = () => useSelfWrite((input) => apiClient.put<MyEvaluationDto>('/performance/me/self', input));
 export const useSendSelf = () => useSelfWrite((input) => apiClient.post<MyEvaluationDto>('/performance/me/self/send', input));
+
+export const TEAM_KEY = ['performance', 'team'] as const;
+export const teamMemberKey = (employeeId: string) => [...TEAM_KEY, 'member', employeeId] as const;
+export const useTeamMember = (employeeId: string) => useQuery({ queryKey: teamMemberKey(employeeId), queryFn: () => apiClient.get<TeamEvaluationDto>(`/performance/team/${employeeId}`) });
+
+/** Writing a member's evaluation: the answer replaces the member in the cache and the list is reloaded (the state of the row changed). */
+function useTeamWrite(employeeId: string, call: (input: SaveTeamEvaluationInput) => Promise<TeamEvaluationDto>) {
+  const client = useQueryClient();
+  return useMutation({ mutationFn: call, onSuccess: (dto) => { client.setQueryData(teamMemberKey(employeeId), dto); return client.invalidateQueries({ queryKey: TEAM_KEY }); } });
+}
+export const useSaveTeam = (employeeId: string) => useTeamWrite(employeeId, (input) => apiClient.put<TeamEvaluationDto>(`/performance/team/${employeeId}`, input));
+export const useSendTeam = (employeeId: string) => useTeamWrite(employeeId, (input) => apiClient.post<TeamEvaluationDto>(`/performance/team/${employeeId}/send`, input));
