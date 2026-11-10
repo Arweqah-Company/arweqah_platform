@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { toast } from 'sonner';
 import { me, roles, server } from '../../../test/msw';
 import { renderRoute } from '../../../test/render';
 import { EmployeeFormPage } from './employee-form-page';
@@ -39,6 +40,8 @@ const next = async () => {
 };
 
 describe('The two steps of the employee form', () => {
+  beforeEach(() => { vi.spyOn(toast, 'error').mockReturnValue(1); });
+
   it('goes to the roles step on «Next» and saves nothing: the save button appears there, but only a press on it saves', async () => {
     const { calls } = open(() => HttpResponse.json(SAVED));
     await screen.findByRole('heading', { name: 'تعديل بيانات الموظف' });
@@ -60,5 +63,18 @@ describe('The two steps of the employee form', () => {
     const details = await screen.findByRole('heading', { level: 2, name: 'بيانات العمل' }); // the first step is showing again
     expect(details).toBeInTheDocument();
     expect(within(document.body).getByText('البريد مستخدم لموظف آخر')).toBeInTheDocument();
+  });
+
+  it('keeps the person on the roles step when the server refuses a role end date, and says why (it is not a problem of the first step)', async () => {
+    const { calls } = open(() => HttpResponse.json({ statusCode: 422, code: 'VALIDATION_ERROR', message: 'Validation failed', details: [{ path: ['roleExpiries'], message: 'تاريخ نهاية الدور ماضٍ' }] }, { status: 422 }));
+    await screen.findByRole('heading', { name: 'تعديل بيانات الموظف' });
+    await waitFor(() => expect(screen.getByLabelText(/الاسم الكامل/)).toHaveValue('سارة أحمد'));
+    await next();
+    fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
+    await waitFor(() => expect(calls).toHaveLength(1));
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(screen.queryByRole('heading', { level: 2, name: 'بيانات العمل' })).not.toBeInTheDocument(); // still on the roles step
+    expect(screen.getByRole('button', { name: 'حفظ' })).toBeInTheDocument();
+    expect(toast.error).toHaveBeenCalledWith('تاريخ نهاية الدور ماضٍ');
   });
 });
