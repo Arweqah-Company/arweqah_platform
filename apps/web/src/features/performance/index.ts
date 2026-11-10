@@ -1,17 +1,34 @@
 import { CorePermission } from '@arweqah-platform/shared';
-import { ClipboardCheck } from 'lucide-react';
+import { ClipboardCheck, ClipboardList } from 'lucide-react';
 import { PAGE_MAIN_TARGET, type FeatureModule } from '@/core/feature';
 import ar from './i18n/ar.json';
 import en from './i18n/en.json';
 
 export { EvaluationSection } from './evaluation-section';
+export { EvaluationNoticeBanner } from './notice-banner';
 
-/** Performance evaluation: the cycle for HR now (stepper, evaluation file, dates, catalog); the employee's and the manager's screens come with the next stages. */
+/** Performance evaluation: the cycle for HR (stepper, evaluation file, dates, catalog), the employee's self-evaluation and the manager's team evaluation; calibration, approval and objections come next. */
 export const performanceFeature: FeatureModule = {
   id: 'performance',
-  routes: [{ path: '/performance-cycle', lazy: () => import('./cycle-page').then((m) => ({ Component: m.CyclePage })) }],
-  nav: [{ to: '/performance-cycle', labelKey: 'nav.performanceCycle', icon: ClipboardCheck, group: 'people', permission: CorePermission.PerformanceCycleView, pageKey: 'performance-cycle' }],
+  routes: [
+    { path: '/performance-cycle', lazy: () => import('./cycle-page').then((m) => ({ Component: m.CyclePage })) },
+    { path: '/performance-team', lazy: () => import('./team-page').then((m) => ({ Component: m.TeamEvaluationPage })) },
+  ],
+  nav: [
+    { to: '/performance-team', labelKey: 'nav.performanceTeam', icon: ClipboardList, group: 'career', permission: CorePermission.PerformanceTeamView, pageKey: 'performance-team' },
+    { to: '/performance-cycle', labelKey: 'nav.performanceCycle', icon: ClipboardCheck, group: 'career', permission: CorePermission.PerformanceCycleView, pageKey: 'performance-cycle' },
+  ],
   tour: [
+    {
+      key: 'performance-team',
+      target: PAGE_MAIN_TARGET,
+      route: '/performance-team',
+      placement: 'auto',
+      can: [
+        { id: 'evaluate', permission: CorePermission.PerformanceTeamEvaluate },
+        { id: 'export', permission: CorePermission.PerformanceTeamExport },
+      ],
+    },
     {
       key: 'performance-cycle',
       target: PAGE_MAIN_TARGET,

@@ -1,20 +1,15 @@
-import { CorePermission, type CatalogItemDto, type MyEvaluationDto, type PermissionGrant, type SaveSelfEvaluationInput } from '@arweqah-platform/shared';
+import { type CatalogItemDto, type MyEvaluationDto, type SaveSelfEvaluationInput } from '@arweqah-platform/shared';
 import { describe, expect, it, vi } from 'vitest';
-import { FULL_EVAL_FILE } from './helpers/eval-file';
-import { chainScenario } from './helpers/title-chain';
+import { evaluationScenario } from './helpers/performance-keys';
 import { useTestApp } from './setup/test-app';
 
-const grants = (keys: string[]): PermissionGrant[] => keys.map((key) => ({ key, scope: 'all' as const }));
-const HR = [CorePermission.PerformanceCycleView, CorePermission.PerformanceTemplateUpload, CorePermission.PerformanceCycleManage, CorePermission.PerformanceCycleClose, CorePermission.PerformanceCatalogManage];
 
 describe('The self-evaluation (FR-119)', () => {
   const t = useTestApp();
 
   /** A department with an employee (Rep, grade 7 P: the specialization stage) under a manager, and HR holding the cycle keys with the evaluation file saved. */
   async function setup() {
-    const s = await chainScenario(t);
-    const hr = await t.factories.signIn(await t.factories.user({ grants: grants(HR) }));
-    await hr.post('/api/performance/templates/file').send({ text: FULL_EVAL_FILE, dryRun: false }).expect(200);
+    const { hr, ...s } = await evaluationScenario(t);
     const manager = await t.factories.user();
     const holder = await s.person(s.rep, s.group);
     await t.db.query('UPDATE employees SET manager_id = $1 WHERE id = $2', [manager.employeeId, holder.employeeId]);
@@ -140,5 +135,16 @@ describe('The self-evaluation (FR-119)', () => {
     await without.get('/api/performance/me').expect(403);
     await without.put('/api/performance/me/self').send({ behaviours: {}, achievements: {}, initIds: [], growthIds: [] }).expect(403);
     await without.post('/api/performance/me/self/send').send({ behaviours: {}, achievements: {}, initIds: [], growthIds: [] }).expect(403);
+  });
+
+  it('shows the bar «the cycle is open» (plan §15.2): nothing without a cycle, the self-evaluation with its deadline while it is unsent, nothing once it is sent', async () => {
+    const s = await setup();
+    const notices = async (agent = s.me) => (await agent.get('/api/performance/me/notices').expect(200)).body as { items: { kind: string; path: string; due: { from: string; to: string | null } | null }[] };
+    expect((await notices()).items).toEqual([]);
+    await s.open();
+    expect((await notices()).items).toEqual([{ kind: 'self', path: '/career-profile', due: { from: '2027-03-10', to: null } }]);
+    expect((await notices(await t.factories.signIn(await t.factories.user()))).items).toEqual([]);
+    await s.me.post('/api/performance/me/self/send').send(s.complete()).expect(200);
+    expect((await notices()).items).toEqual([]);
   });
 });

@@ -1,6 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { CYCLE_DATE_KEYS, analyzeEvalFileSchema, confirmEvalFileSchema, catalogItemSchema, evalFileSchema, fiscalInputSchema, openCycleSchema, reminderSchema, saveSelfEvaluationSchema, scaleInputSchema, setCycleDateSchema, stageTemplateInputSchema } from '@arweqah-platform/shared';
+import { CYCLE_DATE_KEYS, analyzeEvalFileSchema, confirmEvalFileSchema, catalogItemSchema, evalFileSchema, fiscalInputSchema, openCycleSchema, reminderSchema, evalTeamQuerySchema, saveSelfEvaluationSchema, saveTeamEvaluationSchema, scaleInputSchema, setCycleDateSchema, stageTemplateInputSchema } from '@arweqah-platform/shared';
 
 export class EvalFileDto extends createZodDto(evalFileSchema) {}
 export class OpenCycleDto extends createZodDto(openCycleSchema) {}
@@ -15,3 +15,5 @@ export class CycleDateKeyParam extends createZodDto(z.strictObject({ key: z.enum
 export class SaveSelfEvaluationDto extends createZodDto(saveSelfEvaluationSchema) {}
 export class AnalyzeEvalFileDto extends createZodDto(analyzeEvalFileSchema) {}
 export class ConfirmEvalFileDto extends createZodDto(confirmEvalFileSchema) {}
+export class SaveTeamEvaluationDto extends createZodDto(saveTeamEvaluationSchema) {}
+export class TeamEvaluationQueryDto extends createZodDto(evalTeamQuerySchema) {}

@@ -203,7 +203,7 @@ describe('«My career team» (FR-115)', () => {
     return { ...s, hr, holder, me, viewer, unitId };
   }
 
-  it('lists the people the scope reaches with their numbers, marks one with no ready path, searches and filters by state', async () => {
+  it('lists the people the scope reaches with their numbers, leaves out one with no ready path, searches and filters by state', async () => {
     const s = await setup();
     const page = (await s.viewer.get('/api/career/team').expect(200)).body as TeamPageDto;
     const mine = page.items.find((m) => m.employeeId === s.holder.employeeId);
@@ -211,9 +211,17 @@ describe('«My career team» (FR-115)', () => {
     expect(page.items.every((m) => m.employeeId !== undefined)).toBe(true);
     expect(((await s.viewer.get('/api/career/team').query({ search: 'لا-أحد-بهذا-الاسم' }).expect(200)).body as TeamPageDto).items).toHaveLength(0);
     const bare = await s.person(s.lead, s.group);
+    const all = ((await s.viewer.get('/api/career/team').expect(200)).body as TeamPageDto).items;
+    expect(all.map((m) => m.employeeId)).not.toContain(bare.employeeId);
     const noPath = ((await s.viewer.get('/api/career/team').query({ status: 'no_path' }).expect(200)).body as TeamPageDto).items;
-    expect(noPath.map((m) => m.employeeId)).toContain(bare.employeeId);
+    expect(noPath).toHaveLength(0);
     await s.viewer.get('/api/career/team').query({ status: 'zzz' }).expect(400);
+  });
+
+  it('sends the work details (unit, company, e-mail, phone) of each person to a viewer who holds the directory key', async () => {
+    const s = await setup([...TEAM, CorePermission.DirectoryView].map((key) => ({ key, scope: 'all' as const })));
+    const rows = ((await s.viewer.get('/api/career/team').expect(200)).body as TeamPageDto).items;
+    expect(rows.find((m) => m.employeeId === s.holder.employeeId)?.contact).toMatchObject({ workEmail: expect.stringContaining('@'), companyNameAr: expect.any(String) });
   });
 
   it('shows one member with the proofs waiting for a decision, and answers 404 for a person the scope does not reach', async () => {

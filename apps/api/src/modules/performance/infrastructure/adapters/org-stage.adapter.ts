@@ -14,4 +14,9 @@ export class OrgStageAdapter extends PerformanceStagePort {
     const { stage } = await this.titles.identity(titleId);
     return stage ? { stage: DEVELOPMENT_STAGE_CODES.indexOf(stage.code) + 1, hoursPerYear: stage.hoursPerYear } : null;
   }
+
+  async titleNames(titleId: string): Promise<{ nameAr: string; nameEn: string }> {
+    const { nameAr, nameEn } = await this.titles.identity(titleId);
+    return { nameAr, nameEn };
+  }
 }

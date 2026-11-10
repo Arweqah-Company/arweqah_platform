@@ -2,11 +2,34 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-10 — Home page charts
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 326 | **«My team» and «My career team» are one table in one tab titled «My career team»** (Employees page, `?tab=team`). With `career_team.view` it lists the people of the viewer's scope with the numbers of their path; holding `directory.view` too adds the columns unit, company, work e-mail and phone (the API sends `contact` only then). With `directory.view` only, the tab is the old colleagues table of the viewer's own unit. There is no sub-switch, no separate page (`/career-team` redirects), and the list leaves out people whose title has no published path. «Team evaluation» stays its own page. | Owner's request: one table, columns appear by permission. | Team evaluation is merged too, or directory-only viewers need the same table. |
+| 325 | **`recharts` 3.10.1 (exact, released 2026-07-25) draws the home charts**, wrapped in `shared/ui/charts.tsx` (`DonutChart`, `BarsChart`, brand `fill-*` classes, legend with words and counts) and loaded lazily. «Shortcuts» and «Recent activity» are removed from the home page. | Owner's request; the charts reuse the existing summaries (no API change) and keep the main bundle small. | A chart needs data the summaries lack. |
+
 ## 2026-11-10 — The organization structure on the server
 
 | # | Decision | Why | Revisit when |
 |---|---|---|---|
 | 322 | **The structure on the server is replaced by hand with `scripts/server/reset-org.sh`** (typed database name, backup first, then `reset-org-structure.js` and the seed). The reset guard now also accepts `ORG_RESET_CONFIRM` equal to `DB_NAME`; without it the rule of decision 248 (development, local host) is unchanged. The script is copied to the server by the deploy workflow but never run by it. | The seed builds the structure only while the company has no units, so the server kept the old structure after the owner's new file; the reset was local only. The server data was confirmed to be sample data. | Real data exists on the server (then a mapping by unit, never a wipe). |
+
+## 2026-11-10 — Performance, batch 5a (third delivery): the manager's evaluation of the team
+
+Plan: `docs/plans/phase-6-career-path-performance.md` §3.5b and §15.1 (a5).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 316 | **One document per reviewer level instead of the planned score tables** (`performance_manager_reviews`: `level` `direct` or `upper`, `content` jsonb, `sent_at`), the same shape as the self-evaluation. The plan named `performance_scores` and `performance_behaviour_scores`. | Nothing reads a single score on its own: the score is always computed from the whole form, and calibration (5b) needs only the totals. One document keeps the draft, the send and the two copies in one place with one upsert. | A report must filter by a single criterion across the company. |
+| 317 | **The direct manager is the one who is `employees.manager_id` now; the upper manager is that person's manager; anyone else in scope writes at the upper level.** Read from the structure on each request, not frozen at the cycle opening. | A manager who changes during the cycle should be the one who evaluates; the stored `manager_user_id` still tells the employee whom their self-evaluation was sent to. **Assumed:** a leader above the second level writes at the upper level and is blocked until the direct manager sent. | The owner wants a fixed chain per cycle. |
+| 318 | **The score is shown to the manager only from their own form, and the list shows the upper manager's score once it was sent, else the direct manager's.** The employee still gets no number (decision of 3.4): the cycle's notification stage comes in 5b. | Plan §3.5: the card is live for the manager; §3.4: employees see results after the individual notification. | 5b adds calibration, which replaces the number shown. |
+| 319 | **The employee can change their self-evaluation until the direct manager saves anything** (a draft counts), then 409 `SELF_EVALUATION_CLOSED`. This replaces decision 286's «the manager started is not known yet». | The concept says it stays open «until the manager starts»; the first save of the direct level is the start. | The owner wants the start to be the send. |
+| 320 | **Three keys, none of them `export` for the cycle:** `performance.team_view` (the page and its list), `performance.team_evaluate` (write and send), `performance.team_export`; all at `subtree`, all in the head role of every unit (migration `1794301000300`). `performance.milestone_record` comes with 5c. | Standing rules 5 and 17. | — |
+| 321 | **«Team evaluation» opens the window for every row, also when writing is blocked:** the window says why in words and locks the fields; the send button is dimmed and says the same when pressed (P18). A blocked write is also refused by the server (409). | A click should always lead somewhere and explain. | — |
+| 323 | **Review fixes of PR 72:** an employee with no direct manager is evaluated at the direct level by whoever in scope writes first (before, every viewer was the upper level and waited for a direct review that could never come: 409 `wait_direct` for ever); the member's evaluation is never cached in the browser (`gcTime: 0`), so reopening the window cannot seed the form from an old copy. | Both were real: each was reproduced by a test that failed on the old code (`reviewerLevel` unit, an e2e for an employee without a manager, a component test that reopens a member), then passed after the fix. | — |
+| 327 | **Review fix of PR 72 (second round):** with no direct manager, the first evaluator to write keeps the direct copy (`reviewerLevel` reads who wrote the direct document); anyone after them writes their own copy at the upper level, so two evaluators in scope never overwrite each other. Reproduced by the unit case `reviewerLevel('u3', null, 'u2')` and an e2e with two evaluators, both failing before. | CodeRabbit (Major) was right: both would have shared the `(evaluation, direct)` upsert key. | — |
+| 324 | **Every page of the career file stands under one sidebar menu, «الملف المهني»** (`career` group, owner's request): team evaluation, certificate review, development requests, career content and the evaluation cycle; «my career path» stays alone as a top-level link under Home (rank 1); a new page of the career file joins this group (`group: 'career'`). They left the «الموارد البشرية» menu. | The pages belong together and the HR menu had grown to ten items. | A page is shared with another module. |
 
 ## 2026-11-09 — Performance, batch 5a: the evaluation cycle page as the concept draws it
 

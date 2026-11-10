@@ -4,12 +4,12 @@ import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { me, server } from '../../../test/msw';
 import { renderPage } from '../../../test/render';
-import { CareerTeamPage } from './team-page';
+import { CareerTeamPanel } from './team-page';
 
 beforeEach(() => window.localStorage.clear());
 
-const member = (over: Partial<TeamMemberDto> = {}): TeamMemberDto => ({ employeeId: 'e1', name: 'منى الزهراني', titleNameAr: 'منسق الاستقطاب', titleNameEn: 'Coordinator', requiredDone: 1, requiredTotal: 4, approvedMinutes: 720, yearMinutes: 2400, overdue: 1, waiting: 1, status: 'late', ...over });
-const MEMBERS = [member(), member({ employeeId: 'e2', name: 'خالد الشمري', requiredDone: 3, overdue: 0, status: 'regular' }), member({ employeeId: 'e3', name: 'ريم الغامدي', status: 'no_path', requiredDone: 0, requiredTotal: 0, overdue: 0 })];
+const member = (over: Partial<TeamMemberDto> = {}): TeamMemberDto => ({ employeeId: 'e1', name: 'منى الزهراني', titleNameAr: 'منسق الاستقطاب', titleNameEn: 'Coordinator', requiredDone: 1, requiredTotal: 4, approvedMinutes: 720, yearMinutes: 2400, overdue: 1, waiting: 1, status: 'late', contact: null, ...over });
+const MEMBERS = [member({ contact: { unitNameAr: 'الاستقطاب', unitNameEn: 'Recruiting', companyNameAr: 'أرواق', companyNameEn: 'Arweqah', workEmail: 'mona@arweqah.sa', workPhone: null } }), member({ employeeId: 'e2', name: 'خالد الشمري', requiredDone: 3, overdue: 0, status: 'regular' }), member({ employeeId: 'e3', name: 'ريم الغامدي', status: 'no_path', requiredDone: 0, requiredTotal: 0, overdue: 0 })];
 const ALL = [CorePermission.CareerTeamView, CorePermission.CareerTeamDecide, CorePermission.CareerTeamExport, CorePermission.CareerCompetencyRecord];
 
 function open(keys: string[] = ALL) {
@@ -24,13 +24,28 @@ function open(keys: string[] = ALL) {
     http.put('*/api/career/team/:id/competencies', async ({ request }) => { posted.push({ url: new URL(request.url).pathname, body: await request.json() }); return HttpResponse.json([]); }),
     http.post('*/api/career/team/:id/proofs/:proof/:action', async ({ request }) => { posted.push({ url: new URL(request.url).pathname, body: await request.json() }); return new HttpResponse(null, { status: 204 }); }),
   );
-  renderPage(<CareerTeamPage />);
+  renderPage(<CareerTeamPanel />);
   return { asked, posted };
 }
 
 const rowOf = async (name: string) => (await screen.findByText(name)).closest('tr') as HTMLElement;
 
 describe('«My career team» (FR-115)', () => {
+  it('adds the work-details columns (unit, company, e-mail, phone) only for a viewer who also holds the directory key', async () => {
+    open([CorePermission.CareerTeamView, CorePermission.DirectoryView]);
+    expect(await screen.findByRole('columnheader', { name: 'الجوال' })).toBeInTheDocument();
+    const row = await rowOf('منى الزهراني');
+    expect(within(row).getByText('الاستقطاب')).toBeInTheDocument();
+    expect(within(row).getByText('mona@arweqah.sa')).toBeInTheDocument();
+  });
+
+  it('shows no work-details columns without the directory key', async () => {
+    open([CorePermission.CareerTeamView]);
+    await rowOf('منى الزهراني');
+    expect(screen.queryByRole('columnheader', { name: 'الجوال' })).not.toBeInTheDocument();
+    expect(screen.queryByText('mona@arweqah.sa')).not.toBeInTheDocument();
+  });
+
   it('lists the team with the share of mandatory and necessary units, the hours, the late items and the state, and says how many are late', async () => {
     open();
     const row = await rowOf('منى الزهراني');

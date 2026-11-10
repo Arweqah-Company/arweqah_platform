@@ -143,7 +143,7 @@ test.describe('Home page (FR-57)', () => {
     await expect(page.getByRole('region', { name: 'أرقامي' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'مهامي الحالية' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'تذاكري' })).toBeVisible();
-    await expect(page.getByText('مهامي المفتوحة')).toBeVisible();
+    await expect(page.getByText('مهامي المفتوحة', { exact: true })).toBeVisible();
     const matrix = page.getByRole('region', { name: 'مصفوفة المهام' });
     await expect(matrix).toBeVisible();
     await expect(matrix.getByRole('region', { name: /مهمة وعاجلة/ })).toBeVisible();

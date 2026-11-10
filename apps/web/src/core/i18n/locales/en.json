@@ -20,7 +20,8 @@
       "administration": "System administration",
       "account": "My account",
       "tickets": "Tickets",
-      "tasks": "Tasks"
+      "tasks": "Tasks",
+      "career": "Career file"
     },
     "profile": "Profile",
     "directory": "My team",
@@ -41,11 +42,11 @@
     "careerProfile": "Career path",
     "careerContent": "Career-path content",
     "careerCertificates": "Certificate review",
-    "careerTeam": "My career team",
     "careerRequests": "Development requests",
     "locked": "The menu is locked until you acknowledge your career path.",
     "lockedHint": "Read and acknowledge your career path first",
-    "performanceCycle": "Evaluation cycle"
+    "performanceCycle": "Evaluation cycle",
+    "performanceTeam": "Team evaluation"
   },
   "actions": {
     "save": "Save",

@@ -25,6 +25,7 @@ export { StatTile } from './stat-tile';
 export { FileAttachments } from './file-attachments';
 export { FileDropzone } from './file-dropzone';
 export { ProgressSplit, type SplitPart } from './progress-split';
+export { DonutChart, BarsChart, type ChartPart } from './charts';
 export { GroupSelect } from './group-select';
 export { DetailsDialog } from './details-dialog';
 export { RowAction } from './row-action';

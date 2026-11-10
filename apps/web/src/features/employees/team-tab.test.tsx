@@ -89,13 +89,13 @@ describe('The Employees page tabs (FR-92)', () => {
     page(['employees.view', 'directory.view'], [], '/employees?tab=team');
     const tabs = await screen.findByRole('tablist', { name: 'أقسام صفحة الموظفين' });
     expect(within(tabs).getByRole('tab', { name: 'الموظفون' })).toHaveAttribute('aria-selected', 'false');
-    expect(within(tabs).getByRole('tab', { name: 'فريقي' })).toHaveAttribute('aria-selected', 'true');
+    expect(within(tabs).getByRole('tab', { name: 'فريقي المهني' })).toHaveAttribute('aria-selected', 'true');
     expect(await screen.findByText('خالد المدير')).toBeInTheDocument();
   });
 
   it('leaves «My team» out when the key is missing or an administrator hid the page from the role', async () => {
     page(['employees.view'], [], '/employees');
-    expect(screen.queryByRole('tab', { name: 'فريقي' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: 'فريقي المهني' })).not.toBeInTheDocument();
   });
 
   it('opens the list tab for a hidden team page even when the address asks for the team', async () => {

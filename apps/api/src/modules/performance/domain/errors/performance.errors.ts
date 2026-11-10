@@ -1,3 +1,4 @@
+import type { EvalBlock } from '@arweqah-platform/shared';
 import { BusinessRuleError, ConflictError } from '../../../../common/domain/domain-error';
 
 export class EvalFileNeedsReviewError extends BusinessRuleError {
@@ -88,5 +89,19 @@ export class EvalFileAiRateLimitedError extends BusinessRuleError {
   override readonly code = 'EVAL_FILE_AI_RATE_LIMITED';
   constructor() {
     super('Too many evaluation files were sent to the AI service, try again later');
+  }
+}
+
+export class EvaluationBlockedError extends ConflictError {
+  override readonly code = 'EVALUATION_BLOCKED';
+  constructor(block: EvalBlock) {
+    super('The evaluation cannot be written now', { block });
+  }
+}
+
+export class TeamEvaluationInvalidError extends BusinessRuleError {
+  override readonly code = 'TEAM_EVALUATION_INVALID';
+  constructor(problems: readonly { field: string; code: string }[]) {
+    super('The evaluation is not complete', { problems });
   }
 }

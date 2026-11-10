@@ -1,5 +1,5 @@
 import { BEHAVIOUR_LEVELS, levelNeedsNote, SELF_ACHIEVEMENT_MAX, SELF_NOTE_MAX, SELF_NOTE_MIN, type CatalogItemDto, type MyEvaluationDto, type SaveSelfEvaluationInput } from '@arweqah-platform/shared';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Alert, Badge, Button, FormField, Select, Textarea } from '@/shared/ui';
@@ -9,33 +9,37 @@ import { useSaveSelf, useSendSelf } from './api';
 type Evaluation = NonNullable<MyEvaluationDto['evaluation']>;
 type Behaviours = SaveSelfEvaluationInput['behaviours'];
 
+const parts = (value: Behaviours[string] | undefined) => ({ level: value?.level, note: value?.note ?? '' });
+const levelText = (level: number | undefined): string => (level === undefined ? '' : String(level));
+const levelFrom = (raw: string): number | undefined => (raw === '' ? undefined : Number(raw));
+const noteMissing = (level: number | undefined, note: string): boolean => level !== undefined && levelNeedsNote(level) && note.trim().length < SELF_NOTE_MIN;
+
 /** The fields of one behaviour: its level (the same five steps the manager uses) and a note, which the two ends and «rarely» ask for. */
-function BehaviourField({ code, name, question, value, tried, onChange }: { code: string; name: string; question: string; value: Behaviours[string] | undefined; tried: boolean; onChange: (next: Behaviours[string]) => void }) {
+export function BehaviourField({ code, name, question, value, tried, onChange, label, aside, locked }: { code: string; name: string; question: string; value: Behaviours[string] | undefined; tried: boolean; onChange: (next: Behaviours[string]) => void; /** The name of the level field (the manager's form calls it «your rating»). */ label?: string; /** What others wrote about this behaviour (the employee's own words for the manager). */ aside?: ReactNode; /** Read only. */ locked?: boolean }) {
   const { t } = useTranslation('performance');
-  const level = value?.level;
-  const note = value?.note ?? '';
-  const needs = level !== undefined && levelNeedsNote(level) && note.trim().length < SELF_NOTE_MIN;
+  const { level, note } = parts(value);
   return (
     <div className="flex flex-col gap-2 rounded-2xl border border-neutral-200 bg-white p-3">
       <b className="text-fg">{name}</b>
       <span className="text-sm text-muted">{question}</span>
-      <FormField label={t('self.level')} error={tried && level === undefined ? t('self.levelRequired') : undefined}>
+      {aside}
+      <FormField label={label ?? t('self.level')} error={tried && level === undefined ? t('self.levelRequired') : undefined}>
         {(p) => (
-          <Select {...p} value={level === undefined ? '' : String(level)} onChange={(e) => onChange({ note, level: e.target.value === '' ? undefined : Number(e.target.value) })}>
+          <Select {...p} disabled={locked} value={levelText(level)} onChange={(e) => onChange({ note, level: levelFrom(e.target.value) })}>
             <option value="">{t('self.choose')}</option>
             {BEHAVIOUR_LEVELS.map((l) => <option key={l} value={l}>{t(`self.levels.${l}`)}</option>)}
           </Select>
         )}
       </FormField>
-      <FormField label={t('self.note')} hint={t('self.noteHint')} error={tried && needs ? t('self.noteShort', { min: SELF_NOTE_MIN }) : undefined}>
-        {(p) => <Textarea {...p} rows={2} maxLength={SELF_NOTE_MAX} aria-label={`${t('self.note')}: ${code}`} value={note} onChange={(e) => onChange({ level, note: e.target.value })} />}
+      <FormField label={t('self.note')} hint={t('self.noteHint')} error={tried && noteMissing(level, note) ? t('self.noteShort', { min: SELF_NOTE_MIN }) : undefined}>
+        {(p) => <Textarea {...p} disabled={locked} rows={2} maxLength={SELF_NOTE_MAX} aria-label={`${t('self.note')}: ${code}`} value={note} onChange={(e) => onChange({ level, note: e.target.value })} />}
       </FormField>
     </div>
   );
 }
 
 /** The catalog items of one kind as check boxes with their points. */
-function Picks({ title, items, picked, onChange }: { title: string; items: CatalogItemDto[]; picked: string[]; onChange: (ids: string[]) => void }) {
+export function Picks({ title, items, picked, onChange, claimed, locked }: { title: string; items: CatalogItemDto[]; picked: string[]; onChange: (ids: string[]) => void; /** Items the employee picked themselves (the manager's form marks them). */ claimed?: readonly string[]; locked?: boolean }) {
   const { t } = useTranslation('performance');
   return (
     <fieldset className="flex flex-col gap-2 rounded-2xl border border-neutral-200 bg-white p-3">
@@ -43,8 +47,8 @@ function Picks({ title, items, picked, onChange }: { title: string; items: Catal
       {items.length === 0 && <p className="text-sm text-muted">{t('self.noItems')}</p>}
       {items.map((c) => (
         <label key={c.id} className="flex items-center gap-2 text-fg">
-          <input type="checkbox" className="size-4 accent-petrol-800" checked={picked.includes(c.id)} onChange={(e) => onChange(e.target.checked ? [...picked, c.id] : picked.filter((x) => x !== c.id))} />
-          {c.title}<Badge tone="neutral">{t('self.points', { count: c.points })}</Badge>
+          <input type="checkbox" disabled={locked} className="size-4 accent-petrol-800" checked={picked.includes(c.id)} onChange={(e) => onChange(e.target.checked ? [...picked, c.id] : picked.filter((x) => x !== c.id))} />
+          {c.title}<Badge tone="neutral">{t('self.points', { count: c.points })}</Badge>{claimed?.includes(c.id) && <Badge tone="info">{t('team.claimed')}</Badge>}
         </label>
       ))}
     </fieldset>

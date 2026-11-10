@@ -122,4 +122,31 @@ describe('Home page: my numbers, my tasks and my tickets (FR-57)', () => {
     await screen.findByRole('region', { name: 'مهامي الحالية' });
     expect(screen.queryByRole('region', { name: 'مصفوفة المهام' })).not.toBeInTheDocument();
   });
+  it('draws the charts of the summaries the person may see, and no shortcuts or recent activity (FR-57)', async () => {
+    serve([P.TasksView, P.TicketsView]);
+    renderPage(<HomePage />);
+    const charts = await screen.findByRole('region', { name: 'رسوم بيانية' });
+    expect(await within(charts).findByRole('img', { name: 'رسم دائري لمهامك المفتوحة حسب الحالة' })).toBeInTheDocument();
+    expect(within(charts).getByRole('img', { name: /المنجزة في الموعد/ })).toBeInTheDocument();
+    expect(within(charts).getByRole('img', { name: 'رسم دائري لتذاكرك حسب الحالة' })).toBeInTheDocument();
+    expect(within(charts).getByText('منجزة في الموعد').nextSibling).toHaveTextContent('4');
+    expect(screen.queryByText('اختصارات')).not.toBeInTheDocument();
+    expect(screen.queryByText('آخر النشاطات')).not.toBeInTheDocument();
+  });
+
+  it('leaves the task charts out without the tasks key', async () => {
+    serve([P.TicketsView]);
+    renderPage(<HomePage />);
+    const charts = await screen.findByRole('region', { name: 'رسوم بيانية' });
+    expect(await within(charts).findByRole('img', { name: 'رسم دائري لتذاكرك حسب الحالة' })).toBeInTheDocument();
+    expect(within(charts).queryByRole('img', { name: 'رسم دائري لمهامك المفتوحة حسب الحالة' })).not.toBeInTheDocument();
+  });
+
+  it('never draws a negative «finished late» when the on-time share is above 100 (CodeRabbit, PR 72)', async () => {
+    serve([P.TasksView], { tasks: tasks({ doneRecently: 5, onTimeRate: 150 }) });
+    renderPage(<HomePage />);
+    const charts = await screen.findByRole('region', { name: 'رسوم بيانية' });
+    expect((await within(charts).findByText('منجزة متأخرة')).nextSibling).toHaveTextContent(/^0$/);
+    expect(within(charts).getByText('منجزة في الموعد').nextSibling).toHaveTextContent(/^5$/);
+  });
 });

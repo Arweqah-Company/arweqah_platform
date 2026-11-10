@@ -545,7 +545,11 @@
       "progress": "Mandatory and necessary done",
       "hours": "Approved hours",
       "late": "Late",
-      "status": "State"
+      "status": "State",
+      "unit": "Unit",
+      "company": "Company",
+      "email": "Work e-mail",
+      "phone": "Work phone"
     },
     "status": {
       "regular": "Regular",

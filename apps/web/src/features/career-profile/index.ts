@@ -1,27 +1,34 @@
 import { CorePermission } from '@arweqah-platform/shared';
-import { Award, FileStack, HandCoins, Route, Users } from 'lucide-react';
+import { Award, FileStack, HandCoins, Route } from 'lucide-react';
+import { createElement, lazy } from 'react';
+import { Navigate } from 'react-router';
 import { PAGE_MAIN_TARGET, type FeatureModule } from '@/core/feature';
 import ar from './i18n/ar.json';
 import en from './i18n/en.json';
 
 export { CareerGate, useCareerHold } from './career-gate';
 
+/** «My career team»: a part of the «My team» tab of the Employees page (it was a page of its own). */
+export const CareerTeamPanel = lazy(() => import('./team-page').then((m) => ({ default: m.CareerTeamPanel })));
+
+/** Old links (notifications, bookmarks) to the former page. */
+const CareerTeamRedirect = () => createElement(Navigate, { to: '/employees?tab=team', replace: true });
+
 /** The career path: the employee's own page (read in order until acknowledged) and, for HR, the content of each title's path. */
 export const careerProfileFeature: FeatureModule = {
   id: 'career-profile',
   routes: [
     { path: '/career-profile', lazy: () => import('./my-career-page').then((m) => ({ Component: m.MyCareerPage })) },
-    { path: '/career-team', lazy: () => import('./team-page').then((m) => ({ Component: m.CareerTeamPage })) },
+    { path: '/career-team', Component: CareerTeamRedirect },
     { path: '/career-certificates', lazy: () => import('./certificates-page').then((m) => ({ Component: m.CertificatesPage })) },
     { path: '/career-requests', lazy: () => import('./requests-page').then((m) => ({ Component: m.RequestsPage })) },
     { path: '/career-content', lazy: () => import('./content-page').then((m) => ({ Component: m.CareerContentPage })) },
   ],
   nav: [
     { to: '/career-profile', labelKey: 'nav.careerProfile', icon: Route, rank: 1, permission: CorePermission.CareerProfileView, pageKey: 'career-profile' },
-    { to: '/career-team', labelKey: 'nav.careerTeam', icon: Users, group: 'people', permission: CorePermission.CareerTeamView, pageKey: 'career-team' },
-    { to: '/career-certificates', labelKey: 'nav.careerCertificates', icon: Award, group: 'people', permission: CorePermission.CareerCertificatesReview, pageKey: 'career-certificates' },
-    { to: '/career-requests', labelKey: 'nav.careerRequests', icon: HandCoins, group: 'people', permission: CorePermission.CareerRequestsView, pageKey: 'career-requests' },
-    { to: '/career-content', labelKey: 'nav.careerContent', icon: FileStack, group: 'people', permission: CorePermission.CareerContentView, pageKey: 'career-content' },
+    { to: '/career-certificates', labelKey: 'nav.careerCertificates', icon: Award, group: 'career', permission: CorePermission.CareerCertificatesReview, pageKey: 'career-certificates' },
+    { to: '/career-requests', labelKey: 'nav.careerRequests', icon: HandCoins, group: 'career', permission: CorePermission.CareerRequestsView, pageKey: 'career-requests' },
+    { to: '/career-content', labelKey: 'nav.careerContent', icon: FileStack, group: 'career', permission: CorePermission.CareerContentView, pageKey: 'career-content' },
   ],
   tour: [
     { key: 'career-profile', target: '[data-tour="career-title-card"]', route: '/career-profile', placement: 'bottom' },
@@ -41,7 +48,7 @@ export const careerProfileFeature: FeatureModule = {
     {
       key: 'career-team',
       target: PAGE_MAIN_TARGET,
-      route: '/career-team',
+      route: '/employees?tab=team',
       placement: 'auto',
       can: [
         { id: 'decide', permission: CorePermission.CareerTeamDecide },

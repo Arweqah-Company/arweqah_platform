@@ -1,3 +1,4 @@
+import type { TeamContactDto } from '@arweqah-platform/shared';
 import type { ScopeFilter } from '../../../../core/access/domain/access-context';
 
 /** A person of the viewer's team, as the career team page needs them. */
@@ -6,6 +7,7 @@ export interface TeamPerson {
   userId: string;
   name: string;
   titleId: string | null;
+  contact: TeamContactDto;
 }
 
 /** What «my career team» asks of the employees (implemented by the employees module): the people a view scope reaches, never the viewer. */

@@ -444,6 +444,22 @@
         "kind": "Kind",
         "status": "State"
       }
+    },
+    "performance-team": {
+      "name": "Team evaluation",
+      "columns": {
+        "employee": "Employee",
+        "title": "Title",
+        "manager": "Direct manager",
+        "self": "Self-evaluation",
+        "mine": "Your evaluation",
+        "score": "Score",
+        "level": "Level"
+      },
+      "filters": {
+        "scope": "Scope",
+        "status": "Evaluation status"
+      }
     }
   },
   "listHint": "The first column (the name) always stays.",

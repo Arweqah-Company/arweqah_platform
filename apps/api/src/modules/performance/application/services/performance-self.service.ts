@@ -86,7 +86,7 @@ export class PerformanceSelfService {
     if (!cycle || !person) throw new NotFoundError('Evaluation', ctx.userId);
     const evaluation = await this.made.ensure(cycle.id, person, cycle.stage !== 'closed', (work) => this.tx.run(work));
     if (!evaluation) throw new NotFoundError('Evaluation', ctx.userId);
-    if (!selfEditable(cycle.stage, false)) throw new SelfEvaluationClosedError();
+    if (!selfEditable(cycle.stage, await this.evaluations.directStarted(evaluation.id))) throw new SelfEvaluationClosedError();
     return { person, cycle, evaluation };
   }
 
@@ -104,7 +104,7 @@ export class PerformanceSelfService {
     const dto: SelfEvaluationDto = { ...(self?.content ?? emptySelf()), sentAt: self?.sentAt ? self.sentAt.toISOString() : null };
     return {
       stage: evaluation.stageNo, stageName: template.name, template, scale: cycle.snapshot.scale, fiscal: cycle.snapshot.fiscal, catalog, self: dto,
-      editable: selfEditable(cycle.stage, false), managerName: person.managerName, learning: { approvedMinutes: minutes, stageMinutes: (stage?.hoursPerYear ?? 0) * 60 },
+      editable: selfEditable(cycle.stage, await this.evaluations.directStarted(evaluation.id)), managerName: person.managerName, learning: { approvedMinutes: minutes, stageMinutes: (stage?.hoursPerYear ?? 0) * 60 },
     };
   }
 

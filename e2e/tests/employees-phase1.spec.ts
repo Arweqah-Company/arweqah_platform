@@ -24,13 +24,12 @@ async function ensureColleague(page: import('@playwright/test').Page): Promise<v
 const tourKeys = async (page: import('@playwright/test').Page): Promise<string[]> => ((await (await page.request.get('/api/me/tour/general')).json()).steps as { key: string }[]).map((s) => s.key);
 
 test.describe('Employees: directory, history tab and photo (FR-90, FR-91, FR-92)', () => {
-  test('the Employees page has a «My team» tab: the old directory page is gone, a person with no unit gets an explained empty team, and it is accessible', async ({ page }) => {
+  test('the Employees page has one «My career team» tab (the old directory page is gone), and it is accessible', async ({ page }) => {
     await page.goto('/employees');
     await expect(page.getByRole('tab', { name: 'الموظفون' })).toHaveAttribute('aria-selected', 'true');
-    await page.getByRole('tab', { name: 'فريقي' }).click();
+    await page.getByRole('tab', { name: 'فريقي المهني' }).click();
     await expect(page).toHaveURL(/tab=team/);
-    await expect(page.getByRole('searchbox', { name: 'ابحث في فريقي' })).toBeVisible();
-    await expect(page.getByText('لا وحدة لك بعد.')).toBeVisible();
+    await expect(page.getByPlaceholder('ابحث بالاسم')).toBeVisible();
     await new Screen(page).expectNoSeriousA11yIssues();
     await page.goto('/directory');
     await expect(page.getByRole('heading', { name: /404|غير موجودة/ })).toBeVisible();
