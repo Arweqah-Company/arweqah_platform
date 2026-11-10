@@ -22,9 +22,12 @@ function open(reply: () => Response, moreKeys: string[] = []) {
   server.use(
     http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'all' as const }))))),
     http.get('*/api/lookups/companies', () => HttpResponse.json([{ id: '11111111-1111-4111-8111-111111111111', code: 'ARW', nameAr: 'أروقة الريادة', nameEn: 'Arweqah Alreyadah' }])),
-    http.get('*/api/lookups/org-nodes', () => HttpResponse.json([{ id: '22222222-2222-4222-8222-222222222222', path: 'قطاع › وحدة', pathAr: 'قطاع › وحدة', pathEn: 'Sector › Unit', nameAr: 'وحدة', nameEn: 'Unit', defaultManagerId: null }])),
+    http.get('*/api/lookups/org-nodes', () => HttpResponse.json([
+      { id: '22222222-2222-4222-8222-222222222222', path: 'قطاع › وحدة', pathAr: 'قطاع › وحدة', pathEn: 'Sector › Unit', nameAr: 'وحدة', nameEn: 'Unit', defaultManagerId: null },
+      { id: '55555555-5555-4555-8555-555555555555', path: 'قطاع › وحدة ثانية', pathAr: 'قطاع › وحدة ثانية', pathEn: 'Sector › Second unit', nameAr: 'وحدة ثانية', nameEn: 'Second unit', defaultManagerId: null },
+    ])),
     http.get('*/api/lookups/job-titles', () => HttpResponse.json([{ id: '33333333-3333-4333-8333-333333333333', name: 'مطور', nameAr: 'مطور', nameEn: 'Developer' }])),
-    http.get('*/api/employees/managers', () => HttpResponse.json([])),
+    http.get('*/api/employees/managers', () => HttpResponse.json([{ id: '66666666-6666-4666-8666-666666666666', employeeNumber: 'N1', fullName: 'خالد المدير' }])),
     http.get('*/api/roles', () => HttpResponse.json(roles)),
     http.get('*/api/employees/e1', () => HttpResponse.json(SAVED)),
     http.put('*/api/employees/e1', async ({ request }) => { calls.push({ method: request.method, url: new URL(request.url).pathname }); bodies.push((await request.json()) as Record<string, unknown>); return reply(); }),
@@ -61,6 +64,21 @@ describe('The two steps of the employee form', () => {
     const details = await screen.findByRole('heading', { level: 2, name: 'بيانات العمل' }); // the first step is showing again
     expect(details).toBeInTheDocument();
     expect(within(document.body).getByText('البريد مستخدم لموظف آخر')).toBeInTheDocument();
+  });
+
+  it('takes the person back to the first step when a change of the manager (or the unit or the title) lacks its reason, instead of leaving the error where it cannot be seen', async () => {
+    const { calls } = open(() => HttpResponse.json(SAVED));
+    await screen.findByRole('heading', { name: 'تعديل بيانات الموظف' });
+    await waitFor(() => expect(screen.getByRole('combobox', { name: 'الوحدة' })).toBeEnabled());
+    await waitFor(() => expect(screen.getByLabelText(/الاسم الكامل/)).toHaveValue('سارة أحمد'));
+    fireEvent.click(screen.getByRole('combobox', { name: 'المدير المباشر' }));
+    fireEvent.click(await screen.findByText('خالد المدير'));
+    await screen.findByLabelText(/سبب التغيير/); // the reason is asked for, and left empty
+    fireEvent.click(await screen.findByRole('button', { name: 'التالي: الأدوار' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
+    expect(await screen.findByRole('heading', { level: 2, name: 'بيانات العمل' })).toBeInTheDocument(); // back on the first step
+    expect(screen.getByLabelText(/سبب التغيير/)).toHaveAttribute('aria-invalid', 'true');
+    expect(calls).toEqual([]);
   });
 
   describe('«this employee leads the unit» (FR-100)', () => {

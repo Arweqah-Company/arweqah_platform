@@ -68,8 +68,11 @@ function useSaveEmployee(form: UseFormReturn<FormState>, id: string | undefined,
   const assignRoles = useAssignRoles(id ?? '');
   const { can } = usePermissions();
   const editing = !!id;
-  const saveEdit = async (values: FormState, payload: never) => {
-    if (placementChanged(form) && !values.changeReason.trim()) return form.setError('changeReason', { type: 'rule', message: t('placementChange.reasonRequired') });
+  const saveEdit = async (values: FormState, payload: never, onInvalid?: () => void) => {
+    if (placementChanged(form) && !values.changeReason.trim()) {
+      form.setError('changeReason', { type: 'rule', message: t('placementChange.reasonRequired') });
+      return onInvalid?.(); // the reason is a field of the first step: take the person back to it
+    }
     await update.mutateAsync(payload);
     const { dirtyFields } = form.formState;
     if (can(CorePermission.EmployeesAssignRoles) && (dirtyFields.roleIds || dirtyFields.roleExpiries)) {
@@ -83,7 +86,7 @@ function useSaveEmployee(form: UseFormReturn<FormState>, id: string | undefined,
       const withRoles = can(CorePermission.EmployeesAssignRoles) && can(CorePermission.RolesView);
       // Without the roles step the server gives the default roles (Employee and the role of the job title).
       const payload = (editing || withRoles ? toPayload(values, editing) : { ...toPayload(values, false), roleIds: undefined, roleExpiries: undefined }) as never;
-      if (editing) return await saveEdit(values, payload);
+      if (editing) return await saveEdit(values, payload, onInvalid);
       const result = await create.mutateAsync(payload);
       navigate(`/employees/${result.employee.id}`, { state: { invitation: result.invitation } });
     } catch (error) {
