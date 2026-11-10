@@ -163,15 +163,25 @@ describe('The stage window (FR-118, plan §3.7b)', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
-  it('keeps that button dimmed for a stage whose screen is not built yet, and says why instead of going silent', async () => {
+  it('keeps that button dimmed for a stage that has no screen (the closed cycle), and says why instead of going silent', async () => {
     open(cycleState('self'));
-    fireEvent.click(await screen.findByRole('button', { name: 'المعايرة' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'مغلقة' }));
     const dialog = await screen.findByRole('dialog');
     const go = within(dialog).getByRole('button', { name: 'اذهب إلى شاشة هذه المرحلة' });
     expect(go).toHaveAttribute('aria-disabled', 'true');
     fireEvent.click(go);
     expect(toast.info).toHaveBeenCalledWith('شاشة هذه المرحلة تُبنى في دفعة لاحقة.');
     expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('sends HR to the calibration page from the calibration stage', async () => {
+    open(cycleState('self'));
+    fireEvent.click(await screen.findByRole('button', { name: 'المعايرة' }));
+    const go = within(await screen.findByRole('dialog')).getByRole('button', { name: 'اذهب إلى شاشة هذه المرحلة' });
+    expect(go).not.toHaveAttribute('aria-disabled', 'true'); // the calibration stage has its screen now
+    fireEvent.click(go);
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(toast.info).not.toHaveBeenCalled();
   });
 });
 

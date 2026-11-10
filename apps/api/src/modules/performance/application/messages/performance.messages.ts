@@ -29,6 +29,8 @@ export const PERFORMANCE_AUDIT = {
   objectionReturned: 'performance.objection.returned',
   objectionRejected: 'performance.objection.rejected',
   objectionFinalized: 'performance.objection.finalized',
+  milestoneRecorded: 'performance.milestone.recorded',
+  milestoneAcknowledged: 'performance.milestone.acknowledged',
 } as const;
 
 export const PERFORMANCE_TEMPLATE_ENTITY = 'performance_template';

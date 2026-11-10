@@ -100,6 +100,8 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'performance.objection.returned': a('organization', 'قبل اعتراضًا وأعاده للمدير', 'Accepted an objection and returned it to the manager'),
   'performance.objection.rejected': a('organization', 'رفض اعتراضًا على نتيجة تقييم', 'Rejected an objection to an evaluation result'),
   'performance.objection.finalized': a('organization', 'اعتمد التقييم المعدّل بعد اعتراض', 'Approved the revised evaluation after an objection'),
+  'performance.milestone.recorded': a('organization', 'سجّل محضر محطة لموظف', 'Recorded the minutes of a milestone for an employee'),
+  'performance.milestone.acknowledged': a('organization', 'أقرّ باطلاعه على محضر محطة', 'Acknowledged reading the minutes of a milestone'),
   'performance.team.edited': a('organization', 'عدّل تقييم موظف بعد إرساله', 'Changed the evaluation of an employee after sending it'),
   'performance.self.sent': a('organization', 'أرسل تقييمه الذاتي', 'Sent their self-evaluation'),
   'performance.self.edited': a('organization', 'عدّل تقييمه الذاتي بعد إرساله', 'Changed their self-evaluation after sending it'),

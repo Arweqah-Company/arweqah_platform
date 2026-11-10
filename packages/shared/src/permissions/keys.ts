@@ -124,6 +124,9 @@ export const CorePermission = {
   PerformanceCalibrate: 'performance.calibrate',
   PerformanceApprove: 'performance.approve',
   PerformanceCalibrationExport: 'performance.calibration_export',
+  PerformanceMilestoneView: 'performance.milestone_view',
+  PerformanceMilestoneRecord: 'performance.milestone_record',
+  PerformanceMilestoneAck: 'performance.milestone_ack',
   PerformanceObject: 'performance.object',
   PerformanceExport: 'performance.export',
   CareerRequestsCreate: 'career_requests.create',
@@ -258,6 +261,7 @@ const OWN_ACCOUNT_PERMISSIONS: { key: CorePermissionKey; scope: 'all' }[] = [
   { key: CorePermission.PerformanceSelfEvaluate, scope: 'all' },
   { key: CorePermission.PerformanceObject, scope: 'all' },
   { key: CorePermission.PerformanceExport, scope: 'all' },
+  { key: CorePermission.PerformanceMilestoneAck, scope: 'all' },
 ];
 
 /**
@@ -318,6 +322,8 @@ export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 's
   { key: CorePermission.PerformanceTeamView, scope: 'subtree' },
   { key: CorePermission.PerformanceTeamEvaluate, scope: 'subtree' },
   { key: CorePermission.PerformanceTeamExport, scope: 'subtree' },
+  { key: CorePermission.PerformanceMilestoneView, scope: 'subtree' },
+  { key: CorePermission.PerformanceMilestoneRecord, scope: 'subtree' },
   { key: CorePermission.CareerRequestsView, scope: 'subtree' },
   { key: CorePermission.CareerRequestsApprove, scope: 'subtree' },
   { key: CorePermission.CareerRequestsReject, scope: 'subtree' },

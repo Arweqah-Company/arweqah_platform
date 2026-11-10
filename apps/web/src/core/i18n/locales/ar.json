@@ -46,7 +46,8 @@
     "locked": "القائمة مغلقة حتى تُقرّ بمسارك الوظيفي.",
     "lockedHint": "اقرأ مسارك الوظيفي وأقرّ به أولًا",
     "performanceCycle": "دورة التقييم",
-    "performanceTeam": "تقييم فريقي"
+    "performanceTeam": "تقييم فريقي",
+    "performanceCalibration": "المعايرة والاعتماد"
   },
   "actions": {
     "save": "حفظ",

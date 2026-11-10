@@ -460,6 +460,35 @@
         "scope": "Scope",
         "status": "Evaluation status"
       }
+    },
+    "performance-calibration": {
+      "name": "Calibration",
+      "columns": {
+        "employee": "Employee",
+        "title": "Title",
+        "manager": "Direct manager",
+        "managerScore": "Manager's score",
+        "adjustment": "Adjustment",
+        "calibrated": "After calibration",
+        "level": "Level"
+      },
+      "filters": {
+        "level": "Level",
+        "stage": "Career stage",
+        "adjusted": "Score adjusted"
+      }
+    },
+    "performance-objections": {
+      "name": "Objections",
+      "columns": {
+        "employee": "Employee",
+        "item": "Item",
+        "reason": "Reason",
+        "status": "Status"
+      },
+      "filters": {
+        "status": "Status"
+      }
     }
   },
   "listHint": "The first column (the name) always stays.",

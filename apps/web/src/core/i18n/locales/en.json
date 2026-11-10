@@ -46,7 +46,8 @@
     "locked": "The menu is locked until you acknowledge your career path.",
     "lockedHint": "Read and acknowledge your career path first",
     "performanceCycle": "Evaluation cycle",
-    "performanceTeam": "Team evaluation"
+    "performanceTeam": "Team evaluation",
+    "performanceCalibration": "Calibration and approval"
   },
   "actions": {
     "save": "Save",

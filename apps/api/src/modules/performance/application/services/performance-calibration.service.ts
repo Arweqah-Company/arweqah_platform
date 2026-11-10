@@ -105,7 +105,7 @@ export class PerformanceCalibrationService {
       const title = await (names.get(p.person.titleId) as Promise<{ nameAr: string; nameEn: string }>);
       const calibrated = p.parts ? calibratedScore(p.parts.final, p.adjustment, p.template.cap) : null;
       return {
-        employeeId: p.person.employeeId, name: p.person.name, titleNameAr: title.nameAr, titleNameEn: title.nameEn, managerName: p.person.managerName, stage: p.evaluation.stageNo,
+        employeeId: p.person.employeeId, name: p.person.name, titleNameAr: title.nameAr, titleNameEn: title.nameEn, managerName: p.person.managerName, stage: p.evaluation.stageNo, cap: p.template.cap,
         managerScore: p.parts?.final ?? null, adjustment: p.adjustment, reason: p.reason, calibrated, levelName: calibrated === null ? null : levelOf(cycle.snapshot.scale, calibrated)?.name ?? null,
       } satisfies CalibrationRowDto;
     }));

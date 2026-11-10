@@ -43,6 +43,8 @@ export interface CalibrationRowDto {
   titleNameEn: string | null;
   managerName: string | null;
   stage: number;
+  /** The cap of the person's stage: the calibrated score never goes above it. */
+  cap: number;
   /** Null while the managers' evaluation was not sent: the person cannot be calibrated yet. */
   managerScore: number | null;
   adjustment: number;

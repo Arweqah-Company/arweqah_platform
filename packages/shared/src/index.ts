@@ -72,5 +72,6 @@ export * from './performance/score';
 export * from './performance/team-evaluation';
 export * from './performance/calibration';
 export * from './performance/result';
+export * from './performance/milestones';
 export * from './performance/notices';
 export * from './performance/picks';

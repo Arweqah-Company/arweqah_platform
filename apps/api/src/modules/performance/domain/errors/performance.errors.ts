@@ -161,3 +161,17 @@ export class ObjectionItemInvalidError extends BusinessRuleError {
     super('The item the objection names is not in the evaluation');
   }
 }
+
+export class MilestoneNotRunningError extends ConflictError {
+  override readonly code = 'MILESTONE_NOT_RUNNING';
+  constructor() {
+    super('This milestone does not run this year');
+  }
+}
+
+export class MilestoneInvalidError extends BusinessRuleError {
+  override readonly code = 'MILESTONE_INVALID';
+  constructor(problems: readonly string[]) {
+    super('The minutes of the milestone are not complete', { problems });
+  }
+}

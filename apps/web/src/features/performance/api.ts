@@ -1,4 +1,4 @@
-import type { EvaluationNoticesDto, EvalFileContent, CatalogItemDto, CatalogItemInput, CycleDateKey, CycleStateDto, EvalFileInput, EvalFileResult, FiscalInput, MyEvaluationDto, OpenCycleInput, ReminderDto, ReminderInput, SaveSelfEvaluationInput, SaveTeamEvaluationInput, ScaleInput, SetCycleDateInput, StageTemplateInput, TeamEvaluationDto, TemplatesDto } from '@arweqah-platform/shared';
+import type { AdjustCalibrationInput, CalibrationRowDto, MyResultDto, ObjectionListDto, RaiseObjectionInput, EvaluationNoticesDto, EvalFileContent, CatalogItemDto, CatalogItemInput, CycleDateKey, CycleStateDto, EvalFileInput, EvalFileResult, FiscalInput, MyEvaluationDto, OpenCycleInput, ReminderDto, ReminderInput, SaveSelfEvaluationInput, SaveTeamEvaluationInput, ScaleInput, SetCycleDateInput, StageTemplateInput, TeamEvaluationDto, TemplatesDto } from '@arweqah-platform/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/core/api/api-client';
 
@@ -92,3 +92,21 @@ export const useSendTeam = (employeeId: string) => useTeamWrite(employeeId, (inp
 
 /** The evaluation tasks open for the person now (the bar under the header); asked again after a self-evaluation is sent. */
 export const useEvaluationNotices = () => useQuery({ queryKey: NOTICES_KEY, staleTime: 5 * 60_000, queryFn: () => apiClient.get<EvaluationNoticesDto>('/performance/me/notices') });
+
+export const CALIBRATION_KEY = 'performance-calibration';
+export const OBJECTIONS_KEY = ['performance', 'objections'] as const;
+
+/** The calibration, the approval and the objections change one another's lists: every write reads them all again. */
+function useCalibrationWrite<TIn, TOut = unknown>(write: (input: TIn) => Promise<TOut>) {
+  const client = useQueryClient();
+  return useMutation({ mutationFn: write, onSuccess: () => Promise.all([client.invalidateQueries({ queryKey: [CALIBRATION_KEY] }), client.invalidateQueries({ queryKey: OBJECTIONS_KEY }), client.invalidateQueries({ queryKey: CYCLE_KEY }), client.invalidateQueries({ queryKey: MY_EVALUATION_KEY }), client.invalidateQueries({ queryKey: NOTICES_KEY })]) });
+}
+
+export const useAdjust = () => useCalibrationWrite(({ employeeId, ...input }: { employeeId: string } & AdjustCalibrationInput) => apiClient.put<CalibrationRowDto>(`/performance/calibration/${employeeId}`, input));
+export const useFinishCalibration = () => useCalibrationWrite(() => apiClient.post('/performance/calibration/finish', {}));
+export const useApproveResults = () => useCalibrationWrite(() => apiClient.post('/performance/calibration/approve', {}));
+export const useObjections = () => useQuery({ queryKey: OBJECTIONS_KEY, queryFn: () => apiClient.get<ObjectionListDto>('/performance/objections') });
+export const useReturnObjection = () => useCalibrationWrite((id: string) => apiClient.post(`/performance/objections/${id}/return`, {}));
+export const useRejectObjection = () => useCalibrationWrite(({ id, reason }: { id: string; reason: string }) => apiClient.post(`/performance/objections/${id}/reject`, { reason }));
+export const useFinalizeObjection = () => useCalibrationWrite((id: string) => apiClient.post(`/performance/objections/${id}/finalize`, {}));
+export const useRaiseObjection = () => useCalibrationWrite((input: RaiseObjectionInput) => apiClient.post<MyResultDto | null>('/performance/me/objection', input));
