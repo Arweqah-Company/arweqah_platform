@@ -62,6 +62,17 @@ describe('A leader takes the unit and the title they lead with; the employee for
     expect(leaders.items).toHaveLength(0);
   });
 
+  it('moves nobody when the leader rules refuse the appointment afterwards (a leader already starts later)', async () => {
+    const s = await setup();
+    const other = await t.factories.user({ unit: s.support });
+    await t.db.query('UPDATE employees SET company_id = $1 WHERE id = $2', [s.group, other.employeeId]);
+    const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+    await s.agent.put(`/api/org/nodes/${s.support.id}/leaders`).send({ kind: 'leader', companyId: s.group, employeeId: other.employeeId, validFrom: tomorrow, reason: 'تعيين' }).expect(200);
+    const res = await s.lead(s.support, { jobTitleId: s.support.titleId }); // today is before the leader who starts tomorrow
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(await s.place()).toEqual({ org_node_id: s.sales.id, job_title_id: s.sales.titleId }); // not moved
+  });
+
   it('does not move an acting leader', async () => {
     const s = await setup();
     const other = await t.factories.user({ unit: s.support });
@@ -93,6 +104,18 @@ describe('A leader takes the unit and the title they lead with; the employee for
       const hrAgent = await t.factories.signIn(await t.factories.user({ grants: [P.EmployeesView, P.EmployeesCreate].map(grant) }));
       await hrAgent.post('/api/employees').send(body({ ...s.support, companyId: s.group }, '02', { leadsUnit: true })).expect(403);
       expect(((await t.db.query(`SELECT 1 FROM employees WHERE employee_number = 'L02'`)) as unknown[]).length).toBe(0);
+    });
+
+    it('refuses «leads the unit» before saving anything when the unit cannot be led from the employee\'s company (nothing is created)', async () => {
+      const s = await setup();
+      const companyB = await t.factories.company();
+      const shared = await t.factories.node({ key: 'sector', parentId: null, name: 'Shared', mode: 'shared' });
+      const sharedDept = await t.factories.node({ key: 'department', parentId: shared.id, name: 'Services', titles: true });
+      const hrAgent = await t.factories.signIn(await t.factories.user({ grants: [P.EmployeesView, P.EmployeesCreate, P.OrgLeadersManage, P.OrgView].map(grant) }));
+      const res = await hrAgent.post('/api/employees').send(body({ ...sharedDept, companyId: companyB }, '04', { leadsUnit: true }));
+      expect(res.status).toBe(422); // a shared unit is led from the group company only
+      expect(((await t.db.query(`SELECT 1 FROM employees WHERE employee_number = 'L04'`)) as unknown[]).length).toBe(0);
+      expect(s.group).toBeTruthy();
     });
 
     it('saving an edited employee again does not close and reopen the same leader', async () => {

@@ -103,7 +103,7 @@ export class EmployeesService {
   /** Creates the person's record and sign-in account, assigns roles, then e-mails the activation link. */
   async create(ctx: AccessContext, input: CreateEmployeeInput, actorId: string): Promise<CreateEmployeeResultDto> {
     const { roleIds: chosen, roleExpiries, leadsUnit, ...fields } = input;
-    this.assertCanLead(ctx, leadsUnit);
+    await this.assertCanLead(ctx, leadsUnit, { orgNodeId: input.orgNodeId, companyId: input.companyId, from: [todayInRiyadh(), input.startDate].sort().at(-1) as string });
     this.assertInScope(ctx, P.EmployeesCreate, { companyId: input.companyId, orgNodeId: input.orgNodeId });
     await this.assertEmailDomainAllowed(input.workEmail);
     const defaults = await this.access.defaultRoleIds(input.jobTitleId, await this.isLimited(input.relationTypeId));
@@ -138,7 +138,7 @@ export class EmployeesService {
     }
     this.assertInScope(ctx, P.EmployeesUpdate, { companyId: input.companyId, orgNodeId: input.orgNodeId, ownerId: existing.userId });
     const { effectiveFrom, changeReason, leadsUnit, ...rest } = input;
-    this.assertCanLead(ctx, leadsUnit);
+    await this.assertCanLead(ctx, leadsUnit, { orgNodeId: input.orgNodeId, companyId: input.companyId, employeeId: id, from: effectiveFrom ?? todayInRiyadh() });
     const fields: EmployeeInput = { ...rest, workEmail: existing.workEmail };
     const { values } = await this.validation.prepare(ctx, fields, existing);
     this.assertFieldRules(ctx, existing, values);
@@ -152,9 +152,14 @@ export class EmployeesService {
     return this.dto(ctx, (await this.repo.findById(id)) as Employee);
   }
 
-  /** «Make the person the unit's leader» needs the leaders key; asked before anything is saved so a refusal leaves nothing half done. */
-  private assertCanLead(ctx: AccessContext, leadsUnit: boolean | undefined): void {
-    if (leadsUnit && !ctx.filterFor(CorePermission.OrgLeadersManage)) throw new ForbiddenError();
+  /**
+   * «Make the person the unit's leader» is checked before anything is saved, so a refusal leaves nothing half done: the leaders key, then what the leader rules say
+   * about this unit, company and day (access to the unit's company, the company rule of a shared unit, the dates of the leaders already there).
+   */
+  private async assertCanLead(ctx: AccessContext, leadsUnit: boolean | undefined, plan: { orgNodeId: string; companyId: string; employeeId?: string; from: string }): Promise<void> {
+    if (!leadsUnit) return;
+    if (!ctx.filterFor(CorePermission.OrgLeadersManage)) throw new ForbiddenError();
+    await this.leaders.assertCanAppoint(ctx, plan.orgNodeId, { employeeId: plan.employeeId, companyId: plan.companyId, validFrom: plan.from });
   }
 
   /** The person leads the unit they are placed in, from `from` (a leader needs the unit's company access, checked by the org service). */
