@@ -631,8 +631,12 @@
     "day": "{{date}}",
     "go": {
       "self": "Go to my evaluation",
-      "team": "Go to team evaluation"
-    }
+      "team": "Go to team evaluation",
+      "calibrate": "Go to calibration",
+      "approve": "Go to approval"
+    },
+    "calibrate": "You can calibrate the employees' scores before the deadline",
+    "approve": "You can approve the results before the deadline"
   },
   "calibration": {
     "title": "Calibration and approval",

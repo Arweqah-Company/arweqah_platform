@@ -113,3 +113,22 @@ describe('Calibration: the holder compares the managers\' scores and adjusts the
     await s.hr.get('/api/performance/calibration').expect(403);
   });
 });
+
+describe('The bar «the cycle is open» for the calibration and approval holders (plan §15.2)', () => {
+  const t = useTestApp();
+
+  it('shows the holder the calibration notice only in the calibration stage and the approval notice only in the approval stage, with the page and the deadline', async () => {
+    const { hr } = await evaluationScenario(t);
+    const holder = await t.factories.signIn(await t.factories.user({ grants: grants([CorePermission.PerformanceCalibrate, CorePermission.PerformanceApprove]) }));
+    const other = await t.factories.signIn(await t.factories.user({ grants: grants([CorePermission.PerformanceCalibrationView]) }));
+    const kinds = async (agent: typeof holder) => ((await agent.get('/api/performance/me/notices').expect(200)).body as { items: { kind: string; path: string; due: unknown }[] }).items.filter((n) => n.kind === 'calibrate' || n.kind === 'approve');
+    await hr.post('/api/performance/cycle/open').send({ fiscalYear: 2026 }).expect(200);
+    expect(await kinds(holder)).toEqual([]);
+    await hr.post('/api/performance/cycle/advance').expect(200);
+    await hr.post('/api/performance/cycle/advance').expect(200); // cal
+    expect(await kinds(holder)).toEqual([expect.objectContaining({ kind: 'calibrate', path: '/performance-calibration', due: expect.objectContaining({ from: expect.any(String) }) })]);
+    expect(await kinds(other)).toEqual([]);
+    await hr.post('/api/performance/cycle/advance').expect(200); // appr
+    expect((await kinds(holder)).map((n) => n.kind)).toEqual(['approve']);
+  });
+});

@@ -1232,6 +1232,58 @@ erDiagram
   employees ||--o{ performance_evaluations : "employee_id"
   performance_evaluations ||--o| performance_self_evaluations : "evaluation_id"
   performance_evaluations ||--o{ performance_manager_reviews : "evaluation_id"
+  performance_calibrations {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid evaluation_id FK,UK
+    numeric adjustment
+    text reason
+    uuid adjusted_by
+  }
+  performance_results {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid evaluation_id FK,UK
+    numeric final_score
+    character_varying level_name
+    jsonb breakdown
+    uuid approved_by
+    timestamp_with_time_zone approved_at
+    timestamp_with_time_zone notified_at
+    date objection_until
+  }
+  performance_objections {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid evaluation_id FK,UK
+    character_varying item_kind
+    character_varying item_ref
+    text reason
+    character_varying status
+    uuid decided_by
+    text decision_reason
+    timestamp_with_time_zone decided_at
+  }
+  performance_milestones {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid evaluation_id FK,UK
+    character_varying milestone_key UK
+    text where_we_are
+    text obstacle
+    text agreed_action
+    text note
+    uuid recorded_by
+    timestamp_with_time_zone acknowledged_at
+  }
+  performance_evaluations ||--o| performance_calibrations : "evaluation_id"
+  performance_evaluations ||--o| performance_results : "evaluation_id"
+  performance_evaluations ||--o| performance_objections : "evaluation_id"
+  performance_evaluations ||--o{ performance_milestones : "evaluation_id"
   performance_cycles ||--o{ performance_catalog_items : "cycle_id"
   employees ||--o{ career_development_requests : "employee_id"
   files |o--o{ career_development_requests : "agreement_file_id"
@@ -1390,8 +1442,12 @@ erDiagram
 | `performance_settings` | A setting shared by every stage, by `key`: `grade_scale` (the five bands with their ranges), `fiscal_card` (the twelve months and their notes), `cycle_dates` (the dates HR prepared for the next cycle, with the fiscal year they are for; the cycle that opens for that year takes them). |
 | `performance_cycles` | An evaluation cycle, one per fiscal year (`fiscal_year` unique): `status` is the stage of the machine `performance.cycle` (self, mgr, cal, appr, notif, obj, closed), who opened and closed it and when, `is_open` (true until closed; a partial unique index lets only one cycle be open), `dates` (the date of each stage) and `template_snapshot` (the templates frozen when it opened). |
 | `performance_catalog_items` | An item of the extra component HR offers (`kind` init or growth, `title`, `points` 1 to 10). `cycle_id` is null while the item waits for the next cycle, which takes it when it opens. |
-| `performance_reminders` | An automatic reminder of the evaluation cycle that HR keeps (FR-124): `kind` (`self` the employee before the self-evaluation deadline, `mgr` the manager about an evaluation waiting, `mile` a milestone, `appr` the holder of calibration and approval), `days` (the days before the date, or the one number of «every N days»), `is_on`, and the words HR wrote, `title_ar` / `body_ar` required and `title_en` / `body_en` optional (the Arabic is sent when they are empty). Up to 30 rows; the migration seeds the four of the concept while the table is empty. Only the list lives here; the sending is a later delivery. |
+| `performance_reminders` | An automatic reminder of the evaluation cycle that HR keeps (FR-124): `kind` (`self` the employee before the self-evaluation deadline, `mgr` the manager about an evaluation waiting, `mile` a milestone, `appr` the holder of calibration and approval), `days` (the days before the date, or the one number of «every N days»), `is_on`, and the words HR wrote, `title_ar` / `body_ar` required and `title_en` / `body_en` optional (the Arabic is sent when they are empty). Up to 30 rows; the migration seeds the four of the concept while the table is empty. Only the list lives here; the sending is a later delivery. `last_sent_on` is the Riyadh day it was last sent (never twice a day; «every N days» counts from it). |
 | `performance_evaluations` | One employee's evaluation in one cycle (`cycle_id` + `employee_id` unique): the stage they are evaluated by (from their grade and track when the cycle opened or when they first asked) and the user of their direct manager at that time. |
 | `performance_self_evaluations` | What the employee wrote about themselves, one document per evaluation (`content`: the level and note of each behaviour, the achievements per criterion, the catalog items picked) and `sent_at` (null until the first send). |
 | `performance_manager_reviews` | What a manager wrote about one evaluation, one document per reviewer level (`level`: `direct`, then `upper`; unique with the evaluation) so the direct manager's copy is never lost when the upper manager changes it: `content` (the score of each results criterion, the level and note of each behaviour, the catalog items picked) and `sent_at` (null while it is a draft). The first save of the direct level is what stops the employee from changing their self-evaluation. |
+| `performance_calibrations` | The calibration holder's adjustment of one evaluation (`evaluation_id` unique): a number of half points from −10 to +10 and the written reason (empty when the adjustment is zero). The audit keeps the change, never the reason. |
+| `performance_results` | The frozen result of one evaluation, written at the approval: the final score and its level, the whole breakdown (parts of the score, the manager's form, the calibration and its reason), who approved and when, `notified_at` (the score is hidden from the employee while it is null) and `objection_until` (the last day an objection may be raised). An accepted objection replaces the score and breakdown. |
+| `performance_objections` | The one objection an employee may raise against an item of their result (`evaluation_id` unique): the item (`item_kind`: criterion, behaviour or extra; `item_ref`), the reason, and its status (`open`, `returned` to the manager, `reevaluated`, `finalized`, `rejected`) with who decided, the reason and when. |
+| `performance_milestones` | The minutes of one milestone of the year for one evaluation (`evaluation_id` + `milestone_key` unique): where we are, the obstacle, the agreed action, the short note of a pulse, who recorded it and when the employee acknowledged reading it (cleared when the minutes change). |
 | `career_ack_reopenings` | HR asked the holders of a title to acknowledge again, with the reason: whoever acknowledged before it is asked once more. |
