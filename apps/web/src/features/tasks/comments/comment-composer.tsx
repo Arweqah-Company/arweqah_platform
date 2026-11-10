@@ -3,10 +3,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
-import { Alert, Button, FileAttachments } from '@/shared/ui';
-import { useEditComment, usePostComment } from './comments.api';
-import { MentionTextarea } from './mention-textarea';
-import { decodeMentions, encodeMentions, type Mentioned } from './mention-text';
+import { decodeMentions, encodeMentions, type Mentioned } from '@/shared/lib/mention-text';
+import { Alert, Button, FileAttachments, MentionTextarea } from '@/shared/ui';
+import { useEditComment, useMentionables, usePostComment } from './comments.api';
 
 export type ComposerTarget = { type: 'new' } | { type: 'reply'; comment: TaskCommentDto } | { type: 'edit'; comment: TaskCommentDto };
 
@@ -57,7 +56,7 @@ export function CommentComposer(props: Props) {
   return (
     <form className="flex flex-col gap-3" onSubmit={(e) => { e.preventDefault(); void c.send(); }} noValidate>
       {c.error && <Alert>{errorMessage(tc, c.error)}</Alert>}
-      <MentionTextarea taskId={props.taskId} value={c.text} onChange={c.setText} onPick={c.addPicked} label={label} mayMention={conversation.can.mention} maxLength={MAX_COMMENT_TEXT} onSubmit={() => void c.send()} />
+      <MentionTextarea usePeople={useMentionables} scopeId={props.taskId} listLabel={t('comments.mentionList')} value={c.text} onChange={c.setText} onPick={c.addPicked} label={label} mayMention={conversation.can.mention} maxLength={MAX_COMMENT_TEXT} onSubmit={() => void c.send()} />
       {c.mayUpload && <FileAttachments compact files={c.files} onChange={c.setFiles} max={conversation.maxFiles} label={t('comments.attach')} />}
       <div className="flex items-center justify-between gap-3">
         <span className="text-xs text-muted">{conversation.can.mention ? t('comments.hint') : t('comments.hintNoMention')}</span>

@@ -715,7 +715,13 @@ erDiagram
     character_varying type
     uuid actor_user_id FK
     text body
+    uuid parent_event_id FK
+    uuid reply_to_user_id FK
     timestamp_with_time_zone created_at
+  }
+  ticket_event_mentions {
+    uuid event_id PK,FK
+    uuid user_id PK,FK
   }
   ticket_attachments {
     uuid event_id PK,FK
@@ -730,6 +736,10 @@ erDiagram
   ticket_types ||--o{ tickets : "type_id"
   users ||--o{ ticket_events : "actor_user_id"
   tickets ||--o{ ticket_events : "ticket_id"
+  ticket_events ||--o{ ticket_events : "parent_event_id"
+  users ||--o{ ticket_events : "reply_to_user_id"
+  ticket_events ||--o{ ticket_event_mentions : "event_id"
+  users ||--o{ ticket_event_mentions : "user_id"
   ticket_events ||--o{ ticket_attachments : "event_id"
   files ||--o{ ticket_attachments : "file_id"
 ```
@@ -1385,6 +1395,7 @@ erDiagram
 | `tickets` | The ticket: sender, desk, type, title, details, priority, needed-by date, assignee, status, close reason, response and activity timestamps, reopen count. |
 | `ticket_events` | Timeline of a ticket: answers, status changes, assignment, close and reopen. |
 | `ticket_attachments` | Files attached to a ticket (links to `files`). |
+| `ticket_event_mentions` | The people a reply names with `@` (they may read and answer the ticket). `ticket_events` also holds `parent_event_id` (the first reply an answer sits under) and `reply_to_user_id` (whom it answers). |
 
 ### 7. Tasks
 

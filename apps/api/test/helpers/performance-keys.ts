@@ -17,3 +17,30 @@ export async function evaluationScenario(t: TestContext) {
   await hr.post('/api/performance/templates/file').send({ text: FULL_EVAL_FILE, dryRun: false }).expect(200);
   return { ...s, hr };
 }
+
+const TEAM_KEYS = [CorePermission.PerformanceTeamView, CorePermission.PerformanceTeamEvaluate];
+
+/**
+ * The evaluation scenario taken to the point calibration starts from: the employee (Rep) reports to the direct manager (Lead), the cycle is open, and the manager has sent
+ * a complete evaluation (every criterion 80, every behaviour «often», one catalog item). The cycle stays in the managers' stage; the caller moves it on.
+ */
+export async function managerSentScenario(t: TestContext, employeeKeys: string[]) {
+  const { hr, ...s } = await evaluationScenario(t);
+  const directUser = await s.person(s.lead, s.group, grants(TEAM_KEYS));
+  const employeeUser = await s.person(s.rep, s.group, grants(employeeKeys));
+  await t.db.query('UPDATE employees SET manager_id = $1 WHERE id = $2', [directUser.employeeId, employeeUser.employeeId]);
+  const direct = await t.factories.signIn(directUser);
+  const employee = await t.factories.signIn(employeeUser);
+  const init = (await hr.post('/api/performance/cycle/catalog').send({ kind: 'init', title: 'قيادة مبادرة تحسين', points: 4 }).expect(201)).body as { id: string };
+  await hr.post('/api/performance/cycle/open').send({ fiscalYear: 2026 }).expect(200);
+  await hr.post('/api/performance/cycle/advance').expect(200); // mgr
+  const path = `/api/performance/team/${employeeUser.employeeId}`;
+  const template = (await direct.get(path).expect(200)).body.template as { criteria: unknown[]; behaviours: { code: string }[] };
+  const form = {
+    results: Object.fromEntries(template.criteria.map((_, i) => [String(i), 80])),
+    behaviours: Object.fromEntries(template.behaviours.map((b) => [b.code, { level: 75, note: '' }])),
+    initIds: [init.id], growthIds: [] as string[],
+  };
+  const managerScore = ((await direct.post(`${path}/send`).send(form).expect(200)).body.score as { final: number }).final;
+  return { ...s, hr, direct, employee, employeeUser, path, form, managerScore };
+}

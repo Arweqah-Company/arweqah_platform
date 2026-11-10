@@ -105,6 +105,7 @@ test.describe('Tickets (FR-36 … FR-41)', () => {
     await page.getByRole('button', { name: 'حفظ', exact: true }).first().click();
     await expect(page.getByText('حُفظت الإعدادات.')).toBeVisible();
 
+    await page.getByRole('tab', { name: 'الأنواع' }).click();
     await page.getByRole('button', { name: 'إضافة نوع' }).click();
     const dialog = page.getByRole('dialog', { name: 'إضافة نوع' });
     await dialog.getByLabel('الاسم بالعربي *').fill('طلب برنامج');

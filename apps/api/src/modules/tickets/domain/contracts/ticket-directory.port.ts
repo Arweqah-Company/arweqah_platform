@@ -9,6 +9,10 @@ export abstract class TicketDirectory {
   /** An active employee's account, or null. */
   abstract activeEmployee(userId: string): Promise<PersonRecord | null>;
   abstract people(userIds: string[]): Promise<Map<string, PersonRecord>>;
+  /** The company of each active employee among these accounts (accounts that are not active employees are missing from the map). */
+  abstract companiesOf(userIds: string[]): Promise<Map<string, string>>;
+  /** Active employees of a company for the @ list (by name, at most 20). */
+  abstract mentionables(companyId: string, search?: string): Promise<PersonRecord[]>;
   /** Active employees of a company who can be picked as the assignee of a type (searched by name or number, at most 30). */
   abstract assignableEmployees(companyId: string, search?: string): Promise<PersonRecord[]>;
 }

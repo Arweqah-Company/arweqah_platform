@@ -13,6 +13,8 @@ import { TicketSummaryService } from './application/services/ticket-summary.serv
 import { TicketSetupService } from './application/services/ticket-setup.service';
 import { TicketsService } from './application/services/tickets.service';
 import { TicketAccessPolicy } from './application/policies/ticket-access.policy';
+import { TicketReplyPolicy } from './application/policies/ticket-reply.policy';
+import { TicketReplyNotices } from './application/services/ticket-reply-notices.service';
 import { TicketTransformer } from './application/transformers/ticket.transformer';
 import { TicketDeskRepository } from './domain/contracts/ticket-desk.repository';
 import { TicketDirectory } from './domain/contracts/ticket-directory.port';
@@ -50,6 +52,8 @@ import { TicketsController } from './presentation/controllers/tickets.controller
     TicketSummaryService,
     TicketNotifier,
     TicketAccessPolicy,
+    TicketReplyPolicy,
+    TicketReplyNotices,
     TicketTransformer,
     TicketJobs,
     { provide: TicketRepository, useClass: TypeOrmTicketRepository },

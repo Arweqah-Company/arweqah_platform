@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeMentions, encodeMentions, insertMention, mentionQueryAt, splitBody } from './mention-text';
+import { decodeMentions, encodeMentions, insertMention, mentionQueryAt, splitBody } from '@/shared/lib/mention-text';
 
 const SARA = { id: '3f2504e0-4f89-41d3-9a0c-0305e82c3301', name: 'سارة أحمد' };
 const SAMI = { id: '4f2504e0-4f89-41d3-9a0c-0305e82c3302', name: 'سارة' };

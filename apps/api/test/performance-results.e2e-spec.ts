@@ -1,9 +1,8 @@
-import { CorePermission, addWorkingDays, riyadhToday, type CalibrationPageDto, type CatalogItemDto, type MyEvaluationDto, type ObjectionListDto, type SaveTeamEvaluationInput, type TeamEvaluationDto } from '@arweqah-platform/shared';
+import { CorePermission, addWorkingDays, riyadhToday, type CalibrationPageDto, type MyEvaluationDto, type TeamEvaluationDto, type ObjectionListDto } from '@arweqah-platform/shared';
 import { describe, expect, it, vi } from 'vitest';
-import { evaluationScenario, grants } from './helpers/performance-keys';
+import { grants, managerSentScenario } from './helpers/performance-keys';
 import { useTestApp } from './setup/test-app';
 
-const TEAM = [CorePermission.PerformanceTeamView, CorePermission.PerformanceTeamEvaluate];
 const HOLDER = [CorePermission.PerformanceCalibrationView, CorePermission.PerformanceCalibrate, CorePermission.PerformanceApprove];
 const OWN = [CorePermission.PerformanceSelfEvaluate, CorePermission.PerformanceObject, CorePermission.PerformanceExport];
 
@@ -12,31 +11,15 @@ describe('Approval, the individual result and the objection (FR-122, FR-123)', (
 
   /** The employee (Rep) reports to the direct manager (Lead) who sent a complete evaluation; the cycle is in calibration and Rep is the only one in it. */
   async function setup() {
-    const { hr, ...s } = await evaluationScenario(t);
-    const directUser = await s.person(s.lead, s.group, grants(TEAM));
-    const employeeUser = await s.person(s.rep, s.group, grants(OWN));
-    await t.db.query('UPDATE employees SET manager_id = $1 WHERE id = $2', [directUser.employeeId, employeeUser.employeeId]);
-    const direct = await t.factories.signIn(directUser);
-    const employee = await t.factories.signIn(employeeUser);
+    const { hr, ...s } = await managerSentScenario(t, OWN);
     const holder = await t.factories.signIn(await t.factories.user({ grants: grants(HOLDER) }));
-    const init = (await hr.post('/api/performance/cycle/catalog').send({ kind: 'init', title: 'قيادة مبادرة تحسين', points: 4 }).expect(201)).body as CatalogItemDto;
-    await hr.post('/api/performance/cycle/open').send({ fiscalYear: 2026 }).expect(200);
-    await hr.post('/api/performance/cycle/advance').expect(200); // mgr
-    const path = `/api/performance/team/${employeeUser.employeeId}`;
-    const dto = (await direct.get(path).expect(200)).body as TeamEvaluationDto;
-    const form: SaveTeamEvaluationInput = {
-      results: Object.fromEntries(dto.template.criteria.map((_, i) => [String(i), 80])),
-      behaviours: Object.fromEntries(dto.template.behaviours.map((b) => [b.code, { level: 75, note: '' }])),
-      initIds: [init.id], growthIds: [],
-    };
-    const sent = (await direct.post(`${path}/send`).send(form).expect(200)).body as TeamEvaluationDto;
     await hr.post('/api/performance/cycle/advance').expect(200); // cal
-    await t.db.query('DELETE FROM performance_evaluations WHERE employee_id <> $1', [employeeUser.employeeId]);
+    await t.db.query('DELETE FROM performance_evaluations WHERE employee_id <> $1', [s.employeeUser.employeeId]);
     const toApproval = () => holder.post('/api/performance/calibration/finish').expect(204);
     const approve = async () => { await toApproval(); await holder.post('/api/performance/calibration/approve').expect(204); };
-    const me = async () => (await employee.get('/api/performance/me').expect(200)).body as MyEvaluationDto;
+    const me = async () => (await s.employee.get('/api/performance/me').expect(200)).body as MyEvaluationDto;
     const objection = { itemKind: 'criterion', itemRef: '0', reason: 'أرى أن إنجازي في هذا المعيار أعلى' };
-    return { ...s, hr, holder, direct, employee, employeeUser, managerScore: sent.score!.final, path, form, toApproval, approve, me, objection };
+    return { ...s, hr, holder, toApproval, approve, me, objection };
   }
 
   it('hides the score from the employee until the approval: the answer has no result, not even when the manager has sent', async () => {

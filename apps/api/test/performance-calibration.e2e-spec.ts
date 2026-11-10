@@ -1,9 +1,8 @@
-import { CorePermission, type CalibrationPageDto, type CalibrationRowDto, type CatalogItemDto, type SaveTeamEvaluationInput, type TeamEvaluationDto } from '@arweqah-platform/shared';
+import { CorePermission, type CalibrationPageDto, type CalibrationRowDto } from '@arweqah-platform/shared';
 import { describe, expect, it, vi } from 'vitest';
-import { evaluationScenario, grants } from './helpers/performance-keys';
+import { evaluationScenario, grants, managerSentScenario } from './helpers/performance-keys';
 import { useTestApp } from './setup/test-app';
 
-const TEAM = [CorePermission.PerformanceTeamView, CorePermission.PerformanceTeamEvaluate];
 const HOLDER = [CorePermission.PerformanceCalibrationView, CorePermission.PerformanceCalibrate];
 
 describe('Calibration: the holder compares the managers\' scores and adjusts them by half points with a reason (FR-122)', () => {
@@ -11,28 +10,12 @@ describe('Calibration: the holder compares the managers\' scores and adjusts the
 
   /** The employee (Rep) reports to the direct manager (Lead); the manager has sent a complete evaluation; the cycle sits in the manager stage. */
   async function setup() {
-    const { hr, ...s } = await evaluationScenario(t);
-    const directUser = await s.person(s.lead, s.group, grants(TEAM));
-    const employeeUser = await s.person(s.rep, s.group, grants([CorePermission.PerformanceSelfEvaluate]));
-    await t.db.query('UPDATE employees SET manager_id = $1 WHERE id = $2', [directUser.employeeId, employeeUser.employeeId]);
-    const direct = await t.factories.signIn(directUser);
+    const { hr, ...s } = await managerSentScenario(t, [CorePermission.PerformanceSelfEvaluate]);
     const holder = await t.factories.signIn(await t.factories.user({ grants: grants(HOLDER) }));
     const viewer = await t.factories.signIn(await t.factories.user({ grants: grants([CorePermission.PerformanceCalibrationView]) }));
-    const employee = await t.factories.signIn(employeeUser);
-    const init = (await hr.post('/api/performance/cycle/catalog').send({ kind: 'init', title: 'قيادة مبادرة تحسين', points: 4 }).expect(201)).body as CatalogItemDto;
-    await hr.post('/api/performance/cycle/open').send({ fiscalYear: 2026 }).expect(200);
-    await hr.post('/api/performance/cycle/advance').expect(200); // mgr
-    const path = `/api/performance/team/${employeeUser.employeeId}`;
-    const dto = (await direct.get(path).expect(200)).body as TeamEvaluationDto;
-    const form: SaveTeamEvaluationInput = {
-      results: Object.fromEntries(dto.template.criteria.map((_, i) => [String(i), 80])),
-      behaviours: Object.fromEntries(dto.template.behaviours.map((b) => [b.code, { level: 75, note: '' }])),
-      initIds: [init.id], growthIds: [],
-    };
-    const sent = (await direct.post(`${path}/send`).send(form).expect(200)).body as TeamEvaluationDto;
     const toCalibration = () => hr.post('/api/performance/cycle/advance').expect(200);
-    const mine = async (agent = holder) => ((await agent.get('/api/performance/calibration').expect(200)).body as CalibrationPageDto).items.find((r) => r.employeeId === employeeUser.employeeId)!;
-    return { ...s, hr, holder, viewer, direct, employee, employeeUser, managerScore: sent.score!.final, toCalibration, mine, adjust: `/api/performance/calibration/${employeeUser.employeeId}` };
+    const mine = async (agent = holder) => ((await agent.get('/api/performance/calibration').expect(200)).body as CalibrationPageDto).items.find((r) => r.employeeId === s.employeeUser.employeeId)!;
+    return { ...s, hr, holder, viewer, toCalibration, mine, adjust: `/api/performance/calibration/${s.employeeUser.employeeId}` };
   }
 
   it('says there is no cycle before one is opened', async () => {

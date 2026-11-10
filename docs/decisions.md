@@ -2,6 +2,22 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-10 — Tickets: answers to replies, mentions and the file «View» window
+
+Plan: `docs/plans/phase-2-tickets.md` §17 (FR-128).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 335 | **A reply on a ticket can be answered, one level only** (`ticket_events.parent_event_id` points at the first reply; an answer to an answer names whom it answers in `reply_to_user_id`), only a `reply` can be answered, and the button needs `tickets.comment_reply`. | Same shape as task conversations (FR-66), so the two screens behave alike. | Owners want deeper threads. |
+| 336 | **`@` in a ticket reply** uses the task token `{{mention:id}}` and the shared `mentionedIn`; only active employees of the **desk's company** can be named and the key is `tickets.comment_mention`; on a **personal** ticket only the sender and the assignee. A mentioned person gets the relation `mentioned`: sees the ticket, reads and answers it, cannot close, ask to close, confirm or reopen; reached by the notice link only (not in the list tabs). | Owner's choice; the ticket's visibility is by relation (D2′), and a mention is the one deliberate way to widen it. | Owners want mentioned tickets in a list tab. |
+| 337 | **Notices «mentioned you» (also e-mailed) and «answered your reply»** are two new templates (`ticket.mentioned`, `ticket.reply_answered`), carry the commenter's name and the ticket number, never the text; each person is told once by the strongest reason; the plain «new reply» audience also includes the sender when somebody only mentioned replies. | A ticket may be a complaint; e-mail is not the place for its text. | — |
+| 338 | **The two keys go to everyone and to every head role at `all`** (migration `TicketReplyMentions`, rule 17), inserted only where missing. | They only matter inside a ticket the person can already open. | — |
+| 339 | **File preview reads the bytes through new `GET …/preview` routes** (tickets and task comments) into an object URL: images (png, jpeg, gif, webp) and PDF only, never SVG or HTML; the API streams it `inline`, `no-store`, and never redirects to a signed link; other types get «download instead» (`FILE_NOT_PREVIEWABLE`). The web CSP (`docker/nginx/web.conf`) gains `blob:` in `img-src` and `frame-src`. The API's own CSP (`frame-ancestors 'none'`) stays as strict as it was. | The existing download is an attachment and a signed link can't be read by `fetch` across origins; an object URL needs no change to the API's headers. | Files move to a private bucket with its own CORS. |
+| 341 | **The kind-of-ticket picker of the new-ticket dialog has a department filter, a kind filter (regular / personal), a count and two views** («by department» groups and a «compact list» of 30 rows at a time, the phone's default), the view remembered under `view:ticket-types`; the department list replaces the «browse departments» grid. Filtering is in the browser on the catalog the API already returns. | Owner: a catalog with very many kinds. | The catalog is too big to send at once (then filters go to the API). |
+| 342 | **The ticket page shows the ticket in its own bold card (`TicketCard`: number, state, text at `text-base`, files, facts) and the replies under a «Conversation and replies» heading in the smaller reply style; the `created` entry is not repeated in the conversation.** | Owner: the ticket must stand out from the comments and replies. | — |
+| 343 | **Uploads accept Word (`.docx`) and Excel (`.xlsx`) besides images and PDF** (`ALLOWED_UPLOAD_TYPES`, so ticket replies, task comments and every `FileAttachments` box), decided by the bytes (`file-type` reads the package's content types), so a `.docm` / `.xlsm` (other MIME types), a renamed file or a bare zip is refused with 422. They download only (never the preview window; `FILE_NOT_PREVIEWABLE`). The employee photo keeps its own images-only rules. | Owner: comments and replies take Word and Excel files. | Old binary `.doc` / `.xls` or macro files are asked for. |
+| 340 | **`MentionTextarea`, `MentionedText` and `mention-text` moved from `features/tasks` to `shared/ui` / `shared/lib`**; the box takes a `usePeople` hook and a `scopeId` instead of a task id. New shared `FileChip` + `FilePreviewDialog`. | Standing rule: shared code, never copies. | — |
+
 ## 2026-11-10 — Performance, batches 5b and 5c: calibration, approval, objection, milestones, reminders
 
 Plan: `docs/plans/phase-6-career-path-performance.md` §3.6b, §3.5c and §15.1 (b1…b4, c1…c3).

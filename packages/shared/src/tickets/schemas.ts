@@ -89,10 +89,14 @@ export const createTicketSchema = z.strictObject({
 });
 export type CreateTicketInput = z.infer<typeof createTicketSchema>;
 
-export const ticketReplySchema = z.strictObject({ body: z.string().trim().min(1).max(MAX_TICKET_TEXT), fileIds });
+/** A reply, or (with `parentEventId`) an answer to one. People are named in the text as `{{mention:<user id>}}` (see `mentionedIn`). */
+export const ticketReplySchema = z.strictObject({ body: z.string().trim().min(1).max(MAX_TICKET_TEXT), fileIds, parentEventId: z.uuid().optional() });
 export type TicketReplyInput = z.infer<typeof ticketReplySchema>;
 
 /** The unit asks to close, or the sender declines the closing, optionally with a message. */
+export const ticketMentionablesQuerySchema = z.strictObject({ search: z.string().trim().max(100).optional() });
+export type TicketMentionablesQuery = z.infer<typeof ticketMentionablesQuerySchema>;
+
 export const ticketActionSchema = z.strictObject({ message: z.string().trim().max(MAX_TICKET_TEXT).optional() });
 export type TicketActionInput = z.infer<typeof ticketActionSchema>;
 
@@ -232,12 +236,17 @@ export interface TicketEventDto {
   type: TicketEventType;
   actor: PersonRefDto | null;
   body: string | null;
+  /** The first-level reply this one answers (null for a first-level entry). */
+  parentId: string | null;
+  /** The person this reply answers. */
+  replyTo: PersonRefDto | null;
+  mentions: PersonRefDto[];
   attachments: TicketAttachmentDto[];
   createdAt: string;
 }
 
-/** How a person is related to a ticket: sender, assignee, manager of its desk, handler through the reply scope (`desk`), or in sight through the view scope (`team`). */
-export type TicketRelation = 'sender' | 'assignee' | 'manager' | 'desk' | 'team';
+/** How a person is related to a ticket: sender, assignee, manager of its desk, handler through the reply scope (`desk`), in sight through the view scope (`team`), or named with @ in a reply (`mentioned`: reads and answers, nothing more). */
+export type TicketRelation = 'sender' | 'assignee' | 'manager' | 'desk' | 'team' | 'mentioned';
 
 /** What this person may do with the ticket right now (the server decides; the screen only shows it). */
 export interface TicketAbilitiesDto {

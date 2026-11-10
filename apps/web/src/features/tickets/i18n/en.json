@@ -71,10 +71,18 @@
     "description": "Choose the unit and the type, then write your request."
   },
   "choose": {
+    "deskFilter": "Department",
+    "kindFilter": "Kind of request",
+    "kindAll": "All kinds",
+    "kindRegular": "Regular",
+    "kindPersonal": "Personal",
+    "viewGroups": "By department",
+    "viewList": "Compact list",
+    "durationShort_one": "1 working day",
+    "durationShort_other": "{{count}} working days",
+    "showMore": "Show more ({{count}} left)",
     "personalNotice": "Complaints and personal matters go to Human Resources directly.",
     "search": "What do you need?",
-    "browse": "Browse units",
-    "hideBrowse": "Hide units",
     "allDesks": "All units",
     "noMatches": "No type matches your search.",
     "nothing": "No unit receives tickets right now.",
@@ -107,12 +115,19 @@
     "neededByHint_other": "Suggested after {{count}} working days"
   },
   "reply": {
+    "answer": "Answer this reply",
+    "answerTo": "Your answer to {{name}}",
+    "inReplyTo": "in reply to {{name}}",
+    "mentionList": "Colleagues you can mention",
+    "hint": "Type @ to mention a colleague. Ctrl+Enter sends.",
     "label": "Your reply",
     "send": "Send reply",
     "sent": "The reply was sent.",
     "closedNote": "The ticket is closed and takes no new replies."
   },
+  "card": { "label": "The ticket" },
   "timeline": {
+    "heading": "Conversation and replies",
     "label": "Ticket history",
     "system": "System"
   },
@@ -204,6 +219,8 @@
     "calendarDays": "In calendar days",
     "daysRange": "A whole number from {{min}} to {{max}}.",
     "saved": "The settings were saved.",
+    "tabsLabel": "Unit setup sections",
+    "tabs": { "settings": "Settings", "types": "Types" },
     "typesTitle": "Ticket types",
     "typesIntro": "Each type has a name, a description, an assignee and an optional own duration.",
     "noTypes": "No types yet. Add one so the unit can receive tickets.",
@@ -269,6 +286,8 @@
     "desk": "Unit"
   },
   "board": {
+    "quickReply": "Quick reply",
+    "quickReplyTitle": "Quick reply on {{number}}",
     "label": "Tickets board",
     "assignee": "Assignee: {{name}}",
     "sender": "Sender: {{name}}",
@@ -284,6 +303,8 @@
         "request_close": "Ask to close a ticket once it is done",
         "confirm_close": "Confirm or decline closing a ticket",
         "reopen": "Reopen a closed ticket",
+        "comment_reply": "Answer a reply inside a ticket",
+        "comment_mention": "Mention a colleague with @ in a reply",
         "setup": "Set up your desk, its ticket types and its durations",
         "figures": "Read the figures and performance of the desks"
       }

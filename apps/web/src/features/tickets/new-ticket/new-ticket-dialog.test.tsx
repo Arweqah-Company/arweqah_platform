@@ -50,4 +50,27 @@ describe('FR-37 new ticket dialog', () => {
     fireEvent.click((await screen.findByText('مشكلة في الجهاز')).closest('button')!);
     expect(await screen.findByLabelText(/العنوان/)).toHaveValue('الشاشة لا تعمل');
   });
+
+  it('narrows by department and by kind, and counts what is left (FR-37)', async () => {
+    open();
+    await screen.findByText('شهادة راتب');
+    fireEvent.click(screen.getByRole('combobox', { name: 'الجهة' }));
+    fireEvent.click(await screen.findByRole('option', { name: 'تقنية المعلومات' }));
+    expect(screen.queryByText('شهادة راتب')).not.toBeInTheDocument();
+    expect(screen.getByText('نوع واحد')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('combobox', { name: 'نوع الطلب' }));
+    fireEvent.click(await screen.findByRole('option', { name: 'شخصي' }));
+    expect(await screen.findByText('لا يوجد نوع مطابق لبحثك.')).toBeInTheDocument();
+  });
+
+  it('shows one compact list for a long catalog, thirty at a time, and remembers the view (FR-37)', async () => {
+    const many: TicketCatalogDto = { ...catalog, desks: [{ ...catalog.desks[0]!, types: Array.from({ length: 45 }, (_, i) => ({ id: `x${i}`, nameAr: `نوع ${i}`, nameEn: `Type ${i}`, descriptionAr: null, descriptionEn: null, isPersonal: false, dueDays: 2, assignee: null, available: true })) }] };
+    server.use(http.get('*/api/tickets/catalog', () => HttpResponse.json(many)));
+    renderPage(<NewTicketDialog open onOpenChange={() => undefined} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'قائمة مضغوطة' }));
+    expect(await screen.findAllByRole('listitem')).toHaveLength(30);
+    fireEvent.click(screen.getByRole('button', { name: /عرض المزيد/ }));
+    expect(screen.getAllByRole('listitem')).toHaveLength(45);
+    expect(window.localStorage.getItem('view:ticket-types')).toBe('list');
+  });
 });

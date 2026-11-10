@@ -23,6 +23,7 @@ export class TicketAccessPolicy {
     if (ticket.senderUserId === viewer.userId) relations.push('sender');
     if (ticket.assigneeUserId === viewer.userId) relations.push('assignee');
     if (ticket.isPersonal) return relations;
+    if (ticket.mentionedUserIds.includes(viewer.userId)) relations.push('mentioned');
     if (ticket.deskManagerUserId === viewer.userId) relations.push('manager');
     if (inScope(viewer.handle, { orgNodeId: ticket.deskId, companyId: ticket.deskCompanyId })) relations.push('desk');
     const sender = { orgNodeId: ticket.senderNodeId, companyId: ticket.senderCompanyId };

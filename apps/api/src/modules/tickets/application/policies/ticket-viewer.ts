@@ -7,5 +7,5 @@ import type { TicketViewer } from '../../domain/types/ticket.types';
  * and which departments they may handle through the reply permission (their tickets: reply, ask to close, close without execution).
  */
 export function viewerOf(ctx: AccessContext): TicketViewer {
-  return { userId: ctx.userId, view: ctx.nodeScopeOf(CorePermission.TicketsView), handle: ctx.nodeScopeOf(CorePermission.TicketsReply) };
+  return { userId: ctx.userId, canAnswerReply: ctx.has(CorePermission.TicketsCommentReply), canMention: ctx.has(CorePermission.TicketsCommentMention), view: ctx.nodeScopeOf(CorePermission.TicketsView), handle: ctx.nodeScopeOf(CorePermission.TicketsReply) };
 }
