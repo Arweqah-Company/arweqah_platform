@@ -17,4 +17,12 @@ describe('the organization reset guard (development only)', () => {
     expect(() => assertResetAllowed({ NODE_ENV: 'development', DB_HOST: 'db.internal.example' })).toThrow('local');
     expect(() => assertResetAllowed({ NODE_ENV: 'development' })).toThrow('local');
   });
+
+  it('allows a server only when the confirmation is the exact name of the database', () => {
+    const server = { NODE_ENV: 'production', DB_HOST: 'postgres', DB_NAME: 'arweqah_platform' };
+    expect(() => assertResetAllowed({ ...server, ORG_RESET_CONFIRM: 'arweqah_platform' })).not.toThrow();
+    expect(() => assertResetAllowed({ ...server, ORG_RESET_CONFIRM: 'other' })).toThrow('development only');
+    expect(() => assertResetAllowed({ ...server, ORG_RESET_CONFIRM: '' })).toThrow('development only');
+    expect(() => assertResetAllowed({ ...server, DB_NAME: undefined, ORG_RESET_CONFIRM: 'x' })).toThrow('development only');
+  });
 });
