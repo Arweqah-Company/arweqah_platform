@@ -102,6 +102,9 @@ describe('Approval, the individual result and the objection (FR-122, FR-123)', (
     await s.direct.put(s.path).send(s.form).expect(409); // closed to the manager until the objection is accepted
     await s.holder.post(`/api/performance/objections/${row!.id}/return`).expect(204);
     expect((await s.me()).result!.objection).toMatchObject({ status: 'returned' });
+    const listed = ((await s.direct.get('/api/performance/team').expect(200)).body as { items: { employeeId: string; block: string | null }[]; waitingCount: number });
+    expect(listed.items.find((r) => r.employeeId === s.employeeUser.employeeId)?.block).toBeNull(); // the list agrees with the window: the manager can write again
+    expect(listed.waitingCount).toBeGreaterThanOrEqual(1);
     const before = (await s.me()).result!.finalScore;
     const revised = { ...s.form, results: Object.fromEntries(Object.keys(s.form.results).map((k) => [k, 100])) };
     const sent = (await s.direct.post(`${s.path}/send`).send(revised).expect(200)).body as TeamEvaluationDto;

@@ -2,7 +2,7 @@ import { CALIBRATION_ADJUSTED, CorePermission, type CalibrationPageDto, type Cal
 import { Scale, SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Can } from '@/core/permissions/can';
+import { Can, usePermissions } from '@/core/permissions/can';
 import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import { useListPage } from '@/shared/lib/use-list-page';
 import { useServerList } from '@/shared/lib/use-server-list';
@@ -65,13 +65,15 @@ export function CalibrationList({ data }: { data: ReturnType<typeof useCalibrati
   const { list, table, page, query, columns, fields, exporting } = data;
   const [adjusting, setAdjusting] = useState<CalibrationRowDto | null>(null);
   const open = page?.cycle?.stage === 'cal';
+  const { can } = usePermissions();
+  const canAdjust = (row: CalibrationRowDto) => can(CorePermission.PerformanceCalibrate) && open && row.managerScore !== null;
   return (
     <>
       <Overview page={page} loading={query.isPending} />
       <DataTable<CalibrationRowDto>
         listKey="performance-calibration" {...table} caption={t('calibration.title')}
         toolbar={<ListToolbar listKey="performance-calibration" {...list.toolbar({ label: t('calibration.searchLabel'), placeholder: t('calibration.searchPlaceholder') }, fields)} actions={<ExchangeButtons permissions={{ export: CorePermission.PerformanceCalibrationExport }} exporting={exporting} />} />}
-        rowKey={(x) => x.employeeId} onRowClick={setAdjusting}
+        rowKey={(x) => x.employeeId} onRowClick={(x) => canAdjust(x) && setAdjusting(x)}
         actions={(x) => <AdjustAction row={x} open={open} onAdjust={setAdjusting} />}
         empty={<EmptyState icon={Scale} title={list.narrowed ? t('calibration.noMatches') : t('calibration.empty')} />} columns={columns}
       />

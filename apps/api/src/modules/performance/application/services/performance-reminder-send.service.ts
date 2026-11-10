@@ -48,7 +48,9 @@ export class PerformanceReminderSendService {
     for (const reminder of await this.reminders.list()) {
       for (const on of occasions(reminder, dates)) {
         const due = reminder.on && reminderDue({ kind: reminder.kind, days: reminder.days, today, deadline: on.date, lastSentOn: lastSent.get(reminder.id) ?? null });
-        if (due) told += await this.send(cycle, reminder, { today, milestone: on.milestone });
+        if (!due) continue;
+        told += await this.send(cycle, reminder, { today, milestone: on.milestone });
+        lastSent.set(reminder.id, today); // one send a day, also across the occasions of one reminder
       }
     }
     return told;

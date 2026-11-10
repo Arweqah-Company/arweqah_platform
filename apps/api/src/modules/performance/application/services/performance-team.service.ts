@@ -69,8 +69,8 @@ export class PerformanceTeamService {
     const people = await this.team.members(filter, { search: query.search, directOnly: query.scope === 'direct' });
     const evaluations = await this.evaluations.forEmployees(cycle.id, people.map((p) => p.employeeId));
     const ids = evaluations.map((e) => e.id);
-    const [reviews, selfSent] = await Promise.all([this.evaluations.reviews(ids), this.evaluations.selfSentIds(ids)]);
-    const rows = await Promise.all(evaluations.map((e) => this.row({ cycle, evaluation: e, person: people.find((p) => p.employeeId === e.employeeId) as TeamPerson, reviews: reviews.filter((r) => r.evaluationId === e.id) }, ctx.userId, selfSent.has(e.id))));
+    const [reviews, selfSent, reopenedIds] = await Promise.all([this.evaluations.reviews(ids), this.evaluations.selfSentIds(ids), this.reopenedIds(cycle.id)]);
+    const rows = await Promise.all(evaluations.map((e) => this.row({ cycle, evaluation: e, person: people.find((p) => p.employeeId === e.employeeId) as TeamPerson, reviews: reviews.filter((r) => r.evaluationId === e.id), returned: reopenedIds.has(e.id) }, ctx.userId, selfSent.has(e.id))));
     const shown = rows.filter((r) => !query.status || (query.status === 'done') === (r.mine === 'sent'));
     const start = (query.page - 1) * query.pageSize;
     return { cycle: { fiscalYear: cycle.fiscalYear, stage: cycle.stage }, items: shown.slice(start, start + query.pageSize), total: shown.length, page: query.page, pageSize: query.pageSize, waitingCount: rows.filter((r) => r.mine !== 'sent' && !r.block).length };
@@ -83,13 +83,18 @@ export class PerformanceTeamService {
     if (!filter || !cycle) return 0;
     const people = await this.team.members(filter, {});
     const evaluations = await this.evaluations.forEmployees(cycle.id, people.map((p) => p.employeeId));
-    const reviews = await this.evaluations.reviews(evaluations.map((e) => e.id));
-    return evaluations.filter((e) => this.waitsForViewer({ cycle, person: people.find((p) => p.employeeId === e.employeeId) as TeamPerson, reviews: reviews.filter((r) => r.evaluationId === e.id) }, ctx.userId)).length;
+    const [reviews, reopenedIds] = await Promise.all([this.evaluations.reviews(evaluations.map((e) => e.id)), this.reopenedIds(cycle.id)]);
+    return evaluations.filter((e) => this.waitsForViewer({ cycle, person: people.find((p) => p.employeeId === e.employeeId) as TeamPerson, reviews: reviews.filter((r) => r.evaluationId === e.id), returned: reopenedIds.has(e.id) }, ctx.userId)).length;
   }
 
-  private waitsForViewer(t: Pick<Target, 'cycle' | 'person' | 'reviews'>, viewerUserId: string): boolean {
+  /** The evaluations an accepted objection keeps open to their managers (the list and the waiting count must agree with the window). */
+  private async reopenedIds(cycleId: string): Promise<Set<string>> {
+    return new Set((await this.objections.forCycle(cycleId)).filter((o) => reopened(o.status)).map((o) => o.evaluationId));
+  }
+
+  private waitsForViewer(t: Pick<Target, 'cycle' | 'person' | 'reviews' | 'returned'>, viewerUserId: string): boolean {
     const level = reviewerLevel(viewerUserId, t.person.managerUserId, reviewOf(t.reviews, 'direct')?.reviewerUserId ?? null);
-    return reviewState(reviewOf(t.reviews, level)) !== 'sent' && !this.blockOf({ cycle: t.cycle, level, reviews: t.reviews });
+    return reviewState(reviewOf(t.reviews, level)) !== 'sent' && !this.blockOf({ cycle: t.cycle, level, reviews: t.reviews, returned: t.returned });
   }
 
   /** One member's evaluation for the viewer; a person the scope does not reach, or without an evaluation, is a 404. */

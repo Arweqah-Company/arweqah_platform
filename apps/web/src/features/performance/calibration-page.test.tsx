@@ -112,4 +112,16 @@ describe('The calibration page (FR-122)', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: 'رفض' }));
     await waitFor(() => expect(calls.find((c) => c.url === '/api/performance/objections/o1/reject')?.body).toEqual({ reason: 'التقييم موثّق ببيانات المعيار' }));
   });
+
+  it('opens no adjustment from a row click when the person cannot adjust, the stage is not calibration, or the manager has not sent', async () => {
+    open(PAGE([ROW()], { cycle: { fiscalYear: 2026, stage: 'appr' } }));
+    fireEvent.click(await screen.findByText('سارة أحمد'));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument(); // the approval stage
+  });
+
+  it('opens no adjustment for a person who only views', async () => {
+    open(PAGE([ROW()]), [CorePermission.PerformanceCalibrationView]);
+    fireEvent.click(await screen.findByText('سارة أحمد'));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
 });

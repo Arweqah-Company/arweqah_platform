@@ -99,4 +99,12 @@ describe('Sending the automatic reminders of the cycle (FR-124)', () => {
     expect(await s.sender.run('2026-09-10')).toBeGreaterThanOrEqual(1);
     expect(await s.titles(s.manager)).toContain('محضر محطة ينتظرك');
   });
+
+  it('sends a milestone reminder once a day even when two milestones fall on the same day', async () => {
+    const s = await setup();
+    await s.reminders.post('/api/performance/cycle/reminders').send(MILE).expect(201);
+    for (const key of ['review_jul', 'pulse_sep']) await s.hr.put(`/api/performance/cycle/dates/${key}`).send({ from: '2026-09-15', to: null }).expect(200);
+    await s.sender.run('2026-09-10'); // 5 days before both
+    expect((await s.titles(s.manager)).filter((x) => x === 'محضر محطة ينتظرك')).toHaveLength(1);
+  });
 });
