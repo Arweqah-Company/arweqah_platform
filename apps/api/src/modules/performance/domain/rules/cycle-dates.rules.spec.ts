@@ -44,12 +44,18 @@ describe('withDate', () => {
 });
 
 describe('defaultCycleDates and effectiveDates (FR-118, plan §3.7b)', () => {
-  it('gives all seven dates of the fiscal year, in the order of the keys, in the year after it begins', () => {
+  it('gives every date of the fiscal year, in the order of the keys, in the year after it begins', () => {
     const usual = defaultCycleDates(2026);
     expect(usual.map((x) => x.key)).toEqual([...CYCLE_DATE_KEYS]);
     expect(usual.find((x) => x.key === 'calibration')).toEqual(d('calibration', '2027-04-21', '2027-04-24'));
     expect(usual.find((x) => x.key === 'self_deadline')).toEqual(d('self_deadline', '2027-03-10'));
     expect(usual.find((x) => x.key === 'objection')).toEqual(d('objection', '2027-05-03', '2027-05-07'));
+  });
+
+  it('puts the milestones on the 15th: July and September in the fiscal year, January and March in the year after (plan §3.6c)', () => {
+    const usual = defaultCycleDates(2026);
+    const from = (key: string) => usual.find((x) => x.key === key)?.from;
+    expect([from('review_jul'), from('pulse_sep'), from('review_jan'), from('pulse_mar')]).toEqual(['2026-07-15', '2026-09-15', '2027-01-15', '2027-03-15']);
   });
 
   it('keeps the usual dates consistent with the rule that checks the others (no date refuses its neighbours)', () => {
@@ -59,7 +65,7 @@ describe('defaultCycleDates and effectiveDates (FR-118, plan §3.7b)', () => {
 
   it('takes what was set for a key and the usual date for the others', () => {
     const out = effectiveDates([d('approval', '2027-04-28')], 2026);
-    expect(out).toHaveLength(7);
+    expect(out).toHaveLength(11);
     expect(out.find((x) => x.key === 'approval')).toEqual(d('approval', '2027-04-28'));
     expect(out.find((x) => x.key === 'final')).toEqual(d('final', '2027-04-15', '2027-04-20'));
   });
