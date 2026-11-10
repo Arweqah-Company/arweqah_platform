@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { CorePermission, emptyTeamForm, levelOf, scoreOf, teamProblems, type EvalBlock, type ReviewerLevel, type SaveTeamEvaluationInput, type SelfEvaluationDto, type TeamEvaluationDto, type TeamEvaluationPageDto, type TeamEvaluationQuery, type TeamEvaluationRowDto } from '@arweqah-platform/shared';
+import { CorePermission, emptyTeamForm, levelOf, teamProblems, type EvalBlock, type ReviewerLevel, type SaveTeamEvaluationInput, type SelfEvaluationDto, type TeamEvaluationDto, type TeamEvaluationPageDto, type TeamEvaluationQuery, type TeamEvaluationRowDto } from '@arweqah-platform/shared';
 import { Clock } from '../../../../common/application/clock';
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
 import { NotFoundError } from '../../../../common/domain/domain-error';
@@ -12,7 +12,8 @@ import { PerformanceEvaluationRepository, type EvaluationRow, type ReviewRow, ty
 import { PerformanceRosterPort, PerformanceStagePort, PerformanceTeamPort, type TeamPerson } from '../../domain/contracts/performance-roster.port';
 import { EvaluationBlockedError, TeamEvaluationInvalidError } from '../../domain/errors/performance.errors';
 import { emptySelf } from '../../domain/rules/self-evaluation.rules';
-import { cleanTeam, evalBlock, pickedPoints, reviewState, reviewerLevel } from '../../domain/rules/team-evaluation.rules';
+import { cleanTeam, evalBlock, reviewState, reviewerLevel } from '../../domain/rules/team-evaluation.rules';
+import { PerformanceScoreService } from './performance-score.service';
 import { PERFORMANCE_AUDIT, PERFORMANCE_EVALUATION_ENTITY } from '../messages/performance.messages';
 
 /** One member in the cycle: the person, their evaluation, and the documents written so far. */
@@ -43,6 +44,7 @@ export class PerformanceTeamService {
   constructor(
     private readonly team: PerformanceTeamPort,
     private readonly roster: PerformanceRosterPort,
+    private readonly scores: PerformanceScoreService,
     private readonly stages: PerformanceStagePort,
     private readonly cycles: PerformanceCycleRepository,
     private readonly evaluations: PerformanceEvaluationRepository,
@@ -170,15 +172,7 @@ export class PerformanceTeamService {
   }
 
   private async score(t: Pick<Target, 'cycle' | 'evaluation' | 'person'>, form: SaveTeamEvaluationInput) {
-    const template = this.template(t.cycle, t.evaluation);
-    const [catalog, minutes, stage] = await Promise.all([this.cycles.catalog(t.cycle.id), this.roster.approvedLearningMinutes(t.person.employeeId), this.stages.stageOf(t.person.titleId)]);
-    return scoreOf({
-      template, results: template.criteria.map((_, i) => form.results[String(i)]),
-      behaviours: Object.fromEntries(Object.entries(form.behaviours).map(([code, v]) => [code, v.level])) as never,
-      learning: { approvedMinutes: minutes, stageMinutes: (stage?.hoursPerYear ?? 0) * 60 },
-      picks: { init: pickedPoints(form.initIds, 'init', catalog), growth: pickedPoints(form.growthIds, 'growth', catalog) },
-      caps: { init: template.extra[1]?.points ?? 0, growth: template.extra[2]?.points ?? 0 },
-    });
+    return this.scores.of({ employeeId: t.person.employeeId, titleId: t.person.titleId, template: this.template(t.cycle, t.evaluation), catalog: await this.scores.catalogOf(t.cycle.id), form });
   }
 
   private async view(t: Target): Promise<TeamEvaluationDto> {

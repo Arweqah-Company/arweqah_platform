@@ -120,6 +120,12 @@ export const CorePermission = {
   PerformanceTeamView: 'performance.team_view',
   PerformanceTeamEvaluate: 'performance.team_evaluate',
   PerformanceTeamExport: 'performance.team_export',
+  PerformanceCalibrationView: 'performance.calibration_view',
+  PerformanceCalibrate: 'performance.calibrate',
+  PerformanceApprove: 'performance.approve',
+  PerformanceCalibrationExport: 'performance.calibration_export',
+  PerformanceObject: 'performance.object',
+  PerformanceExport: 'performance.export',
   CareerRequestsCreate: 'career_requests.create',
   CareerRequestsView: 'career_requests.view',
   CareerRequestsApprove: 'career_requests.approve',
@@ -250,6 +256,8 @@ const OWN_ACCOUNT_PERMISSIONS: { key: CorePermissionKey; scope: 'all' }[] = [
   { key: CorePermission.CareerRequiredTick, scope: 'all' },
   { key: CorePermission.CareerRequestsCreate, scope: 'all' },
   { key: CorePermission.PerformanceSelfEvaluate, scope: 'all' },
+  { key: CorePermission.PerformanceObject, scope: 'all' },
+  { key: CorePermission.PerformanceExport, scope: 'all' },
 ];
 
 /**

@@ -93,6 +93,8 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'performance.catalog.removed': a('organization', 'حذف بندًا من كتالوج المكوّن الإضافي', 'Removed an item from the extra-component catalog'),
   'performance.team.saved': a('organization', 'حفظ مسودة تقييم موظف', 'Saved a draft evaluation of an employee'),
   'performance.team.sent': a('organization', 'أرسل تقييم موظف', 'Sent the evaluation of an employee'),
+  'performance.calibration.adjusted': a('organization', 'عدّل درجة موظف في المعايرة', 'Adjusted the score of an employee in calibration'),
+  'performance.calibration.finished': a('organization', 'أنهى المعايرة وأرسلها للاعتماد', 'Finished calibration and sent it to approval'),
   'performance.team.edited': a('organization', 'عدّل تقييم موظف بعد إرساله', 'Changed the evaluation of an employee after sending it'),
   'performance.self.sent': a('organization', 'أرسل تقييمه الذاتي', 'Sent their self-evaluation'),
   'performance.self.edited': a('organization', 'عدّل تقييمه الذاتي بعد إرساله', 'Changed their self-evaluation after sending it'),

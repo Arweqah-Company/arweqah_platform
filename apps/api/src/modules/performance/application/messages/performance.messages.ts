@@ -22,6 +22,8 @@ export const PERFORMANCE_AUDIT = {
   teamSaved: 'performance.team.saved',
   teamSent: 'performance.team.sent',
   teamEdited: 'performance.team.edited',
+  calibrationAdjusted: 'performance.calibration.adjusted',
+  calibrationFinished: 'performance.calibration.finished',
 } as const;
 
 export const PERFORMANCE_TEMPLATE_ENTITY = 'performance_template';

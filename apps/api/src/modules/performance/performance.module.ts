@@ -4,6 +4,12 @@ import { PermissionCatalog } from '../../core/access/application/permission-cata
 import { WorkflowRegistry } from '../../core/workflow/application/workflow-definition';
 import { MyPerformanceController } from './presentation/controllers/my-performance.controller';
 import { PerformanceEvaluationService } from './application/services/performance-evaluation.service';
+import { PerformanceCalibrationService } from './application/services/performance-calibration.service';
+import { PerformanceScoreService } from './application/services/performance-score.service';
+import { PerformanceCalibrationRepository } from './domain/contracts/performance-calibration.repository';
+import { PERFORMANCE_RESULT_ENTITIES } from './domain/entities/performance-results.entities';
+import { TypeOrmPerformanceCalibrationRepository } from './infrastructure/repositories/typeorm-performance-calibration.repository';
+import { PerformanceCalibrationController } from './presentation/controllers/performance-calibration.controller';
 import { PerformanceTeamService } from './application/services/performance-team.service';
 import { PerformanceTeamController } from './presentation/controllers/performance-team.controller';
 import { PerformanceNoticeService } from './application/services/performance-notice.service';
@@ -34,8 +40,8 @@ import { PerformanceTemplatesController } from './presentation/controllers/perfo
 
 /** Performance evaluation: the evaluation file and its templates, and the cycle now; the self-evaluation, the manager's evaluation, the calibration and the objections come in later stages. */
 @Module({
-  imports: [TypeOrmModule.forFeature([...PERFORMANCE_TEMPLATE_ENTITIES, ...PERFORMANCE_CYCLE_ENTITIES, ...PERFORMANCE_EVALUATION_ENTITIES, ...PERFORMANCE_REMINDER_ENTITIES]), OrgModule],
-  controllers: [PerformanceTemplatesController, PerformanceCycleController, MyPerformanceController, PerformanceTeamController],
+  imports: [TypeOrmModule.forFeature([...PERFORMANCE_TEMPLATE_ENTITIES, ...PERFORMANCE_CYCLE_ENTITIES, ...PERFORMANCE_EVALUATION_ENTITIES, ...PERFORMANCE_REMINDER_ENTITIES, ...PERFORMANCE_RESULT_ENTITIES]), OrgModule],
+  controllers: [PerformanceTemplatesController, PerformanceCycleController, MyPerformanceController, PerformanceTeamController, PerformanceCalibrationController],
   providers: [
     PerformanceTemplateService,
     PerformanceTemplateAiService,
@@ -44,6 +50,9 @@ import { PerformanceTemplatesController } from './presentation/controllers/perfo
     PerformanceEvaluationService,
     PerformanceSelfService,
     PerformanceTeamService,
+    PerformanceScoreService,
+    PerformanceCalibrationService,
+    { provide: PerformanceCalibrationRepository, useClass: TypeOrmPerformanceCalibrationRepository },
     PerformanceNoticeService,
     { provide: PerformanceStagePort, useClass: OrgStageAdapter },
     { provide: PerformanceEvaluationRepository, useClass: TypeOrmPerformanceEvaluationRepository },

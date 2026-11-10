@@ -105,3 +105,17 @@ export class TeamEvaluationInvalidError extends BusinessRuleError {
     super('The evaluation is not complete', { problems });
   }
 }
+
+export class CalibrationNotOpenError extends ConflictError {
+  override readonly code = 'CALIBRATION_NOT_OPEN';
+  constructor() {
+    super('Calibration is not open now: the cycle is not in the calibration stage');
+  }
+}
+
+export class CalibrationWaitingError extends ConflictError {
+  override readonly code = 'CALIBRATION_WAITING';
+  constructor(waiting: number) {
+    super('Some evaluations have no sent manager score yet', { waiting });
+  }
+}
