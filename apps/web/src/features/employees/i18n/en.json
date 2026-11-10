@@ -384,5 +384,6 @@
     "jobTitle": "Job title",
     "noUnit": "You have no unit yet.",
     "noUnitHint": "Your team shows once you are placed in a unit."
-  }
+  },
+  "fixDetails": "Something on the first page needs a look: we took you back to it and put the reason under the field."
 }

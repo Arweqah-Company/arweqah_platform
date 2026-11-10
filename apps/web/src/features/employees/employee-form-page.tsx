@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { FormProvider } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
+import { toast } from 'sonner';
 import { usePermissions } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Alert, Button, PageHeader } from '@/shared/ui';
@@ -54,13 +55,15 @@ function SaveBar({ editing, id, busy, step, twoSteps, onNext, onBack }: BarProps
     <div className="sticky bottom-3 z-10 flex h-16 items-center justify-end gap-2 rounded-2xl border border-neutral-200 bg-white/95 px-3 shadow-sm shadow-ink/5 backdrop-blur sm:px-5 lg:bottom-4 lg:col-span-2">
       {step === 'roles' && <Button variant="secondary" onClick={onBack}>{t('back')}</Button>}
       <Button variant="secondary" asChild><Link to={editing ? `/employees/${id}` : '/employees'}>{tc('actions.cancel')}</Link></Button>
-      {last ? <Button type="submit" disabled={busy}>{editing ? tc('actions.save') : t('saveAndInvite')}</Button> : <Button onClick={onNext}>{t('next')}</Button>}
+      {/* Two different elements (keys): when «Next» shows the roles step the same button must not turn into the submit button while the click that pressed it is still being handled, or that click would save the form. */}
+      {last ? <Button key="save" type="submit" disabled={busy}>{editing ? tc('actions.save') : t('saveAndInvite')}</Button> : <Button key="next" onClick={onNext}>{t('next')}</Button>}
     </div>
   );
 }
 
 /** Which step is showing and how «Next» and the save button move between them (the roles step exists for who may give roles). */
 function useStepFlow(state: ReturnType<typeof useEmployeeForm>, twoSteps: boolean) {
+  const { t } = useTranslation('employees');
   const [step, setStep] = useState<Step>('details');
   const { form, submit } = state;
   const next = async () => {
@@ -72,7 +75,10 @@ function useStepFlow(state: ReturnType<typeof useEmployeeForm>, twoSteps: boolea
       void next();
       return;
     }
-    void submit(e, () => setStep('details'));
+    void submit(e, () => {
+      setStep('details');
+      toast.error(t('fixDetails'));
+    });
   };
   return { step, setStep, next, onSubmit };
 }
