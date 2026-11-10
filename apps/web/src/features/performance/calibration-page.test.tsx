@@ -60,6 +60,7 @@ describe('The calibration page (FR-122)', () => {
 
   it('adjusts a person: the score after the adjustment is shown live, the reason is required, and the server gets both', async () => {
     const { calls } = open(PAGE([ROW()]));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'عدّل الدرجة: سارة أحمد' })).toBeEnabled()); // the permissions have loaded: a click on the row opens the dialog only for who may adjust
     fireEvent.click(await screen.findByText('سارة أحمد'));
     const dialog = await screen.findByRole('dialog');
     const save = within(dialog).getByRole('button', { name: 'حفظ' });
