@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-10 — The organization structure on the server
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 322 | **The structure on the server is replaced by hand with `scripts/server/reset-org.sh`** (typed database name, backup first, then `reset-org-structure.js` and the seed). The reset guard now also accepts `ORG_RESET_CONFIRM` equal to `DB_NAME`; without it the rule of decision 248 (development, local host) is unchanged. The script is copied to the server by the deploy workflow but never run by it. | The seed builds the structure only while the company has no units, so the server kept the old structure after the owner's new file; the reset was local only. The server data was confirmed to be sample data. | Real data exists on the server (then a mapping by unit, never a wipe). |
+
 ## 2026-11-09 — Performance, batch 5a: the evaluation cycle page as the concept draws it
 
 Plan: `docs/plans/phase-6-career-path-performance.md` §3.7b and §15.1 (a3b).
