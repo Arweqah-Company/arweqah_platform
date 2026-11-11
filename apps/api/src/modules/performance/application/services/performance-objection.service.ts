@@ -7,6 +7,7 @@ import { Clock } from '../../../../common/application/clock';
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
+import { PerformanceCalibrationRepository } from '../../domain/contracts/performance-calibration.repository';
 import { PerformanceCycleRepository, type CycleRow } from '../../domain/contracts/performance-cycle.repository';
 import { PerformanceEvaluationRepository } from '../../domain/contracts/performance-evaluation.repository';
 import { PerformanceObjectionRepository, PerformanceResultRepository } from '../../domain/contracts/performance-result.repository';
@@ -37,6 +38,7 @@ export class PerformanceObjectionService {
     private readonly objections: PerformanceObjectionRepository,
     private readonly view: PerformanceResultService,
     private readonly calibration: PerformanceCalibrationService,
+    private readonly adjustments: PerformanceCalibrationRepository,
     private readonly roster: PerformanceRosterPort,
     private readonly notifications: NotificationsService,
     private readonly holders: PermissionHoldersService,
@@ -77,12 +79,13 @@ export class PerformanceObjectionService {
     return { items: (await this.objections.forCycle(cycle.id)).map((o) => ({ ...objectionDto(o), employeeId: o.employeeId, employeeName: names.get(o.employeeId) ?? '' })) };
   }
 
-  /** Accepts the objection and hands the evaluation back to the manager. */
+  /** Accepts the objection, hands the evaluation back to the manager and drops the calibration adjustment (decision 371). */
   async returnIt(ctx: AccessContext, id: string): Promise<void> {
     const found = await this.pending(id, 'open');
     await this.tx.run(async (tx) => {
       await this.moveOrFail(id, { from: 'open', to: 'returned', decidedBy: ctx.userId, decidedAt: this.clock.now() }, tx);
       await this.evaluations.unsendReviews(found.evaluationId, tx);
+      await this.adjustments.clear(found.evaluationId, tx); // the old calibration was made on the old scores
       await this.tell(found.employeeId, 'returned', tx);
     });
     this.audit(ctx, PERFORMANCE_AUDIT.objectionReturned, found.evaluationId);

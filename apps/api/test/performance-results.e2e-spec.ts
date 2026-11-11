@@ -117,6 +117,22 @@ describe('Approval, the individual result and the objection (FR-122, FR-123)', (
     await s.hr.post('/api/performance/cycle/close').expect(200);
   });
 
+  it('drops the calibration adjustment when an objection is accepted: the revised result is the manager\'s new score alone (FR-123, decision 371)', async () => {
+    const s = await setup();
+    await s.holder.put(`/api/performance/calibration/${s.employeeUser.employeeId}`).send({ adjustment: 1, reason: 'مقارنة بأقرانه في الوحدة' }).expect(200);
+    await s.approve();
+    expect((await s.me()).result!.breakdown).toMatchObject({ adjustment: 1 });
+    await s.employee.post('/api/performance/me/objection').send(s.objection).expect(200);
+    const [row] = ((await s.holder.get('/api/performance/objections').expect(200)).body as ObjectionListDto).items;
+    await s.holder.post(`/api/performance/objections/${row!.id}/return`).expect(204);
+    expect(await t.db.query('SELECT 1 FROM performance_calibrations')).toHaveLength(0);
+    const sent = (await s.direct.post(`${s.path}/send`).send(s.form).expect(200)).body as TeamEvaluationDto;
+    await s.holder.post(`/api/performance/objections/${row!.id}/finalize`).expect(204);
+    const after = (await s.me()).result!;
+    expect(after.finalScore).toBe(sent.score!.final);
+    expect(after.breakdown).toMatchObject({ adjustment: 0 });
+  });
+
   it('answers 403 and 404 for the objection screens: no key, wrong id, a decision on a missing objection', async () => {
     const s = await setup();
     await s.approve();

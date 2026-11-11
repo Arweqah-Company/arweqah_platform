@@ -2,6 +2,14 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-11 — An accepted objection drops the calibration adjustment
+
+Plan: `docs/plans/phase-6-career-path-performance.md` (log, 2026-11-11).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 371 | **Accepting an objection (`return`) deletes the calibration adjustment of that evaluation** (`performance_calibrations` row), in the same transaction that clears both manager copies (decision 352). The revised result is the managers' new score alone; calibration is open only in the `cal` stage, so it is not redone. | Owner: «the old calibration is reset». The +N was set against the old scores; keeping it on a new evaluation applies a comparison that no longer holds (found by the journey test: 94 + 1 old adjustment = 95). | The owner wants the holder to calibrate again after an objection (needs calibration open in the `notif` / `obj` stage for that person). |
+
 ## 2026-11-11 — User manual at /docs
 
 | # | Decision | Why | Revisit when |
