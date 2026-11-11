@@ -10,6 +10,14 @@ Plan: `docs/plans/phase-1-auth-employees.md` (log, 2026-11-11).
 |---|---|---|---|
 | 370 | **On a phone (< `sm`) the header keeps only menu, logo, platform-admin mode (icon only, green when on), bell and avatar; the theme and language switches move into the account menu** (`sm:hidden` items). One hook, `useDisplayPreferences` (`core/theme`), serves the header buttons, the account menu and `ThemeToggle`. The drawer is `min(16rem, 100vw − 1.5rem)` wide and its inner scroll is `overscroll-contain`. Playwright `mobile-shell.spec.ts` (Pixel 7, 360 px) fails on the old shell (switches visible, admin button 88 px) and passes now. CodeRabbit on PR 81: the account menu (two more items on a phone) now has `max-h` of Radix's available height with its own scroll, proved by a landscape-phone test that failed (414 px menu on a 340 px screen); the theme helper in `profile.spec` waits for the header first. | Owner: the header was crowded on a phone, and admin mode (a wide «On» button) broke the header and drawer. | A new header action needs a phone place. |
 
+## 2026-11-11 — An accepted objection drops the calibration adjustment
+
+Plan: `docs/plans/phase-6-career-path-performance.md` (log, 2026-11-11).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 371 | **Accepting an objection (`return`) deletes the calibration adjustment of that evaluation** (`performance_calibrations` row), in the same transaction that clears both manager copies (decision 352). The revised result is the managers' new score alone; calibration is open only in the `cal` stage, so it is not redone. | Owner: «the old calibration is reset». The +N was set against the old scores; keeping it on a new evaluation applies a comparison that no longer holds (found by the journey test: 94 + 1 old adjustment = 95). | The owner wants the holder to calibrate again after an objection (needs calibration open in the `notif` / `obj` stage for that person). |
+
 ## 2026-11-11 — Tests count «tomorrow» in Riyadh time
 
 | # | Decision | Why | Revisit when |
