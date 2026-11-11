@@ -11,6 +11,9 @@ dc() { docker compose -f docker-compose.prod.yml "$@"; }
 docker image prune -af
 dc pull api web
 dc up -d postgres rabbitmq
+# A backup before the migrations (a migration may delete data); a failed backup must not stop the deploy.
+mkdir -p backups
+bash scripts/server/backup.sh || echo "backup skipped"
 # Migrations run before the new code starts.
 # The runtime image has no npm (Trivy), so the scripts call node directly.
 dc run --rm api node ../../node_modules/typeorm/cli.js -d dist/database/data-source.js migration:run

@@ -164,7 +164,10 @@ test.describe('Job titles page: the card, its content and its manager chain (FR-
     await form.getByLabel('الاسم بالإنجليزي').fill(`New title ${name}`);
     await choose(form.getByLabel('الدرجة *'), 'L6');
     await choose(form.getByLabel('المسار *'), 'مشاريع');
-    await choose(form.getByRole('combobox', { name: 'يرفع إلى' }), new RegExp(data.parent));
+    // The list shows the first 20 titles by code, so the head is searched for by name, like a person would.
+    await form.getByRole('combobox', { name: 'يرفع إلى' }).click();
+    await page.keyboard.type(data.parent);
+    await page.getByRole('option', { name: new RegExp(data.parent) }).click();
     await list.expectNoSeriousA11yIssues();
     await form.getByRole('button', { name: 'حفظ' }).click();
     await expect(form).toBeHidden();

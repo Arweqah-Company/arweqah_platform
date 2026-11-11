@@ -2,6 +2,17 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-11 — Organization structure and job titles from the owner's new sheet
+
+Plan: `docs/plans/phase-5-people-structure-profile.md` («تحديث الهيكل والمسميات من ملف 2026-11-11»).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 365 | **The seed (`org-structure.data.ts`) and `docs/organizational_structure.md` are rebuilt from the owner's sheet «المسميات الوظيفية الجديدة» (270 titles, 64 units).** Supervisor / lead of grade 6 track S are gone; every unit gets «قائد فريق» (L6M) and «منسق» (L9P); the consultant track C (20 titles) is new; renamed units: ضبط المشاريع، إدارة التشغيل، قسم التقنية، قسم التوريد الاستراتيجي، وحدة التصاميم، وحدة الربط والوصول للسوق… Prefixes: `BUS` (was `CON`), `STR` (was `STG`). Verified on the dev database: 233 of 270 codes and every name (ar + en) equal the sheet. | Owner's request. | — |
+| 366 | **Communication, Strategy and the CEO office stay directly under the group**, so the platform numbers them `COM.00…`, `STR.00.00.00`, `EXE.00.00.00` while the sheet writes `COM.01…`, `STR.01…`, `EXE.01…` (it treats them as a sector with a department of the same name). The other 37 codes differ only in that slot. | A sector and a department with one name in the tree would be odd, and the old file already placed them under the group. | The owner wants the sheet's codes exactly (then each gets a sector level). |
+| 367 | **The deploy rebuilds the structure once, by itself** (owner's request): migration `RebuildOrgStructureFromSheet` empties units, titles, desks, tickets and the employees' unit / title (the statements of `db:reset:org`), and the seed that `deploy.sh` runs next builds the sheet's structure. `deploy.sh` now takes a backup before the migrations (a failed backup does not stop the deploy). Employees stay, flagged «needs placement». The dev database was rebuilt the same way after a backup. `reset-org.sh` stays for a later manual rebuild. | The seed never touches a structure that already has units; the server's data is test data (decision 322). | The server holds real data, or a later sheet needs another rebuild (then a new migration or the script). |
+| 368 | **The country list has no Israel, and Palestine is «فلسطين» / «Palestine»** (was «الأراضي الفلسطينية»); its shekel is «شيكل جديد» / «New Shekel». The data file comes from `scripts/generate-countries.mjs` (IL removed, `NAME_OVERRIDES` for PS); migration `PalestineNotIsrael` renames Palestine and deletes Israel when no employee or ID rule uses it (otherwise only switches it off). | Owner's request. | — |
+
 ## 2026-11-10 — Tickets: answers to replies, mentions and the file «View» window
 
 Plan: `docs/plans/phase-2-tickets.md` §17 (FR-128).
