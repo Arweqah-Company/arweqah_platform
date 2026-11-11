@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page as PwPage } from '@playwright/test';
 import { BasePage } from '../pages/base.page';
 import { ADMIN_STATE } from '../support/fixtures';
 import { choose } from '../support/select';
@@ -11,11 +11,19 @@ test.afterEach(async ({ page }) => {
   await page.request.put('/api/me/profile', { data: { theme: 'system', locale: 'ar' }, headers: { origin: 'http://localhost:4173' } });
 });
 
+/** The header button on a wide screen; on a phone the same switch sits in the account menu. */
+async function pressThemeSwitch(page: PwPage, name: string): Promise<void> {
+  const header = page.getByRole('banner').getByRole('button', { name });
+  if (await header.isVisible()) return header.click();
+  await page.getByRole('button', { name: 'حسابي' }).click();
+  await page.getByRole('menuitem', { name }).click();
+}
+
 test.describe('Light and dark theme, and the own profile (FR-33)', () => {
   test('the header toggle switches to the dark theme, which stays after a reload and has no accessibility violations', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-    await page.getByRole('button', { name: 'التبديل إلى الوضع الداكن' }).click();
+    await pressThemeSwitch(page, 'التبديل إلى الوضع الداكن');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await page.reload();
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
@@ -25,7 +33,7 @@ test.describe('Light and dark theme, and the own profile (FR-33)', () => {
       await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
       await nav.expectNoSeriousA11yIssues();
     }
-    await page.getByRole('button', { name: 'التبديل إلى الوضع الفاتح' }).click();
+    await pressThemeSwitch(page, 'التبديل إلى الوضع الفاتح');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   });
 
