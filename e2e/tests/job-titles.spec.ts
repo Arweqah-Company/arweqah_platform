@@ -174,6 +174,9 @@ test.describe('Job titles page: the card, its content and its manager chain (FR-
     await list.search('بحث في المسميات').fill(name);
     await expect(rowOf(page, name).getByText('L6', { exact: true })).toBeVisible();
     await expect(rowOf(page, name).getByText('مشاريع', { exact: true })).toBeVisible();
+    await page.getByText(name, { exact: true }).first().click();
+    await expect(page.getByRole('dialog', { name }).getByText(data.parent).first()).toBeVisible(); // the reporting line was saved
+    await page.keyboard.press('Escape');
     await page.getByRole('button', { name: new RegExp(`^حذف: ${name}`) }).click();
     await page.getByRole('dialog', { name: 'حذف المسمى؟' }).getByRole('button', { name: 'حذف' }).click();
     await expect(rowOf(page, name)).toHaveCount(0);

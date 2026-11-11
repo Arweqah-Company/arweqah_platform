@@ -7,6 +7,10 @@ const all = (nodes: OrgSeedNode[]): OrgSeedNode[] => nodes.flatMap((n) => [n, ..
 describe('the owner\'s organization structure file (docs/organizational_structure.md)', () => {
   const nodes = all(ORG_STRUCTURE);
 
+  it('has the 64 units of the sheet', () => {
+    expect(nodes).toHaveLength(64);
+  });
+
   it('has the 270 job titles of the file, each with a grade 1-9 and a track', () => {
     const titles = nodes.flatMap((n) => n.titles);
     expect(titles).toHaveLength(270);
