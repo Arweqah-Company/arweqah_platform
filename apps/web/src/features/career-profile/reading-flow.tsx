@@ -40,7 +40,9 @@ export function ReadingFlow({ me }: { me: MyCareerProfileDto }) {
   const unopened = pending(step);
   const atEnd = useReachedEnd(marker, step) && unopened.length === 0;
   const acknowledge = useAcknowledge();
-  useEffect(() => window.scrollTo({ top: 0 }), [step]);
+  useEffect(() => {
+    window.scrollTo({ top: 0 }); // not returned: React would take what it answers with for the clean-up and call it when the page is removed
+  }, [step]);
   const go = (to: ReadStep) => (isOpen(to, reached) ? setStep(to) : toast.info(t('gate.lockedToast')));
   const next = () => {
     const to = nextOf(step);

@@ -1,5 +1,5 @@
 import { CorePermission } from '@arweqah-platform/shared';
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { toast } from 'sonner';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -57,6 +57,17 @@ describe('Reading the career path in order before acknowledging it (FR-112, deci
     for (const locked of ['تقييم الأداء', 'التطوير المهني', 'خطة التعلم', 'المطلوب', 'الإقرار']) expect(tab(locked)).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByRole('checkbox')).toBeDisabled();
     expect(screen.getByRole('button', { name: 'أقرّ وأتابع' })).toBeDisabled();
+  });
+
+  it('does not hand what `window.scrollTo` returns to React as the clean-up of the page (a scroll library or an extension may return a value, and React then calls it when the page is removed)', async () => {
+    const problems = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    window.scrollTo = (() => Promise.resolve()) as unknown as typeof window.scrollTo; // a replaced scrollTo that answers with something
+    open();
+    await screen.findByText(careerContent.summary);
+    cleanup(); // the page is removed (the employee acknowledges or leaves): React runs the clean-ups, and a value that is not a function used to throw «is not a function» here
+    const said = problems.mock.calls.flat().map(String).join(' ');
+    expect(said).not.toMatch(/must not return anything besides a function|is not a function/);
+    problems.mockRestore();
   });
 
   it('draws «Previous» with the arrow that points right and «Next» with the one that points left in Arabic (no mirroring on top of them)', async () => {
