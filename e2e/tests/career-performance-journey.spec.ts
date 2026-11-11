@@ -11,7 +11,6 @@ test.use({ storageState: ADMIN_STATE });
 test.describe.configure({ mode: 'serial', timeout: 240_000 });
 
 const ORIGIN = { origin: 'http://localhost:4173' };
-const FISCAL_YEAR = 2090 + Math.floor(Math.random() * 10);
 
 interface Person { name: string; userId: string; employeeId: string }
 
