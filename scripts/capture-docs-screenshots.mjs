@@ -72,7 +72,7 @@ async function captureLang(browser, lang, cookies) {
   const dir = join(OUT, lang);
   mkdirSync(dir, { recursive: true });
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: lang === 'ar' ? 'ar-SA' : 'en-US' });
-  await context.addInitScript((l) => { try { localStorage.setItem('i18nextLng', l); } catch { /* storage blocked */ } }, lang);
+  await context.addInitScript((l) => { try { localStorage.setItem('arweqah.language', l); } catch { /* storage blocked */ } }, lang);
   const login = await context.newPage();
   await login.goto(`${WEB}/login`);
   await login.waitForLoadState('networkidle');
@@ -91,6 +91,8 @@ async function captureLang(browser, lang, cookies) {
 
 const servers = [];
 try {
+  // The database may not exist yet (first run): create and migrate it, then reset and seed.
+  execSync('npm run db:prepare:e2e -w @arweqah-platform/api', { stdio: 'inherit', cwd: ROOT });
   execSync('npm run db:reset:test -w @arweqah-platform/api', { stdio: 'inherit', cwd: ROOT, env: { ...process.env, DB_NAME: DB, SEED_ADMIN_EMAIL: EMAIL, SEED_ADMIN_TOTP_SECRET: SECRET, SEED_DEMO_ORG: 'true' } });
   const apiEnv = { ...process.env, NODE_ENV: 'test', DB_NAME: DB, PORT: '3100', API_URL: 'http://localhost:3100', SIGN_IN_RATE_LIMIT: '1000', SMTP_HOST: '127.0.0.1', SMTP_PORT: '1', SMTP_USER: '', SMTP_PASSWORD: '' };
   servers.push(spawn('node', ['apps/api/dist/main.js'], { cwd: ROOT, env: apiEnv, stdio: 'ignore' }));

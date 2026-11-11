@@ -1,6 +1,6 @@
 // Builds the branded user manual (served at /docs) from docs/user-manual/<lang>/USER_MANUAL.md into apps/web/public/docs.
 // Static HTML, no scripts (the site's CSP allows scripts from itself only). Usage: npm run docs:build
-import { readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 

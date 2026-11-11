@@ -2,7 +2,7 @@
 
 ### What this page is
 
-A record of every important event on the platform: who did what, when and from which address, as a plain sentence and a category (sign-in, employees, tasks…). Here you review every sign-in and every change to employees, the organization, permissions, tickets, tasks and settings. Sensitive data never appears in it.
+A record of every important event on the platform: who did what, when and from which address, as a plain sentence and a category (sign-in, employees, tasks…). Here you review every sign-in and every change to employees, the organization, permissions, tickets, tasks and settings. Values of fields named like a password, secret, token, national ID or IBAN are hidden in it.
 
 ![Audit log](../images/en/17-audit.png)
 
@@ -53,7 +53,7 @@ Sign-in and security, Employees, Organization and companies, Roles and permissio
 
 - **Every action is a plain sentence** (for example «moved a task to another status») with a category, not a technical name (FR-63).
 - **Filters:** category, action (only the sentences of the chosen category), person (name or e-mail), from date, to date. **Search** finds the sentence in either language, the actor's name and the id of the record concerned.
-- **Secrets are hidden:** sensitive values (national ID, IBAN, passwords, keys) are blocked by field name before writing, so they appear neither in the log nor in the exported file. Mostly the names of the fields that changed are recorded, not their values (FR-11).
+- **Some values are hidden:** before writing, a change whose field is named like a password, secret, token, national ID or IBAN is stored as «[redacted]». This is by the field's name and only at the top level of the change: a field with another name (for example an API key) or a sensitive value inside a nested field is not covered, so do not rely on the log being free of every sensitive value. Mostly the names of the fields that changed are recorded, not their values (FR-11).
 - **Never edited or deleted:** each entry is chained to the previous one with a digital fingerprint, and the database refuses to change or delete it; the platform checks the chain weekly and records a failure if it breaks (FR-75).
 - **Signing in as another employee:** every entry written during it carries the administrator's name beside the employee's, and the start and end of the session are recorded.
 - **Time:** times show in your device's time zone.
