@@ -25,7 +25,12 @@ async function expectHeaderFits(page: Page): Promise<void> {
 
 test.describe('Phone shell', () => {
   test.beforeEach(async ({ page }) => { await page.setViewportSize(NARROW); await adminModeOffViaApi(page); });
-  test.afterEach(async ({ page }) => adminModeOffViaApi(page));
+  test.afterEach(async ({ page }) => {
+    await adminModeOffViaApi(page);
+    // The language test saves English on the shared account: put it back even when that test failed half way, and wait until the server has it.
+    await page.request.put('/api/me/profile', { data: { theme: 'system', locale: 'ar' }, headers: { origin: 'http://localhost:4173' } });
+    await expect.poll(async () => (await (await page.request.get('/api/me')).json()).locale).toBe('ar');
+  });
 
   test('the header keeps only menu, logo, bell and avatar; theme and language live in the account menu', async ({ page }, info) => {
     await page.goto('/');
