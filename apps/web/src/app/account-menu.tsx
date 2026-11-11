@@ -41,7 +41,7 @@ export function AccountMenu({ me, items, onSignOut }: Props) {
         <ChevronDown className="size-4 text-muted max-sm:hidden" aria-hidden />
       </Menu.Trigger>
       <Menu.Portal>
-        <Menu.Content onInteractOutside={blockWhileTour} onEscapeKeyDown={blockWhileTour} onFocusOutside={blockWhileTour} align="end" sideOffset={8} collisionPadding={16} className="animate-fade-in z-50 w-60 rounded-2xl border border-neutral-200 bg-white p-2 shadow-xl shadow-ink/10">
+        <Menu.Content onInteractOutside={blockWhileTour} onEscapeKeyDown={blockWhileTour} onFocusOutside={blockWhileTour} align="end" sideOffset={8} collisionPadding={16} className="animate-fade-in z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] w-60 overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-2 shadow-xl shadow-ink/10">
           <p className="px-3 py-2 text-xs text-muted" dir="ltr">{me?.email}</p>
           <Menu.Separator className="my-1 h-px bg-neutral-200" />
           {items.map((item) => (

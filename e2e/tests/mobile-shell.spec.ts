@@ -42,6 +42,19 @@ test.describe('Phone shell', () => {
     await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
   });
 
+  test('the account menu scrolls inside a short (landscape) phone screen, so sign-out stays reachable', async ({ page }) => {
+    await page.setViewportSize({ width: 740, height: 340 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'حسابي' }).click();
+    const menu = page.getByRole('menu');
+    await expect(menu).toBeVisible();
+    const box = (await menu.boundingBox())!;
+    expect(box.y + box.height).toBeLessThanOrEqual(340);
+    const signOut = menu.getByRole('menuitem', { name: 'تسجيل الخروج' });
+    await signOut.scrollIntoViewIfNeeded();
+    await expect(signOut).toBeInViewport();
+  });
+
   test('admin mode on: the header still fits and the button is icon-only', async ({ page }, info) => {
     test.setTimeout(120_000);
     await adminModeOnViaApi(page);

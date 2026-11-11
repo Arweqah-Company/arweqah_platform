@@ -13,6 +13,7 @@ test.afterEach(async ({ page }) => {
 
 /** The header button on a wide screen; on a phone the same switch sits in the account menu. */
 async function pressThemeSwitch(page: PwPage, name: string): Promise<void> {
+  await expect(page.getByRole('banner')).toBeVisible(); // the header can come after the theme is set, while the session loads
   const header = page.getByRole('banner').getByRole('button', { name });
   if (await header.isVisible()) return header.click();
   await page.getByRole('button', { name: 'حسابي' }).click();
