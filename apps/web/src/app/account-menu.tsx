@@ -1,10 +1,12 @@
 import * as Menu from '@radix-ui/react-dropdown-menu';
-import { ChevronDown, Compass, LogOut } from 'lucide-react';
+import { ChevronDown, Compass, Globe, LogOut, Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import type { MeDto } from '@arweqah-platform/shared';
 import type { NavItem } from '@/core/feature';
+import { useDisplayPreferences } from '@/core/theme/use-display-preferences';
+import { cn } from '@/shared/lib/cn';
 import { useTourControls } from '@/features/tour';
 
 const ITEM = 'flex min-h-11 cursor-pointer items-center gap-3 rounded-[var(--radius-button)] px-3 text-sm outline-none data-[highlighted]:bg-neutral-100';
@@ -21,6 +23,8 @@ export function AccountMenu({ me, items, onSignOut }: Props) {
   const { t, i18n } = useTranslation();
   const role = me?.roles[0];
   const tour = useTourControls();
+  const { nextTheme, toggleTheme, toggleLanguage } = useDisplayPreferences();
+  const ThemeIcon = nextTheme === 'dark' ? Moon : Sun;
   const [open, setOpen] = useState(false);
   const blockWhileTour = (e: Event) => { if (tour.accountMenuForced) e.preventDefault(); };
   return (
@@ -37,7 +41,7 @@ export function AccountMenu({ me, items, onSignOut }: Props) {
         <ChevronDown className="size-4 text-muted max-sm:hidden" aria-hidden />
       </Menu.Trigger>
       <Menu.Portal>
-        <Menu.Content onInteractOutside={blockWhileTour} onEscapeKeyDown={blockWhileTour} onFocusOutside={blockWhileTour} align="end" sideOffset={8} collisionPadding={16} className="animate-fade-in z-50 w-60 rounded-2xl border border-neutral-200 bg-white p-2 shadow-xl shadow-ink/10">
+        <Menu.Content onInteractOutside={blockWhileTour} onEscapeKeyDown={blockWhileTour} onFocusOutside={blockWhileTour} align="end" sideOffset={8} collisionPadding={16} className="animate-fade-in z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] w-60 overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-2 shadow-xl shadow-ink/10">
           <p className="px-3 py-2 text-xs text-muted" dir="ltr">{me?.email}</p>
           <Menu.Separator className="my-1 h-px bg-neutral-200" />
           {items.map((item) => (
@@ -49,6 +53,14 @@ export function AccountMenu({ me, items, onSignOut }: Props) {
             </Menu.Item>
           ))}
           <Menu.Separator className="my-1 h-px bg-neutral-200" />
+          <Menu.Item className={cn(ITEM, 'sm:hidden')} onSelect={toggleTheme}>
+            <ThemeIcon className="size-4 text-muted" aria-hidden />
+            {t(`theme.switchTo.${nextTheme}`)}
+          </Menu.Item>
+          <Menu.Item className={cn(ITEM, 'sm:hidden')} onSelect={toggleLanguage}>
+            <Globe className="size-4 text-muted" aria-hidden />
+            {t('language.switchTo')}
+          </Menu.Item>
           <Menu.Item className={ITEM} onSelect={() => void tour.restart('general')}>
             <Compass className="size-4 text-muted" aria-hidden />
             {t('restart', { ns: 'tour' })}

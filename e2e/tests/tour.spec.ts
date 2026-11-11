@@ -39,12 +39,14 @@ test.describe('Welcome tour (FR-67)', () => {
     await expect(title(page)).toHaveText(GENERAL[0]!);
     await settled(page);
     await new Screen(page).expectNoSeriousA11yIssues();
-    for (const [i, name] of GENERAL.entries()) {
+    // On a phone the theme and language buttons live in the account menu, so that step has no element on screen and the tour skips it.
+    const steps = test.info().project.name === 'mobile' ? GENERAL.filter((name) => name !== 'اللغة والمظهر') : GENERAL;
+    for (const [i, name] of steps.entries()) {
       await expect(title(page)).toHaveText(name);
       // the total shrinks as steps whose element is not on this screen are found out; the position is of the steps really shown
       await expect(bubble(page).getByText(new RegExp(`^${i + 1} من \\d+$`))).toBeVisible();
       if (name === 'الصفحة الرئيسية') await expect(bubble(page).getByText('ما يمكنك فعله هنا')).toBeVisible();
-      if (i < GENERAL.length - 1) await bubble(page).getByRole('button', { name: 'التالي' }).click();
+      if (i < steps.length - 1) await bubble(page).getByRole('button', { name: 'التالي' }).click();
     }
     const saved = page.waitForResponse((r) => r.url().includes('/api/me/tour/general/complete'));
     await bubble(page).getByRole('button', { name: 'تم' }).click();

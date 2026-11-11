@@ -32,13 +32,13 @@ export function AppSidebar({ items, locked, open, collapsed, onToggleCollapsed, 
     <aside
       data-tour="sidebar"
       className={cn(
-        'fixed inset-y-3 start-3 z-30 w-64 -translate-x-[115%] rounded-3xl border border-neutral-200 bg-white p-2.5 shadow-xl shadow-ink/10 transition-[transform,width] duration-200 rtl:translate-x-[115%]',
+        'fixed inset-y-3 start-3 z-30 w-[min(16rem,calc(100vw-1.5rem))] -translate-x-[115%] rounded-3xl border border-neutral-200 bg-white p-2.5 shadow-xl shadow-ink/10 transition-[transform,width] duration-200 rtl:translate-x-[115%]',
         'lg:sticky lg:top-4 lg:bottom-auto lg:h-[calc(100vh-2rem)] lg:translate-x-0 lg:rtl:translate-x-0',
-        collapsed && 'lg:w-[4.75rem]',
+        collapsed ? 'lg:w-[4.75rem]' : 'lg:w-64',
         open && 'translate-x-0 rtl:translate-x-0',
       )}
     >
-      <div className="on-dark flex h-full flex-col overflow-y-auto rounded-2xl bg-ink text-cream">
+      <div className="on-dark flex h-full flex-col overflow-y-auto overscroll-contain rounded-2xl bg-ink text-cream">
       <div className={cn('flex items-center gap-3 border-b border-cream/10 px-5 py-5', collapsed && 'lg:justify-center lg:px-0')}>
         <BrandLogo tone="white" layout="horizontal" width={150} decorative className={cn(collapsed && 'lg:hidden')} />
         <button
