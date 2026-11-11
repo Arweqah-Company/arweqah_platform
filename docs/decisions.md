@@ -10,6 +10,12 @@ Plan: `docs/plans/phase-1-auth-employees.md` (log, 2026-11-11).
 |---|---|---|---|
 | 370 | **On a phone (< `sm`) the header keeps only menu, logo, platform-admin mode (icon only, green when on), bell and avatar; the theme and language switches move into the account menu** (`sm:hidden` items). One hook, `useDisplayPreferences` (`core/theme`), serves the header buttons, the account menu and `ThemeToggle`. The drawer is `min(16rem, 100vw − 1.5rem)` wide and its inner scroll is `overscroll-contain`. Playwright `mobile-shell.spec.ts` (Pixel 7, 360 px) fails on the old shell (switches visible, admin button 88 px) and passes now. CodeRabbit on PR 81: the account menu (two more items on a phone) now has `max-h` of Radix's available height with its own scroll, proved by a landscape-phone test that failed (414 px menu on a 340 px screen); the theme helper in `profile.spec` waits for the header first. | Owner: the header was crowded on a phone, and admin mode (a wide «On» button) broke the header and drawer. | A new header action needs a phone place. |
 
+## 2026-11-11 — Tests count «tomorrow» in Riyadh time
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 368 | **API e2e tests that need a future day compute it in Riyadh time (`todayInRiyadh(new Date(Date.now() + n * 86_400_000))`), never with `toISOString()` (UTC).** `org-leader-placement` used the UTC date and failed every day between 21:00 and 24:00 UTC (it failed CI on `main` at 21:19 and the deploy was skipped). | The platform counts «today» in Riyadh (UTC+3); in those hours the UTC «tomorrow» is Riyadh's today, so a leader meant to start later was already in force. Reproduced locally before the fix (1 failed, 9 passed), 10 of 10 after. | — |
+
 ## 2026-11-11 — User manual at /docs
 
 | # | Decision | Why | Revisit when |
