@@ -27,7 +27,7 @@ Sources: README §4 and §12, `docs/decisions.md`, `docs/plans/*.md`, `keys.ts` 
 ## Build and check
 1. `npm run docs:build` (sections → static pages).
 2. Open `http://localhost:5173/docs/ar/` and `/docs/en/`; check the side menu groups, a long page, light and dark.
-3. `npm run verify -- --quick`.
+3. `npm run verify` in full (it runs both e2e suites; `--quick` only while iterating, never as the final check).
 4. Update the plan log in `docs/plans/user-manual.md`. Then follow CLAUDE.md rule 18 (PR, CI, CodeRabbit, merge, deploy).
 
 ## Never
