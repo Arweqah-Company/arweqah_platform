@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-11 — Tests count «tomorrow» in Riyadh time
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 368 | **API e2e tests that need a future day compute it in Riyadh time (`todayInRiyadh(new Date(Date.now() + n * 86_400_000))`), never with `toISOString()` (UTC).** `org-leader-placement` used the UTC date and failed every day between 21:00 and 24:00 UTC (it failed CI on `main` at 21:19 and the deploy was skipped). | The platform counts «today» in Riyadh (UTC+3); in those hours the UTC «tomorrow» is Riyadh's today, so a leader meant to start later was already in force. Reproduced locally before the fix (1 failed, 9 passed), 10 of 10 after. | — |
+
 ## 2026-11-11 — User manual at /docs
 
 | # | Decision | Why | Revisit when |
