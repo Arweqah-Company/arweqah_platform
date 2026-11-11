@@ -1,6 +1,7 @@
 import { CorePermission, type PermissionGrant } from '@arweqah-platform/shared';
 import { describe, expect, it } from 'vitest';
 import { todayInRiyadh } from '../src/common/domain/riyadh-date';
+import { dayFromToday } from './helpers/hr-scenario';
 import { ORG_ADMIN_GRANTS, orgAdmin } from './helpers/org-admin';
 import { useTestApp } from './setup/test-app';
 
@@ -66,7 +67,7 @@ describe('A leader takes the unit and the title they lead with; the employee for
     const s = await setup();
     const other = await t.factories.user({ unit: s.support });
     await t.db.query('UPDATE employees SET company_id = $1 WHERE id = $2', [s.group, other.employeeId]);
-    const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+    const tomorrow = dayFromToday(1);
     await s.agent.put(`/api/org/nodes/${s.support.id}/leaders`).send({ kind: 'leader', companyId: s.group, employeeId: other.employeeId, validFrom: tomorrow, reason: 'تعيين' }).expect(200);
     const res = await s.lead(s.support, { jobTitleId: s.support.titleId }); // today is before the leader who starts tomorrow
     expect(res.status).toBeGreaterThanOrEqual(400);
@@ -78,8 +79,8 @@ describe('A leader takes the unit and the title they lead with; the employee for
     const other = await t.factories.user({ unit: s.support });
     await t.db.query('UPDATE employees SET company_id = $1 WHERE id = $2', [s.group, other.employeeId]);
     await s.agent.put(`/api/org/nodes/${s.support.id}/leaders`).send({ kind: 'leader', companyId: s.group, employeeId: other.employeeId, validFrom: todayInRiyadh(), reason: 'تعيين' }).expect(200);
-    const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
-    const later = new Date(Date.now() + 3 * 86_400_000).toISOString().slice(0, 10);
+    const tomorrow = dayFromToday(1);
+    const later = dayFromToday(3);
     await s.lead(s.support, { kind: 'acting', validFrom: tomorrow, validTo: later, jobTitleId: s.support.titleId }).expect(200);
     expect(await s.place()).toEqual({ org_node_id: s.sales.id, job_title_id: s.sales.titleId });
   });
