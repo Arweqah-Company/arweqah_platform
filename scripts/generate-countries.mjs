@@ -11,7 +11,7 @@ BA BAM,BB BBD,BD BDT,BE EUR,BF XOF,BG EUR,BH BHD,BI BIF,BJ XOF,BL EUR,BM BMD,BN 
 CA CAD,CC AUD,CD CDF,CF XAF,CG XAF,CH CHF,CI XOF,CK NZD,CL CLP,CM XAF,CN CNY,CO COP,CR CRC,CU CUP,CV CVE,CW ANG,CX AUD,CY EUR,CZ CZK,
 DE EUR,DJ DJF,DK DKK,DM XCD,DO DOP,DZ DZD,EC USD,EE EUR,EG EGP,EH MAD,ER ERN,ES EUR,ET ETB,FI EUR,FJ FJD,FK FKP,FM USD,FO DKK,FR EUR,
 GA XAF,GB GBP,GD XCD,GE GEL,GF EUR,GG GBP,GH GHS,GI GIP,GL DKK,GM GMD,GN GNF,GP EUR,GQ XAF,GR EUR,GS GBP,GT GTQ,GU USD,GW XOF,GY GYD,
-HK HKD,HM AUD,HN HNL,HR EUR,HT HTG,HU HUF,ID IDR,IE EUR,IL ILS,IM GBP,IN INR,IO USD,IQ IQD,IR IRR,IS ISK,IT EUR,
+HK HKD,HM AUD,HN HNL,HR EUR,HT HTG,HU HUF,ID IDR,IE EUR,IM GBP,IN INR,IO USD,IQ IQD,IR IRR,IS ISK,IT EUR,
 JE GBP,JM JMD,JO JOD,JP JPY,KE KES,KG KGS,KH KHR,KI AUD,KM KMF,KN XCD,KP KPW,KR KRW,KW KWD,KY KYD,KZ KZT,
 LA LAK,LB LBP,LC XCD,LI CHF,LK LKR,LR LRD,LS LSL,LT EUR,LU EUR,LV EUR,LY LYD,
 MA MAD,MC EUR,MD MDL,ME EUR,MF EUR,MG MGA,MH USD,MK MKD,ML XOF,MM MMK,MN MNT,MO MOP,MP USD,MQ EUR,MR MRU,MS XCD,MT EUR,MU MUR,MV MVR,MW MWK,MX MXN,MY MYR,MZ MZN,
@@ -29,6 +29,11 @@ const regionEn = new Intl.DisplayNames(['en'], { type: 'region' });
 const currencyAr = new Intl.DisplayNames(['ar'], { type: 'currency' });
 const currencyEn = new Intl.DisplayNames(['en'], { type: 'currency' });
 
+// The owner's list has no Israel; Palestine is named «فلسطين» / «Palestine» (ICU says «الأراضي الفلسطينية»), and its shekel has a neutral name.
+const NAME_OVERRIDES = {
+  PS: { nameAr: 'فلسطين', nameEn: 'Palestine', currencyNameAr: 'شيكل جديد', currencyNameEn: 'New Shekel' },
+};
+
 const rows = CURRENCY_BY_COUNTRY.split(',').map((pair) => pair.trim().split(' ')).filter((p) => p.length === 2);
 const countries = rows.map(([iso, currency]) => ({
   iso,
@@ -37,6 +42,7 @@ const countries = rows.map(([iso, currency]) => ({
   nameEn: regionEn.of(iso),
   currencyNameAr: currencyAr.of(currency),
   currencyNameEn: currencyEn.of(currency),
+  ...NAME_OVERRIDES[iso],
 }));
 
 const bad = countries.filter((c) => !c.nameAr || c.nameAr === c.iso || !c.nameEn || c.nameEn === c.iso || !c.currencyNameAr || c.currencyNameAr === c.currency);

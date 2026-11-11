@@ -10,6 +10,11 @@ stamp=$(date +%F)
 dc() { docker compose -f docker-compose.prod.yml "$@"; }
 
 dc exec -T postgres pg_dump -U "$DB_USER" -d "$DB_NAME" --format=custom > "backups/db-$stamp.dump"
-dc exec -T api tar -C /data -cz storage > "backups/files-$stamp.tgz"
+# The files are read through the API container; when it is down (a crashed server) the database dump above is still the backup that matters.
+if dc ps --status running --services | grep -qx api; then
+  dc exec -T api tar -C /data -cz storage > "backups/files-$stamp.tgz"
+else
+  echo "API not running: uploaded files not backed up this time." >&2
+fi
 find backups -type f \( -name 'db-*.dump' -o -name 'files-*.tgz' \) -mtime +14 -delete
 echo "$(date -Is) backup $stamp ok"
