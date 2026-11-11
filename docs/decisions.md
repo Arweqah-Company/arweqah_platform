@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-11 — User manual at /docs
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 367 | **The user manual is static, Arweqah-branded HTML at `/docs/` (`/docs/ar/`, `/docs/en/`), built from `docs/user-manual/*/USER_MANUAL.md` by `npm run docs:build` into `apps/web/public/docs`, served by nginx (`location /docs/`) and a Vite middleware in dev; public, no sign-in, no scripts (CSP).** Screenshots come from `npm run docs:screenshots` on the e2e database (demo data only), never the development database. | Owner's request: users reach it from the site link; static files need no API and no new dependency. | The manual must show real data or be limited to signed-in people (then move it behind the API). |
+
 ## 2026-11-11 — Organization structure and job titles from the owner's new sheet
 
 Plan: `docs/plans/phase-5-people-structure-profile.md` («تحديث الهيكل والمسميات من ملف 2026-11-11»).
