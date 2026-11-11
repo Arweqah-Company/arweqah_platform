@@ -47,7 +47,7 @@ export function AdminModeToggle() {
       <Button
         variant={adminMode.active ? 'primary' : 'ghost'}
         size="sm"
-        className={cn('gap-2', !adminMode.active && 'text-fg max-sm:size-11 max-sm:px-0')}
+        className={cn('gap-2 max-sm:size-11 max-sm:px-0', !adminMode.active && 'text-fg')}
         aria-pressed={adminMode.active}
         aria-label={label}
         title={label}
@@ -58,7 +58,7 @@ export function AdminModeToggle() {
         }}
       >
         <ShieldCheck className="size-4" aria-hidden />
-        <span className={cn(!adminMode.active && 'max-sm:sr-only')}>{t(adminMode.active ? 'adminMode.on' : 'adminMode.off')}</span>
+        <span className="max-sm:sr-only">{t(adminMode.active ? 'adminMode.on' : 'adminMode.off')}</span>
       </Button>
       <AdminModeDialog open={asking} onOpenChange={setAsking} />
     </>

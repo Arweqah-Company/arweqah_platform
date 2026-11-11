@@ -2,6 +2,14 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-11 — Phone shell: lighter header, drawer that fits
+
+Plan: `docs/plans/phase-1-auth-employees.md` (log, 2026-11-11).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 370 | **On a phone (< `sm`) the header keeps only menu, logo, platform-admin mode (icon only, green when on), bell and avatar; the theme and language switches move into the account menu** (`sm:hidden` items). One hook, `useDisplayPreferences` (`core/theme`), serves the header buttons, the account menu and `ThemeToggle`. The drawer is `min(16rem, 100vw − 1.5rem)` wide and its inner scroll is `overscroll-contain`. Playwright `mobile-shell.spec.ts` (Pixel 7, 360 px) fails on the old shell (switches visible, admin button 88 px) and passes now. | Owner: the header was crowded on a phone, and admin mode (a wide «On» button) broke the header and drawer. | A new header action needs a phone place. |
+
 ## 2026-11-11 — Organization structure and job titles from the owner's new sheet
 
 Plan: `docs/plans/phase-5-people-structure-profile.md` («تحديث الهيكل والمسميات من ملف 2026-11-11»).
