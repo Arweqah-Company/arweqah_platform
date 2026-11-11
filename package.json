@@ -11,6 +11,8 @@
     "e2e"
   ],
   "scripts": {
+    "docs:build": "node scripts/build-user-manual.mjs",
+    "docs:screenshots": "node scripts/capture-docs-screenshots.mjs",
     "dev": "turbo run dev --parallel",
     "build": "turbo run build",
     "lint": "turbo run lint",
