@@ -29,4 +29,8 @@ export class TypeOrmPerformanceCalibrationRepository extends PerformanceCalibrat
   async save(row: CalibrationRow & { adjustedBy: string }, tx: TransactionContext): Promise<void> {
     await managerOf(tx, this.ds.manager).getRepository(PerformanceCalibration).upsert(row, { conflictPaths: ['evaluationId'] });
   }
+
+  async clear(evaluationId: string, tx: TransactionContext): Promise<void> {
+    await managerOf(tx, this.ds.manager).getRepository(PerformanceCalibration).delete({ evaluationId });
+  }
 }

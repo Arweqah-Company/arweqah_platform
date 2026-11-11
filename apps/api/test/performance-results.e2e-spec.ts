@@ -117,6 +117,27 @@ describe('Approval, the individual result and the objection (FR-122, FR-123)', (
     await s.hr.post('/api/performance/cycle/close').expect(200);
   });
 
+  it('drops the calibration adjustment when an objection is accepted: the revised result is the manager\'s new score alone (FR-123, decision 371)', async () => {
+    const s = await setup();
+    await s.holder.put(`/api/performance/calibration/${s.employeeUser.employeeId}`).send({ adjustment: 1, reason: 'مقارنة بأقرانه في الوحدة' }).expect(200);
+    await s.approve();
+    expect((await s.me()).result!.breakdown).toMatchObject({ adjustment: 1 });
+    await s.employee.post('/api/performance/me/objection').send(s.objection).expect(200);
+    const [row] = ((await s.holder.get('/api/performance/objections').expect(200)).body as ObjectionListDto).items;
+    // a second evaluation with its own adjustment: the delete must touch only the evaluation whose objection was accepted
+    const other = await t.factories.user();
+    await t.db.query(`INSERT INTO performance_evaluations SELECT (jsonb_populate_record(NULL::performance_evaluations, to_jsonb(e) || jsonb_build_object('id', gen_random_uuid(), 'employee_id', $1::uuid))).* FROM performance_evaluations e WHERE e.employee_id = $2`, [other.employeeId, s.employeeUser.employeeId]);
+    await t.db.query(`INSERT INTO performance_calibrations (evaluation_id, adjustment, reason, adjusted_by) SELECT e.id, 2, 'تعديل آخر', $2::uuid FROM performance_evaluations e WHERE e.employee_id = $1`, [other.employeeId, other.id]);
+    await s.holder.post(`/api/performance/objections/${row!.id}/return`).expect(204);
+    const kept = (await t.db.query('SELECT e.employee_id, c.adjustment::float AS adjustment FROM performance_calibrations c JOIN performance_evaluations e ON e.id = c.evaluation_id')) as { employee_id: string; adjustment: number }[];
+    expect(kept).toEqual([{ employee_id: other.employeeId, adjustment: 2 }]); // the accepted one is gone, the other stays
+    const sent = (await s.direct.post(`${s.path}/send`).send(s.form).expect(200)).body as TeamEvaluationDto;
+    await s.holder.post(`/api/performance/objections/${row!.id}/finalize`).expect(204);
+    const after = (await s.me()).result!;
+    expect(after.finalScore).toBe(sent.score!.final);
+    expect(after.breakdown).toMatchObject({ adjustment: 0 });
+  });
+
   it('answers 403 and 404 for the objection screens: no key, wrong id, a decision on a missing objection', async () => {
     const s = await setup();
     await s.approve();
