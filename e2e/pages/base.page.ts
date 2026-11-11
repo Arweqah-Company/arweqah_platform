@@ -7,7 +7,10 @@ export abstract class BasePage {
 
   /** `exclude` leaves out content that is not ours to fix, such as the e-mail preview shown in a sandboxed frame (axe cannot run inside it). */
   async expectNoSeriousA11yIssues(exclude: string[] = []): Promise<void> {
-    // Colors are measured while a fade-in is still running on a slow machine: let the animations finish first.
+    // Colors are measured while a fade-in or a color transition (the theme switch) is still running on a slow machine, and one that starts after a snapshot of the running
+    // animations would still be missed: switch transitions and animations off for the measurement, let the page paint the end state, and let what was running finish.
+    await this.page.addStyleTag({ content: '*,*::before,*::after{transition:none!important;animation:none!important}' });
+    await this.page.evaluate(() => new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))));
     await this.page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))));
     const builder = exclude.reduce((b, selector) => b.exclude(selector), new AxeBuilder({ page: this.page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']));
     const { violations } = await builder.analyze();
