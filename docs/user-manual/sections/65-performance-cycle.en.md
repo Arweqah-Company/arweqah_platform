@@ -2,6 +2,8 @@
 
 «Evaluation cycle» is the HR page that runs the yearly performance evaluation. The fiscal year runs from April to March. HR uploads the evaluation file (the template of each of the five development stages, the grade scale and the fiscal-year card), checks that the cycle is ready, opens it, moves it from stage to stage by its dates, keeps the catalog of the extra component and the automatic reminders, and closes it at the end.
 
+![Evaluation cycle](../images/en/23-performance-cycle.png)
+
 ### Who sees it
 
 - View permission: `performance.cycle_view` (View the «evaluation cycle» page), scope: all.

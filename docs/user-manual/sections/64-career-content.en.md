@@ -2,6 +2,8 @@
 
 «Career-path content» is the HR page that prepares the career path of each job title. The job titles are listed with the state of each one's path. For a title you upload its **title file** (one file with the job description, the career development, the learning plan and the required items), review what the system read from it, fix details by hand, then set the path **Ready** so that the people holding the title see it and are asked to acknowledge it. The page also reopens the acknowledgement, imports the learning links from an Excel file and exports the list.
 
+![Career-path content](../images/en/22-career-content.png)
+
 ### Who sees it
 
 - View permission: `career_content.view` (View the career-path content), scope: all.

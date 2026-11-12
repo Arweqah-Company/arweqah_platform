@@ -41,6 +41,11 @@ const PAGES = [
   ['06-companies', '/companies'], ['07-tasks', '/tasks'], ['08-tickets', '/tickets'], ['09-roles', '/roles'], ['10-permissions', '/permissions'],
   ['13-notifications', '/notifications'], ['14-profile', '/profile'], ['15-my-access', '/my-access'],
   ['16-security', '/security'], ['17-audit', '/audit'],
+  ['18-my-career', '/career-profile'], ['19-career-certificates', '/career-certificates'], ['20-career-team', '/career-team'],
+  ['21-career-requests', '/career-requests'], ['22-career-content', '/career-content'], ['23-performance-cycle', '/performance-cycle'],
+  ['24-performance-calibration', '/performance-calibration'], ['25-performance-team', '/performance-team'],
+  ['26-task-tags', '/tasks/tags'], ['27-task-policies', '/tasks/policies'], ['28-ticket-setup', '/tickets/setup'],
+  ['29-ticket-figures', '/tickets/figures'], ['30-email-log', '/email-log'], ['31-settings', '/service-settings'],
 ];
 
 async function waitUp(url) {
@@ -68,6 +73,13 @@ async function apiSession() {
   return cookies;
 }
 
+/** A page with a running animation can stall a screenshot: freeze animations and retry once. */
+async function shoot(page, path) {
+  for (let attempt = 1; ; attempt++) {
+    try { return await page.screenshot({ path, animations: 'disabled', timeout: 60000 }); } catch (err) { if (attempt >= 2) throw err; }
+  }
+}
+
 async function captureLang(browser, lang, cookies) {
   const dir = join(OUT, lang);
   mkdirSync(dir, { recursive: true });
@@ -81,9 +93,17 @@ async function captureLang(browser, lang, cookies) {
   await context.addCookies(cookies);
   const page = await context.newPage();
   for (const [name, route] of PAGES) {
-    await page.goto(`${WEB}${route}`);
-    await page.waitForLoadState('networkidle');
-    await page.screenshot({ path: join(dir, `${name}.png`) });
+    // A screenshot can time out on a heavy page: reload and try once more before failing.
+    for (let attempt = 1; ; attempt++) {
+      try {
+        await page.goto(`${WEB}${route}`);
+        await page.waitForLoadState('networkidle');
+        await page.screenshot({ path: join(dir, `${name}.png`), animations: 'disabled', timeout: 60000 });
+        break;
+      } catch (err) {
+        if (attempt >= 2) throw err;
+      }
+    }
     console.log(` ${lang}/${name}.png`);
   }
   await context.close();

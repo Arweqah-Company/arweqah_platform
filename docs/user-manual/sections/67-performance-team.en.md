@@ -2,6 +2,8 @@
 
 «Team evaluation» is the manager's page in the evaluation cycle. You evaluate the members of your team in the manager's stage: the direct manager first, then the upper manager reviews and may change it. For each person you enter the results scores and rate the behaviours, and you see the final score live. A button on each row records the minutes of the milestones of the year.
 
+![Team evaluation](../images/en/25-performance-team.png)
+
 ### Who sees it
 
 - View permission: `performance.team_view` (View the «team evaluation» page), scopes: unit and below, all. The default scope is **unit and below**.
