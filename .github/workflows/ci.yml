@@ -2,10 +2,10 @@ name: CI
 
 on:
   pull_request:
-    # A pull request that only touches documentation changes no behaviour: no minutes spent (a push to main always runs everything).
+    # A pull request that only touches documentation changes no behaviour: no minutes spent (a push to main or dev always runs everything).
     paths-ignore: ["docs/**", "**/*.md"]
   push:
-    branches: [main]
+    branches: [main, dev]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -99,7 +99,7 @@ jobs:
   security:
     uses: ./.github/workflows/security.yml
     with:
-      # The ZAP scan (four shards) is the heaviest part: it runs on the push to main, which also gates the deploy, not on every pull request.
+      # The ZAP scan (four shards) is the heaviest part: it runs on the push to main or dev, which also gates the deploy, not on every pull request.
       run_dast: ${{ github.event_name == 'push' }}
       start_command: >-
         npm run build &&

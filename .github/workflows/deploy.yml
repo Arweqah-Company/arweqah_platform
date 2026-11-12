@@ -4,10 +4,11 @@ on:
   workflow_run:
     workflows: [CI]
     types: [completed]
-    branches: [main]
+    branches: [main, dev]
   workflow_dispatch:
 
-concurrency: deploy-production
+# dev deploys to staging, main to production (the environment is chosen from the branch). One deploy per environment at a time.
+concurrency: deploy-${{ (github.event.workflow_run.head_branch || github.ref_name) == 'main' && 'production' || 'staging' }}
 
 permissions:
   contents: read
@@ -19,14 +20,19 @@ env:
 
 jobs:
   build:
-    # workflow_run also fires for pull requests; only a successful CI run of a push to main (never a fork's code) may deploy.
+    # workflow_run also fires for pull requests; only a successful CI run of a push to main or dev (never a fork's code) may deploy.
     if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
+    # The environment supplies MICROSOFT_ENABLED for the web build: staging for dev, production for main.
+    environment: ${{ (github.event.workflow_run.head_branch || github.ref_name) == 'main' && 'production' || 'staging' }}
+    env:
+      # The web image bakes in the environment's MICROSOFT_ENABLED, so staging and production must never share a tag, even on the same commit (production keeps the plain SHA, staging gets a suffix).
+      IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}${{ (github.event.workflow_run.head_branch || github.ref_name) != 'main' && '-staging' || '' }}
     strategy:
       matrix:
         app: [api, web]
     steps:
-      # Safe: the job runs only for a successful CI run of a push to main (see the `if`), never for pull requests or forks.
+      # Safe: the job runs only for a successful CI run of a push to main or dev (see the `if`), never for pull requests or forks.
       # nosemgrep: yaml.github-actions.security.workflow-run-target-code-checkout.workflow-run-target-code-checkout
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -48,14 +54,14 @@ jobs:
             APK_CACHE_BUST=${{ github.event.workflow_run.head_sha || github.sha }}
             VITE_MICROSOFT_ENABLED=${{ vars.MICROSOFT_ENABLED || 'false' }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:${{ github.event.workflow_run.head_sha || github.sha }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:${{ (github.event.workflow_run.head_branch || github.ref_name) == 'main' && 'latest' || 'dev' }}
           cache-from: type=gha,scope=${{ matrix.app }}
           cache-to: type=gha,mode=max,scope=${{ matrix.app }}
       - name: Scan image
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:${{ github.event.workflow_run.head_sha || github.sha }}
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:${{ env.IMAGE_TAG }}
           severity: CRITICAL,HIGH
           ignore-unfixed: true
           exit-code: "1"
@@ -63,13 +69,16 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment: staging
+    environment: ${{ (github.event.workflow_run.head_branch || github.ref_name) == 'main' && 'production' || 'staging' }}
+    env:
+      # The web image bakes in the environment's MICROSOFT_ENABLED, so staging and production must never share a tag, even on the same commit (production keeps the plain SHA, staging gets a suffix).
+      IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}${{ (github.event.workflow_run.head_branch || github.ref_name) != 'main' && '-staging' || '' }}
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.event == 'push'
     permissions:
       contents: read
       packages: read
     steps:
-      # Safe: the job runs only for a successful CI run of a push to main (see the `if`), never for pull requests or forks.
+      # Safe: the job runs only for a successful CI run of a push to main or dev (see the `if`), never for pull requests or forks.
       # nosemgrep: yaml.github-actions.security.workflow-run-target-code-checkout.workflow-run-target-code-checkout
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -84,7 +93,7 @@ jobs:
           target: /opt/arweqah-platform
       - uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
         env:
-          TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
+          TAG: ${{ env.IMAGE_TAG }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -104,7 +113,7 @@ jobs:
           APP_URL: ${{ vars.APP_URL }}
         run: |
           if [ -z "$APP_URL" ]; then
-            echo "The APP_URL variable is empty. Add it under Settings > Environments > staging > Environment variables (a variable, not a secret), e.g. https://stg-portal.arweqah.sa" >&2
+            echo "The APP_URL variable is empty. Add it under Settings > Environments > staging or production > Environment variables (a variable, not a secret), e.g. https://stg-portal.arweqah.sa" >&2
             exit 1
           fi
           for i in $(seq 1 12); do
