@@ -27,7 +27,7 @@ jobs:
     environment: ${{ (github.event.workflow_run.head_branch || github.ref_name) == 'main' && 'production' || 'staging' }}
     env:
       # The web image bakes in the environment's MICROSOFT_ENABLED, so staging and production must never share a tag, even on the same commit (production keeps the plain SHA, staging gets a suffix).
-      IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}${{ (github.event.workflow_run.head_branch || github.ref_name) == 'main' && '' || '-staging' }}
+      IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}${{ (github.event.workflow_run.head_branch || github.ref_name) != 'main' && '-staging' || '' }}
     strategy:
       matrix:
         app: [api, web]
@@ -72,7 +72,7 @@ jobs:
     environment: ${{ (github.event.workflow_run.head_branch || github.ref_name) == 'main' && 'production' || 'staging' }}
     env:
       # The web image bakes in the environment's MICROSOFT_ENABLED, so staging and production must never share a tag, even on the same commit (production keeps the plain SHA, staging gets a suffix).
-      IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}${{ (github.event.workflow_run.head_branch || github.ref_name) == 'main' && '' || '-staging' }}
+      IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}${{ (github.event.workflow_run.head_branch || github.ref_name) != 'main' && '-staging' || '' }}
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.event == 'push'
     permissions:
       contents: read
