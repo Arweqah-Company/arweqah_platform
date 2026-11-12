@@ -13,7 +13,7 @@ A guided tour that appears **once at your first sign-in**: it dims the screen an
 **In the tour itself (every employee)**
 
 
-| Action | What happens | Permission key |
+| Action | What happens | Permission |
 |---|---|---|
 | «Next» / «Back» (or the arrow keys) | You move between steps, even between pages | Not needed |
 | «Skip» (or Esc) | The tour ends and is recorded as skipped | Not needed |
@@ -25,7 +25,7 @@ A guided tour that appears **once at your first sign-in**: it dims the screen an
 **On the tour settings page (for managers)**
 
 
-| Action | What happens | Permission key |
+| Action | What happens | Permission |
 |---|---|---|
 | View the list | A table of steps: Step, Order, Tour (General / Administration), State (Shown / Switched off), Last change; with a table or cards view | `tour.settings_view` (View the welcome tour settings) |
 | Search and filters | Search in the title and text, and filters by tour, by state and by «Changed from the original» | `tour.settings_view` |

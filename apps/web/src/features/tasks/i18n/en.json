@@ -415,7 +415,7 @@
     },
     "task-new": {
       "title": "New task",
-      "body": "Use this button to create a task with a title, description, due date, priority and tag. Add attachments and choose who follows it; once saved it appears in your list and its conversation starts.",
+      "body": "Use this button to create a task with a title, description, due date, priority and tag. Once saved it appears in your list and its conversation starts, where files can be attached and people mentioned.",
       "can": {
         "assign": "Assign it to a colleague instead of yourself",
         "follow": "Add followers who get every update"

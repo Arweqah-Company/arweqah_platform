@@ -26,6 +26,7 @@ export const TOUR_STEPS = [
   { key: 'profile', tour: 'general' },
   { key: 'security', tour: 'general' },
   { key: 'my-access', tour: 'general', permission: CorePermission.MyAccessView },
+  { key: 'docs', tour: 'general' },
   { key: 'sign-out', tour: 'general' },
   { key: 'language-theme', tour: 'general' },
   { key: 'notifications', tour: 'general' },

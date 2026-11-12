@@ -12,7 +12,7 @@
 
 ### What you can do
 
-| Action | What happens | Permission key (label) |
+| Action | What happens | Permission |
 |---|---|---|
 | Open the page, search and filter | The titles as a column of buttons (name, code, state); search by title or code; filters on unit, grade, track and path state | `career_content.view` (View the career-path content) |
 | Edit a path by hand | The workspace of the title (seven tabs): description, ladder and path, technical competencies, learning plan, required, evaluation, shared lists; «Save changes» raises the content version. Without the edit key the workspace is read only | `career_content.edit` (Edit the career-path content of a job title) |
@@ -52,6 +52,119 @@
 1. In the page header press the import button and choose the Excel file (download the template first; it has the columns «Title code», «Period», «Unit name», «Link»).
 2. Review the preview: how many units will get a new link and how many stay as they are; each refused row shows its number and its reason.
 3. Confirm. The content version of the titles changed goes up.
+
+### Fields (form inputs)
+
+HR has four forms here: the title file, the workspace of a title (five editors), the reopening of the acknowledgement and the import of learning links. Texts of the path are written once, in the language of the title file (Arabic).
+
+**Upload the title file (dialog «Upload the title file: <title>»)**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Choose the title file | The one file that holds the job description, the career development, the learning plan and the required items of the title. It is read in your browser | One of the two (file or text) | txt, docx or pdf |
+| Or paste the text of the file | The same content as text, when the file cannot be read | One of the two (file or text) | Up to 200,000 characters |
+
+Then «Extract» reads it, the table shows each part as «Sound» or «Needs review», and «Save the extracted content» saves only when every part is sound. «Analyse with AI» is an extra button (see the rules).
+
+**Workspace of a title, tab «Job description»**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Job summary | A short paragraph of what the job is for | Yes to set ready | Up to 2,000 characters |
+| Indicator (job performance indicators) | One measure the job is judged by | At least one to set ready | Up to 300 characters each, up to 30 |
+| Governing indicator (tick) | Marks the indicator that governs the job | No | One tick for the indicator that governs |
+| Responsibility | A duty of the job | At least one to set ready | Up to 200 characters, up to 40 responsibilities |
+| Its tasks | The tasks of that responsibility | No | One per line, up to 400 characters each, up to 30 |
+
+**Tab «Ladder and path»**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Level (a step of the career ladder) | The grade of the step | Yes for each step | L1 to L9, up to 9 steps |
+| Title (of the step) | The job title at that level | Yes | Up to 120 characters |
+| Current title (radio) | Marks where the holders of this title stand on the ladder (shown as «You are here») | One step marked | One only |
+| Condition to move up | What the employee must do to go to the next level | Yes to set ready | Up to 600 characters |
+| Unit / Title (of the path) | The unit and title the level path belongs to | No | Up to 200 characters each |
+| Step n: heading, Content, Kind of proof | The steps of the level path: each with a heading, what it asks and the kind of proof (course, certificate or applied at work) | Yes for each step | Up to 9 steps; heading up to 80, content and kind of proof up to 300 characters |
+| Documented output of this level / Certificates at the end of the level | What the level should produce and which certificates it ends with | No | Up to 600 characters each |
+
+**Tab «Technical competencies»**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Column n name (Competency levels) | The levels at which competencies are asked (for example «L9 Recruitment coordinator»). The first column is the current level and is what «My level» is compared with | Yes for each column | Up to 12 columns, up to 40 characters each |
+| Competency | A technical competency of the title | Yes | Up to 120 characters, up to 60 |
+| Value at each column | What the competency asks at that level | Yes (starts «—») | «Basic», «Expert», «Not required» or «—» (stored in the words of the file) |
+
+**Tab «Learning plan»**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Period name | A year or period of the plan | Yes | Up to 80 characters, not repeated, up to 10 periods |
+| Priority | How important the unit is | Yes | The file's words: إلزامي (mandatory), ضروري (necessary), أساسي (basic) |
+| Unit | The name of the course or unit | Yes | Up to 300 characters, up to 60 units a period |
+| Provider | Who gives it | No | Up to 300 characters |
+| Duration | How long it is, as written; it is turned into minutes and shown under the field. These minutes become the hours the employee earns | Yes | Up to 60 characters; a duration nobody understands is refused («The duration is not understood») |
+| Language | The language of the unit | Yes | The file's words: عربي (Arabic), إنجليزي (English) |
+| Link | Where the employee opens the unit | No | Empty, or a link starting with `https://` (up to 500 characters) |
+| Badge name / Its condition / Hours | A medal: its name, its condition and the approved hours that earn it | Yes (at least one badge to set ready) | Name up to 120, condition up to 300, hours 1 to 2,000, up to 8 badges |
+| How the badge is awarded | The rule of the badges in words | No | Up to 1,000 characters |
+
+**Tab «Required»**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| When | The period the item belongs to (for example «Before 10 March») | Yes | Up to 160 characters, up to 30 items |
+| Item text | What the employee must do | Yes (at least one line) | One per line, up to 400 characters each, up to 10 lines |
+| Last day | The date after which the item is late | No | A date; empty means «While you are in the period» |
+| Acknowledgement text | The sentence the employee agrees to when acknowledging | Yes to set ready | Up to 500 characters |
+
+The tabs «Evaluation» and «Shared lists» hold no input here: the evaluation belongs to the evaluation cycle page.
+
+**Reopen the acknowledgement (dialog «Reopen the acknowledgement»)**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Reason | Why the holders must acknowledge again (it is kept in the audit) | Yes | From 5 to 300 characters. Possible only for a path that is «Ready» |
+
+**Import learning links (the import button of the page)**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Title code | The code of the title, as in the list (for example OPS.01.01.01-L9P-01) | Yes | Up to 40 characters |
+| Period | The name of the period in the learning plan | Yes | Up to 80 characters |
+| Unit name | The name of the unit in that period | Yes | Up to 300 characters |
+| Link | The https address the employee opens | No | `https://` address up to 500 characters; empty clears the link |
+
+The file is an Excel sheet (download the template first), up to 1,000 rows. A first review shows how many units get a new link and the reason of every refused row; nothing changes until you confirm.
+
+**Search and filters of the list:** search by title or code; filters on unit, grade, track and path state.
+
+### Workflow
+
+The content of a title lives in two states, **Draft** and **Ready**, and a version number that grows at every save.
+
+1. HR opens the title in the list and presses «Upload the title file».
+2. The file is read: «Extract» fills the review table. Nothing is saved yet. If a part «Needs review», fix the text and extract again, or press «Analyse with AI» and review its answer. Do not extract again after an AI answer: extracting again replaces it with the fixed reader's reading.
+3. HR presses «Save the extracted content»: the content is saved (a path that was never set ready stays a **draft**; one already ready stays ready) and the version goes up. Any detail can then be edited by hand in the workspace and saved with «Save changes» (the version goes up again).
+4. When the panel says «Every part is complete: the path can be set ready», HR presses «Set the path ready» and confirms the number of holders.
+5. The holders see the path on their next sign-in and must acknowledge it (see «My career path»). HR may press «Preview» at any time to see it as they will.
+6. When the content changes later, or HR needs everyone to read it again, HR presses «Reopen the acknowledgement for its holders» with a reason.
+7. To hide the path, HR presses «Set the path back to draft»: nothing the people acknowledged is deleted.
+
+| Status | Meaning | Who can move it (permission key) | Moves to |
+|---|---|---|---|
+| Draft (or no content) | Saved or empty; the holders do not see it | HR: `career_titlefile.upload`, `career_content.edit` (save), `career_titlefile.publish` | Ready (when complete) |
+| Ready | The holders see it and acknowledge it | HR: `career_titlefile.publish` (back to draft); `career_content.edit` keeps it ready and raises the version | Draft |
+| Acknowledgement reopened | Holders must acknowledge again at their next sign-in | HR: `career_acknowledge.reopen` | The holders acknowledge (`career_acknowledge.create`) |
+
+**Automatic things**
+
+- **No notice is sent** when a path is set ready or the acknowledgement is reopened: the holders meet it at their next sign-in (the platform is held back until they acknowledge).
+- **Versions:** every save raises the content version; an acknowledgement records the version read; a save on a stale version is refused.
+- **Audit:** uploads, AI analyses (without the text of the file), saves, ready and draft changes and reopenings are recorded with who and when.
+
+**What each person sees:** HR (with `career_content.view`) sees every title and its state; the holders of a title see only their own path, and only when it is Ready; an employee never sees this page.
 
 ### Business rules
 

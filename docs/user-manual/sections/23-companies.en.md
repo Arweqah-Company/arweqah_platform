@@ -42,6 +42,55 @@ The «Companies» page shows the companies of the group with each company's code
 2. Fill the columns: Code, Arabic name, English name (required) and Status (yes / no, default yes).
 3. Upload the file and read the preview (valid rows and rows with errors), then press «Import N rows». Only valid rows are imported, and you can download the error report.
 
+### Fields (form inputs)
+
+A star (*) on screen marks a required field.
+
+#### Add / edit a company
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Arabic name | The company's name in Arabic, shown in lists and drop-downs | Yes | 2 to 120 characters |
+| English name | The name in English; follows the Arabic as you type | Yes | 2 to 120 characters |
+| Code | A short unique code for the company, used in lists, imports and exports | Yes | English letters, digits and hyphen, 2 to 20; written in capitals; not used by another company |
+| Active company | Whether the company is active | No (ticked by default) | A tick |
+
+#### Import companies
+
+| Column | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Code | The company code | Yes | As above; unique, also inside the file |
+| Arabic name | | Yes | 2 to 120 characters |
+| English name | | Yes | 2 to 120 characters |
+| Status | Whether the company is active | No (default yes) | Yes / No drop-down |
+
+### Workflow
+
+#### The life of a company
+
+1. **The platform admin** (admin mode on, `companies.create`) presses «Add company» (or imports a file) and fills the code, the names and «Active company».
+2. **The system** checks that the code is new, saves the company, audits it and refreshes the structure-related automatic roles. A company needs nothing else: the structure is one for the whole group, and a company sees it according to where its employees are placed.
+3. **HR** then adds employees to the company (the Company field of the employee form). The employees column counts them.
+4. **Edits** (`companies.update`) change the code, the names and the status; each is audited.
+5. **Deletion** (`companies.delete`) is allowed only when the company has no employees and no units; the company is then removed from lists (a soft delete) and audited.
+6. Nobody is e-mailed from this page.
+
+#### Statuses
+
+| Status | Meaning | Who can change it (permission key) | Moves to |
+|---|---|---|---|
+| Active | The company is in use | `companies.update` | Inactive |
+| Inactive | Marked as not active (the «Active company» tick removed) | `companies.update` | Active |
+| Deleted | Removed from lists; only possible with no employees and no units | `companies.delete` | none from the screen |
+
+#### Automatic things
+
+- Nothing runs on a schedule for companies. Create, edit and delete are written to the audit log, and a new company refreshes the automatic roles.
+
+#### What each person sees
+
+- The page is for the platform admin and whoever the admin gives `companies.view`, in admin mode only. The same companies fill the Company drop-downs of the employee form for whoever may add employees in their scope.
+
 ### Business rules
 
 - A company code is unique; using an existing one is refused with «Company code is already used». (FR-19)

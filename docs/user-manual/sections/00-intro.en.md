@@ -14,7 +14,7 @@ The guide is written in plain language, with no technical terms. What you see on
 
 - Start with «Platform basics». It explains the words that come back on every page: role, scope, permission and platform admin mode.
 - Every page has its own section in the same order: what the page is, who sees it, what you can do on it, the steps of the main jobs, the business rules, and tips for common problems.
-- The «permission key» in the tables (for example `tasks.create`) is the name of the permission as it appears on the permissions page, together with its Arabic and English label. Quote it to your administrator when you need to ask for a permission.
+- Permissions in the tables are written by the same name you see on the Permissions page (for example «Add tasks»). Quote that name to your administrator when you need to ask for a permission; hover over it to see its technical key.
 - The buttons and names in the guide are the ones on your screen. If you switch the language, you will see the matching name.
 
 ### Sections of the guide

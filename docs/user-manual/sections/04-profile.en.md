@@ -13,7 +13,7 @@ Your own page: here you set **the look and language of the platform**, edit your
 
 ### What you can do
 
-| Action | What happens | Permission key |
+| Action | What happens | Permission |
 |---|---|---|
 | Choose the theme: Light, Dark, Follow the device | The platform's look changes at once and is saved in your account | `profile.update` (Edit my contact details and preferences) |
 | Choose the language: العربية, English | The language and the page direction change at once and your choice is saved | `profile.update` |
@@ -44,6 +44,42 @@ Your own page: here you set **the look and language of the platform**, edit your
 
 
 In the «Work details» section you read: employee number, company, unit, job title, direct manager, work e-mail and start date. These are **read-only**.
+
+### Fields (form inputs)
+
+The page has two forms. The appearance choices save the moment you pick them; the contact form saves with «Save changes». All fields need the key `profile.update` («Edit my contact details and preferences»); without it the contact fields are shown but cannot be changed.
+
+**Appearance**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Theme | How the platform looks to you: bright, dark, or following your phone or computer | No (one is always chosen) | Light, Dark, Follow the device. Saved on your account, so every device shows it |
+| Language | The language of the screens and the direction of the page (right-to-left for Arabic) | No (one is always chosen) | العربية, English. Saved on your account |
+
+**Contact details**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Personal phone | A number HR can reach you on outside work | No (leave it empty to clear it) | International format with a plus sign, 7 to 15 digits after it, such as `+966501234567`; no spaces |
+| Personal e-mail | An e-mail outside the company for contacting you | No (leave it empty to clear it) | A well-formed e-mail up to 255 characters; it must **differ from your work e-mail** |
+| Full name in English | How your name is written in English on documents and screens | No (leave it empty to clear it) | Up to 255 characters; English letters and spaces only (a hyphen or apostrophe inside a name is fine, no doubled separators), starting with a letter |
+
+**Work details** (employee number, company, unit, job title, direct manager, work e-mail, start date) are not fields: they are shown for reading only and HR changes them.
+
+### Workflow
+
+1. **You** open «Profile» from your account menu.
+2. **You** pick the theme and the language. The platform applies them at once and saves them to your account; no button is needed.
+3. **You** edit the personal phone, the personal e-mail or the English name. The form checks each field as you type or leave it, and «Save changes» stays disabled while a field is wrong.
+4. **You** press «Save changes». The platform checks the same rules again, saves them on your employee record and shows «Changes saved».
+5. **The audit log** records «Edited their own profile» (category «Employees»). Nobody else is notified.
+6. **HR** sees the new contact details on your employee record; HR alone changes the Arabic name and the work details.
+
+There are no statuses: a change is saved at once or refused with a message under the field.
+
+**Automatic things:** the theme and language are applied on every device you sign in on; nothing is sent by e-mail.
+
+**What each person sees:** only your own profile, whatever your scope is. A person whose account has no employee record sees only the appearance choices. A platform administrator who signs in as you cannot change your profile.
 
 ### Business rules
 

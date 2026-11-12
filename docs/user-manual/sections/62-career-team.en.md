@@ -16,7 +16,7 @@ It is not a page of its own any more: it is the tab **«My career team»** of th
 
 ### What you can do
 
-| Action | What happens | Permission key (label) |
+| Action | What happens | Permission |
 |---|---|---|
 | Open the tab, search and filter | Lists the people in your scope with the numbers of their path; search by name; filter by state (regular, late) | `career_team.view` (View «my career team») |
 | Open a member (eye icon or a click on the row) | A window with three cards (mandatory and necessary done, approved hours, late items), the proofs waiting for a decision and the competencies of the title | `career_team.view` (View «my career team») |
@@ -45,6 +45,65 @@ It is not a page of its own any more: it is the tab **«My career team»** of th
 1. Open the member and go to «Competencies of the title».
 2. For each competency the title asks for, choose the recorded level («Basic» or «Expert»). The employee sees it in the column «My level».
 3. To undo, press «Take back».
+
+### Fields (form inputs)
+
+The tab has two inputs on a member's window: the level of a competency and the reason when you reject a proof. Approving is a button with no input.
+
+**Competencies of the title (in the member's window)**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Recorded level (one for each competency the title asks for) | The level the employee actually reached in that technical competency, as you judge it. The column «Required» next to it is what the title asks for at the employee's level | No (a competency may stay «Not recorded») | «Basic» or «Expert»; «Take back» removes your record. The competency counts as **met** when the recorded level is at least the required one. Saved at once |
+
+**Reject with a reason (a proof referred to you)**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Reason | Why the proof is refused; the employee reads it on the unit and in the notice | Yes | From 5 to 500 characters |
+
+**Search and filters of the tab**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Search the team | Narrows the list by name | No | Free text |
+| State | Narrows by how the employee stands in the path | No | Regular, Late, No ready path |
+
+### Workflow
+
+**A proof referred to you (the work applications of your team, or a proof the reviewer referred)**
+
+1. The employee sends «Applied at work», or the reviewer refers a proof: its state is «With the direct manager» (machine `career.certificate`).
+2. You open the member in the tab «My career team». The list «Proofs waiting for a decision» shows it. (No notice is sent when it arrives.)
+3. You press «Approve» (the hours of the unit count for the employee), or «Reject with a reason».
+4. The employee is told. After the third rejection of the same unit you are told as the direct manager («A proof of your team member was rejected again»).
+5. Your decision on a work application is final.
+
+| Status | Meaning | Who can move it (permission key) | Moves to |
+|---|---|---|---|
+| With the direct manager | The proof waits for you | You: `career_team.decide` | Done or Rejected |
+| Done | Approved; the hours count (final) | — | — |
+| Rejected | Refused with a reason | The employee sends a new proof (`career_learning.upload`) | Waiting for approval, or With the direct manager |
+
+**Competency levels (no stages)**
+
+1. You open the member and go to «Competencies of the title».
+2. You pick «Basic» or «Expert» for a competency, or press «Take back».
+3. The employee sees it in the column «My level», and the card of competencies of their path counts it. Approving a proof never sets a level; only you do.
+
+| Status | Meaning | Who can move it (permission key) | Moves to |
+|---|---|---|---|
+| Not recorded | Nothing recorded yet | You: `career_competency.record` | Basic or Expert |
+| Basic / Expert | The level you recorded | You: `career_competency.record` | The other level, or Not recorded («Take back») |
+
+**Automatic things**
+
+- **Monthly report:** on the 1st of every month at 08:00 (Riyadh time) each direct manager gets «Monthly career-path report» with how many of their direct team are late in what is required.
+- **Employees' reminder:** each employee with late dated items is reminded every Sunday at 08:00 (see «My career path»).
+- **Notices:** you are told after the third rejection of the same unit for someone in your team.
+- **Audit:** the decisions on proofs and every recorded competency level are recorded.
+
+**What each person sees:** you see the people in your unit and below (default scope «unit and below»); a person outside it does not exist for you. The employee sees only their own result of what you recorded and decided. With `directory.view` as well the table adds contact columns.
 
 ### Business rules
 

@@ -13,7 +13,7 @@ A development request is a request for learning that is not simply a unit of you
 
 ### What you can do
 
-| Action | What happens | Permission key (label) |
+| Action | What happens | Permission |
 |---|---|---|
 | Send a request | The dialog «Learning request» sends a request for approval; the approver is shown before you send | `career_requests.create` (Send a development request) |
 | Follow my requests | The list «My requests» with search, filters and a details window | `career_profile.view` (View my career path) |
@@ -40,6 +40,64 @@ The approve and reject icons appear only on a request that is with you.
 1. Open **Development requests**. The tab «Waiting for me» lists what is with you.
 2. Click a request to read it. Check the cost, the plan kind and the budget warning.
 3. Press «Approve», or press «Reject», write the reason (at least 5 characters) and confirm. The employee is told.
+
+### Fields (form inputs)
+
+**Learning request (dialog «Learning request», sent by the employee)**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Course name | The name of the course or training you ask for | Yes («The course name is required.») | From 2 to 200 characters |
+| Cost in riyals | What the course costs. The cost decides who approves (see the workflow) and is compared with what is left of your yearly budget | Yes («The cost is required (a whole number of riyals).») | A whole number from 0 to 10,000,000 |
+| Is the course in your learning plan? | Whether the course is a unit of your plan that you want to take at another provider, or something outside the plan | Yes (one of the two) | «In the learning plan» (up to 5,000 riyals goes to the direct manager) or «Outside the plan» (needs the sector head at least) |
+| Retention agreement for funded training | The agreement you sign when the company pays for the training, attached for the approver to see | No | One file, PDF, PNG or JPEG, up to 10 MB |
+
+While you type, the dialog shows «Decided by», the name of the approver, and «Left of your yearly budget». If the cost is above what is left it warns but still lets you send. If the approver post is vacant, or held by you, the request goes up to the next level; only when nobody holds any post that can decide it does the dialog say «Nobody holds the approver post yet: ask HR to set the unit leader.» and the request is refused.
+
+**Reject a request (dialog «Reject the request», by the approver)**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Reason | Why the request is refused; the employee reads it | Yes | From 5 to 500 characters («The reason needs at least five characters.») |
+
+**Search and filters of the list**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Search the requests | By employee or course | No | Up to 120 characters |
+| State | Where the request stands | No | Waiting, Approved, Rejected |
+| Approver | The level that decides now | No | The direct manager, The sector head, The CEO |
+| In or outside the plan | The plan kind of the course | No | In the plan, Outside the plan |
+| Waiting for me / All requests (view) | Only what is with you, or all the requests of your scope | — | Two tabs |
+
+### Workflow
+
+A development request is a record run by the machine `career.development_request`.
+
+1. The employee fills «Learning request» and presses «Send the request». The system picks the level by cost and plan, and the person by the structure, then stores them on the request.
+2. The approver is told («A development request is waiting for your decision») and finds it under «Waiting for me».
+3. The approver opens the request, reads the cost, the plan kind, the agreement and the budget warning, and presses «Approve» or «Reject» (with a reason).
+4. The employee is told of the decision. An approved request counts its cost in the budget spent of the employee for the current calendar year.
+5. If the **direct manager** does not answer in **7 days**, the request goes up to the sector head by itself: the sector head is told, and so is the employee («Your development request went up»). If nobody holds a higher post, the direct manager keeps it and can still decide.
+
+Who decides by cost: in the plan and up to 5,000 riyals, the direct manager; outside the plan, or above 5,000 up to 20,000 riyals, the sector head; above 20,000 riyals, the CEO. A post that nobody holds, or that the employee holds, sends the request up to the next level.
+
+| Status / Stage | Meaning | Who can move it (permission key) | Moves to |
+|---|---|---|---|
+| Sent (routing) | The request was just made and is being routed | The system, at once | The direct manager, the sector head or the CEO |
+| With the direct manager | In the plan and up to 5,000 riyals; 7 days to answer | The approver: `career_requests.approve`, `career_requests.reject`; the system after 7 days | Approved, Rejected, or the sector head (timeout) |
+| With the sector head | Outside the plan, or from 5,000 up to 20,000; no deadline | The approver: `career_requests.approve`, `career_requests.reject` | Approved or Rejected |
+| With the CEO | Above 20,000; no deadline | The approver: `career_requests.approve`, `career_requests.reject` | Approved or Rejected |
+| Approved | Decided; its cost counts in the budget (final) | — | — |
+| Rejected | Refused with a reason the employee reads (final) | — | — |
+
+**Automatic things**
+
+- **The 7-day timeout** of the direct manager is a durable timer of the workflow (it survives a restart) that moves the request to the sector head and notifies both people.
+- **Notices:** the approver on sending and on going up; the employee on approval, rejection and going up.
+- **Audit:** sending, approval, rejection and going up are recorded (the going up is recorded without a person: it is the system).
+
+**What each person sees:** the employee follows their own requests in «Learning plan», then «My requests»; an approver sees, with `career_requests.view` at «unit and below», the requests of the people in their scope and can decide only the ones that reach them (the others are read only).
 
 ### Business rules
 

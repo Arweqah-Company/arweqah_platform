@@ -22,6 +22,10 @@
       "title": "Your account",
       "body": "Your name in the top bar opens your account menu: your profile, security, sign-out and this tour."
     },
+    "docs": {
+      "title": "User manual",
+      "body": "How each page works: its fields, its workflow and who may do what. It lists only the pages you may open."
+    },
     "profile": {
       "title": "My profile",
       "body": "Change your language and theme (light or dark), see your work details kept by HR, and edit your contact details.",

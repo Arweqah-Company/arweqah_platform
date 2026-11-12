@@ -19,7 +19,7 @@ A role is a set of permissions given to everyone who holds it. On this page you 
 
 ### What you can do (Roles tab)
 
-| Action | What happens | Permission key (label) |
+| Action | What happens | Permission |
 |---|---|---|
 | «New role» | Opens a window to create a role with Arabic and English names, a description and its permissions | `roles.create` (Add a role) |
 | Open a role (click the row or the edit icon) | Opens the edit window: names, description, assignment and the permission matrix | `roles.update` (Edit a role and its permissions) |
@@ -63,6 +63,77 @@ List columns: name, number of permissions, unit and company (for job title roles
 1. Press «Refresh members now».
 2. A message shows the number of changes, or «Members are up to date, nothing changed».
 
+### Fields (form inputs)
+
+**The role window** («New role» / «Edit role», needs `roles.create` or `roles.update`)
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Arabic name | The name people see in Arabic on roles lists and employee forms | Yes | 2 to 120 characters. Locked for job title and unit head roles, whose names follow their title or unit |
+| English name | The same name in English | Yes | 2 to 120 characters. Filled in automatically from the Arabic name while you type, and you can edit it. Locked for job title and unit head roles |
+| Description | A short sentence on what the role is for, so the next administrator understands it | No | Up to 500 characters |
+| Assignment | How the role is given: **Manual** (HR or an administrator gives it to people) or **Automatic** (a rule or a setup in the system gives it) | No (a new role starts as Manual) | Manual, Automatic. Locked when the role already has a rule (a rule role cannot become manual) |
+| Search permissions | Finds a permission in the matrix by its name or key | No | Free text |
+| Permission tick box | Whether the role holds that permission. Every page has a «view» key and every button its own key | No | Up to 500 permissions per role. «Select all permissions» / «Clear all» act on the visible list |
+| Scope (beside each ticked permission) | How far the permission reaches: which records it covers | Yes, for each ticked permission | Only the scopes that permission allows: Own record only, Their unit, Their unit and 1 to 5 levels below, Their unit and below, Their whole company, All companies. You cannot choose a scope wider than your own |
+| «Fields they may change (N)» (only beside «Edit employees») | Opens a window to choose which fields of the employee record the holder may change | No | See the next table |
+
+**The window «The fields a holder of «Edit employees» may change»**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Search the fields | Finds a field by name | No | Free text |
+| Field tick boxes, grouped | Each ticked field may be changed by the holder | No | Groups: Personal details, Contact, Work, Identity and name, Contract and insurance, Pay and account, Notes, Structure and relation. A summary says «may change N of M fields» |
+| Basic / All / None | Shortcuts for the whole list | No | «Basic» is the contact and personal data and is where a new permission starts |
+| Select all / Clear all (per group) | Ticks or clears one group | No | You cannot add a field you cannot change yourself. Unit, job title and manager also need «Change placement from a date» |
+
+**Roles list toolbar**
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Search roles | Finds roles by name or description | No | Free text |
+| Filters | Narrow the list | No | Type (built-in / custom), Assignment, Kind, Company, Has holders / No holders |
+| Scope (in the «Export data» window) | How many rows go into the file | Yes | «The rows shown on this page (N)» or «All results of the current search and filters (N)»; a single export holds a limited number of rows and the window says when it caps |
+| Columns | Which columns to put in the file | Yes, at least one | «Select all» / «Clear selection»; the window shows «N of M columns» |
+| File type | The format of the file | Yes | Excel (.xlsx) or CSV (.csv) |
+
+**The window «End date of the exception»** (Exceptions tab, «Change the end date», needs `exceptions.update`)
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| End date | The last day the exception holds. After it, it is taken back by itself | No (empty or «Remove the end date» means no end date) | A date that is today or later (Riyadh time); a date in the past is refused |
+| «Remove the end date» | Makes the exception permanent until someone takes it back | Not a field | Needs no typing |
+
+**Exceptions tab toolbar:** search by person, what was given or who gave it; filters Kind (Role, Personal permission, Group of roles), Given by, Ending (within 7 / 14 / 30 / 60 days, or no end date). «Take it back» asks for a confirmation only.
+
+### Workflow
+
+**The life of a role and its permissions**
+
+1. **An administrator** turns on platform admin mode (a fresh authenticator code, valid for a period of activity) and opens «Roles & permissions».
+2. **They** press «New role» (`roles.create`), type the Arabic and English names and a description, choose the assignment, tick the permissions and choose the scope of each, then press «Save». The platform saves the role and records it in the audit log. Nobody is notified.
+3. **The role is given** to people: by HR on the employee form (`employees.assign_roles`), by a rule (the automatic roles), or through a group of roles. For a person it may carry an **end date**, typed beside the role on the employee form.
+4. **The administrator** later opens the role (`roles.update`) to change its permissions. The change reaches every holder at once.
+5. **Exceptions:** whatever is given outside the job title (a manual role, a personal permission, a group of roles) is listed in the Exceptions tab with its end date. An administrator with `exceptions.update` changes the date, or takes it back at once with `exceptions.revoke` after confirming.
+6. **Every night** the platform takes back the exceptions whose last day has passed and records each one in the audit log.
+7. **Deleting** a role (`roles.delete`, after confirming) makes its holders lose its permissions at once.
+
+| Status of an exception | Meaning | Who can change it (permission key) | Moves to |
+|---|---|---|---|
+| No end date | Holds until someone takes it back | `exceptions.update` (set a date), `exceptions.revoke` (take it back) | Has an end date, or taken back |
+| Has an end date | Holds through its last day (Riyadh time) | `exceptions.update` (change or remove the date), `exceptions.revoke` | No end date, ending soon, or taken back |
+| Ending soon | Ends within 7 days; shown with a warning badge | Same | Ended |
+| Ended and taken back | The last day passed; the permission is gone from that moment | Nobody; the platform does it overnight | Removed from the list |
+
+**Automatic things**
+
+- **Every night at 03:00 (Riyadh)** the members of the automatic roles are recalculated; they are also refreshed after every change to employees. «Refresh members now» (`roles.sync_auto`) does it at once.
+- **Every night at 03:10 (Riyadh)** ended exceptions are taken back and written to the audit log.
+- The job title role is created, renamed and removed with its title, and the unit head role with its unit.
+- Every creation, change, deletion, refresh, end date change and take-back is written to the audit log with the actor's name.
+
+**What each person sees:** the page shows only in admin mode, and only the tabs and buttons whose keys the person holds. A person can give only what they hold themselves, at a scope no wider than their own.
+
 ### Business rules
 
 - **Scopes:** every permission is given with a scope: «Own record only», «Their unit», «Their unit and 1 level below» up to 5 levels, «Their unit and below», «Their whole company», «All companies». The list offers only the scopes the permission itself allows. If a person holds the same permission from several sources, the widest scope wins (FR-80).
@@ -80,7 +151,7 @@ List columns: name, number of permissions, unit and company (for job title roles
 
 Both are managed from the «Permissions» page (see its section); each action has its own key.
 
-| Action | What happens | Permission key (label) |
+| Action | What happens | Permission |
 |---|---|---|
 | View groups of roles | They appear on the Permissions page | `role_groups.view` (View groups of roles on the permissions page) |
 | Add a group of roles | Bundles roles that go together under one name | `role_groups.create` (Add a role group) |
@@ -98,7 +169,7 @@ Both are managed from the «Permissions» page (see its section); each action ha
 
 It lists everything given to a person **outside** what their job title brings: manual roles, personal permissions and groups of roles, each with its last day, so no permission is forgotten. Columns: person, kind (role/personal permission/group of roles), given, scope, given by, given on, ends on.
 
-| Action | What happens | Permission key (label) |
+| Action | What happens | Permission |
 |---|---|---|
 | «Change the end date» | Sets the last day the exception holds, or removes the date | `exceptions.update` (Change the end date of an exception) |
 | «Take it back» | Takes it back at once after you confirm; the person loses what it gives | `exceptions.revoke` (Take an exception back) |

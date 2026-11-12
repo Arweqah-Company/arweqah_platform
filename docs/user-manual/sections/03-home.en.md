@@ -20,7 +20,7 @@ The first page after signing in: your day at a glance. The numbers of your tasks
 
 ### What you can do
 
-| Action | What happens | Permission key |
+| Action | What happens | Permission |
 |---|---|---|
 | Click a number in «My numbers» | Opens the list of tasks or tickets it counts (for example «Overdue tasks» opens tasks filtered by overdue) | `tasks.view` / `tickets.view` |
 | Click a task title in «My current tasks» | Opens the task details and its conversation | `tasks.view` |
@@ -55,6 +55,14 @@ The first page after signing in: your day at a glance. The numbers of your tasks
 1. Look at the «Important and urgent» square and start with its tasks.
 2. Plan the «Important, not urgent» tasks before their date comes close.
 3. If you are a manager, switch «View» to «My team's tasks» to see your team's tasks.
+
+### Fields (form inputs)
+
+Home has no form to fill. It has one choice, and the tiles themselves are links.
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Show (the «View» choice in the task matrix) | Chooses whose open tasks fill the four squares | No (it starts on «My tasks») | «My tasks», or «My team's tasks» (offered only to people whose task scope reaches a team) |
 
 ### Business rules
 

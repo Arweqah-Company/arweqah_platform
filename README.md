@@ -622,6 +622,7 @@ npm run verify                           # end-of-task check: architecture, desi
 |---|---|
 | http://localhost:5173 | Web app: sign in with Microsoft, or type `SEED_ADMIN_EMAIL` (the first time you get an e-mail with the QR link, then the code boxes) |
 | http://localhost:3000/api/docs | Swagger (disabled in production) |
+| http://localhost:5173/docs | User manual (signed-in page; each person sees the sections of the pages they may open; decision 372) |
 | http://localhost:8025 | Mailpit (only when `SMTP_HOST` points at it; with Office 365 mail goes out for real and is tracked in the platform's «E-mail log» page) |
 | http://localhost:15672 | RabbitMQ management (guest/guest locally) |
 
