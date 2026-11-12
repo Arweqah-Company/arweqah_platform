@@ -138,7 +138,7 @@ jobs:
           docker run --rm --network host -v "$PWD:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
             zap-api-scan.py -I -t openapi-shard.json -O "${OPENAPI_URL%/api/docs/openapi.json}" -f openapi -c .zap/rules.tsv -r "zap-api-$SHARD.html"
       - if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: zap-reports-${{ matrix.shard }}
           path: "*.html"
@@ -168,7 +168,7 @@ jobs:
           chmod a+w .
           docker run --rm -v "$PWD:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
             zap-full-scan.py -t "$STAGING_URL" -c .zap/rules.tsv -r zap-full.html
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: zap-full-report
           path: zap-full.html
