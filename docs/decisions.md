@@ -2,6 +2,14 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-12 — `dev` deploys to staging, `main` to production
+
+Plan: `docs/plans/phase-1-auth-employees.md` (log, 2026-11-12).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 373 | **Two long-lived branches: `dev` → GitHub environment `staging`, `main` → environment `production`.** Feature branches open pull requests into `dev`; merging `dev` into `main` is the release. CI runs on pull requests and on pushes to both branches; Deploy follows a successful CI push and picks the environment from the branch. Build and deploy jobs both use the environment, so `MICROSOFT_ENABLED` (baked into the web image) and the server secrets are the environment's own. Tags: commit SHA on every image, `latest` only from `main`, `dev` only from `dev`. Production gets its own server, `.env` secrets (never copied from staging) and its own Microsoft certificate. | Owner: a second EC2 for production with the same setup as staging, and a safe place to test before release. | A third environment appears, or images should be promoted (retagged) instead of rebuilt on `main`. |
+
 ## 2026-11-11 — Phone shell: lighter header, drawer that fits
 
 Plan: `docs/plans/phase-1-auth-employees.md` (log, 2026-11-11).

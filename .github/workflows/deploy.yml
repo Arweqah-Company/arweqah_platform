@@ -4,10 +4,11 @@ on:
   workflow_run:
     workflows: [CI]
     types: [completed]
-    branches: [main]
+    branches: [main, dev]
   workflow_dispatch:
 
-concurrency: deploy-production
+# dev deploys to staging, main to production (the environment is chosen from the branch). One deploy per environment at a time.
+concurrency: deploy-${{ (github.event.workflow_run.head_branch || github.ref_name) == 'main' && 'production' || 'staging' }}
 
 permissions:
   contents: read
@@ -19,14 +20,16 @@ env:
 
 jobs:
   build:
-    # workflow_run also fires for pull requests; only a successful CI run of a push to main (never a fork's code) may deploy.
+    # workflow_run also fires for pull requests; only a successful CI run of a push to main or dev (never a fork's code) may deploy.
     if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
+    # The environment supplies MICROSOFT_ENABLED for the web build: staging for dev, production for main.
+    environment: ${{ (github.event.workflow_run.head_branch || github.ref_name) == 'main' && 'production' || 'staging' }}
     strategy:
       matrix:
         app: [api, web]
     steps:
-      # Safe: the job runs only for a successful CI run of a push to main (see the `if`), never for pull requests or forks.
+      # Safe: the job runs only for a successful CI run of a push to main or dev (see the `if`), never for pull requests or forks.
       # nosemgrep: yaml.github-actions.security.workflow-run-target-code-checkout.workflow-run-target-code-checkout
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -49,7 +52,7 @@ jobs:
             VITE_MICROSOFT_ENABLED=${{ vars.MICROSOFT_ENABLED || 'false' }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:${{ github.event.workflow_run.head_sha || github.sha }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:${{ (github.event.workflow_run.head_branch || github.ref_name) == 'main' && 'latest' || 'dev' }}
           cache-from: type=gha,scope=${{ matrix.app }}
           cache-to: type=gha,mode=max,scope=${{ matrix.app }}
       - name: Scan image
@@ -63,13 +66,13 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment: staging
+    environment: ${{ (github.event.workflow_run.head_branch || github.ref_name) == 'main' && 'production' || 'staging' }}
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.event == 'push'
     permissions:
       contents: read
       packages: read
     steps:
-      # Safe: the job runs only for a successful CI run of a push to main (see the `if`), never for pull requests or forks.
+      # Safe: the job runs only for a successful CI run of a push to main or dev (see the `if`), never for pull requests or forks.
       # nosemgrep: yaml.github-actions.security.workflow-run-target-code-checkout.workflow-run-target-code-checkout
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -104,7 +107,7 @@ jobs:
           APP_URL: ${{ vars.APP_URL }}
         run: |
           if [ -z "$APP_URL" ]; then
-            echo "The APP_URL variable is empty. Add it under Settings > Environments > staging > Environment variables (a variable, not a secret), e.g. https://stg-portal.arweqah.sa" >&2
+            echo "The APP_URL variable is empty. Add it under Settings > Environments > staging or production > Environment variables (a variable, not a secret), e.g. https://stg-portal.arweqah.sa" >&2
             exit 1
           fi
           for i in $(seq 1 12); do

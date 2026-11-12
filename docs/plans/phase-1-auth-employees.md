@@ -1429,3 +1429,10 @@ shared/data-exchange/   export-file · template · read-sheet · csv · mapping 
 - **ما تم:** على الموبايل يبقى في الشريط: القائمة، الشعار، وضع المدير (أيقونة فقط)، الجرس، الأفاتار؛ وينتقل زرا الثيم واللغة إلى قائمة الحساب (`app/account-menu.tsx`). منطقهما في خطاف واحد `core/theme/use-display-preferences.ts` يستعمله الشريط وقائمة الحساب و`ThemeToggle`. عرض القائمة الجانبية `min(16rem, 100vw − 1.5rem)` مع `overscroll-contain`. القرار 370.
 - **التحقق:** `e2e/tests/mobile-shell.spec.ts` (مشروع `mobile`، عرض 360): الشريط داخل الشاشة بلا تمرير أفقي، زر وضع المدير ≤ 48px، القائمة داخل الشاشة وتصل لتسجيل الخروج وتُغلق بالضغط على الخلفية. فشلت الثلاثة على الكود القديم ونجحت بعد الإصلاح.
 
+### 2026-11-12 — فرعان وبيئتان: `dev` = staging و`main` = production (خطة ثم تنفيذ) (فرع `ci/dev-staging-main-production`)
+- **المطلوب (المالك):** خادم EC2 ثانٍ للإنتاج بنفس إعداد الـ staging؛ فرع `dev` يُنشر على staging وفرع `main` على production.
+- **القاعدة (تم):** (1) `ci.yml` يعمل على PR وعلى push إلى `dev` و`main`؛ (2) `deploy.yml` يُطلق بعد نجاح CI على `dev` أو `main`، والبيئة تُحدَّد من الفرع: `dev` ← `staging`، `main` ← `production` (لكل بيئة أسرارها `EC2_HOST` و`EC2_USER` و`EC2_SSH_KEY` ومتغيراتها `APP_URL` و`MICROSOFT_ENABLED`)؛ (3) خطوتا البناء والنشر تستخدمان البيئة نفسها فيُقرأ `MICROSOFT_ENABLED` الصحيح وقت البناء؛ (4) وسم `latest` للإنتاج فقط ووسم `dev` للـ staging، مع وسم SHA لكليهما؛ (5) التشغيل المتزامن لكل بيئة على حدة (`deploy-staging` / `deploy-production`)؛ (6) أفرع الميزات تُفتح PR إلى `dev`، ثم يُدمج `dev` في `main` للإنتاج.
+- **الخطوات اليدوية (المالك):** خادم الإنتاج بـ `scripts/server/bootstrap.sh`، بيئة `production` في GitHub (أسرار ومتغيرات)، حماية الفرعين، شهادة Microsoft ومفتاحها على الخادم.
+- **أين:** `.github/workflows/{ci,deploy}.yml`، `CLAUDE.md` (القاعدة 18)، README (Deploy)، القرار 373.
+- **كيف نتحقق:** تحليل YAML؛ تشغيل Deploy فعليًا على `main` بعد الدمج (الإنتاج) ثم على `dev` (staging).
+

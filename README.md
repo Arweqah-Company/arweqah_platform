@@ -628,18 +628,19 @@ npm run verify                           # end-of-task check: architecture, desi
 
 ### Deploy
 
-- **Trigger:** every push to `main` after CI (quality, API e2e, Playwright, security including the ZAP scan) passes; or manually (`workflow_dispatch`).
+- **Branches and environments:** `dev` deploys to the GitHub environment **staging**, `main` to **production** (each with its own server, secrets `EC2_HOST` / `EC2_USER` / `EC2_SSH_KEY` and variables `APP_URL` / `MICROSOFT_ENABLED`). Feature pull requests go into `dev`; merging `dev` into `main` is the release. Images carry the commit SHA; `latest` only from `main`, `dev` only from `dev`.
+- **Trigger:** every push to `dev` or `main` after CI (quality, API e2e, Playwright, security including the ZAP scan) passes; or manually (`workflow_dispatch`).
 - **Steps:** build `api` and `web` images → Trivy scan → push to GHCR → copy `docker-compose.prod.yml`, `docker/nginx/edge.conf` and `scripts/server/*.sh` to the server → SSH: log in to GHCR with the job's own token (no registry password is stored on the server) → `scripts/server/deploy.sh <sha>` (remove unused images → pull → TypeORM `migration:run` and the compiled seed through `node`, idempotent → `docker compose up -d`; the runtime image has no npm) → smoke test `GET {APP_URL}/api/health`.
-- **GitHub secrets:** `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY` (printed by the bootstrap script). **Variables:** `APP_URL`, `MICROSOFT_ENABLED`. **Environment:** `staging`.
+- **GitHub secrets:** `EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY` (printed by the bootstrap script). **Variables:** `APP_URL`, `MICROSOFT_ENABLED`. **Environments:** `staging` and `production`, each holding its own copy of these (a job reads its environment's values first).
 - **Server layout** (`/opt/arweqah-platform`): `.env` (created by `bootstrap.sh` with generated secrets, never in GitHub), `secrets/microsoft.key` (certificate private key), `backups/`. Everything runs in Docker on one host: nginx (HTTPS, one Let's Encrypt certificate for both domains: the web domain proxies `/api` to the API so the browser stays on one origin and cookies stay first-party; the API domain reaches the same API directly for integrations), web, api, PostgreSQL 16, RabbitMQ; data in the volumes `pg_data`, `api_storage` (uploaded files, `FILE_STORAGE=local`) and `rabbitmq_data`.
 - **Backups:** `scripts/server/backup.sh` runs daily at 02:30 (cron): database dump and files archive, kept 14 days in `backups/`. Copy that folder off the server too.
 
 **First-time server setup** (Ubuntu 24.04 EC2, security group: 22 from the team, 80 and 443 open, Elastic IP, DNS `A` records of the web domain and the API domain, e.g. `stg-portal.arweqah.sa` and `stg-api-portal.arweqah.sa`, pointing to it)
 
 1. Copy the script and run it: `scp scripts/server/bootstrap.sh ubuntu@<ip>:~` then `ssh ubuntu@<ip> "sudo bash bootstrap.sh"`. It asks for the two domains, certificate e-mail, GitHub owner, first admin e-mail, Microsoft IDs and SMTP; installs Docker and a firewall; writes `.env`; gets the HTTPS certificate (renewed automatically); schedules the backup; and prints the GitHub secrets, including a fresh deploy SSH key.
-2. Add the secrets and variables in GitHub and create the `staging` environment (the script prints the exact values).
+2. Add the secrets and variables in GitHub and create the environment of this server (`staging` or `production`; the script prints the exact values).
 3. Copy the Microsoft certificate key to `secrets/microsoft.key` and register `https://<web domain>/api/auth/callback/microsoft` under **Web** in Entra ([docs/microsoft-sign-in.md](docs/microsoft-sign-in.md)).
-4. Push to `main`. The first deploy creates the database tables and the first admin.
+4. Push to the branch of that environment (`dev` for staging, `main` for production). The first deploy creates the database tables and the first admin.
 
 To use Amazon RDS or S3 later: set `DB_HOST`/`DB_SSL` or `FILE_STORAGE=s3` + `S3_BUCKET` in the server `.env` (and drop the `postgres` service for RDS).
 
