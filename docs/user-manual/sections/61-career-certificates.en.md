@@ -2,6 +2,8 @@
 
 «Certificate review» is the page where the proofs that employees sent for the units of their learning plan are decided. You open a proof, look at the file and the unit, then approve it (its hours start to count), reject it with a reason, or refer it to the employee's direct manager. It is for the reviewer of learning proofs, normally the employee development officer.
 
+![Certificate review](../images/en/19-career-certificates.png)
+
 ### Who sees it
 
 - View permission: `career_certificates.review` (View the certificate review page and its files), scope: all. The review scope is all employees; it is not narrowed by unit.

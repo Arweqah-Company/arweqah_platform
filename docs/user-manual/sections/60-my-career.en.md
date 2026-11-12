@@ -2,6 +2,8 @@
 
 «Career path» is your own page. It shows the path of your job title in five sections, always in the same order: job description, performance evaluation, career development, learning plan and what is required of you. From here you also send proofs of the learning units you finished, follow your badges and your learning hours, ask for learning outside the plan, and (in the cycle) evaluate yourself. HR prepares the content once for each title; you read it and acknowledge it.
 
+![My career path](../images/en/18-my-career.png)
+
 ### Who sees it
 
 - View permission: `career_profile.view` (View my career path), scope: all (it only ever shows your own path).

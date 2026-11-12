@@ -2,6 +2,8 @@
 
 A development request is a request for learning that is not simply a unit of your plan, for example a course at another provider, with its cost. The request goes to the right approver by its cost: the direct manager, the sector head or the CEO. Employees send requests from their learning plan; approvers decide them on the page **«Development requests»**.
 
+![Development requests](../images/en/21-career-requests.png)
+
 ### Who sees it
 
 - **Sending a request (employee):** `career_requests.create` (Send a development request), scope: all. Held by the Employee role; the button «Request learning outside the plan» is in «Learning plan». The employee follows the requests in «Learning plan», then «My requests».

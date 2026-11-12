@@ -2,6 +2,8 @@
 
 Here the leader of a unit decides whether the unit receives tickets, what the sender reads about it, which kinds of ticket it takes, who handles each kind, and how long each step may take. Any unit of the organization structure (sector, department, section, unit, office) can be a ticket desk.
 
+![Ticket setup](../images/en/28-ticket-setup.png)
+
 ### Who sees it
 
 - **View permission:** `tickets.setup_view` («View the ticket setup page»). Scopes: own (the units you lead and every unit below), unit, unit and below, company, all.

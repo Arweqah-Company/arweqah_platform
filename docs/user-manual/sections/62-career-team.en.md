@@ -4,6 +4,8 @@
 
 It is not a page of its own any more: it is the tab **«My career team»** of the **Employees** page (the old link to «My career team» takes you there).
 
+![My career team](../images/en/20-career-team.png)
+
 ### Who sees it
 
 - View permission: `career_team.view` (View «my career team»), scopes: unit, unit and below, company, all. The default scope is **unit and below**.

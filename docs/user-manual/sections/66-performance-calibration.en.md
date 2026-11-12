@@ -2,6 +2,8 @@
 
 «Calibration and approval» is the page where one person compares the scores that managers gave, adjusts them by half points with a written reason, then approves the results, tells every employee individually and decides the objections that employees raise. Employees never see scores before this page's approval and the individual notification.
 
+![Calibration and approval](../images/en/24-performance-calibration.png)
+
 ### Who sees it
 
 - View permission: `performance.calibration_view` (View the «calibration and approval» page), scope: all.

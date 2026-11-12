@@ -267,6 +267,7 @@
 <p class="group">Career file</p>
 <h2 id="s13">13. My career path</h2>
 <p>«Career path» is your own page. It shows the path of your job title in five sections, always in the same order: job description, performance evaluation, career development, learning plan and what is required of you. From here you also send proofs of the learning units you finished, follow your badges and your learning hours, ask for learning outside the plan, and (in the cycle) evaluate yourself. HR prepares the content once for each title; you read it and acknowledge it.</p>
+<p><img class="shot" loading="lazy" alt="My career path" src="../images/en/18-my-career.png"></p>
 <h3>Who sees it</h3>
 <ul><li>View permission: <code>career_profile.view</code> (View my career path), scope: all (it only ever shows your own path).</li><li>Default roles: the <strong>Employee</strong> role (given to everyone) and the head role of every unit hold it, together with the keys of your own path listed below.</li><li>It does not need platform admin mode.</li><li>The link «Career path» sits right under «Home» in the side menu. If HR has not set the path of your title as ready, you see the card «Your career path is not ready yet» instead of the content, and the link appears as soon as it is ready.</li></ul>
 <h3>What you can do</h3>
@@ -289,6 +290,7 @@
 <h2 id="s14">14. My career team</h2>
 <p>«My career team» shows managers the career paths of the people under them: how much of the mandatory and necessary learning they finished, their approved learning hours and what they are late in. It is a view for follow-up: you do not edit anyone's path here. You decide here only a proof that was referred to you, and you record the level a team member reached in a technical competency.</p>
 <p>It is not a page of its own any more: it is the tab <strong>«My career team»</strong> of the <strong>Employees</strong> page (the old link to «My career team» takes you there).</p>
+<p><img class="shot" loading="lazy" alt="My career team" src="../images/en/20-career-team.png"></p>
 <h3>Who sees it</h3>
 <ul><li>View permission: <code>career_team.view</code> (View «my career team»), scopes: unit, unit and below, company, all. The default scope is <strong>unit and below</strong>.</li><li>Default roles: the <strong>head role of every unit</strong> (made automatically from the structure) holds the view, decide and export keys at «unit and below». The Employee role does not hold them.</li><li>It does not need platform admin mode.</li><li>With the key <code>directory.view</code> as well, the table adds the columns unit, company, work e-mail and work phone. With <code>directory.view</code> only (no career key) the tab shows only the colleagues of your own unit.</li><li>A person outside your scope does not exist for you: the system answers as if the record was not found.</li></ul>
 <h3>What you can do</h3>
@@ -306,6 +308,7 @@
 <ul><li>The tab is missing in Employees: your role holds neither <code>career_team.view</code> nor <code>directory.view</code>, or the page was hidden for your role.</li><li>Someone you expect is not in the list: they are outside your unit and below, or their title has no ready career path.</li><li>The contact columns are missing: they need the key <code>directory.view</code> too.</li></ul>
 <h2 id="s15">15. Certificate review</h2>
 <p>«Certificate review» is the page where the proofs that employees sent for the units of their learning plan are decided. You open a proof, look at the file and the unit, then approve it (its hours start to count), reject it with a reason, or refer it to the employee's direct manager. It is for the reviewer of learning proofs, normally the employee development officer.</p>
+<p><img class="shot" loading="lazy" alt="Certificate review" src="../images/en/19-career-certificates.png"></p>
 <h3>Who sees it</h3>
 <ul><li>View permission: <code>career_certificates.review</code> (View the certificate review page and its files), scope: all. The review scope is all employees; it is not narrowed by unit.</li><li>Default role: <strong>Employee development officer</strong> (made once by the platform when it does not exist yet, with the five certificate keys). The platform manager can add the keys to any other role or person from the permissions page.</li><li>It does not need platform admin mode for the officer role.</li><li>Menu: the group «Career file», item «Certificate review».</li></ul>
 <h3>What you can do</h3>
@@ -324,6 +327,7 @@
 <ul><li>The list is empty: «No proofs are waiting for review» means nothing was sent or everything was decided.</li><li>The approve button is missing on a row: the proof was already decided, or your role lacks the key.</li><li>You see the page but cannot approve: your role holds the view key only. Ask the platform manager for the approve and reject keys.</li></ul>
 <h2 id="s16">16. Development requests</h2>
 <p>A development request is a request for learning that is not simply a unit of your plan, for example a course at another provider, with its cost. The request goes to the right approver by its cost: the direct manager, the sector head or the CEO. Employees send requests from their learning plan; approvers decide them on the page <strong>«Development requests»</strong>.</p>
+<p><img class="shot" loading="lazy" alt="Development requests" src="../images/en/21-career-requests.png"></p>
 <h3>Who sees it</h3>
 <ul><li><strong>Sending a request (employee):</strong> <code>career_requests.create</code> (Send a development request), scope: all. Held by the Employee role; the button «Request learning outside the plan» is in «Learning plan». The employee follows the requests in «Learning plan», then «My requests».</li><li><strong>The approvers' page:</strong> view permission <code>career_requests.view</code> (View the «development requests» page), scopes: unit, unit and below, company, all; default <strong>unit and below</strong>. The head role of every unit holds <code>career_requests.view</code>, <code>career_requests.approve</code>, <code>career_requests.reject</code> and <code>career_requests.export</code> at «unit and below».</li><li>It does not need platform admin mode.</li><li>Menu: the group «Career file», item «Development requests».</li></ul>
 <h3>What you can do</h3>
@@ -340,6 +344,7 @@
 <ul><li>The button «Request learning outside the plan» is missing: your role lacks <code>career_requests.create</code>.</li><li>The request is refused at sending: nobody holds the approver post above you; ask HR to set the leader of the unit.</li><li>The page is empty: «There are no development requests yet» or nothing is with you; try «All requests».</li></ul>
 <h2 id="s17">17. Career-path content</h2>
 <p>«Career-path content» is the HR page that prepares the career path of each job title. The job titles are listed with the state of each one's path. For a title you upload its <strong>title file</strong> (one file with the job description, the career development, the learning plan and the required items), review what the system read from it, fix details by hand, then set the path <strong>Ready</strong> so that the people holding the title see it and are asked to acknowledge it. The page also reopens the acknowledgement, imports the learning links from an Excel file and exports the list.</p>
+<p><img class="shot" loading="lazy" alt="Career-path content" src="../images/en/22-career-content.png"></p>
 <h3>Who sees it</h3>
 <ul><li>View permission: <code>career_content.view</code> (View the career-path content), scope: all.</li><li>Default roles: none of the standard roles holds it except the <strong>Administrator</strong>. The platform manager gives it, with the keys below, to the HR role from the permissions page. Administrative permissions that wait for platform admin mode work only while the mode is on.</li><li>Menu: the group «Career file», item «Career-path content». The Employee role does not see it.</li></ul>
 <h3>What you can do</h3>
@@ -359,6 +364,7 @@
 <ul><li>«Save» is off: extract the file first, or fix the parts listed under «Parts that need review».</li><li>«The text could not be read»: try pasting the text of the file.</li><li>The path cannot be set ready: the panel names the missing parts.</li><li>You see the workspace but cannot edit it: you do not hold <code>career_content.edit</code>.</li></ul>
 <h2 id="s18">18. Evaluation cycle</h2>
 <p>«Evaluation cycle» is the HR page that runs the yearly performance evaluation. The fiscal year runs from April to March. HR uploads the evaluation file (the template of each of the five development stages, the grade scale and the fiscal-year card), checks that the cycle is ready, opens it, moves it from stage to stage by its dates, keeps the catalog of the extra component and the automatic reminders, and closes it at the end.</p>
+<p><img class="shot" loading="lazy" alt="Evaluation cycle" src="../images/en/23-performance-cycle.png"></p>
 <h3>Who sees it</h3>
 <ul><li>View permission: <code>performance.cycle_view</code> (View the «evaluation cycle» page), scope: all.</li><li>Default roles: none of the standard roles holds it except the <strong>Administrator</strong>; the platform manager gives it, with the keys below, to the HR role from the permissions page. Administrative permissions that wait for platform admin mode work only while the mode is on.</li><li>Menu: the group «Career file», item «Evaluation cycle».</li><li>Before the cycle opens the page is in view mode; employees see «The evaluation cycle has not been opened yet» in their own page.</li></ul>
 <h3>What you can do</h3>
@@ -382,6 +388,7 @@
 <ul><li>«The cycle cannot open before the evaluation file is uploaded»: read the readiness card to see what is missing.</li><li>«A cycle for this year exists already»: choose the right fiscal year.</li><li>Warning «nobody could calibrate or approve»: ask the platform manager to give one person the calibration and approval keys.</li><li>The action failed: the stage may have changed meanwhile; reload the page.</li></ul>
 <h2 id="s19">19. Calibration and approval</h2>
 <p>«Calibration and approval» is the page where one person compares the scores that managers gave, adjusts them by half points with a written reason, then approves the results, tells every employee individually and decides the objections that employees raise. Employees never see scores before this page's approval and the individual notification.</p>
+<p><img class="shot" loading="lazy" alt="Calibration and approval" src="../images/en/24-performance-calibration.png"></p>
 <h3>Who sees it</h3>
 <ul><li>View permission: <code>performance.calibration_view</code> (View the «calibration and approval» page), scope: all.</li><li>Who holds it: the platform manager gives it, from the permissions page, to HR (who see the page <strong>read only</strong>) and to the person who calibrates and approves. Nobody holds it by default except the <strong>Administrator</strong>; it is not in the head role of units.</li><li>The two working keys <code>performance.calibrate</code> and <code>performance.approve</code> are meant to be held by <strong>one person</strong>, appointed by the platform manager from the permissions page. HR sees the page without editing: it can neither calibrate nor approve.</li><li>Administrative permissions that wait for platform admin mode work only while the mode is on.</li><li>Menu: the group «Career file», item «Calibration and approval».</li></ul>
 <h3>What you can do</h3>
@@ -400,6 +407,7 @@
 <ul><li>You cannot edit as HR: HR sees the page read only; the keys to calibrate and approve belong to one appointed person.</li><li>«Could not save»: check that the calibration stage is on and the employee's manager has sent the evaluation.</li><li>The adjustment is refused: it must be a multiple of 0.5 between −10 and +10 and have a reason.</li></ul>
 <h2 id="s20">20. Team evaluation</h2>
 <p>«Team evaluation» is the manager's page in the evaluation cycle. You evaluate the members of your team in the manager's stage: the direct manager first, then the upper manager reviews and may change it. For each person you enter the results scores and rate the behaviours, and you see the final score live. A button on each row records the minutes of the milestones of the year.</p>
+<p><img class="shot" loading="lazy" alt="Team evaluation" src="../images/en/25-performance-team.png"></p>
 <h3>Who sees it</h3>
 <ul><li>View permission: <code>performance.team_view</code> (View the «team evaluation» page), scopes: unit and below, all. The default scope is <strong>unit and below</strong>.</li><li>Default roles: the <strong>head role of every unit</strong> holds the view, evaluate and export keys at «unit and below», and also the milestone keys. The Employee role does not hold them.</li><li>It does not need platform admin mode.</li><li>Menu: the group «Career file», item «Team evaluation». People outside your unit and below do not exist for you: the system answers as if the record was not found.</li><li>Before the cycle opens the page says «The evaluation cycle is not open yet».</li></ul>
 <h3>What you can do</h3>
@@ -464,6 +472,7 @@
 <ul><li>You can read but cannot write: your role lacks the key, or your relation to the task is switched off for writing. Ask an administrator.</li><li>The edit icon disappeared: the edit time passed.</li><li>You see only the title and the conversation: you are a same-category colleague or were mentioned.</li></ul>
 <h2 id="s23">23. Task categories</h2>
 <p>Every department keeps its own categories for its tasks, for example «Reports» or «Meetings». A category is chosen when a task is created or edited, and tasks can be filtered by it. This page lists the categories and lets authorised people add, edit and delete them.</p>
+<p><img class="shot" loading="lazy" alt="Task categories" src="../images/en/26-task-tags.png"></p>
 <h3>Who sees it</h3>
 <ul><li><strong>View permission:</strong> <code>tasks.tags_view</code> («View the task tags page»). Scopes you can give: own (the person's own department), unit, unit and below, company, all.</li><li><strong>Default roles:</strong> no default role holds it, including the Employee role and the unit head role. An administrator gives it from the permissions page.</li><li>The page does not need platform admin mode. It appears in the menu under Tasks, and can be hidden by page visibility.</li></ul>
 <h3>What you can do</h3>
@@ -482,6 +491,7 @@
 <ul><li>The category list is empty when creating a task: your department has no active category yet. Ask someone with <code>tasks.tag_create</code> to add one.</li><li>You cannot delete a category: tasks use it. Deactivate it.</li></ul>
 <h2 id="s24">24. Task policies</h2>
 <p>This page holds every number that governs tasks for one company (when a task counts as urgent, when a reminder is sent, how long an objection waits, and so on) and, below them, the table of who may do what in task conversations. Every number has limits, so no value can switch tasks off.</p>
+<p><img class="shot" loading="lazy" alt="Task policies" src="../images/en/27-task-policies.png"></p>
 <h3>Who sees it</h3>
 <ul><li><strong>View permission:</strong> <code>tasks.policies_view</code> («View the task policies page»), scope all.</li><li><strong>Needs platform admin mode:</strong> yes. The page appears in the menu only while admin mode is on.</li><li><strong>Default roles:</strong> no ordinary role holds it (not the Employee role and not the unit head role); it belongs to the platform administrator. The table of conversation rules needs <code>tasks.comment_rules_view</code> («View the comment rules matrix»).</li></ul>
 <h3>What you can do</h3>
@@ -524,6 +534,7 @@
 <ul><li>You cannot find the department you want: it may be paused, stopped, not started, or without a manager.</li><li>You see no «Incoming» tab: no tickets are assigned to you or your department.</li><li>The «Reopen» button vanished: the reopen days are over; send a new ticket.</li></ul>
 <h2 id="s26">26. Ticket setup</h2>
 <p>Here the leader of a unit decides whether the unit receives tickets, what the sender reads about it, which kinds of ticket it takes, who handles each kind, and how long each step may take. Any unit of the organization structure (sector, department, section, unit, office) can be a ticket desk.</p>
+<p><img class="shot" loading="lazy" alt="Ticket setup" src="../images/en/28-ticket-setup.png"></p>
 <h3>Who sees it</h3>
 <ul><li><strong>View permission:</strong> <code>tickets.setup_view</code> («View the ticket setup page»). Scopes: own (the units you lead and every unit below), unit, unit and below, company, all.</li><li><strong>Needs platform admin mode:</strong> yes. Without it the page only says that admin mode must be turned on.</li><li><strong>Default roles:</strong> the head role created automatically for every unit holds the setup keys at «unit and below». Ordinary employees do not.</li><li>You see only the units inside your scope; a person with scope «all» sees every unit.</li></ul>
 <h3>What you can do</h3>
@@ -548,6 +559,7 @@
 <ul><li>«This page works in platform admin mode»: turn the mode on from the top of the page.</li><li>«Active» is refused: the unit has no manager yet.</li><li>A sender says the unit is not offered: check that reception is Active, the start date has come, and the unit has at least one active type.</li></ul>
 <h2 id="s27">27. Ticket figures</h2>
 <p>The figures page shows how the ticket desks performed over the last 30 days: how many tickets are open, how many arrived, how fast they were answered and solved, how they ended, and what needs action today. It shows counts only.</p>
+<p><img class="shot" loading="lazy" alt="Ticket figures" src="../images/en/29-ticket-figures.png"></p>
 <h3>Who sees it</h3>
 <ul><li><strong>View permission:</strong> <code>tickets.figures_view</code> («View the ticket figures page»). Scopes: own (the units you lead and every unit below), unit, unit and below, company, all.</li><li><strong>Needs platform admin mode:</strong> yes.</li><li><strong>Default roles:</strong> the head role of every unit holds it at «unit and below». A platform administrator sees every department.</li></ul>
 <h3>What you can do</h3>
@@ -645,6 +657,7 @@
 <h2 id="s31">31. Sent e-mail log</h2>
 <h3>What this page is</h3>
 <p>It shows every e-mail the platform sent and its status: <strong>Pending</strong>, <strong>Sent</strong> or <strong>Failed</strong>, with the reason for a failure. Use it to know whether an activation invitation reached an employee, or why a notice did not arrive by e-mail. <strong>The message text itself is not stored.</strong></p>
+<p><img class="shot" loading="lazy" alt="Sent e-mail log" src="../images/en/30-email-log.png"></p>
 <h3>Who sees it</h3>
 <div class="tbl"><table><thead><tr><th>Item</th><th>Detail</th></tr></thead><tbody><tr><td>View key</td><td><code>notifications.email_log</code> (View the sent e-mail log page)</td></tr><tr><td>Default scope</td><td>All</td></tr><tr><td>Platform admin mode</td><td>Required</td></tr><tr><td>Default roles that hold it</td><td>Only the built-in «System Admin» role; the «Employee» role and the unit head roles do not hold it</td></tr></tbody></table></div>
 <h3>What you can do</h3>
@@ -665,6 +678,7 @@
 <h2 id="s32">32. Settings</h2>
 <h3>What this page is</h3>
 <p>One page with tabs that gathers the settings of services and messages: <strong>Translation</strong>, <strong>E-mail</strong>, <strong>Bot protection</strong>, <strong>AI</strong>, <strong>E-mail templates</strong>, <strong>Notification templates</strong>, <strong>Welcome tour</strong> and <strong>Security</strong>. Each tab shows only to whoever holds its view key.</p>
+<p><img class="shot" loading="lazy" alt="Settings" src="../images/en/31-settings.png"></p>
 <h3>Who sees it</h3>
 <div class="tbl"><table><thead><tr><th>Tab</th><th>View key</th><th>Hidden as page</th></tr></thead><tbody><tr><td>Translation</td><td><code>integrations.translation_view</code> (View the translation settings page)</td><td>Translation settings</td></tr><tr><td>E-mail</td><td><code>integrations.email_view</code> (View the e-mail settings page)</td><td>E-mail settings</td></tr><tr><td>Bot protection</td><td><code>integrations.captcha_view</code> (View the bot protection page)</td><td>Bot protection</td></tr><tr><td>AI</td><td><code>integrations.ai_view</code> (View the AI settings page)</td><td>AI service</td></tr><tr><td>E-mail templates</td><td><code>templates.email_view</code> (View e-mail templates)</td><td>E-mail templates</td></tr><tr><td>Notification templates</td><td><code>templates.notification_view</code> (View notification templates)</td><td>Notification templates</td></tr><tr><td>Welcome tour</td><td><code>tour.settings_view</code> (View the welcome tour settings)</td><td>Welcome tour</td></tr><tr><td>Security</td><td><code>security_settings.view</code> (View the security settings (trusted devices and request limits))</td><td>Security</td></tr></tbody></table></div>
 <ul><li>Default scope of all these keys: All.</li><li>Platform admin mode: required; the page appears in the menu after you turn it on.</li><li>Roles: the built-in «System Admin» role holds all these keys and no other role holds them by default (the «Platform configurator» role starts without permissions and an administrator gives it the keys it needs). If you hold the key of no tab, the message «You may not view any of these settings.» appears.</li></ul>

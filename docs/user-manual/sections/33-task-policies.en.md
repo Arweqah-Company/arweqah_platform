@@ -2,6 +2,8 @@
 
 This page holds every number that governs tasks for one company (when a task counts as urgent, when a reminder is sent, how long an objection waits, and so on) and, below them, the table of who may do what in task conversations. Every number has limits, so no value can switch tasks off.
 
+![Task policies](../images/en/27-task-policies.png)
+
 ### Who sees it
 
 - **View permission:** `tasks.policies_view` («View the task policies page»), scope all.

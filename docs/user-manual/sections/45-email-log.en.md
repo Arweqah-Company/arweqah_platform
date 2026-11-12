@@ -4,6 +4,8 @@
 
 It shows every e-mail the platform sent and its status: **Pending**, **Sent** or **Failed**, with the reason for a failure. Use it to know whether an activation invitation reached an employee, or why a notice did not arrive by e-mail. **The message text itself is not stored.**
 
+![Sent e-mail log](../images/en/30-email-log.png)
+
 ### Who sees it
 
 | Item | Detail |

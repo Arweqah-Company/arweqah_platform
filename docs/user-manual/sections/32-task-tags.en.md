@@ -2,6 +2,8 @@
 
 Every department keeps its own categories for its tasks, for example «Reports» or «Meetings». A category is chosen when a task is created or edited, and tasks can be filtered by it. This page lists the categories and lets authorised people add, edit and delete them.
 
+![Task categories](../images/en/26-task-tags.png)
+
 ### Who sees it
 
 - **View permission:** `tasks.tags_view` («View the task tags page»). Scopes you can give: own (the person's own department), unit, unit and below, company, all.

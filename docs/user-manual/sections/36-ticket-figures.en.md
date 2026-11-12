@@ -2,6 +2,8 @@
 
 The figures page shows how the ticket desks performed over the last 30 days: how many tickets are open, how many arrived, how fast they were answered and solved, how they ended, and what needs action today. It shows counts only.
 
+![Ticket figures](../images/en/29-ticket-figures.png)
+
 ### Who sees it
 
 - **View permission:** `tickets.figures_view` («View the ticket figures page»). Scopes: own (the units you lead and every unit below), unit, unit and below, company, all.

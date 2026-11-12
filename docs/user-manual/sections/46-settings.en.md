@@ -4,6 +4,8 @@
 
 One page with tabs that gathers the settings of services and messages: **Translation**, **E-mail**, **Bot protection**, **AI**, **E-mail templates**, **Notification templates**, **Welcome tour** and **Security**. Each tab shows only to whoever holds its view key.
 
+![Settings](../images/en/31-settings.png)
+
 ### Who sees it
 
 | Tab | View key | Hidden as page |
