@@ -19,7 +19,7 @@ describe('Welcome tour (FR-67)', () => {
       const agent = await t.factories.signIn(await t.factories.user());
       const first = (await agent.get('/api/me/tour/general').expect(200)).body;
       expect(first).toMatchObject({ tour: 'general', status: 'none', newSteps: [] });
-      expect(keys(first)).toEqual(['welcome', 'account-menu', 'profile', 'security', 'my-access', 'sign-out', 'language-theme', 'notifications', 'sidebar', 'home', 'tickets', 'ticket-new', 'ticket-views', 'tasks', 'task-new', 'task-views', 'task-open', 'employees', 'employee-history', 'employee-photo', 'directory', 'org', 'org-views', 'career-profile', 'finish']);
+      expect(keys(first)).toEqual(['welcome', 'account-menu', 'profile', 'security', 'my-access', 'docs', 'sign-out', 'language-theme', 'notifications', 'sidebar', 'home', 'tickets', 'ticket-new', 'ticket-views', 'tasks', 'task-new', 'task-views', 'task-open', 'employees', 'employee-history', 'employee-photo', 'directory', 'org', 'org-views', 'career-profile', 'finish']);
 
       expect((await agent.post('/api/me/tour/general/complete').expect(200)).body.status).toBe('completed');
       expect((await agent.get('/api/me/tour/general').expect(200)).body).toMatchObject({ status: 'completed', newSteps: [] });
