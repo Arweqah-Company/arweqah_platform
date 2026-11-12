@@ -73,13 +73,6 @@ async function apiSession() {
   return cookies;
 }
 
-/** A page with a running animation can stall a screenshot: freeze animations and retry once. */
-async function shoot(page, path) {
-  for (let attempt = 1; ; attempt++) {
-    try { return await page.screenshot({ path, animations: 'disabled', timeout: 60000 }); } catch (err) { if (attempt >= 2) throw err; }
-  }
-}
-
 async function captureLang(browser, lang, cookies) {
   const dir = join(OUT, lang);
   mkdirSync(dir, { recursive: true });
