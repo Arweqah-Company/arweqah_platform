@@ -51,9 +51,10 @@ function page(lang, { body, toc }) {
 <link rel="icon" href="/brand/favicon-32.png"><link rel="stylesheet" href="../docs.css"></head>
 <body><a class="skip" href="#main">${t.skip}</a>
 <div class="layout"><aside class="side"><div class="side-in">
-<img src="/brand/logo-color-on-dark-horizontal.png" alt="${t.logoAlt}"><p class="label">${t.toc}</p><nav aria-label="${t.toc}">${nav}</nav>
+<img src="/brand/logo-color-on-dark-horizontal.png" alt="${t.logoAlt}"><details class="toc"><summary>${t.toc}</summary><nav aria-label="${t.toc}">${nav}</nav></details>
 <a class="lang" href="${t.otherHref}" hreflang="${lang === 'ar' ? 'en' : 'ar'}">${t.other}</a></div></aside>
-<main id="main">${body}<footer>© ${new Date().getFullYear()} ${t.foot}</footer></main></div></body></html>
+<main id="main">${body}<footer>© ${new Date().getFullYear()} ${t.foot}</footer></main></div>
+<script>{ const toc = document.querySelector(".toc"), wide = matchMedia("(min-width: 861px)"); toc.open = wide.matches; wide.addEventListener("change", (e) => { toc.open = e.matches; }); }</script></body></html>
 `;
 }
 
