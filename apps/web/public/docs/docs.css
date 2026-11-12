@@ -14,12 +14,16 @@ html { scroll-behavior: smooth; scroll-padding-top: 1.5rem; }
 body { margin: 0; font-family: Tajawal, system-ui, sans-serif; background: var(--page); color: var(--fg); line-height: 1.8; }
 a { color: var(--link); }
 :focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
-.skip { position: absolute; inset-inline-start: 1rem; top: -4rem; background: var(--ink); color: var(--cream); padding: .5rem 1rem; border-radius: 8px; }
+.skip { position: fixed; z-index: 10; inset-inline-start: 1rem; top: -4rem; background: var(--ink); color: var(--cream); padding: .5rem 1rem; border-radius: 8px; }
 .skip:focus { top: 1rem; }
 .layout { display: flex; gap: 1rem; padding: 1rem; max-width: 1400px; margin: 0 auto; align-items: flex-start; }
 .side { position: sticky; top: 1rem; width: 19rem; flex: none; max-height: calc(100vh - 2rem); background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 10px; }
 .side-in { background: var(--ink); color: var(--cream); border-radius: 16px; padding: 1.25rem 1rem; max-height: calc(100vh - 2rem - 22px); overflow: auto; }
 .side-in img { width: 11rem; height: auto; display: block; margin-bottom: 1.25rem; }
+.toc summary { font-size: .8rem; color: rgb(215 210 203 / .8); margin: 0 0 .5rem; cursor: pointer; list-style: none; }
+.toc summary::-webkit-details-marker { display: none; }
+.toc summary::after { content: " ▾"; }
+.toc:not([open]) summary { margin: 0; }
 .side-in .label { font-size: .8rem; color: rgb(215 210 203 / .8); margin: 0 0 .5rem; }
 .side-in nav a { display: block; color: rgb(255 252 238 / .85); text-decoration: none; padding: .4rem .75rem; border-radius: 8px; font-size: .95rem; }
 .side-in nav a:hover { background: rgb(255 252 238 / .1); }
@@ -42,7 +46,7 @@ footer { color: var(--muted); font-size: .85rem; margin-top: 3rem; border-top: 1
 .card a.btn { display: block; margin-top: .75rem; background: var(--ink); color: var(--cream); padding: .75rem 1rem; border-radius: 8px; text-decoration: none; font-weight: 500; }
 .card a.btn:hover { background: #12303c; }
 .card a.btn:focus-visible { outline: 2px solid var(--petrol); outline-offset: 2px; }
-@media (max-width: 860px) { .layout { flex-direction: column; padding: .75rem; } .side { position: static; width: 100%; max-height: none; } .side-in { max-height: none; } }
+@media (max-width: 860px) { .layout { flex-direction: column; align-items: stretch; padding: .75rem; } main { padding: 1.25rem 1rem; overflow-wrap: anywhere; } .toc summary { font-size: 1rem; padding: .5rem .25rem; min-height: 44px; } .side-in img { width: 9rem; margin-bottom: .5rem; } h1 { font-size: 1.5rem; } h2 { font-size: 1.2rem; } .side { position: static; width: 100%; max-height: none; } .side-in { max-height: none; } }
 h3 { font-size: 1.1rem; margin: 1.5rem 0 .25rem; color: var(--link); }
 ul, ol { margin: .5rem 0; padding-inline-start: 1.5rem; max-width: 70ch; }
 li { margin: .25rem 0; }
