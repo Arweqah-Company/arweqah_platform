@@ -52,7 +52,7 @@ The approve and reject icons appear only on a request that is with you.
 | Is the course in your learning plan? | Whether the course is a unit of your plan that you want to take at another provider, or something outside the plan | Yes (one of the two) | «In the learning plan» (up to 5,000 riyals goes to the direct manager) or «Outside the plan» (needs the sector head at least) |
 | Retention agreement for funded training | The agreement you sign when the company pays for the training, attached for the approver to see | No | One file, PDF, PNG or JPEG, up to 10 MB |
 
-While you type, the dialog shows «Decided by», the name of the approver, and «Left of your yearly budget». If the cost is above what is left it warns but still lets you send. If nobody holds the approver post it says «Nobody holds the approver post yet: ask HR to set the unit leader.» and the request is refused.
+While you type, the dialog shows «Decided by», the name of the approver, and «Left of your yearly budget». If the cost is above what is left it warns but still lets you send. If the approver post is vacant, or held by you, the request goes up to the next level; only when nobody holds any post that can decide it does the dialog say «Nobody holds the approver post yet: ask HR to set the unit leader.» and the request is refused.
 
 **Reject a request (dialog «Reject the request», by the approver)**
 

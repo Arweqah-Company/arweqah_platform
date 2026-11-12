@@ -76,7 +76,7 @@ The assignee, the tag and the repetition are not in this window. If two people s
 
 | Field | What it means / what to type | Required | Allowed values / rules |
 |---|---|---|---|
-| Note (optional) | A word to the owner about the decision; it is kept in the history. | No | Up to 5000 characters. |
+| Note (optional) | A word to the owner about the decision; it is kept in the history for Approve and Reject (Send again does not keep a note). | No | Up to 5000 characters. |
 
 **Object to the task** (button **Object**)
 

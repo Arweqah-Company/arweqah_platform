@@ -103,11 +103,11 @@ There is no attachment field on a task: files are added in the task conversation
 2. **Given to another person:** the task starts as «To do» at once. The assignee receives the notice «New task». If «Needs a review» is on, the reviewer is the creator.
 3. **Given to yourself, with a manager:** the task starts as «Pending approval» and the manager receives «Approval requested». The manager opens the task and clicks **Approve** (`tasks.approve`) or **Reject** (`tasks.reject`), with an optional note. Approving makes it «To do»; rejecting makes it «Rejected». The creator is notified of the decision.
 4. **Rejected:** the owner edits the task and clicks **Send again** (`tasks.resubmit`); it goes back to the manager as «Pending approval». **Given to yourself, with no manager:** nobody has to approve, the task is «To do» at once, and the review switch has no effect because there is nobody to review.
-5. **Objection:** while the task is «To do», an assignee who got it from someone else may click **Object** and choose a reason. The person who gave the task answers: keep it with the assignee, or accept and give it to someone else (who is notified). Unanswered, the objection lapses after 3 working days.
+5. **Objection:** while the task is «To do», an assignee who got it from someone else may click **Object** and choose a reason. The person who gave the task answers: keep it with the assignee, or accept and give it to someone else (who is notified). Unanswered, the objection lapses after 3 working days by default (set in Task policies).
 6. **Start and work:** the assignee (or a manager of the team) moves the task to «In progress» by dragging the card or with «Move to». The assignee logs the time worked with **Log time**.
 7. **Finish:** the assignee moves the task to «Done». If the task needs a review it goes to «Awaiting review» and the reviewer is notified. If the task is late beyond the allowed days, the window «When did the work end?» asks for the real day.
 8. **Review:** the reviewer accepts (the task becomes «Done») or sends it back to «In progress» with a required note; the assignee is notified.
-9. **After closing:** the person who gave the task, or a manager, may reopen a «Done» task. A repeating task creates the next one when it is closed. A standalone task is archived 30 days after it closes, and **Restore** brings it back in its earlier status.
+9. **After closing:** the person who gave the task, or a manager, may reopen a «Done» task. A repeating task creates the next one when it is closed. A standalone task is archived 30 days after it closes by default (set in Task policies), and **Restore** brings it back in its earlier status.
 
 | Status | Meaning | Who can move it (permission key) | Moves to |
 |---|---|---|---|

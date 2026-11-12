@@ -116,7 +116,7 @@ The import takes up to 1000 rows.
 
 - The code and the role are made in the same save; the role is removed with the title.
 - Every night, Riyadh time, (00:10) employees' direct managers are recomputed from the reporting line of titles (a manager HR chose by hand stays); the roles of titles are refreshed with the other automatic roles at 03:00.
-- A change of «Reports to» moves the managers of the holders at the next recomputation.
+- A change of «Reports to» moves the automatically calculated managers of the holders (not a manager HR chose by hand) at the next recomputation.
 
 #### What each person sees
 

@@ -84,7 +84,7 @@ The sign-in has three small forms, one after the other. Nothing here is a permis
 
 1. **You** open the platform and either press «Sign in with Microsoft» or type your work e-mail and press «Continue». If bot protection is on, you solve its check first.
 2. **The platform** looks for your account. It never says whether the e-mail exists: a wrong e-mail or a wrong code gives the same message.
-3. **You** enter the 6-digit code from your authenticator app (also after Microsoft) and press «Sign in» (or «Continue»).
+3. **You** enter the 6-digit code from your authenticator app (also after Microsoft, unless this is a trusted device) and press «Sign in» (or «Continue»).
 4. **The platform** checks the code, opens a session in a secure cookie that the page's scripts cannot read, and takes you to the page you asked for, or Home.
 5. **The sign-in is written to the audit log** (category «Sign-in and security»). Nobody else is notified.
 
@@ -100,7 +100,7 @@ The sign-in has three small forms, one after the other. Nothing here is a permis
 | Status | Meaning | Who can change it (permission key) | Moves to |
 |---|---|---|---|
 | App not linked yet | The account exists but the first-time link was not used | HR can resend the invitation (`employees.resend_invite`) | Linked, once you confirm the first code |
-| Linked | The app is linked; every sign-in asks for a code | HR can reset it (`employees.reset_authenticator`) | App not linked yet |
+| Linked | The app is linked; every sign-in asks for a code (a trusted device skips it only after a Microsoft sign-in) | HR can reset it (`employees.reset_authenticator`) | App not linked yet |
 | Locked for a while | 5 wrong codes in a row | Nobody; it ends by itself after 15 minutes | Linked |
 | Signed in (session) | A session open for up to 12 hours | You, by signing out or ending it on the Security page; it also ends when your account is deactivated | Signed out |
 | Account deactivated | HR stopped the account; sign-in is refused | HR (`employees.deactivate`, «Deactivate and activate employees») | Active again if HR reactivates it |

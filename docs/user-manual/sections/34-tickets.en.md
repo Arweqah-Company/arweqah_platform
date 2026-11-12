@@ -131,7 +131,7 @@ Replying never changes the status by itself, except a sender's reply while the t
 
 - **The sender** sees the tickets they sent in «My tickets», with the full conversation and the buttons that fit the status (reply, confirm, not done yet, reopen).
 - **The handler** sees the tickets assigned to them, or those of the department they manage or whose reply scope they hold, in «Unit inbox».
-- **The unit head** (with the head role at «unit and below») sees and answers the tickets of the unit and below, and the people's tickets in «My team». A personal ticket is seen only by its sender and its assignee, never by the head or by platform administrators.
+- **The unit head** (with the head role at «unit and below») sees and answers the tickets of the unit and below, and the people's tickets in «My team». A personal ticket is seen only by its sender and its assignee, not by the head or by platform administrators merely because of that role (a head who is the sender or the assignee sees it as such).
 
 ### Business rules
 

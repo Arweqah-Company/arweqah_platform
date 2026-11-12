@@ -188,7 +188,7 @@ The page is made of tabs, each with its own forms. Secret values (keys, password
 |---|---|---|---|
 | SMTP: Server | The mail server's name, given by your mail provider (for Microsoft 365: `smtp.office365.com`) | Yes | Text |
 | SMTP: Port | The door the server listens on | Yes | A whole number from 1 to 65535; 587 (default) or 465 |
-| SMTP: Secure connection (TLS) | Whether the connection is encrypted from the first moment | No | Tick for port 465; leave it off for 587, which upgrades by itself |
+| SMTP: Secure connection (TLS) | Whether the connection is encrypted from the first moment | No | Tick for port 465; leave it off for 587, which upgrades to TLS only if the server offers STARTTLS |
 | SMTP: User name | The account that logs into the mail server | No | Text; empty when the server needs no login |
 | SMTP: Password | That account's password | No (secret) | Text |
 | SMTP: Sender | The name and address the e-mails appear to come from | Yes | An address, or `Name <address>`, such as `Arweqah Platform <no-reply@arweqah.sa>` |
@@ -269,7 +269,7 @@ Whatever is in the form is what is tried; nothing from the window is saved, and 
 2. **They** open the service (click its row), fill the fields and press «Save». The platform stores the secrets encrypted and records in the audit log only the names of the fields that changed.
 3. **They** press «Try» (`integrations.<kind>_test`). The platform tries the service with exactly that data; if it works, the status becomes «Tested».
 4. **They** press «Switch on» (`integrations.<kind>_activate`). The message «… is now in use.» appears, and the service starts working. Only one service per kind is in use.
-5. **If messages later fail,** the administrator reads the E-mail log for the error and the server's reply, then fixes the data and repeats steps 3 and 4.
+5. **If messages later fail,** the administrator reads the E-mail log for the error and the server's reply, then fixes the data, saves it (step 2), and repeats steps 3 and 4.
 
 | Status | Meaning | Who can change it (permission key) | Moves to |
 |---|---|---|---|
@@ -277,7 +277,7 @@ Whatever is in the form is what is tried; nothing from the window is saved, and 
 | Not tested | The data is complete but was never tried, or was changed after the last test | `integrations.<kind>_test` | Tested (test passed) |
 | Tested | A test passed with exactly this saved data | `integrations.<kind>_edit` (changing it sends it back to «Not tested») | In use |
 | In use | The service the platform really uses | `integrations.<kind>_activate` (switch off), or saving changed data, which switches it off by itself | Not in use |
-| Not in use | Not used; the server's own settings work instead, if they exist | `integrations.<kind>_activate` (switch on, only from «Tested») | In use |
+| Not in use | Not used; for translation and e-mail the server's own settings work instead, if they exist (bot protection then asks no check and the AI button is not offered); another service of the same kind may be the one in use | `integrations.<kind>_activate` (switch on, only from «Tested») | In use |
 
 **Rewording a message (templates)**
 

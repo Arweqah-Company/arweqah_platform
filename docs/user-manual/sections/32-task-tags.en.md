@@ -1,6 +1,6 @@
 ## Task tags
 
-Every unit keeps its own tags for its tasks, for example «Reports» or «Meetings». A tag is chosen when a task is created or edited, and tasks can be filtered by it. This page lists the tags and lets authorised people add, edit and delete them.
+Every unit keeps its own tags for its tasks, for example «Reports» or «Meetings». A tag is chosen when a task is created (the edit window has no tag field), and tasks can be filtered by it. This page lists the tags and lets authorised people add, edit and delete them.
 
 ![Task tags](../images/en/26-task-tags.png)
 

@@ -72,7 +72,7 @@ Export columns offered: When, By, Category, Action, IP address. Export needs `au
 **How an entry is born**
 
 1. **Someone or something acts** on the platform: a person signs in, edits an employee, changes a role, moves a task, saves a setting, or a background job runs.
-2. **The platform** writes one entry in the same breath: who (or «System» for automatic events), what (a plain sentence and its category), the record concerned, the IP address and the changes. A field named like a password, secret, token, national ID or IBAN is stored as «[redacted]».
+2. **The platform** writes one entry in the same breath: who (or «System» for automatic events), what (a plain sentence and its category), the record concerned, the IP address and the changes. A field named like a password, secret, token, national ID or IBAN is stored as «[redacted]», by the field's name and only at the top level of the change (see the rules below for what is not covered).
 3. **The entry is chained** to the one before it with a digital fingerprint, and the database refuses to change or delete it.
 4. **An auditor** with `audit.view` opens the page in admin mode, filters by category, action, person and dates, and opens an entry to read it. Nobody is notified by the page.
 5. **Every Sunday at 04:00 (Riyadh)** the platform checks the whole chain; if it is broken at some entry, it logs an error and records that failure as an entry itself (`audit.verify` is the key for this check; there is no button).

@@ -91,7 +91,7 @@ The page has two tabs: **Settings** and **Types**.
 3. In **Settings** the leader sets reception to «Active», writes the description and the durations, and presses **Save**. The settings are stored and the change is recorded in the audit log.
 4. In **Types** the leader adds the kinds of request, each with its assignee and optional own duration, and presses **Save**.
 5. From now on employees see the unit when they press **New ticket**: it is listed if reception is Active (or Paused, disabled), its start date has come, and it has at least one active type. The ticket workflow then follows the Tickets page.
-6. When the leader changes the settings later, only new tickets use the new values; changing a type's assignee affects new tickets, and also open personal tickets whose old assignee is no longer active (the manager is told how many moved, never which).
+6. When the leader changes the settings later, new tickets use the new values, and the stale-ticket limit applies at once to open tickets; changing a type's assignee affects new tickets, and also open personal tickets whose old assignee is no longer active (the manager is told how many moved, never which).
 
 | Status (reception) | Meaning | Who can move it (permission key) | Moves to |
 |---|---|---|---|

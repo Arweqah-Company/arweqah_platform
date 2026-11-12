@@ -72,7 +72,7 @@ Each stage is a button in the stepper; clicking it explains who works in it, wha
 
 ### Fields (form inputs)
 
-HR has eight forms here. The first four set up the evaluation file; the others run the cycle. Basic idea of the score, so the fields make sense: the **basic** score is the results score (0 to 100 per criterion, weighted by the criteria shares) times the **results weight**, plus the behaviour score times the **behaviour weight**; then the **extra component** (learning, internal initiatives, contribution to growth) is added up to its points; the final score never goes above the **cap** of the stage.
+HR has eight forms here. The first four set up the evaluation file; the others run the cycle. Basic idea of the score, so the fields make sense: the **basic** score is the results score (0 to 100 per criterion, weighted by the criteria shares) times the **results weight**, plus the behaviour score times the **behaviour weight** (the weights are percentages, so the sum is divided by 100: scores 80 and 75 with weights 60 and 40 give 78); then the **extra component** (learning, internal initiatives, contribution to growth) is added up to its points; the final score never goes above the **cap** of the stage.
 
 **Upload the evaluation file (dialog «Upload the performance evaluation file (all stages)»)**
 

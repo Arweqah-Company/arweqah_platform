@@ -145,7 +145,7 @@ The file is an Excel sheet (download the template first), up to 1,000 rows. A fi
 The content of a title lives in two states, **Draft** and **Ready**, and a version number that grows at every save.
 
 1. HR opens the title in the list and presses «Upload the title file».
-2. The file is read: «Extract» fills the review table. Nothing is saved yet. If a part «Needs review», fix it (or press «Analyse with AI», then review) and extract again.
+2. The file is read: «Extract» fills the review table. Nothing is saved yet. If a part «Needs review», fix the text and extract again, or press «Analyse with AI» and review its answer. Do not extract again after an AI answer: extracting again replaces it with the fixed reader's reading.
 3. HR presses «Save the extracted content»: the content is saved (a path that was never set ready stays a **draft**; one already ready stays ready) and the version goes up. Any detail can then be edited by hand in the workspace and saved with «Save changes» (the version goes up again).
 4. When the panel says «Every part is complete: the path can be set ready», HR presses «Set the path ready» and confirms the number of holders.
 5. The holders see the path on their next sign-in and must acknowledge it (see «My career path»). HR may press «Preview» at any time to see it as they will.
