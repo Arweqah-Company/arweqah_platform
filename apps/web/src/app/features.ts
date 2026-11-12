@@ -7,6 +7,7 @@ import { careerProfileFeature } from '@/features/career-profile';
 import { companiesFeature } from '@/features/companies';
 import { integrationsFeature } from '@/features/integrations';
 import { templatesFeature } from '@/features/templates';
+import { docsFeature } from '@/features/docs';
 import { employeesFeature } from '@/features/employees';
 import { homeFeature } from '@/features/home';
 import { myAccessFeature } from '@/features/my-access';
@@ -48,6 +49,7 @@ export const FEATURES: FeatureModule[] = [
   templatesFeature,
   notificationsFeature,
   profileFeature,
+  docsFeature,
   myAccessFeature,
   securityFeature,
   tourFeature,

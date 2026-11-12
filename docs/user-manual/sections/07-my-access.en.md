@@ -11,7 +11,7 @@ A page where you read **what you may do on the platform now, and which role or g
 
 ### What you can do
 
-| Action | What happens | Permission key |
+| Action | What happens | Permission |
 |---|---|---|
 | Read «My roles» | You see your roles, each marked «Automatic from the system» or «Given to you» | `my_access.view` (View my access page) |
 | Browse the table | You see every permission: «What you can do», «Area», «Reach» and «Source», grouped by area | `my_access.view` |
@@ -43,6 +43,45 @@ A page where you read **what you may do on the platform now, and which role or g
 
 
 Look at the «Source» column. If it is an automatic role (such as head of a unit), it changes when your position in the structure changes.
+
+### Fields (form inputs)
+
+The page is read-only. It has a search box, three filters, the export window and the code window of platform admin mode.
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Search my permissions | Finds permissions by the permission, the area or where it comes from | No | Free text |
+| Area | Narrows to one section of the platform (tasks, tickets, employees…) | No | The areas of the permissions you hold |
+| Reach | Narrows to permissions of one reach | No | Own record only, their unit, their unit and 1 to 5 levels below, their unit and below, their whole company, all companies |
+| Source | Narrows to permissions that come from one place | No | A role, a group of roles, a group of people, or given to you directly |
+| Scope (in the «Export data» window) | How many rows go into the file | Yes | «The rows shown on this page (N)» or «All results of the current search and filters (N)»; a single export holds a limited number of rows and the window says when it caps |
+| Columns | Which columns to put in the file | Yes, at least one | «Select all» / «Clear selection»; the window shows «N of M columns» |
+| File type | The format of the file | Yes | Excel (.xlsx) or CSV (.csv) |
+
+**The window «Turn on platform admin mode»** (opened from the notice, only if you may use admin mode)
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Authenticator app code | A fresh code that proves it is really you before the administrative pages and permissions appear | Yes | Exactly 6 digits from the app (a backup code is not accepted); a new code each time and a code already used is refused; after several wrong tries it locks for a few minutes |
+
+### Workflow
+
+1. **You** open «My access» from your account menu. The platform reads your roles, groups and personal permissions once after sign-in.
+2. **You** read «My roles» (each marked «by the system» or «given to you») and the table of everything you may do, with its area, reach and source.
+3. **You** search or filter when you look for one permission, for example «export».
+4. **If something is missing,** you send the permission's name (and the export if you wish) to the system administrator, who gives it from the Permissions page or the employee form.
+5. **If a notice says your administrative role is hidden,** you press «Turn on platform admin mode», enter a fresh code, and the hidden permissions appear.
+6. **The page refreshes** by itself when admin mode changes.
+
+| Status of admin mode | Meaning | Who can change it (permission key) | Moves to |
+|---|---|---|---|
+| Off | You work as an ordinary employee; administrative permissions are hidden | You, with a fresh code (`admin_mode.use`, «Use platform admin mode») | On |
+| On | The administration pages show and their permissions count | You, by turning it off (`admin_mode.use`) | Off |
+| Ended by itself | 30 minutes passed without admin activity | Nobody; the platform ends it | Off (turn it on again when needed) |
+
+**Automatic things:** admin mode ends by itself after 30 minutes without admin activity, and each admin action moves the time forward; turning it on and off, and its automatic end, are recorded in the audit log.
+
+**What each person sees:** only your own permissions. Nothing here is edited; changes are made by the administrator elsewhere.
 
 ### Business rules
 

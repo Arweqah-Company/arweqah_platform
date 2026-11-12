@@ -1,0 +1,10 @@
+{
+  "title": "User manual",
+  "description": "How each page works: what it is for, its fields, its workflow and who may do what. Only the pages you may open are listed.",
+  "sections": "Sections",
+  "adminMode": "Needs platform admin mode",
+  "search": "Search the manual",
+  "noResults": "No section matches your search.",
+  "loadFailed": "The manual could not be loaded.",
+  "empty": "No sections to show."
+}

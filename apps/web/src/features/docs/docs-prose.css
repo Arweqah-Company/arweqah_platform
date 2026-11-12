@@ -1,0 +1,20 @@
+/* The manual's text (HTML written by scripts/build-user-manual.mjs): brand tokens only, so both themes and both directions work. */
+.manual { color: var(--color-fg); line-height: 1.8; }
+.manual h2 { font-size: 1.5rem; font-weight: 700; margin: 0 0 1rem; }
+.manual h3 { font-size: 1.125rem; font-weight: 700; margin: 2rem 0 0.75rem; padding-block-start: 1.25rem; border-block-start: 1px solid var(--color-neutral-200); }
+.manual h4 { font-weight: 700; margin: 1.25rem 0 0.5rem; }
+.manual p, .manual ul, .manual ol { margin: 0.75rem 0; max-width: 75ch; }
+.manual ul, .manual ol { padding-inline-start: 1.5rem; }
+.manual ul { list-style: disc; }
+.manual ol { list-style: decimal; }
+.manual li { margin: 0.25rem 0; }
+.manual code { font-size: 0.85em; background: var(--color-neutral-50); border: 1px solid var(--color-neutral-200); border-radius: 6px; padding: 0.05em 0.4em; direction: ltr; unicode-bidi: isolate; }
+.manual .tbl { overflow-x: auto; margin: 1rem 0; border: 1px solid var(--color-neutral-200); border-radius: 16px; }
+.manual table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.manual th { background: var(--color-neutral-50); text-align: start; color: var(--color-muted); font-weight: 700; }
+.manual th, .manual td { padding: 0.6rem 0.9rem; border-block-end: 1px solid var(--color-neutral-200); vertical-align: top; }
+.manual tr:last-child td { border-block-end: 0; }
+.manual .note { margin: 1rem 0; padding: 0.25rem 1rem; background: var(--color-petrol-50); border-inline-start: 4px solid var(--color-link); border-radius: 12px; }
+.manual .note p { margin: 0.5rem 0; }
+.manual img.shot { display: block; max-width: 100%; height: auto; margin: 1rem 0; border: 1px solid var(--color-neutral-200); border-radius: 16px; }
+.manual .perm { font-weight: 700; color: var(--color-link); }

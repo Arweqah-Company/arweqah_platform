@@ -13,7 +13,7 @@
 
 ### What you can do
 
-| Action | What happens | Permission key (label) |
+| Action | What happens | Permission |
 |---|---|---|
 | New task | Opens a popup to create a task | `tasks.create` (Create a task) |
 | Assign to someone else | Choose another person in the «Assigned to» field | `tasks.assign` (Assign a task to another person) |
@@ -41,7 +41,7 @@ The list has no import: tasks are created one by one, not from a file.
 
 1. Click **New task**.
 2. Write the title (required) and the details.
-3. Choose the person (you, by default), the category, the due date (required, not in the past), the priority, the expected time in hours, and repetition (none, daily, weekly, monthly, with an optional end date).
+3. Choose the person (you, by default), the tag, the due date (required, not in the past), the priority, the expected time in hours, and repetition (none, daily, weekly, monthly, with an optional end date).
 4. Turn on «Mark as urgent» or «Needs review» if needed.
 5. Read the line under the form: if the task is for yourself it says who approves it, or that no approval is needed. Click **Create task**.
 
@@ -60,8 +60,75 @@ The list has no import: tasks are created one by one, not from a file.
 **Find a task**
 
 1. Type in the search box: title or task number (TSK-000123).
-2. Use the filters: status, priority, person, category, stale only, overdue only, include finished and rejected, archived.
+2. Use the filters: status, priority, person, tag, stale only, overdue only, include finished and rejected, archived.
 3. Group the table by due date, status or person, and switch between table, cards and board. The page remembers your choice.
+
+### Fields (form inputs)
+
+**New task** (button **New task**; the same fields, except «Assign to», the tag and the repetition, appear in «Edit the task»)
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Title | A short name of the work; it is what people see in lists, cards and notices. | Yes | 1 to 200 characters. |
+| Details | The full description of what must be done. | No | Up to 5000 characters. |
+| Assign to | Who must do the task. Left on yourself, the task is «for yourself» and goes to your direct manager for approval (a line under the form says who approves, or that nobody does). Another person gets the task at once as «To do» and is notified. | No (yourself by default) | Only people you may give a task to: a manager to anyone under them, an employee to the manager of their department, people on the same ticket to each other, anyone to themselves (needs `tasks.assign` for others). |
+| Tag | The tag of the task (for example «Reports» or «Meetings»). It also decides which colleagues may join the task conversation (see Task details and conversation). | No («No tag») | Active tags of your unit and of the units above it; if your unit has none, the field says so. |
+| Due date | The day the work is due. It drives the reminder, the «Overdue» and «Urgent» marks and the matrix. | Yes (today by default) | A date, not in the past when creating. |
+| Priority | How important the task is; «High» makes it «important» in the matrix. | No | Low, Medium (default), High. |
+| Expected time (hours) | The estimate of the work. When the time logged passes it, the assignee and the person who gave the task are told once. | No | A number above 0, steps of 0.25 hour; empty when unknown. |
+| Repeats | Makes the system create the next task by itself when this one is closed (daily, weekly, monthly). | No | Does not repeat (default), Every day, Every week, Every month. |
+| Repeats until | The last date a repeating task may repeat. Shown only when «Repeats» is not «Does not repeat». | No | A date not before the due date; empty = no end. |
+| Urgent / «Mark as urgent» | Marks the task urgent by hand, whatever its due date. | No | On / Off (default Off). |
+| Review / «Needs a review» | The assignee cannot finish the task alone: finishing sends it to «Awaiting review» and the reviewer closes it. The reviewer is the person who gave the task (for a task you gave yourself, your approving manager). | No | On / Off (default Off). |
+
+There is no attachment field on a task: files are added in the task conversation (see Task details and conversation).
+
+**Window «Send the work back»** (moving a task from «Awaiting review» to «In progress»)
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Note | What is missing; the assignee is notified and sees the note in the history. | Yes | Up to 5000 characters. |
+
+**Window «When did the work end?»** (finishing a task more than the allowed days after its due date)
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Completion date | The real day the work ended. | Yes | A date up to today, and not further back than the «Back-dating allowed» days of the task policies (7 by default). |
+
+### Workflow
+
+**What happens when someone creates and assigns a task**
+
+1. The creator clicks **New task**, fills the form and clicks **Create the task**. The task gets a number such as TSK-000123 and the first line of its history, «Created».
+2. **Given to another person:** the task starts as «To do» at once. The assignee receives the notice «New task». If «Needs a review» is on, the reviewer is the creator.
+3. **Given to yourself, with a manager:** the task starts as «Pending approval» and the manager receives «Approval requested». The manager opens the task and clicks **Approve** (`tasks.approve`) or **Reject** (`tasks.reject`), with an optional note. Approving makes it «To do»; rejecting makes it «Rejected». The creator is notified of the decision.
+4. **Rejected:** the owner edits the task and clicks **Send again** (`tasks.resubmit`); it goes back to the manager as «Pending approval». **Given to yourself, with no manager:** nobody has to approve, the task is «To do» at once, and the review switch has no effect because there is nobody to review.
+5. **Objection:** while the task is «To do», an assignee who got it from someone else may click **Object** and choose a reason. The person who gave the task answers: keep it with the assignee, or accept and give it to someone else (who is notified). Unanswered, the objection lapses after 3 working days.
+6. **Start and work:** the assignee (or a manager of the team) moves the task to «In progress» by dragging the card or with «Move to». The assignee logs the time worked with **Log time**.
+7. **Finish:** the assignee moves the task to «Done». If the task needs a review it goes to «Awaiting review» and the reviewer is notified. If the task is late beyond the allowed days, the window «When did the work end?» asks for the real day.
+8. **Review:** the reviewer accepts (the task becomes «Done») or sends it back to «In progress» with a required note; the assignee is notified.
+9. **After closing:** the person who gave the task, or a manager, may reopen a «Done» task. A repeating task creates the next one when it is closed. A standalone task is archived 30 days after it closes, and **Restore** brings it back in its earlier status.
+
+| Status | Meaning | Who can move it (permission key) | Moves to |
+|---|---|---|---|
+| Pending approval | A task given to yourself waits for your manager. | The approver: `tasks.approve` / `tasks.reject` (never by dragging). | To do (approved) or Rejected. |
+| To do | Accepted, not started. | The assignee: `tasks.change_status`; a manager of the team: `tasks.team_change_status`. | In progress. |
+| In progress | The work is being done. | The assignee: `tasks.change_status`; a manager of the team: `tasks.team_change_status`. | Done, or Awaiting review if the task needs a review. |
+| Awaiting review | The work is finished and waits for the reviewer. | The reviewer only: `tasks.review`. | Done, or In progress (note required). |
+| Done | Finished. | The person who gave the task or a manager: `tasks.reopen`. | To do, In progress, or Awaiting review (a task that needs review). |
+| Rejected | Refused at approval. | The owner: `tasks.resubmit` (Send again). | Pending approval (or To do when there is no manager). |
+
+**Automatic things**
+
+- **Reminder:** every morning (6:00 Riyadh time) the assignee receives one reminder the number of days before the due date set in the task policies (1 by default).
+- **Overdue:** the assignee and the person who gave the task are told once when the due date passes. The marks «Urgent», «Overdue» and «Stale» are worked out from the data each time, never stored.
+- **Weekly summary:** on the company's summary day (Sunday by default, 8:00) each manager receives the number of overdue tasks of their direct reports.
+- **Objection time:** a scheduled job closes an unanswered objection after the allowed working days and notifies the giver and the assignee.
+- **Estimate:** one notice when the logged time passes the estimate.
+- **Archive:** every morning standalone tasks closed for long enough are archived and the giver is notified.
+- **Notices and audit:** assigning, approving, rejecting, status changes, objections and archiving create notices (e-mail only for the important ones, never with the title) and are recorded in the audit log and in the history of the task.
+
+**What each person sees:** the assignee sees the task under «Assigned to me»; the person who gave it under «Assigned by me»; a follower under «Following»; a manager sees their team's tasks under «My team» (within the scope of the key); the approver sees a pending task in their lists. A colleague with an open task in the same tag or a mentioned person sees only the number, title and conversation.
 
 ### Business rules
 

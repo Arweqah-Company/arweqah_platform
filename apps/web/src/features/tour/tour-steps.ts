@@ -8,6 +8,7 @@ export const SHELL_STEPS: TourStepUi[] = [
   { key: 'profile', target: '[data-tour="account:/profile"]', placement: 'start', menu: 'account', can: [{ id: 'update', permission: CorePermission.ProfileUpdate }] },
   { key: 'security', target: '[data-tour="account:/security"]', placement: 'start', menu: 'account' },
   { key: 'my-access', target: '[data-tour="account:/my-access"]', placement: 'start', menu: 'account', can: [{ id: 'export', permission: CorePermission.MyAccessExport }] },
+  { key: 'docs', target: '[data-tour="account:/docs"]', placement: 'start', menu: 'account' },
   { key: 'sign-out', target: '[data-tour="sign-out"]', placement: 'start', menu: 'account' },
   { key: 'language-theme', target: '[data-tour="language-theme"]', placement: 'bottom' },
   { key: 'notifications', target: '[data-tour="notifications"]', placement: 'bottom', can: [{ id: 'mark', permission: CorePermission.NotificationsMarkRead }, { id: 'export', permission: CorePermission.NotificationsExport }] },

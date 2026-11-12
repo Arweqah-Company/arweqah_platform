@@ -12,7 +12,7 @@ A page that shows how your sign-in is protected, and lets you watch **the device
 
 ### What you can do
 
-| Action | What happens | Permission key |
+| Action | What happens | Permission |
 |---|---|---|
 | Read the authenticator-app status | Tells you whether it is linked to your account | `security.view` (View the security page) |
 | «End the session» on a device | That session ends and a sign-in is needed again there | `security.view` |
@@ -43,6 +43,43 @@ A page that shows how your sign-in is protected, and lets you watch **the device
 
 1. On the sign-in page choose «Use a backup code» and enter one of the codes you saved when linking (each works once).
 2. If you cannot find them, ask HR to **reset the app**; a new invitation reaches you by e-mail to link the app again.
+
+### Fields (form inputs)
+
+This page has almost nothing to type: you read your protection and press buttons. The authenticator code is typed on the sign-in page, and the company-wide numbers are on the Settings page (see «Settings», the Security tab).
+
+| Field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| Remember this device and do not ask for the code there | Trusts the current browser so the code is not asked there again for a while | No | A tick box, shown only when the administrator allowed trusted devices (days above 0); the trust lasts the days the administrator set |
+| «End the session» (on each device row) | Ends that one sign-in | Not a field | Each row shows the device name, the hidden-end address, the last activity and a «This device» mark on your own session |
+| «End all other sessions» | Ends every session except the one you are using | Not a field | Needs no typing |
+| «Remove trust» (on each trusted device) | Makes that browser ask for the code again | Not a field | Each row shows the browser, the date the trust ends and a «This browser» mark |
+
+### Workflow
+
+**Checking and closing sessions**
+
+1. **You** open «Security» from your account menu and read the status: «The authenticator app is linked to your account» (green) or «not linked yet» (yellow).
+2. **You** look at «Devices you are signed in on». Each open sign-in in your name is listed.
+3. **You** press «End the session» on a device you do not know, or «End all other sessions» if you doubt the account. The session ends at once and a new sign-in is needed on that device.
+4. **You** tell HR or the system administrator if you suspect a break-in.
+
+**Trusting a browser (only when allowed)**
+
+1. **You** sign in with Microsoft and enter the code, ticking «Remember this device and do not ask for the code there».
+2. **The platform** lists the browser under «Trusted devices» with the date the trust ends. On that browser the code is skipped after a Microsoft sign-in until that date.
+3. **You** press «Remove trust» when you want the code asked there again.
+
+| Status | Meaning | Who can change it (permission key) | Moves to |
+|---|---|---|---|
+| Session open | A sign-in in your name, with its last activity | You, with «End the session» or «End all other sessions» (`security.view`); the platform when 12 hours pass or the account is deactivated | Ended |
+| Session ended | The device must sign in again | Nobody | Nothing (a new sign-in is a new session) |
+| Trusted device | A browser that skips the code after a Microsoft sign-in | You, with «Remove trust» (`security.view`); it also ends by itself on its end date | Trust removed or expired |
+| Authenticator app: linked / not linked | Whether a code can be produced for your account | HR resets it (`employees.reset_authenticator`) | Not linked, until you link it again from the new invitation |
+
+**Automatic things:** sessions end after 12 hours, and all at once when your account is deactivated; a trusted device stops being trusted on its end date; when a system administrator finishes a «sign in as» session in your name, you are notified.
+
+**What each person sees:** only your own sessions and devices. The company-wide security settings are another page for the system administrator.
 
 ### Business rules
 
