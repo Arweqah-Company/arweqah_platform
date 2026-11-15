@@ -299,7 +299,7 @@
   },
   "placementChange": {
     "effectiveFrom": "Effective from",
-    "effectiveFromHint": "Today or a later date; a later change waits for its day.",
+    "effectiveFromHint": "The real date of the appointment: today, an earlier date (after the start of the current period), or a later date, which waits for its day. For a date before the current period starts, change the start date first.",
     "changeReason": "Reason for the change",
     "changeReasonHint": "Shown in the employee's history."
   },

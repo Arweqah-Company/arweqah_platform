@@ -1,19 +1,19 @@
 import type { AssignmentStatus } from '@arweqah-platform/shared';
 import { dayBefore } from '../../../../common/domain/dates';
-import { AssignmentDateNotAfterError, AssignmentInThePastError } from '../errors/assignment.errors';
+import { AssignmentDateNotAfterError } from '../errors/assignment.errors';
 import type { ChangePlan, Period } from '../types/assignment.types';
 
 export { dayBefore };
 
 /**
  * What a new period starting `validFrom` does to the history of one field (periods in any order):
- * it starts today or later, strictly after the last period (on the very day it began, it corrects that period),
- * closes the one that is open the day before, and is in force at once only when it starts today.
+ * it may start in the past (the real date of a title the system learned about late), strictly after the last period
+ * (on the very day it began, it corrects that period; before it, the start of that period is changed first),
+ * closes the one that is open the day before, and is in force at once when it starts today or before.
  */
 export function planChange(periods: Period[], validFrom: string, today: string): ChangePlan {
-  if (validFrom < today) throw new AssignmentInThePastError();
   const last = [...periods].sort((a, b) => a.validFrom.localeCompare(b.validFrom)).at(-1);
-  const applyNow = validFrom === today;
+  const applyNow = validFrom <= today;
   if (last && validFrom === last.validFrom && last.validTo === null) return { closeId: null, closeTo: null, replaceId: last.id, applyNow };
   if (last && validFrom <= last.validFrom) throw new AssignmentDateNotAfterError(last.validFrom);
   const open = periods.find((p) => p.validTo === null);

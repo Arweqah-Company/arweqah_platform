@@ -4,15 +4,11 @@ import { BusinessRuleError } from '../../../../common/domain/domain-error';
 export class AssignmentDateNotAfterError extends BusinessRuleError {
   override readonly code = 'ASSIGNMENT_DATE_NOT_AFTER';
   constructor(lastFrom: string) {
-    super(`The change must start after ${lastFrom}`, { path: 'validFrom', messageAr: `يجب أن يبدأ التغيير بعد ${lastFrom}`, messageEn: `The change must start after ${lastFrom}` });
-  }
-}
-
-/** Placement is changed from today onward; the past is corrected only through the history it already holds. */
-export class AssignmentInThePastError extends BusinessRuleError {
-  override readonly code = 'ASSIGNMENT_IN_THE_PAST';
-  constructor() {
-    super('The change cannot start in the past', { path: 'validFrom', messageAr: 'لا يبدأ التغيير في الماضي', messageEn: 'The change cannot start in the past' });
+    super(`The change must start after ${lastFrom}`, {
+      path: 'validFrom',
+      messageAr: `يجب أن يبدأ التغيير بعد ${lastFrom}، وهو تاريخ بداية الفترة الحالية. لتاريخ أقدم عدّل «تاريخ البدء» للموظف أولًا.`,
+      messageEn: `The change must start after ${lastFrom}, the start of the current period. For an earlier date, change the employee's start date first.`,
+    });
   }
 }
 

@@ -51,6 +51,10 @@ export class TypeOrmEmployeeAssignmentRepository extends EmployeeAssignmentRepos
     await this.rows(tx).update({ id }, values);
   }
 
+  async moveStart(id: string, validFrom: string, tx: TransactionContext): Promise<void> {
+    await this.rows(tx).update({ id }, { validFrom });
+  }
+
   async close(id: string, validTo: string | null, tx: TransactionContext): Promise<void> {
     await this.rows(tx).update({ id }, { validTo });
   }

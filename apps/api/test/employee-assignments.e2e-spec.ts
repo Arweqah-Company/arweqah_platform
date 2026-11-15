@@ -98,13 +98,11 @@ describe('Dated placement: unit, job title and manager with history (FR-89)', ()
     expect((await record()).manager?.id).toBe(boss.employeeId);
   });
 
-  it('refuses a missing reason, an empty change, the past, a date that does not come after, and values that change nothing', async () => {
+  it('refuses a missing reason, an empty change, a date that does not come after, and values that change nothing', async () => {
     const { agent, org, route, boss } = await setup();
     const today = todayInRiyadh();
     await agent.post(route).send({ orgNodeId: org.unitB.id, jobTitleId: org.unitB.titleId, validFrom: today }).expect(400);
     await agent.post(route).send({ validFrom: today, reason: 'Nothing chosen' }).expect(400);
-    const past = await agent.post(route).send({ managerId: boss.employeeId, validFrom: dayFromToday(-1), reason: 'Back in time' }).expect(422);
-    expect(past.body.code).toBe('ASSIGNMENT_IN_THE_PAST');
     const unchanged = await agent.post(route).send({ orgNodeId: org.unitA.id, validFrom: today, reason: 'Same' }).expect(422);
     expect(unchanged.body.code).toBe('ASSIGNMENT_NO_CHANGE');
     await agent.post(route).send({ managerId: boss.employeeId, validFrom: dayFromToday(10), reason: 'Later' }).expect(201);
@@ -153,6 +151,36 @@ describe('Dated placement: unit, job title and manager with history (FR-89)', ()
     expect(of((await agent.get(route).expect(200)).body, 'org_node').at(-1)).toMatchObject({ status: 'pending' });
     const now = await agent.put(`/api/employees/${person.employeeId}`).send(form({ orgNodeId: org.unitC.id, jobTitleId: org.unitC.titleId, effectiveFrom: dayFromToday(3) })).expect(422);
     expect(now.body.code).toBe('ASSIGNMENT_DATE_NOT_AFTER');
+  });
+
+  it('lets the employee form give a title its real date in the past: in force at once, the period before it closed the day before, nothing before the current period\'s start', async () => {
+    const { agent, org, person, record, route } = await setup(); // the person started on 2024-01-01
+    const before = await record();
+    const form = (changes: Record<string, unknown>) => ({
+      companyId: before.company.id, orgNodeId: before.orgNode?.id, jobTitleId: before.jobTitle?.id, managerId: before.manager?.id,
+      workEmail: before.workEmail, employeeNumber: before.employeeNumber, fullName: before.fullName, startDate: before.startDate, ...changes,
+    });
+    const real = '2024-06-01';
+    await agent.put(`/api/employees/${person.employeeId}`).send(form({ orgNodeId: org.unitB.id, jobTitleId: org.unitB.titleId, effectiveFrom: real, changeReason: 'Appointed in June' })).expect(200);
+    expect((await record()).jobTitle?.id).toBe(org.unitB.titleId);
+    const titles = of((await agent.get(route).expect(200)).body, 'job_title');
+    expect(titles[0]).toMatchObject({ validFrom: '2024-01-01', validTo: '2024-05-31', status: 'past' });
+    expect(titles[1]).toMatchObject({ validFrom: real, validTo: null, status: 'current', reason: 'Appointed in June' });
+    const early = await agent.put(`/api/employees/${person.employeeId}`).send(form({ orgNodeId: org.unitC.id, jobTitleId: org.unitC.titleId, effectiveFrom: '2023-12-01', changeReason: 'Too early' })).expect(422);
+    expect(early.body.code).toBe('ASSIGNMENT_DATE_NOT_AFTER');
+    expect(JSON.stringify(early.body)).toContain('start date');
+  });
+
+  it('moves the first period back with the employee\'s start date, so an earlier title date is then accepted', async () => {
+    const { agent, org, person, record, route } = await setup();
+    const before = await record();
+    const form = (changes: Record<string, unknown>) => ({
+      companyId: before.company.id, orgNodeId: before.orgNode?.id, jobTitleId: before.jobTitle?.id, managerId: before.manager?.id,
+      workEmail: before.workEmail, employeeNumber: before.employeeNumber, fullName: before.fullName, startDate: before.startDate, ...changes,
+    });
+    await agent.put(`/api/employees/${person.employeeId}`).send(form({ orgNodeId: org.unitB.id, jobTitleId: org.unitB.titleId, effectiveFrom: '2024-06-01', changeReason: 'First change' })).expect(200); // makes the history
+    await agent.put(`/api/employees/${person.employeeId}`).send(form({ startDate: '2023-09-01', orgNodeId: org.unitB.id, jobTitleId: org.unitB.titleId })).expect(200);
+    expect(of((await agent.get(route).expect(200)).body, 'job_title')[0]).toMatchObject({ validFrom: '2023-09-01', validTo: '2024-05-31' });
   });
 
   it('gives a new employee a first period for each value, so the history starts on their start day', async () => {

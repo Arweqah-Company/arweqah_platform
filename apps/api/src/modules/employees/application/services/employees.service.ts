@@ -139,7 +139,7 @@ export class EmployeesService {
     }
     this.assertInScope(ctx, P.EmployeesUpdate, { companyId: input.companyId, orgNodeId: input.orgNodeId, ownerId: existing.userId });
     const { effectiveFrom, changeReason, leadsUnit, ...rest } = input;
-    await this.assertCanLead(ctx, leadsUnit, { orgNodeId: input.orgNodeId, companyId: input.companyId, employeeId: id, from: effectiveFrom ?? todayInRiyadh() });
+    await this.assertCanLead(ctx, leadsUnit, { orgNodeId: input.orgNodeId, companyId: input.companyId, employeeId: id, from: leadFrom(effectiveFrom) });
     const fields: EmployeeInput = { ...rest, workEmail: existing.workEmail };
     const { values } = await this.validation.prepare(ctx, fields, existing);
     this.assertFieldRules(ctx, existing, values);
@@ -149,7 +149,7 @@ export class EmployeesService {
     await this.swapBaseRoleIfRelationChanged(existing, values.relationTypeId ?? null);
     this.events.emit(ACCESS_CHANGED, { userId: existing.userId });
     await this.events.emitAsync(EMPLOYEES_CHANGED);
-    if (leadsUnit) await this.lead(ctx, (await this.repo.findById(id)) as Employee, { from: effectiveFrom ?? todayInRiyadh(), actorId });
+    if (leadsUnit) await this.lead(ctx, (await this.repo.findById(id)) as Employee, { from: leadFrom(effectiveFrom), actorId });
     this.auditor.record(actorId, EMPLOYEE_AUDIT.updated, id, { fields: changedFields(existing, values) });
     return this.dto(ctx, (await this.repo.findById(id)) as Employee);
   }
@@ -180,6 +180,7 @@ export class EmployeesService {
     const written = later ? withoutKeys(values, Object.keys(change)) : values;
     await this.tx.run(async (tx) => {
       await this.repo.update(existing.id, written, tx);
+      if (typeof values.startDate === 'string' && values.startDate < existing.startDate) await this.assignments.alignStart(existing, values.startDate, tx);
       if (Object.keys(change).length) await this.assignments.record(existing, change, { validFrom: when.from, reason: when.reason, actorId }, tx);
     });
   }
@@ -342,6 +343,9 @@ export class EmployeesService {
     }
   }
 }
+
+/** A unit is led from today at the earliest: the title may carry a past date, the leadership starts now. */
+const leadFrom = (effectiveFrom: string | undefined): string => [todayInRiyadh(), effectiveFrom ?? ''].sort().at(-1) as string;
 
 /** Names of the fields that changed (never their values, which may be sensitive). */
 function changedFields(existing: Employee, values: Record<string, unknown>): string[] {
