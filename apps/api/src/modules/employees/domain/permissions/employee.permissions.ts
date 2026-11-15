@@ -12,16 +12,16 @@ export const EMPLOYEE_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.EmployeesDeactivate, 'تعطيل الموظفين وتفعيلهم', 'Deactivate and activate employees', WIDE),
   def(CorePermission.EmployeesTerminate, 'إنهاء علاقة الموظف', 'End an employee\'s contract', WIDE),
   def(CorePermission.EmployeesViewSensitive, 'عرض البيانات الحساسة (الهوية والآيبان والراتب)', 'View sensitive data (ID, IBAN, salary)', WIDE),
-  def(CorePermission.EmployeesAssignRoles, 'تعيين أدوار الموظفين', 'Assign employee roles', ['company', 'all']),
+  def(CorePermission.EmployeesAssignRoles, 'تعيين أدوار الموظفين', 'Assign employee roles', ['unit', 'subtree', 'company', 'all']),
   def(CorePermission.EmployeesAssignGroups, 'تعيين مجموعات أدوار للموظف', 'Give an employee groups of roles', ['company', 'all']),
-  def(CorePermission.EmployeesAssignChange, 'تغيير وحدة الموظف أو مسماه أو مديره بتاريخ سريان', 'Change an employee\'s unit, job title or manager from a date', ['company', 'all']),
-  def(CorePermission.EmployeesBulkUpdate, 'تعديل جماعي لبيانات الموظفين', 'Edit many employees at once', ['company', 'all']),
+  def(CorePermission.EmployeesAssignChange, 'تغيير وحدة الموظف أو مسماه أو مديره بتاريخ سريان', 'Change an employee\'s unit, job title or manager from a date', RECORD),
+  def(CorePermission.EmployeesBulkUpdate, 'تعديل جماعي لبيانات الموظفين', 'Edit many employees at once', WIDE),
   def(CorePermission.EmployeesHistoryView, 'عرض سجل الموظف (تسكينه وتغييراته)', 'View an employee\'s history (placement and changes)', ['own', ...RECORD]),
   def(CorePermission.EmployeesPhotoUpdate, 'تغيير صورة الموظف', 'Change an employee\'s photo', ['own', ...RECORD]),
   def(CorePermission.EmployeesResendInvite, 'إعادة إرسال رابط التفعيل', 'Resend the activation link', RECORD),
   def(CorePermission.EmployeesResetAuthenticator, 'إعادة ضبط تطبيق المصادقة', 'Reset the authenticator app', RECORD),
-  def(CorePermission.EmployeesExport, 'تصدير الموظفين', 'Export employees', ['all']),
-  def(CorePermission.EmployeesImport, 'استيراد الموظفين من ملف', 'Import employees from a file', ['all']),
+  def(CorePermission.EmployeesExport, 'تصدير الموظفين', 'Export employees', WIDE),
+  def(CorePermission.EmployeesImport, 'استيراد الموظفين من ملف', 'Import employees from a file', WIDE),
 ];
 
 const directory = (key: string, labelAr: string, labelEn: string): PermissionDefinition => ({ key, module: 'directory', labelAr, labelEn, scopes: ['all'] });

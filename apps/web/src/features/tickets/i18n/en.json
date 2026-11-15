@@ -127,7 +127,9 @@
     "sent": "The reply was sent.",
     "closedNote": "The ticket is closed and takes no new replies."
   },
-  "card": { "label": "The ticket" },
+  "card": {
+    "label": "The ticket"
+  },
   "timeline": {
     "heading": "Conversation and replies",
     "label": "Ticket history",
@@ -141,7 +143,9 @@
     "confirmed": "The sender confirmed it was done",
     "auto_closed": "Closed automatically",
     "closed_not_executed": "Closed without being carried out",
-    "reopened": "Reopened"
+    "reopened": "Reopened",
+    "reassigned": "Reassigned the ticket",
+    "reassignedTo": "to {{name}}"
   },
   "actions": {
     "message": "Message (optional)",
@@ -181,6 +185,15 @@
       "description": "The ticket closes without the request being carried out. Explain why to the sender.",
       "confirm": "Close without carrying out",
       "done": "The ticket was closed."
+    },
+    "reassign": {
+      "button": "Reassign",
+      "title": "Reassign the ticket",
+      "description": "The ticket goes to the person you choose, who is told at once. You can only choose people inside the reach of your permission.",
+      "person": "New assignee",
+      "personHint": "Type a name or number to search.",
+      "confirm": "Reassign",
+      "done": "The ticket was reassigned."
     }
   },
   "setup": {
@@ -221,7 +234,10 @@
     "daysRange": "A whole number from {{min}} to {{max}}.",
     "saved": "The settings were saved.",
     "tabsLabel": "Unit setup sections",
-    "tabs": { "settings": "Settings", "types": "Types" },
+    "tabs": {
+      "settings": "Settings",
+      "types": "Types"
+    },
     "typesTitle": "Ticket types",
     "typesIntro": "Each type has a name, a description, an assignee and an optional own duration.",
     "noTypes": "No types yet. Add one so the unit can receive tickets.",
@@ -306,6 +322,7 @@
         "reopen": "Reopen a closed ticket",
         "comment_reply": "Answer a reply inside a ticket",
         "comment_mention": "Mention a colleague with @ in a reply",
+        "reassign": "Hand an open ticket of your unit to someone on your team",
         "setup": "Set up your desk, its ticket types and its durations",
         "figures": "Read the figures and performance of the desks"
       }

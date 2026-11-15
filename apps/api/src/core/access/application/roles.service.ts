@@ -8,6 +8,8 @@ import { RoleRepository } from '../domain/access.repository';
 import { PermissionCatalog } from './permission-catalog';
 import { ACCESS_CHANGED } from './access.events';
 import { AutoRolesService } from './auto-roles.service';
+import { UserAccessService } from './user-access.service';
+import type { AccessContext } from '../domain/access-context';
 import { AUDIT_EVENT, type AuditEvent } from '../../audit/application/audit.events';
 
 @Injectable()
@@ -17,10 +19,17 @@ export class RolesService {
     private readonly catalog: PermissionCatalog,
     private readonly events: EventEmitter2,
     private readonly autoRoles: AutoRolesService,
+    private readonly userAccess: UserAccessService,
   ) {}
 
   async list(): Promise<RoleDto[]> {
     const roles = await this.roles.findAll();
+    return roles.map((r) => toRoleDto(r, r.usersCount, r.origin));
+  }
+
+  /** The roles the person may give to somebody else (for the roles dialog of a leader who cannot open the roles page). */
+  async grantable(actor: AccessContext): Promise<RoleDto[]> {
+    const roles = await this.userAccess.grantable(actor, await this.roles.findAll());
     return roles.map((r) => toRoleDto(r, r.usersCount, r.origin));
   }
 

@@ -9,9 +9,10 @@ import { Access, HiddenWithPage, RequirePermission } from '../../../../core/acce
 import { viewerOf } from '../../application/policies/ticket-viewer';
 import { TicketCatalogService } from '../../application/services/ticket-catalog.service';
 import { TicketLifecycleService, type PersonAction } from '../../application/services/ticket-lifecycle.service';
+import { TicketReassignService } from '../../application/services/ticket-reassign.service';
 import { TicketsService } from '../../application/services/tickets.service';
 import { sendOpenedFile, sendPreviewStream } from '../../../../core/files/presentation/send-file';
-import { AttachmentParam, CreateTicketBody, TicketActionBody, MentionablesQueryDto, TicketReplyBody, TicketsQueryDto } from '../dtos/tickets.dtos';
+import { AttachmentParam, CreateTicketBody, ReassignTicketBody, TicketActionBody, MentionablesQueryDto, TicketReplyBody, TicketsQueryDto } from '../dtos/tickets.dtos';
 
 /**
  * Every action has its own key (the Employee role holds them); on top of that, what else a person sees or does with a ticket
@@ -25,6 +26,7 @@ export class TicketsController {
     private readonly tickets: TicketsService,
     private readonly lifecycle: TicketLifecycleService,
     private readonly catalog: TicketCatalogService,
+    private readonly reassigner: TicketReassignService,
   ) {}
 
   @Get()
@@ -102,6 +104,20 @@ export class TicketsController {
   @RequirePermission(CorePermission.TicketsReopen)
   reopen(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: TicketActionBody): Promise<TicketDto> {
     return this.act(ctx, id, 'reopen', body);
+  }
+
+  @Get(':id/assignees')
+  @RequirePermission(CorePermission.TicketsReassign)
+  assignees(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Query() { search }: MentionablesQueryDto): Promise<PersonRefDto[]> {
+    return this.reassigner.candidates(viewerOf(ctx), id, search);
+  }
+
+  @Post(':id/reassign')
+  @HttpCode(200)
+  @RequirePermission(CorePermission.TicketsReassign)
+  async reassign(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: ReassignTicketBody): Promise<TicketDto> {
+    await this.reassigner.reassign(viewerOf(ctx), id, body.assigneeUserId);
+    return this.tickets.get(viewerOf(ctx), id);
   }
 
   @Get(':id/attachments/:fileId')

@@ -66,4 +66,23 @@ describe('The audit log cannot be changed without it showing (FR-75)', () => {
     const plain = await t.factories.signIn(await t.factories.user({ grants: [{ key: CorePermission.AuditVerify, scope: ALL }] }));
     await plain.get('/api/audit-logs/verify').expect(403);
   });
+
+  it('reads the entries to a person: the names behind the ids, a label for every key, and the record by name (FR-131)', async () => {
+    const org = await t.factories.org();
+    const person = await t.factories.user({ unit: org.unitA });
+    const role = await t.factories.role([{ key: CorePermission.AuditView, scope: ALL }]);
+    await t.app.get(AuditService).record({ actorId: null, action: 'employee.roles_changed', entityType: 'employee', entityId: person.employeeId, changes: { roleIds: [role.id], withEndDate: 0, fields: ['profession', 'workPhone'], orgNodeId: org.unitA.id, iban: 'SA00' } });
+    await t.app.get(AuditService).record({ actorId: null, action: 'role.created', entityType: 'settings', entityId: 'email-domains', changes: { domains: ['arweqah.sa'] } }); // an entity id that is not an id must not break the list
+    const auditor = await t.factories.signInAdminMode(await t.factories.user({ grants: AUDITOR }));
+    await auditor.get('/api/audit-logs').expect(200);
+    const found = (await auditor.get(`/api/audit-logs?entityId=${person.employeeId}`).expect(200)).body.items[0] as { entityName: { en: string } | null; details: { label: { en: string }; value: { en: string; ar: string } }[]; changes: Record<string, unknown> };
+    expect(found.entityName?.en).toBeTruthy();
+    const by = (label: string) => found.details.find((d) => d.label.en === label)?.value;
+    expect(by('Roles')?.en).toBe(role.nameEn);
+    expect(by('Roles')?.ar).toBe(role.nameAr);
+    expect(by('Details that changed')).toEqual({ ar: 'المهنة، هاتف العمل', en: 'Profession, Work phone' });
+    expect(by('Unit')?.en).not.toMatch(/^[0-9a-f]{8}-/); // a name, not an id
+    expect(by('IBAN')?.en).toBe('Hidden'); // sensitive values stay out
+    expect(found.changes.roleIds).toEqual([role.id]); // the technical form is untouched
+  });
 });

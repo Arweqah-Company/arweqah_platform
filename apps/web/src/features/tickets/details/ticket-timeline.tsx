@@ -36,7 +36,7 @@ function Entry({ ticketId, event, canAnswer, onAnswer, nested }: EntryProps) {
   return (
     <div id={`event-${event.id}`} className={cn('rounded-2xl border p-4', reply ? 'border-neutral-200 bg-white' : 'border-petrol-50 bg-petrol-50', nested && 'bg-neutral-50')}>
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-        <span className="font-medium text-fg">{event.actor?.name ?? t('timeline.system')} <span className="font-normal text-muted">· {t(`events.${event.type}`)}{event.replyTo && ` · ${t('reply.inReplyTo', { name: event.replyTo.name })}`}</span></span>
+        <span className="font-medium text-fg">{event.actor?.name ?? t('timeline.system')} <span className="font-normal text-muted">· {t(`events.${event.type}`)}{event.replyTo && ` · ${t(event.type === 'reassigned' ? 'events.reassignedTo' : 'reply.inReplyTo', { name: event.replyTo.name })}`}</span></span>
         <span className="flex items-center gap-1">
           <time dateTime={event.createdAt}>{new Date(event.createdAt).toLocaleString(i18n.language)}</time>
           {canAnswer && onAnswer && <RowAction label={t('reply.answer')} icon={MessageSquareReply} onClick={onAnswer} />}

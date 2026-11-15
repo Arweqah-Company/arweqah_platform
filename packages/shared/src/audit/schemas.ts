@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { paginationQuerySchema } from '../common/pagination';
 import { AUDIT_CATEGORIES, type AuditCategory } from './catalog';
+import type { AuditDetailDto, AuditText } from './readable';
 
 export const auditQuerySchema = paginationQuerySchema.extend({
   /** One kind of event: sign-in, employees, tasks… (see the catalog). */
@@ -17,7 +18,8 @@ export const auditQuerySchema = paginationQuerySchema.extend({
 });
 export type AuditQuery = z.infer<typeof auditQuerySchema>;
 
-export interface AuditLogDto {
+/** What the log table holds for one entry. */
+export interface AuditEntryDto {
   id: string;
   actorId: string | null;
   actorName: string | null;
@@ -28,4 +30,12 @@ export interface AuditLogDto {
   changes: Record<string, unknown> | null;
   ip: string | null;
   createdAt: string;
+}
+
+/** An entry as the screens read it: the same, plus the record's name and the changes in words. */
+export interface AuditLogDto extends AuditEntryDto {
+  /** The record the entry is about, by name (an employee, a role, a ticket number…), when it still exists. */
+  entityName: AuditText | null;
+  /** `changes` read by a person: a label for every key and a name for every id (null when the entry has no changes). */
+  details: AuditDetailDto[] | null;
 }

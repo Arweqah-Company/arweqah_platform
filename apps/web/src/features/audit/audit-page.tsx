@@ -1,4 +1,4 @@
-import { actionsOfCategory, AUDIT_ACTIONS, AUDIT_CATEGORIES, AUDIT_CATEGORY_LABELS, auditActionText, CorePermission, type AuditCategory, type AuditLogDto } from '@arweqah-platform/shared';
+import { actionsOfCategory, AUDIT_ACTIONS, AUDIT_CATEGORIES, AUDIT_CATEGORY_LABELS, auditActionText, CorePermission, type AuditCategory, type AuditDetailDto, type AuditLogDto } from '@arweqah-platform/shared';
 import { Eye } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -38,6 +38,8 @@ export function AuditPage() {
     { id: 'actor', header: t('actor'), value: (l) => l.actorName ?? t('system') },
     { id: 'category', header: t('category'), value: kind },
     { id: 'action', header: t('action'), value: what },
+    { id: 'record', header: t('record'), value: (l) => l.entityName?.[lang] ?? '' },
+    { id: 'details', header: t('changes'), value: (l) => (l.details ?? []).map((d) => `${d.label[lang]}: ${d.value[lang]}`).join(' | ') },
     { id: 'ip', header: t('ip'), value: (l) => l.ip },
   ];
   return (
@@ -57,6 +59,7 @@ export function AuditPage() {
           { id: 'actor', header: t('actor'), cell: (l) => l.actorName ?? t('system') },
           { id: 'category', header: t('category'), cell: (l) => <Badge tone="neutral">{kind(l)}</Badge> },
           { id: 'action', header: t('action'), cell: what },
+          { id: 'record', header: t('record'), cell: (l) => l.entityName?.[lang] ?? '—' },
         ]}
       />
       {viewing && <AuditDetails entry={viewing} onClose={() => setViewing(null)} />}
@@ -74,7 +77,23 @@ function AuditDetails({ entry: l, onClose }: { entry: AuditLogDto; onClose: () =
     [t('category'), AUDIT_CATEGORY_LABELS[l.category][lang]],
     [t('action'), auditActionText(l.action, lang)],
     [t('ip'), <span key="p" className="font-latin" dir="ltr">{l.ip ?? '—'}</span>],
-    [t('changes'), l.changes ? <pre key="c" className="max-h-56 overflow-auto whitespace-pre-wrap rounded-xl bg-neutral-50 p-3 font-latin text-xs" dir="ltr">{JSON.stringify(l.changes, null, 2)}</pre> : '—'],
+    ...(l.entityName ? ([[t('record'), l.entityName[lang]]] as [string, ReactNode][]) : []),
+    [t('changes'), l.details?.length ? <ChangesList key="c" details={l.details} lang={lang} /> : '—'],
+    ...(l.changes ? ([[t('technical'), <pre key="j" className="max-h-40 overflow-auto whitespace-pre-wrap rounded-xl bg-neutral-50 p-3 font-latin text-xs" dir="ltr">{JSON.stringify(l.changes, null, 2)}</pre>]] as [string, ReactNode][]) : []),
   ];
   return <DetailsDialog title={t('viewTitle')} description={auditActionText(l.action, lang)} rows={rows} onClose={onClose} />;
+}
+
+/** What changed, one line per key: a label a person knows and the names behind the ids. */
+function ChangesList({ details, lang }: { details: AuditDetailDto[]; lang: Lang }) {
+  return (
+    <dl className="flex flex-col gap-2">
+      {details.map((d) => (
+        <div key={d.label.en} className="rounded-xl bg-neutral-50 p-3">
+          <dt className="text-xs text-muted">{d.label[lang]}</dt>
+          <dd className="text-sm text-fg">{d.value[lang]}</dd>
+        </div>
+      ))}
+    </dl>
+  );
 }

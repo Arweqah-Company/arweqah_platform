@@ -85,7 +85,7 @@ const ENSURE_NODE_HEAD_ROLES = `
     SELECT ${HEAD_NAME_AR}, ${HEAD_NAME_EN}, false, 'auto', 'node_head', n.id
     FROM org_nodes n WHERE n.deleted_at IS NULL AND NOT EXISTS (SELECT 1 FROM roles r WHERE r.org_node_id = n.id)
     RETURNING id)
-  INSERT INTO role_permissions (role_id, permission_key, scope) SELECT made.id, d.key, d.scope FROM made CROSS JOIN jsonb_to_recordset($1::jsonb) AS d(key text, scope text)`;
+  INSERT INTO role_permissions (role_id, permission_key, scope, fields) SELECT made.id, d.key, d.scope, d.fields FROM made CROSS JOIN jsonb_to_recordset($1::jsonb) AS d(key text, scope text, fields text[])`;
 const RENAME_NODE_HEAD_ROLES = `
   UPDATE roles r SET name_ar = ${HEAD_NAME_AR}, name_en = ${HEAD_NAME_EN}, updated_at = now()
   FROM org_nodes n WHERE r.org_node_id = n.id AND n.deleted_at IS NULL AND (r.name_ar IS DISTINCT FROM ${HEAD_NAME_AR} OR r.name_en IS DISTINCT FROM ${HEAD_NAME_EN})`;

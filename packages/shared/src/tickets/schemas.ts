@@ -16,7 +16,7 @@ export type ReceptionStatus = (typeof RECEPTION_STATUSES)[number];
 export const DESK_UNAVAILABLE_REASONS = ['paused', 'not_started', 'no_manager'] as const;
 export type DeskUnavailableReason = (typeof DESK_UNAVAILABLE_REASONS)[number];
 
-export const TICKET_EVENT_TYPES = ['created', 'reply', 'close_requested', 'close_declined', 'confirmed', 'auto_closed', 'closed_not_executed', 'reopened'] as const;
+export const TICKET_EVENT_TYPES = ['created', 'reply', 'close_requested', 'close_declined', 'confirmed', 'auto_closed', 'closed_not_executed', 'reopened', 'reassigned'] as const;
 export type TicketEventType = (typeof TICKET_EVENT_TYPES)[number];
 
 export const TICKET_GROUPINGS = ['assignee', 'status', 'desk', 'type'] as const;
@@ -96,6 +96,10 @@ export type TicketReplyInput = z.infer<typeof ticketReplySchema>;
 /** The unit asks to close, or the sender declines the closing, optionally with a message. */
 export const ticketMentionablesQuerySchema = z.strictObject({ search: z.string().trim().max(100).optional() });
 export type TicketMentionablesQuery = z.infer<typeof ticketMentionablesQuerySchema>;
+
+/** The unit gives the ticket to another employee (inside the reach of the person's reassign key). */
+export const reassignTicketSchema = z.strictObject({ assigneeUserId: z.uuid() });
+export type ReassignTicketInput = z.infer<typeof reassignTicketSchema>;
 
 export const ticketActionSchema = z.strictObject({ message: z.string().trim().max(MAX_TICKET_TEXT).optional() });
 export type TicketActionInput = z.infer<typeof ticketActionSchema>;
@@ -238,7 +242,7 @@ export interface TicketEventDto {
   body: string | null;
   /** The first-level reply this one answers (null for a first-level entry). */
   parentId: string | null;
-  /** The person this reply answers. */
+  /** The person this reply answers (for a `reassigned` entry: the new assignee). */
   replyTo: PersonRefDto | null;
   mentions: PersonRefDto[];
   attachments: TicketAttachmentDto[];
@@ -256,6 +260,8 @@ export interface TicketAbilitiesDto {
   confirmClose: boolean;
   declineClose: boolean;
   reopen: boolean;
+  /** The unit side may hand an open ticket to someone else inside the reach of its reassign key. */
+  reassign: boolean;
 }
 
 export interface TicketDto extends TicketListItemDto {
