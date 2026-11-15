@@ -2,6 +2,14 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-15 — Review of PR 91 (the release of PR 89)
+
+Plan: `docs/plans/phase-5-people-structure-profile.md` (log, 2026-11-15).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 378 | **CodeRabbit's nine comments on the release pull request, each checked against the code (standing rule 16): eight real and fixed, none dismissed.** Reproduced first with tests that failed on the old code: (1) the unit's employees list returned every company's people in a unit managed per company (names, numbers, work e-mails, managers): it now keeps the viewer's own company there (shared units and `org.view_full` still see all) and answers 404 for a unit that does not exist even with the full view; (2) a failed phone update while creating an employee left an account with no employee: the call is inside the `try` that deletes the account; (3) the account's name and phone are written from the saved values on every save (`syncAccount`), never compared with the record, so saving again repairs an account an earlier failure left behind; (4) the employees tab is a `DataTable` + `ListToolbar` (search, table / cards, export with `employees.export`), shows loading, and uses themed surfaces; (5) `HeadRoleTeamKeys.down` is a no-op (it could not tell the keys it added from ones an administrator gave); (6) migration `SyncClearedPhones` empties the account phone when the employee has none. | Owner chose «fix first, then release». | The unit's employees list needs its own permission key (today any `org.view` holder sees the people of their company in the unit). |
+
 ## 2026-11-15 — The head role of a unit also edits its people, assigns tasks and keeps task tags
 
 Plan: `docs/plans/phase-3-tasks.md` (log, 2026-11-15).

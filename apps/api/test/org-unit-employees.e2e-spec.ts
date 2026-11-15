@@ -2,6 +2,8 @@ import { CorePermission, type PermissionGrant } from '@arweqah-platform/shared';
 import { describe, expect, it } from 'vitest';
 import { useTestApp } from './setup/test-app';
 
+const VIEW_FULL = 'org.view_full';
+
 const grant = (key: string): PermissionGrant => ({ key, scope: 'all' });
 
 describe('The employees tab of a unit: GET /org/nodes/:id/employees (FR-17)', () => {
@@ -47,5 +49,40 @@ describe('The employees tab of a unit: GET /org/nodes/:id/employees (FR-17)', ()
     const viewer = await t.factories.signIn(await t.factories.user({ grants: [grant(CorePermission.OrgView)] }));
     await viewer.get('/api/org/nodes/00000000-0000-4000-8000-000000000000/employees').expect(404);
     await viewer.get('/api/org/nodes/not-a-uuid/employees').expect(400);
+  });
+  describe('review of PR 91: other companies and unknown units', () => {
+    async function twoCompanies() {
+      const org = await t.factories.org();
+      const mine = await t.factories.user({ unit: org.unitA });
+      const foreign = await t.factories.user({ unit: org.unitA });
+      await t.db.query('UPDATE employees SET company_id = $1 WHERE id = $2', [org.otherCompanyId, foreign.employeeId]); // an employee of the other company placed in the same unit
+      return { org, mine, foreign };
+    }
+
+    it('shows a viewer only the people of their own company in a unit managed per company (the others stay hidden)', async () => {
+      const { org, mine, foreign } = await twoCompanies();
+      await t.db.query(`UPDATE org_nodes SET management_mode = 'per_company' WHERE id = $1`, [org.unitA.id]);
+      const viewer = await t.factories.signIn(await t.factories.user({ unit: org.unitA, grants: [grant(CorePermission.OrgView)] }));
+      const ids = ((await viewer.get(`/api/org/nodes/${org.unitA.id}/employees`).expect(200)).body as { id: string }[]).map((r) => r.id);
+      expect(ids).toContain(mine.employeeId);
+      expect(ids).not.toContain(foreign.employeeId);
+    });
+
+    it('shows everyone in a shared unit, and the full-view key shows everyone too', async () => {
+      const { org, mine, foreign } = await twoCompanies();
+      await t.db.query(`UPDATE org_nodes SET management_mode = 'shared' WHERE id = $1`, [org.unitA.id]);
+      const viewer = await t.factories.signIn(await t.factories.user({ unit: org.unitA, grants: [grant(CorePermission.OrgView)] }));
+      expect(((await viewer.get(`/api/org/nodes/${org.unitA.id}/employees`).expect(200)).body as { id: string }[]).map((r) => r.id)).toEqual(expect.arrayContaining([mine.employeeId, foreign.employeeId]));
+      await t.db.query(`UPDATE org_nodes SET management_mode = 'per_company' WHERE id = $1`, [org.unitA.id]);
+      const full = await t.factories.signIn(await t.factories.user({ grants: [grant(CorePermission.OrgView), grant(VIEW_FULL)] }));
+      expect(((await full.get(`/api/org/nodes/${org.unitA.id}/employees`).expect(200)).body as { id: string }[]).map((r) => r.id)).toEqual(expect.arrayContaining([mine.employeeId, foreign.employeeId]));
+    });
+
+    it('answers 404 for a unit that does not exist even with the full-view key, and 200 [] for an existing unit with nobody', async () => {
+      const org = await t.factories.org();
+      const full = await t.factories.signIn(await t.factories.user({ grants: [grant(CorePermission.OrgView), grant(VIEW_FULL)] }));
+      await full.get('/api/org/nodes/00000000-0000-4000-8000-000000000000/employees').expect(404);
+      expect((await full.get(`/api/org/nodes/${org.sectionC}/employees`).expect(200)).body).toEqual([]);
+    });
   });
 });

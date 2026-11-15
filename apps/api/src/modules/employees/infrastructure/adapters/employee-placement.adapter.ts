@@ -84,13 +84,13 @@ export class EmployeePlacementAdapter extends EmployeePlacementPort {
     return new Map(rows.map((r) => [r.id, r.company_id]));
   }
 
-  async unitEmployees(nodeId: string): Promise<OrgUnitEmployeeDto[]> {
+  async unitEmployees(nodeId: string, companyId: string | null): Promise<OrgUnitEmployeeDto[]> {
     const rows: { id: string; employee_number: string; full_name: string; work_email: string; manager_name: string | null }[] = await this.ds.query(
       `SELECT e.id, e.employee_number, e.full_name, e.work_email, m.full_name AS manager_name
          FROM employees e LEFT JOIN employees m ON m.id = e.manager_id AND m.deleted_at IS NULL
-        WHERE e.org_node_id = $1 AND ${ACTIVE} AND e.is_system_account = false
+        WHERE e.org_node_id = $1 AND ($2::uuid IS NULL OR e.company_id = $2) AND ${ACTIVE} AND e.is_system_account = false
         ORDER BY e.full_name, e.id`,
-      [nodeId],
+      [nodeId, companyId],
     );
     return rows.map((r) => ({ id: r.id, employeeNumber: r.employee_number, fullName: r.full_name, workEmail: r.work_email, managerName: r.manager_name }));
   }

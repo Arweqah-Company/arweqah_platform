@@ -22,7 +22,8 @@ export class HeadRoleTeamKeys1794316000000 implements MigrationInterface {
             [this.keys]);
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`DELETE FROM role_permissions p USING roles r WHERE p.role_id = r.id AND r.auto_rule = 'node_head' AND p.scope = 'subtree' AND p.permission_key = ANY($1)`, [this.keys]);
+    public async down(): Promise<void> {
+        // Nothing to undo: `up` leaves a key a head role already had untouched, so a delete here could not tell the keys it added from the ones an
+        // administrator had given, and would take those away (review of PR 91).
     }
 }
