@@ -90,6 +90,10 @@ Each service has a window with the full steps in Arabic and English and the mean
 - **Anthropic:** at console.anthropic.com add a payment method and a small credit, create an API key and copy it at once, and leave the model as it is or change it. You pay by use.
 - **OpenAI-compatible service:** for the free option use «Get API key» in Google AI Studio and leave the address and model as they are. For another service type its https address and a model that supports structured JSON answers.
 
+**Address locations**
+
+- Create a free MaxMind account, open «Manage license keys», generate a license key and copy it at once, then type it with the account number. «Try» downloads the city database to the server (it can take a minute) and the service can then be switched on. The database is refreshed every Monday at 03:00 (Riyadh) while the service is on.
+
 ### E-mail templates and notification templates
 
 Here you edit the wording of every e-mail the platform sends (the account activation invitation and the frame of notices sent by e-mail) and every in-app notice (the bell), in Arabic and English. The list columns: message, area (Sign-in, Tickets, Tasks, Notifications), state («Default wording», «Customised», «Waiting for approval»), last change, with search, filters and export.
@@ -220,6 +224,13 @@ The page is made of tabs, each with its own forms. Secret values (keys, password
 | OpenAI-compatible service: API key | The key of that service (free Gemini: «Get API key» in Google AI Studio) | Yes (secret) | Text |
 | OpenAI-compatible service: Service address | The web address of the service | Yes | A public `https://` address that ends before `/chat/completions` (not a local, internal or numeric address, and with no user name inside); default is Gemini's |
 | OpenAI-compatible service: Model | A model that service offers | Yes | A model name supporting structured JSON answers; default `gemini-3.8-flash` |
+
+**Address locations** (Settings → Address locations; edit key `integrations.geoip_edit`)
+
+| Service and field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| MaxMind GeoLite2 City: Account number | The number of your free MaxMind account (the «Account ID / User ID» at the top of the account page) | Yes | Digits |
+| MaxMind GeoLite2 City: License key | The secret key that allows the city database download; it stays on the server | Yes (secret) | Generated once in MaxMind → «Manage license keys»; never shown again after saving |
 
 **The «Try» window** (key `integrations.<kind>_test`; at most 10 tries a minute per administrator)
 
