@@ -189,7 +189,6 @@
     "desk": "Unit",
     "managerIs": "Manager: {{name}}",
     "noManager": "This unit has no manager yet: assign one in the organization structure to activate it.",
-    "needAdminMode": "This page works in platform admin mode. Turn it on at the top of the page.",
     "none": "No unit available to you",
     "noneHint": "The units you manage appear here.",
     "receptionTitle": "Reception",

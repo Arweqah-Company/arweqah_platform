@@ -22,7 +22,7 @@ const UNCONFIGURED = (orgNodeId: string): DeskRecord => ({ orgNodeId, ...DEFAULT
 
 /**
  * The setup of the departments that receive tickets: reception status, the description the sender sees, the durations, and the types.
- * Reached only in platform admin mode (enforced on the routes); inside it, each key reaches the departments its scope says:
+ * Each key reaches the departments its scope says:
  * the ones the person manages, their unit, their unit and below, their company, or every department.
  */
 @Injectable()
@@ -161,7 +161,7 @@ export class TicketSetupService {
   }
 
   private audit(actorId: string, action: string, entityId: string, changes: Record<string, unknown>): void {
-    const event: AuditEvent = { actorId, action, entityType: 'ticket', entityId, changes: { ...changes, adminMode: true } };
+    const event: AuditEvent = { actorId, action, entityType: 'ticket', entityId, changes };
     this.events.emit(AUDIT_EVENT, event);
   }
 }
