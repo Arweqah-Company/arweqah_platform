@@ -15,6 +15,7 @@ export const LIST_CATALOG = {
   directory: { columns: ['name', 'title', 'unit', 'company', 'email', 'phone'], filters: ['companyId', 'jobTitleId'] },
   org: { columns: ['name', 'code', 'level', 'mode', 'leader', 'manager', 'employees', 'titles', 'status'], filters: ['level', 'mode', 'status', 'employees', 'manager'] },
   'job-titles': { columns: ['code', 'name', 'unit', 'grade', 'track', 'occupants'], filters: ['sector', 'department', 'section', 'grade', 'track', 'vacant'] },
+  'org-unit-employees': { columns: ['name', 'number', 'email', 'manager'], filters: [] },
   'career-learning': { columns: ['priority', 'unit', 'duration', 'language', 'state', 'link'], filters: ['priority', 'language', 'state'] },
   'career-team': { columns: ['employee', 'title', 'progress', 'hours', 'late', 'status', 'unit', 'company', 'email', 'phone'], filters: ['status'] },
   'career-requests': { columns: ['employee', 'course', 'cost', 'plan', 'level', 'status', 'submitted'], filters: ['status', 'level', 'plan'] },

@@ -489,6 +489,16 @@
       "filters": {
         "status": "الحالة"
       }
+    },
+    "org-unit-employees": {
+      "name": "موظفو الوحدة",
+      "columns": {
+        "name": "الاسم",
+        "number": "رقم العمل",
+        "email": "بريد العمل",
+        "manager": "المدير المباشر"
+      },
+      "filters": {}
     }
   },
   "listHint": "العمود الأول (الاسم) يبقى دائمًا.",
