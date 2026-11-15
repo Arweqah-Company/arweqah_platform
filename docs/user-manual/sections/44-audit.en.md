@@ -20,7 +20,7 @@ A record of every important event on the platform: who did what, when and from w
 | Action | What happens | Permission |
 |---|---|---|
 | Open the page, search and filter | Shows the log, newest first, narrowed by what you type or choose | `audit.view` (View the audit log page) |
-| «View» icon or click on a row | Opens the «Audit entry» window: time, actor, category, action, IP address and the changes | `audit.view` |
+| «View» icon or click on a row | Opens the «Audit entry» window: time, actor, category, action, IP address, the record concerned by name, and the changes line by line (a label for each detail and the name of each role, unit, person… instead of ids; the technical form stays under «Technical details») | `audit.view` |
 | Export button | Exports the log to a file after you choose the scope, columns and file type (columns: when, by, category, action, IP address) | `audit.export` (Export the audit log) |
 | Integrity check of the log | The platform runs it by itself every week and records any problem; there is no button for it on this page | `audit.verify` (Check the audit log has not been tampered with) |
 
@@ -65,7 +65,7 @@ The audit log is read-only; its inputs are the search box and the filters, plus 
 | Columns | Which columns to put in the file | Yes, at least one | «Select all» / «Clear selection»; the window shows «N of M columns» |
 | File type | The format of the file | Yes | Excel (.xlsx) or CSV (.csv) |
 
-Export columns offered: When, By, Category, Action, IP address. Export needs `audit.export`. The «Audit entry» window (click a row) is read-only: time, actor, category, action, IP address and the changes.
+Export columns offered: When, By, Category, Action, Record, Changes, IP address. Export needs `audit.export`. The «Audit entry» window (click a row) is read-only: time, actor, category, action, IP address and the changes.
 
 ### Workflow
 

@@ -22,6 +22,8 @@ export abstract class EmployeeAssignmentRepository {
   /** Rewrites the value and reason of a period (only the open period of the same day is corrected this way). */
   abstract overwrite(id: string, values: AssignmentValues, tx: TransactionContext): Promise<void>;
   abstract close(id: string, validTo: string | null, tx: TransactionContext): Promise<void>;
+  /** Moves the start day of a period (the first period of a field, to an earlier day, so it never overlaps another). */
+  abstract moveStart(id: string, validFrom: string, tx: TransactionContext): Promise<void>;
   abstract remove(id: string, tx: TransactionContext): Promise<void>;
   abstract markApplied(id: string, at: Date, tx: TransactionContext): Promise<void>;
   /** Waiting periods whose day has come (not yet written to the employee record), oldest first. */

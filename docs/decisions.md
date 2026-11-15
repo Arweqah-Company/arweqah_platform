@@ -2,6 +2,24 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-15 — The head role changes the roles of its people and reassigns tickets
+
+Plans: `docs/plans/phase-5-people-structure-profile.md` and `docs/plans/phase-2-tickets.md` §22 (logs, 2026-11-15).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 381 | **The head role manages the people of the unit and below: `employees.create`, `employees.update` with every field (`ALL_EDITABLE_FIELDS`, the structure group included), `employees.assign_change`, `employees.bulk_update`, `employees.export`, `employees.import` at «unit and below», and `directory.view` / `directory.export` (migration `HeadRoleEmployeeManagement`; the fields of an existing head role are widened only while they still are the basic data, so a list an administrator narrowed stays).** The scopes of `assign_change`, `bulk_update`, `export` and `import` now include unit and below. Taking a role off a person is limited by what the leader holds only for a key that reaches a unit and below (HR with company or all removes as before). Sensitive details (ID, IBAN, salary) stay behind `employees.view_sensitive`, which the head role does not hold. | Owner: a leader sees, adds and edits the people of the unit with everything the current head role already gives. | A leader needs the sensitive details, or import must be limited to rows inside the unit with a clear message per row. |
+| 382 | **The audit log is read in words by the API, at read time: `details` and `entityName` are built from the stored entry with one parameterized query over the places an id can point to (`AuditNames`), and a dictionary of key labels in `packages/shared/src/audit/readable.ts`.** What is written (and hashed) is unchanged; unknown keys fall back to their words, unknown ids stay as they are; sensitive keys stay «hidden». | Owner: «it says an employee edited details or added roles but shows only ids». | A module writes a key the dictionary lacks (add its label), or a new table holds ids the log mentions (add it to the query). |
+| 380 | **`employees.assign_roles` (unit, unit and below, company, all) and the new `tickets.reassign` (unit, unit and below, company, all) are in the head role at «unit and below» (migration `HeadRoleRolesAndReassign`, standing rule 17).** A leader gives only roles they hold (`assertGrantable`, now asked only of the roles added and, for the ones taken off, of what they could not give: a role the leader does not hold survives a save that keeps it and is refused when removed); `GET /roles/grantable` returns the roles the person may give so the dialog works without the roles page. A ticket is reassigned only while open and not personal, to an active employee of the desk's company inside the same reach as the key; the reassign button follows `abilities.reassign` (key scope over the desk) and the new assignee is told. No table or column changes. | Owner: a leader changes the roles of the people under them and hands the unit's tickets to someone on the team. | Leaders need to give a role they do not hold (today refused by design), or a ticket may be reassigned across units. |
+
+## 2026-11-15 — Faster CI without weaker checks
+
+Plan: `docs/plans/phase-1-auth-employees.md` (log, 2026-11-15).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 379 | **CI runs the same checks in about half the wall time (measured on the last run: quality 276 s, API e2e 840 s, browser e2e shards 585 / 587 / 966 / 1047 s, all after quality, about 22 minutes):** (1) the API and browser suites no longer wait for `quality` (`needs` removed; Deploy still needs the whole CI to succeed); (2) API e2e is three shards of spec files (`E2E_API_SHARD=n/3`, read by the `test:e2e` script of the API as vitest's `--shard`; each shard has its own PostgreSQL service, so the one-database-per-runner rule holds; locally nothing changes without the variable); (3) the browser shards are filled by file weight, not by test count (`e2e/shard-weights.json`: seconds per file from a real run; `e2e/support/shard-plan.ts` places the longest file on the lightest runner, a file with no weight gets the median, every file lands on exactly one shard, tested with `node --test`); (4) the job's PostgreSQL has `fsync`, `synchronous_commit` and `full_page_writes` off (composite action `fast-postgres`: a test database is discarded with the runner); (5) the Playwright browser download is cached. No test was removed, skipped or loosened. | Owner: waiting 22 minutes for every check slows every PR and release. | A shard drifts (refresh `shard-weights.json` from a run), or a job fails only when run in parallel with another. |
+
 ## 2026-11-15 — Review of PR 91 (the release of PR 89)
 
 Plan: `docs/plans/phase-5-people-structure-profile.md` (log, 2026-11-15).
@@ -9,6 +27,14 @@ Plan: `docs/plans/phase-5-people-structure-profile.md` (log, 2026-11-15).
 | # | Decision | Why | Revisit when |
 |---|---|---|---|
 | 378 | **CodeRabbit's nine comments on the release pull request, each checked against the code (standing rule 16): eight real and fixed, none dismissed.** Reproduced first with tests that failed on the old code: (1) the unit's employees list returned every company's people in a unit managed per company (names, numbers, work e-mails, managers): it now keeps the viewer's own company there (shared units and `org.view_full` still see all) and answers 404 for a unit that does not exist even with the full view; (2) a failed phone update while creating an employee left an account with no employee: the call is inside the `try` that deletes the account; (3) the account's name and phone are written from the saved values on every save (`syncAccount`), never compared with the record, so saving again repairs an account an earlier failure left behind; (4) the employees tab is a `DataTable` + `ListToolbar` (search, table / cards, export with `employees.export`), shows loading, and uses themed surfaces; (5) `HeadRoleTeamKeys.down` is a no-op (it could not tell the keys it added from ones an administrator gave); (6) migration `SyncClearedPhones` empties the account phone when the employee has none. | Owner chose «fix first, then release». | The unit's employees list needs its own permission key (today any `org.view` holder sees the people of their company in the unit). |
+
+## 2026-11-15 — A placement change may start in the past
+
+Plan: `docs/plans/phase-5-people-structure-profile.md` (log, 2026-11-15).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 377 | **A change of unit, job title or manager may start in the past (`planChange` no longer refuses `validFrom < today`); it is in force at once (`applyNow` when `validFrom <= today`) and closes the open period the day before it.** A date at or before the start of the current period is still refused (`ASSIGNMENT_DATE_NOT_AFTER`) with a message that names that start and says to change the employee's start date first; editing the start date **earlier** on the employee form also moves the first period of each field back (`alignStart`, inside the same transaction, before the placement change), so an earlier title date then works. A start moved later changes no history. `ASSIGNMENT_IN_THE_PAST` is gone. Leadership of the unit (`leadsUnit`) still starts today at the earliest (`leadFrom`): only the title carries the past date. Owner's cases: giving oneself «team leader» with the real date in October was refused, and employees loaded with their titles carry the real date, not the day they were registered. | Owner: placement dates must be the real ones, not the day we typed them in. | A past change should need its own permission or a reason longer than today's, or history before the start day is wanted. |
 
 ## 2026-11-15 — The head role of a unit also edits its people, assigns tasks and keeps task tags
 

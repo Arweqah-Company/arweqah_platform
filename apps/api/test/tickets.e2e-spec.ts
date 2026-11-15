@@ -578,4 +578,56 @@ describe('Tickets (FR-36 … FR-41)', () => {
       await agent.get(`/api/tickets/figures?deskId=${w.org.otherDepartment}`).expect(404);
     });
   });
+
+  describe('Reassigning a ticket to someone on the team (FR-130)', () => {
+    const REASSIGN = [{ key: CorePermission.TicketsView, scope: 'subtree' as const }, { key: CorePermission.TicketsReply, scope: 'subtree' as const }, { key: CorePermission.TicketsReassign, scope: 'subtree' as const }];
+
+    /** A leader of the whole department (the desk), who holds the keys at subtree, and an open ticket sent to it. */
+    async function leaderWorld() {
+      const w = await world();
+      const typeId = await openDesk(w);
+      const ticket = await sendOne(w, typeId);
+      const leader = await t.factories.user({ unit: { ...w.org.unitA, id: w.org.department }, grants: REASSIGN });
+      const mate = await t.factories.user({ unit: w.org.unitC });
+      return { ...w, ticket, leader, mate, leaderAgent: await t.factories.signIn(leader) };
+    }
+
+    it('lets a leader hand a ticket of the unit to one of their team: the new assignee is told, the history says who and to whom, and the old one is no longer the assignee', async () => {
+      const w = await leaderWorld();
+      expect((await w.leaderAgent.get(`/api/tickets/${w.ticket.id}`).expect(200)).body.abilities.reassign).toBe(true);
+      const names = ((await w.leaderAgent.get(`/api/tickets/${w.ticket.id}/assignees`).expect(200)).body as { id: string }[]).map((p) => p.id);
+      expect(names).toContain(w.mate.id);
+      expect(names).not.toContain(w.assignee.id); // never the current assignee
+      const moved = (await w.leaderAgent.post(`/api/tickets/${w.ticket.id}/reassign`).send({ assigneeUserId: w.mate.id }).expect(200)).body as TicketDto;
+      expect(moved.assignee?.id).toBe(w.mate.id);
+      expect(moved.events.at(-1)).toMatchObject({ type: 'reassigned', actor: { id: w.leader.id }, replyTo: { id: w.mate.id } });
+      const mateAgent = await t.factories.signIn(w.mate);
+      const noticed = (await mateAgent.get('/api/notifications').expect(200)).body.items as { link: string }[];
+      expect(noticed.some((n) => n.link === `/tickets/${w.ticket.id}`)).toBe(true);
+      expect((await mateAgent.get(`/api/tickets/${w.ticket.id}`).expect(200)).body.relations).toContain('assignee');
+    });
+
+    it('refuses a person outside the leader’s reach, the current assignee, an unknown person and a malformed body', async () => {
+      const w = await leaderWorld();
+      const outside = await t.factories.user({ unit: { ...w.org.unitOther } });
+      for (const id of [outside.id, w.assignee.id, '00000000-0000-4000-8000-000000000000']) {
+        expect((await w.leaderAgent.post(`/api/tickets/${w.ticket.id}/reassign`).send({ assigneeUserId: id }).expect(422)).body.code).toBe('TICKET_REASSIGN_TARGET');
+      }
+      await w.leaderAgent.post(`/api/tickets/${w.ticket.id}/reassign`).send({ assigneeUserId: 'not-an-id' }).expect(400);
+      await w.leaderAgent.post(`/api/tickets/${w.ticket.id}/reassign`).send({ assigneeUserId: w.mate.id, extra: 1 }).expect(400);
+    });
+
+    it('is 403 without the key, 404 for a ticket the person cannot see, and refused when the desk is outside the key’s reach or the ticket is closed', async () => {
+      const w = await leaderWorld();
+      await w.agents.sender.post(`/api/tickets/${w.ticket.id}/reassign`).send({ assigneeUserId: w.mate.id }).expect(403);
+      await w.agents.sender.get(`/api/tickets/${w.ticket.id}/assignees`).expect(403);
+      expect((await w.agents.sender.get(`/api/tickets/${w.ticket.id}`).expect(200)).body.abilities.reassign).toBe(false);
+      const stranger = await t.factories.signIn(await t.factories.user({ unit: w.org.unitOther, grants: REASSIGN }));
+      await stranger.post(`/api/tickets/${w.ticket.id}/reassign`).send({ assigneeUserId: w.mate.id }).expect(404);
+      const sectionLeader = await t.factories.signIn(await t.factories.user({ unit: { ...w.org.unitA, id: w.org.sectionAB }, grants: REASSIGN }));
+      expect((await sectionLeader.post(`/api/tickets/${w.ticket.id}/reassign`).send({ assigneeUserId: w.mate.id }).expect(422)).body.code).toBe('TICKET_STATE_INVALID'); // sees it through the sender, but the desk is above their unit
+      await w.agents.assignee.post(`/api/tickets/${w.ticket.id}/close-without-execution`).send({}).expect(200);
+      expect((await w.leaderAgent.post(`/api/tickets/${w.ticket.id}/reassign`).send({ assigneeUserId: w.mate.id }).expect(422)).body.code).toBe('TICKET_STATE_INVALID');
+    });
+  });
 });

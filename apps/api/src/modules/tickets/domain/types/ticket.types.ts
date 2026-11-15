@@ -150,6 +150,7 @@ export interface TicketPatch {
   closedAt?: Date | null;
   lastActivityAt?: Date;
   reopenCountIncrement?: boolean;
+  assigneeUserId?: string;
 }
 
 /** Where a permission reaches (the same shape as the access module's, kept here so the domain imports nothing from outside). */
@@ -163,6 +164,8 @@ export interface TicketViewer {
   canMention: boolean;
   view: ViewerScope;
   handle: ViewerScope;
+  /** The departments whose tickets the person may hand to someone else, and (the same scope) the people they may hand them to. */
+  reassign: ViewerScope;
 }
 
 export interface TicketListFilters {

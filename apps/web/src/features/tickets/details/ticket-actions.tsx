@@ -6,6 +6,7 @@ import { usePermissions } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Alert, Button, Dialog, FormField, Textarea } from '@/shared/ui';
 import { useTicketAction, type TicketAction } from '../api';
+import { ReassignDialog } from './reassign-dialog';
 
 const DANGER: TicketAction[] = ['close-without-execution'];
 
@@ -51,6 +52,7 @@ function ActionDialog({ ticketId, action, onClose }: { ticketId: string; action:
 export function TicketActions({ ticket }: { ticket: TicketDto }) {
   const { t } = useTranslation('tickets');
   const [asking, setAsking] = useState<TicketAction | null>(null);
+  const [reassigning, setReassigning] = useState(false);
   const { can } = usePermissions();
   const a = ticket.abilities;
   const buttons: { action: TicketAction; allowed: boolean; variant: 'primary' | 'secondary' | 'danger' }[] = [
@@ -61,10 +63,13 @@ export function TicketActions({ ticket }: { ticket: TicketDto }) {
     { action: 'close-without-execution', allowed: a.closeWithoutExecution, variant: 'danger' },
   ];
   const shown = buttons.filter((b) => b.allowed && can(KEY[b.action]));
-  if (shown.length === 0) return null;
+  const canReassign = a.reassign && can(CorePermission.TicketsReassign);
+  if (shown.length === 0 && !canReassign) return null;
   return (
     <div className="flex flex-wrap items-center gap-2">
       {shown.map((b) => <Button key={b.action} variant={b.variant} onClick={() => setAsking(b.action)}>{t(`actions.${b.action}.button`)}</Button>)}
+      {canReassign && <Button variant="secondary" onClick={() => setReassigning(true)}>{t('actions.reassign.button')}</Button>}
+      {reassigning && <ReassignDialog ticketId={ticket.id} onClose={() => setReassigning(false)} />}
       {a.reopen && ticket.reopenDaysLeft !== null && <span className="text-xs text-muted">{t('actions.reopenLeft', { count: ticket.reopenDaysLeft })}</span>}
       {asking && <ActionDialog ticketId={ticket.id} action={asking} onClose={() => setAsking(null)} />}
     </div>

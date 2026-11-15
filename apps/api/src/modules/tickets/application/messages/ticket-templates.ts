@@ -16,6 +16,7 @@ export const TICKET_TEMPLATE_KEYS: Record<NoticeKind, string> = {
   reopened: 'ticket.reopened',
   stale: 'ticket.stale',
   personalMoved: 'ticket.personal_moved',
+  reassigned: 'ticket.reassigned',
   mentioned: 'ticket.mentioned',
   replyAnswered: 'ticket.reply_answered',
 };
@@ -36,6 +37,7 @@ const SPECS: Spec[] = [
   ['reopened', ['إعادة فتح', 'Reopened'], ['عندما يعيد المرسل فتح تذكرة', 'When the sender reopens a ticket'], ['أُعيد فتح {{ticketNumber}}', '{{ticketNumber}} reopened'], ['أعاد المرسل فتح التذكرة {{ticketNumber}}.', 'The sender reopened ticket {{ticketNumber}}.']],
   ['stale', ['تذكرة راكدة', 'Stale ticket'], ['عندما لا تتحرك التذكرة مدة طويلة', 'When a ticket has had no activity for a while'], ['التذكرة {{ticketNumber}} راكدة', 'Ticket {{ticketNumber}} is stale'], ['لا حركة على التذكرة {{ticketNumber}} منذ مدة. تحتاج تدخلًا.', 'Ticket {{ticketNumber}} has had no activity for a while. It needs attention.']],
   ['personalMoved', ['نقل تذاكر شخصية', 'Personal tickets moved'], ['عندما تنتقل تذاكر شخصية مفتوحة إلى مسؤول جديد', 'When open personal tickets move to a new assignee'], ['نُقلت تذاكر شخصية إلى مسؤول جديد', 'Personal tickets moved to a new assignee'], ['نُقل {{count}} تذكرة شخصية مفتوحة في {{deskName}} إلى المسؤول الجديد.', '{{count}} open personal tickets of {{deskName}} moved to the new assignee.']],
+  ['reassigned', ['إسناد تذكرة إليك', 'A ticket assigned to you'], ['عندما تُسند إليك تذكرة', 'When a ticket is assigned to you'], ['أُسندت إليك {{ticketNumber}}', '{{ticketNumber}} assigned to you'], ['أُسندت إليك التذكرة {{ticketNumber}} في {{deskName}}.', 'Ticket {{ticketNumber}} of {{deskName}} was assigned to you.']],
   ['mentioned', ['ذكرك أحد في تذكرة', 'Mentioned in a ticket'], ['عندما يذكرك زميل بـ @ في ردّ على تذكرة (البريد بلا نص الردّ)', 'When a colleague mentions you with @ in a ticket reply (the e-mail never carries the reply)'], ['ذكرك {{commenter}} في {{ticketNumber}}', '{{commenter}} mentioned you in {{ticketNumber}}'], ['ذكرك {{commenter}} في ردّ على التذكرة {{ticketNumber}}.', '{{commenter}} mentioned you in a reply on ticket {{ticketNumber}}.']],
   ['replyAnswered', ['ردّ على ردّك', 'Answer to your reply'], ['عندما يردّ أحد على ردّك في تذكرة', 'When someone answers your reply on a ticket'], ['ردّ {{commenter}} على ردّك في {{ticketNumber}}', '{{commenter}} answered your reply in {{ticketNumber}}'], ['ردّ {{commenter}} على ردّك في التذكرة {{ticketNumber}}.', '{{commenter}} answered your reply on ticket {{ticketNumber}}.']],
 ];

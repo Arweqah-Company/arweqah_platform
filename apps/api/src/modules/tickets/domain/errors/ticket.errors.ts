@@ -132,3 +132,10 @@ export class TicketReplyTargetInvalidError extends BusinessRuleError {
     super('That reply cannot be answered');
   }
 }
+
+export class ReassignTargetError extends BusinessRuleError {
+  override readonly code = 'TICKET_REASSIGN_TARGET';
+  constructor() {
+    super('The new assignee must be another active employee inside your reach');
+  }
+}

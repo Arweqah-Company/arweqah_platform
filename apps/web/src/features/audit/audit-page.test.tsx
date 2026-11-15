@@ -5,7 +5,7 @@ import { me, server } from '../../../test/msw';
 import { renderPage } from '../../../test/render';
 import { AuditPage } from './audit-page';
 
-const entry = { id: 'a1', actorId: 'u1', actorName: 'سارة أحمد', action: 'task.created', category: 'tasks', entityType: 'task', entityId: '11111111-2222-3333-4444-555555555555', changes: { priority: 'high' }, ip: '10.0.0.7', createdAt: '2026-10-24T08:00:00.000Z' };
+const entry = { id: 'a1', actorId: 'u1', actorName: 'سارة أحمد', action: 'task.created', category: 'tasks', entityType: 'task', entityId: '11111111-2222-3333-4444-555555555555', changes: { priority: 'high' }, entityName: { ar: 'TSK-000007', en: 'TSK-000007' }, details: [{ label: { ar: 'الأولوية', en: 'Priority' }, value: { ar: 'عالية', en: 'High' } }], ip: '10.0.0.7', createdAt: '2026-10-24T08:00:00.000Z' };
 
 describe('Audit log: a click on a row opens its entry, and the actions column says "View"', () => {
   it('opens the entry in full from the row and from its action', async () => {
@@ -18,7 +18,10 @@ describe('Audit log: a click on a row opens its entry, and the actions column sa
     expect(screen.getByRole('columnheader', { name: 'الإجراءات' })).toBeInTheDocument();
     fireEvent.click(within(row).getByText('سارة أحمد'));
     const dialog = await screen.findByRole('dialog', { name: 'قيد التدقيق' });
-    expect(within(dialog).getByText(/"priority": "high"/)).toBeInTheDocument();
+    expect(within(dialog).getByText('الأولوية')).toBeInTheDocument(); // the key as a label a person knows, the value in words
+    expect(within(dialog).getByText('عالية')).toBeInTheDocument();
+    expect(within(dialog).getAllByText('TSK-000007').length).toBeGreaterThan(0); // the record the entry is about
+    expect(within(dialog).getByText(/"priority": "high"/)).toBeInTheDocument(); // the technical form stays for support
     expect(within(dialog).getByText('10.0.0.7')).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('button', { name: 'إغلاق' }));
     fireEvent.click(within(row).getByRole('button', { name: 'عرض' }));

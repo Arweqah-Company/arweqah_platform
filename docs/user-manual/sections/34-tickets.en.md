@@ -7,7 +7,7 @@ A ticket is the official way to ask another department for something: you choose
 ### Who sees it
 
 - **View permission:** `tickets.view` («View the tickets page and ticket details»). Default scope: own, meaning the tickets you sent or that are handled by you.
-- **Default roles:** the Employee role holds view (own), send a ticket, reply (own), ask to close, confirm or reject closing, close without execution, reopen, and the reply and mention keys. The head role of each unit holds view and reply at «unit and below».
+- **Default roles:** the Employee role holds view (own), send a ticket, reply (own), ask to close, confirm or reject closing, close without execution, reopen, and the reply and mention keys. The head role of each unit holds view, reply and reassign at «unit and below».
 - No platform admin mode is needed.
 - A ticket outside your relation or scope is shown as «not found». Attachments can be downloaded only by people who may see the ticket.
 
@@ -25,6 +25,7 @@ A ticket is the official way to ask another department for something: you choose
 | Not done yet | The sender rejects the closing; the ticket returns to the department | `tickets.decline_close` (Reject the closing of a ticket) |
 | Close without carrying out | The department closes it, explaining why | `tickets.close_without_execution` (Close a ticket without executing it) |
 | Reopen | The sender reopens a closed ticket within the allowed days | `tickets.reopen` (Reopen a closed ticket) |
+| Reassign | A unit head hands an open ticket of their unit to someone on their team | `tickets.reassign` (Reassign a ticket to another employee) |
 | Quick reply | On the board, a short reply from the card | `tickets.reply` |
 
 The tickets list has no export or import button. Tickets are sent one by one from the popup, not from a file.
@@ -49,6 +50,8 @@ The tickets list has no export or import button. Tickets are sent one by one fro
 1. Open the ticket. If the department asked to close, you see **Confirm it was done** and **Not done yet**.
 2. Click **Confirm it was done** to close it, or **Not done yet** to send it back open with your message.
 3. If the ticket is closed and you still need it, click **Reopen** (the page shows how many days are left).
+
+**Reassigning (unit heads):** on an open ticket of your unit click **Reassign**, search a name or number, and choose the person. Only people inside your own unit and the units below it appear. The ticket moves to them, they are notified, and the history shows who handed it to whom.
 
 **Find tickets**
 

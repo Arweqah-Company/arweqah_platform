@@ -39,6 +39,16 @@ export class TicketAccessPolicy {
     return relations;
   }
 
+  /**
+   * Where the person may hand this ticket: the company and the departments (null = the whole company) its new assignee must sit in.
+   * Null when the ticket is personal, closed, or its desk is outside the reach of the person's reassign key.
+   */
+  reassignReach(viewer: TicketViewer, ticket: TicketRow): { companyId: string; nodeIds: readonly string[] | null } | null {
+    const desk = { orgNodeId: ticket.deskId, companyId: ticket.deskCompanyId };
+    if (ticket.isPersonal || ticket.status === 'closed' || !inScope(viewer.reassign, desk)) return null;
+    return { companyId: ticket.deskCompanyId, nodeIds: viewer.reassign.kind === 'nodes' ? viewer.reassign.ids : null };
+  }
+
   /** The people the unit side of a ticket means: its assignee, else the desk manager (never for a personal ticket without an assignee). */
   unitRecipients(ticket: TicketRow): string[] {
     if (ticket.assigneeUserId) return [ticket.assigneeUserId];

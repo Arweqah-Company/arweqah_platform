@@ -1,4 +1,4 @@
-import type { AuditLogDto, AuditQuery, Paginated } from '@arweqah-platform/shared';
+import type { AuditEntryDto, AuditQuery, Paginated } from '@arweqah-platform/shared';
 import type { ChainCheck } from './audit-chain';
 import type { AuditLog } from './audit-log.entity';
 
@@ -7,5 +7,5 @@ export abstract class AuditLogRepository {
   abstract append(entry: Pick<AuditLog, 'actorId' | 'action' | 'entityType' | 'entityId' | 'changes' | 'ip'>): Promise<void>;
   /** Reads the chained entries in the order they were written and checks them; `limit` checks only the latest ones. */
   abstract verify(): Promise<ChainCheck>;
-  abstract search(query: AuditQuery): Promise<Paginated<AuditLogDto>>;
+  abstract search(query: AuditQuery): Promise<Paginated<AuditEntryDto>>;
 }

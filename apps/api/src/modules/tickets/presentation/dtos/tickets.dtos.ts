@@ -2,6 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import {
   createTicketSchema,
+  reassignTicketSchema,
   ticketActionSchema,
   ticketDeskSettingsSchema,
   ticketFiguresQuerySchema,
@@ -24,3 +25,5 @@ export class DeskParam extends createZodDto(z.strictObject({ deskId: z.uuid() })
 export class TypeParam extends createZodDto(z.strictObject({ deskId: z.uuid(), typeId: z.uuid() })) {}
 export class AttachmentParam extends createZodDto(z.strictObject({ id: z.uuid(), fileId: z.uuid() })) {}
 export class AssigneeSearchDto extends createZodDto(z.strictObject({ q: z.string().trim().max(100).optional() })) {}
+
+export class ReassignTicketBody extends createZodDto(reassignTicketSchema) {}

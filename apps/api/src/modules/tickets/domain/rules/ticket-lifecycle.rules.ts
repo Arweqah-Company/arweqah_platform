@@ -36,17 +36,23 @@ export function reopenDaysLeft(status: TicketStatus, closedAt: Date | null, wind
 /** The relations that stand on the unit's side of a ticket: its assignee, the manager of its desk, and whoever handles its department by scope. */
 const UNIT_SIDE: TicketRelation[] = ['assignee', 'manager', 'desk'];
 
+/** What the sender may do now: answer the closing request, or reopen within the window. */
+function senderAbilities(sender: boolean, status: TicketStatus, reopenLeft: number | null): Pick<TicketAbilitiesDto, 'confirmClose' | 'declineClose' | 'reopen'> {
+  const answering = sender && status === 'close_requested';
+  return { confirmClose: answering, declineClose: answering, reopen: sender && status === 'closed' && reopenLeft !== null };
+}
+
 /** What each relation may do now. The sender replies to an open ticket; the unit (assignee or manager) closes it. */
-export function abilitiesFor(relations: readonly TicketRelation[], status: TicketStatus, reopenLeft: number | null): TicketAbilitiesDto {
-  const sender = relations.includes('sender');
-  const unit = UNIT_SIDE.some((relation) => relations.includes(relation));
+export function abilitiesFor(relations: readonly TicketRelation[], status: TicketStatus, reopenLeft: number | null, canReassign = false): TicketAbilitiesDto {
+  const has = (relation: TicketRelation): boolean => relations.includes(relation);
+  const sender = has('sender');
+  const unit = UNIT_SIDE.some(has);
   const live = status !== 'closed';
   return {
-    reply: live && (sender || unit || relations.includes('mentioned')),
+    reply: live && (sender || unit || has('mentioned')),
     requestClose: unit && status === 'open',
     closeWithoutExecution: unit && live,
-    confirmClose: sender && status === 'close_requested',
-    declineClose: sender && status === 'close_requested',
-    reopen: sender && status === 'closed' && reopenLeft !== null,
+    reassign: canReassign && live,
+    ...senderAbilities(sender, status, reopenLeft),
   };
 }

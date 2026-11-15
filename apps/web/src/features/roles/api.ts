@@ -8,6 +8,9 @@ const KEY = ['roles'];
 /** `enabled` is false where the person may not choose roles, so the list is not asked for. */
 export const useRoles = (enabled = true) => useQuery({ queryKey: KEY, enabled, queryFn: () => apiClient.get<RoleDto[]>('/roles') });
 
+/** The roles the signed-in person may give to somebody else (a leader opens the roles dialog without the roles page). */
+export const useGrantableRoles = (enabled = true) => useQuery({ queryKey: [...KEY, 'grantable'], enabled, queryFn: () => apiClient.get<RoleDto[]>('/roles/grantable') });
+
 export const usePermissionCatalog = () =>
   useQuery({ queryKey: ['permission-catalog'], queryFn: () => apiClient.get<PermissionCatalogGroup[]>('/permissions/catalog'), staleTime: Infinity });
 

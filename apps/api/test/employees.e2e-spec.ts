@@ -356,6 +356,29 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     expect((await t.db.query('SELECT is_active FROM users WHERE id = $1', [created.userId]))[0].is_active).toBe(false);
   });
 
+  it('lets a leader change the roles of the people of their unit and below, limited to the roles they hold (FR-129)', async () => {
+    const { org, payload } = await setup();
+    const admin = await t.factories.signIn(await t.factories.user({ grants: [...hr, grant(P.AuditView, 'all'), grant(P.RolesCreate, 'all')] }));
+    const below = (await admin.post('/api/employees').send(payload(org.unitA)).expect(201)).body.employee;
+    const outside = await t.factories.user({ unit: org.unitOther });
+    const small = await t.factories.role([grant(P.AuditView, 'all')]);
+    const big = await t.factories.role([grant(P.RolesCreate, 'all')]);
+    const leader = await t.factories.user({ unit: { ...org.unitA, id: org.department }, grants: [grant(P.EmployeesView, 'subtree'), grant(P.EmployeesAssignRoles, 'subtree'), grant(P.AuditView, 'all')] });
+    const agent = await t.factories.signIn(leader);
+    const offered = ((await agent.get('/api/roles/grantable').expect(200)).body as { id: string }[]).map((r) => r.id);
+    expect(offered).toContain(small.id);
+    expect(offered).not.toContain(big.id); // never a role beyond what the leader holds
+    const given = await agent.put(`/api/employees/${below.id}/roles`).send({ roleIds: [small.id] }).expect(200);
+    expect(given.body.roles.map((r: { id: string }) => r.id)).toContain(small.id);
+    await agent.put(`/api/employees/${below.id}/roles`).send({ roleIds: [small.id, big.id] }).expect(403);
+    await agent.put(`/api/employees/${outside.employeeId}/roles`).send({ roleIds: [small.id] }).expect(404); // outside the unit: not found
+    await agent.put(`/api/employees/${leader.employeeId}/roles`).send({ roleIds: [small.id] }).expect(422); // never their own
+    await admin.put(`/api/employees/${below.id}/roles`).send({ roleIds: [small.id, big.id] }).expect(200);
+    await agent.put(`/api/employees/${below.id}/roles`).send({ roleIds: [small.id, big.id] }).expect(200); // a role the leader cannot give stays when it is kept
+    await agent.put(`/api/employees/${below.id}/roles`).send({ roleIds: [small.id] }).expect(403); // and cannot be taken off
+    await (await t.factories.signIn(await t.factories.user({ unit: org.unitB }))).get('/api/roles/grantable').expect(403);
+  });
+
   it('assigns roles only with the permission, never beyond the actor\'s own rights or to themselves', async () => {
     const { org, payload } = await setup();
     const agent = await t.factories.signIn(await t.factories.user({ grants: [...hr, grant(P.AuditView, 'all'), grant(P.RolesCreate, 'all')] }));

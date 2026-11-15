@@ -51,14 +51,14 @@ export class TicketTransformer {
     };
   }
 
-  toDetail(input: { row: TicketRow; desk: DeskNames | undefined; relations: TicketRelation[]; events: TicketEventRow[]; attachments: AttachmentRow[]; mentions: MentionRow[]; now: Date }): TicketDto {
+  toDetail(input: { row: TicketRow; desk: DeskNames | undefined; relations: TicketRelation[]; events: TicketEventRow[]; attachments: AttachmentRow[]; mentions: MentionRow[]; now: Date; canReassign?: boolean }): TicketDto {
     const { row, relations, now } = input;
     const left = reopenDaysLeft(row.status, row.closedAt, row.deskReopenWindowDays, now);
     return {
       ...this.toListItem(row, input.desk, now),
       details: row.details,
       relations,
-      abilities: abilitiesFor(relations, row.status, left),
+      abilities: abilitiesFor(relations, row.status, left, input.canReassign),
       events: input.events.map((e) => this.toEvent(e, input.attachments, input.mentions)),
       reopenDaysLeft: left,
       closeRequestedAt: row.closeRequestedAt?.toISOString() ?? null,
