@@ -23,6 +23,8 @@ export interface TypeRecord {
   nameEn: string;
   descriptionAr: string | null;
   descriptionEn: string | null;
+  instructionsAr: string | null;
+  instructionsEn: string | null;
   /** The people who answer tickets of this type (employees of the unit). */
   handlers: { id: string; name: string }[];
   dueDays: number | null;

@@ -202,6 +202,17 @@
   "brand": {
     "logoAlt": "أروقة الريادة"
   },
+  "richText": {
+    "toolbar": "التنسيق",
+    "bold": "عريض",
+    "italic": "مائل",
+    "underline": "تسطير",
+    "bullets": "قائمة نقطية",
+    "numbers": "قائمة مرقمة",
+    "link": "رابط",
+    "linkAddress": "عنوان الرابط",
+    "apply": "تطبيق"
+  },
   "combobox": {
     "choose": "اختر…",
     "clear": "مسح الاختيار",

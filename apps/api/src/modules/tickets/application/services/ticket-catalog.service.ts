@@ -61,6 +61,8 @@ export class TicketCatalogService {
       descriptionEn: t.descriptionEn,
       isPersonal: t.isPersonal,
       dueDays: t.dueDays ?? i.desk.defaultDueDays,
+      instructionsAr: t.instructionsAr,
+      instructionsEn: t.instructionsEn,
       handlers,
       available: !t.isPersonal || handlers.length > 0,
     };
