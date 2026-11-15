@@ -13,13 +13,13 @@ const catalog: TicketCatalogDto = {
     {
       deskId: 'd1', nameAr: 'تقنية المعلومات', nameEn: 'IT', descriptionAr: null, descriptionEn: null, unavailableReason: null, minLeadDays: 0,
       types: [
-        { id: 't1', nameAr: 'مشكلة في الجهاز', nameEn: 'Device problem', descriptionAr: null, descriptionEn: null, isPersonal: false, dueDays: 2, handlers: [person], available: true },
+        { id: 't1', nameAr: 'مشكلة في الجهاز', nameEn: 'Device problem', descriptionAr: null, descriptionEn: null, isPersonal: false, dueDays: 2, assignee: person, available: true },
       ],
     },
     {
       deskId: 'd2', nameAr: 'الموارد البشرية', nameEn: 'HR', descriptionAr: null, descriptionEn: null, unavailableReason: 'paused', minLeadDays: 0,
       types: [
-        { id: 't2', nameAr: 'شهادة راتب', nameEn: 'Salary letter', descriptionAr: null, descriptionEn: null, isPersonal: false, dueDays: 3, handlers: [], available: true },
+        { id: 't2', nameAr: 'شهادة راتب', nameEn: 'Salary letter', descriptionAr: null, descriptionEn: null, isPersonal: false, dueDays: 3, assignee: null, available: true },
       ],
     },
   ],
@@ -64,7 +64,7 @@ describe('FR-37 new ticket dialog', () => {
   });
 
   it('shows one compact list for a long catalog, thirty at a time, and remembers the view (FR-37)', async () => {
-    const many: TicketCatalogDto = { ...catalog, desks: [{ ...catalog.desks[0]!, types: Array.from({ length: 45 }, (_, i) => ({ id: `x${i}`, nameAr: `نوع ${i}`, nameEn: `Type ${i}`, descriptionAr: null, descriptionEn: null, isPersonal: false, dueDays: 2, handlers: [], available: true })) }] };
+    const many: TicketCatalogDto = { ...catalog, desks: [{ ...catalog.desks[0]!, types: Array.from({ length: 45 }, (_, i) => ({ id: `x${i}`, nameAr: `نوع ${i}`, nameEn: `Type ${i}`, descriptionAr: null, descriptionEn: null, isPersonal: false, dueDays: 2, assignee: null, available: true })) }] };
     server.use(http.get('*/api/tickets/catalog', () => HttpResponse.json(many)));
     renderPage(<NewTicketDialog open onOpenChange={() => undefined} />);
     fireEvent.click(await screen.findByRole('button', { name: 'قائمة مضغوطة' }));

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
-import { Alert, Button, Dialog, FormField, Input, MultiCombobox, Textarea } from '@/shared/ui';
+import { Alert, Button, Combobox, Dialog, FormField, Input, Textarea } from '@/shared/ui';
 import { useAssignees, useSaveType } from '../api';
 import { useAutoEnglish } from '@/shared/lib/use-auto-english';
 
@@ -13,18 +13,18 @@ interface Form {
   nameEn: string;
   descriptionAr: string;
   descriptionEn: string;
-  handlers: { id: string; name: string }[];
+  assignee: { id: string; name: string } | null;
   dueDays: string;
   isPersonal: boolean;
   isActive: boolean;
 }
 
-const EMPTY: Form = { nameAr: '', nameEn: '', descriptionAr: '', descriptionEn: '', handlers: [], dueDays: '', isPersonal: false, isActive: true };
+const EMPTY: Form = { nameAr: '', nameEn: '', descriptionAr: '', descriptionEn: '', assignee: null, dueDays: '', isPersonal: false, isActive: true };
 const text = (value: string | null): string => value ?? '';
 
 const fromType = (t: TicketTypeDto | null): Form =>
   t
-    ? { nameAr: t.nameAr, nameEn: t.nameEn, descriptionAr: text(t.descriptionAr), descriptionEn: text(t.descriptionEn), handlers: t.handlers, dueDays: t.dueDays === null ? '' : String(t.dueDays), isPersonal: t.isPersonal, isActive: t.isActive }
+    ? { nameAr: t.nameAr, nameEn: t.nameEn, descriptionAr: text(t.descriptionAr), descriptionEn: text(t.descriptionEn), assignee: t.defaultAssignee, dueDays: t.dueDays === null ? '' : String(t.dueDays), isPersonal: t.isPersonal, isActive: t.isActive }
     : EMPTY;
 
 const toInput = (f: Form): TicketTypeInput => ({
@@ -32,25 +32,20 @@ const toInput = (f: Form): TicketTypeInput => ({
   nameEn: f.nameEn.trim(),
   descriptionAr: f.descriptionAr.trim() || null,
   descriptionEn: f.descriptionEn.trim() || null,
-  handlerUserIds: f.handlers.map((h) => h.id),
+  defaultAssigneeUserId: f.assignee?.id ?? null,
   dueDays: f.dueDays ? Number(f.dueDays) : null,
   isPersonal: f.isPersonal,
   isActive: f.isActive,
 });
 
-function HandlersField({ deskId, value, onChange, error }: { deskId: string; value: Form['handlers']; onChange: (v: Form['handlers']) => void; error?: string }) {
+function AssigneeField({ deskId, value, onChange, error }: { deskId: string; value: Form['assignee']; onChange: (v: Form['assignee']) => void; error?: string }) {
   const { t } = useTranslation('tickets');
-  const found = useAssignees(deskId, '').data ?? [];
-  const options = [...value.filter((v) => !found.some((p) => p.id === v.id)), ...found].map((p) => ({ value: p.id, label: p.name }));
-  const names = value.map((v) => options.find((o) => o.value === v.id)?.label ?? v.name);
+  const [search, setSearch] = useState('');
+  const found = useAssignees(deskId, search).data ?? [];
+  const options = [...(value && !found.some((p) => p.id === value.id) ? [{ id: value.id, name: value.name }] : []), ...found].map((p) => ({ value: p.id, label: p.name }));
   return (
-    <FormField label={t('setup.type.handlers')} hint={t('setup.type.handlersHint')} error={error}>
-      {(p) => (
-        <>
-          <MultiCombobox id={p.id} label={t('setup.type.handlers')} values={value.map((v) => v.id)} options={options} onChange={(ids) => onChange(ids.map((id) => ({ id, name: options.find((o) => o.value === id)?.label ?? '' })))} />
-          {names.length > 0 && <p className="mt-1 text-xs text-muted">{names.join('، ')}</p>}
-        </>
-      )}
+    <FormField label={t('setup.type.assignee')} hint={t('setup.type.assigneeHint')} error={error}>
+      {(p) => <Combobox id={p.id} label={t('setup.type.assignee')} value={value?.id ?? null} options={options} onSearch={setSearch} onChange={(id) => onChange(id ? { id, name: options.find((o) => o.value === id)?.label ?? '' } : null)} clearable />}
     </FormField>
   );
 }
@@ -62,7 +57,7 @@ function TypeFields({ deskId, form, set }: { deskId: string; form: Form; set: (c
   const nameEn = useLiveError(form.nameEn, rules.text(2));
   useAutoEnglish(form.nameAr, form.nameEn, (nameEn) => set({ nameEn }));
   useAutoEnglish(form.descriptionAr, form.descriptionEn, (descriptionEn) => set({ descriptionEn }));
-  const handlers = useLiveError(form.handlers, (v: Form['handlers']) => (form.isPersonal && v.length !== 1 ? t('setup.type.personalOneHandler') : undefined));
+  const assignee = useLiveError(form.assignee, (v: Form['assignee']) => (form.isPersonal && !v ? t('setup.type.personalNeedsAssignee') : undefined));
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -71,7 +66,7 @@ function TypeFields({ deskId, form, set }: { deskId: string; form: Form; set: (c
         <FormField label={t('setup.type.descriptionAr')}>{(p) => <Textarea {...p} rows={2} maxLength={300} value={form.descriptionAr} onChange={(e) => set({ descriptionAr: e.target.value })} />}</FormField>
         <FormField label={t('setup.type.descriptionEn')}>{(p) => <Textarea {...p} dir="ltr" rows={2} maxLength={300} value={form.descriptionEn} onChange={(e) => set({ descriptionEn: e.target.value })} />}</FormField>
       </div>
-      <HandlersField deskId={deskId} value={form.handlers} onChange={(h) => set({ handlers: h })} error={handlers.error} />
+      <AssigneeField deskId={deskId} value={form.assignee} onChange={(a) => set({ assignee: a })} error={assignee.error} />
       <FormField label={t('setup.type.dueDays')} hint={t('setup.type.dueDaysHint')}>{(p) => <Input {...p} type="number" dir="ltr" min={1} max={60} value={form.dueDays} onChange={(e) => set({ dueDays: e.target.value })} />}</FormField>
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="size-4 accent-petrol-800" checked={form.isPersonal} onChange={(e) => set({ isPersonal: e.target.checked })} />{t('setup.type.personal')}</label>
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="size-4 accent-petrol-800" checked={form.isActive} onChange={(e) => set({ isActive: e.target.checked })} />{t('setup.type.active')}</label>
@@ -79,7 +74,7 @@ function TypeFields({ deskId, form, set }: { deskId: string; form: Form; set: (c
   );
 }
 
-const complete = (f: Form) => f.nameAr.trim().length >= 2 && f.nameEn.trim().length >= 2 && !(f.isPersonal && f.handlers.length !== 1);
+const complete = (f: Form) => f.nameAr.trim().length >= 2 && f.nameEn.trim().length >= 2 && !(f.isPersonal && !f.assignee);
 
 /** Adds or edits a type of ticket. The fields live in their own component so "touched" starts fresh at every opening. */
 export function TypeDialog({ deskId, type, onClose }: { deskId: string; type: TicketTypeDto | null; onClose: () => void }) {

@@ -69,17 +69,10 @@ export class TypeNoHandlerError extends BusinessRuleError {
   }
 }
 
-export class TypePersonalOneHandlerError extends BusinessRuleError {
-  override readonly code = 'TYPE_PERSONAL_ONE_HANDLER';
-  constructor() {
-    super('A personal ticket type has exactly one handler');
-  }
-}
-
 export class AssigneeInvalidError extends BusinessRuleError {
   override readonly code = 'ASSIGNEE_INVALID';
   constructor() {
-    super('Every handler must be an active employee of the unit');
+    super('The assignee must be an active employee');
   }
 }
 

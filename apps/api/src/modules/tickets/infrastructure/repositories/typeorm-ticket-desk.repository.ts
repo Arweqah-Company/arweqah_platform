@@ -14,11 +14,11 @@ const DESKS_BY_ID = `SELECT ${DESK_COLUMNS} FROM ticket_desks WHERE org_node_id 
 
 const TYPE_SELECT = `
   SELECT t.id, t.desk_id AS "deskId", t.name_ar AS "nameAr", t.name_en AS "nameEn", t.description_ar AS "descriptionAr", t.description_en AS "descriptionEn",
-         COALESCE((SELECT json_agg(json_build_object('id', u.id, 'name', COALESCE(e.full_name, u.name)) ORDER BY COALESCE(e.full_name, u.name))
-                   FROM ticket_type_handlers h JOIN users u ON u.id = h.user_id LEFT JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL
-                   WHERE h.type_id = t.id), '[]'::json) AS handlers,
+         t.default_assignee_user_id AS "defaultAssigneeUserId", COALESCE(e.full_name, u.name) AS "defaultAssigneeName",
          t.due_days AS "dueDays", t.is_personal AS "isPersonal", t.is_active AS "isActive"
-  FROM ticket_types t`;
+  FROM ticket_types t
+  LEFT JOIN users u ON u.id = t.default_assignee_user_id
+  LEFT JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL`;
 
 const TYPES_OF_DESKS = `${TYPE_SELECT} WHERE t.desk_id = ANY($1) ORDER BY t.sort_order, t.created_at`;
 const TYPE_BY_ID = `${TYPE_SELECT} WHERE t.id = $1`;
@@ -65,29 +65,20 @@ export class TypeOrmTicketDeskRepository extends TicketDeskRepository {
 
   async insertType(deskId: string, v: TypeValues, tx: TransactionContext): Promise<string> {
     const rows: { id: string }[] = await this.m(tx).query(
-      `INSERT INTO ticket_types (desk_id, name_ar, name_en, description_ar, description_en, due_days, is_personal, is_active, sort_order)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM ticket_types WHERE desk_id = $1))
+      `INSERT INTO ticket_types (desk_id, name_ar, name_en, description_ar, description_en, default_assignee_user_id, due_days, is_personal, is_active, sort_order)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM ticket_types WHERE desk_id = $1))
        RETURNING id`,
-      [deskId, v.nameAr, v.nameEn, v.descriptionAr, v.descriptionEn, v.dueDays, v.isPersonal, v.isActive],
+      [deskId, v.nameAr, v.nameEn, v.descriptionAr, v.descriptionEn, v.defaultAssigneeUserId, v.dueDays, v.isPersonal, v.isActive],
     );
-    const typeId = rows[0]?.id as string;
-    await this.setHandlers(typeId, v.handlerUserIds, tx);
-    return typeId;
+    return rows[0]?.id as string;
   }
 
   async updateType(typeId: string, v: TypeValues, tx: TransactionContext): Promise<void> {
     await this.m(tx).query(
-      `UPDATE ticket_types SET name_ar = $2, name_en = $3, description_ar = $4, description_en = $5, due_days = $6,
-         is_personal = $7, is_active = $8, updated_at = now() WHERE id = $1`,
-      [typeId, v.nameAr, v.nameEn, v.descriptionAr, v.descriptionEn, v.dueDays, v.isPersonal, v.isActive],
+      `UPDATE ticket_types SET name_ar = $2, name_en = $3, description_ar = $4, description_en = $5, default_assignee_user_id = $6, due_days = $7,
+         is_personal = $8, is_active = $9, updated_at = now() WHERE id = $1`,
+      [typeId, v.nameAr, v.nameEn, v.descriptionAr, v.descriptionEn, v.defaultAssigneeUserId, v.dueDays, v.isPersonal, v.isActive],
     );
-    await this.setHandlers(typeId, v.handlerUserIds, tx);
-  }
-
-  /** Replaces the handlers of a type with exactly these people. */
-  private async setHandlers(typeId: string, userIds: string[], tx: TransactionContext): Promise<void> {
-    await this.m(tx).query('DELETE FROM ticket_type_handlers WHERE type_id = $1 AND NOT (user_id = ANY($2))', [typeId, userIds]);
-    if (userIds.length) await this.m(tx).query('INSERT INTO ticket_type_handlers (type_id, user_id) SELECT $1, u FROM unnest($2::uuid[]) AS u ON CONFLICT DO NOTHING', [typeId, userIds]);
   }
 
   async typeHasTickets(typeId: string): Promise<boolean> {
