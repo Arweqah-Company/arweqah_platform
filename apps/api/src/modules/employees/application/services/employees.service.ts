@@ -114,8 +114,8 @@ export class EmployeesService {
     const { values } = await this.validation.prepare(ctx, fields);
     const userId = await this.identity.createUser({ name: input.fullName, email: input.workEmail, locale: 'ar' });
     let created: Employee;
-    if (values.personalPhone) await this.identity.updateAccount(userId, { phone: String(values.personalPhone) });
     try {
+      if (values.personalPhone) await this.identity.updateAccount(userId, { phone: String(values.personalPhone) });
       created = await this.tx.run(async (tx) => {
         const row = await this.repo.insert({ ...values, userId, createdBy: actorId }, tx);
         await this.assignments.recordBaseline(row, tx);
@@ -194,11 +194,14 @@ export class EmployeesService {
     return relationTypeId ? (await this.lookups.relationTypeLimited(relationTypeId)) === true : false;
   }
 
-  /** The sign-in account carries the name (header) and phone (SMS) of the record: both follow it. */
+  /**
+   * The sign-in account carries the name (header) and phone (SMS) of the record: both follow it. They are written from the saved values every time,
+   * never compared with the record: after a failed attempt the record already holds the new value, and saving the form again must still repair the account.
+   */
   private async syncAccount(existing: Employee, values: Record<string, unknown>): Promise<void> {
     const fields: { name?: string; phone?: string | null } = {};
-    if (values.fullName && values.fullName !== existing.fullName) fields.name = String(values.fullName);
-    if (values.personalPhone !== undefined && (values.personalPhone ?? null) !== existing.personalPhone) fields.phone = (values.personalPhone as string | null) ?? null;
+    if (values.fullName) fields.name = String(values.fullName);
+    if (values.personalPhone !== undefined) fields.phone = (values.personalPhone as string | null) ?? null;
     await this.identity.updateAccount(existing.userId, fields);
   }
 
