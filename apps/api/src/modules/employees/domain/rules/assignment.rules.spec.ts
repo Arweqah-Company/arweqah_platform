@@ -18,8 +18,11 @@ describe('placement history rules (FR-89)', () => {
     expect(planChange([open], '2026-06-01', '2026-06-01')).toEqual({ closeId: 'a', closeTo: '2026-05-31', replaceId: null, applyNow: true });
   });
 
-  it('refuses the past and a date that does not come after the last period', () => {
-    expect(() => planChange([open], '2026-05-31', '2026-06-01')).toThrow('past');
+  it('accepts a start in the past (the real date of the title), in force at once, closing the open period the day before it', () => {
+    expect(planChange([open], '2026-05-31', '2026-06-01')).toEqual({ closeId: 'a', closeTo: '2026-05-30', replaceId: null, applyNow: true });
+  });
+
+  it('refuses a date that does not come after the last period, saying whose start it must follow', () => {
     expect(() => planChange([{ ...open, validTo: '2026-03-01' }], '2026-01-01', '2025-12-01')).toThrow('after 2026-01-01');
     const waiting = { id: 'b', validFrom: '2026-07-01', validTo: null, appliedAt: null };
     expect(() => planChange([{ ...open, validTo: '2026-06-30' }, waiting], '2026-06-15', '2026-06-01')).toThrow('after 2026-07-01');

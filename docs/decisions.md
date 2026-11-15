@@ -2,6 +2,14 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-15 — A placement change may start in the past
+
+Plan: `docs/plans/phase-5-people-structure-profile.md` (log, 2026-11-15).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 377 | **A change of unit, job title or manager may start in the past (`planChange` no longer refuses `validFrom < today`); it is in force at once (`applyNow` when `validFrom <= today`) and closes the open period the day before it.** A date at or before the start of the current period is still refused (`ASSIGNMENT_DATE_NOT_AFTER`) with a message that names that start and says to change the employee's start date first; editing the start date **earlier** on the employee form also moves the first period of each field back (`alignStart`, inside the same transaction, before the placement change), so an earlier title date then works. A start moved later changes no history. `ASSIGNMENT_IN_THE_PAST` is gone. Leadership of the unit (`leadsUnit`) still starts today at the earliest (`leadFrom`): only the title carries the past date. Owner's cases: giving oneself «team leader» with the real date in October was refused, and employees loaded with their titles carry the real date, not the day they were registered. | Owner: placement dates must be the real ones, not the day we typed them in. | A past change should need its own permission or a reason longer than today's, or history before the start day is wanted. |
+
 ## 2026-11-15 — The head role of a unit also edits its people, assigns tasks and keeps task tags
 
 Plan: `docs/plans/phase-3-tasks.md` (log, 2026-11-15).

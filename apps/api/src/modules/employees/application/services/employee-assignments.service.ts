@@ -163,6 +163,18 @@ export class EmployeeAssignmentsService {
   }
 
   /**
+   * The employee's start day was moved earlier: the first period of each field (the placement they were registered with) starts there too,
+   * so a title, unit or manager can then carry its real, earlier date. A start moved later changes nothing (history already lived).
+   */
+  async alignStart(employee: Employee, startDate: string, tx: TransactionContext): Promise<void> {
+    const from = startDate < todayInRiyadh() ? startDate : todayInRiyadh();
+    for (const field of ['org_node', 'job_title', 'manager'] as const) {
+      const first = (await this.repo.history(employee.id, field, tx))[0];
+      if (first && from < first.validFrom) await this.repo.moveStart(first.id, from, tx);
+    }
+  }
+
+  /**
    * Sets the manager an employee gets from the reporting line of job titles (`managerId` null = nobody above has a holder), from today with the reason «chain».
    * It follows only while the last manager period was set by the system: a manager HR chose stays. Nothing is written when the value is already the last one.
    * Returns whether the manager changed.
