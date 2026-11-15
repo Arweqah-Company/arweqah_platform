@@ -80,14 +80,24 @@ export class TypeOrmTicketDirectory extends TicketDirectory {
     );
   }
 
-  assignableEmployees(companyId: string, search?: string): Promise<PersonRecord[]> {
+  async membersOf(nodeId: string, userIds: string[]): Promise<string[]> {
+    if (!userIds.length) return [];
+    const rows: { id: string }[] = await this.ds.query(
+      `SELECT u.id FROM employees e JOIN users u ON u.id = e.user_id AND u.is_active
+       WHERE e.org_node_id = $1 AND e.deleted_at IS NULL AND NOT e.is_system_account AND u.id = ANY($2)`,
+      [nodeId, userIds],
+    );
+    return rows.map((r) => r.id);
+  }
+
+  assignableEmployees(nodeId: string, search?: string): Promise<PersonRecord[]> {
     const like = search ? likeContains(search) : null;
     return this.ds.query(
       `SELECT u.id, e.full_name AS name FROM employees e JOIN users u ON u.id = e.user_id AND u.is_active
-       WHERE e.company_id = $1 AND e.deleted_at IS NULL AND NOT e.is_system_account
+       WHERE e.org_node_id = $1 AND e.deleted_at IS NULL AND NOT e.is_system_account
          AND ($2::text IS NULL OR e.full_name ILIKE $2 OR e.employee_number ILIKE $2)
-       ORDER BY e.full_name LIMIT 30`,
-      [companyId, like],
+       ORDER BY e.full_name LIMIT 100`,
+      [nodeId, like],
     );
   }
 }

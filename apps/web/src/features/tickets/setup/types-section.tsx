@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Can } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
+import { listNames } from '@/shared/lib/list-names';
 import { Badge, Button, ConfirmDialog, SectionCard } from '@/shared/ui';
 import { useRemoveType } from '../api';
 import { TypeDialog } from './type-dialog';
@@ -35,7 +36,7 @@ export function TypesSection({ desk }: { desk: TicketDeskDto }) {
             <li key={x.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-200 p-3">
               <span className="flex flex-col gap-0.5 text-sm">
                 <span className="font-medium">{ar ? x.nameAr : x.nameEn} {x.isPersonal && <Badge>{t('flags.personal')}</Badge>} {!x.isActive && <Badge>{t('setup.type.inactive')}</Badge>}</span>
-                <span className="text-xs text-muted">{x.defaultAssignee ? t('setup.type.handledBy', { name: x.defaultAssignee.name }) : t('setup.type.noAssignee')} · {t('setup.type.days', { count: x.dueDays ?? desk.settings.defaultDueDays })}</span>
+                <span className="text-xs text-muted">{x.handlers.length ? t('setup.type.handledBy', { names: listNames(x.handlers.map((h) => h.name), i18n.language) }) : t('setup.type.noAssignee')} · {t('setup.type.days', { count: x.dueDays ?? desk.settings.defaultDueDays })}</span>
               </span>
               <span className="flex gap-1">
                 <Can permission={CorePermission.TicketsTypeUpdate}><Button size="icon" variant="ghost" aria-label={t('setup.type.edit', { name: ar ? x.nameAr : x.nameEn })} onClick={() => setEditing(x)}><Pencil className="size-4" aria-hidden /></Button></Can>
