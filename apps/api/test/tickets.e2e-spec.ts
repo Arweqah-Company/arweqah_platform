@@ -68,11 +68,22 @@ describe('Tickets (FR-36 … FR-41)', () => {
       expect(type.body).toMatchObject({ nameEn: 'Technical problem', dueDays: 5, defaultAssignee: { id: w.assignee.id }, isActive: true });
     });
 
-    it('works only in admin mode, only for the departments a person manages (a platform manager: all of them)', async () => {
+    it('needs no admin mode: a unit head without it sees the setup and the figures of their unit and below, and an out-of-reach desk is 404', async () => {
+      const w = await world();
+      const leader = await t.factories.user({ unit: w.org.unitC, grants: TICKET_DESK_ADMIN_GRANTS.filter((g) => g.key !== CorePermission.AdminModeUse).map((g) => ({ ...g, scope: 'subtree' as const })) });
+      await t.db.query('UPDATE org_nodes SET manager_id = $1 WHERE id = $2', [leader.employeeId, w.org.sectionAB]);
+      const agent = await t.factories.signIn(leader); // never turns admin mode on
+      const ids = ((await agent.get('/api/tickets/setup/desks').expect(200)).body as TicketDeskDto[]).map((d) => d.orgNodeId);
+      expect(ids).toEqual(expect.arrayContaining([w.org.sectionAB, w.org.unitA.id]));
+      expect(ids).not.toContain(w.desk);
+      await agent.get(`/api/tickets/setup/desks/${w.desk}`).expect(404);
+      await agent.get('/api/tickets/figures').expect(200);
+    });
+
+    it('works for the departments a person manages, with no admin mode (a platform manager: all of them)', async () => {
       const w = await world();
       await t.factories.freshStep(w.manager);
-      const noMode = await t.factories.signIn(w.manager);
-      expect((await noMode.get('/api/tickets/setup/desks').expect(403)).body.code).toBe('ADMIN_MODE_REQUIRED');
+      await (await t.factories.signIn(w.manager)).get('/api/tickets/setup/desks').expect(200);
       expect((await w.agents.assignee.post('/api/admin-mode/activate').send({ code: codeFor(w.assignee.secret, Date.now() + 30_000) }).expect(403)).body.code).toBe('ADMIN_MODE_NOT_ALLOWED');
       const otherManager = await t.factories.user({ unit: w.org.unitC, grants: TICKET_DESK_ADMIN_GRANTS });
       await t.db.query('UPDATE org_nodes SET manager_id = $1 WHERE id = $2', [otherManager.employeeId, w.org.otherDepartment]);
@@ -147,7 +158,6 @@ describe('Tickets (FR-36 … FR-41)', () => {
       await new Promise((resolve) => setTimeout(resolve, 300));
       const audit = JSON.stringify(await t.db.query(`SELECT action, changes FROM audit_logs WHERE action LIKE 'ticket.%' ORDER BY created_at`));
       expect(audit).toContain('ticket.desk.updated');
-      expect(audit).toContain('"adminMode":true');
     });
     it('keeps a department whose desk takes tickets (or has open tickets) where it is, in the structure', async () => {
       const w = await world();
@@ -466,7 +476,7 @@ describe('Tickets (FR-36 … FR-41)', () => {
   });
 
   describe('Figures of a department (FR-40)', () => {
-    it('counts the last 30 days, never lists personal tickets, and works only in admin mode for the manager of that department', async () => {
+    it('counts the last 30 days, never lists personal tickets, and works for the manager of that department without admin mode', async () => {
       const w = await world();
       await setupDesk(w.agents.manager, w.desk, { acceptsPersonal: true }).expect(200);
       const typeId = (await addType(w.agents.manager, w.desk, { defaultAssigneeUserId: w.assignee.id }).expect(201)).body.id as string;
@@ -504,9 +514,7 @@ describe('Tickets (FR-36 … FR-41)', () => {
       await w.agents.manager.get(`/api/tickets/figures?deskId=${w.desk}`).expect(200);
       await w.agents.manager.get(`/api/tickets/figures?deskId=${w.org.otherDepartment}`).expect(404);
       await w.agents.sender.get('/api/tickets/figures').expect(403);
-      await t.factories.freshStep(w.manager);
-      const noMode = await t.factories.signIn(w.manager);
-      expect((await noMode.get('/api/tickets/figures').expect(403)).body.code).toBe('ADMIN_MODE_REQUIRED');
+      await (await t.factories.signIn(w.manager)).get('/api/tickets/figures').expect(200); // no admin mode needed
     });
   });
 

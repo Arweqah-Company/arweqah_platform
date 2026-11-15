@@ -111,7 +111,8 @@ export class TypeOrmTicketRepository extends TicketRepository {
   /** The WHERE clause of a list (the viewer is $1) and its values. */
   private listWhere(f: TicketListFilters): { clause: string; values: unknown[] } {
     const values: unknown[] = [f.viewer.userId];
-    const first = { mine: 't.sender_user_id = $1', inbox: inboxSql(f.viewer, values), team: teamSql(f.viewer, values) }[f.tab];
+    // only the chosen tab is built: each builder pushes its scope value, and a value no part of the query uses makes PostgreSQL fail (500)
+    const first = { mine: () => 't.sender_user_id = $1', inbox: () => inboxSql(f.viewer, values), team: () => teamSql(f.viewer, values) }[f.tab]();
     const where: string[] = [first];
     const add = (column: string, value: unknown) => {
       values.push(value);

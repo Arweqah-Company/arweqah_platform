@@ -2,6 +2,16 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-15 — The head role of a unit also edits its people, assigns tasks and keeps task tags
+
+Plan: `docs/plans/phase-3-tasks.md` (log, 2026-11-15).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 374 | **`LEVEL_HEAD_DEFAULT_PERMISSIONS` gains, at `subtree`: `tasks.tags_view / tag_create / tag_update / tag_delete`, `tasks.assign`, `employees.update`, `employees.photo_update`, `employees.resend_invite`, `employees.reset_authenticator`; migration `HeadRoleTeamKeys` inserts only the keys an existing head role lacks (standing rule 17).** Found on production: the leader of «Digital Transformation» could not add a task category for their unit or reset a team member's authenticator. Local reproduction: `node-head-roles` failed on the missing tag keys before the fix. Role assignment by a leader (`employees.assign_roles` today only `company` / `all`) and re-assigning a ticket are decided but built in their own stages: the leader may give any role they hold themselves (`assertGrantable` already refuses more), and a new ticket action re-assigns a ticket to a person of the leader's unit and below. | Owner: a leader runs their unit without asking an administrator for routine things. | A leader needs `employees.assign_change` (unit / title / manager) or wider data. |
+| 375 | **The ticket setup and ticket figures pages no longer need platform admin mode: they show (menu, route and API) to whoever holds `tickets.setup_view` / `tickets.figures_view`, and the key's scope still limits the desks (unit head: their unit and below; out of reach: 404).** Found on the leader's screen: the head role holds the keys, but both pages were hidden unless admin mode was on, and a leader cannot turn it on (`admin_mode.use` is not in the head role). Local reproduction: two API tests failed on the old code (a unit head without admin mode got 403 `ADMIN_MODE_REQUIRED`). The audit no longer writes a fixed `adminMode: true`. | Owner: the leader entering with the head role did not see ticket figures or types. | A desk setting needs the stronger guard of admin mode again. |
+| 376 | **The ticket list builds the SQL of the chosen tab only (`listWhere`).** It built the inbox and the team clause for every tab, and each pushed its scope value, so a person whose view or handle scope was «unit and below» (every unit head) got a 500 («could not determine data type of parameter $2») on «my team», «inbox» and «mine» alike: this was the empty / failing «فريقي» tab. `head-role-reach.e2e-spec.ts` opens every page the head role gives a key for, without admin mode, and failed (500) on the old code. | Owner: the leader's team tab never showed tickets. | A fourth tab is added: keep one builder per tab. |
+
 ## 2026-11-12 — `dev` deploys to staging, `main` to production
 
 Plan: `docs/plans/phase-1-auth-employees.md` (log, 2026-11-12).

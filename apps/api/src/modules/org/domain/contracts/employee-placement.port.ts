@@ -1,3 +1,5 @@
+import type { OrgUnitEmployeeDto } from '@arweqah-platform/shared';
+
 /** The people holding a title in one company: how many, and the first of them (the earliest to start, then by id), who would be a manager. */
 export interface TitleHolders {
   count: number;
@@ -33,6 +35,8 @@ export abstract class EmployeePlacementPort {
   abstract userNamesOf(userIds: string[]): Promise<Map<string, string>>;
   /** Holders of each title per company, active employees only: `titleId → companyId → holders`. */
   abstract holdersByTitle(): Promise<Map<string, Map<string, TitleHolders>>>;
+  /** The active employees placed directly in the unit, by name. */
+  abstract unitEmployees(nodeId: string): Promise<OrgUnitEmployeeDto[]>;
   /** The active employees placed in any of the titles. */
   abstract placedEmployees(titleIds: string[]): Promise<PlacedEmployee[]>;
   /**

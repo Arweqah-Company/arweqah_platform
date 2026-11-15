@@ -110,7 +110,8 @@
     "titles": "المسميات",
     "leaders": "القادة",
     "charter": "الميثاق",
-    "history": "السجل"
+    "history": "السجل",
+    "employees": "موظفو الوحدة"
   },
   "overview": {
     "parent": "الأب",
@@ -380,5 +381,17 @@
       "org_levels_changed": "عُدّلت تقسيمات الهيكل",
       "org_level_rules_changed": "عُدّلت قواعد الإنشاء"
     }
+  },
+  "employees": {
+    "empty": "لا يوجد موظفون في هذه الوحدة مباشرة.",
+    "emptyHint": "موظفو الوحدات التابعة لها يظهرون في تلك الوحدات.",
+    "tableLabel": "موظفو الوحدة",
+    "name": "الاسم",
+    "count": "{{count}} موظف",
+    "detailsTitle": "بيانات الموظف",
+    "number": "رقم العمل",
+    "workEmail": "بريد العمل",
+    "unit": "الوحدة التابعة",
+    "manager": "المدير المباشر"
   }
 }

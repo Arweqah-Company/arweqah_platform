@@ -222,6 +222,16 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     expect(again).toMatchObject({ fullName: 'Renamed', idNumber: '1087654321', monthlyGrossSalary: 12000, iban: 'SA0380000000608010167519' });
   });
 
+  it('keeps the account name (the header) equal to the employee full name after an edit', async () => {
+    const { org, agent, payload } = await setup();
+    const created = (await agent.post('/api/employees').send(payload(org.unitA)).expect(201)).body.employee;
+    await agent.put(`/api/employees/${created.id}`).send({ ...asUpdate(created), fullName: 'اسم جديد' }).expect(200);
+    const rows = await t.db.query('SELECT name FROM users WHERE id = $1', [created.userId]);
+    expect(rows[0].name).toBe('اسم جديد');
+    await agent.put(`/api/employees/${created.id}`).send({ ...asUpdate(created), fullName: 'اسم جديد', personalPhone: '+966501234567' }).expect(200);
+    expect((await t.db.query('SELECT phone FROM users WHERE id = $1', [created.userId]))[0].phone).toBe('+966501234567');
+  });
+
   it('returns 403 to each role without the permission', async () => {
     const { org, payload } = await setup();
     const none = await t.factories.signIn(await t.factories.user({ bare: true }));
@@ -380,6 +390,19 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     const me = await agent.get('/api/me').expect(200);
     const own = (await t.db.query('SELECT id FROM employees WHERE user_id = $1', [me.body.id]))[0];
     await agent.post(`/api/employees/${own.id}/reset-authenticator`).expect(422);
+  });
+
+  it('lets the head of a unit (subtree scope) resend the invitation and reset the authenticator of the people below, and nobody outside (404)', async () => {
+    const org = await t.factories.org();
+    const keys = [P.EmployeesView, P.EmployeesUpdate, P.EmployeesResendInvite, P.EmployeesResetAuthenticator].map((k) => grant(k, 'subtree'));
+    const head = await t.factories.signIn(await t.factories.user({ unit: { ...org.unitA, id: org.department }, grants: keys }));
+    const idOf = async (u: TestUser) => (await t.db.query('SELECT id FROM employees WHERE user_id = $1', [u.id]))[0].id as string;
+    const below = await idOf(await t.factories.user({ unit: org.unitB }));
+    const outside = await idOf(await t.factories.user({ unit: org.unitOther }));
+    await head.post(`/api/employees/${below}/resend-invite`).expect(200);
+    await head.post(`/api/employees/${below}/reset-authenticator`).expect(200);
+    await head.post(`/api/employees/${outside}/resend-invite`).expect(404);
+    await head.post(`/api/employees/${outside}/reset-authenticator`).expect(404);
   });
 
   it('searches literally, filters by company, unit and status, and pages the list', async () => {

@@ -21,6 +21,7 @@ import type {
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { refreshAccess } from '@/core/permissions/access-key';
+import { ME_KEY } from '@/core/auth/session';
 import { apiClient } from '@/core/api/api-client';
 export { useCompanyOptions } from '@/core/api/lookups';
 
@@ -55,7 +56,7 @@ export const useManagerSearch = (search: string, excludeId?: string, enabled = t
 /** `changesAccess`: roles or groups were given or taken, which may be the signed-in person's own, so their permissions are read again. */
 function useEmployeeMutation<TIn, TOut>(fn: (input: TIn) => Promise<TOut>, changesAccess = false) {
   const client = useQueryClient();
-  return useMutation({ mutationFn: fn, onSuccess: () => Promise.all([client.invalidateQueries({ queryKey: ['employees'] }), changesAccess ? refreshAccess(client) : undefined]) });
+  return useMutation({ mutationFn: fn, onSuccess: () => Promise.all([client.invalidateQueries({ queryKey: ['employees'] }), client.invalidateQueries({ queryKey: ME_KEY }), changesAccess ? refreshAccess(client) : undefined]) });
 }
 
 export const useCreateEmployee = () => useEmployeeMutation((input: CreateEmployeeInput) => apiClient.post<CreateEmployeeResultDto>('/employees', input));

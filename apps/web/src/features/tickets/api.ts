@@ -39,9 +39,9 @@ export const useTicketReply = (id: string) => useTicketMutation((input: TicketRe
 export type TicketAction = 'request-close' | 'confirm-close' | 'decline-close' | 'close-without-execution' | 'reopen';
 export const useTicketAction = (id: string) => useTicketMutation((input: { action: TicketAction; message?: string }) => apiClient.post<TicketDto>(`/tickets/${id}/${input.action}`, { message: input.message || undefined }));
 
-// ------------------------------------------------------------------ setup (admin mode)
+// ------------------------------------------------------------------ setup (by the key and its scope)
 
-export const useSetupDesks = (enabled: boolean) => useQuery({ queryKey: [KEY, 'setup'], enabled, queryFn: () => apiClient.get<TicketDeskDto[]>('/tickets/setup/desks') });
+export const useSetupDesks = () => useQuery({ queryKey: [KEY, 'setup'], queryFn: () => apiClient.get<TicketDeskDto[]>('/tickets/setup/desks') });
 
 export const useSaveDesk = (deskId: string) => useTicketMutation((input: TicketDeskSettingsInput) => apiClient.put<TicketDeskDto>(`/tickets/setup/desks/${deskId}`, input));
 
@@ -56,5 +56,5 @@ export const useAssignees = (deskId: string, search: string) =>
   useQuery({ queryKey: [KEY, 'assignees', deskId, search], queryFn: () => apiClient.get<PersonRefDto[]>(`/tickets/setup/desks/${deskId}/assignees`, { q: search }), placeholderData: keepPreviousData });
 
 /** The figures of one department, or of all of them added up (no `deskId`); the last answer stays while the next one loads. */
-export const useFigures = (enabled: boolean, deskId: string) =>
-  useQuery({ queryKey: [KEY, 'figures', deskId], enabled, placeholderData: keepPreviousData, queryFn: () => apiClient.get<TicketFiguresDto>(`/tickets/figures${deskId ? `?deskId=${deskId}` : ''}`) });
+export const useFigures = (deskId: string) =>
+  useQuery({ queryKey: [KEY, 'figures', deskId], placeholderData: keepPreviousData, queryFn: () => apiClient.get<TicketFiguresDto>(`/tickets/figures${deskId ? `?deskId=${deskId}` : ''}`) });
