@@ -414,6 +414,23 @@ README: §4 صفوف FR جديدة (FR-34 فصاعدًا)، §6 ERD (الجدا�
 
 **الاختبارات:** `tickets.e2e-spec.ts` (FR-133): مسؤولان → تذكرة بلا معيّن وتظهر في واردهما، أول ردّ يعيّن صاحبه ويبقى الآخر يردّ، مسؤول من خارج الوحدة/غير نشط 422، شخصي بمسؤولَين 422، 403 بلا مفتاح؛ مكوّن `type-dialog.test.tsx`؛ Playwright + axe للحوار؛ خطوة الجولة قائمة (لا صفحة جديدة).
 
+## 24. تعديل 2026-11-15: «تعليمات لمن يرسل التذكرة» في نوع التذكرة (FR-134) — مخطط ومنفّذ
+
+**ما هو:** في إضافة/تعديل نوع التذكرة خانة جديدة بمحرر نص منسّق (عريض، مائل، تسطير، قوائم، رابط) يكتب فيها مدير الجهة ما يلزم من يرسل تذكرة من هذا النوع أن يضعه فيها لتسهيل الرد (مثلًا لنوع «مشاكل المنصة»: «أرفق لقطة شاشة للمشكلة ولقطة من Inspect…»). بالعربية والإنجليزية.
+
+**القاعدة:**
+- اختيارية. تُحفظ HTML منظّفًا في الـ API (`sanitize-html`: `p br strong em u ul ol li a` وروابط `http/https/mailto` فقط، لا صور ولا نص برمجي)؛ المحرر الفارغ يُحفظ `null`. الحد 5000 حرف لكل لغة.
+- تظهر لمن يرسل التذكرة في الخطوة الثانية («التذكرة») فوق الحقول في صندوق «تعليمات لهذا النوع» بلغة الواجهة (وإن لم توجد بلغته تُعرض الأخرى)، وتُنظَّف ثانية في المتصفح (`DOMPurify`) قبل العرض. للقراءة فقط ولا تمنع الإرسال.
+- مفاتيح الصلاحية الموجودة (`tickets.type_create` / `type_update`) تكفي: لا مفتاح جديد.
+
+**الشاشات:** حوار النوع: محرر نص منسّق مشترك جديد `RichTextEditor` في `shared/ui` (tiptap الموجود أصلًا، بلا منشن) لكل لغة. خطوة التذكرة: صندوق التعليمات. لا صفحة جديدة فلا خطوة جولة جديدة.
+
+**API:** `ticketTypeInputSchema.instructionsAr/instructionsEn` (نص، ≤5000، اختياري)؛ `TicketTypeDto` و`CatalogTypeDto` يعيدان `instructionsAr/instructionsEn`.
+
+**البيانات:** عمودان `instructions_ar` و`instructions_en` (text، قابلان للفراغ) في `ticket_types` بهجرة `TicketTypeInstructions`؛ تُحدَّث `docs/database-design.md`.
+
+**الاختبارات:** `tickets.e2e-spec.ts` (FR-134): حفظ وإعادة التعليمات في النوع والكتالوج، تنظيف `<script>` و`<img onerror>` وسكيمة `javascript:`، الفراغ يصير `null`، أطول من 5000 → 400، 403 بلا مفتاح؛ مكوّن `rich-text-editor.test.tsx`؛ `new-ticket-dialog.test.tsx` (يظهر الصندوق ولا يظهر بلا تعليمات).
+
 ### سجل التنفيذ (ما تم)
 
 - **2026-11-07:** نُفّذ البند 16 كاملًا: تعديل استعلام الجهات في `typeorm-ticket-directory.ts` (الكتالوج والإعداد والأرقام تمر عبره)، واختباران في `tickets.e2e-spec.ts` (30 اختبارًا للتذاكر نجحت على PostgreSQL الحقيقي)، وتحديث README FR-36 والقرار 236.
@@ -431,3 +448,4 @@ README: §4 صفوف FR جديدة (FR-34 فصاعدًا)، §6 ERD (الجدا�
 - **2026-11-10 (10):** نُفّذ البند 21: عرض Word وExcel داخل النافذة (`office-preview.ts`، `office-views.tsx`، تحميل كسول للمكتبات).
 - **2026-11-15 (11):** نُفّذ البند 22 (FR-130): مفتاح `tickets.reassign` ونقطتا `assignees` و`reassign`، حدث `reassigned`، قالب إشعار `ticket.reassigned`، زر ونافذة في تفاصيل التذكرة، خطوة الجولة، ودخول المفتاح في دور قائد الوحدة (هجرة `HeadRoleRolesAndReassign`). الملفات: `ticket-reassign.service.ts`، `ticket-access.policy.ts` (`reassignReach`)، `reassign-dialog.tsx`. التحقق: 3 اختبارات FR-130 على PostgreSQL حقيقي.
 - **2026-11-15 (12):** نُفّذ البند 23 (FR-133): جدول `ticket_type_handlers` (هجرة `TicketTypeHandlers` تنقل المسؤول القديم ثم تحذف العمود)، `handlerUserIds` في إدخال النوع و`handlers` في القراءة والكتالوج، قائمة المرشحين = موظفو الوحدة المباشرون فقط، التذكرة بلا معيّن عند أكثر من مسؤول وتظهر في وارد الجميع مع إشعارهم، وأول ردّ يعيّن صاحبه، والنوع الشخصي مسؤول واحد بالضبط (`TYPE_PERSONAL_ONE_HANDLER`). الواجهة: `MultiCombobox` في حوار النوع. تحقق: اختبارات API `tickets*.e2e-spec.ts` (48 ناجحًا بينها 4 جديدة FR-133).
+- **2026-11-15 (13):** نُفّذ البند 24 (FR-134): عمودا `instructions_ar/en` (هجرة `TicketTypeInstructions`)، تنظيف `sanitize-html` عند الحفظ (`ticket-instructions.rules.ts`)، `RichTextEditor` و`RichText` مشتركان في `shared/ui` (تنظيف DOMPurify عند العرض)، حقلان في حوار النوع، وصندوق «تعليمات لهذا النوع» في خطوة التذكرة. اختبارات: `tickets.e2e-spec.ts` (FR-134)، `rich-text-editor.test.tsx`، `new-ticket-dialog.test.tsx`.

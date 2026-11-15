@@ -683,4 +683,26 @@ describe('Tickets (FR-36 … FR-41)', () => {
       await addType(w.agents.sender, w.desk, { handlerUserIds: [w.assignee.id] }).expect(403);
     });
   });
+  describe('Instructions for the sender on a type (FR-134)', () => {
+    it('saves formatted instructions, cleans anything unsafe, and hands them to the new-ticket catalog', async () => {
+      const w = await world();
+      await setupDesk(w.agents.manager, w.desk).expect(200);
+      const dirty = '<p>أرفق <strong>لقطة شاشة</strong></p><script>alert(1)</script><img src=x onerror=alert(1)><a href="javascript:alert(1)">x</a><a href="https://example.com">ok</a>';
+      const type = (await addType(w.agents.manager, w.desk, { handlerUserIds: [w.assignee.id], instructionsAr: dirty, instructionsEn: '<p></p>' }).expect(201)).body;
+      expect(type.instructionsAr).toContain('<strong>لقطة شاشة</strong>');
+      expect(type.instructionsAr).toContain('href="https://example.com"');
+      for (const bad of ['<script', 'onerror', '<img', 'javascript:']) expect(type.instructionsAr).not.toContain(bad);
+      expect(type.instructionsEn).toBeNull();
+      const catalog = (await w.agents.sender.get('/api/tickets/catalog').expect(200)).body as TicketCatalogDto;
+      expect(catalog.desks[0]?.types[0]).toMatchObject({ instructionsAr: type.instructionsAr, instructionsEn: null });
+      const edited = await w.agents.manager.put(`/api/tickets/setup/desks/${w.desk}/types/${type.id}`).send({ ...TYPE, handlerUserIds: [w.assignee.id], instructionsEn: '<ul><li>One</li></ul>' }).expect(200);
+      expect(edited.body).toMatchObject({ instructionsAr: null, instructionsEn: '<ul><li>One</li></ul>' });
+    });
+
+    it('refuses instructions over 5000 characters (400) and a person without the keys (403)', async () => {
+      const w = await world();
+      await addType(w.agents.manager, w.desk, { instructionsAr: 'x'.repeat(5001) }).expect(400);
+      await addType(w.agents.sender, w.desk, { instructionsAr: '<p>x</p>' }).expect(403);
+    });
+  });
 });

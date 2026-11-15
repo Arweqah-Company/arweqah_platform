@@ -14,6 +14,7 @@ const DESKS_BY_ID = `SELECT ${DESK_COLUMNS} FROM ticket_desks WHERE org_node_id 
 
 const TYPE_SELECT = `
   SELECT t.id, t.desk_id AS "deskId", t.name_ar AS "nameAr", t.name_en AS "nameEn", t.description_ar AS "descriptionAr", t.description_en AS "descriptionEn",
+         t.instructions_ar AS "instructionsAr", t.instructions_en AS "instructionsEn",
          COALESCE((SELECT json_agg(json_build_object('id', u.id, 'name', COALESCE(e.full_name, u.name)) ORDER BY COALESCE(e.full_name, u.name))
                    FROM ticket_type_handlers h JOIN users u ON u.id = h.user_id LEFT JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL
                    WHERE h.type_id = t.id), '[]'::json) AS handlers,
@@ -65,10 +66,10 @@ export class TypeOrmTicketDeskRepository extends TicketDeskRepository {
 
   async insertType(deskId: string, v: TypeValues, tx: TransactionContext): Promise<string> {
     const rows: { id: string }[] = await this.m(tx).query(
-      `INSERT INTO ticket_types (desk_id, name_ar, name_en, description_ar, description_en, due_days, is_personal, is_active, sort_order)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM ticket_types WHERE desk_id = $1))
+      `INSERT INTO ticket_types (desk_id, name_ar, name_en, description_ar, description_en, instructions_ar, instructions_en, due_days, is_personal, is_active, sort_order)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM ticket_types WHERE desk_id = $1))
        RETURNING id`,
-      [deskId, v.nameAr, v.nameEn, v.descriptionAr, v.descriptionEn, v.dueDays, v.isPersonal, v.isActive],
+      [deskId, v.nameAr, v.nameEn, v.descriptionAr, v.descriptionEn, v.instructionsAr, v.instructionsEn, v.dueDays, v.isPersonal, v.isActive],
     );
     const typeId = rows[0]?.id as string;
     await this.setHandlers(typeId, v.handlerUserIds, tx);
@@ -77,9 +78,9 @@ export class TypeOrmTicketDeskRepository extends TicketDeskRepository {
 
   async updateType(typeId: string, v: TypeValues, tx: TransactionContext): Promise<void> {
     await this.m(tx).query(
-      `UPDATE ticket_types SET name_ar = $2, name_en = $3, description_ar = $4, description_en = $5, due_days = $6,
-         is_personal = $7, is_active = $8, updated_at = now() WHERE id = $1`,
-      [typeId, v.nameAr, v.nameEn, v.descriptionAr, v.descriptionEn, v.dueDays, v.isPersonal, v.isActive],
+      `UPDATE ticket_types SET name_ar = $2, name_en = $3, description_ar = $4, description_en = $5, instructions_ar = $6, instructions_en = $7,
+         due_days = $8, is_personal = $9, is_active = $10, updated_at = now() WHERE id = $1`,
+      [typeId, v.nameAr, v.nameEn, v.descriptionAr, v.descriptionEn, v.instructionsAr, v.instructionsEn, v.dueDays, v.isPersonal, v.isActive],
     );
     await this.setHandlers(typeId, v.handlerUserIds, tx);
   }

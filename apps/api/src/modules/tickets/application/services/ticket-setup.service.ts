@@ -11,6 +11,7 @@ import { TicketDirectory } from '../../domain/contracts/ticket-directory.port';
 import { TicketRepository } from '../../domain/contracts/ticket.repository';
 import { AssigneeInvalidError, DeskNoManagerError, DeskNotFoundError, TypeNoHandlerError, TypePersonalOneHandlerError } from '../../domain/errors/ticket.errors';
 import type { DeskRecord, DeskSettingsValues, DepartmentFacts, TypeRecord, TypeValues } from '../../domain/types/ticket.types';
+import { sanitizeInstructions } from '../../domain/rules/ticket-instructions.rules';
 import { TICKET_AUDIT } from '../messages/ticket.messages';
 import { departmentsFor } from '../policies/department-scope';
 import { TicketTransformer } from '../transformers/ticket.transformer';
@@ -146,6 +147,8 @@ export class TicketSetupService {
       nameEn: input.nameEn,
       descriptionAr: input.descriptionAr ?? null,
       descriptionEn: input.descriptionEn ?? null,
+      instructionsAr: sanitizeInstructions(input.instructionsAr),
+      instructionsEn: sanitizeInstructions(input.instructionsEn),
       handlerUserIds,
       dueDays: input.dueDays ?? null,
       isPersonal: input.isPersonal,

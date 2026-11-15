@@ -68,12 +68,13 @@ The tickets list has no export or import button. Tickets are sent one by one fro
 | Department | Narrows the list to one department. The department decides who receives the ticket. | No | A department that receives tickets; «All units» shows all. Paused departments are shown disabled with the reason; stopped ones are not shown. |
 | Kind of request | Regular requests or personal ones (complaints, private matters). | No | All kinds / Regular / Personal. |
 | By department / Compact list | Only changes how the types are displayed. | No | Two views. |
-| The type (click a card or row) | The kind of request. It fixes the department, the person who handles it (the type's assignee, otherwise the department manager), the usual duration, and whether the ticket is personal. | Yes | An active type of an available department. |
+| The type (click a card or row) | The kind of request. It fixes the department, the people who handle it (the type's handlers, otherwise the department manager), the usual duration, and whether the ticket is personal. | Yes | An active type of an available department. |
 
 **New ticket, step 2: the ticket**
 
 | Field | What it means / what to type | Required | Allowed values / rules |
 |---|---|---|---|
+| Instructions for this type (read-only box above the fields) | What the unit asks you to include in a ticket of this type so it is easy to answer (for example, a screenshot of the problem). Read it before you write; it appears only when the type has instructions and never blocks sending. | No | Formatted text written by the unit leader. |
 | Title | A short line the handler reads first and the list shows. | Yes | 1 to 200 characters. Message when empty: «Write a title for the ticket.» |
 | Details | The full request: what you need, and everything the handler needs to act without asking again. | No | Up to 5000 characters. |
 | When do you need it | The needed-by date. It drives the «Overdue» mark once it passes. | Yes | A date not earlier than today plus the department's minimum lead in working days; otherwise «The earliest date this unit accepts is …». It is pre-filled with today plus the type's usual time (or the department's) in working days. |
@@ -103,7 +104,7 @@ Pressing **Change** at the top of step 2 returns to step 1 without losing what y
 
 1. **The sender** clicks **New ticket**, chooses the type, writes the title and details, picks the needed-by date, marks it urgent if needed, attaches files and presses **Send**. The system checks that the department is receiving (active, started, with a manager), that the date is not too early, and that the files are the sender's own.
 2. The ticket gets its number (TKT-000123), status **Open**, and appears in the sender's «My tickets» tab. The history gets the entry «The ticket was sent».
-3. **The handler is told** (in the app and by e-mail): the type's assignee, or the department manager when the type has no assignee. The notice carries only the number and the department. The ticket appears in the handler's «Unit inbox» tab with the mark «New» until somebody from the unit answers.
+3. **The handlers are told** (in the app and by e-mail): the type's handler, or all of them when it has several (the ticket then has no assignee yet, shows in every handler's «Unit inbox», and the first one to reply becomes its assignee), or the department manager when the type has no handler. The notice carries only the number and the department. The ticket appears in the handler's «Unit inbox» tab with the mark «New» until somebody from the unit answers.
 4. **The handler** (the assignee, the department manager, or someone whose reply scope reaches the department) opens the ticket and answers with **Send reply**. The first answer from the unit's side records the first response time. The sender is notified of each reply and answers in the same way (`tickets.reply`).
 5. When the work is done the handler clicks **Request closing** and may add a message. The status becomes **Waiting for closing confirmation**, the sender is notified (also by e-mail), and the clock for automatic closing starts.
 6. **The sender** chooses one:

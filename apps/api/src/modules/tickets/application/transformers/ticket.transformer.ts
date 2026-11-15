@@ -89,6 +89,8 @@ export class TicketTransformer {
       nameEn: t.nameEn,
       descriptionAr: t.descriptionAr,
       descriptionEn: t.descriptionEn,
+      instructionsAr: t.instructionsAr,
+      instructionsEn: t.instructionsEn,
       handlers: t.handlers,
       dueDays: t.dueDays,
       isPersonal: t.isPersonal,

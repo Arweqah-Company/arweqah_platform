@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
 import { listNames } from '@/shared/lib/list-names';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
-import { Alert, Button, Dialog, FormField, Input, MultiCombobox, Textarea } from '@/shared/ui';
+import { Alert, Button, Dialog, FormField, Input, MultiCombobox, RichTextEditor, Textarea } from '@/shared/ui';
 import { useAssignees, useSaveType } from '../api';
 import { useAutoEnglish } from '@/shared/lib/use-auto-english';
 
@@ -14,18 +14,20 @@ interface Form {
   nameEn: string;
   descriptionAr: string;
   descriptionEn: string;
+  instructionsAr: string;
+  instructionsEn: string;
   handlers: { id: string; name: string }[];
   dueDays: string;
   isPersonal: boolean;
   isActive: boolean;
 }
 
-const EMPTY: Form = { nameAr: '', nameEn: '', descriptionAr: '', descriptionEn: '', handlers: [], dueDays: '', isPersonal: false, isActive: true };
+const EMPTY: Form = { nameAr: '', nameEn: '', descriptionAr: '', descriptionEn: '', instructionsAr: '', instructionsEn: '', handlers: [], dueDays: '', isPersonal: false, isActive: true };
 const text = (value: string | null): string => value ?? '';
 
 const fromType = (t: TicketTypeDto | null): Form =>
   t
-    ? { nameAr: t.nameAr, nameEn: t.nameEn, descriptionAr: text(t.descriptionAr), descriptionEn: text(t.descriptionEn), handlers: t.handlers, dueDays: t.dueDays === null ? '' : String(t.dueDays), isPersonal: t.isPersonal, isActive: t.isActive }
+    ? { nameAr: t.nameAr, nameEn: t.nameEn, descriptionAr: text(t.descriptionAr), descriptionEn: text(t.descriptionEn), instructionsAr: text(t.instructionsAr), instructionsEn: text(t.instructionsEn), handlers: t.handlers, dueDays: t.dueDays === null ? '' : String(t.dueDays), isPersonal: t.isPersonal, isActive: t.isActive }
     : EMPTY;
 
 const toInput = (f: Form): TicketTypeInput => ({
@@ -33,6 +35,8 @@ const toInput = (f: Form): TicketTypeInput => ({
   nameEn: f.nameEn.trim(),
   descriptionAr: f.descriptionAr.trim() || null,
   descriptionEn: f.descriptionEn.trim() || null,
+  instructionsAr: f.instructionsAr || null,
+  instructionsEn: f.instructionsEn || null,
   handlerUserIds: f.handlers.map((h) => h.id),
   dueDays: f.dueDays ? Number(f.dueDays) : null,
   isPersonal: f.isPersonal,
@@ -56,6 +60,17 @@ function HandlersField({ deskId, value, onChange, error }: { deskId: string; val
   );
 }
 
+/** What the sender must put in a ticket of this type, one formatted text per language. */
+function InstructionsFields({ form, set }: { form: Form; set: (change: Partial<Form>) => void }) {
+  const { t } = useTranslation('tickets');
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      <FormField label={t('setup.type.instructionsAr')} hint={t('setup.type.instructionsHint')}>{(p) => <RichTextEditor id={p.id} lang="ar" label={t('setup.type.instructionsAr')} value={form.instructionsAr} onChange={(instructionsAr) => set({ instructionsAr })} />}</FormField>
+      <FormField label={t('setup.type.instructionsEn')}>{(p) => <RichTextEditor id={p.id} lang="en" label={t('setup.type.instructionsEn')} value={form.instructionsEn} onChange={(instructionsEn) => set({ instructionsEn })} />}</FormField>
+    </div>
+  );
+}
+
 function TypeFields({ deskId, form, set }: { deskId: string; form: Form; set: (change: Partial<Form>) => void }) {
   const { t } = useTranslation('tickets');
   const rules = useRules();
@@ -72,6 +87,7 @@ function TypeFields({ deskId, form, set }: { deskId: string; form: Form; set: (c
         <FormField label={t('setup.type.descriptionAr')}>{(p) => <Textarea {...p} rows={2} maxLength={300} value={form.descriptionAr} onChange={(e) => set({ descriptionAr: e.target.value })} />}</FormField>
         <FormField label={t('setup.type.descriptionEn')}>{(p) => <Textarea {...p} dir="ltr" rows={2} maxLength={300} value={form.descriptionEn} onChange={(e) => set({ descriptionEn: e.target.value })} />}</FormField>
       </div>
+      <InstructionsFields form={form} set={set} />
       <HandlersField deskId={deskId} value={form.handlers} onChange={(h) => set({ handlers: h })} error={handlers.error} />
       <FormField label={t('setup.type.dueDays')} hint={t('setup.type.dueDaysHint')}>{(p) => <Input {...p} type="number" dir="ltr" min={1} max={60} value={form.dueDays} onChange={(e) => set({ dueDays: e.target.value })} />}</FormField>
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="size-4 accent-petrol-800" checked={form.isPersonal} onChange={(e) => set({ isPersonal: e.target.checked })} />{t('setup.type.personal')}</label>

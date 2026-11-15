@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { cn } from '@/shared/lib/cn';
 import { listNames } from '@/shared/lib/list-names';
-import { Alert, Button, FileAttachments, FormField, Input, Textarea } from '@/shared/ui';
+import { Alert, Button, FileAttachments, FormField, Input, RichText, Textarea } from '@/shared/ui';
 import { datesFor, type Choice, type Draft } from './use-new-ticket';
 
 interface Props {
@@ -41,6 +41,20 @@ function SummaryBar({ choice, onBack }: { choice: Choice; onBack: () => void }) 
   );
 }
 
+/** What the unit asks the sender to put in a ticket of this type (in the language of the screen, else the other one). */
+function Instructions({ choice }: { choice: Choice }) {
+  const { t, i18n } = useTranslation('tickets');
+  const ar = i18n.language === 'ar';
+  const html = (ar ? choice.type.instructionsAr || choice.type.instructionsEn : choice.type.instructionsEn || choice.type.instructionsAr) ?? '';
+  if (!html) return null;
+  return (
+    <section aria-label={t('details.instructions')} className="rounded-2xl border border-petrol-100 bg-petrol-50 p-3 text-sm">
+      <h3 className="mb-1 font-bold">{t('details.instructions')}</h3>
+      <RichText html={html} />
+    </section>
+  );
+}
+
 /** Step 2: the ticket itself. Ctrl+Enter sends; "Change" goes back to step 1 without losing what was typed. */
 export function DetailsStep({ choice, draft, today, busy, error, onPatch, onBack, onSubmit }: Props) {
   const { t } = useTranslation('tickets');
@@ -61,6 +75,7 @@ export function DetailsStep({ choice, draft, today, busy, error, onPatch, onBack
   return (
     <form className="flex flex-col gap-4" onSubmit={submit} onKeyDown={onKeyDown} noValidate>
       <SummaryBar choice={choice} onBack={onBack} />
+      <Instructions choice={choice} />
       {error && <Alert>{error}</Alert>}
       <FormField label={`${t('details.title')} *`} error={title.error ?? (tried && !draft.title.trim() ? t('details.titleRequired') : undefined)}>
         {(p) => <Input {...p} maxLength={200} aria-required onBlur={title.onBlur} value={draft.title} onChange={(e) => onPatch({ title: e.target.value })} autoFocus />}
