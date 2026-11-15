@@ -67,9 +67,6 @@ export class TicketType extends BaseEntity {
   @Column({ name: 'description_en', type: 'text', nullable: true })
   descriptionEn: string | null;
 
-  @Column({ name: 'default_assignee_user_id', type: 'uuid', nullable: true })
-  defaultAssigneeUserId: string | null;
-
   /** Working days; null = the desk's default. */
   @Column({ name: 'due_days', type: 'int', nullable: true })
   dueDays: number | null;
@@ -86,10 +83,25 @@ export class TicketType extends BaseEntity {
   @ManyToOne('TicketDesk', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'desk_id', foreignKeyConstraintName: 'FK_ticket_types_desk' })
   private readonly deskFk?: unknown;
+}
 
-  @ManyToOne('User', { onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'default_assignee_user_id', foreignKeyConstraintName: 'FK_ticket_types_assignee' })
-  private readonly assigneeFk?: unknown;
+/** The employees of the unit who answer the tickets of a type (one or more). With one the ticket is assigned to them; with several the first to reply takes it. */
+@Entity('ticket_type_handlers')
+@Index('IDX_ticket_type_handlers_user', ['userId'])
+export class TicketTypeHandler {
+  @PrimaryColumn({ name: 'type_id', type: 'uuid' })
+  typeId: string;
+
+  @PrimaryColumn({ name: 'user_id', type: 'uuid' })
+  userId: string;
+
+  @ManyToOne('TicketType', { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'type_id', foreignKeyConstraintName: 'FK_ticket_type_handlers_type' })
+  private readonly typeFk?: unknown;
+
+  @ManyToOne('User', { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id', foreignKeyConstraintName: 'FK_ticket_type_handlers_user' })
+  private readonly userFk?: unknown;
 }
 
 @Entity('tickets')
@@ -262,4 +274,4 @@ export class TicketEventMention {
   private readonly userFk?: unknown;
 }
 
-export const TICKET_ENTITIES = [TicketDesk, TicketType, Ticket, TicketEvent, TicketAttachment, TicketEventMention];
+export const TICKET_ENTITIES = [TicketDesk, TicketType, TicketTypeHandler, Ticket, TicketEvent, TicketAttachment, TicketEventMention];

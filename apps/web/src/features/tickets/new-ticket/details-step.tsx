@@ -4,6 +4,7 @@ import { useState, type FormEvent, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { cn } from '@/shared/lib/cn';
+import { listNames } from '@/shared/lib/list-names';
 import { Alert, Button, FileAttachments, FormField, Input, Textarea } from '@/shared/ui';
 import { datesFor, type Choice, type Draft } from './use-new-ticket';
 
@@ -34,7 +35,7 @@ function SummaryBar({ choice, onBack }: { choice: Choice; onBack: () => void }) 
   const ar = i18n.language === 'ar';
   return (
     <div className="flex items-center justify-between gap-3 rounded-2xl bg-petrol-50 p-3 text-sm">
-      <span className="flex flex-col"><span className="font-bold">{ar ? choice.type.nameAr : choice.type.nameEn}</span><span className="text-xs text-muted">{ar ? choice.desk.nameAr : choice.desk.nameEn}{choice.type.assignee ? ` · ${t('details.handledBy', { name: choice.type.assignee.name })}` : ''}</span></span>
+      <span className="flex flex-col"><span className="font-bold">{ar ? choice.type.nameAr : choice.type.nameEn}</span><span className="text-xs text-muted">{ar ? choice.desk.nameAr : choice.desk.nameEn}{choice.type.handlers.length ? ` · ${t('details.handledBy', { name: listNames(choice.type.handlers.map((h) => h.name), i18n.language) })}` : ''}</span></span>
       <Button variant="secondary" size="sm" onClick={onBack}><ArrowRight className="size-4 rtl:rotate-0 ltr:rotate-180" aria-hidden />{t('details.change')}</Button>
     </div>
   );

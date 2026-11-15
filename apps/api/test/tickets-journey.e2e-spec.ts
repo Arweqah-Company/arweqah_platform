@@ -32,6 +32,7 @@ describe('Tickets: the whole cycle (FR-36 … FR-41)', () => {
     const bob = await person(org.unitC);
     const hrManager = await person(org.unitOther);
     const hrAssignee = await person(org.unitOther);
+    for (const [who, desk] of [[itAssignee, org.department], [hrAssignee, org.otherDepartment]] as const) await t.db.query('UPDATE employees SET org_node_id = $1 WHERE id = $2', [desk, who.user.employeeId]); // handlers sit directly in the desk
     await t.db.query('UPDATE org_nodes SET manager_id = $1 WHERE id = $2', [itManager.user.employeeId, org.department]);
     await t.db.query('UPDATE org_nodes SET manager_id = $1 WHERE id = $2', [hrManager.user.employeeId, org.otherDepartment]);
 
@@ -42,10 +43,10 @@ describe('Tickets: the whole cycle (FR-36 … FR-41)', () => {
     await platform.put(`/api/tickets/setup/desks/${org.otherDepartment}`).send({ ...SETTINGS, acceptsPersonal: true }).expect(200);
     const addType = async (deskId: string, nameEn: string, extra: Record<string, unknown>) =>
       (await platform.post(`/api/tickets/setup/desks/${deskId}/types`).send({ ...TYPE, nameAr: nameEn, nameEn, ...extra }).expect(201)).body.id as string;
-    const printer = await addType(org.department, 'Printer', { defaultAssigneeUserId: itAssignee.user.id });
-    const access = await addType(org.department, 'Access request', { defaultAssigneeUserId: itAssignee.user.id });
-    const salary = await addType(org.otherDepartment, 'Salary letter', { defaultAssigneeUserId: hrAssignee.user.id });
-    const complaint = await addType(org.otherDepartment, 'Complaint', { defaultAssigneeUserId: hrAssignee.user.id, isPersonal: true });
+    const printer = await addType(org.department, 'Printer', { handlerUserIds: [itAssignee.user.id] });
+    const access = await addType(org.department, 'Access request', { handlerUserIds: [itAssignee.user.id] });
+    const salary = await addType(org.otherDepartment, 'Salary letter', { handlerUserIds: [hrAssignee.user.id] });
+    const complaint = await addType(org.otherDepartment, 'Complaint', { handlerUserIds: [hrAssignee.user.id], isPersonal: true });
 
     // --- Employees send: everyone may send to any department.
     const send = async (who: typeof alice, typeId: string, title: string, extra: Record<string, unknown> = {}) =>

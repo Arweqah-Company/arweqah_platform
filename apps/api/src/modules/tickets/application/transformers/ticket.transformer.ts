@@ -89,7 +89,7 @@ export class TicketTransformer {
       nameEn: t.nameEn,
       descriptionAr: t.descriptionAr,
       descriptionEn: t.descriptionEn,
-      defaultAssignee: t.defaultAssigneeUserId ? { id: t.defaultAssigneeUserId, name: t.defaultAssigneeName ?? '' } : null,
+      handlers: t.handlers,
       dueDays: t.dueDays,
       isPersonal: t.isPersonal,
       isActive: t.isActive,

@@ -108,7 +108,8 @@ export class TicketsService {
     const senderAnswersClosing = relations.includes('sender') && !fromUnit && found.status === 'close_requested';
     const audience = this.replyAudience(found, relations, fromUnit);
     await this.tx.run(async (tx) => {
-      const patch = { lastActivityAt: now, ...(fromUnit && !found.firstResponseAt ? { firstResponseAt: now } : {}), ...(senderAnswersClosing ? { ...nextState('sender_reply', found.status), closeRequestedAt: null } : {}) };
+      const claims = found.assigneeUserId === null && found.typeHandlerUserIds.includes(userId);
+      const patch = { lastActivityAt: now, ...(claims ? { assigneeUserId: userId } : {}), ...(fromUnit && !found.firstResponseAt ? { firstResponseAt: now } : {}), ...(senderAnswersClosing ? { ...nextState('sender_reply', found.status), closeRequestedAt: null } : {}) };
       await this.patchOrFail(found, patch, tx);
       await this.tickets.appendEvent({ ticketId: id, type: 'reply', actorUserId: userId, body: input.body, fileIds: input.fileIds, ...resolved }, tx);
       await this.replyNotices.send({ ...resolved, ticket: found, actorUserId: userId, audience }, tx);
@@ -174,12 +175,15 @@ export class TicketsService {
     if (reason) throw new REASON_ERRORS[reason]();
   }
 
-  /** The type's assignee when active. A personal type must have one, and the desk must accept personal requests. */
+  /**
+   * The type's only handler when it has one (still active in the unit): the ticket is theirs from the start. With several handlers nobody is
+   * assigned: they all see it, and the first to reply takes it. A personal type must have one handler, and the desk must accept personal requests.
+   */
   private async assignee(type: TypeRecord, desk: DeskRecord): Promise<string | null> {
-    const active = type.defaultAssigneeUserId ? await this.directory.activeEmployee(type.defaultAssigneeUserId) : null;
+    const active = await this.directory.membersOf(desk.orgNodeId, type.handlers.map((h) => h.id));
     if (type.isPersonal && !desk.acceptsPersonal) throw new PersonalNotAcceptedError();
-    if (type.isPersonal && !active) throw new TypeNoHandlerError();
-    return active?.id ?? null;
+    if (type.isPersonal && active.length === 0) throw new TypeNoHandlerError();
+    return active.length === 1 ? (active[0] as string) : null;
   }
 
   /** Files must be the poster's own uploads. */

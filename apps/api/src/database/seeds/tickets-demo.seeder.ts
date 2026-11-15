@@ -111,10 +111,11 @@ export class TicketsDemoSeeder {
       await this.db.query('UPDATE org_nodes SET manager_id = COALESCE(manager_id, $2) WHERE id = $1', [id, admin.id]);
       await this.db.query(`INSERT INTO ticket_desks (org_node_id, reception_status, accepts_personal) VALUES ($1, 'active', $2)`, [id, demo.acceptsPersonal]);
       for (const [index, type] of demo.types.entries()) {
-        await this.db.query(
-          `INSERT INTO ticket_types (desk_id, name_ar, name_en, description_ar, description_en, default_assignee_user_id, is_personal, sort_order) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-          [id, type.nameAr, type.nameEn, type.descriptionAr, type.descriptionEn, adminUserId, type.isPersonal ?? false, index + 1],
+        const [created] = await this.db.query(
+          `INSERT INTO ticket_types (desk_id, name_ar, name_en, description_ar, description_en, is_personal, sort_order) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+          [id, type.nameAr, type.nameEn, type.descriptionAr, type.descriptionEn, type.isPersonal ?? false, index + 1],
         );
+        await this.db.query('INSERT INTO ticket_type_handlers (type_id, user_id) VALUES ($1, $2)', [created.id, adminUserId]);
       }
       this.logger.log(`Sample ticket desk created for "${demo.departmentAr}"`);
     }

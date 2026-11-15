@@ -9,7 +9,7 @@ import { OrgDirectoryService } from '../../../org/application/services/org-direc
 import { TicketDeskRepository } from '../../domain/contracts/ticket-desk.repository';
 import { TicketDirectory } from '../../domain/contracts/ticket-directory.port';
 import { TicketRepository } from '../../domain/contracts/ticket.repository';
-import { AssigneeInvalidError, DeskNoManagerError, DeskNotFoundError, TypeNoHandlerError } from '../../domain/errors/ticket.errors';
+import { AssigneeInvalidError, DeskNoManagerError, DeskNotFoundError, TypeNoHandlerError, TypePersonalOneHandlerError } from '../../domain/errors/ticket.errors';
 import type { DeskRecord, DeskSettingsValues, DepartmentFacts, TypeRecord, TypeValues } from '../../domain/types/ticket.types';
 import { TICKET_AUDIT } from '../messages/ticket.messages';
 import { departmentsFor } from '../policies/department-scope';
@@ -62,25 +62,26 @@ export class TicketSetupService {
 
   async createType(ctx: AccessContext, deskId: string, input: TicketTypeInput): Promise<TicketTypeDto> {
     await this.department(ctx, deskId, CorePermission.TicketsTypeCreate);
-    const values = await this.valuesOf(input);
+    const values = await this.valuesOf(deskId, input);
     const id = await this.tx.run(async (tx) => {
       await this.ensureDesk(deskId, tx);
       return this.desks.insertType(deskId, values, tx);
     });
-    this.audit(ctx.userId, TICKET_AUDIT.typeCreated, id, { deskId, isPersonal: values.isPersonal, assignee: values.defaultAssigneeUserId });
+    this.audit(ctx.userId, TICKET_AUDIT.typeCreated, id, { deskId, isPersonal: values.isPersonal, handlers: values.handlerUserIds });
     return this.typeDto(id);
   }
 
   async updateType(ctx: AccessContext, deskId: string, typeId: string, input: TicketTypeInput): Promise<TicketTypeDto> {
     await this.department(ctx, deskId, CorePermission.TicketsTypeUpdate);
     const existing = await this.ownType(deskId, typeId);
-    const values = await this.valuesOf(input);
+    const values = await this.valuesOf(deskId, input);
     const moved = await this.tx.run(async (tx) => {
       await this.desks.updateType(typeId, values, tx);
-      const changedAssignee = values.isPersonal && values.defaultAssigneeUserId && values.defaultAssigneeUserId !== existing.defaultAssigneeUserId;
-      return changedAssignee ? this.tickets.reassignOrphanedPersonal(typeId, values.defaultAssigneeUserId as string, tx) : 0;
+      const [handler] = values.handlerUserIds;
+      const changedAssignee = values.isPersonal && handler && handler !== existing.handlers[0]?.id;
+      return changedAssignee ? this.tickets.reassignOrphanedPersonal(typeId, handler, tx) : 0;
     });
-    this.audit(ctx.userId, TICKET_AUDIT.typeUpdated, typeId, { deskId, isActive: values.isActive, isPersonal: values.isPersonal, assignee: values.defaultAssigneeUserId });
+    this.audit(ctx.userId, TICKET_AUDIT.typeUpdated, typeId, { deskId, isActive: values.isActive, isPersonal: values.isPersonal, handlers: values.handlerUserIds });
     if (moved > 0) await this.announceMoved(ctx, deskId, typeId, moved);
     return this.typeDto(typeId);
   }
@@ -90,15 +91,15 @@ export class TicketSetupService {
     await this.department(ctx, deskId, CorePermission.TicketsTypeDelete);
     const existing = await this.ownType(deskId, typeId);
     const used = await this.desks.typeHasTickets(typeId);
-    await this.tx.run((tx) => (used ? this.desks.updateType(typeId, { ...existing, isActive: false }, tx) : this.desks.deleteType(typeId, tx)));
+    await this.tx.run((tx) => (used ? this.desks.updateType(typeId, { ...existing, handlerUserIds: existing.handlers.map((h) => h.id), isActive: false }, tx) : this.desks.deleteType(typeId, tx)));
     this.audit(ctx.userId, TICKET_AUDIT.typeRemoved, typeId, { deskId, deleted: !used });
     return { deleted: !used };
   }
 
-  /** Employees of the department's company, found by name or number, for the assignee picker. */
+  /** Employees sitting directly in the department, found by name or number, for the handlers picker. */
   async assignees(ctx: AccessContext, deskId: string, search?: string): Promise<PersonRefDto[]> {
     const department = await this.department(ctx, deskId, CorePermission.TicketsSetupView);
-    return this.directory.assignableEmployees(department.companyId, search);
+    return this.directory.assignableEmployees(department.orgNodeId, search);
   }
 
   // -------------------------------------------------------------------- helpers
@@ -134,17 +135,18 @@ export class TicketSetupService {
     return this.transformer.toTypeDto((await this.desks.type(typeId)) as TypeRecord);
   }
 
-  /** The assignee must be an active employee, and a personal type must have one. */
-  private async valuesOf(input: TicketTypeInput): Promise<TypeValues> {
-    const assigneeId = input.defaultAssigneeUserId ?? null;
-    if (assigneeId && !(await this.directory.activeEmployee(assigneeId))) throw new AssigneeInvalidError();
-    if (input.isPersonal && !assigneeId) throw new TypeNoHandlerError();
+  /** Every handler must be an active employee of the unit, and a personal type has exactly one. */
+  private async valuesOf(deskId: string, input: TicketTypeInput): Promise<TypeValues> {
+    const handlerUserIds = [...new Set(input.handlerUserIds ?? [])];
+    if ((await this.directory.membersOf(deskId, handlerUserIds)).length !== handlerUserIds.length) throw new AssigneeInvalidError();
+    if (input.isPersonal && handlerUserIds.length === 0) throw new TypeNoHandlerError();
+    if (input.isPersonal && handlerUserIds.length > 1) throw new TypePersonalOneHandlerError();
     return {
       nameAr: input.nameAr,
       nameEn: input.nameEn,
       descriptionAr: input.descriptionAr ?? null,
       descriptionEn: input.descriptionEn ?? null,
-      defaultAssigneeUserId: assigneeId,
+      handlerUserIds,
       dueDays: input.dueDays ?? null,
       isPersonal: input.isPersonal,
       isActive: input.isActive,
