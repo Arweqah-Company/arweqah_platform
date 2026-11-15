@@ -9,6 +9,7 @@ import { ProfilePage } from './profile-page';
 const employee = {
   id: 'e1', employeeNumber: 'E-1042', fullName: 'سارة أحمد', fullNameEn: 'Sara Ahmed', workEmail: 'sara@arweqah.sa', personalEmail: null, personalPhone: null, startDate: '2024-03-01',
   company: { id: 'c1', nameAr: 'أروقة الريادة', nameEn: 'Arweqah' }, orgNode: { id: 'u1', nameAr: 'وحدة', nameEn: 'Unit', pathAr: 'قطاع › وحدة', pathEn: 'Sector › Unit' },
+  gender: 1, birthDate: '1995-04-02', names: { nationality: { nameAr: 'سعودي', nameEn: 'Saudi' }, maritalStatus: { nameAr: 'متزوجة', nameEn: 'Married' } },
   jobTitle: { id: 't1', nameAr: 'مطورة', nameEn: 'Developer' }, manager: { id: 'm1', fullName: 'خالد' }, updatedAt: '2026-10-22T10:00:00Z',
 } as unknown as EmployeeDto;
 const profile = (over: Partial<OwnProfileDto> = {}): OwnProfileDto => ({ preferences: { locale: 'ar', theme: 'system' }, employee, ...over });
@@ -27,6 +28,12 @@ describe('Profile page (FR-33)', () => {
     expect(screen.getByText('قطاع › وحدة')).toBeInTheDocument();
     expect(screen.getByLabelText('الاسم بالإنجليزية')).toHaveValue('Sara Ahmed');
     expect(screen.getByRole('link', { name: /الأمان وتطبيق المصادقة/ })).toHaveAttribute('href', '/security');
+  });
+
+  it('shows the basic personal data read-only (FR-33)', async () => {
+    open();
+    expect(await screen.findByRole('heading', { level: 2, name: 'البيانات الأساسية' })).toBeInTheDocument();
+    for (const text of ['أنثى', 'سعودي', '1995-04-02', 'متزوجة']) expect(screen.getByText(text)).toBeInTheDocument();
   });
 
   it('saves the three contact details, nothing else', async () => {

@@ -6,6 +6,7 @@ import { RestartTourButton } from '@/features/tour';
 import { Alert, Button, PageHeader, SectionCard } from '@/shared/ui';
 import { useOwnProfile } from './api';
 import { AppearanceSection } from './appearance-section';
+import { BasicSection } from './basic-section';
 import { ContactSection } from './contact-section';
 import { WorkSection } from './work-section';
 
@@ -24,6 +25,7 @@ export function ProfilePage() {
         <div className="sm:col-span-2"><RestartTourButton /></div>
       </SectionCard>
       {profile.data && !employee && <Alert tone="info">{t('noEmployee')}</Alert>}
+      {employee && <BasicSection employee={employee} />}
       {employee && <ContactSection key={employee.updatedAt} employee={employee} />}
       {employee && <WorkSection employee={employee} />}
     </div>

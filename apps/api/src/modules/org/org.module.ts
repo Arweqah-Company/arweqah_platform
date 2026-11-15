@@ -5,6 +5,7 @@ import { JobTitleCodesService } from './application/services/job-title-codes.ser
 import { JobTitlesService } from './application/services/job-titles.service';
 import { OrgChainService } from './application/services/org-chain.service';
 import { OrgLeadersService } from './application/services/org-leaders.service';
+import { OrgUnitEmployeesService } from './application/services/org-unit-employees.service';
 import { OrgVersionsService } from './application/services/org-versions.service';
 import { OrgVisibilityService } from './application/services/org-visibility.service';
 import { OrgDirectoryService } from './application/services/org-directory.service';
@@ -39,6 +40,7 @@ import { OrgController } from './presentation/controllers/org.controller';
     OrgVisibilityService,
     OrgVersionsService,
     OrgLeadersService,
+    OrgUnitEmployeesService,
     OrgChainService,
     JobTitlesService,
     JobTitleCodesService,

@@ -15,6 +15,7 @@
  *   GET    /nodes/:id/versions                  OrgNodeVersionsDto     org.view: the unit's dated versions (past, current, scheduled) and its change log; a unit the viewer does not see is 404
  *   PUT    /nodes/:id/charter UpdateCharterBody OrgNodeVersionsDto     org.charter_edit (admin mode): {purpose, outputs, inScope, outOfScope, limits, effectiveFrom?, reason}
  *   GET    /nodes/:id/leaders                   OrgNodeLeadersDto      org.view: leaders and acting leaders per company, and where the manager goes when a company has none
+ *   GET    /nodes/:id/employees                 OrgUnitEmployeeDto[]   org.view: the active employees placed directly in the unit (name, number, work e-mail, manager)
  *   PUT    /nodes/:id/leaders SetLeaderBody     OrgNodeLeadersDto      org.leaders_manage (admin mode): {companyId, employeeId, kind, validFrom, validTo?, reason}
  *   POST   /nodes/:id/leaders/:leaderId/end EndLeaderBody OrgNodeLeadersDto org.leaders_manage (admin mode): ends a leader in force on endDate
  *   DELETE /nodes/:id/leaders/:leaderId                OrgNodeLeadersDto  org.leaders_manage (admin mode): only a row that has not started (422 ORG_LEADER_NOT_PENDING)
@@ -27,13 +28,14 @@
  */
 import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import type { ChangeManagementModeResultDto, JobTitleDto, OrgLevelsDto, OrgNodeDto, OrgNodeLeadersDto, OrgNodeVersionsDto, OrgTreeDto } from '@arweqah-platform/shared';
+import type { ChangeManagementModeResultDto, JobTitleDto, OrgLevelsDto, OrgNodeDto, OrgNodeLeadersDto, OrgNodeVersionsDto, OrgTreeDto, OrgUnitEmployeeDto } from '@arweqah-platform/shared';
 import { CurrentUser } from '../../../../common/presentation/current-user.decorator';
 import type { SessionUser } from '../../../../common/presentation/request-context';
 import { IdParam } from '../../../../common/presentation/zod-query';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
 import { Access, HiddenWithPage, RequireAdminMode, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
 import { JOB_TITLES_CREATE, JOB_TITLES_DELETE, JOB_TITLES_UPDATE, ORG_CHARTER_EDIT, ORG_LEADERS_MANAGE, ORG_LEVELS, ORG_UNIT_CREATE, ORG_UNIT_DELETE, ORG_UNIT_MOVE, ORG_UNIT_SHARE, ORG_UNIT_UPDATE, ORG_VIEW } from '../../application/policies/org-access.policy';
+import { OrgUnitEmployeesService } from '../../application/services/org-unit-employees.service';
 import { OrgLeadersService } from '../../application/services/org-leaders.service';
 import { OrgVersionsService } from '../../application/services/org-versions.service';
 import { OrgLevelsService } from '../../application/services/org-levels.service';
@@ -51,6 +53,7 @@ export class OrgController {
     private readonly tree: OrgTreeService,
     private readonly versions: OrgVersionsService,
     private readonly leaders: OrgLeadersService,
+    private readonly unitEmployees: OrgUnitEmployeesService,
   ) {}
 
   @Get('tree')
@@ -141,6 +144,12 @@ export class OrgController {
   @RequirePermission(ORG_VIEW)
   getLeaders(@Access() ctx: AccessContext, @Param() { id }: IdParam): Promise<OrgNodeLeadersDto> {
     return this.leaders.list(ctx, id);
+  }
+
+  @Get('nodes/:id/employees')
+  @RequirePermission(ORG_VIEW)
+  getEmployees(@Access() ctx: AccessContext, @Param() { id }: IdParam): Promise<OrgUnitEmployeeDto[]> {
+    return this.unitEmployees.list(ctx, id);
   }
 
   @Put('nodes/:id/leaders')

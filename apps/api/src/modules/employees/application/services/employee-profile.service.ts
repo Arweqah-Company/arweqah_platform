@@ -3,6 +3,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { OwnProfileDto, OwnProfileInput } from '@arweqah-platform/shared';
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
+import { IdentityProvider } from '../../../../core/auth/application/identity-provider';
 import { AccountPreferencesService } from '../../../../core/auth/application/account-preferences.service';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
 import { EmployeeEditPolicy } from '../policies/employee-edit.policy';
@@ -24,6 +25,7 @@ export class EmployeeProfileService {
     private readonly tx: TransactionRunner,
     private readonly events: EventEmitter2,
     private readonly editing: EmployeeEditPolicy,
+    private readonly identity: IdentityProvider,
   ) {}
 
   async get(ctx: AccessContext): Promise<OwnProfileDto> {
@@ -42,12 +44,16 @@ export class EmployeeProfileService {
     }
     if (employee) this.assertEditable(ctx, employee, contact);
     const changed = await this.preferences.update(userId, { locale: input.locale, theme: input.theme });
-    if (employee && Object.keys(contact).length) {
-      await this.tx.run((tx) => this.employees.update(employee.id, contact, tx));
-      changed.push(...Object.keys(contact));
-    }
+    if (employee && Object.keys(contact).length) changed.push(...(await this.saveContact(employee.id, userId, contact)));
     if (changed.length) this.audit(userId, employee?.id ?? userId, changed);
     return this.get(ctx);
+  }
+
+  /** Saves the contact details and keeps the sign-in account's phone (used for SMS) equal to the record. */
+  private async saveContact(employeeId: string, userId: string, contact: Record<string, unknown>): Promise<string[]> {
+    await this.tx.run((tx) => this.employees.update(employeeId, contact, tx));
+    if ('personalPhone' in contact) await this.identity.updateAccount(userId, { phone: (contact.personalPhone as string | null) ?? null });
+    return Object.keys(contact);
   }
 
   /** The details a person changes on their own page are the ones their grants of «edit employees» give them for their own record (FR-94). */

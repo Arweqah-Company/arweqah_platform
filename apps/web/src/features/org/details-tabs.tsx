@@ -2,6 +2,7 @@ import { CorePermission, type OrgTreeDto } from '@arweqah-platform/shared';
 import type { ReactNode } from 'react';
 import { CharterTab } from './charter-tab';
 import { HistoryTab } from './history-tab';
+import { EmployeesTab } from './employees-tab';
 import { LeadersTab } from './leaders-tab';
 import type { OrgModel, OrgNode } from './org-model';
 import { OverviewTab } from './overview-tab';
@@ -34,6 +35,7 @@ export interface DetailsTab {
 export const DETAILS_TABS: DetailsTab[] = [
   { id: 'overview', labelKey: 'tabs.overview', render: (ctx) => <OverviewTab {...ctx} /> },
   { id: 'leaders', labelKey: 'tabs.leaders', permission: CorePermission.OrgView, render: (ctx) => <LeadersTab {...ctx} /> },
+  { id: 'employees', labelKey: 'tabs.employees', permission: CorePermission.OrgView, render: (ctx) => <EmployeesTab {...ctx} /> },
   { id: 'titles', labelKey: 'tabs.titles', render: (ctx) => <TitlesTab {...ctx} /> },
   { id: 'charter', labelKey: 'tabs.charter', permission: CorePermission.OrgView, tour: 'org-charter', render: (ctx) => <CharterTab {...ctx} /> },
   { id: 'history', labelKey: 'tabs.history', permission: CorePermission.OrgView, render: (ctx) => <HistoryTab {...ctx} /> },

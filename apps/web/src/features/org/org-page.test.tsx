@@ -250,7 +250,7 @@ describe('Organization page: scheduled changes and links (FR-99)', () => {
     openOrgPage();
     fireEvent.click(await screen.findByRole('button', { name: 'قسم الموارد البشرية' }));
     const details = await screen.findByRole('complementary', { name: 'تفاصيل الوحدة: قسم الموارد البشرية' });
-    expect(within(details).getAllByRole('tab').map((t) => t.textContent)).toEqual(['نظرة عامة', 'القادة', 'المسميات', 'الميثاق', 'السجل']);
+    expect(within(details).getAllByRole('tab').map((t) => t.textContent)).toEqual(['نظرة عامة', 'القادة', 'موظفو الوحدة', 'المسميات', 'الميثاق', 'السجل']);
   });
 
   it('opens the first top unit on a tab from a link (the welcome tour uses it), once', async () => {
