@@ -489,6 +489,16 @@
       "filters": {
         "status": "Status"
       }
+    },
+    "org-unit-employees": {
+      "name": "Unit employees",
+      "columns": {
+        "name": "Name",
+        "number": "Work number",
+        "email": "Work e-mail",
+        "manager": "Direct manager"
+      },
+      "filters": {}
     }
   },
   "listHint": "The first column (the name) always stays.",

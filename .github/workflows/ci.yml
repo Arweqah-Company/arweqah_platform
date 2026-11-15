@@ -49,8 +49,15 @@ jobs:
       - run: npm run dup
 
   e2e-api:
-    needs: quality
+    # No `needs: quality`: the suites start together with it, so the wall time is the slowest job's, not quality plus the slowest (decision 379).
+    # Three shards of spec files, each with its own PostgreSQL service (one database per runner, as the browser suite's shards).
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    env:
+      E2E_API_SHARD: ${{ matrix.shard }}/3
     services:
       postgres:
         image: postgres:16-alpine
@@ -62,13 +69,14 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: 24, cache: npm }
       - run: npm ci
+      - uses: ./.github/actions/fast-postgres
       - run: npm run test:e2e:api
 
   e2e-web:
-    needs: quality
     runs-on: ubuntu-latest
     # The browser tests share one database and run one after the other, so one runner took about 30 minutes: the files are split over four
-    # runners, each with its own database, and the wall time is the slowest shard's (decision 253).
+    # runners, each with its own database, and the wall time is the slowest shard's (decision 253); the files are shared out by how long
+    # each took last time (`e2e/shard-weights.json`), so the shards finish together (decision 379).
     strategy:
       fail-fast: false
       matrix:
@@ -86,6 +94,11 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: 24, cache: npm }
       - run: npm ci
+      - uses: ./.github/actions/fast-postgres
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('e2e/package.json', 'package-lock.json') }}
       - run: npx playwright install --with-deps chromium
         working-directory: e2e
       - run: npm run test:e2e:web

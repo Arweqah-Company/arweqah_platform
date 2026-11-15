@@ -36,7 +36,8 @@ export abstract class EmployeePlacementPort {
   /** Holders of each title per company, active employees only: `titleId → companyId → holders`. */
   abstract holdersByTitle(): Promise<Map<string, Map<string, TitleHolders>>>;
   /** The active employees placed directly in the unit, by name. */
-  abstract unitEmployees(nodeId: string): Promise<OrgUnitEmployeeDto[]>;
+  /** The people placed directly in a unit, of one company or (null) of all. */
+  abstract unitEmployees(nodeId: string, companyId: string | null): Promise<OrgUnitEmployeeDto[]>;
   /** The active employees placed in any of the titles. */
   abstract placedEmployees(titleIds: string[]): Promise<PlacedEmployee[]>;
   /**
