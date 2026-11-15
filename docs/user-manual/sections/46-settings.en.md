@@ -14,6 +14,7 @@ One page with tabs that gathers the settings of services and messages: **Transla
 | E-mail | `integrations.email_view` (View the e-mail settings page) | E-mail settings |
 | Bot protection | `integrations.captcha_view` (View the bot protection page) | Bot protection |
 | AI | `integrations.ai_view` (View the AI settings page) | AI service |
+| Address locations | `integrations.geoip_view` (View the address locations page) | Address locations |
 | E-mail templates | `templates.email_view` (View e-mail templates) | E-mail templates |
 | Notification templates | `templates.notification_view` (View notification templates) | Notification templates |
 | Welcome tour | `tour.settings_view` (View the welcome tour settings) | Welcome tour |
@@ -33,6 +34,7 @@ Each of these tabs shows a table of the available services (table or cards) with
 | E-mail | SMTP, Amazon SES, SendGrid, Microsoft 365 (Graph) |
 | Bot protection | Cloudflare Turnstile |
 | AI | Anthropic (Claude), OpenAI-compatible service (free Gemini, Groq…) |
+| Address locations | MaxMind GeoLite2 City (account number and license key from a free MaxMind account; the «How to get the data» icon lists the steps) |
 
 | Action | What happens | Permission (translation / e-mail / bot protection / AI) |
 |---|---|---|

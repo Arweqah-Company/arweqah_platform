@@ -15,7 +15,11 @@ export class GeoipAuditGeo extends AuditGeo {
   }
 
   async cityOf(ip: string | null): Promise<AuditText | null> {
-    if (!ip || !(await this.active.of('geoip'))) return null;
-    return this.database.lookup(ip);
+    if (!ip) return null;
+    try {
+      return (await this.active.of('geoip')) ? await this.database.lookup(ip) : null;
+    } catch {
+      return null; // the city is only an addition: a configuration that cannot be read must not fail the audit page
+    }
   }
 }

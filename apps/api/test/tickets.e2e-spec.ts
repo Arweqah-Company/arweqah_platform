@@ -705,4 +705,29 @@ describe('Tickets (FR-36 … FR-41)', () => {
       await addType(w.agents.sender, w.desk, { instructionsAr: '<p>x</p>' }).expect(403);
     });
   });
+  describe('Handlers after a type changes (CodeRabbit on the FR-133 release)', () => {
+    it('does not give a personal ticket to the new handler of its type, in the detail or in the inbox', async () => {
+      const w = await world();
+      await setupDesk(w.agents.manager, w.desk, { acceptsPersonal: true }).expect(200);
+      const personal = (await addType(w.agents.manager, w.desk, { isPersonal: true, handlerUserIds: [w.assignee.id] }).expect(201)).body as { id: string; nameAr: string; nameEn: string };
+      const ticket = await sendOne(w, personal.id);
+      const next = await t.factories.user({ unit: w.org.unitA });
+      await t.db.query('UPDATE employees SET org_node_id = $1 WHERE id = $2', [w.desk, next.employeeId]);
+      await w.agents.manager.put(`/api/tickets/setup/desks/${w.desk}/types/${personal.id}`).send({ ...TYPE, nameAr: personal.nameAr, nameEn: personal.nameEn, isPersonal: true, handlerUserIds: [next.id] }).expect(200);
+      const nextAgent = await t.factories.signIn(next);
+      await nextAgent.get(`/api/tickets/${ticket.id}`).expect(404);
+      expect((await nextAgent.get('/api/tickets?tab=inbox').expect(200)).body.total).toBe(0);
+      await w.agents.assignee.get(`/api/tickets/${ticket.id}`).expect(200); // the stored assignee still has it
+    });
+
+    it('lists as unavailable a personal type whose only handler no longer sits in the unit', async () => {
+      const w = await world();
+      await setupDesk(w.agents.manager, w.desk, { acceptsPersonal: true }).expect(200);
+      const personal = (await addType(w.agents.manager, w.desk, { isPersonal: true, handlerUserIds: [w.assignee.id] }).expect(201)).body as { id: string };
+      await t.db.query('UPDATE employees SET org_node_id = $1 WHERE id = $2', [w.org.unitA.id, w.assignee.employeeId]); // moved below the desk
+      const catalog = (await w.agents.sender.get('/api/tickets/catalog').expect(200)).body as TicketCatalogDto;
+      const entry = catalog.desks[0]?.types.find((x) => x.id === personal.id);
+      expect(entry).toMatchObject({ available: false, handlers: [] });
+    });
+  });
 });
