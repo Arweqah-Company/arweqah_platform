@@ -41,8 +41,8 @@ function scopeSql(scope: ViewerScope, columns: { node: string[]; company: string
   return scope.kind === 'company' ? `(${columns.company.map((c) => `${c} = ${p}`).join(' OR ')})` : `(${columns.node.map((c) => `${c} = ANY(${p})`).join(' OR ')})`;
 }
 
-/** A ticket is in the viewer's inbox as its assignee, as the manager of its desk, or when its desk is one they may handle (never a personal one except for its assignee). */
-const inboxSql = (viewer: TicketViewer, values: unknown[]): string => `(t.assignee_user_id = $1 OR (NOT t.is_personal AND (dm.user_id = $1 OR ${scopeSql(viewer.handle, DESK_COLUMNS, values)})))`;
+/** A ticket is in the viewer's inbox as its assignee, as a handler of its type, as the manager of its desk, or when its desk is one they may handle (never a personal one except for its assignee). */
+const inboxSql = (viewer: TicketViewer, values: unknown[]): string => `(t.assignee_user_id = $1 OR EXISTS (SELECT 1 FROM ticket_type_handlers h WHERE h.type_id = t.type_id AND h.user_id = $1) OR (NOT t.is_personal AND (dm.user_id = $1 OR ${scopeSql(viewer.handle, DESK_COLUMNS, values)})))`;
 
 /** A ticket is in the viewer's team tab when its sender or assignee is inside the scope of their view permission (never a personal one). */
 const teamSql = (viewer: TicketViewer, values: unknown[]): string => `($1::uuid IS NOT NULL AND NOT t.is_personal AND ${scopeSql(viewer.view, PEOPLE_COLUMNS, values)})` // $1 (the viewer) is always bound, so it must always be used;
@@ -50,7 +50,7 @@ const teamSql = (viewer: TicketViewer, values: unknown[]): string => `($1::uuid 
 /** The employees of a ticket's sender and assignee, for the people-based scope. */
 const PEOPLE_JOINS = `LEFT JOIN employees se ON se.user_id = t.sender_user_id AND se.deleted_at IS NULL LEFT JOIN employees ae ON ae.user_id = t.assignee_user_id AND ae.deleted_at IS NULL`;
 
-const HAS_INBOX = `SELECT (EXISTS (SELECT 1 FROM ticket_types WHERE default_assignee_user_id = $1)
+const HAS_INBOX = `SELECT (EXISTS (SELECT 1 FROM ticket_type_handlers WHERE user_id = $1)
   OR EXISTS (SELECT 1 FROM ticket_desks d JOIN org_nodes n ON n.id = d.org_node_id JOIN employees e ON e.id = n.manager_id AND e.deleted_at IS NULL WHERE e.user_id = $1)) AS yes`;
 
 const STALE = ticketQuery(`t.status = 'open' AND t.last_activity_at <= $1::timestamptz - (d.stale_after_days * interval '1 day')

@@ -101,8 +101,8 @@ function CaptchaTest({ kind, providerKey, values }: Omit<Props, 'onClose' | 'pro
   );
 }
 
-/** The AI service has nothing to type: one short real request with the key and the model in the form. */
-function AiTest({ kind, providerKey, values }: Omit<Props, 'onClose' | 'providerName'>) {
+/** Services with nothing to type (AI, address locations): one real request with the data in the form. */
+function PlainTest({ kind, providerKey, values, success }: Omit<Props, 'onClose' | 'providerName'> & { success: string }) {
   const { t } = useTranslation('integrations');
   const test = useTestProvider(kind);
   return (
@@ -110,12 +110,14 @@ function AiTest({ kind, providerKey, values }: Omit<Props, 'onClose' | 'provider
       <div className="flex justify-end">
         <Button disabled={test.isPending} onClick={() => test.mutate({ providerKey, values })}>{test.isPending ? t('test.running') : t('test.run')}</Button>
       </div>
-      <ProbeResult result={test.data} success="test.aiWorks" />
+      <ProbeResult result={test.data} success={success} />
     </div>
   );
 }
 
-const BODIES = { translation: TranslationTest, email: EmailTest, captcha: CaptchaTest, ai: AiTest } as const;
+const AiTest = (p: Omit<Props, 'onClose' | 'providerName'>) => <PlainTest {...p} success="test.aiWorks" />;
+const GeoipTest = (p: Omit<Props, 'onClose' | 'providerName'>) => <PlainTest {...p} success="test.geoipWorks" />;
+const BODIES = { translation: TranslationTest, email: EmailTest, captcha: CaptchaTest, ai: AiTest, geoip: GeoipTest } as const;
 
 export function TestDialog({ kind, providerKey, providerName, values, onClose }: Props) {
   const { t } = useTranslation('integrations');

@@ -71,23 +71,33 @@ export class TypeOrmTicketDirectory extends TicketDirectory {
   reassignCandidates(companyId: string, nodeIds: readonly string[] | null, filter: { search?: string; userId?: string }): Promise<PersonRecord[]> {
     return this.ds.query(
       `SELECT u.id, e.full_name AS name FROM employees e JOIN users u ON u.id = e.user_id AND u.is_active
-       WHERE e.company_id = $1 AND e.deleted_at IS NULL AND NOT e.is_system_account
+       WHERE e.org_node_id = $1 AND e.deleted_at IS NULL AND NOT e.is_system_account
          AND ($2::uuid[] IS NULL OR e.org_node_id = ANY($2))
          AND ($3::uuid IS NULL OR u.id = $3)
          AND ($4::text IS NULL OR e.full_name ILIKE $4 OR e.employee_number ILIKE $4)
-       ORDER BY e.full_name LIMIT 30`,
+       ORDER BY e.full_name LIMIT 100`,
       [companyId, nodeIds ? [...nodeIds] : null, filter.userId ?? null, filter.search ? likeContains(filter.search) : null],
     );
   }
 
-  assignableEmployees(companyId: string, search?: string): Promise<PersonRecord[]> {
+  async membersOf(nodeId: string, userIds: string[]): Promise<string[]> {
+    if (!userIds.length) return [];
+    const rows: { id: string }[] = await this.ds.query(
+      `SELECT u.id FROM employees e JOIN users u ON u.id = e.user_id AND u.is_active
+       WHERE e.org_node_id = $1 AND e.deleted_at IS NULL AND NOT e.is_system_account AND u.id = ANY($2)`,
+      [nodeId, userIds],
+    );
+    return rows.map((r) => r.id);
+  }
+
+  assignableEmployees(nodeId: string, search?: string): Promise<PersonRecord[]> {
     const like = search ? likeContains(search) : null;
     return this.ds.query(
       `SELECT u.id, e.full_name AS name FROM employees e JOIN users u ON u.id = e.user_id AND u.is_active
        WHERE e.company_id = $1 AND e.deleted_at IS NULL AND NOT e.is_system_account
          AND ($2::text IS NULL OR e.full_name ILIKE $2 OR e.employee_number ILIKE $2)
-       ORDER BY e.full_name LIMIT 30`,
-      [companyId, like],
+       ORDER BY e.full_name LIMIT 100`,
+      [nodeId, like],
     );
   }
 }

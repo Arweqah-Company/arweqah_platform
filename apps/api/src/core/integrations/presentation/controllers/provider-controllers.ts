@@ -22,6 +22,13 @@ export const CaptchaProvidersController = integrationsController('captcha', 'cap
   activate: CorePermission.IntegrationsCaptchaActivate,
 });
 
+export const GeoipProvidersController = integrationsController('geoip', 'geoip-settings', {
+  view: CorePermission.IntegrationsGeoipView,
+  edit: CorePermission.IntegrationsGeoipEdit,
+  test: CorePermission.IntegrationsGeoipTest,
+  activate: CorePermission.IntegrationsGeoipActivate,
+});
+
 export const AiProvidersController = integrationsController('ai', 'ai-settings', {
   view: CorePermission.IntegrationsAiView,
   edit: CorePermission.IntegrationsAiEdit,

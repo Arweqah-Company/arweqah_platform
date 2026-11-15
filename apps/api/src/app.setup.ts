@@ -2,8 +2,10 @@ import type { INestApplication } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+import type { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import { cleanupOpenApiDoc, ZodValidationPipe } from 'nestjs-zod';
+import { requestOrigin } from './core/audit/application/request-origin';
 import { AppConfig } from './config/app-config.service';
 
 /** Shared by main.ts and the e2e test app so tests run the exact production pipeline. */
@@ -22,6 +24,7 @@ export function configureApp(app: INestApplication): void {
     }),
   );
   app.use(cookieParser());
+  app.use((req: Request, _res: Response, next: NextFunction) => requestOrigin.run({ ip: req.ip ?? null }, next));
   app.enableCors({ origin: config.get('CORS_ORIGINS'), credentials: true });
   app.useGlobalPipes(new ZodValidationPipe());
   if (!config.isProduction || config.get('SWAGGER_ENABLED')) setupSwagger(app);

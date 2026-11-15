@@ -51,6 +51,7 @@
     "dotenv": "18.0.5",
     "file-type": "22.1.1",
     "helmet": "8.3.0",
+    "maxmind": "5.0.8",
     "nestjs-zod": "5.5.0",
     "nodemailer": "10.0.14",
     "pg": "8.23.1",

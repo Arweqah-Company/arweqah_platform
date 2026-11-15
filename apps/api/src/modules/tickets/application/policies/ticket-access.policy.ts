@@ -11,7 +11,7 @@ function inScope(scope: ViewerScope, place: { orgNodeId: string | null; companyI
 }
 
 /**
- * Who sees a ticket follows the person's relation to it: the sender, the assignee, the manager of the desk, a person whose reply
+ * Who sees a ticket follows the person's relation to it: the sender, the assignee or a handler of its type, the manager of the desk, a person whose reply
  * permission reaches the desk (`desk`), and a person whose view permission reaches its sender or assignee (`team`).
  * A personal ticket is never shown to anyone else, whatever their scope: only the sender and the assignee.
  * Anybody else gets "not found", never "forbidden", so the ticket's existence is not revealed.
@@ -21,7 +21,7 @@ export class TicketAccessPolicy {
   relationsOf(viewer: TicketViewer, ticket: TicketRow): TicketRelation[] {
     const relations: TicketRelation[] = [];
     if (ticket.senderUserId === viewer.userId) relations.push('sender');
-    if (ticket.assigneeUserId === viewer.userId) relations.push('assignee');
+    if (ticket.assigneeUserId === viewer.userId || ticket.typeHandlerUserIds.includes(viewer.userId)) relations.push('assignee');
     if (ticket.isPersonal) return relations;
     if (ticket.mentionedUserIds.includes(viewer.userId)) relations.push('mentioned');
     if (ticket.deskManagerUserId === viewer.userId) relations.push('manager');
@@ -49,9 +49,10 @@ export class TicketAccessPolicy {
     return { companyId: ticket.deskCompanyId, nodeIds: viewer.reassign.kind === 'nodes' ? viewer.reassign.ids : null };
   }
 
-  /** The people the unit side of a ticket means: its assignee, else the desk manager (never for a personal ticket without an assignee). */
+  /** The people the unit side of a ticket means: its assignee, else the handlers of its type and the desk manager (never for a personal ticket without an assignee). */
   unitRecipients(ticket: TicketRow): string[] {
     if (ticket.assigneeUserId) return [ticket.assigneeUserId];
-    return !ticket.isPersonal && ticket.deskManagerUserId ? [ticket.deskManagerUserId] : [];
+    const manager = !ticket.isPersonal && ticket.deskManagerUserId ? [ticket.deskManagerUserId] : [];
+    return [...new Set([...ticket.typeHandlerUserIds, ...manager])];
   }
 }

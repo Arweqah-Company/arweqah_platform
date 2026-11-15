@@ -22,7 +22,7 @@ export class TicketCatalogService {
     const departments = await this.directory.departments();
     const ids = departments.map((d) => d.orgNodeId);
     const [records, types, names] = await Promise.all([this.desks.findMany(ids), this.desks.typesOfDesks(ids), this.org.describeNodes(ids)]);
-    const people = await this.directory.people(types.flatMap((t) => (t.defaultAssigneeUserId ? [t.defaultAssigneeUserId] : [])));
+    const people = await this.directory.people(types.flatMap((t) => t.handlers.map((h) => h.id)));
     const active = new Set((await Promise.all([...people.keys()].map((id) => this.directory.activeEmployee(id)))).flatMap((p) => (p ? [p.id] : [])));
     const desks: CatalogDeskDto[] = [];
     for (const desk of records) {
@@ -52,7 +52,7 @@ export class TicketCatalogService {
   }
 
   private typeEntry(t: TypeRecord, i: { desk: DeskRecord; people: Map<string, PersonRefDto>; active: Set<string> }): CatalogTypeDto {
-    const assignee = t.defaultAssigneeUserId && i.active.has(t.defaultAssigneeUserId) ? (i.people.get(t.defaultAssigneeUserId) ?? null) : null;
+    const handlers = t.handlers.filter((h) => i.active.has(h.id)).flatMap((h) => i.people.get(h.id) ?? []);
     return {
       id: t.id,
       nameAr: t.nameAr,
@@ -61,8 +61,8 @@ export class TicketCatalogService {
       descriptionEn: t.descriptionEn,
       isPersonal: t.isPersonal,
       dueDays: t.dueDays ?? i.desk.defaultDueDays,
-      assignee,
-      available: !t.isPersonal || !!assignee,
+      handlers,
+      available: !t.isPersonal || handlers.length > 0,
     };
   }
 }

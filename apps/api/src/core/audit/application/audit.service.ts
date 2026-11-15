@@ -2,7 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Cron } from '@nestjs/schedule';
 import type { AuditLogDto, AuditQuery, Paginated } from '@arweqah-platform/shared';
+import { AuditGeo } from '../domain/audit-geo.port';
 import { AuditNames } from '../domain/audit-names.port';
+import { requestOrigin } from './request-origin';
 import { idsIn, isId, readable } from './transformers/audit-readable.transformer';
 import type { ChainCheck } from '../domain/audit-chain';
 import { AuditLogRepository } from '../domain/audit-log.repository';
@@ -25,6 +27,7 @@ export class AuditService {
   constructor(
     private readonly logs: AuditLogRepository,
     private readonly names: AuditNames,
+    private readonly geo: AuditGeo,
   ) {}
 
   @OnEvent(AUDIT_EVENT, { async: true })
@@ -36,7 +39,7 @@ export class AuditService {
         entityType: event.entityType,
         entityId: event.entityId ?? null,
         changes: stamped(event.changes),
-        ip: event.ip ?? null,
+        ip: event.ip ?? requestOrigin.getStore()?.ip ?? null,
       });
     } catch (error) {
       // Auditing must never break the business action that triggered it.
@@ -62,7 +65,8 @@ export class AuditService {
   async search(query: AuditQuery): Promise<Paginated<AuditLogDto>> {
     const page = await this.logs.search(query);
     const names = await this.names.namesOf([...new Set(page.items.flatMap((e) => [...idsIn(e.changes), ...(e.entityId && isId(e.entityId) ? [e.entityId] : [])]))]);
-    return { ...page, items: page.items.map((e) => ({ ...e, entityName: (e.entityId && isId(e.entityId) ? names.get(e.entityId) : undefined) ?? null, details: readable(e.changes, names) })) };
+    const cities = new Map(await Promise.all([...new Set(page.items.flatMap((e) => (e.ip ? [e.ip] : [])))].map(async (ip) => [ip, await this.geo.cityOf(ip)] as const)));
+    return { ...page, items: page.items.map((e) => ({ ...e, entityName: (e.entityId && isId(e.entityId) ? names.get(e.entityId) : undefined) ?? null, ipCity: (e.ip ? cities.get(e.ip) : null) ?? null, details: readable(e.changes, names) })) };
   }
 }
 

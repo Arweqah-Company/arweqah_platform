@@ -43,4 +43,12 @@ export const KIND_SETTINGS: Record<IntegrationKind, KindSettings> = {
     exportKey: CorePermission.IntegrationsAiExport,
     listKey: 'ai-providers',
   },
+  geoip: {
+    view: CorePermission.IntegrationsGeoipView,
+    edit: CorePermission.IntegrationsGeoipEdit,
+    test: CorePermission.IntegrationsGeoipTest,
+    activate: CorePermission.IntegrationsGeoipActivate,
+    exportKey: CorePermission.IntegrationsGeoipExport,
+    listKey: 'geoip-providers',
+  },
 };
