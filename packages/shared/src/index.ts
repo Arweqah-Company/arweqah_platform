@@ -28,6 +28,7 @@ export * from './org/unit-types';
 export * from './org/unit-codes';
 export * from './org/unit-rules';
 export * from './org/unit-charter';
+export * from './org/unit-employees';
 export * from './org/unit-leaders';
 export * from './org/job-titles';
 export * from './employees/validators';

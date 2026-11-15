@@ -13,11 +13,13 @@
   "noMatches": "No tickets match.",
   "empty": {
     "mine": "You have not sent any ticket yet.",
-    "inbox": "No tickets have arrived for you."
+    "inbox": "No tickets have arrived for you.",
+    "team": "Your team has no tickets."
   },
   "emptyHint": {
     "mine": "Press “New ticket” to send your request to the right unit.",
-    "inbox": "Tickets assigned to you appear here, or your unit's tickets if you manage it."
+    "inbox": "Tickets assigned to you appear here, or your unit's tickets if you manage it.",
+    "team": "Tickets sent by or assigned to your team members appear here."
   },
   "groupBy": {
     "label": "Group by",
@@ -187,7 +189,6 @@
     "desk": "Unit",
     "managerIs": "Manager: {{name}}",
     "noManager": "This unit has no manager yet: assign one in the organization structure to activate it.",
-    "needAdminMode": "This page works in platform admin mode. Turn it on at the top of the page.",
     "none": "No unit available to you",
     "noneHint": "The units you manage appear here.",
     "receptionTitle": "Reception",

@@ -5,6 +5,8 @@
  */
 export abstract class IdentityProvider {
   abstract createUser(input: { name: string; email: string; locale: 'ar' | 'en' }): Promise<string>;
+  /** Keeps the account's name (shown in the header) and phone (used for SMS) equal to the employee record; only the keys given change. */
+  abstract updateAccount(userId: string, fields: { name?: string; phone?: string | null }): Promise<void>;
   abstract revokeAllSessions(userId: string): Promise<void>;
   /** Enables or disables sign-in for the account; disabling ends every session. */
   abstract setActive(userId: string, active: boolean): Promise<void>;

@@ -115,6 +115,7 @@ export class EmployeesService {
     const userId = await this.identity.createUser({ name: input.fullName, email: input.workEmail, locale: 'ar' });
     let created: Employee;
     try {
+      if (values.personalPhone) await this.identity.updateAccount(userId, { phone: String(values.personalPhone) });
       created = await this.tx.run(async (tx) => {
         const row = await this.repo.insert({ ...values, userId, createdBy: actorId }, tx);
         await this.assignments.recordBaseline(row, tx);
@@ -143,6 +144,7 @@ export class EmployeesService {
     const { values } = await this.validation.prepare(ctx, fields, existing);
     this.assertFieldRules(ctx, existing, values);
     await this.saveWithPlacement(existing, values, { from: effectiveFrom ?? todayInRiyadh(), reason: changeReason ?? FORM_CHANGE_REASON }, actorId);
+    await this.syncAccount(existing, values);
     await this.restoreAccessIfEndMoved(ctx, existing, values.endDate ?? null, actorId);
     await this.swapBaseRoleIfRelationChanged(existing, values.relationTypeId ?? null);
     this.events.emit(ACCESS_CHANGED, { userId: existing.userId });
@@ -190,6 +192,17 @@ export class EmployeesService {
 
   private async isLimited(relationTypeId: string | null | undefined): Promise<boolean> {
     return relationTypeId ? (await this.lookups.relationTypeLimited(relationTypeId)) === true : false;
+  }
+
+  /**
+   * The sign-in account carries the name (header) and phone (SMS) of the record: both follow it. They are written from the saved values every time,
+   * never compared with the record: after a failed attempt the record already holds the new value, and saving the form again must still repair the account.
+   */
+  private async syncAccount(existing: Employee, values: Record<string, unknown>): Promise<void> {
+    const fields: { name?: string; phone?: string | null } = {};
+    if (values.fullName) fields.name = String(values.fullName);
+    if (values.personalPhone !== undefined) fields.phone = (values.personalPhone as string | null) ?? null;
+    await this.identity.updateAccount(existing.userId, fields);
   }
 
   /** Becoming a collaborator (or an employee again) changes the base role: Employee ↔ collaborator base. */

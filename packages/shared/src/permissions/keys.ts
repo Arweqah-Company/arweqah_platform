@@ -318,6 +318,11 @@ export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 's
   // people of the unit and below
   { key: CorePermission.EmployeesView, scope: 'subtree' },
   { key: CorePermission.EmployeesHistoryView, scope: 'subtree' },
+  // editing the people of the unit and below: details, photo, resend the invitation, reset the authenticator app
+  { key: CorePermission.EmployeesUpdate, scope: 'subtree' },
+  { key: CorePermission.EmployeesPhotoUpdate, scope: 'subtree' },
+  { key: CorePermission.EmployeesResendInvite, scope: 'subtree' },
+  { key: CorePermission.EmployeesResetAuthenticator, scope: 'subtree' },
   // the career path of the unit and below: the team page, the proofs referred to the manager, the export
   { key: CorePermission.CareerTeamView, scope: 'subtree' },
   { key: CorePermission.CareerTeamDecide, scope: 'subtree' },
@@ -341,6 +346,12 @@ export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 's
   { key: CorePermission.TasksReopen, scope: 'subtree' },
   { key: CorePermission.TasksApprove, scope: 'subtree' },
   { key: CorePermission.TasksReject, scope: 'subtree' },
+  { key: CorePermission.TasksAssign, scope: 'subtree' },
+  // the task tags (categories) of the unit and below: the page and add / edit / delete
+  { key: CorePermission.TasksTagsView, scope: 'subtree' },
+  { key: CorePermission.TasksTagCreate, scope: 'subtree' },
+  { key: CorePermission.TasksTagUpdate, scope: 'subtree' },
+  { key: CorePermission.TasksTagDelete, scope: 'subtree' },
   // tickets of the unit and below: see, answer, set up the unit's desk and its types, and the figures
   { key: CorePermission.TicketsView, scope: 'subtree' },
   { key: CorePermission.TicketsReply, scope: 'subtree' },

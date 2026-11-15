@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { OrgUnitEmployeeDto } from '@arweqah-platform/shared';
 import { DataSource } from 'typeorm';
 import { NotFoundError } from '../../../../common/domain/domain-error';
 import { EmployeeAssignmentsService } from '../../application/services/employee-assignments.service';
@@ -81,6 +82,17 @@ export class EmployeePlacementAdapter extends EmployeePlacementPort {
     if (!employeeIds.length) return new Map();
     const rows: { id: string; company_id: string }[] = await this.ds.query('SELECT id, company_id FROM employees WHERE id = ANY($1) AND deleted_at IS NULL', [employeeIds]);
     return new Map(rows.map((r) => [r.id, r.company_id]));
+  }
+
+  async unitEmployees(nodeId: string, companyId: string | null): Promise<OrgUnitEmployeeDto[]> {
+    const rows: { id: string; employee_number: string; full_name: string; work_email: string; manager_name: string | null }[] = await this.ds.query(
+      `SELECT e.id, e.employee_number, e.full_name, e.work_email, m.full_name AS manager_name
+         FROM employees e LEFT JOIN employees m ON m.id = e.manager_id AND m.deleted_at IS NULL
+        WHERE e.org_node_id = $1 AND ($2::uuid IS NULL OR e.company_id = $2) AND ${ACTIVE} AND e.is_system_account = false
+        ORDER BY e.full_name, e.id`,
+      [nodeId, companyId],
+    );
+    return rows.map((r) => ({ id: r.id, employeeNumber: r.employee_number, fullName: r.full_name, workEmail: r.work_email, managerName: r.manager_name }));
   }
 
   async userNamesOf(userIds: string[]): Promise<Map<string, string>> {

@@ -20,6 +20,17 @@
     "nameHint": "English letters and spaces only.",
     "save": "Save changes"
   },
+  "basic": {
+    "title": "Basic data",
+    "description": "Kept in your employee record and updated by HR; shown to you read-only.",
+    "fullName": "Full name in Arabic",
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "nationality": "Nationality",
+    "birthDate": "Date of birth",
+    "maritalStatus": "Marital status"
+  },
   "work": {
     "title_section": "Work details",
     "description": "Kept by HR and shown to you read-only.",

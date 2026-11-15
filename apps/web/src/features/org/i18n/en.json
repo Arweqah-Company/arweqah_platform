@@ -110,7 +110,8 @@
     "titles": "Titles",
     "leaders": "Leaders",
     "charter": "Charter",
-    "history": "History"
+    "history": "History",
+    "employees": "Employees"
   },
   "overview": {
     "parent": "Parent",
@@ -380,5 +381,20 @@
       "org_levels_changed": "The structure divisions changed",
       "org_level_rules_changed": "The creation rules changed"
     }
+  },
+  "employees": {
+    "empty": "Nobody is placed directly in this unit.",
+    "emptyHint": "People in the units below it appear in those units.",
+    "tableLabel": "Unit employees",
+    "name": "Name",
+    "count": "{{count}} employees",
+    "detailsTitle": "Employee details",
+    "number": "Work number",
+    "workEmail": "Work e-mail",
+    "unit": "Unit",
+    "manager": "Direct manager",
+    "searchLabel": "Search the unit's employees",
+    "searchPlaceholder": "Search by name, number, e-mail or manager",
+    "noMatches": "No employee matches the search."
   }
 }

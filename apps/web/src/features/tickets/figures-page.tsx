@@ -2,7 +2,6 @@ import type { FiguresDeskRef, TicketFiguresBlockDto } from '@arweqah-platform/sh
 import { BarChart3 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAdminMode } from '@/core/admin-mode/use-admin-mode';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Alert, DataTable, EmptyState, FormField, PageHeader, Select, StatTile, type Column } from '@/shared/ui';
 import { useFigures } from './api';
@@ -72,10 +71,8 @@ function Attention({ figures, showDesk }: { figures: TicketFiguresBlockDto; show
 export function FiguresPage() {
   const { t, i18n } = useTranslation('tickets');
   const { t: tc } = useTranslation();
-  const { active } = useAdminMode();
   const [deskId, setDeskId] = useState('');
-  const query = useFigures(active, deskId);
-  if (!active) return <Alert tone="info">{t('setup.needAdminMode')}</Alert>;
+  const query = useFigures(deskId);
   if (query.isError) return <Alert>{errorMessage(tc, query.error)}</Alert>;
   if (!query.data) return <p role="status" className="text-sm text-muted">{t('loading')}</p>;
   const { desks, figures, scope } = query.data;

@@ -2,18 +2,16 @@ import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/
 import { ApiTags } from '@nestjs/swagger';
 import { CorePermission, type PersonRefDto, type TicketDeskDto, type TicketTypeDto } from '@arweqah-platform/shared';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
-import { Access, HiddenWithPage, RequireAdminMode, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
+import { Access, HiddenWithPage, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
 import { TicketSetupService } from '../../application/services/ticket-setup.service';
 import { AssigneeSearchDto, DeskParam, DeskSettingsBody, TicketTypeBody, TypeParam } from '../dtos/tickets.dtos';
 
 /**
- * The admin pages of the departments: each route has its own key, and they work only while platform admin mode is on
- * (@RequireAdminMode), and TicketSetupService then allows a desk manager their own departments and a platform manager all of them
- * (anything else answers "not found").
+ * The setup page of the departments: each route has its own key, and TicketSetupService reaches the departments the key's scope says (a unit head:
+ * their unit and below; a platform manager: all of them); anything else answers "not found". No admin mode is needed.
  */
 @ApiTags('tickets')
 @Controller('tickets/setup')
-@RequireAdminMode()
 @HiddenWithPage('ticket-setup')
 export class TicketSetupController {
   constructor(private readonly setup: TicketSetupService) {}

@@ -29,6 +29,11 @@ export class BetterAuthIdentityProvider extends IdentityProvider {
     return user.id;
   }
 
+  async updateAccount(userId: string, fields: { name?: string; phone?: string | null }): Promise<void> {
+    if (fields.name !== undefined) await this.pool.query('UPDATE users SET name = $2, updated_at = now() WHERE id = $1', [userId, fields.name]);
+    if (fields.phone !== undefined) await this.pool.query('UPDATE users SET phone = $2, updated_at = now() WHERE id = $1', [userId, fields.phone]);
+  }
+
   async revokeAllSessions(userId: string): Promise<void> {
     const ctx = await this.auth.$context;
     await ctx.internalAdapter.deleteUserSessions(userId);

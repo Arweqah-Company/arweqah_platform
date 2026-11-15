@@ -6,6 +6,7 @@ import type {
   EndLeaderInput,
   OrgLevelsDto,
   OrgNodeLeadersDto,
+  OrgUnitEmployeeDto,
   OrgNodeVersionsDto,
   Paginated,
   EmployeeListItemDto,
@@ -59,6 +60,9 @@ export const useNodeVersions = (id: string, enabled = true) => useQuery({ queryK
 
 /** The unit's leaders and acting leaders per company, and where the manager goes when a company has none. */
 export const useNodeLeaders = (id: string, enabled = true) => useQuery({ queryKey: ['org', 'leaders', id], enabled, queryFn: () => apiClient.get<OrgNodeLeadersDto>(`/org/nodes/${id}/leaders`) });
+
+/** The active employees placed directly in the unit. */
+export const useUnitEmployees = (id: string, enabled = true) => useQuery({ queryKey: ['org', 'employees', id], enabled, queryFn: () => apiClient.get<OrgUnitEmployeeDto[]>(`/org/nodes/${id}/employees`) });
 
 export const useUpdateCharter = (id: string) => useOrgMutation((input: UpdateCharterInput) => apiClient.put<OrgNodeVersionsDto>(`/org/nodes/${id}/charter`, input));
 export const useSetLeader = (id: string) => useOrgMutation((input: SetLeaderInput) => apiClient.put<OrgNodeLeadersDto>(`/org/nodes/${id}/leaders`, input));
