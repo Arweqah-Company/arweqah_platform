@@ -10,8 +10,8 @@ function inScope(scope: ViewerScope, place: { orgNodeId: string | null; companyI
   return scope.kind === 'nodes' && !!place.orgNodeId && scope.ids.includes(place.orgNodeId);
 }
 
-/** The assignee, or a handler of the ticket's type (they answer it like its assignee). */
-const isAssignee = (viewer: TicketViewer, ticket: TicketRow): boolean => ticket.assigneeUserId === viewer.userId || ticket.typeHandlerUserIds.includes(viewer.userId);
+/** The assignee, or (on a ticket that is not personal) a handler of the ticket's type: they answer it like its assignee. A personal ticket stays with its stored assignee even when the type's handlers change. */
+const isAssignee = (viewer: TicketViewer, ticket: TicketRow): boolean => ticket.assigneeUserId === viewer.userId || (!ticket.isPersonal && ticket.typeHandlerUserIds.includes(viewer.userId));
 
 /**
  * Who sees a ticket follows the person's relation to it: the sender, the assignee or a handler of its type, the manager of the desk, a person whose reply

@@ -6,7 +6,7 @@ const ROW = `t.id, t.number::text AS number, t.title, t.status, to_char(t.needed
 
 /** A ticket waits for $1 when it is theirs to handle (assignee, a handler of its type or the desk manager while nobody is assigned; never someone else's personal ticket) and they did not write its last event. */
 const WAITING = `t.status = 'open'
-  AND (t.assignee_user_id = $1 OR (t.assignee_user_id IS NULL AND (EXISTS (SELECT 1 FROM ticket_type_handlers h WHERE h.type_id = t.type_id AND h.user_id = $1) OR (NOT t.is_personal AND dm.user_id = $1))))
+  AND (t.assignee_user_id = $1 OR (t.assignee_user_id IS NULL AND (NOT t.is_personal AND (EXISTS (SELECT 1 FROM ticket_type_handlers h WHERE h.type_id = t.type_id AND h.user_id = $1) OR dm.user_id = $1))))
   AND (SELECT e.actor_user_id FROM ticket_events e WHERE e.ticket_id = t.id ORDER BY e.created_at DESC, e.id DESC LIMIT 1) IS DISTINCT FROM $1`;
 const DESK = `JOIN org_nodes n ON n.id = t.desk_id LEFT JOIN employees dm ON dm.id = n.manager_id AND dm.deleted_at IS NULL`;
 

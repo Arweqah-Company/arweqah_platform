@@ -11,6 +11,8 @@ export const TEST_WINDOW_MS = 60_000;
 export const TEST_TIMEOUT_MS = 20_000;
 /** An AI service may think for a while and a busy free one is tried again twice; still under the 60 s a proxy waits. */
 export const AI_TEST_TIMEOUT_MS = 55_000;
+/** Above the 120 s download bound, so a slow but valid download is not reported as a failure. */
+export const GEOIP_TEST_TIMEOUT_MS = 150_000;
 
 /** A title file can take a few minutes to read (the proxies wait 300 s); a probe is a few words and the dashboard's own timeout cuts it short. */
 export const AI_TIMEOUT_MS = 280_000;

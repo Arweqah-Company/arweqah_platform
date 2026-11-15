@@ -130,7 +130,7 @@ The page has two tabs: **Settings** and **Types**.
   - automatic close after a close request, in calendar days, default 4
   - the time allowed to reopen a closed ticket, in calendar days, default 7
   - a ticket counts as stale after, in calendar days, default 14
-- A type has a name, a description, instructions for the sender, one or more handlers (from the people sitting directly in the unit; with several, the ticket is unassigned until the first one replies), an optional special duration and a flag for personal. If no assignee is set, the unit manager handles the ticket.
+- A type has a name, a description, instructions for the sender, one or more handlers (from the people sitting directly in the unit; with several, the ticket is unassigned until the first one replies), an optional special duration and a flag for personal. If the type has no handlers, the unit manager handles its tickets (a type with several handlers is not «no handler»: its tickets wait for the first handler's reply).
 - **Personal types** are invisible to the unit manager and to platform administrators; they need an active assignee. (FR-38)
 - **Deleting a type:** if tickets already use it, it is only deactivated and keeps its tickets; otherwise it is deleted. The message tells you which happened.
 - A unit that takes tickets (active or paused) or has open tickets cannot be moved or deleted in the organization structure.

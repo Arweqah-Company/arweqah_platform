@@ -104,9 +104,11 @@ function CaptchaTest({ kind, providerKey, values }: Omit<Props, 'onClose' | 'pro
 /** Services with nothing to type (AI, address locations): one real request with the data in the form. */
 function PlainTest({ kind, providerKey, values, success }: Omit<Props, 'onClose' | 'providerName'> & { success: string }) {
   const { t } = useTranslation('integrations');
+  const { t: tc } = useTranslation();
   const test = useTestProvider(kind);
   return (
     <div className="flex flex-col gap-4">
+      {test.isError && <Alert>{errorMessage(tc, test.error)}</Alert>}
       <div className="flex justify-end">
         <Button disabled={test.isPending} onClick={() => test.mutate({ providerKey, values })}>{test.isPending ? t('test.running') : t('test.run')}</Button>
       </div>
