@@ -25,5 +25,7 @@
         "export": "Export the log to a file"
       }
     }
-  }
+  },
+  "record": "Record",
+  "technical": "Technical details"
 }

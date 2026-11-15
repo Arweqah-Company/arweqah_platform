@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, type SelectQueryBuilder } from 'typeorm';
-import { actionsMatchingText, prefixPatterns, actionsOfCategory, AUDIT_ACTIONS, categoryOfAction, type AuditLogDto, type AuditQuery, type Paginated } from '@arweqah-platform/shared';
+import { actionsMatchingText, prefixPatterns, actionsOfCategory, AUDIT_ACTIONS, categoryOfAction, type AuditEntryDto, type AuditQuery, type Paginated } from '@arweqah-platform/shared';
 import { randomUUID } from 'node:crypto';
 import { chainHash, verifyChain, type ChainCheck } from '../domain/audit-chain';
 import { AuditLog } from '../domain/audit-log.entity';
@@ -44,7 +44,7 @@ export class TypeOrmAuditLogRepository extends AuditLogRepository {
     return verifyChain(rows.map((r) => ({ seq: r.seq, id: r.id, actorId: r.actor_id, action: r.action, entityType: r.entity_type, entityId: r.entity_id, changes: r.changes, ip: r.ip, createdAt: r.created_at, prevHash: r.prev_hash, hash: r.hash })));
   }
 
-  async search(query: AuditQuery): Promise<Paginated<AuditLogDto>> {
+  async search(query: AuditQuery): Promise<Paginated<AuditEntryDto>> {
     const qb = this.repo
       .createQueryBuilder('a')
       .leftJoin('users', 'u', 'u.id = a.actor_id')
@@ -83,7 +83,7 @@ function searchText(qb: SelectQueryBuilder<AuditLog>, search: string): void {
   qb.andWhere(`(${matching.length ? 'a.action IN (:...byText) OR ' : ''}a.entity_id ILIKE :term OR u.name ILIKE :term OR u.email ILIKE :term)`, { byText: matching, term: `%${escapeLike(search)}%` });
 }
 
-function toDto(row: AuditRow): AuditLogDto {
+function toDto(row: AuditRow): AuditEntryDto {
   return {
     id: row.id,
     actorId: row.actorId,

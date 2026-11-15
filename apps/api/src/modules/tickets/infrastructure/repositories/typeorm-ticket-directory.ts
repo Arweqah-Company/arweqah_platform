@@ -68,6 +68,18 @@ export class TypeOrmTicketDirectory extends TicketDirectory {
     return new Map(rows.map((r) => [r.id, r]));
   }
 
+  reassignCandidates(companyId: string, nodeIds: readonly string[] | null, filter: { search?: string; userId?: string }): Promise<PersonRecord[]> {
+    return this.ds.query(
+      `SELECT u.id, e.full_name AS name FROM employees e JOIN users u ON u.id = e.user_id AND u.is_active
+       WHERE e.company_id = $1 AND e.deleted_at IS NULL AND NOT e.is_system_account
+         AND ($2::uuid[] IS NULL OR e.org_node_id = ANY($2))
+         AND ($3::uuid IS NULL OR u.id = $3)
+         AND ($4::text IS NULL OR e.full_name ILIKE $4 OR e.employee_number ILIKE $4)
+       ORDER BY e.full_name LIMIT 30`,
+      [companyId, nodeIds ? [...nodeIds] : null, filter.userId ?? null, filter.search ? likeContains(filter.search) : null],
+    );
+  }
+
   assignableEmployees(companyId: string, search?: string): Promise<PersonRecord[]> {
     const like = search ? likeContains(search) : null;
     return this.ds.query(

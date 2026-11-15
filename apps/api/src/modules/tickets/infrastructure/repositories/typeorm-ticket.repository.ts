@@ -102,6 +102,7 @@ export class TypeOrmTicketRepository extends TicketRepository {
     if (p.closeRequestedAt !== undefined) set('close_requested_at', p.closeRequestedAt);
     if (p.closedAt !== undefined) set('closed_at', p.closedAt);
     if (p.lastActivityAt !== undefined) set('last_activity_at', p.lastActivityAt);
+    if (p.assigneeUserId !== undefined) set('assignee_user_id', p.assigneeUserId);
     if (p.reopenCountIncrement) sets.push('reopen_count = reopen_count + 1');
     const sql = `UPDATE tickets SET ${sets.join(', ')} WHERE id = $1 AND revision = $2 RETURNING id`; // column names are fixed above, values are parameters
     const result = await this.m(tx).query(sql, values);

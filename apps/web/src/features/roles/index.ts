@@ -5,7 +5,7 @@ import { PAGE_MAIN_TARGET, type FeatureModule } from '@/core/feature';
 import ar from './i18n/ar.json';
 import en from './i18n/en.json';
 
-export { useRoles, usePermissionCatalog } from './api';
+export { useRoles, useGrantableRoles, usePermissionCatalog } from './api';
 export { isDerivedRole } from './role-kind';
 export { PermissionMatrix } from './permission-matrix';
 

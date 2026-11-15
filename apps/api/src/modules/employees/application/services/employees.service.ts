@@ -5,6 +5,7 @@ import {
   EMPLOYEE_TERMINATED_TOPIC,
   todayIso,
   type AssignEmployeeRolesInput,
+  scopeRank,
   type CreateEmployeeInput,
   type CreateEmployeeResultDto,
   type EmployeeDto,
@@ -256,7 +257,8 @@ export class EmployeesService {
     this.assertRoleExpiries(roleIds, roleExpiries);
     const employee = await this.reach.find(ctx, id, P.EmployeesAssignRoles);
     if (employee.userId === ctx.userId && !actor.adminMode) throw new SelfActionError('You cannot change your own roles');
-    await this.assertCanAssignRoles(ctx, roleIds, { companyId: employee.companyId, orgNodeId: employee.orgNodeId, ownerId: employee.userId }, (await this.access.defaultRoleIds(employee.jobTitleId, await this.isLimited(employee.relationTypeId))).ids);
+    const current = ((await this.access.rolesOf([employee.userId])).get(employee.userId) ?? []).map((r) => r.id);
+    await this.assertCanAssignRoles(ctx, roleIds, { companyId: employee.companyId, orgNodeId: employee.orgNodeId, ownerId: employee.userId, current }, (await this.access.defaultRoleIds(employee.jobTitleId, await this.isLimited(employee.relationTypeId))).ids);
     await this.tx.run((tx) => this.access.replaceRoles(employee.userId, roleIds, { expiries: roleExpiries, grantedBy: actor.id }, tx));
     await this.events.emitAsync(EMPLOYEES_CHANGED);
     this.auditor.record(actor.id, EMPLOYEE_AUDIT.rolesChanged, id, { roleIds, withEndDate: Object.keys(roleExpiries ?? {}).length });
@@ -321,10 +323,24 @@ export class EmployeesService {
     }
   }
 
-  /** Nobody gives more than they hold, except the Employee role and the role of the person's own job title (checked when they were made). */
-  private async assertCanAssignRoles(ctx: AccessContext, roleIds: string[], resource: { companyId: string; orgNodeId: string | null; ownerId?: string }, exempt: readonly string[]): Promise<void> {
-    if (!this.ability.can(ctx, P.EmployeesAssignRoles, resource)) throw new ForbiddenError();
-    await this.access.assertGrantable(ctx, roleIds, exempt);
+  /**
+   * Nobody gives more than they hold, except the Employee role and the role of the person's own job title (checked when they were made).
+   * Only the roles being added are tested, and, for a person whose key reaches a unit and below only (a leader), the ones being taken away too
+   * (what a leader could not give they cannot take off; HR with the company or all scope removes as before):
+   * a leader saving the roles of someone who also has a role the leader does not hold leaves that role as it is.
+   */
+  private async assertCanAssignRoles(ctx: AccessContext, roleIds: string[], resource: { companyId: string; orgNodeId: string | null; ownerId?: string; current?: string[] }, exempt: readonly string[]): Promise<void> {
+    const { current = [], ...place } = resource;
+    if (!this.ability.can(ctx, P.EmployeesAssignRoles, place)) throw new ForbiddenError();
+    await this.access.assertGrantable(ctx, roleIds.filter((id) => !current.includes(id)), exempt);
+    const removed = current.filter((id) => !roleIds.includes(id) && !exempt.includes(id));
+    if (removed.length && !this.reachesCompany(ctx)) await this.access.assertGrantable(ctx, removed);
+  }
+
+  /** Does the person's assign-roles key reach the whole company or more (HR), not just a unit and below? */
+  private reachesCompany(ctx: AccessContext): boolean {
+    const scope = ctx.scopeOf(P.EmployeesAssignRoles);
+    return !!scope && scopeRank(scope) >= scopeRank('company');
   }
 
   private async dto(ctx: AccessContext, employee: Employee): Promise<EmployeeDto> {

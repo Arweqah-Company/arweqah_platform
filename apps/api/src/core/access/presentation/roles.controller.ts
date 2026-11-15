@@ -13,7 +13,8 @@ import type { SessionUser } from '../../../common/presentation/request-context';
 import { IdParam } from '../../../common/presentation/zod-query';
 import { PermissionCatalog } from '../application/permission-catalog';
 import { RolesService } from '../application/roles.service';
-import { HiddenWithPage, RequireAdminMode, RequirePermission } from './require-permission.decorator';
+import type { AccessContext } from '../domain/access-context';
+import { Access, HiddenWithPage, RequireAdminMode, RequirePermission } from './require-permission.decorator';
 
 class UpsertRoleDto extends createZodDto(upsertRoleSchema) {}
 
@@ -35,6 +36,13 @@ export class RolesController {
   @RequirePermission(CorePermission.RolesView)
   list(): Promise<RoleDto[]> {
     return this.roles.list();
+  }
+
+  /** security: needs the assign-roles key; only the roles the person holds (or less) come back, so nothing is revealed they could not give. */
+  @Get('roles/grantable')
+  @RequirePermission(CorePermission.EmployeesAssignRoles)
+  grantable(@Access() ctx: AccessContext): Promise<RoleDto[]> {
+    return this.roles.grantable(ctx);
   }
 
   @Post('roles')

@@ -144,6 +144,7 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'ticket.closed_not_executed': a('tickets', 'أغلق تذكرة دون تنفيذ', 'Closed a ticket without carrying it out'),
   'ticket.auto_closed': a('tickets', 'أُغلقت تذكرة تلقائيًا', 'A ticket was closed automatically'),
   'ticket.reopened': a('tickets', 'أعاد فتح تذكرة', 'Reopened a ticket'),
+  'ticket.reassigned': a('tickets', 'أعاد إسناد تذكرة إلى موظف آخر', 'Reassigned a ticket to another employee'),
   'ticket.personal.reassigned': a('tickets', 'أعاد إسناد تذكرة شخصية', 'Reassigned a personal ticket'),
   'ticket.desk.updated': a('tickets', 'عدّل إعدادات استقبال وحدة للتذاكر', 'Edited a unit’s ticket reception settings'),
   'ticket.type.created': a('tickets', 'أضاف نوع تذكرة', 'Added a ticket type'),

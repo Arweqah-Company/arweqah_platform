@@ -30,13 +30,17 @@ describe('Ticket lifecycle rules (FR-39)', () => {
   });
 
   it('gives each relation only what it may do', () => {
-    expect(abilitiesFor(['sender'], 'open', null)).toEqual({ reply: true, requestClose: false, closeWithoutExecution: false, confirmClose: false, declineClose: false, reopen: false });
+    expect(abilitiesFor(['sender'], 'open', null)).toEqual({ reply: true, requestClose: false, closeWithoutExecution: false, confirmClose: false, declineClose: false, reopen: false, reassign: false });
     expect(abilitiesFor(['assignee'], 'open', null)).toMatchObject({ reply: true, requestClose: true, closeWithoutExecution: true, confirmClose: false });
     expect(abilitiesFor(['manager'], 'close_requested', null)).toMatchObject({ requestClose: false, closeWithoutExecution: true });
     expect(abilitiesFor(['sender'], 'close_requested', null)).toMatchObject({ confirmClose: true, declineClose: true, reply: true });
     expect(abilitiesFor(['sender'], 'closed', 3)).toMatchObject({ reopen: true, reply: false });
     expect(abilitiesFor(['sender'], 'closed', null).reopen).toBe(false);
     expect(abilitiesFor(['assignee', 'manager'], 'closed', 3)).toMatchObject({ reply: false, reopen: false });
+    expect(abilitiesFor(['desk'], 'open', null, true)).toMatchObject({ reassign: true }); // FR-130: only where the reassign key reaches, and never once closed
+    expect(abilitiesFor(['desk'], 'close_requested', null, true)).toMatchObject({ reassign: true });
+    expect(abilitiesFor(['desk'], 'closed', 3, true)).toMatchObject({ reassign: false });
+    expect(abilitiesFor(['desk'], 'open', null)).toMatchObject({ reassign: false });
   });
 });
 

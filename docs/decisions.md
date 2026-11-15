@@ -2,6 +2,16 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-15 — The head role changes the roles of its people and reassigns tickets
+
+Plans: `docs/plans/phase-5-people-structure-profile.md` and `docs/plans/phase-2-tickets.md` §22 (logs, 2026-11-15).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 381 | **The head role manages the people of the unit and below: `employees.create`, `employees.update` with every field (`ALL_EDITABLE_FIELDS`, the structure group included), `employees.assign_change`, `employees.bulk_update`, `employees.export`, `employees.import` at «unit and below», and `directory.view` / `directory.export` (migration `HeadRoleEmployeeManagement`; the fields of an existing head role are widened only while they still are the basic data, so a list an administrator narrowed stays).** The scopes of `assign_change`, `bulk_update`, `export` and `import` now include unit and below. Taking a role off a person is limited by what the leader holds only for a key that reaches a unit and below (HR with company or all removes as before). Sensitive details (ID, IBAN, salary) stay behind `employees.view_sensitive`, which the head role does not hold. | Owner: a leader sees, adds and edits the people of the unit with everything the current head role already gives. | A leader needs the sensitive details, or import must be limited to rows inside the unit with a clear message per row. |
+| 382 | **The audit log is read in words by the API, at read time: `details` and `entityName` are built from the stored entry with one parameterized query over the places an id can point to (`AuditNames`), and a dictionary of key labels in `packages/shared/src/audit/readable.ts`.** What is written (and hashed) is unchanged; unknown keys fall back to their words, unknown ids stay as they are; sensitive keys stay «hidden». | Owner: «it says an employee edited details or added roles but shows only ids». | A module writes a key the dictionary lacks (add its label), or a new table holds ids the log mentions (add it to the query). |
+| 380 | **`employees.assign_roles` (unit, unit and below, company, all) and the new `tickets.reassign` (unit, unit and below, company, all) are in the head role at «unit and below» (migration `HeadRoleRolesAndReassign`, standing rule 17).** A leader gives only roles they hold (`assertGrantable`, now asked only of the roles added and, for the ones taken off, of what they could not give: a role the leader does not hold survives a save that keeps it and is refused when removed); `GET /roles/grantable` returns the roles the person may give so the dialog works without the roles page. A ticket is reassigned only while open and not personal, to an active employee of the desk's company inside the same reach as the key; the reassign button follows `abilities.reassign` (key scope over the desk) and the new assignee is told. No table or column changes. | Owner: a leader changes the roles of the people under them and hands the unit's tickets to someone on the team. | Leaders need to give a role they do not hold (today refused by design), or a ticket may be reassigned across units. |
+
 ## 2026-11-15 — Faster CI without weaker checks
 
 Plan: `docs/plans/phase-1-auth-employees.md` (log, 2026-11-15).

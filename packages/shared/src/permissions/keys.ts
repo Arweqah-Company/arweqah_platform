@@ -1,4 +1,4 @@
-import { LEGACY_SELF_EDITABLE_FIELDS } from '../employees/field-rules';
+import { ALL_EDITABLE_FIELDS, LEGACY_SELF_EDITABLE_FIELDS } from '../employees/field-rules';
 /**
  * Permission keys of the platform: one for every page (view) and one for every button or action (add, edit, delete, move,
  * approve, reject, export, import…). A page needs its view key; a button shows only for people who hold its key, and the
@@ -198,6 +198,7 @@ export const CorePermission = {
   TicketsDeclineClose: 'tickets.decline_close',
   TicketsCloseWithoutExecution: 'tickets.close_without_execution',
   TicketsReopen: 'tickets.reopen',
+  TicketsReassign: 'tickets.reassign',
   TicketsCommentReply: 'tickets.comment_reply',
   TicketsCommentMention: 'tickets.comment_mention',
   TicketsSetupView: 'tickets.setup_view',
@@ -312,17 +313,26 @@ export const COLLABORATOR_BASE_PERMISSIONS: { key: CorePermissionKey; scope: 'ow
   ...OWN_ACCOUNT_PERMISSIONS,
 ];
 
-export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'subtree' | 'all' }[] = [
+export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'subtree' | 'all'; fields?: readonly string[] }[] = [
   // the leader's own account: profile (edit), security, access page, notifications
   ...OWN_ACCOUNT_PERMISSIONS,
   // people of the unit and below
   { key: CorePermission.EmployeesView, scope: 'subtree' },
   { key: CorePermission.EmployeesHistoryView, scope: 'subtree' },
-  // editing the people of the unit and below: details, photo, resend the invitation, reset the authenticator app
-  { key: CorePermission.EmployeesUpdate, scope: 'subtree' },
+  // adding people to the unit, editing every detail of the people of the unit and below, their photo, the dated change of unit / title / manager,
+  // editing many at once, the activation link, the authenticator app, the roles (only those the leader holds), the files in and out, and «my team»
+  { key: CorePermission.EmployeesCreate, scope: 'subtree' },
+  { key: CorePermission.EmployeesUpdate, scope: 'subtree', fields: ALL_EDITABLE_FIELDS },
+  { key: CorePermission.EmployeesAssignChange, scope: 'subtree' },
+  { key: CorePermission.EmployeesBulkUpdate, scope: 'subtree' },
+  { key: CorePermission.EmployeesExport, scope: 'subtree' },
+  { key: CorePermission.EmployeesImport, scope: 'subtree' },
+  { key: CorePermission.DirectoryView, scope: 'all' },
+  { key: CorePermission.DirectoryExport, scope: 'all' },
   { key: CorePermission.EmployeesPhotoUpdate, scope: 'subtree' },
   { key: CorePermission.EmployeesResendInvite, scope: 'subtree' },
   { key: CorePermission.EmployeesResetAuthenticator, scope: 'subtree' },
+  { key: CorePermission.EmployeesAssignRoles, scope: 'subtree' },
   // the career path of the unit and below: the team page, the proofs referred to the manager, the export
   { key: CorePermission.CareerTeamView, scope: 'subtree' },
   { key: CorePermission.CareerTeamDecide, scope: 'subtree' },
@@ -355,6 +365,7 @@ export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 's
   // tickets of the unit and below: see, answer, set up the unit's desk and its types, and the figures
   { key: CorePermission.TicketsView, scope: 'subtree' },
   { key: CorePermission.TicketsReply, scope: 'subtree' },
+  { key: CorePermission.TicketsReassign, scope: 'subtree' },
   { key: CorePermission.TicketsCommentReply, scope: 'all' },
   { key: CorePermission.TicketsCommentMention, scope: 'all' },
   { key: CorePermission.TicketsSetupView, scope: 'subtree' },

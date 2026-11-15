@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Cron } from '@nestjs/schedule';
 import type { AuditLogDto, AuditQuery, Paginated } from '@arweqah-platform/shared';
+import { AuditNames } from '../domain/audit-names.port';
+import { idsIn, isId, readable } from './transformers/audit-readable.transformer';
 import type { ChainCheck } from '../domain/audit-chain';
 import { AuditLogRepository } from '../domain/audit-log.repository';
 import { AUDIT_EVENT, type AuditEvent } from './audit.events';
@@ -20,7 +22,10 @@ const REDACTED_KEYS = /password|secret|token|national.?id|iban/i;
 export class AuditService {
   private readonly logger = new Logger(AuditService.name);
 
-  constructor(private readonly logs: AuditLogRepository) {}
+  constructor(
+    private readonly logs: AuditLogRepository,
+    private readonly names: AuditNames,
+  ) {}
 
   @OnEvent(AUDIT_EVENT, { async: true })
   async record(event: AuditEvent): Promise<void> {
@@ -53,8 +58,11 @@ export class AuditService {
     await this.record({ actorId: null, action: 'audit.chain_broken', entityType: 'audit', entityId: result.brokenAtSeq, changes: { checked: result.checked } });
   }
 
-  search(query: AuditQuery): Promise<Paginated<AuditLogDto>> {
-    return this.logs.search(query);
+  /** A page of the log with the changes in words: the names behind the ids, and the record the entry is about. */
+  async search(query: AuditQuery): Promise<Paginated<AuditLogDto>> {
+    const page = await this.logs.search(query);
+    const names = await this.names.namesOf([...new Set(page.items.flatMap((e) => [...idsIn(e.changes), ...(e.entityId && isId(e.entityId) ? [e.entityId] : [])]))]);
+    return { ...page, items: page.items.map((e) => ({ ...e, entityName: (e.entityId && isId(e.entityId) ? names.get(e.entityId) : undefined) ?? null, details: readable(e.changes, names) })) };
   }
 }
 

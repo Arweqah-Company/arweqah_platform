@@ -9,6 +9,7 @@ const def = (key: string, labelAr: string, labelEn: string, scopes: PermissionDe
  *  - reply (and with it asking to close and closing without execution): own = the tickets assigned to them or to their department
  *    as its manager; wider = every ticket of the departments inside that scope;
  *  - setup and figures: own = the units they lead and every unit below them; wider = the units inside that scope (all = every department).
+ *  - reassign: the departments inside the scope, and the new assignee must sit inside it too.
  * Confirming, declining and reopening belong to the sender of the ticket, so they have no scope.
  */
 export const TICKET_PERMISSIONS: PermissionDefinition[] = [
@@ -20,6 +21,7 @@ export const TICKET_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.TicketsDeclineClose, 'رفض إغلاق التذكرة', 'Reject the closing of a ticket'),
   def(CorePermission.TicketsCloseWithoutExecution, 'إغلاق التذكرة بلا تنفيذ', 'Close a ticket without executing it'),
   def(CorePermission.TicketsReopen, 'إعادة فتح تذكرة مغلقة', 'Reopen a closed ticket'),
+  def(CorePermission.TicketsReassign, 'إعادة إسناد التذكرة إلى موظف آخر', 'Reassign a ticket to another employee', ['unit', 'subtree', 'company', 'all']),
   def(CorePermission.TicketsCommentReply, 'الرد على رد داخل التذكرة', 'Answer a reply inside a ticket'),
   def(CorePermission.TicketsCommentMention, 'ذكر موظف بـ @ في ردّ على تذكرة', 'Mention a colleague with @ in a ticket reply'),
   def(CorePermission.TicketsSetupView, 'عرض صفحة إعداد التذاكر', 'View the ticket setup page', WIDE),

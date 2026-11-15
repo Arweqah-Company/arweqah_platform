@@ -8,6 +8,7 @@ export const TICKET_AUDIT = {
   autoClosed: 'ticket.auto_closed',
   closedNotExecuted: 'ticket.closed_not_executed',
   reopened: 'ticket.reopened',
+  reassigned: 'ticket.reassigned',
   deskUpdated: 'ticket.desk.updated',
   typeCreated: 'ticket.type.created',
   typeUpdated: 'ticket.type.updated',
@@ -17,4 +18,4 @@ export const TICKET_AUDIT = {
 
 export const TICKET_TOPICS = { autoClose: 'tickets.auto-close' } as const;
 
-export type NoticeKind = 'created' | 'reply' | 'closeRequested' | 'closedNotExecuted' | 'autoClosed' | 'reopened' | 'stale' | 'personalMoved' | 'mentioned' | 'replyAnswered';
+export type NoticeKind = 'created' | 'reply' | 'closeRequested' | 'closedNotExecuted' | 'autoClosed' | 'reopened' | 'stale' | 'personalMoved' | 'reassigned' | 'mentioned' | 'replyAnswered';

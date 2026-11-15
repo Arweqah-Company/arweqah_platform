@@ -80,6 +80,24 @@ export class UserAccessService {
     this.assertHolds(actor, await this.groups.grantsOfGroupsHolding(given.map((r) => r.id)));
   }
 
+  /** The roles this actor may hand out: the same test as `assertGrantable`, asked of each role instead of the whole choice. */
+  async grantable<T extends Role>(actor: AccessContext, roles: T[]): Promise<T[]> {
+    const found: T[] = [];
+    for (const role of roles) if (await this.canGrant(actor, role)) found.push(role);
+    return found;
+  }
+
+  private async canGrant(actor: AccessContext, role: Role): Promise<boolean> {
+    try {
+      this.assertHolds(actor, role.permissions);
+      this.assertHolds(actor, await this.groups.grantsOfGroupsHolding([role.id]));
+      return true;
+    } catch (error) {
+      if (error instanceof ForbiddenError) return false;
+      throw error;
+    }
+  }
+
   /** The roles a new employee starts with: the base role (Employee, or the collaborator base) and the role of their job title (those that exist). */
   async defaultRoleIds(jobTitleId: string | null, limitedAccess = false): Promise<{ baseId: string | null; titleId: string | null; ids: string[] }> {
     const { baseId, titleId } = await this.access.defaultRoleIdsFor(jobTitleId, limitedAccess);
