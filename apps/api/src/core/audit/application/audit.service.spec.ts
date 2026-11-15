@@ -23,7 +23,7 @@ describe('safeName', () => {
 describe('audit entries written while signed in as another employee (FR-85)', () => {
   const recorded = async (run: <T>(work: () => Promise<T>) => Promise<T>): Promise<Record<string, unknown> | null> => {
     let saved: Record<string, unknown> | null = null;
-    const service = new AuditService({ append: async (row: { changes: Record<string, unknown> | null }) => { saved = row.changes; } } as unknown as AuditLogRepository, { namesOf: async () => new Map() });
+    const service = new AuditService({ append: async (row: { changes: Record<string, unknown> | null }) => { saved = row.changes; } } as unknown as AuditLogRepository, { namesOf: async () => new Map() }, { cityOf: async () => null });
     await run(() => service.record({ actorId: 'employee', action: 'task.created', entityType: 'task', changes: { title: 'x' } }));
     return saved;
   };

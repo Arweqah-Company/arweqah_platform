@@ -202,6 +202,17 @@
   "brand": {
     "logoAlt": "Arweqah Alreyadah"
   },
+  "richText": {
+    "toolbar": "Formatting",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "bullets": "Bulleted list",
+    "numbers": "Numbered list",
+    "link": "Link",
+    "linkAddress": "Link address",
+    "apply": "Apply"
+  },
   "combobox": {
     "choose": "Choose…",
     "clear": "Clear selection",

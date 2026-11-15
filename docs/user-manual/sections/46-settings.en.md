@@ -14,6 +14,7 @@ One page with tabs that gathers the settings of services and messages: **Transla
 | E-mail | `integrations.email_view` (View the e-mail settings page) | E-mail settings |
 | Bot protection | `integrations.captcha_view` (View the bot protection page) | Bot protection |
 | AI | `integrations.ai_view` (View the AI settings page) | AI service |
+| Address locations | `integrations.geoip_view` (View the address locations page) | Address locations |
 | E-mail templates | `templates.email_view` (View e-mail templates) | E-mail templates |
 | Notification templates | `templates.notification_view` (View notification templates) | Notification templates |
 | Welcome tour | `tour.settings_view` (View the welcome tour settings) | Welcome tour |
@@ -33,14 +34,15 @@ Each of these tabs shows a table of the available services (table or cards) with
 | E-mail | SMTP, Amazon SES, SendGrid, Microsoft 365 (Graph) |
 | Bot protection | Cloudflare Turnstile |
 | AI | Anthropic (Claude), OpenAI-compatible service (free Gemini, Groq…) |
+| Address locations | MaxMind GeoLite2 City (account number and license key from a free MaxMind account; the «How to get the data» icon lists the steps) |
 
 | Action | What happens | Permission (translation / e-mail / bot protection / AI) |
 |---|---|---|
 | «How to get the data» icon | Opens a window with the steps to get the keys and the meaning of every value (also available inside the edit window) | The view key |
-| Edit (click the row) | Opens the service's data window; whoever holds the edit key can save | `integrations.translation_edit` (Edit translation provider data) / `integrations.email_edit` (Edit e-mail provider data) / `integrations.captcha_edit` (Edit the bot protection keys) / `integrations.ai_edit` (Edit the AI key and model) |
-| «Try» | Tries the service with the data in the form (translates an example, sends a short message to any address, runs a real Turnstile check, or sends one short AI request) | `integrations.translation_test` (Try a translation provider) / `integrations.email_test` (Send a test e-mail with an e-mail provider) / `integrations.captcha_test` (Try the bot protection keys) / `integrations.ai_test` (Try the AI key) |
-| «Switch on» or «Switch off» | Puts the service in use or stops it | `integrations.translation_activate` (Activate and switch off a translation provider) / `integrations.email_activate` (Activate and switch off an e-mail provider) / `integrations.captcha_activate` (Switch the bot protection on and off) / `integrations.ai_activate` (Switch the AI service on and off) |
-| Export | Exports the list of services | `integrations.translation_export` / `integrations.email_export` / `integrations.captcha_export` / `integrations.ai_export` (Export the list of translation / e-mail / bot protection / AI providers) |
+| Edit (click the row) | Opens the service's data window; whoever holds the edit key can save | `integrations.translation_edit` (Edit translation provider data) / `integrations.email_edit` (Edit e-mail provider data) / `integrations.captcha_edit` (Edit the bot protection keys) / `integrations.ai_edit` (Edit the AI key and model) / `integrations.geoip_edit` (Edit the address locations service data) |
+| «Try» | Tries the service with the data in the form (translates an example, sends a short message to any address, runs a real Turnstile check, or sends one short AI request) | `integrations.translation_test` (Try a translation provider) / `integrations.email_test` (Send a test e-mail with an e-mail provider) / `integrations.captcha_test` (Try the bot protection keys) / `integrations.ai_test` (Try the AI key) / `integrations.geoip_test` (Try the address locations service and download its database) |
+| «Switch on» or «Switch off» | Puts the service in use or stops it | `integrations.translation_activate` (Activate and switch off a translation provider) / `integrations.email_activate` (Activate and switch off an e-mail provider) / `integrations.captcha_activate` (Switch the bot protection on and off) / `integrations.ai_activate` (Switch the AI service on and off) / `integrations.geoip_activate` (Switch the address locations on and off) |
+| Export | Exports the list of services | `integrations.translation_export` / `integrations.email_export` / `integrations.captcha_export` / `integrations.ai_export` / `integrations.geoip_export` (Export the list of translation / e-mail / bot protection / AI / address location providers) |
 
 There is no import in these lists because each row is a fixed service, not a record created from a file.
 
@@ -87,6 +89,10 @@ Each service has a window with the full steps in Arabic and English and the mean
 
 - **Anthropic:** at console.anthropic.com add a payment method and a small credit, create an API key and copy it at once, and leave the model as it is or change it. You pay by use.
 - **OpenAI-compatible service:** for the free option use «Get API key» in Google AI Studio and leave the address and model as they are. For another service type its https address and a model that supports structured JSON answers.
+
+**Address locations**
+
+- Create a free MaxMind account, open «Manage license keys», generate a license key and copy it at once, then type it with the account number. «Try» downloads the city database to the server (it can take a minute) and the service can then be switched on. The database is refreshed every Monday at 03:00 (Riyadh) while the service is on.
 
 ### E-mail templates and notification templates
 
@@ -218,6 +224,13 @@ The page is made of tabs, each with its own forms. Secret values (keys, password
 | OpenAI-compatible service: API key | The key of that service (free Gemini: «Get API key» in Google AI Studio) | Yes (secret) | Text |
 | OpenAI-compatible service: Service address | The web address of the service | Yes | A public `https://` address that ends before `/chat/completions` (not a local, internal or numeric address, and with no user name inside); default is Gemini's |
 | OpenAI-compatible service: Model | A model that service offers | Yes | A model name supporting structured JSON answers; default `gemini-3.8-flash` |
+
+**Address locations** (Settings → Address locations; edit key `integrations.geoip_edit`)
+
+| Service and field | What it means / what to type | Required | Allowed values / rules |
+|---|---|---|---|
+| MaxMind GeoLite2 City: Account number | The number of your free MaxMind account (the «Account ID / User ID» at the top of the account page) | Yes | Digits |
+| MaxMind GeoLite2 City: License key | The secret key that allows the city database download; it stays on the server | Yes (secret) | Generated once in MaxMind → «Manage license keys»; never shown again after saving |
 
 **The «Try» window** (key `integrations.<kind>_test`; at most 10 tries a minute per administrator)
 

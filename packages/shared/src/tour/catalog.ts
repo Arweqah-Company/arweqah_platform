@@ -70,6 +70,7 @@ export const TOUR_STEPS = [
   { key: 'email-log', tour: 'admin', permission: CorePermission.EmailLogView, page: 'email-log' },
   { key: 'settings', tour: 'admin', permission: CorePermission.IntegrationsEmailView, page: 'email-settings' },
   { key: 'captcha-settings', tour: 'admin', permission: CorePermission.IntegrationsCaptchaView, page: 'captcha-settings' },
+  { key: 'geoip-settings', tour: 'admin', permission: CorePermission.IntegrationsGeoipView, page: 'geoip-settings' },
   { key: 'ai-settings', tour: 'admin', permission: CorePermission.IntegrationsAiView, page: 'ai-settings' },
   { key: 'tour-settings', tour: 'admin', permission: CorePermission.TourSettingsView, page: 'tour-settings' },
 ] as const satisfies readonly TourStepDef[];

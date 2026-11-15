@@ -38,4 +38,6 @@ export interface AuditLogDto extends AuditEntryDto {
   entityName: AuditText | null;
   /** `changes` read by a person: a label for every key and a name for every id (null when the entry has no changes). */
   details: AuditDetailDto[] | null;
+  /** The city the address belongs to (null when the server has no city database, or the address is private or unknown). */
+  ipCity: AuditText | null;
 }

@@ -16,6 +16,7 @@ describe('Ticket replies to replies and mentions (FR-128)', () => {
     const org = await t.factories.org();
     const manager = await t.factories.user({ unit: org.unitA, grants: TICKET_DESK_ADMIN_GRANTS });
     const assignee = await t.factories.user({ unit: org.unitA });
+    await t.db.query('UPDATE employees SET org_node_id = $1 WHERE id = $2', [org.department, assignee.employeeId]); // handlers sit directly in the desk
     const sender = await t.factories.user({ unit: org.unitB, without: options.senderWithout });
     const colleague = await t.factories.user({ unit: org.unitC });
     const otherCompany = await t.factories.user({ unit: org.unitOther });
@@ -25,7 +26,7 @@ describe('Ticket replies to replies and mentions (FR-128)', () => {
     const managerAgent = await t.factories.signIn(manager);
     await managerAgent.post('/api/admin-mode/activate').send({ code: codeFor(manager.secret, Date.now() + 30_000) }).expect(200);
     await managerAgent.put(`/api/tickets/setup/desks/${org.department}`).send(SETTINGS).expect(200);
-    const typeId = (await managerAgent.post(`/api/tickets/setup/desks/${org.department}/types`).send({ ...TYPE, isPersonal: options.personal ?? false, defaultAssigneeUserId: assignee.id }).expect(201)).body.id as string;
+    const typeId = (await managerAgent.post(`/api/tickets/setup/desks/${org.department}/types`).send({ ...TYPE, isPersonal: options.personal ?? false, handlerUserIds: [assignee.id] }).expect(201)).body.id as string;
     const agents: Record<string, TestAgent> = {
       assignee: await t.factories.signIn(assignee),
       sender: await t.factories.signIn(sender),

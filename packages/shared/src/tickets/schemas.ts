@@ -66,8 +66,11 @@ export const ticketTypeInputSchema = z.strictObject({
   ...localizedNameSchema,
   descriptionAr: optionalText(300),
   descriptionEn: optionalText(300),
-  /** The employee (user id) who handles tickets of this type. Required for personal types. */
-  defaultAssigneeUserId: z.uuid().nullable().optional(),
+  /** What the sender must put in a ticket of this type (formatted text, sanitized by the API). */
+  instructionsAr: optionalText(5000),
+  instructionsEn: optionalText(5000),
+  /** The employees (user ids) of the unit who answer tickets of this type; a personal type has exactly one. */
+  handlerUserIds: z.array(z.uuid()).max(20).default([]),
   /** Working days; empty = the desk's default. */
   dueDays: days('defaultDueDays').nullable().optional(),
   isPersonal: z.boolean().default(false),
@@ -131,7 +134,9 @@ export interface TicketTypeDto {
   nameEn: string;
   descriptionAr: string | null;
   descriptionEn: string | null;
-  defaultAssignee: PersonRefDto | null;
+  instructionsAr: string | null;
+  instructionsEn: string | null;
+  handlers: PersonRefDto[];
   /** Null = the desk's default. */
   dueDays: number | null;
   isPersonal: boolean;
@@ -175,10 +180,14 @@ export interface CatalogTypeDto {
   nameEn: string;
   descriptionAr: string | null;
   descriptionEn: string | null;
+  /** Formatted text (already sanitized) telling the sender what to put in the ticket. */
+  instructionsAr: string | null;
+  instructionsEn: string | null;
   isPersonal: boolean;
   /** Working days the unit usually needs. */
   dueDays: number;
-  assignee: PersonRefDto | null;
+  /** Who answers tickets of this type (active ones). */
+  handlers: PersonRefDto[];
   /** Personal types of a desk that cannot take them are listed as unavailable. */
   available: boolean;
 }

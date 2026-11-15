@@ -4,7 +4,8 @@ import { useState, type FormEvent, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { cn } from '@/shared/lib/cn';
-import { Alert, Button, FileAttachments, FormField, Input, Textarea } from '@/shared/ui';
+import { listNames } from '@/shared/lib/list-names';
+import { Alert, Button, FileAttachments, FormField, Input, RichText, Textarea } from '@/shared/ui';
 import { datesFor, type Choice, type Draft } from './use-new-ticket';
 
 interface Props {
@@ -34,9 +35,23 @@ function SummaryBar({ choice, onBack }: { choice: Choice; onBack: () => void }) 
   const ar = i18n.language === 'ar';
   return (
     <div className="flex items-center justify-between gap-3 rounded-2xl bg-petrol-50 p-3 text-sm">
-      <span className="flex flex-col"><span className="font-bold">{ar ? choice.type.nameAr : choice.type.nameEn}</span><span className="text-xs text-muted">{ar ? choice.desk.nameAr : choice.desk.nameEn}{choice.type.assignee ? ` · ${t('details.handledBy', { name: choice.type.assignee.name })}` : ''}</span></span>
+      <span className="flex flex-col"><span className="font-bold">{ar ? choice.type.nameAr : choice.type.nameEn}</span><span className="text-xs text-muted">{ar ? choice.desk.nameAr : choice.desk.nameEn}{choice.type.handlers.length ? ` · ${t('details.handledBy', { name: listNames(choice.type.handlers.map((h) => h.name), i18n.language) })}` : ''}</span></span>
       <Button variant="secondary" size="sm" onClick={onBack}><ArrowRight className="size-4 rtl:rotate-0 ltr:rotate-180" aria-hidden />{t('details.change')}</Button>
     </div>
+  );
+}
+
+/** What the unit asks the sender to put in a ticket of this type (in the language of the screen, else the other one). */
+function Instructions({ choice }: { choice: Choice }) {
+  const { t, i18n } = useTranslation('tickets');
+  const ar = i18n.language === 'ar';
+  const html = (ar ? choice.type.instructionsAr || choice.type.instructionsEn : choice.type.instructionsEn || choice.type.instructionsAr) ?? '';
+  if (!html) return null;
+  return (
+    <section aria-label={t('details.instructions')} className="rounded-2xl border border-petrol-100 bg-petrol-50 p-3 text-sm">
+      <h3 className="mb-1 font-bold">{t('details.instructions')}</h3>
+      <RichText html={html} />
+    </section>
   );
 }
 
@@ -60,6 +75,7 @@ export function DetailsStep({ choice, draft, today, busy, error, onPatch, onBack
   return (
     <form className="flex flex-col gap-4" onSubmit={submit} onKeyDown={onKeyDown} noValidate>
       <SummaryBar choice={choice} onBack={onBack} />
+      <Instructions choice={choice} />
       {error && <Alert>{error}</Alert>}
       <FormField label={`${t('details.title')} *`} error={title.error ?? (tried && !draft.title.trim() ? t('details.titleRequired') : undefined)}>
         {(p) => <Input {...p} maxLength={200} aria-required onBlur={title.onBlur} value={draft.title} onChange={(e) => onPatch({ title: e.target.value })} autoFocus />}

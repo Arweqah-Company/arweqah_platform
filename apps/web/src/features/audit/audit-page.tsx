@@ -41,6 +41,7 @@ export function AuditPage() {
     { id: 'record', header: t('record'), value: (l) => l.entityName?.[lang] ?? '' },
     { id: 'details', header: t('changes'), value: (l) => (l.details ?? []).map((d) => `${d.label[lang]}: ${d.value[lang]}`).join(' | ') },
     { id: 'ip', header: t('ip'), value: (l) => l.ip },
+    { id: 'city', header: t('city'), value: (l) => l.ipCity?.[lang] ?? '' },
   ];
   return (
     <>
@@ -60,6 +61,8 @@ export function AuditPage() {
           { id: 'category', header: t('category'), cell: (l) => <Badge tone="neutral">{kind(l)}</Badge> },
           { id: 'action', header: t('action'), cell: what },
           { id: 'record', header: t('record'), cell: (l) => l.entityName?.[lang] ?? '—' },
+          { id: 'ip', header: t('ip'), className: 'whitespace-nowrap', cell: (l) => <span className="font-latin" dir="ltr">{l.ip ?? '—'}</span> },
+          { id: 'city', header: t('city'), cell: (l) => l.ipCity?.[lang] ?? '—' },
         ]}
       />
       {viewing && <AuditDetails entry={viewing} onClose={() => setViewing(null)} />}
@@ -77,6 +80,7 @@ function AuditDetails({ entry: l, onClose }: { entry: AuditLogDto; onClose: () =
     [t('category'), AUDIT_CATEGORY_LABELS[l.category][lang]],
     [t('action'), auditActionText(l.action, lang)],
     [t('ip'), <span key="p" className="font-latin" dir="ltr">{l.ip ?? '—'}</span>],
+    [t('city'), l.ipCity?.[lang] ?? '—'],
     ...(l.entityName ? ([[t('record'), l.entityName[lang]]] as [string, ReactNode][]) : []),
     [t('changes'), l.details?.length ? <ChangesList key="c" details={l.details} lang={lang} /> : '—'],
     ...(l.changes ? ([[t('technical'), <pre key="j" className="max-h-40 overflow-auto whitespace-pre-wrap rounded-xl bg-neutral-50 p-3 font-latin text-xs" dir="ltr">{JSON.stringify(l.changes, null, 2)}</pre>]] as [string, ReactNode][]) : []),

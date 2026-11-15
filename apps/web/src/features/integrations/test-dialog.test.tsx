@@ -35,6 +35,13 @@ describe('Translation try-out popup (FR-59)', () => {
     expect(await screen.findByText(/بيانات الخدمة ناقصة/, {}, SLOW)).toBeInTheDocument();
   });
 
+  it('shows the refusal when the request of a one-click test (address locations) fails', async () => {
+    server.use(http.post('*/api/integrations/geoip/maxmind/test', () => HttpResponse.json({ statusCode: 422, code: 'PROVIDER_INCOMPLETE', message: 'x' }, { status: 422 })));
+    renderPage(<TestDialog kind="geoip" providerKey="maxmind" providerName="MaxMind" onClose={() => undefined} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'شغّل التجربة' }));
+    expect(await screen.findByText(/بيانات الخدمة ناقصة/, {}, SLOW)).toBeInTheDocument();
+  });
+
   it('sends what is in the form, not only what was saved', async () => {
     const sent: { values?: unknown }[] = [];
     server.use(http.post('*/api/integrations/translation/aws/test', async ({ request }) => { sent.push((await request.json()) as { values?: unknown }); return HttpResponse.json({ ok: true, message: null, text: 'Hi' }); }));

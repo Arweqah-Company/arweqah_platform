@@ -23,14 +23,16 @@ export interface TypeRecord {
   nameEn: string;
   descriptionAr: string | null;
   descriptionEn: string | null;
-  defaultAssigneeUserId: string | null;
-  defaultAssigneeName: string | null;
+  instructionsAr: string | null;
+  instructionsEn: string | null;
+  /** The people who answer tickets of this type (employees of the unit). */
+  handlers: { id: string; name: string }[];
   dueDays: number | null;
   isPersonal: boolean;
   isActive: boolean;
 }
 
-export type TypeValues = Omit<TypeRecord, 'id' | 'deskId' | 'defaultAssigneeName'>;
+export type TypeValues = Omit<TypeRecord, 'id' | 'deskId' | 'handlers'> & { handlerUserIds: string[] };
 
 /** A department of the organization, with what the ticket rules need to know about it. */
 export interface DepartmentFacts {
@@ -90,6 +92,8 @@ export interface TicketRow {
   deskAutoCloseDays: number;
   /** The people named with @ in the replies of this ticket (they may read and answer it). */
   mentionedUserIds: string[];
+  /** The handlers of the ticket's type: they read and answer it like its assignee. */
+  typeHandlerUserIds: string[];
 }
 
 export interface NewTicket {

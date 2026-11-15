@@ -13,13 +13,13 @@ const catalog: TicketCatalogDto = {
     {
       deskId: 'd1', nameAr: 'تقنية المعلومات', nameEn: 'IT', descriptionAr: null, descriptionEn: null, unavailableReason: null, minLeadDays: 0,
       types: [
-        { id: 't1', nameAr: 'مشكلة في الجهاز', nameEn: 'Device problem', descriptionAr: null, descriptionEn: null, isPersonal: false, dueDays: 2, assignee: person, available: true },
+        { id: 't1', nameAr: 'مشكلة في الجهاز', nameEn: 'Device problem', descriptionAr: null, descriptionEn: null, instructionsAr: '<p>أرفق <strong>لقطة شاشة</strong> للمشكلة</p><img src=x onerror=alert(1)>', instructionsEn: null, isPersonal: false, dueDays: 2, handlers: [person], available: true },
       ],
     },
     {
       deskId: 'd2', nameAr: 'الموارد البشرية', nameEn: 'HR', descriptionAr: null, descriptionEn: null, unavailableReason: 'paused', minLeadDays: 0,
       types: [
-        { id: 't2', nameAr: 'شهادة راتب', nameEn: 'Salary letter', descriptionAr: null, descriptionEn: null, isPersonal: false, dueDays: 3, assignee: null, available: true },
+        { id: 't2', nameAr: 'شهادة راتب', nameEn: 'Salary letter', descriptionAr: null, descriptionEn: null, instructionsAr: null, instructionsEn: null, isPersonal: false, dueDays: 3, handlers: [], available: true },
       ],
     },
   ],
@@ -51,6 +51,17 @@ describe('FR-37 new ticket dialog', () => {
     expect(await screen.findByLabelText(/العنوان/)).toHaveValue('الشاشة لا تعمل');
   });
 
+  it('shows the instructions of the kind above the fields, cleaned of anything unsafe, and nothing for a kind without (FR-134)', async () => {
+    open();
+    fireEvent.click((await screen.findByText('مشكلة في الجهاز')).closest('button')!);
+    const box = await screen.findByRole('region', { name: 'تعليمات لهذا النوع' });
+    expect(box).toHaveTextContent('أرفق لقطة شاشة للمشكلة');
+    expect(box.querySelector('strong')).not.toBeNull();
+    expect(box.querySelector('img')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /تغيير/ }));
+    fireEvent.click((await screen.findByText('مشكلة في الجهاز')).closest('button')!);
+  });
+
   it('narrows by department and by kind, and counts what is left (FR-37)', async () => {
     open();
     await screen.findByText('شهادة راتب');
@@ -64,7 +75,7 @@ describe('FR-37 new ticket dialog', () => {
   });
 
   it('shows one compact list for a long catalog, thirty at a time, and remembers the view (FR-37)', async () => {
-    const many: TicketCatalogDto = { ...catalog, desks: [{ ...catalog.desks[0]!, types: Array.from({ length: 45 }, (_, i) => ({ id: `x${i}`, nameAr: `نوع ${i}`, nameEn: `Type ${i}`, descriptionAr: null, descriptionEn: null, isPersonal: false, dueDays: 2, assignee: null, available: true })) }] };
+    const many: TicketCatalogDto = { ...catalog, desks: [{ ...catalog.desks[0]!, types: Array.from({ length: 45 }, (_, i) => ({ id: `x${i}`, nameAr: `نوع ${i}`, nameEn: `Type ${i}`, descriptionAr: null, descriptionEn: null, instructionsAr: null, instructionsEn: null, isPersonal: false, dueDays: 2, handlers: [], available: true })) }] };
     server.use(http.get('*/api/tickets/catalog', () => HttpResponse.json(many)));
     renderPage(<NewTicketDialog open onOpenChange={() => undefined} />);
     fireEvent.click(await screen.findByRole('button', { name: 'قائمة مضغوطة' }));

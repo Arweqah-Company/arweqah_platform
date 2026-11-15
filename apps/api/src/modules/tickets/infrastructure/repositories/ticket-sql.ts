@@ -11,7 +11,8 @@ export const TICKET_SELECT = `
          t.revision, t.created_at AS "createdAt", dm.user_id AS "deskManagerUserId",
          se.org_node_id AS "senderNodeId", se.company_id AS "senderCompanyId", ae.org_node_id AS "assigneeNodeId", ae.company_id AS "assigneeCompanyId", n.company_id AS "deskCompanyId",
          d.stale_after_days AS "deskStaleAfterDays", d.reopen_window_days AS "deskReopenWindowDays", d.auto_close_days AS "deskAutoCloseDays",
-         ARRAY(SELECT m.user_id FROM ticket_event_mentions m JOIN ticket_events ev ON ev.id = m.event_id WHERE ev.ticket_id = t.id) AS "mentionedUserIds"
+         ARRAY(SELECT m.user_id FROM ticket_event_mentions m JOIN ticket_events ev ON ev.id = m.event_id WHERE ev.ticket_id = t.id) AS "mentionedUserIds",
+         ARRAY(SELECT h.user_id FROM ticket_type_handlers h WHERE h.type_id = t.type_id) AS "typeHandlerUserIds"
   FROM tickets t
   JOIN ticket_types ty ON ty.id = t.type_id
   JOIN ticket_desks d ON d.org_node_id = t.desk_id
