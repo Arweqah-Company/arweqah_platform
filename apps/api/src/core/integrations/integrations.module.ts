@@ -7,6 +7,10 @@ import { AiModelsService } from './application/services/ai-models.service';
 import { AiProbe } from './application/services/ai-probe';
 import { AiService } from './application/services/ai.service';
 import { CaptchaProbe } from './application/services/captcha-probe';
+import { GeoipProbe } from './application/services/geoip-probe';
+import { GeoipRefreshJob } from './application/services/geoip-refresh.job';
+import { GeoipDatabase } from './domain/contracts/geoip-database';
+import { MaxmindGeoipDatabase } from './infrastructure/adapters/maxmind-geoip.database';
 import { CaptchaService } from './application/services/captcha.service';
 import { AiClient } from './domain/contracts/ai-client';
 import { CaptchaVerifier } from './domain/contracts/captcha-verifier';
@@ -22,19 +26,22 @@ import { INTEGRATIONS_PERMISSIONS } from './domain/permissions/integrations.perm
 import { TypeOrmIntegrationProviderRepository } from './infrastructure/repositories/typeorm-integration-provider.repository';
 import { AiModelsController } from './presentation/controllers/ai-models.controller';
 import { CaptchaController } from './presentation/controllers/captcha.controller';
-import { AiProvidersController, CaptchaProvidersController, EmailProvidersController, TranslationProvidersController } from './presentation/controllers/provider-controllers';
+import { AiProvidersController, CaptchaProvidersController, EmailProvidersController, GeoipProvidersController, TranslationProvidersController } from './presentation/controllers/provider-controllers';
 
 /** Which outside service translates and which one sends e-mail, chosen and tried from the dashboard. Global: translation and e-mail read the active provider. */
 @Global()
 @Module({
   imports: [TypeOrmModule.forFeature([IntegrationProvider])],
-  controllers: [TranslationProvidersController, EmailProvidersController, CaptchaProvidersController, AiProvidersController, AiModelsController, CaptchaController] as never[],
+  controllers: [TranslationProvidersController, EmailProvidersController, CaptchaProvidersController, AiProvidersController, GeoipProvidersController, AiModelsController, CaptchaController] as never[],
   providers: [
     IntegrationProvidersService,
     ActiveProviders,
     ProbeRegistry,
     CaptchaService,
     CaptchaProbe,
+    GeoipProbe,
+    GeoipRefreshJob,
+    { provide: GeoipDatabase, useClass: MaxmindGeoipDatabase },
     AiService,
     AiModelsService,
     AiProbe,
@@ -46,7 +53,7 @@ import { AiProvidersController, CaptchaProvidersController, EmailProvidersContro
     ProviderConfigCodec,
     { provide: IntegrationProviderRepository, useClass: TypeOrmIntegrationProviderRepository },
   ],
-  exports: [ActiveProviders, ProbeRegistry, CaptchaService, AiService],
+  exports: [ActiveProviders, ProbeRegistry, CaptchaService, AiService, GeoipDatabase],
 })
 export class IntegrationsModule implements OnModuleInit {
   constructor(private readonly catalog: PermissionCatalog) {}

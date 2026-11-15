@@ -4,20 +4,23 @@
     "email": "E-mail settings",
     "settings": "Settings",
     "captcha": "Bot protection",
-    "ai": "AI service"
+    "ai": "AI service",
+    "geoip": "Address locations"
   },
   "description": {
     "translation": "Choose which service translates Arabic into English while people type. A service is switched on only after it passes a test with its saved data.",
     "email": "Choose how the platform sends e-mail (sign-in links, invitations, notices). A service is switched on only after it passes a test with its saved data.",
     "settings": "Translation, e-mail services, and the wording of e-mails and notifications, in one page.",
     "captcha": "Cloudflare Turnstile check on the e-mail sign-in page. With no service switched on no check is asked. A service is switched on only after it passes a test with its keys.",
-    "ai": "The AI service that places the parts of an uploaded job-title file when the fixed reader cannot read it (the text of the file is sent to the service). A service is switched on only after it passes a test with its key."
+    "ai": "The AI service that places the parts of an uploaded job-title file when the fixed reader cannot read it (the text of the file is sent to the service). A service is switched on only after it passes a test with its key.",
+    "geoip": "The city of each address the audit log shows. The platform downloads MaxMind's free city database and looks addresses up on its own server, so no employee address leaves it. It is switched on only after the download succeeds with your account data."
   },
   "serverSettings": {
     "translation": "No service is switched on here, so the settings on the server are used (if there are none, translation is off).",
     "email": "No service is switched on here, so the e-mail settings on the server are used.",
     "captcha": "No service is switched on, so no check is asked at sign-in.",
-    "ai": "No service is switched on, so the «Analyse with AI» button is not offered."
+    "ai": "No service is switched on, so the «Analyse with AI» button is not offered.",
+    "geoip": "No service is switched on, so the audit log shows addresses without cities."
   },
   "providers": {
     "aws": "Amazon Translate",
@@ -29,7 +32,8 @@
     "graph": "Microsoft 365 (Graph)",
     "turnstile": "Cloudflare Turnstile",
     "anthropic": "Anthropic (Claude)",
-    "compatible": "OpenAI-compatible service (free Gemini, Groq…)"
+    "compatible": "OpenAI-compatible service (free Gemini, Groq…)",
+    "maxmind": "MaxMind GeoLite2 (city by address)"
   },
   "columns": {
     "provider": "Service",
@@ -82,7 +86,8 @@
       "translation": "Type Arabic on the right side; the English appears by itself. Nothing is saved from this box.",
       "email": "Send a short message to any address with the data in the form.",
       "captcha": "The real Cloudflare check appears with the site key, and its answer is verified with the secret key. Nothing is saved from this window.",
-      "ai": "Sends one short request with the key and the model in the form. Nothing is saved from this window."
+      "ai": "Sends one short request with the key and the model in the form. Nothing is saved from this window.",
+      "geoip": "The city database is downloaded with the data in the form and installed on the server. Nothing else is saved from this window."
     },
     "arabic": "Arabic",
     "arabicHint": "Type any Arabic text.",
@@ -103,7 +108,8 @@
     "captchaNeedsForm": "Save the site key first, or type it in the form, then try again.",
     "run": "Run the test",
     "running": "Testing…",
-    "aiWorks": "The test passed: the key and the model are accepted."
+    "aiWorks": "The test passed: the key and the model are accepted.",
+    "geoipWorks": "The database was downloaded and installed."
   },
   "fields": {
     "aws": {
@@ -155,6 +161,10 @@
       "apiKey": "API key",
       "baseUrl": "Service address",
       "model": "Model"
+    },
+    "maxmind": {
+      "accountId": "Account number",
+      "licenseKey": "License key"
     }
   },
   "hints": {
@@ -195,6 +205,10 @@
       "apiKey": "The key of that service. For the free Gemini option: «Get API key» in Google AI Studio.",
       "baseUrl": "A public https address that ends before «/chat/completions». Gemini: https://generativelanguage.googleapis.com/v1beta/openai · Groq: https://api.groq.com/openai/v1 · OpenRouter: https://openrouter.ai/api/v1",
       "model": "A model of that service that supports structured JSON answers. Free Gemini: gemini-3.8-flash."
+    },
+    "maxmind": {
+      "accountId": "MaxMind account → «Account ID / User ID» (a number shown at the top of the account page).",
+      "licenseKey": "MaxMind account → «Manage license keys» → Generate new license key. It is shown only once and is not shown again after saving."
     }
   },
   "tabs": {
@@ -205,7 +219,8 @@
     "tour-settings": "Welcome tour",
     "security-settings": "Security",
     "captcha": "Bot protection",
-    "ai": "AI"
+    "ai": "AI",
+    "geoip": "Address locations"
   },
   "tabsLabel": "Services",
   "noTabs": "You may not view any of these settings.",
@@ -369,6 +384,21 @@
           "model": "The model that reads the files. Free models are less exact than Claude and have rate limits."
         },
         "note": "Google's free tier may use what you send to improve its products, and other free services have their own terms. A title file holds company data, not employees' data: do not put personal data in it. The AI's reading is always reviewed by a person before it is saved."
+      },
+      "maxmind": {
+        "summary": "MaxMind's free database that tells the city of an IP address. It is downloaded to this server and refreshed every week.",
+        "steps": [
+          "Create a free account at maxmind.com → «GeoLite2» (sign up for GeoLite2).",
+          "Confirm your e-mail and sign in to the MaxMind account.",
+          "Copy the «Account ID» shown on the account page.",
+          "Open «Manage license keys» → «Generate new license key», name it, and answer «No» to the old update tool question.",
+          "Copy the license key (it is shown once) and paste both values here.",
+          "Press «Try»: the platform downloads the database. When it passes, press «Activate»."
+        ],
+        "fields": {
+          "accountId": "The number of your MaxMind account.",
+          "licenseKey": "The secret key that allows the download; it stays on the server and is never shown after saving."
+        }
       }
     }
   },

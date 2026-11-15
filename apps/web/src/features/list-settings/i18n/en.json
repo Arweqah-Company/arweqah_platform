@@ -100,7 +100,10 @@
         "when": "When",
         "actor": "Actor",
         "action": "Action",
-        "category": "Category"
+        "category": "Category",
+        "record": "Record",
+        "ip": "IP address",
+        "city": "City"
       },
       "filters": {
         "action": "Action",
@@ -499,6 +502,19 @@
         "manager": "Direct manager"
       },
       "filters": {}
+    },
+    "geoip-providers": {
+      "name": "Address location services",
+      "columns": {
+        "provider": "Service",
+        "status": "Status",
+        "tested": "Last test",
+        "active": "In use"
+      },
+      "filters": {
+        "status": "Status",
+        "active": "In use"
+      }
     }
   },
   "listHint": "The first column (the name) always stays.",

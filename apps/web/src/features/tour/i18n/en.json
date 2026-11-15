@@ -101,6 +101,16 @@
         "activate": "Switch the AI service on and off",
         "export": "Export the list of providers"
       }
+    },
+    "geoip-settings": {
+      "title": "Address locations",
+      "body": "Show the city of each address in the audit log: enter the MaxMind account number and license key, try them (the platform downloads the city database), and activate. With no active service the log shows addresses only.",
+      "can": {
+        "edit": "Edit the service data",
+        "test": "Try the data and download the database",
+        "activate": "Switch the service on and off",
+        "export": "Export the list"
+      }
     }
   },
   "settings": {

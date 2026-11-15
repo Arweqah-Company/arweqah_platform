@@ -19,6 +19,8 @@ import { AiClient } from '../../src/core/integrations/domain/contracts/ai-client
 import { CaptchaVerifier } from '../../src/core/integrations/domain/contracts/captcha-verifier';
 import { FakeAiClient } from '../fakes/fake-ai-client';
 import { FakeCaptchaVerifier } from '../fakes/fake-captcha-verifier';
+import { FakeGeoipDatabase } from '../fakes/fake-geoip-database';
+import { GeoipDatabase } from '../../src/core/integrations/domain/contracts/geoip-database';
 import { FakeMailSender } from '../fakes/fake-mail-sender';
 import { FakeMailTransportFactory, FakeProviders, FakeTranslatorFactory } from '../fakes/fake-provider-factories';
 import { FakeTranslator } from '../fakes/fake-translator';
@@ -44,6 +46,7 @@ export interface TestContext {
   translator: FakeTranslator;
   providers: FakeProviders;
   captcha: FakeCaptchaVerifier;
+  geoip: FakeGeoipDatabase;
   ai: FakeAiClient;
 }
 
@@ -58,6 +61,7 @@ export function useTestApp(): TestContext {
     ctx.translator = new FakeTranslator();
     ctx.providers = new FakeProviders();
     ctx.captcha = new FakeCaptchaVerifier();
+    ctx.geoip = new FakeGeoipDatabase();
     ctx.ai = new FakeAiClient();
     const moduleRef = await Test.createTestingModule({ imports: [AppModule], controllers: [AdminModeProbeController] })
       .overrideProvider(MailSender)
@@ -68,6 +72,8 @@ export function useTestApp(): TestContext {
       .useValue(new FakeTranslatorFactory(ctx.providers))
       .overrideProvider(CaptchaVerifier)
       .useValue(ctx.captcha)
+      .overrideProvider(GeoipDatabase)
+      .useValue(ctx.geoip)
       .overrideProvider(AiClient)
       .useValue(ctx.ai)
       .overrideProvider(MailTransportFactory)

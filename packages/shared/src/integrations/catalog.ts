@@ -3,14 +3,15 @@
  * drives the API (what is required, what is secret, what is valid) and the web (which fields the form shows), so a
  * provider is added here once. Secrets are stored encrypted and never sent back to the browser.
  */
-export const INTEGRATION_KINDS = ['translation', 'email', 'captcha', 'ai'] as const;
+export const INTEGRATION_KINDS = ['translation', 'email', 'captcha', 'ai', 'geoip'] as const;
 export type IntegrationKind = (typeof INTEGRATION_KINDS)[number];
 
 export const TRANSLATION_PROVIDERS = ['aws', 'google', 'azure'] as const;
 export const EMAIL_PROVIDERS = ['smtp', 'ses', 'sendgrid', 'graph'] as const;
 export const CAPTCHA_PROVIDERS = ['turnstile'] as const;
 export const AI_PROVIDERS = ['anthropic', 'compatible'] as const;
-export const PROVIDERS_OF = { translation: TRANSLATION_PROVIDERS, email: EMAIL_PROVIDERS, captcha: CAPTCHA_PROVIDERS, ai: AI_PROVIDERS } as const;
+export const GEOIP_PROVIDERS = ['maxmind'] as const;
+export const PROVIDERS_OF = { translation: TRANSLATION_PROVIDERS, email: EMAIL_PROVIDERS, captcha: CAPTCHA_PROVIDERS, ai: AI_PROVIDERS, geoip: GEOIP_PROVIDERS } as const;
 /** The model used until the administrator picks another one in the AI settings. */
 export const AI_DEFAULT_MODEL = 'claude-opus-5-5';
 /** The free option out of the box: Google Gemini's OpenAI-compatible address and one of its free-tier models (Google's pricing page, 2026-11-09). */
@@ -20,7 +21,8 @@ export type TranslationProviderKey = (typeof TRANSLATION_PROVIDERS)[number];
 export type EmailProviderKey = (typeof EMAIL_PROVIDERS)[number];
 export type CaptchaProviderKey = (typeof CAPTCHA_PROVIDERS)[number];
 export type AiProviderKey = (typeof AI_PROVIDERS)[number];
-export type ProviderKey = TranslationProviderKey | EmailProviderKey | CaptchaProviderKey | AiProviderKey;
+export type GeoipProviderKey = (typeof GEOIP_PROVIDERS)[number];
+export type ProviderKey = TranslationProviderKey | EmailProviderKey | CaptchaProviderKey | AiProviderKey | GeoipProviderKey;
 
 /** How a value is checked beyond "not empty". */
 export type FieldFormat = 'sender' | 'email' | 'url' | 'public-url' | 'service-account-json';
@@ -62,6 +64,8 @@ export const PROVIDER_FIELDS: Record<ProviderKey, ProviderField[]> = {
   anthropic: [secret('apiKey'), text('model', { defaultValue: AI_DEFAULT_MODEL })],
   // Any service that speaks the OpenAI `chat/completions` protocol (Gemini's free tier, Groq, OpenRouter…): its address, its key and a model it offers.
   compatible: [secret('apiKey'), text('baseUrl', { format: 'public-url', defaultValue: COMPATIBLE_DEFAULT_URL }), text('model', { defaultValue: COMPATIBLE_DEFAULT_MODEL })],
+  // MaxMind's free GeoLite2 city database: the platform downloads it with these two values (the account number is public, the license key is secret) and looks cities up on its own server.
+  maxmind: [text('accountId'), secret('licenseKey')],
   graph: [text('tenantId'), text('clientId'), secret('clientSecret'), text('sender', { format: 'email' })],
 };
 
