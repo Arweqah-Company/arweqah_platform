@@ -43,6 +43,19 @@ describe('Tasks: tags and policies (FR-54)', () => {
       expect(updated).toMatchObject({ nameEn: 'Meetings', isActive: false });
     });
 
+    it('lets the head role of a unit (subtree scope) keep tags for the unit and every unit below it, and none outside it', async () => {
+      const w = await world();
+      const head = await t.factories.user({ unit: { ...w.org.unitA, id: w.org.department }, grants: [...TASK_EMPLOYEE_GRANTS, ...tagGrants('subtree')] }); // sits in the department: its reach is the department and everything below
+      const agent = await t.factories.signIn(head);
+      const options = (await agent.get('/api/task-tags/departments').expect(200)).body as TaskDepartmentOptionDto[];
+      expect(options.map((d) => d.id)).toEqual(expect.arrayContaining([w.org.department, w.org.sectionAB, w.org.unitA.id]));
+      expect(options.map((d) => d.id)).not.toContain(w.org.otherDepartment);
+      await addTag(agent, w.org.department);
+      await addTag(agent, w.org.sectionAB);
+      await addTag(agent, w.org.unitA.id);
+      await agent.post('/api/task-tags').send(tag(w.org.otherDepartment)).expect(404);
+    });
+
     it('offers only the departments the person may keep tags for', async () => {
       const w = await world();
       const own = (await w.agents.deptManager.get('/api/task-tags/departments').expect(200)).body as TaskDepartmentOptionDto[];

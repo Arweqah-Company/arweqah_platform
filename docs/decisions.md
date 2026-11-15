@@ -2,6 +2,14 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-15 — The head role of a unit also edits its people, assigns tasks and keeps task tags
+
+Plan: `docs/plans/phase-3-tasks.md` (log, 2026-11-15).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 374 | **`LEVEL_HEAD_DEFAULT_PERMISSIONS` gains, at `subtree`: `tasks.tags_view / tag_create / tag_update / tag_delete`, `tasks.assign`, `employees.update`, `employees.photo_update`, `employees.resend_invite`, `employees.reset_authenticator`; migration `HeadRoleTeamKeys` inserts only the keys an existing head role lacks (standing rule 17).** Found on production: the leader of «Digital Transformation» could not add a task category for their unit or reset a team member's authenticator. Local reproduction: `node-head-roles` failed on the missing tag keys before the fix. Role assignment by a leader (`employees.assign_roles` today only `company` / `all`) and re-assigning a ticket are decided but built in their own stages: the leader may give any role they hold themselves (`assertGrantable` already refuses more), and a new ticket action re-assigns a ticket to a person of the leader's unit and below. | Owner: a leader runs their unit without asking an administrator for routine things. | A leader needs `employees.assign_change` (unit / title / manager) or wider data. |
+
 ## 2026-11-12 — `dev` deploys to staging, `main` to production
 
 Plan: `docs/plans/phase-1-auth-employees.md` (log, 2026-11-12).

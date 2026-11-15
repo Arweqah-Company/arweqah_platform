@@ -13,11 +13,13 @@
   "noMatches": "No tickets match.",
   "empty": {
     "mine": "You have not sent any ticket yet.",
-    "inbox": "No tickets have arrived for you."
+    "inbox": "No tickets have arrived for you.",
+    "team": "Your team has no tickets."
   },
   "emptyHint": {
     "mine": "Press “New ticket” to send your request to the right unit.",
-    "inbox": "Tickets assigned to you appear here, or your unit's tickets if you manage it."
+    "inbox": "Tickets assigned to you appear here, or your unit's tickets if you manage it.",
+    "team": "Tickets sent by or assigned to your team members appear here."
   },
   "groupBy": {
     "label": "Group by",
