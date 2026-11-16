@@ -133,6 +133,9 @@ Here you edit the wording of every e-mail the platform sends (the account activa
 | Requests per minute | How many requests one address may send a minute before it is told to wait. One page load sends dozens of requests, so a low value stops the platform; sign-in has its own stricter limit | 120 to 100000 (default 600) |
 | Let platform administrators sign in as another employee | Switches the «Sign in as» feature on | Off by default |
 | Minutes without activity before it ends | How long a «sign in as» session may sit idle before it ends | 5 to 240 (default 30) |
+| Switch the platform assistant on | Switches the assistant (the chat button) on or off for everyone | On by default |
+| Messages per employee per hour | How many messages one employee may send to the platform assistant in an hour | 5 to 300 (default 30) |
+| Minutes a request waits for confirmation | How long a request the assistant prepared waits before it expires | 5 to 1440 (default 30) |
 | Allowed e-mail domains | One domain per line for the work e-mail when an employee is added | Empty = `arweqah.sa` only |
 
 | Action | Permission |

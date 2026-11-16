@@ -7,7 +7,7 @@ const sdk = vi.hoisted(() => {
       super(message);
     }
   }
-  const state = { constructed: [] as unknown[], streamed: [] as unknown[], reply: (): Promise<unknown> => Promise.resolve({}), models: (): unknown => ({}) };
+  const state = { constructed: [] as unknown[], streamed: [] as unknown[], listeners: [] as ((text: string) => void)[], reply: (): Promise<unknown> => Promise.resolve({}), models: (): unknown => ({}) };
   class Anthropic {
     static APIError = APIError;
     constructor(options: unknown) {
@@ -19,7 +19,7 @@ const sdk = vi.hoisted(() => {
     messages = {
       stream: (params: unknown) => {
         state.streamed.push(params);
-        return { finalMessage: () => state.reply() };
+        return { finalMessage: () => state.reply(), on: (event: string, listener: (text: string) => void) => { if (event === 'text') state.listeners.push(listener); } };
       },
     };
   }
@@ -35,6 +35,7 @@ describe('The Anthropic strategy of the AI service (FR-126)', () => {
   beforeEach(() => {
     sdk.state.constructed.length = 0;
     sdk.state.streamed.length = 0;
+    sdk.state.listeners.length = 0;
   });
 
   it('FR-126: sends the key, the model, the schema as the answer format and the document in the user turn; reads only the text blocks', async () => {
@@ -43,6 +44,18 @@ describe('The Anthropic strategy of the AI service (FR-126)', () => {
     expect(sdk.state.constructed[0]).toMatchObject({ apiKey: REQUEST.values.apiKey, maxRetries: 0 });
     expect(sdk.state.streamed[0]).toMatchObject({ model: REQUEST.values.model, max_tokens: 1000, system: 'sys', messages: [{ role: 'user', content: 'doc' }], output_config: { format: { type: 'json_schema', schema: { type: 'object' } } } });
     expect(JSON.stringify(sdk.state.streamed[0])).not.toContain('tools');
+  });
+
+  it('FR-149: hands each piece of text of the stream to onText when asked, and only then', async () => {
+    sdk.state.reply = () => Promise.resolve(message({}));
+    await client.json(REQUEST);
+    expect(sdk.state.listeners).toHaveLength(0);
+    const pieces: string[] = [];
+    await client.json({ ...REQUEST, onText: (d) => pieces.push(d) });
+    expect(sdk.state.listeners).toHaveLength(1);
+    sdk.state.listeners[0]!('{"st');
+    sdk.state.listeners[0]!('eps":[]}');
+    expect(pieces).toEqual(['{"st', 'eps":[]}']);
   });
 
   it('FR-126: a refusal and a cut-off answer are outcomes, not errors', async () => {

@@ -8,7 +8,7 @@ import { SecuritySettingsTab } from './security-settings-tab';
 const open = (keys = ['security_settings.view', 'security_settings.edit']) => {
   server.use(
     http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'all' as const }))))),
-    http.get('*/api/security-settings', () => HttpResponse.json({ trustedDeviceDays: 0, requestsPerMinute: 600, impersonationEnabled: 0, impersonationIdleMinutes: 30 })),
+    http.get('*/api/security-settings', () => HttpResponse.json({ trustedDeviceDays: 0, requestsPerMinute: 600, impersonationEnabled: 0, impersonationIdleMinutes: 30, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30 })),
   );
   renderPage(<SecuritySettingsTab />);
 };
@@ -25,7 +25,7 @@ describe('Security settings tab (FR-73, FR-76)', () => {
     expect(await screen.findByRole('button', { name: 'حفظ' })).toBeDisabled();
     fireEvent.change(days, { target: { value: '30' } });
     fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
-    await waitFor(() => expect(saved).toEqual({ trustedDeviceDays: 30, requestsPerMinute: 600, impersonationEnabled: 0, impersonationIdleMinutes: 30 }));
+    await waitFor(() => expect(saved).toEqual({ trustedDeviceDays: 30, requestsPerMinute: 600, impersonationEnabled: 0, impersonationIdleMinutes: 30, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30 }));
   });
 
   it('switches «sign in as» on, checks its idle minutes, and saves both (FR-85)', async () => {
@@ -42,7 +42,33 @@ describe('Security settings tab (FR-73, FR-76)', () => {
     expect(await screen.findByRole('button', { name: 'حفظ' })).toBeDisabled();
     fireEvent.change(minutes, { target: { value: '45' } });
     fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
-    await waitFor(() => expect(saved).toEqual({ trustedDeviceDays: 0, requestsPerMinute: 600, impersonationEnabled: 1, impersonationIdleMinutes: 45 }));
+    await waitFor(() => expect(saved).toEqual({ trustedDeviceDays: 0, requestsPerMinute: 600, impersonationEnabled: 1, impersonationIdleMinutes: 45, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30 }));
+  });
+
+  it('shows the assistant numbers, checks their range and saves them (FR-147)', async () => {
+    let saved: Record<string, number> | undefined;
+    server.use(http.put('*/api/security-settings', async ({ request }) => { saved = (await request.json()) as Record<string, number>; return HttpResponse.json(saved); }));
+    open();
+    const perHour = await screen.findByLabelText('عدد رسائل الموظف في الساعة');
+    expect(perHour).toHaveValue(30);
+    fireEvent.change(perHour, { target: { value: '2' } });
+    expect(await screen.findByText('أدخل رقمًا صحيحًا بين 5 و300.')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'حفظ' })).toBeDisabled();
+    fireEvent.change(perHour, { target: { value: '60' } });
+    fireEvent.change(screen.getByLabelText('دقائق انتظار التأكيد على الطلب'), { target: { value: '15' } });
+    fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
+    await waitFor(() => expect(saved).toMatchObject({ agentMessagesPerHour: 60, agentDraftMinutes: 15 }));
+  });
+
+  it('FR-150: the assistant has an on/off check box, on by default, saved with the other numbers', async () => {
+    let saved: Record<string, number> | undefined;
+    server.use(http.put('*/api/security-settings', async ({ request }) => { saved = (await request.json()) as Record<string, number>; return HttpResponse.json(saved); }));
+    open();
+    const box = await screen.findByLabelText('تفعيل مساعد المنصة', { exact: false });
+    expect(box).toBeChecked();
+    fireEvent.click(box);
+    fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
+    await waitFor(() => expect(saved).toMatchObject({ agentEnabled: 0, agentMessagesPerHour: 30, agentDraftMinutes: 30 }));
   });
 
   it('is read-only without the edit key', async () => {

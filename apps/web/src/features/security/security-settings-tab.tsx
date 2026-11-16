@@ -30,12 +30,18 @@ const asText = (values: SecuritySettingsInput): Typed => ({
   requestsPerMinute: String(values.requestsPerMinute),
   impersonationEnabled: String(values.impersonationEnabled),
   impersonationIdleMinutes: String(values.impersonationIdleMinutes),
+  agentEnabled: String(values.agentEnabled ?? SECURITY_SETTINGS.agentEnabled.default),
+  agentMessagesPerHour: String(values.agentMessagesPerHour ?? SECURITY_SETTINGS.agentMessagesPerHour.default),
+  agentDraftMinutes: String(values.agentDraftMinutes ?? SECURITY_SETTINGS.agentDraftMinutes.default),
 });
 const asNumbers = (form: Typed): SecuritySettingsInput => ({
   trustedDeviceDays: Number(form.trustedDeviceDays),
   requestsPerMinute: Number(form.requestsPerMinute),
   impersonationEnabled: Number(form.impersonationEnabled),
   impersonationIdleMinutes: Number(form.impersonationIdleMinutes),
+  agentEnabled: Number(form.agentEnabled),
+  agentMessagesPerHour: Number(form.agentMessagesPerHour),
+  agentDraftMinutes: Number(form.agentDraftMinutes),
 });
 
 function SettingsForm({ initial }: { initial: SecuritySettingsInput }) {
@@ -48,7 +54,7 @@ function SettingsForm({ initial }: { initial: SecuritySettingsInput }) {
     const value = Number(form[key]);
     return form[key] !== '' && Number.isInteger(value) && value >= SECURITY_SETTINGS[key].min && value <= SECURITY_SETTINGS[key].max;
   };
-  const valid = (['trustedDeviceDays', 'requestsPerMinute', 'impersonationEnabled', 'impersonationIdleMinutes'] as const).every(inRange);
+  const valid = (['trustedDeviceDays', 'requestsPerMinute', 'impersonationEnabled', 'impersonationIdleMinutes', 'agentEnabled', 'agentMessagesPerHour', 'agentDraftMinutes'] as const).every(inRange);
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     try {
@@ -68,6 +74,7 @@ function SettingsForm({ initial }: { initial: SecuritySettingsInput }) {
         {(p) => <Input {...p} type="number" dir="ltr" inputMode="numeric" disabled={!canEdit} value={form.requestsPerMinute} onChange={(e) => setForm((f) => ({ ...f, requestsPerMinute: e.target.value }))} />}
       </FormField>
       <ImpersonationFields form={form} setForm={setForm} disabled={!canEdit} inRange={inRange} />
+      <AgentFields form={form} setForm={setForm} disabled={!canEdit} inRange={inRange} />
       {canEdit && <div className="flex justify-end"><Button type="submit" disabled={!valid || save.isPending}>{tc('actions.save')}</Button></div>}
     </form>
   );
@@ -102,6 +109,30 @@ function ImpersonationFields({ form, setForm, disabled, inRange }: FieldsProps) 
       <FormField label={t('settings.impersonationIdleMinutes')} hint={t('settings.impersonationIdleMinutesHint')} error={inRange('impersonationIdleMinutes') ? undefined : t('settings.range', SECURITY_SETTINGS.impersonationIdleMinutes)}>
         {(p) => <Input {...p} type="number" dir="ltr" inputMode="numeric" disabled={disabled} value={form.impersonationIdleMinutes} onChange={(e) => setForm((f) => ({ ...f, impersonationIdleMinutes: e.target.value }))} />}
       </FormField>
+    </fieldset>
+  );
+}
+
+/** The platform assistant's two numbers: messages an employee may send in an hour, and how long a request waits for confirmation (FR-147). */
+function AgentFields({ form, setForm, disabled, inRange }: FieldsProps) {
+  const { t } = useTranslation('security');
+  const field = (key: 'agentMessagesPerHour' | 'agentDraftMinutes') => (
+    <FormField label={t(`settings.${key}`)} hint={t(`settings.${key}Hint`)} error={inRange(key) ? undefined : t('settings.range', SECURITY_SETTINGS[key])}>
+      {(p) => <Input {...p} type="number" dir="ltr" inputMode="numeric" disabled={disabled} value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} />}
+    </FormField>
+  );
+  return (
+    <fieldset className="flex flex-col gap-4 border-t border-neutral-200 pt-4" data-tour="agent-settings">
+      <legend className="sr-only">{t('settings.agentGroup')}</legend>
+      <label className="flex items-start gap-3 text-sm">
+        <input type="checkbox" className="mt-0.5 size-5 accent-petrol-800" disabled={disabled} checked={form.agentEnabled === '1'} onChange={(e) => setForm((f) => ({ ...f, agentEnabled: e.target.checked ? '1' : '0' }))} />
+        <span>
+          <span className="block font-medium text-fg">{t('settings.agentEnabled')}</span>
+          <span className="block text-muted">{t('settings.agentEnabledHint')}</span>
+        </span>
+      </label>
+      {field('agentMessagesPerHour')}
+      {field('agentDraftMinutes')}
     </fieldset>
   );
 }

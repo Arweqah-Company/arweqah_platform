@@ -1,0 +1,62 @@
+{
+  "title": "Platform assistant",
+  "open": "Open the platform assistant",
+  "close": "Close the assistant",
+  "newChat": "New conversation",
+  "conversation": "Conversation with the assistant",
+  "empty": "Tell me what you want to do in the platform, for example: «add a ticket type called Technical problem to my unit». I will ask for anything missing and you confirm before anything is done.",
+  "write": "Write your message",
+  "placeholder": "Write what you want to do…",
+  "send": "Send",
+  "thinking": "The assistant is working on it…",
+  "status": {
+    "thinking": "The assistant is thinking…",
+    "lookup": "Looking up: {{label}}…",
+    "preparing": "Preparing: {{label}}…",
+    "manual": "Reading the user manual…",
+    "permission": "Checking your permissions…"
+  },
+  "readOnly": "You can read this conversation but not write to the assistant.",
+  "history": {
+    "open": "Earlier conversations",
+    "loading": "Loading your conversations…",
+    "none": "You have no earlier conversations."
+  },
+  "draft": {
+    "title": "Request waiting for your confirmation",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "destructive": "This deletes something. Check the name before you confirm.",
+    "expiredHint": "This request expired. Ask the assistant again.",
+    "status": {
+      "pending": "Waiting for you",
+      "confirmed": "Done",
+      "cancelled": "Cancelled",
+      "expired": "Expired",
+      "failed": "Not done"
+    }
+  },
+  "tour": {
+    "agent-chat": {
+      "title": "The platform assistant",
+      "body": "Tell the assistant what you want to do instead of going through several pages. It asks for anything missing, shows you what it will do, and does it only after you confirm, with your own permissions."
+    }
+  },
+  "links": {
+    "manual": "Read in the user manual: {{title}}",
+    "page": "Open: {{title}}",
+    "adminMode": "needs admin mode"
+  },
+  "form": {
+    "open": "Open the form",
+    "submit": "Send the form",
+    "sent": "Form sent",
+    "pick": "Choose…",
+    "problem": {
+      "required": "This field is required.",
+      "range": "Enter a number between {{min}} and {{max}}.",
+      "tooLong": "At most {{length}} characters.",
+      "server": "{{message}}"
+    }
+  }
+}

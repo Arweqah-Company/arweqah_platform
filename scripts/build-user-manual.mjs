@@ -8,6 +8,8 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'apps/web/src/features/docs/content');
+// The same manual as plain text for the platform assistant (it answers «how do I…» from it): inside the API, so it ships with it.
+const ASSISTANT_OUT = join(ROOT, 'apps/api/src/core/agent/assets');
 
 /**
  * Permission keys (`employees.view`) mean nothing to a reader: the manual names a permission by the label the permissions page
@@ -95,20 +97,20 @@ const SECTIONS = join(ROOT, 'docs/user-manual/sections');
 const key = (name) => keyOf(name) ?? (() => { throw new Error(`unknown permission ${name}`); })();
 const A = (page, ...names) => ({ page, permissions: names.map(key) });
 const ACCESS = {
-  '04-profile': A(null, 'ProfileView'), '05-notifications': A(null, 'NotificationsView'), '06-security': A(null, 'SecurityView'), '07-my-access': A(null, 'MyAccessView'),
+  '04-profile': A(null, 'ProfileView'), '05-notifications': A(null, 'NotificationsView'), '06-security': A(null, 'SecurityView'), '09-assistant': A(null, 'AgentView'), '07-my-access': A(null, 'MyAccessView'),
   '20-employees': A('employees', 'EmployeesView'), '21-org': A('org', 'OrgView'), '22-job-titles': A('job-titles', 'JobTitlesView'), '23-companies': A('companies', 'CompaniesView'),
-  '60-my-career': A('career-profile', 'CareerProfileView'), '62-career-team': A('career-team', 'EmployeesView'), '61-career-certificates': A('career-certificates', 'CareerCertificatesReview'),
+  '60-my-career': A('career-profile', 'CareerProfileView'), '62-career-team': A('career-team', 'CareerTeamView'), '61-career-certificates': A('career-certificates', 'CareerCertificatesReview'),
   '63-career-requests': A('career-requests', 'CareerRequestsView'), '64-career-content': A('career-content', 'CareerContentView'), '65-performance-cycle': A('performance-cycle', 'PerformanceCycleView'),
   '66-performance-calibration': A('performance-calibration', 'PerformanceCalibrationView'), '67-performance-team': A('performance-team', 'PerformanceTeamView'),
   '30-tasks': A('tasks', 'TasksView'), '31-task-details-conversation': A('tasks', 'TasksView'), '32-task-tags': A('task-tags', 'TasksTagsView'), '33-task-policies': A('task-policies', 'TasksPoliciesView'),
-  '34-tickets': A('tickets'), '35-ticket-setup': A('ticket-setup', 'TicketsSetupView'), '36-ticket-figures': A('ticket-figures', 'TicketsFiguresView'),
+  '34-tickets': A('tickets', 'TicketsView'), '35-ticket-setup': A('ticket-setup', 'TicketsSetupView'), '36-ticket-figures': A('ticket-figures', 'TicketsFiguresView'),
   '40-roles': A('roles', 'RolesView'), '41-permissions': A('permissions', 'PermissionsView'), '44-audit': A('audit', 'AuditView'), '45-email-log': A('email-log', 'EmailLogView'),
   '46-settings': A(null, 'IntegrationsTranslationView', 'IntegrationsEmailView', 'IntegrationsCaptchaView', 'IntegrationsAiView', 'TemplatesEmailView', 'TemplatesNotificationView', 'TourSettingsView', 'SecuritySettingsView'),
 };
 // Pages of the administration menus work only while platform admin mode is on: the section says so.
 const ADMIN_MODE = new Set(['23-companies', '33-task-policies', '35-ticket-setup', '36-ticket-figures', '40-roles', '41-permissions', '44-audit', '45-email-log', '46-settings']);
 const GROUPS = [
-  { ar: 'البداية', en: 'Getting started', files: ['01-concepts', '02-sign-in', '03-home', '08-tour'] },
+  { ar: 'البداية', en: 'Getting started', files: ['01-concepts', '02-sign-in', '03-home', '08-tour', '09-assistant'] },
   { ar: 'حسابي', en: 'My account', files: ['04-profile', '05-notifications', '06-security', '07-my-access'] },
   { ar: 'الموارد البشرية', en: 'People', files: ['20-employees', '21-org', '22-job-titles', '23-companies'] },
   { ar: 'الملف المهني', en: 'Career file', files: ['60-my-career', '62-career-team', '61-career-certificates', '63-career-requests', '64-career-content', '65-performance-cycle', '66-performance-calibration', '67-performance-team'] },
@@ -119,7 +121,20 @@ const GROUPS = [
 const read = (name, lang) => nameKeys(readFileSync(join(SECTIONS, `${name}.${lang}.md`), 'utf8').trim(), lang);
 const title = (md) => md.match(/^## (.+)$/m)[1];
 
+/** A block of the manual as plain lines: no images, tables as «cell | cell» rows, lists as numbered or dashed lines. */
+const flat = (nodes) => [nodes].flat().map((n) => (typeof n === 'string' ? n : n.bold ? flat(n.bold) : n.perm ? n.perm.label : n.code ? n.code : '')).join('');
+const plain = (b) => {
+  if (b.p) return flat(b.p);
+  if (b.h) return `\n${flat(b.i)}`;
+  if (b.note) return b.note.map(flat).join('\n');
+  if (b.ul) return b.ul.map((item) => `- ${flat(item)}`).join('\n');
+  if (b.ol) return b.ol.map((item, i) => `${i + 1}. ${flat(item)}`).join('\n');
+  if (b.table) return [b.table.head, ...b.table.rows].map((row) => row.map(flat).join(' | ')).join('\n');
+  return '';
+};
+
 mkdirSync(OUT, { recursive: true });
+mkdirSync(ASSISTANT_OUT, { recursive: true });
 for (const lang of ['ar', 'en']) {
   PERM_LANG = Object.fromEntries([...LABELS].map(([k, v]) => [k, v[lang]]));
   const sections = GROUPS.flatMap((g, group) => g.files.map((file) => {
@@ -130,6 +145,8 @@ for (const lang of ['ar', 'en']) {
   const intro = read('00-intro', lang);
   const manual = { title: intro.match(/^# (.+)$/m)[1], intro: blocks(intro), groups: GROUPS.map((g) => g[lang]), sections };
   writeFileSync(join(OUT, `manual.${lang}.json`), `${JSON.stringify(manual)}\n`);
+  const text = sections.map(({ id, title, permissions, page, adminMode, blocks }) => ({ id, title, permissions, page, adminMode, text: blocks.map(plain).filter(Boolean).join('\n').replace(/\n{3,}/g, '\n\n').trim() }));
+  writeFileSync(join(ASSISTANT_OUT, `manual-text.${lang}.json`), `${JSON.stringify(text)}\n`);
 }
 if (unresolved.size) console.warn(`Permission keys without a label (left as code): ${[...unresolved].sort().join(', ')}`);
 console.log(`Built ${OUT}`);

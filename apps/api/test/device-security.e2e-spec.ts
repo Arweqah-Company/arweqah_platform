@@ -177,8 +177,8 @@ describe('Sessions, trusted devices and the security settings (FR-73)', () => {
     it('reads the defaults, saves new numbers within their limits, audits it, and answers 403 and 400 where it should', async () => {
       const admin = await t.factories.signInAdminMode(await t.factories.user({ grants: [...SETTINGS, { key: CorePermission.AuditView, scope: ALL }] }));
       // The tests lift the request limit (100 000); a fresh system has the default of 600.
-      expect((await admin.get('/api/security-settings').expect(200)).body).toEqual({ trustedDeviceDays: 0, requestsPerMinute: 100000, impersonationEnabled: 0, impersonationIdleMinutes: 30 });
-      expect((await admin.put('/api/security-settings').send({ trustedDeviceDays: 14, requestsPerMinute: 900, impersonationEnabled: 0, impersonationIdleMinutes: 30 }).expect(200)).body).toEqual({ trustedDeviceDays: 14, requestsPerMinute: 900, impersonationEnabled: 0, impersonationIdleMinutes: 30 });
+      expect((await admin.get('/api/security-settings').expect(200)).body).toEqual({ trustedDeviceDays: 0, requestsPerMinute: 100000, impersonationEnabled: 0, impersonationIdleMinutes: 30, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30 });
+      expect((await admin.put('/api/security-settings').send({ trustedDeviceDays: 14, requestsPerMinute: 900, impersonationEnabled: 0, impersonationIdleMinutes: 30 }).expect(200)).body).toEqual({ trustedDeviceDays: 14, requestsPerMinute: 900, impersonationEnabled: 0, impersonationIdleMinutes: 30, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30 });
       expect((await admin.get('/api/security-settings').expect(200)).body).toMatchObject({ trustedDeviceDays: 14 });
       await admin.put('/api/security-settings').send({ trustedDeviceDays: 1000, requestsPerMinute: 900, impersonationEnabled: 0, impersonationIdleMinutes: 30 }).expect(400);
       await admin.put('/api/security-settings').send({ trustedDeviceDays: 14, requestsPerMinute: 5, impersonationEnabled: 0, impersonationIdleMinutes: 30 }).expect(400);

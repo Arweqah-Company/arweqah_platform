@@ -3,6 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { CorePermission, type PersonRefDto, type TicketDeskDto, type TicketTypeDto } from '@arweqah-platform/shared';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
 import { Access, HiddenWithPage, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
+import { AgentHint } from '../../../../core/agent/presentation/agent-hidden.decorator';
 import { TicketSetupService } from '../../application/services/ticket-setup.service';
 import { AssigneeSearchDto, DeskParam, DeskSettingsBody, TicketTypeBody, TypeParam } from '../dtos/tickets.dtos';
 
@@ -41,6 +42,7 @@ export class TicketSetupController {
   }
 
   @Post('desks/:deskId/types')
+  @AgentHint('deskId is the id of the unit (department) that receives the tickets: get it from the list of desks, never ask the employee for an id.')
   @RequirePermission(CorePermission.TicketsTypeCreate)
   createType(@Access() ctx: AccessContext, @Param() { deskId }: DeskParam, @Body() body: TicketTypeBody): Promise<TicketTypeDto> {
     return this.setup.createType(ctx, deskId, body);

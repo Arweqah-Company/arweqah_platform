@@ -33,6 +33,9 @@ export class FakeAiClient extends AiClient {
 
   async json(request: AiJsonRequest): Promise<AiJsonOutcome> {
     this.calls.push(request);
-    return this.queue.shift() ?? { kind: 'ok', text: '{"ok":true}', inputTokens: 5, outputTokens: 5 };
+    const outcome = this.queue.shift() ?? { kind: 'ok', text: '{"ok":true}', inputTokens: 5, outputTokens: 5 };
+    // A streaming caller hears the text in small pieces, as it would from a real service.
+    if (outcome.kind === 'ok' && request.onText) for (let at = 0; at < outcome.text.length; at += 7) request.onText(outcome.text.slice(at, at + 7));
+    return outcome;
   }
 }

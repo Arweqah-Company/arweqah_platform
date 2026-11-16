@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useMe, useSignOut } from '@/core/auth/session';
+import { AgentChat } from '@/features/agent-chat';
 import { CareerGate, useCareerHold } from '@/features/career-profile';
 import { EvaluationNoticeBanner } from '@/features/performance';
 import { TourProvider } from '@/features/tour';
@@ -51,6 +52,7 @@ export function AppLayout() {
           </main>
         </div>
       </div>
+      <AgentChat />
     </TourProvider>
     </NavContext.Provider>
     </ListSettingsProvider>

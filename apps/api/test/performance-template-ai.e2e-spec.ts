@@ -1,28 +1,18 @@
 import { CorePermission, type EvalFileContent, type EvalFileResult, type PermissionGrant, type TemplatesDto } from '@arweqah-platform/shared';
 import { describe, expect, it, vi } from 'vitest';
 import { aiAnswerOf } from '../src/modules/performance/domain/rules/fixtures/ai-eval-file.sample';
-import { ADMIN_MODE_GRANT } from './factories/factories';
 import { FULL_EVAL_FILE } from './helpers/eval-file';
+import { AI_VALUES, switchAiOn } from './helpers/ai-on';
 import { useTestApp } from './setup/test-app';
 
 const KEYS = [CorePermission.PerformanceCycleView, CorePermission.PerformanceTemplateUpload, CorePermission.PerformanceTemplateAi];
-const AI_ADMIN_KEYS = [CorePermission.IntegrationsAiView, CorePermission.IntegrationsAiEdit, CorePermission.IntegrationsAiTest, CorePermission.IntegrationsAiActivate];
 const grants = (without?: string): PermissionGrant[] => KEYS.filter((k) => k !== without).map((key) => ({ key, scope: 'all' as const }));
-const AI_VALUES = { apiKey: 'sk-ant-api03-e2e-key-1234567890', model: 'claude-opus-5-5' };
 
 describe('Placing an evaluation file with the AI (FR-118)', () => {
   const t = useTestApp();
 
-  async function switchAiOn() {
-    const admin = await t.factories.signInAdminMode(await t.factories.user({ grants: [ADMIN_MODE_GRANT, ...AI_ADMIN_KEYS.map((key) => ({ key, scope: 'all' as const }))] }));
-    await admin.post('/api/integrations/ai/anthropic/test').send({ values: AI_VALUES }).expect(200);
-    await admin.put('/api/integrations/ai/anthropic').send({ values: AI_VALUES }).expect(200);
-    await admin.post('/api/integrations/ai/anthropic/activate').expect(200);
-    t.ai.reset();
-  }
-
   async function setup(options: { ai?: boolean; grants?: PermissionGrant[] } = {}) {
-    if (options.ai !== false) await switchAiOn();
+    if (options.ai !== false) await switchAiOn(t);
     const hr = await t.factories.signIn(await t.factories.user({ grants: options.grants ?? grants() }));
     const analyze = (body: unknown = { text: FULL_EVAL_FILE }) => hr.post('/api/performance/templates/file/ai').send(body as object);
     const stored = async () => (await hr.get('/api/performance/templates').expect(200)).body as TemplatesDto;
