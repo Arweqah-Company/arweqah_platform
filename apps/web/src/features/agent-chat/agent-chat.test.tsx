@@ -4,12 +4,13 @@ import { describe, expect, it } from 'vitest';
 import { me, server } from '../../../test/msw';
 import { renderPage } from '../../../test/render';
 import { AgentChat } from './agent-chat';
-import { KEYS, answer, draft, grants, launcher, live, open, reply, write } from '../../../test/agent-chat-support';
+import { KEYS, answer, draft, grants, launcher, live, open, reply, withReady, write } from '../../../test/agent-chat-support';
 
 describe('The platform assistant panel (FR-145)', () => {
   it('is not on the screen for a person without agent.view', async () => {
-    open(['tickets.view']);
-    await waitFor(() => expect(screen.queryByRole('button', { name: 'فتح مساعد المنصة' })).not.toBeInTheDocument());
+    open(['tickets.view'], withReady);
+    await screen.findByText('session-ready');
+    expect(screen.queryByRole('button', { name: 'فتح مساعد المنصة' })).not.toBeInTheDocument();
   });
 
   it('opens from the button in the corner, closes with Escape, and tells the person how to start', async () => {
@@ -114,8 +115,9 @@ describe('The platform assistant panel (FR-145)', () => {
   it('FR-150: switched off by the administrator, the button is not on the screen at all', async () => {
     const body = { ...me(grants(KEYS)), agentEnabled: false };
     server.use(http.get('*/api/me', () => HttpResponse.json(body)));
-    renderPage(<AgentChat />);
-    await waitFor(() => expect(screen.queryByRole('button', { name: 'فتح مساعد المنصة' })).not.toBeInTheDocument());
+    renderPage(withReady(<AgentChat />));
+    await screen.findByText('session-ready');
+    expect(screen.queryByRole('button', { name: 'فتح مساعد المنصة' })).not.toBeInTheDocument();
   });
 
   it('FR-144: a refusal (too many messages) is explained in words under the conversation', async () => {

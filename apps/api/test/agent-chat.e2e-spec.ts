@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { SecuritySettingsService } from '../src/core/auth/application/security-settings.service';
 import manualAr from '../src/core/agent/assets/manual-text.ar.json';
 import { AgentCatalogService } from '../src/core/agent/application/services/agent-catalog.service';
+import { AgentProposalService } from '../src/core/agent/application/services/agent-proposal.service';
 import { TICKET_DESK_ADMIN_GRANTS, TICKET_PLATFORM_ADMIN_GRANTS, type TestAgent } from './factories/factories';
 import { switchAiOn } from './helpers/ai-on';
 import { useTestApp } from './setup/test-app';
@@ -141,6 +142,27 @@ describe('The platform assistant (FR-138 to FR-144)', () => {
     expect(audit[0]?.changes).toMatchObject({ via: 'agent', operationId: CREATE_TYPE });
   });
 
+  it('FR-141: two confirms sent at the same moment run the action once: one 201, one conflict, one type', async () => {
+    const w = await world();
+    const { draft } = await draftFor(w);
+    const responses = await Promise.all([w.agent.post(`/api/agent/drafts/${draft.id}/confirm`), w.agent.post(`/api/agent/drafts/${draft.id}/confirm`)]);
+    expect(responses.map((r) => r.status).sort()).toEqual([201, 409]);
+    expect(responses.find((r) => r.status === 409)!.body.code).toBe('AGENT_DRAFT_NOT_PENDING');
+    expect(await typesOf(w.desk)).toHaveLength(1);
+  });
+
+  it('FR-141: two proposals of one conversation leave one pending draft (the older one is cancelled)', async () => {
+    const w = await world();
+    const first = await draftFor(w);
+    const conversationId = (await t.db.query('SELECT conversation_id FROM agent_messages WHERE id = $1', [first.draft.id]))[0].conversation_id as string;
+    const proposals = t.app.get(AgentProposalService);
+    const action = t.app.get(AgentCatalogService).find(CREATE_TYPE)!;
+    const turn = { kind: 'propose' as const, text: '', operationId: CREATE_TYPE, valuesJson: JSON.stringify({ ...TYPE, deskId: w.desk }), summary: 'again', linksJson: '[]', optionsJson: '{}', labelsJson: '{}' };
+    await Promise.all([proposals.propose(conversationId, action, turn, [w.desk]), proposals.propose(conversationId, action, turn, [w.desk])]);
+    const rows = (await t.db.query(`SELECT draft_status FROM agent_messages WHERE conversation_id = $1 AND draft IS NOT NULL`, [conversationId])) as { draft_status: string }[];
+    expect(rows.filter((r) => r.draft_status === 'pending')).toHaveLength(1);
+  });
+
   it('FR-141: a draft runs once: a second confirm is a conflict and creates nothing more', async () => {
     const w = await world();
     const { draft } = await draftFor(w);
@@ -192,6 +214,15 @@ describe('The platform assistant (FR-138 to FR-144)', () => {
     expect(reply.messages[0]!.text).toContain('لم أستطع إكمال الطلب');
   });
 
+  it('FR-138: a message takes at most six steps in all: the seventh is not run even when the model has calls left', async () => {
+    const w = await world();
+    answers(t, describeOf(CREATE_TYPE), describeOf(CREATE_TYPE), describeOf(CREATE_TYPE), describeOf(CREATE_TYPE));
+    answers(t, describeOf(CREATE_TYPE), describeOf(CREATE_TYPE), describeOf(CREATE_TYPE), say('seventh step'));
+    const reply = await talk(w.agent, 'add a ticket type');
+    expect(reply.messages[0]!.text).toContain('لم أستطع إكمال الطلب');
+    expect(reply.messages[0]!.text).not.toContain('seventh step');
+  });
+
   it('FR-148: «how do I…» is answered from the user manual, with only the sections the person may read', async () => {
     const manual = (manualAr as { id: string; title: string }[]).find((section) => section.id === 'ticket-setup')!;
     const withKey = await world();
@@ -205,6 +236,12 @@ describe('The platform assistant (FR-138 to FR-144)', () => {
     answers(t, say('لا يوجد'));
     await talk(without.agent, 'كيف أضيف نوع تذكرة؟');
     expect(t.ai.calls[1]!.user).not.toContain(`# ${manual.title}`);
+  });
+
+  it('FR-148: a section whose page needs a key is left out for a person without it (tickets needs tickets.view, the career team needs career_team.view)', () => {
+    const sections = manualAr as { id: string; permissions: string[] }[];
+    expect(sections.find((s) => s.id === 'tickets')!.permissions).toContain('tickets.view');
+    expect(sections.find((s) => s.id === 'career-team')!.permissions).toEqual(['career_team.view']);
   });
 
   it('FR-148: an Arabic question finds the Arabic manual even when the browser says English, and the fixed texts follow the language of the screen (X-UI-Language)', async () => {
@@ -311,6 +348,14 @@ describe('The platform assistant (FR-138 to FR-144)', () => {
       expect(names).not.toContain('handlerUserIds');
       expect(form!.fields.find((f) => f.name === 'deskId')).toMatchObject({ type: 'select', label: 'الإدارة', required: true, options: [{ label: desk.nameAr, value: w.desk }] });
       expect(form!.fields.find((f) => f.name === 'nameAr')).toMatchObject({ label: 'الاسم بالعربية', required: true });
+    });
+
+    it('FR-152: a desk the assistant already holds (looked up, not offered as a choice) stays hidden and the form still sends', async () => {
+      const w = await world();
+      const { reply, form } = await offerForm(w, {});
+      expect(form!.fields.map((f) => f.name)).not.toContain('deskId');
+      const sent = (await w.agent.post(`/api/agent/forms/${reply.messages[0]!.id}/submit`).send({ values: { nameAr: 'مشاكل المنصة', nameEn: 'Platform issues', isPersonal: false, isActive: true } }).expect(201)).body as AgentReplyDto;
+      expect(sent.messages[1]!.draft).toMatchObject({ status: 'pending', values: expect.objectContaining({ deskId: w.desk }) });
     });
 
     it('sending the form makes the same confirmation card; confirming then runs the route; the form cannot be sent twice', async () => {
@@ -468,6 +513,19 @@ describe('The platform assistant (FR-138 to FR-144)', () => {
     await t.db.query(`INSERT INTO security_settings (key, value) VALUES ('agentMessagesPerHour', 5)`);
     t.app.get(SecuritySettingsService).invalidate();
     for (let i = 0; i < 5; i += 1) {
+      answers(t, say('ok'));
+      await talk(w.agent, `message ${i}`);
+    }
+    await talk(w.agent, 'one too many', undefined, 422);
+  });
+
+  it('FR-144: a message the AI could not answer gives its turn back: after the failure the full allowance still works', async () => {
+    const w = await world();
+    await t.db.query(`INSERT INTO security_settings (key, value) VALUES ('agentMessagesPerHour', 2)`);
+    t.app.get(SecuritySettingsService).invalidate();
+    t.ai.fail({ kind: 'failed', message: 'down' });
+    await talk(w.agent, 'fails', undefined, 502);
+    for (let i = 0; i < 2; i += 1) {
       answers(t, say('ok'));
       await talk(w.agent, `message ${i}`);
     }

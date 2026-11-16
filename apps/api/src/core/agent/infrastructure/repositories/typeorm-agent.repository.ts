@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThan, Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 import { AgentRepository, type NewAgentMessage } from '../../domain/contracts/agent.repository';
 import { AgentConversation, AgentMessage, type StoredDraftResult } from '../../domain/entities/agent.entities';
 
@@ -32,8 +32,8 @@ export class TypeOrmAgentRepository extends AgentRepository {
     );
   }
 
-  async recentMessages(conversationId: string, limit: number): Promise<AgentMessage[]> {
-    const rows = await this.messages.find({ where: { conversationId }, order: { createdAt: 'DESC', id: 'DESC' }, take: limit });
+  async recentMessages(conversationId: string, limit: number, upTo?: Date): Promise<AgentMessage[]> {
+    const rows = await this.messages.find({ where: { conversationId, ...(upTo && { createdAt: LessThan(new Date(upTo.getTime() + 1)) }) }, order: { createdAt: 'DESC', id: 'DESC' }, take: limit });
     return rows.reverse();
   }
 
@@ -50,12 +50,19 @@ export class TypeOrmAgentRepository extends AgentRepository {
     return (done.affected ?? 0) === 1;
   }
 
-  async cancelPendingDrafts(conversationId: string): Promise<void> {
-    await this.messages.update({ conversationId, draftStatus: 'pending' }, { draftStatus: 'cancelled' });
+  /** One draft at a time: the conversation row is locked, so a second proposal waits for the first to commit and then cancels it. */
+  replacePendingDraft(message: NewAgentMessage): Promise<AgentMessage> {
+    return this.messages.manager.transaction(async (manager) => {
+      await manager.createQueryBuilder(AgentConversation, 'c').setLock('pessimistic_write').where('c.id = :id', { id: message.conversationId }).getOne();
+      await manager.update(AgentMessage, { conversationId: message.conversationId, draftStatus: 'pending' }, { draftStatus: 'cancelled' });
+      const { draft, draftExpiresAt, ...rest } = message;
+      return manager.save(manager.create(AgentMessage, { ...rest, draft: draft ?? null, draftStatus: draft ? 'pending' : null, draftExpiresAt: draftExpiresAt ?? null, links: null, form: null, formStatus: null }));
+    });
   }
 
   async claimDraft(id: string, now: Date): Promise<boolean> {
-    const done = await this.messages.update({ id, draftStatus: 'pending', draftExpiresAt: MoreThan(now) }, { draftStatus: 'confirmed', executedAt: now });
+    // The expiry is read from the database clock at the moment of the update, not from a time taken before the claim waited for its connection or the row lock.
+    const done = await this.messages.createQueryBuilder().update().set({ draftStatus: 'confirmed', executedAt: now }).where('id = :id AND draft_status = :pending AND draft_expires_at > NOW()', { id, pending: 'pending' }).execute();
     return (done.affected ?? 0) === 1;
   }
 

@@ -40,7 +40,9 @@ function stem(word: string): string {
   const bare = word.replace(PREFIX, '');
   const ending = SUFFIX.exec(bare)?.[0] ?? '';
   const core = bare.length - ending.length >= 3 ? bare.slice(0, bare.length - ending.length) : bare;
-  return core.replace(/[اويى]/g, '') || word;
+  const skeleton = core.replace(/[اويى]/g, '');
+  // The singular's «ة» (written «ه») and the plural's «ات» (its ت) end the same root: «وحدة» and «وحدات» meet.
+  return (skeleton.length > 2 ? skeleton.replace(/[ته]$/, '') : skeleton) || word;
 }
 
 const stems = (text: string): string[] => normalizeText(text).split(' ').filter(Boolean).map((w) => stem(w.length > 3 && w.startsWith('ال') ? w.slice(2) : w));

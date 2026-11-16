@@ -29,4 +29,8 @@ describe('Finding the manual section that answers «how do I…» (FR-148)', () 
     const sections = [section('s', 'إعداد التذاكر', 'يضيف رئيس الوحدة أنواع التذاكر من هنا'), section('t', 'الأمان', 'الأجهزة والجلسات')];
     expect(rankSections('ازاي اضيف نوع تذكره', sections, 1).map((s) => s.id)).toEqual(['s']);
   });
+  it('FR-148: «وحدة» (singular) finds a section titled «الوحدات» (plural) even with no text', () => {
+    const sections = [section('units', 'الوحدات', ''), section('other', 'الإشعارات', '')];
+    expect(rankSections('كيف أضيف وحدة', sections, 3).map((s) => s.id)).toEqual(['units']);
+  });
 });

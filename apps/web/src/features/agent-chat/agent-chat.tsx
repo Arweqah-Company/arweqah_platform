@@ -1,5 +1,5 @@
 import { Sparkles } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMe } from '@/core/auth/session';
 import { usePermissions } from '@/core/permissions/can';
@@ -13,6 +13,15 @@ export function AgentChat() {
   const { can } = usePermissions();
   const agentEnabled = useMe().data?.agentEnabled !== false;
   const [open, setOpen] = useState(false);
+  const panel = useRef<HTMLElement>(null);
+  const opener = useRef<HTMLButtonElement>(null);
+  const wasOpen = useRef(false);
+  // Opening moves the focus into the panel (it comes before the button in the page); closing gives it back to the button.
+  useEffect(() => {
+    if (open) panel.current?.focus();
+    else if (wasOpen.current) opener.current?.focus();
+    wasOpen.current = open;
+  }, [open]);
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
@@ -23,11 +32,11 @@ export function AgentChat() {
   return (
     <>
       {open && (
-        <aside role="dialog" aria-label={t('title')} className="fixed inset-x-3 bottom-20 z-30 flex h-[min(36rem,calc(100dvh-7rem))] flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-xl sm:inset-x-auto sm:end-4 sm:w-[26rem]">
+        <aside ref={panel} tabIndex={-1} role="dialog" aria-label={t('title')} className="fixed outline-none inset-x-3 bottom-20 z-30 flex h-[min(36rem,calc(100dvh-7rem))] flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-xl sm:inset-x-auto sm:end-4 sm:w-[26rem]">
           <ChatPanel onClose={() => setOpen(false)} onNavigate={() => { if (window.innerWidth < 640) setOpen(false); }} />
         </aside>
       )}
-      <Button size="icon" className="fixed bottom-4 end-4 z-30 size-12 rounded-full" aria-label={t('open')} aria-expanded={open} data-tour="agent-chat" onClick={() => setOpen(!open)}>
+      <Button ref={opener} size="icon" className="fixed bottom-4 end-4 z-30 size-12 rounded-full" aria-label={t('open')} aria-expanded={open} data-tour="agent-chat" onClick={() => setOpen(!open)}>
         <Sparkles className="size-5" aria-hidden />
       </Button>
     </>

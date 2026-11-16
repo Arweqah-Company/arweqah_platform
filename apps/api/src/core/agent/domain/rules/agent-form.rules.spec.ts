@@ -53,8 +53,18 @@ describe('The form of an action (FR-152)', () => {
   it('FR-140: a choice is real only when its id is in the lookup data right next to its name (a name is never put on another id)', () => {
     const data = [`TicketsController.catalog: {"types":[{"id":"${ID}","nameAr":"الدعم الفني"},{"id":"11111111-1111-4111-8111-111111111111","nameAr":"طلب صيانة"}]}`];
     expect(pairedInData({ label: 'الدعم  الفني', value: ID }, data)).toBe(true);
-    expect(pairedInData({ label: 'طلب صيانة', value: ID.toUpperCase() }, data)).toBe(true);
+    expect(pairedInData({ label: 'طلب صيانة', value: '11111111-1111-4111-8111-111111111111'.toUpperCase() }, data)).toBe(true);
+    expect(pairedInData({ label: 'طلب صيانة', value: ID }, data)).toBe(false);
     expect(pairedInData({ label: 'اسم لا وجود له', value: ID }, data)).toBe(false);
     expect(pairedInData({ label: 'الدعم الفني', value: '22222222-2222-4222-8222-222222222222' }, data)).toBe(false);
+  });
+  it('FR-140: a name beside another record\'s id is not paired with it (adjacent records, truncated data)', () => {
+    const B = '11111111-1111-4111-8111-111111111111';
+    const data = [`TicketsController.catalog: {"types":[{"id":"${ID}","nameAr":"أ"},{"id":"${B}","nameAr":"الدعم الفني"}]}`];
+    expect(pairedInData({ label: 'الدعم الفني', value: ID }, data)).toBe(false);
+    expect(pairedInData({ label: 'الدعم الفني', value: B }, data)).toBe(true);
+    const cut = [`TicketsController.catalog: {"types":[{"id":"${ID}","nameAr":"أ"},{"id":"${B}","nameAr":"الدعم الفني"},{"id":"3333`];
+    expect(pairedInData({ label: 'الدعم الفني', value: ID }, cut)).toBe(false);
+    expect(pairedInData({ label: 'الدعم الفني', value: B }, cut)).toBe(true);
   });
 });

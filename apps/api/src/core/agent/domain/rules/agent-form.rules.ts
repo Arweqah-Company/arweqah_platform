@@ -1,7 +1,7 @@
 import type { AgentFormFieldDto, AgentFormFieldType, AgentFormOptionDto } from '@arweqah-platform/shared';
 import type { AgentAction, AgentField } from '../types/agent-catalog.types';
 import { normalizeText } from './agent-guide.rules';
-import type { ChoiceOption } from './agent-turn.rules';
+import { ungroundedIds, type ChoiceOption } from './agent-turn.rules';
 
 type Schema = Record<string, unknown>;
 
@@ -31,17 +31,47 @@ export function humanize(name: string): string {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
-/** Every value in `options` must be an id some lookup showed, written next to the label the model gave it (so a name is never put on another id). */
+const RECORD_MAX_CHARS = 2000;
+
+/** Where the object that holds `at` opens: the nearest `{` that no closed object lies between (0 when the data was cut before it). */
+function recordStart(text: string, at: number): number {
+  let depth = 0;
+  for (let i = at; i >= 0 && at - i < RECORD_MAX_CHARS; i--) {
+    if (text[i] === '}') depth++;
+    else if (text[i] === '{' && depth-- === 0) return i;
+  }
+  return 0;
+}
+
+/** Where that object closes (the end of the text when the data was cut short). */
+function recordEnd(text: string, at: number): number {
+  let depth = 0;
+  for (let i = at; i < text.length && i - at < RECORD_MAX_CHARS; i++) {
+    if (text[i] === '{') depth++;
+    else if (text[i] === '}' && depth-- === 0) return i + 1;
+  }
+  return text.length;
+}
+
+/** The object that holds the text at `at`, found by counting braces (the data may be cut short, so it is not parsed as JSON). */
+const recordAround = (text: string, at: number): string => text.slice(recordStart(text, at), recordEnd(text, at));
+
+/** Every value in `options` must be an id some lookup showed, inside the same record as the label the model gave it (so a name is never put on another id). */
 export function pairedInData(option: ChoiceOption, dataTexts: readonly string[]): boolean {
   const wanted = normalizeText(option.label);
   const value = option.value.toLowerCase();
   return dataTexts.some((text) => {
     const lower = text.toLowerCase();
     for (let at = lower.indexOf(value); at !== -1; at = lower.indexOf(value, at + 1)) {
-      if (normalizeText(text.slice(Math.max(0, at - 400), at + value.length + 400)).includes(wanted)) return true;
+      if (normalizeText(recordAround(text, at)).includes(wanted)) return true;
     }
     return false;
   });
+}
+
+/** The values the model understood, without any id no lookup showed: what is kept (hidden ids included) counts as looked up when the form is sent. */
+export function groundedValues(values: Record<string, unknown>, lookedUp: readonly string[]): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(values).filter(([, value]) => ungroundedIds(value, lookedUp).length === 0));
 }
 
 export interface FormInput {

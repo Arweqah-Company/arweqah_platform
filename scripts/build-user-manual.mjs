@@ -99,11 +99,11 @@ const A = (page, ...names) => ({ page, permissions: names.map(key) });
 const ACCESS = {
   '04-profile': A(null, 'ProfileView'), '05-notifications': A(null, 'NotificationsView'), '06-security': A(null, 'SecurityView'), '09-assistant': A(null, 'AgentView'), '07-my-access': A(null, 'MyAccessView'),
   '20-employees': A('employees', 'EmployeesView'), '21-org': A('org', 'OrgView'), '22-job-titles': A('job-titles', 'JobTitlesView'), '23-companies': A('companies', 'CompaniesView'),
-  '60-my-career': A('career-profile', 'CareerProfileView'), '62-career-team': A('career-team', 'EmployeesView'), '61-career-certificates': A('career-certificates', 'CareerCertificatesReview'),
+  '60-my-career': A('career-profile', 'CareerProfileView'), '62-career-team': A('career-team', 'CareerTeamView'), '61-career-certificates': A('career-certificates', 'CareerCertificatesReview'),
   '63-career-requests': A('career-requests', 'CareerRequestsView'), '64-career-content': A('career-content', 'CareerContentView'), '65-performance-cycle': A('performance-cycle', 'PerformanceCycleView'),
   '66-performance-calibration': A('performance-calibration', 'PerformanceCalibrationView'), '67-performance-team': A('performance-team', 'PerformanceTeamView'),
   '30-tasks': A('tasks', 'TasksView'), '31-task-details-conversation': A('tasks', 'TasksView'), '32-task-tags': A('task-tags', 'TasksTagsView'), '33-task-policies': A('task-policies', 'TasksPoliciesView'),
-  '34-tickets': A('tickets'), '35-ticket-setup': A('ticket-setup', 'TicketsSetupView'), '36-ticket-figures': A('ticket-figures', 'TicketsFiguresView'),
+  '34-tickets': A('tickets', 'TicketsView'), '35-ticket-setup': A('ticket-setup', 'TicketsSetupView'), '36-ticket-figures': A('ticket-figures', 'TicketsFiguresView'),
   '40-roles': A('roles', 'RolesView'), '41-permissions': A('permissions', 'PermissionsView'), '44-audit': A('audit', 'AuditView'), '45-email-log': A('email-log', 'EmailLogView'),
   '46-settings': A(null, 'IntegrationsTranslationView', 'IntegrationsEmailView', 'IntegrationsCaptchaView', 'IntegrationsAiView', 'TemplatesEmailView', 'TemplatesNotificationView', 'TourSettingsView', 'SecuritySettingsView'),
 };
@@ -126,7 +126,7 @@ const flat = (nodes) => [nodes].flat().map((n) => (typeof n === 'string' ? n : n
 const plain = (b) => {
   if (b.p) return flat(b.p);
   if (b.h) return `\n${flat(b.i)}`;
-  if (b.note) return flat(b.note);
+  if (b.note) return b.note.map(flat).join('\n');
   if (b.ul) return b.ul.map((item) => `- ${flat(item)}`).join('\n');
   if (b.ol) return b.ol.map((item, i) => `${i + 1}. ${flat(item)}`).join('\n');
   if (b.table) return [b.table.head, ...b.table.rows].map((row) => row.map(flat).join(' | ')).join('\n');

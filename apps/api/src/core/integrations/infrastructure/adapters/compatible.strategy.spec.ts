@@ -151,4 +151,20 @@ describe('The OpenAI-compatible strategy streams the answer when asked (FR-149)'
     expect(await strategy.json({ ...REQUEST, onText: () => undefined })).toEqual({ kind: 'refused' });
     expect(await strategy.json({ ...REQUEST, onText: () => undefined })).toEqual({ kind: 'failed', message: 'quota' });
   });
+  it('FR-149: a stream that ends without a completion signal is a failure, even when what arrived looks like a whole answer', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(sse([delta('{"ok":true}')])));
+    expect(await strategy.json({ ...REQUEST, onText: () => undefined })).toMatchObject({ kind: 'failed', message: expect.stringContaining('before the answer was complete') });
+  });
+
+  it('FR-149: a damaged data line fails the answer instead of being dropped (a lost piece would change a number)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(sse([delta('{"amount":1'), '{"choices":[{"delta":{"content":"0"', delta('}'), JSON.stringify({ choices: [{ delta: {}, finish_reason: 'stop' }] })])));
+    expect(await strategy.json({ ...REQUEST, onText: () => undefined })).toMatchObject({ kind: 'failed' });
+  });
+
+  it('FR-149: a line that never ends, or an answer past the limit, is cut off and fails', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(new ReadableStream({ start: (c) => { c.enqueue(new TextEncoder().encode('data: ' + 'x'.repeat(1_100_000))); c.close(); } }))));
+    expect(await strategy.json({ ...REQUEST, onText: () => undefined })).toMatchObject({ kind: 'failed' });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(sse([delta('y'.repeat(1_100_000)), JSON.stringify({ choices: [{ delta: {}, finish_reason: 'stop' }] })])));
+    expect(await strategy.json({ ...REQUEST, onText: () => undefined })).toMatchObject({ kind: 'failed' });
+  });
 });

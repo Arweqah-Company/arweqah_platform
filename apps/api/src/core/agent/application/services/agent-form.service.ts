@@ -5,7 +5,7 @@ import type { AccessContext } from '../../../access/domain/access-context';
 import { AgentRepository } from '../../domain/contracts/agent.repository';
 import type { AgentMessage, StoredForm } from '../../domain/entities/agent.entities';
 import { AgentDraftNotFoundError, AgentDraftNotPendingError, AgentFormInvalidError } from '../../domain/errors/agent.errors';
-import { buildForm, cleanValues, formErrors, formSummary, pairedInData } from '../../domain/rules/agent-form.rules';
+import { buildForm, cleanValues, formErrors, formSummary, groundedValues, pairedInData } from '../../domain/rules/agent-form.rules';
 import { splitByPlace, type AgentStep, type ChoiceOption } from '../../domain/rules/agent-turn.rules';
 import type { AgentAction } from '../../domain/types/agent-catalog.types';
 import { toMessageDto } from '../transformers/agent.transformer';
@@ -47,7 +47,7 @@ export class AgentFormService {
   /** The form to attach to the assistant's message, or null when the action cannot be drawn as one. A choice the lookups do not show is dropped. */
   offer(input: FormOffer): StoredForm | null {
     const options = Object.fromEntries(Object.entries(input.options).map(([field, list]) => [field, list.filter((o) => pairedInData(o, input.lookedUp))]));
-    const built = buildForm({ action: input.action, values: input.values, options, labels: input.labels });
+    const built = buildForm({ action: input.action, values: groundedValues(input.values, input.lookedUp), options, labels: input.labels });
     return built && { operationId: input.action.operationId, labelAr: input.action.labelAr, labelEn: input.action.labelEn, ...built };
   }
 
@@ -60,14 +60,23 @@ export class AgentFormService {
     const values = cleanValues(form.fields, form.values, input.values);
     this.assertValid(form, action, values);
     if (!(await this.repo.moveForm(message.id, 'open', 'submitted'))) throw new AgentDraftNotPendingError();
-    const draft = await this.proposals.propose(message.conversationId, action, this.stepOf(form, values, locale), [JSON.stringify(form.fields.flatMap((f) => f.options ?? []))]);
-    if (!('message' in draft)) {
-      await this.repo.moveForm(message.id, 'submitted', 'open');
-      throw new AgentFormInvalidError({ _form: draft.note });
-    }
+    const draft = await this.propose(message, action, this.stepOf(form, values, locale));
     await this.repo.touchConversation(message.conversationId);
     const sent = (await this.repo.findMessage(message.id, userId))!;
-    return { conversationId: message.conversationId, messages: [toMessageDto(sent), toMessageDto(draft.message)] };
+    return { conversationId: message.conversationId, messages: [toMessageDto(sent), toMessageDto(draft)] };
+  }
+
+  /** The draft of the sent form; when none is made (a refusal, or the save threw: the draft and its older ones change in one transaction, so nothing was left behind) the form opens again. */
+  private async propose(message: AgentMessage, action: AgentAction, step: AgentStep): Promise<AgentMessage> {
+    const form = message.form!;
+    const looked = [JSON.stringify(form.fields.flatMap((f) => f.options ?? [])), JSON.stringify(form.values)];
+    const draft = await this.proposals.propose(message.conversationId, action, step, looked).catch(async (error: unknown) => {
+      await this.repo.moveForm(message.id, 'submitted', 'open');
+      throw error;
+    });
+    if ('message' in draft) return draft.message;
+    await this.repo.moveForm(message.id, 'submitted', 'open');
+    throw new AgentFormInvalidError({ _form: draft.note });
   }
 
   private async openForm(userId: string, id: string): Promise<AgentMessage> {

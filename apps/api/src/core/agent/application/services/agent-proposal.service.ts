@@ -41,8 +41,7 @@ export class AgentProposalService {
   /** Saves the draft that waits for the employee's confirmation, and cancels any older one in the conversation. */
   private async createDraft(conversationId: string, action: AgentAction, values: Record<string, unknown>, summary: string): Promise<AgentMessage> {
     const split = splitByPlace(action.fields, values);
-    await this.repo.cancelPendingDrafts(conversationId);
-    return this.repo.addMessage({
+    return this.repo.replacePendingDraft({
       conversationId,
       role: 'assistant',
       text: summary,

@@ -2,6 +2,22 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-16 — Review of PR 112 (the release of the assistant)
+
+Plan: `docs/plans/phase-7-agent-chat.md` (log 2026-11-16, CodeRabbit round). Each comment was checked against the code; a test that fails on the old code was written first for every real one.
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 403 | **A choice offered in a form is paired with its own record**, not with a text window around its id (`recordAround` in `agent-form.rules.ts`: the object that holds the id, found by counting braces so cut data still works). | Two neighbouring records could lend each other a name, so a name could be put on another id (FR-140). The old spec asserted the wrong pairing and was corrected. | A lookup returns something other than objects with the id and the name side by side. |
+| 404 | **An id the assistant holds but cannot name stays in the form's values and counts as looked up when the form is sent** (`groundedValues` at offer time keeps only ids a lookup showed; `submit` adds the stored values to what the proposal may use). | Before, a form with such a hidden id was always refused with 422. | — |
+| 405 | **One draft at a time is one transaction:** `replacePendingDraft` locks the conversation row, cancels the older pending drafts and saves the new one; a form whose draft could not be made opens again. | Two proposals at the same moment could leave two pending drafts. | — |
+| 406 | **The claim of a draft compares its expiry with the database clock inside the same UPDATE.** | The time taken before waiting for the connection could let an expired draft run. | — |
+| 407 | **A message takes at most six steps in all** (`AGENT_MAX_STEPS`, counted over every model call), as FR-138 says; the history a turn reads stops at its own message. | The code allowed 16 steps; a message sent at the same moment on the same conversation could enter another turn's context. | — |
+| 408 | **A stream from an OpenAI-compatible service is an answer only if it said it was complete** (`finish_reason` or `[DONE]`), a damaged data line fails it, and a line or an answer past 1 MB cancels the reader. | A cut stream (`{"amount":1` + lost piece) could pass as a whole answer. | — |
+| 409 | **The manual's access data follows the pages' keys** (`tickets` needs `tickets.view`, the career team `career_team.view`), the notes of the manual reach the assistant (`b.note.map(flat)`), and the assistant page has its Fields, Workflow and Business rules sections. | The assistant explained pages a person could not open; notes were lost. | — |
+| 410 | **The chat screen drops what comes back for a conversation the person left** (a generation counter in `useChat`), takes out the line of a request the server refused, shows a failed «open conversation» in the list, hides Confirm / Cancel / the form from who lacks `agent.use`, turns an unconfirmed card to «expired» by itself, moves the focus in and out of the panel and follows the newest words. | Stale answers could land in another conversation; a retry left two copies of a line. | — |
+| 411 | **Not applied: a separate «executing / outcome unknown» state for a claimed draft.** A claimed draft is `confirmed` with no result until the route answers; it is never run twice (at most once), and a crash between the two leaves it without result. | A new state needs a migration, a new reconciliation job and a new word on the card; the cost is a draft that stays «confirmed» without a result after a crash, which the person can see and ask again. | A route the assistant runs becomes unsafe to repeat by hand. |
+
 ## 2026-11-16 — The assistant's catalog is generated from the routes
 
 Plan: `docs/plans/phase-7-agent-chat.md` (batch A).

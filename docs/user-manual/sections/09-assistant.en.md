@@ -39,6 +39,36 @@ Ask «can I add an employee?». The assistant looks at everything the platform c
 
 Ask the assistant how to do something («how do I add a ticket type?»). It answers with the whole workflow from this user manual: the page, each button in order, the fields, and the permission needed. It explains only what you may do: a page you cannot open is not explained to you.
 
+### Fields (form inputs)
+
+| Field | What it is for |
+|---|---|
+| «Write your message» (the box at the bottom of the panel) | What you ask for, in your own words. Needs `agent.use`. |
+| The fields of the form the assistant opens | They are not fixed: they are the fields of the action you asked for (for a ticket type: the unit, the Arabic and English names, and so on). A star marks a mandatory field; a choice list shows real data of the platform; a mistake is shown under its field as you type, and the send button waits until all is right. |
+
+### Workflow
+
+| State of a card | Meaning | Who moves it | Permission |
+|---|---|---|---|
+| Waiting for you | The request is ready and nothing has run | The assistant makes it | — |
+| Confirmed | It ran once as you | You press «Confirm» | `agent.use` and the action's own permission |
+| Failed | The platform refused (a value, a rule); the reason is shown | The platform | — |
+| Cancelled | You dropped it, or a newer request in the same conversation replaced it | You or the assistant | `agent.use` |
+| Expired | Nobody confirmed it in time (30 minutes unless changed) | Automatic | — |
+
+A form follows the same road: «Open» until you send it, then «Sent», which makes the confirmation card. Everyone sees only their own conversations; a person with `agent.view` and without `agent.use` can read the assistant's answers but not write, confirm or send forms.
+
+### Business rules
+
+- The assistant runs nothing by itself: every change waits for «Confirm», and a request runs once (two presses at the same moment run it once) (FR-141).
+- It acts only with your own permissions, in your own scope; an action you may not do is not offered, and a record out of your scope is not found (FR-139).
+- An id is accepted only if one of its own lookups showed it, together with its name; it never invents one (FR-140).
+- At most six steps are taken for one message; after that it says it could not finish (FR-138).
+- A card expires after the time the administrator set (30 minutes by default); a new request replaces the one still waiting (FR-141).
+- The messages per hour are limited (30 by default); a message the AI service could not answer does not count (FR-144).
+- If the administrator switches the assistant off, nothing it prepared can be confirmed (FR-150).
+- Sensitive data (national ID, IBAN, salary) is never sent to the AI service, and what the assistant runs is written to the audit log as coming through the assistant (FR-144).
+
 ### Good to know
 
 - The assistant never changes anything by itself. The most it does is prepare a card.
