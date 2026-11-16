@@ -4,6 +4,8 @@ import { http, HttpResponse } from 'msw';
 import type { ReactElement } from 'react';
 import { me, server } from './msw';
 import { renderPage } from './render';
+import { useMe } from '../src/core/auth/session';
+import { usePermissions } from '../src/core/permissions/can';
 import { AgentChat } from '../src/features/agent-chat/agent-chat';
 
 export const KEYS = ['agent.view', 'agent.use', 'agent.history_view'];
@@ -38,3 +40,11 @@ export const write = async (text: string) => {
   fireEvent.click(screen.getByRole('button', { name: 'إرسال' }));
 };
 
+
+/** Shows a word once the session and the permissions are both applied: a test that expects something to be ABSENT waits for it first, so it cannot pass only because nothing has loaded yet. */
+export function Ready() {
+  const { data } = useMe();
+  const { ready } = usePermissions();
+  return data && ready ? <p>session-ready</p> : null;
+}
+export const withReady = (chat: ReactElement) => <><Ready />{chat}</>;

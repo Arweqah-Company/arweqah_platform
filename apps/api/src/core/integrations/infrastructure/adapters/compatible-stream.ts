@@ -12,6 +12,8 @@ interface Reading {
   finish: string | null;
   refused: boolean;
   error: string | null;
+  /** The service said the answer is complete: a `finish_reason` or the `[DONE]` line. */
+  complete: boolean;
   inputTokens: number;
   outputTokens: number;
 }
@@ -24,7 +26,10 @@ function takeChoice(choice: Choice, reading: Reading, onText: (delta: string) =>
     reading.text += choice.delta.content;
     onText(choice.delta.content);
   }
-  if (choice.finish_reason) reading.finish = choice.finish_reason;
+  if (choice.finish_reason) {
+    reading.finish = choice.finish_reason;
+    reading.complete = true;
+  }
 }
 
 function take(chunk: StreamChunk, reading: Reading, onText: (delta: string) => void): void {
@@ -37,17 +42,24 @@ function take(chunk: StreamChunk, reading: Reading, onText: (delta: string) => v
   }
 }
 
-/** One `data:` line of the event stream (a line that is not data, or not JSON, is ignored). */
-function chunkOf(line: string): StreamChunk | null {
-  if (!line.startsWith('data:')) return null;
+/** The most a line without its end, and the whole answer, may grow to: a service that never stops sending cannot fill the memory. */
+const MAX_LINE_CHARS = 1_000_000;
+const MAX_TEXT_CHARS = 1_000_000;
+
+type Line = { kind: 'skip' } | { kind: 'done' } | { kind: 'broken' } | { kind: 'chunk'; chunk: StreamChunk };
+
+/** One line of the event stream: a `data:` line with its JSON, the end mark, a damaged data line (its piece of the answer is lost), or a line that carries nothing (a comment, a name, an empty line). */
+function lineOf(line: string): Line {
+  if (!line.startsWith('data:')) return { kind: 'skip' };
   const payload = line.slice(5).trim();
-  if (!payload || payload === '[DONE]') return null;
+  if (!payload) return { kind: 'skip' };
+  if (payload === '[DONE]') return { kind: 'done' };
   try {
     const parsed: unknown = JSON.parse(payload);
     const first = Array.isArray(parsed) ? parsed[0] : parsed;
-    return first && typeof first === 'object' ? (first as StreamChunk) : null;
+    return first && typeof first === 'object' ? { kind: 'chunk', chunk: first as StreamChunk } : { kind: 'broken' };
   } catch {
-    return null;
+    return { kind: 'broken' };
   }
 }
 
@@ -55,8 +67,18 @@ function outcomeOf(reading: Reading): AiJsonOutcome {
   if (reading.error) return { kind: 'failed', message: reading.error.slice(0, 500) };
   if (reading.refused || reading.finish === 'content_filter') return { kind: 'refused' };
   if (reading.finish === 'length') return { kind: 'truncated' };
+  if (!reading.complete) return { kind: 'failed', message: 'The stream ended before the answer was complete' };
   if (!reading.text) return { kind: 'failed', message: 'The answer was empty' };
   return { kind: 'ok', text: reading.text, inputTokens: reading.inputTokens, outputTokens: reading.outputTokens };
+}
+
+/** Takes one line into the reading; false when the stream must stop (a damaged data line, or an answer too long). */
+function accept(line: string, reading: Reading, onText: (delta: string) => void): boolean {
+  const parsed = lineOf(line.trim());
+  if (parsed.kind === 'broken') return false;
+  if (parsed.kind === 'done') reading.complete = true;
+  if (parsed.kind === 'chunk') take(parsed.chunk, reading, onText);
+  return reading.text.length <= MAX_TEXT_CHARS;
 }
 
 /** Reads a `stream: true` answer: each piece of text goes to `onText` as it arrives, and the whole answer is the outcome, as for a plain answer. */
@@ -64,18 +86,17 @@ export async function readChatStream(response: Response, onText: (delta: string)
   const reader = response.body?.getReader();
   if (!reader) return { kind: 'failed', message: 'The service sent no stream' };
   const decoder = new TextDecoder();
-  const reading: Reading = { text: '', finish: null, refused: false, error: null, inputTokens: 0, outputTokens: 0 };
+  const reading: Reading = { text: '', finish: null, refused: false, error: null, complete: false, inputTokens: 0, outputTokens: 0 };
   let pending = '';
   for (let part = await reader.read(); !part.done; part = await reader.read()) {
     pending += decoder.decode(part.value, { stream: true });
     const lines = pending.split('\n');
     pending = lines.pop() ?? '';
-    for (const line of lines) {
-      const chunk = chunkOf(line.trim());
-      if (chunk) take(chunk, reading, onText);
+    if (pending.length > MAX_LINE_CHARS || !lines.every((line) => accept(line, reading, onText))) {
+      await reader.cancel().catch(() => undefined);
+      return { kind: 'failed', message: 'The stream was damaged or too long' };
     }
   }
-  const last = chunkOf(pending.trim());
-  if (last) take(last, reading, onText);
+  if (!accept(pending, reading, onText)) return { kind: 'failed', message: 'The stream was damaged or too long' };
   return outcomeOf(reading);
 }

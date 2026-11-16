@@ -19,8 +19,7 @@ export function ChatPanel({ onClose, onNavigate }: { onClose: () => void; onNavi
   const [showHistory, setShowHistory] = useState(false);
   const canUse = can(AGENT_KEYS.use);
   const openOld = async (id: string) => {
-    await chat.open(id);
-    setShowHistory(false);
+    if (await chat.open(id)) setShowHistory(false);
   };
   return (
     <>
@@ -33,7 +32,7 @@ export function ChatPanel({ onClose, onNavigate }: { onClose: () => void; onNavi
         </div>
       </header>
       {showHistory ? <HistoryList onOpen={(id) => void openOld(id)} /> : <MessageList messages={chat.messages} busy={chat.busy} live={chat.live} onConfirm={(id) => void chat.confirmDraft(id)} onCancel={(id) => void chat.cancelDraft(id)} onSendForm={(id, values) => void chat.sendForm(id, values)} formError={chat.formError} onNavigate={onNavigate} />}
-      {chat.error && !showHistory && <div className="px-4 pb-2"><Alert>{errorMessage(tc, chat.error)}</Alert></div>}
+      {chat.error && <div className="px-4 pb-2"><Alert>{errorMessage(tc, chat.error)}</Alert></div>}
       {!showHistory && (canUse ? <Composer busy={chat.busy} onSend={(text) => void chat.ask(text)} /> : <p className="border-t border-neutral-200 p-3 text-sm text-muted">{t('readOnly')}</p>)}
     </>
   );

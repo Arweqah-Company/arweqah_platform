@@ -11,7 +11,7 @@ import type { AgentLinkDto } from '@arweqah-platform/shared';
 import type { AgentConversation, AgentMessage, StoredForm } from '../../domain/entities/agent.entities';
 import { AgentConversationNotFoundError, AgentRateLimitedError } from '../../domain/errors/agent.errors';
 import type { AgentTurnEvents } from '../../domain/types/agent-stream.types';
-import { AGENT_HISTORY_MESSAGES, AGENT_MAX_CALLS, AGENT_MAX_STEPS_PER_CALL, SayTextExtractor, agentTurnSchema, normalizeTurn, parseLabels, parseLinkIds, parseOptions, titleOf, type AgentStep, type AgentTurn } from '../../domain/rules/agent-turn.rules';
+import { AGENT_HISTORY_MESSAGES, AGENT_MAX_CALLS, AGENT_MAX_STEPS, AGENT_MAX_STEPS_PER_CALL, SayTextExtractor, agentTurnSchema, normalizeTurn, parseLabels, parseLinkIds, parseOptions, titleOf, type AgentStep, type AgentTurn } from '../../domain/rules/agent-turn.rules';
 import type { AgentAction } from '../../domain/types/agent-catalog.types';
 import { agentText } from '../messages/agent.messages';
 import { AGENT_SYSTEM, describeAction, promptUser, type TranscriptLine } from '../messages/agent.prompt';
@@ -43,6 +43,8 @@ interface TurnState {
   actions: AgentAction[];
   lines: TranscriptLine[];
   notes: string[];
+  /** Steps run so far this message, of every call: the budget is AGENT_MAX_STEPS. */
+  stepsRun: number;
   /** Actions whose fields the model has already been shown this message. */
   described: Set<string>;
   /** The manual sections the search found this message: the only ones a link may point to. */
@@ -94,9 +96,10 @@ export class AgentChatService {
 
   private async converse({ ctx, userId, input, request, events }: AgentSend): Promise<AgentReplyDto> {
     const conversation = await this.conversationFor(userId, input);
-    await this.repo.addMessage({ conversationId: conversation.id, role: 'user', text: input.text });
-    const history = await this.repo.recentMessages(conversation.id, AGENT_HISTORY_MESSAGES);
-    const state: TurnState = { conversation, actions: await this.visibleTo(ctx), lines: history.map(toLine), notes: [], described: new Set(), guided: new Map(), ctx, request, events };
+    const saved = await this.repo.addMessage({ conversationId: conversation.id, role: 'user', text: input.text });
+    // Up to this very message: one sent at the same moment on the same conversation must not appear in this answer's context.
+    const history = await this.repo.recentMessages(conversation.id, AGENT_HISTORY_MESSAGES, saved.createdAt);
+    const state: TurnState = { conversation, actions: await this.visibleTo(ctx), lines: history.map(toLine), notes: [], stepsRun: 0, described: new Set(), guided: new Map(), ctx, request, events };
     const reply = await this.runSteps(state);
     await this.repo.touchConversation(conversation.id);
     return { conversationId: conversation.id, messages: [toMessageDto(reply)] };
@@ -116,7 +119,7 @@ export class AgentChatService {
   }
 
   private async runSteps(state: TurnState): Promise<AgentMessage> {
-    for (let call = 0; call < AGENT_MAX_CALLS; call += 1) {
+    for (let call = 0; call < AGENT_MAX_CALLS && state.stepsRun < AGENT_MAX_STEPS; call += 1) {
       const answer = await this.runTurn(state, await this.ask(state));
       if (answer) return answer;
     }
@@ -135,6 +138,8 @@ export class AgentChatService {
   /** The steps of one model answer, in order, until one ends the turn or fails. */
   private async runTurn(state: TurnState, turn: AgentTurn): Promise<AgentMessage | null> {
     for (const step of turn.steps.slice(0, AGENT_MAX_STEPS_PER_CALL)) {
+      if (state.stepsRun >= AGENT_MAX_STEPS) return null;
+      state.stepsRun += 1;
       const result = await this.act(state, step);
       if (result === 'failed') return null;
       if (result !== 'next') return result;

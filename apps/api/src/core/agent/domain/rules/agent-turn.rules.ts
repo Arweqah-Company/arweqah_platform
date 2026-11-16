@@ -30,6 +30,8 @@ export type AgentTurn = z.infer<typeof agentTurnSchema>;
 export const AGENT_MAX_STEPS_PER_CALL = 4;
 /** How many model calls one message may take, so a model that keeps asking cannot run up the bill or the waiting. */
 export const AGENT_MAX_CALLS = 4;
+/** Steps of all the calls of one message together (FR-138). */
+export const AGENT_MAX_STEPS = 6;
 /** Messages of the conversation the model reads. */
 export const AGENT_HISTORY_MESSAGES = 16;
 /** Longest data lookup kept and shown to the model. */
