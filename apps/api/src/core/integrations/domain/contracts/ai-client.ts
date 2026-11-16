@@ -16,6 +16,8 @@ export interface AiJsonRequest {
   /** JSON Schema of the answer; the service constrains the output to it. */
   schema: Record<string, unknown>;
   maxTokens: number;
+  /** Called with each piece of the answer's text as the service writes it (a screen shows it live); the final outcome still carries the whole text. */
+  onText?: (delta: string) => void;
 }
 
 /**

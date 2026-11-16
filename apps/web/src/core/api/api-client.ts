@@ -1,4 +1,5 @@
 import type { ApiErrorBody } from '@arweqah-platform/shared';
+import { parseEvents, type StreamEvent } from './event-stream';
 
 export class ApiError extends Error {
   constructor(
@@ -17,6 +18,8 @@ export interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
   query?: Query;
+  /** Extra request headers. */
+  headers?: Record<string, string>;
 }
 
 /** Listeners for session-level failures (401 → sign-in, code not verified → the code step). */
@@ -40,7 +43,7 @@ class ApiClient {
     const res = await fetch(this.url(path, options.query), {
       method: options.method ?? 'GET',
       credentials: 'include',
-      ...encodeBody(options.body),
+      ...withHeaders(encodeBody(options.body), options.headers),
     });
     if (res.status === 204) return undefined as T;
     const data: unknown = res.headers.get('content-type')?.includes('json') ? await res.json() : null;
@@ -66,6 +69,23 @@ class ApiClient {
     return this.request<T>(path, { method: 'POST', body });
   }
 
+  /** A POST whose answer is a stream of events (the assistant's live answer): each one goes to `onEvent` as it arrives; a failure before the stream starts is an `ApiError` like any other. */
+  async postEvents(path: string, body: unknown, onEvent: (event: StreamEvent) => void, headers?: Record<string, string>): Promise<void> {
+    const res = await fetch(this.url(path), { method: 'POST', credentials: 'include', ...withHeaders(encodeBody(body), headers) });
+    if (!res.ok || !res.body) {
+      const data: unknown = res.headers.get('content-type')?.includes('json') ? await res.json() : null;
+      throw this.fail(res.status, data as Partial<ApiErrorBody> | null);
+    }
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let pending = '';
+    for (let part = await reader.read(); !part.done; part = await reader.read()) {
+      const read = parseEvents(pending + decoder.decode(part.value, { stream: true }));
+      pending = read.rest;
+      read.events.forEach(onEvent);
+    }
+  }
+
   put<T>(path: string, body?: unknown): Promise<T> {
     return this.request<T>(path, { method: 'PUT', body });
   }
@@ -86,6 +106,11 @@ class ApiClient {
     if (status === 401 || error.code === 'MFA_REQUIRED' || error.code === 'ADMIN_MODE_REQUIRED') this.listeners.forEach((l) => l(error));
     return error;
   }
+}
+
+/** The body's own headers plus the ones the caller adds. */
+function withHeaders(encoded: Pick<RequestInit, 'body' | 'headers'>, extra?: Record<string, string>): Pick<RequestInit, 'body' | 'headers'> {
+  return extra ? { ...encoded, headers: { ...(encoded.headers as Record<string, string> | undefined), ...extra } } : encoded;
 }
 
 /** JSON by default; FormData is sent as-is so the browser sets the multipart boundary. */

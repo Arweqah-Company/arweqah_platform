@@ -43,6 +43,7 @@ export class ProfileService {
       adminMode: session.mfaVerified && !impersonation ? await this.adminMode.status(ctx, session.sessionId) : { available: false, active: false, expiresAt: null },
       impersonation,
       impersonationEnabled: await this.impersonation.isEnabled(),
+      agentEnabled: (await this.security.get('agentEnabled')) === 1,
       roles: (roles.get(user.id) ?? []).map((r) => ({ id: r.id, nameAr: r.nameAr, nameEn: r.nameEn })),
       placement: placements.get(user.id) ?? NO_PLACEMENT,
       createdAt: user.createdAt.toISOString(),

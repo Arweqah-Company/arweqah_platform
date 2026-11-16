@@ -12,15 +12,15 @@ export class AnthropicStrategy extends AiStrategy {
   async json(request: AiJsonRequest): Promise<AiJsonOutcome> {
     const client = new Anthropic({ apiKey: String(request.values.apiKey), timeout: AI_TIMEOUT_MS, maxRetries: 0 });
     try {
-      const message = await client.messages
-        .stream({
-          model: String(request.values.model),
-          max_tokens: request.maxTokens,
-          system: request.system,
-          messages: [{ role: 'user', content: request.user }],
-          output_config: { format: { type: 'json_schema', schema: request.schema } },
-        })
-        .finalMessage();
+      const stream = client.messages.stream({
+        model: String(request.values.model),
+        max_tokens: request.maxTokens,
+        system: request.system,
+        messages: [{ role: 'user', content: request.user }],
+        output_config: { format: { type: 'json_schema', schema: request.schema } },
+      });
+      if (request.onText) stream.on('text', request.onText);
+      const message = await stream.finalMessage();
       if (message.stop_reason === 'refusal') return { kind: 'refused' };
       if (message.stop_reason === 'max_tokens') return { kind: 'truncated' };
       const text = message.content.flatMap((block) => (block.type === 'text' ? [block.text] : [])).join('');

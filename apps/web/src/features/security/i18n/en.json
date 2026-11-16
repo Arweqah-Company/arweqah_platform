@@ -40,6 +40,13 @@
     "impersonationEnabledHint": "Off by default. When on, an administrator in admin mode can open any active employee's account from the employees list; the employee is told afterwards, and everything done is recorded under their name with the administrator's beside it.",
     "impersonationIdleMinutes": "Minutes without activity before it ends",
     "impersonationIdleMinutesHint": "A session of this kind ends by itself after this many minutes without a request.",
+    "agentGroup": "Platform assistant",
+    "agentEnabled": "Switch the platform assistant on",
+    "agentEnabledHint": "On by default. When you switch it off, the assistant's button disappears for everyone and nothing it prepared can be confirmed; conversations are kept and come back when you switch it on again.",
+    "agentMessagesPerHour": "Messages per employee per hour",
+    "agentMessagesPerHourHint": "How many messages one employee may send to the assistant in an hour. Every message goes to the AI service, which costs money.",
+    "agentDraftMinutes": "Minutes a request waits for confirmation",
+    "agentDraftMinutesHint": "The assistant prepares a request and the employee confirms it. After this many minutes an unconfirmed request expires and must be asked again.",
     "range": "Enter a whole number between {{min}} and {{max}}.",
     "saved": "The security settings were saved.",
     "loading": "Loading…"
