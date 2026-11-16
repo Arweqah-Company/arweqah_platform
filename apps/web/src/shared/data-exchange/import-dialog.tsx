@@ -4,7 +4,7 @@ import { toCsv } from './csv';
 import { downloadBlob } from './export-file';
 import { DoneStep, PickStep, PreviewStep, RunningStep } from './import-steps';
 import { buildTemplateBlob } from './template';
-import type { ImportColumn, PreparedRow, SheetRow } from './types';
+import type { ImportColumn, ImportOption, PreparedRow, SheetRow } from './types';
 import { useImportFlow, type BatchCommit } from './use-import-flow';
 
 interface ImportDialogProps {
@@ -23,10 +23,12 @@ interface ImportDialogProps {
   /** Words of the dialog when it is not the plain «import» (the update mode says what it does). */
   title?: string;
   description?: string;
+  /** A checkbox on the preview step; its state is given to every row's `run`. */
+  option?: ImportOption;
 }
 
 /** Download the template, upload it filled in, see which rows are wrong, import the rest, get a report. */
-export function ImportDialog({ open, onOpenChange, filename, columns, prepare, onImported, commit, previewNote, title, description }: ImportDialogProps) {
+export function ImportDialog({ open, onOpenChange, filename, columns, prepare, onImported, commit, previewNote, title, description, option }: ImportDialogProps) {
   const { t } = useTranslation();
   const flow = useImportFlow(columns, prepare, onImported, commit);
   const template = async () => downloadBlob(await buildTemplateBlob(columns, { template: t('dataExchange.sheetTemplate'), lists: t('dataExchange.sheetLists') }), `${filename}-template.xlsx`);
@@ -39,7 +41,7 @@ export function ImportDialog({ open, onOpenChange, filename, columns, prepare, o
   const steps = {
     pick: <PickStep columns={columns} checking={false} error={flow.fileError} onTemplate={() => void template()} onFile={(f) => void flow.choose(f)} />,
     checking: <PickStep columns={columns} checking error={flow.fileError} onTemplate={() => void template()} onFile={(f) => void flow.choose(f)} />,
-    preview: <PreviewStep note={previewNote} validCount={flow.valid.length} invalid={flow.invalid} total={flow.rows.length} onStart={() => void flow.start()} onAnother={flow.reset} />,
+    preview: <PreviewStep note={previewNote} validCount={flow.valid.length} invalid={flow.invalid} total={flow.rows.length} option={option} onStart={(on) => void flow.start(on)} onAnother={flow.reset} />,
     running: <RunningStep done={flow.progress} total={flow.valid.length} />,
     done: <DoneStep imported={flow.valid.length - flow.failures.length} failures={flow.failures} onClose={() => close(false)} onReport={report} onAnother={flow.reset} />,
   };

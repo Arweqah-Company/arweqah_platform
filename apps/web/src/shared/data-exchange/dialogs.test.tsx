@@ -60,6 +60,19 @@ describe('Import dialog (FR-29)', () => {
     expect(screen.getByRole('button', { name: 'تنزيل تقرير الأخطاء' })).toBeInTheDocument();
   });
 
+  it('FR-17: asks one extra yes/no before the import and gives the answer to every row', async () => {
+    const answers: (boolean | undefined)[] = [];
+    const withOption = (sheet: SheetRow[]): PreparedRow[] => sheet.map((r) => ({ rowNumber: r.rowNumber, errors: [], run: async (on) => { answers.push(on); } }));
+    render(<ImportDialog open onOpenChange={() => undefined} filename="c" columns={columns} prepare={withOption} option={{ label: 'أرسل البريد', defaultOn: true }} />);
+    fireEvent.change(document.querySelector('input[type=file]') as HTMLInputElement, { target: { files: [new File(['الرمز,الاسم\r\nA,أ\r\nB,ب\r\n'], 'c.csv')] } });
+    const box = await screen.findByLabelText('أرسل البريد');
+    expect(box).toBeChecked();
+    fireEvent.click(box);
+    fireEvent.click(screen.getByRole('button', { name: 'استيراد 2 صف' }));
+    await screen.findByText('تم استيراد 2 صف، وفشل 0.');
+    expect(answers).toEqual([false, false]);
+  });
+
   it('says what is wrong with the file instead of failing silently', async () => {
     render(<ImportDialog open onOpenChange={() => undefined} filename="c" columns={columns} prepare={prepare} />);
     fireEvent.change(document.querySelector('input[type=file]') as HTMLInputElement, { target: { files: [new File(['الاسم\r\nx\r\n'], 'c.csv')] } });

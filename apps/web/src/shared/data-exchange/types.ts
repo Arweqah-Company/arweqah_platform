@@ -18,6 +18,12 @@ export interface ImportColumn {
   hint?: string;
 }
 
+/** An extra yes/no the person answers once, before the import starts (e.g. «send the invitation e-mails»); its answer reaches every row's `run`. */
+export interface ImportOption {
+  label: string;
+  defaultOn?: boolean;
+}
+
 /** One data row of an uploaded file: its number in the sheet (header = 1) and its cells by column id. */
 export interface SheetRow {
   rowNumber: number;
@@ -28,7 +34,8 @@ export interface SheetRow {
 export interface PreparedRow {
   rowNumber: number;
   errors: string[];
-  run?: () => Promise<void>;
+  /** Saves the row; `option` is the state of the dialog's extra checkbox (when the list has one). */
+  run?: (option?: boolean) => Promise<void>;
 }
 
 export const MAX_IMPORT_ROWS = 1000;
