@@ -79,6 +79,7 @@ describe('The assistant turn rules (FR-139, FR-140, FR-144)', () => {
     expect(maskSensitive('id 1234 567 890')).toBe('id [hidden number]');
     expect(maskSensitive('iban SA03 8000 0000 6080 1016 7519 ok')).toBe('iban [hidden number] ok');
     expect(maskSensitive('هويتي ١٢٣٤٥٦٧٨٩٠ و۱۲۳۴۵۶۷۸۹۰')).toBe('هويتي [hidden number] و[hidden number]');
+    expect(maskSensitive('رقمي ١٬٢٣٤٬٥٦٧٬٨٩٠ و1,234,567,890')).toBe('رقمي [hidden number] و[hidden number]');
     expect(maskSensitive('call 0551234567')).toBe('call [hidden number]');
     expect(maskSensitive('ticket 4521 on 2026-11-16 for 12 people')).toBe('ticket 4521 on 2026-11-16 for 12 people');
   });

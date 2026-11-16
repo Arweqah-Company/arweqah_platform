@@ -11,6 +11,7 @@ Short records of choices that are not obvious from the code. Newest first.
 | 415 | The draft card's timer stops once the moment has passed (`at <= now`), and opening an earlier conversation resets the confirm / cancel / form mutation state. |
 | 416 | Not applied: (a) history bound by millisecond only (two user messages of one conversation in the same millisecond cannot happen: one turn at a time per employee, the UI blocks a second send); (b) `bg-white` on the panel: `white` is a surface token re-pointed in the dark theme (theme.css), like every panel. |
 | 417 | The mask also covers Arabic-Indic and Persian digits (`DIGIT` class in `agent-turn.rules.ts`): a national ID typed in Arabic digits is hidden too. The timer test waits for the card before waiting for its expiry, so it cannot pass before the card shows. |
+| 418 | The long-number mask also allows `,` and the Arabic thousands separator `٬` between digits. |
 
 Plan: `docs/plans/phase-7-agent-chat.md` (log 2026-11-16, CodeRabbit round). Each comment was checked against the code; a test that fails on the old code was written first for every real one.
 
