@@ -226,7 +226,8 @@ export function parseLabels(labelsJson: string): Record<string, string> {
 
 const DIGIT = '[0-9\\u0660-\\u0669\\u06F0-\\u06F9]'; // Latin, Arabic-Indic and Persian digits
 const IBAN = new RegExp(`\\b[A-Za-z]{2}${DIGIT}{2}(?:\\s?${DIGIT}){10,30}`, 'g');
-const LONG_NUMBER = new RegExp(`${DIGIT}(?:[\\s\\-,\\u066C]?${DIGIT}){9,}`, 'g');
+// Ten digits or more, spaces, dashes or the Arabic thousands separator between them; or a Latin number grouped by thousands (1,234,567,890). A list such as «2024,2025,2026» is not one number.
+const LONG_NUMBER = new RegExp(`${DIGIT}(?:[\\s\\-\\u066C]?${DIGIT}){9,}|[0-9]{1,3}(?:,[0-9]{3}){3,}`, 'g');
 export const MASKED_NUMBER = '[hidden number]';
 
 /** What the employee typed, without an IBAN or a number of ten digits or more, in Latin or Arabic digits (a national ID, a card, a phone): the AI service never receives it; the stored message keeps it. */
