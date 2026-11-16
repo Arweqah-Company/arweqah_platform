@@ -4,6 +4,13 @@ Short records of choices that are not obvious from the code. Newest first.
 
 ## 2026-11-16 — Review of PR 112 (the release of the assistant)
 
+**Second round (PR 112, review of 21:32).**
+| 412 | What the employee types is masked before the AI request: an IBAN and any run of ten digits or more (national ID, card, phone) become «[hidden number]» in the employee lines of the prompt (`maskSensitive`, `agent-turn.rules.ts`); the stored message keeps the original, and the manual no longer says «never sent». Cost: the assistant cannot fill a field with such a number from chat. |
+| 413 | Record boundaries (`recordStart` / `recordEnd`) ignore braces inside JSON strings and escaped quotes (`insideStrings`). |
+| 414 | `claimDraft` compares expiry with `clock_timestamp()`, not `NOW()` (the transaction start), so a draft that lapsed while the claim waited for the row lock is refused. |
+| 415 | The draft card's timer stops once the moment has passed (`at <= now`), and opening an earlier conversation resets the confirm / cancel / form mutation state. |
+| 416 | Not applied: (a) history bound by millisecond only (two user messages of one conversation in the same millisecond cannot happen: one turn at a time per employee, the UI blocks a second send); (b) `bg-white` on the panel: `white` is a surface token re-pointed in the dark theme (theme.css), like every panel. |
+
 Plan: `docs/plans/phase-7-agent-chat.md` (log 2026-11-16, CodeRabbit round). Each comment was checked against the code; a test that fails on the old code was written first for every real one.
 
 | # | Decision | Why | Revisit when |

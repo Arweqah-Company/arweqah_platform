@@ -55,6 +55,10 @@ describe('The form of an action (FR-152)', () => {
     expect(pairedInData({ label: 'الدعم  الفني', value: ID }, data)).toBe(true);
     expect(pairedInData({ label: 'طلب صيانة', value: '11111111-1111-4111-8111-111111111111'.toUpperCase() }, data)).toBe(true);
     expect(pairedInData({ label: 'طلب صيانة', value: ID }, data)).toBe(false);
+    // A brace inside a name is part of the name, not the end of the record.
+    const braced = [`[{"id":"${ID}","nameAr":"الدعم } الفني"}]`];
+    expect(pairedInData({ label: 'الدعم } الفني', value: ID }, braced)).toBe(true);
+    expect(pairedInData({ label: 'الدعم { الفني', value: ID }, [`[{"nameAr":"x { y","id":"${ID}"}]`])).toBe(false);
     expect(pairedInData({ label: 'اسم لا وجود له', value: ID }, data)).toBe(false);
     expect(pairedInData({ label: 'الدعم الفني', value: '22222222-2222-4222-8222-222222222222' }, data)).toBe(false);
   });

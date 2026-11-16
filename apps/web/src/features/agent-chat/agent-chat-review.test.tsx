@@ -1,6 +1,6 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { server } from '../../../test/msw';
 import { answer, draft, launcher, open, reply, write } from '../../../test/agent-chat-support';
 
@@ -79,5 +79,33 @@ describe('The assistant panel after the review of the release (FR-145)', () => {
     await waitFor(() => expect(panel).toHaveFocus());
     fireEvent.keyDown(document, { key: 'Escape' });
     await waitFor(() => expect(button).toHaveFocus());
+  });
+
+  it('a card that has expired stops its timer instead of scheduling a new one forever', async () => {
+    const soonDraft = draft({ expiresAt: new Date(Date.now() + 300).toISOString() });
+    history(() => HttpResponse.json(conversation([{ ...reply('جهّزت الطلب', soonDraft), id: 'o1' }])));
+    open();
+    await openHistory();
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'تأكيد' })).not.toBeInTheDocument(), { timeout: 4000 });
+    const timers = vi.spyOn(globalThis, 'setTimeout');
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(timers.mock.calls.filter(([, delay]) => delay === 0)).toHaveLength(0);
+    timers.mockRestore();
+  });
+
+  it('a failed confirm in one chat does not show its error in the earlier chat that is opened next', async () => {
+    server.use(
+      http.post('*/api/agent/messages/stream', () => answer('c1', reply('جهّزت الطلب', draft()))),
+      http.post('*/api/agent/drafts/d1/confirm', () => HttpResponse.json({ statusCode: 500, code: 'INTERNAL', message: 'down' }, { status: 500 })),
+    );
+    history(() => HttpResponse.json(conversation([{ ...reply('رد قديم'), id: 'o1' }])));
+    open();
+    await write('أضف نوعًا');
+    fireEvent.click(await screen.findByRole('button', { name: 'تأكيد' }));
+    await screen.findByRole('alert');
+    fireEvent.click(await screen.findByRole('button', { name: 'المحادثات السابقة' }));
+    fireEvent.click(await screen.findByText('قديمة'));
+    expect(await screen.findByText('رد قديم')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });

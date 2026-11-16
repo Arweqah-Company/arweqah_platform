@@ -19,7 +19,7 @@ function useLapsed(moment: string | null): boolean {
   const at = moment ? new Date(moment).getTime() : null;
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    if (at === null) return undefined;
+    if (at === null || at <= now) return undefined;
     const timer = setTimeout(() => setNow(Date.now()), Math.max(0, Math.min(at - Date.now() + 50, MAX_TIMER_MS)));
     return () => clearTimeout(timer);
   }, [at, now]);

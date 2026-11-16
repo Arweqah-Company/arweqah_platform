@@ -67,7 +67,7 @@ A form follows the same road: «Open» until you send it, then «Sent», which m
 - A card expires after the time the administrator set (30 minutes by default); a new request replaces the one still waiting (FR-141).
 - The messages per hour are limited (30 by default); a message the AI service could not answer does not count (FR-144).
 - If the administrator switches the assistant off, nothing it prepared can be confirmed (FR-150).
-- Sensitive data (national ID, IBAN, salary) is never sent to the AI service, and what the assistant runs is written to the audit log as coming through the assistant (FR-144).
+- Sensitive fields of platform records (national ID, IBAN, salary) are removed by field name from lookup results, and an IBAN or any number of ten digits or more that you type is replaced by «[hidden number]», before the AI service receives them (your own message keeps what you wrote); still, do not type a national ID or an IBAN in a chat. What the assistant runs is written to the audit log as coming through the assistant (FR-144).
 
 ### Good to know
 
