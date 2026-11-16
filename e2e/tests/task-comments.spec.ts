@@ -6,7 +6,7 @@ import { ADMIN_STATE } from '../support/fixtures';
 class Screen extends BasePage {}
 test.use({ storageState: ADMIN_STATE });
 
-const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished.catch(() => undefined))));
+const settled = (page: Page) => page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))));
 
 /** The administrator\'s grants work in admin mode only (FR-84), so every test starts with it on. */
 test.beforeEach(async ({ page }) => adminModeOnViaApi(page));
