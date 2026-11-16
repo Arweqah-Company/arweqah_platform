@@ -679,6 +679,8 @@ erDiagram
     character_varying name_en
     text description_ar
     text description_en
+    text instructions_ar
+    text instructions_en
     integer due_days
     boolean is_personal
     boolean is_active
@@ -1395,7 +1397,7 @@ erDiagram
 | Table | What it does |
 |---|---|
 | `ticket_desks` | One per receiving unit (`org_node_id`): reception status, accepts-personal flag, default / minimum due days, auto-close, reopen window and stale-after days. |
-| `ticket_types` | Kinds of ticket per desk (names ar / en, due days, personal flag). |
+| `ticket_types` | Kinds of ticket per desk (names ar / en, instructions for the sender ar / en, due days, personal flag). |
 | `ticket_type_handlers` | The employees of the unit who answer the tickets of a type (one or more; with several, the first to reply takes the ticket). |
 | `tickets` | The ticket: sender, desk, type, title, details, priority, needed-by date, assignee, status, close reason, response and activity timestamps, reopen count. |
 | `ticket_events` | Timeline of a ticket: answers, status changes, assignment, close and reopen. |

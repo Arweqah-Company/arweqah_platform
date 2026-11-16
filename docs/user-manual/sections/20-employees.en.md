@@ -45,7 +45,7 @@ Above the list there is a search by name, number or e-mail, and filters: company
 2. In the first step «Employee details» fill the sections: Work, Contact, Personal, Contract, Salary and cost, Notes. Required fields carry a star, and an error appears under the field as you type.
 3. Choose the company, then the unit, then the job title (a new employee needs a unit and a job title). The unit's manager is proposed as direct manager; you can change or clear it.
 4. Press «Next: roles». The «Employee» role and the role of the chosen job title are ticked from the start; untick them or add other roles (each role may have an optional last day). This step shows for people who may assign roles.
-5. Press «Save and send invitation». The sign-in account is created and the employee receives an e-mail with the activation link; they link the authenticator app with a QR code and get backup codes. The link works for 72 hours and only once.
+5. At the bottom of the last step, tick or untick «Send the activation invitation by e-mail after saving» (ticked at first), then press «Save». The sign-in account is always created. If the box is ticked the employee receives an e-mail with the activation link; they link the authenticator app with a QR code and get backup codes. The link works for 72 hours and only once. If it is unticked nothing is sent; use «Resend invitation» later.
 
 > If the e-mail could not be sent, the employee is still saved and a message asks you to use «Resend invitation».
 
@@ -178,7 +178,7 @@ A star (*) on screen marks a required field. The form is in two steps: «Employe
 
 #### Import from a file
 
-The template has one column for each field above, with the system's lists as drop-downs, plus «Direct manager employee number». Required columns: Company, Unit, Job title, Work email, Employee number, Full name, Start date. The ID number, salary and IBAN columns are in the template only for who holds `employees.view_sensitive`. The three yes / no columns take Yes or No. «Update from file» uses the same columns without Company and Work email; only «Employee number» is required, and an empty cell leaves the record as it is.
+The template has one column for each field above, with the system's lists as drop-downs, plus «Direct manager employee number». After the file is checked, the preview has one box «Send the activation invitation e-mail to everyone imported» (ticked at first): it applies to all the imported employees at once; unticked, no e-mail is sent. Required columns: Company, Unit, Job title, Work email, Employee number, Full name, Start date. The ID number, salary and IBAN columns are in the template only for who holds `employees.view_sensitive`. The three yes / no columns take Yes or No. «Update from file» uses the same columns without Company and Work email; only «Employee number» is required, and an empty cell leaves the record as it is.
 
 #### Photo (dialog)
 
@@ -191,7 +191,7 @@ The template has one column for each field above, with the system's lists as dro
 #### What happens when HR adds an employee
 
 1. **HR** (`employees.create`) presses «Add employee» and fills the details. The company, unit and title must be inside HR's scope, and the work e-mail, employee number and ID document must be new.
-2. **HR** goes to «Roles» and presses «Save and send invitation».
+2. **HR** goes to «Roles» and ticks «Send the activation invitation by e-mail after saving» and presses «Save».
 3. **The system** creates the sign-in account and the record, writes the first periods of unit, title and manager (from the start date), gives the chosen roles, refreshes the automatic roles (Employee, job-title role, head role, direct-manager role) and lets the manager follow the reporting line of titles. The action is written to the audit log.
 4. **The employee** receives an e-mail with the activation link (valid 72 hours, once). They open it, link the authenticator app with the QR code and keep the backup codes. After that they sign in with Microsoft or with the work e-mail plus the code.
 5. If the e-mail could not be sent the employee is still saved; **HR** uses «Resend invitation» (one per minute per address).

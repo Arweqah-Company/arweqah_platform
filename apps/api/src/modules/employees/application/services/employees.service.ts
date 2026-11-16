@@ -101,9 +101,9 @@ export class EmployeesService {
     return this.dto(ctx, await this.reach.find(ctx, id, P.EmployeesView));
   }
 
-  /** Creates the person's record and sign-in account, assigns roles, then e-mails the activation link. */
+  /** Creates the person's record and sign-in account, assigns roles, then e-mails the activation link only when the caller asked for it (`sendInvite`). */
   async create(ctx: AccessContext, input: CreateEmployeeInput, actorId: string): Promise<CreateEmployeeResultDto> {
-    const { roleIds: chosen, roleExpiries, leadsUnit, ...fields } = input;
+    const { roleIds: chosen, roleExpiries, leadsUnit, sendInvite, ...fields } = input;
     await this.assertCanLead(ctx, leadsUnit, { orgNodeId: input.orgNodeId, companyId: input.companyId, from: [todayInRiyadh(), input.startDate].sort().at(-1) as string });
     this.assertInScope(ctx, P.EmployeesCreate, { companyId: input.companyId, orgNodeId: input.orgNodeId });
     await this.assertEmailDomainAllowed(input.workEmail);
@@ -130,7 +130,7 @@ export class EmployeesService {
     await this.events.emitAsync(EMPLOYEES_CHANGED);
     if (leadsUnit) await this.lead(ctx, created, { from: [todayInRiyadh(), input.startDate].sort().at(-1) as string, actorId });
     this.auditor.record(actorId, EMPLOYEE_AUDIT.created, created.id, { companyId: created.companyId, roles: roleIds.length });
-    return { employee: await this.dto(ctx, created), invitation: await this.invite(userId) };
+    return { employee: await this.dto(ctx, created), invitation: sendInvite ? await this.invite(userId) : null };
   }
 
   async update(ctx: AccessContext, id: string, input: UpdateEmployeeInput, actorId: string): Promise<EmployeeDto> {

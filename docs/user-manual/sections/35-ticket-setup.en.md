@@ -36,9 +36,9 @@ The page has two tabs: **Settings** and **Types**.
 
 1. Open the **Types** tab and click **Add type**.
 2. Write the name and the description (Arabic and English).
-3. Choose the assignee: the employee who receives tickets of this kind. Leave it empty and the unit manager handles them.
+3. Choose the handlers: one or more people from the unit manager and the employees of the unit and of the units below it (any title) who answer tickets of this kind. Leave it empty and the unit manager handles them. In **Instructions** write what the sender must include (for example: take a screenshot of the problem and one of Inspect); the sender sees it before sending.
 4. Optionally set a special duration in working days; leave it empty to use the unit's usual duration.
-5. Tick «Personal type» if the type is for complaints or private matters; a personal type must have an assignee. Keep «Active type» ticked and save.
+5. Tick «Personal type» if the type is for complaints or private matters; a personal type must have exactly one handler. Keep «Active type» ticked and save.
 
 **Pause reception**
 
@@ -77,7 +77,8 @@ The page has two tabs: **Settings** and **Types**.
 |---|---|---|---|
 | Name in Arabic / Name in English | The name of the kind of request, shown to the employee when they send. | Yes | 2 to 120 characters each. The English one is filled from the Arabic when left empty. |
 | Description in Arabic / in English | One line telling the employee when to choose this type. | No | Up to 300 characters each. |
-| Assignee | The employee who receives and handles tickets of this type, and who is notified when one arrives. Empty means the unit manager handles them. | Only for a personal type | An active employee of the unit's company (search by name or number). |
+| Handlers | The employees who answer tickets of this type and are notified when one arrives. One handler: the ticket is assigned to them. Several: the ticket shows to all and the first to reply takes it. Empty means the unit manager handles them. | Only for a personal type (exactly one) | Active employees of the unit and of every unit below it, any title, and the unit manager. |
+| Instructions for the sender (Arabic) / (English) | Formatted text (bold, italic, underline, lists, links) the sender reads above the fields when sending a ticket of this type, telling them what to include. | No | Up to 5000 characters each; no images. |
 | Own duration in working days | The usual time for this type only; it pre-fills the sender's date. Empty uses the unit's usual completion time. | No | 1 to 60 whole days. |
 | Personal type: the unit manager does not see it, only the sender and the assignee | Makes every ticket of this type private to its sender and its assignee. | No | Tick box. Needs an assignee, and the unit must accept personal requests. |
 | Active type | An inactive type is no longer offered to senders; its old tickets stay. | No | Tick box, on by default. |
@@ -89,9 +90,9 @@ The page has two tabs: **Settings** and **Types**.
 1. **The unit leader** turns on platform admin mode and opens **Ticket setup**, then chooses the unit. A unit that was never set up shows the defaults (reception stopped, durations 3 / 0 / 4 / 7 / 14).
 2. In the organization structure someone sets the unit's **manager** (not on this page); a unit without a manager cannot be activated.
 3. In **Settings** the leader sets reception to «Active», writes the description and the durations, and presses **Save**. The settings are stored and the change is recorded in the audit log.
-4. In **Types** the leader adds the kinds of request, each with its assignee and optional own duration, and presses **Save**.
+4. In **Types** the leader adds the kinds of request, each with its handlers, instructions and optional own duration, and presses **Save**.
 5. From now on employees see the unit when they press **New ticket**: it is listed if reception is Active (or Paused, disabled), its start date has come, and it has at least one active type. The ticket workflow then follows the Tickets page.
-6. When the leader changes the settings later, new tickets use the new values, and the stale-ticket limit applies at once to open tickets; changing a type's assignee affects new tickets, and also open personal tickets whose old assignee is no longer active (the manager is told how many moved, never which).
+6. When the leader changes the settings later, new tickets use the new values, and the stale-ticket limit applies at once to open tickets; changing a type's handlers affects new tickets, and also open personal tickets whose old assignee is no longer active (the manager is told how many moved, never which).
 
 | Status (reception) | Meaning | Who can move it (permission key) | Moves to |
 |---|---|---|---|
@@ -129,7 +130,7 @@ The page has two tabs: **Settings** and **Types**.
   - automatic close after a close request, in calendar days, default 4
   - the time allowed to reopen a closed ticket, in calendar days, default 7
   - a ticket counts as stale after, in calendar days, default 14
-- A type has a name, a description, an assignee, an optional special duration and a flag for personal. If no assignee is set, the unit manager handles the ticket.
+- A type has a name, a description, instructions for the sender, one or more handlers (from the unit manager and the employees of the unit and the units below it; with several, the ticket is unassigned until the first one replies), an optional special duration and a flag for personal. If the type has no handlers, the unit manager handles its tickets (a type with several handlers is not «no handler»: its tickets wait for the first handler's reply).
 - **Personal types** are invisible to the unit manager and to platform administrators; they need an active assignee. (FR-38)
 - **Deleting a type:** if tickets already use it, it is only deactivated and keeps its tickets; otherwise it is deleted. The message tells you which happened.
 - A unit that takes tickets (active or paused) or has open tickets cannot be moved or deleted in the organization structure.

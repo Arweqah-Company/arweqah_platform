@@ -11,6 +11,7 @@ import { TicketDirectory } from '../../domain/contracts/ticket-directory.port';
 import { TicketRepository } from '../../domain/contracts/ticket.repository';
 import { AssigneeInvalidError, DeskNoManagerError, DeskNotFoundError, TypeNoHandlerError, TypePersonalOneHandlerError } from '../../domain/errors/ticket.errors';
 import type { DeskRecord, DeskSettingsValues, DepartmentFacts, TypeRecord, TypeValues } from '../../domain/types/ticket.types';
+import { sanitizeInstructions } from '../../domain/rules/ticket-instructions.rules';
 import { TICKET_AUDIT } from '../messages/ticket.messages';
 import { departmentsFor } from '../policies/department-scope';
 import { TicketTransformer } from '../transformers/ticket.transformer';
@@ -96,7 +97,7 @@ export class TicketSetupService {
     return { deleted: !used };
   }
 
-  /** Employees sitting directly in the department, found by name or number, for the handlers picker. */
+  /** The department manager and the employees of the department and of every unit below it, found by name or number, for the handlers picker. */
   async assignees(ctx: AccessContext, deskId: string, search?: string): Promise<PersonRefDto[]> {
     const department = await this.department(ctx, deskId, CorePermission.TicketsSetupView);
     return this.directory.assignableEmployees(department.orgNodeId, search);
@@ -135,7 +136,7 @@ export class TicketSetupService {
     return this.transformer.toTypeDto((await this.desks.type(typeId)) as TypeRecord);
   }
 
-  /** Every handler must be an active employee of the unit, and a personal type has exactly one. */
+  /** Every handler must be an active employee of the unit or of a unit below it (or its manager), and a personal type has exactly one. */
   private async valuesOf(deskId: string, input: TicketTypeInput): Promise<TypeValues> {
     const handlerUserIds = [...new Set(input.handlerUserIds ?? [])];
     if ((await this.directory.membersOf(deskId, handlerUserIds)).length !== handlerUserIds.length) throw new AssigneeInvalidError();
@@ -146,6 +147,8 @@ export class TicketSetupService {
       nameEn: input.nameEn,
       descriptionAr: input.descriptionAr ?? null,
       descriptionEn: input.descriptionEn ?? null,
+      instructionsAr: sanitizeInstructions(input.instructionsAr),
+      instructionsEn: sanitizeInstructions(input.instructionsEn),
       handlerUserIds,
       dueDays: input.dueDays ?? null,
       isPersonal: input.isPersonal,

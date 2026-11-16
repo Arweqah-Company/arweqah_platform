@@ -31,12 +31,12 @@ interface RunResult {
 }
 
 /** Saves the valid rows a few at a time; a row that throws is reported, the others carry on. */
-async function runRows(rows: PreparedRow[], describe: (error: unknown) => string, onProgress: (done: number) => void): Promise<RunResult> {
+async function runRows(rows: PreparedRow[], describe: (error: unknown) => string, onProgress: (done: number) => void, option?: boolean): Promise<RunResult> {
   const failures: ImportFailure[] = [];
   await runPool(
     rows.map((row) => async () => {
       try {
-        await (row.run as () => Promise<void>)();
+        await (row.run as (option?: boolean) => Promise<void>)(option);
       } catch (error) {
         failures.push({ rowNumber: row.rowNumber, message: describe(error) });
       }
@@ -82,11 +82,11 @@ export function useImportFlow(columns: ImportColumn[], prepare: (rows: SheetRow[
     }
   };
 
-  const start = async () => {
+  const start = async (option?: boolean) => {
     setPhase('running');
     setProgress(0);
     const valid = rows.filter((r) => r.run);
-    setFailures(commit ? await commitAll(commit, valid, (error) => errorMessage(t, error)) : (await runRows(valid, (error) => errorMessage(t, error), setProgress)).failures);
+    setFailures(commit ? await commitAll(commit, valid, (error) => errorMessage(t, error)) : (await runRows(valid, (error) => errorMessage(t, error), setProgress, option)).failures);
     setPhase('done');
     onImported?.();
   };

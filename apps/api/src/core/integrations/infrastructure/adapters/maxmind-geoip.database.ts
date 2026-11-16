@@ -22,14 +22,17 @@ const MB = 1024 * 1024;
 export class MaxmindGeoipDatabase extends GeoipDatabase {
   private readonly logger = new Logger(MaxmindGeoipDatabase.name);
   private reader: Reader<CityResponse> | null | undefined;
+  private opening: Promise<Reader<CityResponse> | null> | undefined;
 
   constructor(private readonly config: AppConfig) {
     super();
   }
 
   async install(accountId: string, licenseKey: string): Promise<GeoipInstall> {
-    const work = await mkdtemp(join(this.folder(), '..', 'geoip-work-'));
+    let work: string | undefined;
     try {
+      await mkdir(this.folder(), { recursive: true });
+      work = await mkdtemp(join(this.folder(), '..', 'geoip-work-'));
       const archive = await this.download(accountId, licenseKey);
       if (typeof archive === 'string') return { ok: false, message: archive };
       await writeFile(join(work, 'db.tar.gz'), archive);
@@ -38,14 +41,13 @@ export class MaxmindGeoipDatabase extends GeoipDatabase {
       if (!file) return { ok: false, message: 'The download did not contain the city database' };
       const bytes = await readFile(file);
       this.reader = new Reader<CityResponse>(bytes);
-      await mkdir(this.folder(), { recursive: true });
       await rename(file, join(this.folder(), FILE_NAME));
       return { ok: true, sizeMb: Math.round((bytes.length / MB) * 10) / 10 };
     } catch (error) {
       this.logger.warn(`Installing the city database failed: ${(error as Error).message}`);
       return { ok: false, message: 'The downloaded file could not be opened as a city database' };
     } finally {
-      await rm(work, { recursive: true, force: true });
+      if (work) await rm(work, { recursive: true, force: true });
     }
   }
 
@@ -65,11 +67,17 @@ export class MaxmindGeoipDatabase extends GeoipDatabase {
 
   private async open(): Promise<Reader<CityResponse> | null> {
     if (this.reader !== undefined) return this.reader;
+    this.opening ??= this.load(); // concurrent lookups share one read of the file
+    return this.opening;
+  }
+
+  private async load(): Promise<Reader<CityResponse> | null> {
     try {
       this.reader = new Reader<CityResponse>(await readFile(join(this.folder(), FILE_NAME)));
     } catch {
       this.reader = null;
     }
+    this.opening = undefined;
     return this.reader;
   }
 

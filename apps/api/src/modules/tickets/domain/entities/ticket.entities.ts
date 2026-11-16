@@ -67,6 +67,13 @@ export class TicketType extends BaseEntity {
   @Column({ name: 'description_en', type: 'text', nullable: true })
   descriptionEn: string | null;
 
+  /** What the sender must put in a ticket of this type to make it easy to answer (sanitized HTML). */
+  @Column({ name: 'instructions_ar', type: 'text', nullable: true })
+  instructionsAr: string | null;
+
+  @Column({ name: 'instructions_en', type: 'text', nullable: true })
+  instructionsEn: string | null;
+
   /** Working days; null = the desk's default. */
   @Column({ name: 'due_days', type: 'int', nullable: true })
   dueDays: number | null;

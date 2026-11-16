@@ -48,6 +48,8 @@ export interface FormState {
   roleIds: string[];
   /** Make the person the leader of the unit chosen above when saved (needs the leaders key). */
   leadsUnit: boolean;
+  /** New employee only: e-mail the activation link when saved. */
+  sendInvite: boolean;
   /** The last day of a role, by role id (a role with no end date is not in it). */
   roleExpiries: Record<string, string>;
   /** Edit only: from which day a changed unit, title or manager holds, and why (FR-89). */
@@ -67,7 +69,7 @@ export const EMPTY_FORM: FormState = {
   workPhone: '', personalPhone: '', employeeNumber: '', fullName: '', fullNameEn: '', gender: '', birthDate: '', nationalityId: '', maritalStatusId: '',
   residencyStatusId: '', idTypeId: '', idNumber: '', idExpiryDate: '', startDate: '', endDate: '', contractTypeId: '', contractTypeOther: '', contractCompanyId: '',
   gosiCompanyId: '', healthInsuranceCompanyId: '', isGosiRegistered: false, gosiRegistrationDate: '', gosiSystemId: '', profession: '', isQiwaContract: false,
-  hasMedicalInsurance: false, terminationReasonId: '', terminationReasonOther: '', monthlyGrossSalary: '', salaryCurrencyCountryId: '', iban: '', notes: '', roleIds: [], roleExpiries: {}, effectiveFrom: '', changeReason: '', leadsUnit: false,
+  hasMedicalInsurance: false, terminationReasonId: '', terminationReasonOther: '', monthlyGrossSalary: '', salaryCurrencyCountryId: '', iban: '', notes: '', roleIds: [], roleExpiries: {}, effectiveFrom: '', changeReason: '', leadsUnit: false, sendInvite: true,
 };
 
 const blank = (value: string): string | null => (value.trim() === '' ? null : value.trim());
@@ -75,7 +77,7 @@ const blank = (value: string): string | null => (value.trim() === '' ? null : va
 /** The API payload; roles are given when an employee is added (later changes use the roles dialog, and the update refuses the key). */
 export function toPayload(form: FormState, editing = false): Record<string, unknown> {
   const { roleIds, ...rest } = payloadFields(form);
-  return editing ? { ...rest, ...datedChange(form) } : { ...rest, roleIds, roleExpiries: roleExpiriesToSend(form, {}) };
+  return editing ? { ...rest, ...datedChange(form) } : { ...rest, roleIds, roleExpiries: roleExpiriesToSend(form, {}), sendInvite: form.sendInvite };
 }
 
 /** The day and the reason of a placement change, sent only when the form has them. */
