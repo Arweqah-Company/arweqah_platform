@@ -104,12 +104,37 @@ erDiagram
     uuid updated_by
     timestamp_with_time_zone updated_at
   }
+  agent_conversations {
+    uuid id PK
+    uuid user_id FK
+    character_varying title
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+  }
+  agent_messages {
+    uuid id PK
+    uuid conversation_id FK
+    character_varying role
+    text text
+    jsonb draft
+    character_varying draft_status
+    timestamp_with_time_zone draft_expires_at
+    timestamp_with_time_zone executed_at
+    jsonb result
+    jsonb links
+    jsonb form
+    character_varying form_status
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+  }
   allowed_email_domains {
     character_varying domain PK
     uuid created_by
     timestamp_with_time_zone created_at
   }
   users ||--o{ auth_sessions : "user_id"
+  users ||--o{ agent_conversations : "user_id"
+  agent_conversations ||--o{ agent_messages : "conversation_id"
   users ||--o{ auth_sessions : "impersonated_by_user_id"
   auth_sessions ||--o{ auth_sessions : "impersonator_session_id"
   users ||--o{ auth_accounts : "user_id"
@@ -1331,6 +1356,8 @@ erDiagram
 | `enrollment_invites` | E-mailed QR link that lets a new user enroll the authenticator app the first time. |
 | `trusted_devices` | Devices a person chose to «remember», so the code is skipped there until expiry. |
 | `security_settings` | Single-row platform security settings (session length, request limit per minute, device trust…). |
+| `agent_conversations` | One chat of an employee with the platform assistant; private to its owner. |
+| `agent_messages` | A line of a conversation: what the employee wrote, what the assistant answered (with its draft, status, expiry and result, the links to the manual and pages under it, and the form it offered with its `open` / `submitted` state), or data it looked up (`tool`, never shown). |
 | `allowed_email_domains` | E-mail domains allowed to sign in with a work e-mail. |
 
 ### 2. Access

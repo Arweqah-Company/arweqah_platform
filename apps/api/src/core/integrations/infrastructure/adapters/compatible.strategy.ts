@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AI_TIMEOUT_MS, MODELS_TIMEOUT_MS } from '../../application/messages/integrations.messages';
+import { readChatStream } from './compatible-stream';
 import { sortedUnique, withoutModelsPrefix } from './model-names';
 import { AiStrategy, type AiJsonOutcome, type AiJsonRequest, type AiModelsOutcome, type AiModelsRequest } from '../../domain/contracts/ai-client';
 
@@ -63,6 +64,7 @@ export class CompatibleStrategy extends AiStrategy {
         signal: AbortSignal.timeout(AI_TIMEOUT_MS),
         redirect: 'error',
       });
+      if (response.ok && request.onText) return await readChatStream(response, request.onText);
       const answer = answerOf(await response.json().catch(() => null));
       if (!response.ok) return { kind: 'failed', message: `${response.status}: ${answer.error?.message ?? response.statusText}`.slice(0, 500), ...(BUSY_STATUSES.includes(response.status) && { busy: true }) };
       return outcomeOf(answer);
@@ -91,6 +93,7 @@ function bodyOf(request: AiJsonRequest): Record<string, unknown> {
       { role: 'user', content: request.user },
     ],
     response_format: { type: 'json_schema', json_schema: { name: 'answer', strict: true, schema: request.schema } },
+    ...(request.onText && { stream: true, stream_options: { include_usage: true } }),
   };
 }
 

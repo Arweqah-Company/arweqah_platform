@@ -81,6 +81,8 @@ export interface MeDto extends UserDto {
   impersonation: ImpersonationDto | null;
   /** The administrator switched «sign in as» on in the security settings (the button shows only for those who hold its key). */
   impersonationEnabled: boolean;
+  /** The platform assistant is switched on in the security settings (its button shows only then). */
+  agentEnabled: boolean;
   /** The administrator allows trusting a browser after the code step that follows a Microsoft sign-in. */
   trustedDevicesEnabled: boolean;
   /** Pages hidden from every role of this person (the menu leaves them out and the API refuses them). */

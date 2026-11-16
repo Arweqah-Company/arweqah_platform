@@ -31,6 +31,7 @@ export const TOUR_STEPS = [
   { key: 'language-theme', tour: 'general' },
   { key: 'notifications', tour: 'general' },
   { key: 'sidebar', tour: 'general' },
+  { key: 'agent-chat', tour: 'general', permission: CorePermission.AgentView },
   { key: 'home', tour: 'general' },
   { key: 'tickets', tour: 'general', permission: CorePermission.TicketsView, page: 'tickets' },
   { key: 'ticket-new', tour: 'general', permission: CorePermission.TicketsCreate, page: 'tickets' },

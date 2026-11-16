@@ -2,6 +2,7 @@ import type { FeatureModule } from '@/core/feature';
 import { addTranslations } from '@/core/i18n';
 import { auditFeature } from '@/features/audit';
 import { emailLogFeature } from '@/features/email-log';
+import { agentChatFeature } from '@/features/agent-chat';
 import { authFeature } from '@/features/auth';
 import { careerProfileFeature } from '@/features/career-profile';
 import { companiesFeature } from '@/features/companies';
@@ -52,6 +53,7 @@ export const FEATURES: FeatureModule[] = [
   docsFeature,
   myAccessFeature,
   securityFeature,
+  agentChatFeature,
   tourFeature,
 ];
 

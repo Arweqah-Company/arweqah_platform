@@ -11,6 +11,12 @@ export const SECURITY_SETTINGS = {
   impersonationEnabled: { default: 0, min: 0, max: 1 },
   /** Minutes without a request after which a «sign in as» session ends by itself. */
   impersonationIdleMinutes: { default: 30, min: 5, max: 240 },
+  /** 1 lets people use the platform assistant (the chat); 0 switches it off for everyone: its button disappears and its routes refuse. */
+  agentEnabled: { default: 1, min: 0, max: 1 },
+  /** How many messages one employee may send to the platform assistant in an hour (the AI costs money). */
+  agentMessagesPerHour: { default: 30, min: 5, max: 300 },
+  /** Minutes a draft of the assistant waits for the employee's confirmation before it expires. */
+  agentDraftMinutes: { default: 30, min: 5, max: 1440 },
 } as const;
 export type SecuritySettingKey = keyof typeof SECURITY_SETTINGS;
 export const SECURITY_SETTING_KEYS = Object.keys(SECURITY_SETTINGS) as SecuritySettingKey[];
@@ -23,6 +29,9 @@ export const securitySettingsSchema = z.strictObject({
   requestsPerMinute: field('requestsPerMinute'),
   impersonationEnabled: field('impersonationEnabled'),
   impersonationIdleMinutes: field('impersonationIdleMinutes'),
+  agentEnabled: field('agentEnabled').optional(),
+  agentMessagesPerHour: field('agentMessagesPerHour').optional(),
+  agentDraftMinutes: field('agentDraftMinutes').optional(),
 });
 export type SecuritySettingsInput = z.infer<typeof securitySettingsSchema>;
 

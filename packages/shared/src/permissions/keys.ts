@@ -248,6 +248,10 @@ export const CorePermission = {
   TasksCommentDeleteAny: 'tasks.comment_delete_any',
   TasksCommentRulesView: 'tasks.comment_rules_view',
   TasksCommentRulesEdit: 'tasks.comment_rules_edit',
+  // The platform assistant (chat): opening it, talking to it, and the person's old conversations. What it does for a person always goes through the key of the action itself.
+  AgentView: 'agent.view',
+  AgentUse: 'agent.use',
+  AgentHistoryView: 'agent.history_view',
 } as const;
 export type CorePermissionKey = (typeof CorePermission)[keyof typeof CorePermission];
 
@@ -306,6 +310,9 @@ export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own
   { key: CorePermission.TasksCommentMention, scope: 'all' },
   { key: CorePermission.TasksCommentEdit, scope: 'all' },
   { key: CorePermission.TasksCommentDelete, scope: 'all' },
+  { key: CorePermission.AgentView, scope: 'all' },
+  { key: CorePermission.AgentUse, scope: 'all' },
+  { key: CorePermission.AgentHistoryView, scope: 'all' },
 ];
 
 /**
@@ -321,6 +328,10 @@ export const COLLABORATOR_BASE_PERMISSIONS: { key: CorePermissionKey; scope: 'ow
 export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'subtree' | 'all'; fields?: readonly string[] }[] = [
   // the leader's own account: profile (edit), security, access page, notifications
   ...OWN_ACCOUNT_PERMISSIONS,
+  // the platform assistant (the leader's own conversations; what it does goes through the keys above)
+  { key: CorePermission.AgentView, scope: 'all' },
+  { key: CorePermission.AgentUse, scope: 'all' },
+  { key: CorePermission.AgentHistoryView, scope: 'all' },
   // people of the unit and below
   { key: CorePermission.EmployeesView, scope: 'subtree' },
   { key: CorePermission.EmployeesHistoryView, scope: 'subtree' },

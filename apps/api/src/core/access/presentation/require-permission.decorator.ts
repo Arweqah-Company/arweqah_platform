@@ -2,12 +2,9 @@ import { createParamDecorator, ExecutionContext, SetMetadata } from '@nestjs/com
 import type { Request } from 'express';
 import type { HideablePage } from '@arweqah-platform/shared';
 import type { AccessContext } from '../domain/access-context';
+import { ALLOW_BEFORE_MFA, OWN_DATA, PAGE_KEY, REQUIRE_ADMIN_MODE, REQUIRED_PERMISSION } from '../domain/route-metadata-keys';
 
-export const REQUIRED_PERMISSION = 'required_permission';
-export const ALLOW_BEFORE_MFA = 'allow_before_mfa';
-export const REQUIRE_ADMIN_MODE = 'require_admin_mode';
-export const PAGE_KEY = 'page_key';
-export const OWN_DATA = 'own_data';
+export { ALLOW_BEFORE_MFA, OWN_DATA, PAGE_KEY, REQUIRE_ADMIN_MODE, REQUIRED_PERMISSION };
 
 /** The caller needs this permission at any scope; services narrow by scope. */
 export const RequirePermission = (key: string) => SetMetadata(REQUIRED_PERMISSION, key);

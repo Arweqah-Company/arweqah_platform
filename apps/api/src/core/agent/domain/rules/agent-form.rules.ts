@@ -1,0 +1,121 @@
+import type { AgentFormFieldDto, AgentFormFieldType, AgentFormOptionDto } from '@arweqah-platform/shared';
+import type { AgentAction, AgentField } from '../types/agent-catalog.types';
+import { normalizeText } from './agent-guide.rules';
+import type { ChoiceOption } from './agent-turn.rules';
+
+type Schema = Record<string, unknown>;
+
+const LONG_TEXT_FROM = 200;
+
+/** A schema without its «or null» branch (a field that may be left out is `anyOf: [{…}, {type: 'null'}]` or `type: [..., 'null']`). */
+function unwrap(schema: Schema): Schema {
+  const alternatives = schema.anyOf;
+  if (Array.isArray(alternatives)) return (alternatives.find((a: Schema) => a.type !== 'null') as Schema | undefined) ?? schema;
+  if (Array.isArray(schema.type)) return { ...schema, type: schema.type.find((t) => t !== 'null') };
+  return schema;
+}
+
+/** How a field of the action is drawn in a form, or null when a form cannot draw it (a list, an object): the assistant then keeps to questions. */
+export function formFieldType(rawSchema: Schema): AgentFormFieldType | null {
+  const schema = unwrap(rawSchema);
+  if (Array.isArray(schema.enum)) return 'select';
+  if (schema.format === 'uuid') return 'select';
+  if (schema.type === 'string') return schema.format === 'date' ? 'date' : typeof schema.maxLength === 'number' && schema.maxLength > LONG_TEXT_FROM ? 'longtext' : 'text';
+  if (schema.type === 'number' || schema.type === 'integer' || schema.type === 'boolean') return schema.type;
+  return null;
+}
+
+/** `nameAr` → «Name ar»: the fallback name of a field when the model gave none. */
+export function humanize(name: string): string {
+  const spaced = name.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/[_-]+/g, ' ').trim().toLowerCase();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+/** Every value in `options` must be an id some lookup showed, written next to the label the model gave it (so a name is never put on another id). */
+export function pairedInData(option: ChoiceOption, dataTexts: readonly string[]): boolean {
+  const wanted = normalizeText(option.label);
+  const value = option.value.toLowerCase();
+  return dataTexts.some((text) => {
+    const lower = text.toLowerCase();
+    for (let at = lower.indexOf(value); at !== -1; at = lower.indexOf(value, at + 1)) {
+      if (normalizeText(text.slice(Math.max(0, at - 400), at + value.length + 400)).includes(wanted)) return true;
+    }
+    return false;
+  });
+}
+
+export interface FormInput {
+  action: AgentAction;
+  values: Record<string, unknown>;
+  /** The model's choices per field, already checked against the lookup data. */
+  options: Record<string, ChoiceOption[]>;
+  labels: Record<string, string>;
+}
+
+function enumOptions(schema: Schema): AgentFormOptionDto[] | null {
+  const list = unwrap(schema).enum;
+  return Array.isArray(list) ? list.filter((v): v is string => typeof v === 'string').map((v) => ({ label: v, value: v })) : null;
+}
+
+function limits(schema: Schema): Pick<AgentFormFieldDto, 'min' | 'max' | 'maxLength'> {
+  const s = unwrap(schema);
+  return {
+    ...(typeof s.minimum === 'number' && { min: s.minimum }),
+    ...(typeof s.maximum === 'number' && { max: s.maximum }),
+    ...(typeof s.maxLength === 'number' && { maxLength: s.maxLength }),
+  };
+}
+
+function fieldOf(field: AgentField, input: FormInput): AgentFormFieldDto | 'hidden' | null {
+  const type = formFieldType(field.schema);
+  if (!type) return null;
+  const base = { name: field.name, label: input.labels[field.name] ?? humanize(field.name), required: field.required, type, ...limits(field.schema) };
+  if (type !== 'select') return base;
+  const options = enumOptions(field.schema) ?? input.options[field.name] ?? [];
+  if (options.length > 0) return { ...base, options };
+  // An id the assistant already holds but cannot name: it stays in the values, out of the form.
+  return input.values[field.name] === undefined ? null : 'hidden';
+}
+
+/** The form for an action, or null when it cannot be drawn: a mandatory field of a kind a form does not draw, or a mandatory id to choose with no choices to show. */
+export function buildForm(input: FormInput): { fields: AgentFormFieldDto[]; values: Record<string, unknown> } | null {
+  const fields: AgentFormFieldDto[] = [];
+  for (const field of input.action.fields) {
+    const drawn = fieldOf(field, input);
+    // A field a form cannot draw is left out when it is optional; when it is mandatory the assistant keeps to questions.
+    if (drawn === null && field.required) return null;
+    if (drawn !== null && drawn !== 'hidden') fields.push(drawn);
+  }
+  return fields.length > 0 ? { fields, values: input.values } : null;
+}
+
+/** What the employee typed, cleaned: a blank text is a field left out, a number typed as text is a number. */
+export function cleanValues(fields: readonly AgentFormFieldDto[], fixed: Record<string, unknown>, typed: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = { ...fixed };
+  for (const field of fields) {
+    const value = typed[field.name];
+    delete out[field.name];
+    if (value === undefined || value === null || value === '') continue;
+    out[field.name] = (field.type === 'number' || field.type === 'integer') && typeof value === 'string' ? Number(value) : value;
+  }
+  return out;
+}
+
+/** The mistakes of the form's own rules, by field: mandatory left empty, a choice that is not on offer. */
+export function formErrors(fields: readonly AgentFormFieldDto[], values: Record<string, unknown>): Record<string, string> {
+  const errors: Record<string, string> = {};
+  for (const field of fields) {
+    const value = values[field.name];
+    if (field.required && value === undefined) errors[field.name] = 'required';
+    else if (value !== undefined && field.options && !field.options.some((o) => o.value === value)) errors[field.name] = 'invalid_choice';
+  }
+  return errors;
+}
+
+/** One line per filled field for the confirmation card, with the names of choices instead of their ids. */
+export function formSummary(label: string, fields: readonly AgentFormFieldDto[], values: Record<string, unknown>): string {
+  const lines = fields
+    .filter((f) => values[f.name] !== undefined)
+    .map((f) => `${f.label}: ${f.options?.find((o) => o.value === values[f.name])?.label ?? (typeof values[f.name] === 'boolean' ? (values[f.name] ? '✓' : '✗') : String(values[f.name]))}`);
+  return [label, ...lines].join('\n');
+}

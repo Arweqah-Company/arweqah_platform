@@ -8,6 +8,7 @@ export * from './permissions/my-access';
 export * from './auth/schemas';
 export * from './exceptions/schemas';
 export * from './security/schemas';
+export * from './agent/schemas';
 export * from './roles/schemas';
 export * from './roles/role-groups';
 export * from './roles/user-groups';

@@ -115,3 +115,40 @@ describe('The OpenAI-compatible strategy of the AI service (FR-126)', () => {
     expect(await strategy.models(REQUEST)).toEqual({ kind: 'failed', message: 'getaddrinfo ENOTFOUND' });
   });
 });
+
+/** The service's event stream, cut in the middle of lines on purpose (a network sends bytes, not lines). */
+const sse = (lines: string[], cuts: number[] = []): Response => {
+  const bytes = new TextEncoder().encode(lines.map((l) => `data: ${l}\n\n`).join(''));
+  const edges = [0, ...cuts, bytes.length];
+  const pieces = edges.slice(0, -1).map((from, i) => bytes.slice(from, edges[i + 1]));
+  return new Response(new ReadableStream({ start: (c) => { pieces.forEach((p) => c.enqueue(p)); c.close(); } }), { headers: { 'content-type': 'text/event-stream' } });
+};
+const delta = (content: string, extra: Record<string, unknown> = {}) => JSON.stringify({ choices: [{ delta: { content }, ...extra }] });
+
+describe('The OpenAI-compatible strategy streams the answer when asked (FR-149)', () => {
+  const strategy = new QuickStrategy();
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('FR-149: asks for a stream, hands every piece of text to onText as it arrives, and the whole answer is the outcome with its usage', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(sse([delta('{"ste'), delta('ps":[]}'), JSON.stringify({ choices: [{ delta: {}, finish_reason: 'stop' }] }), JSON.stringify({ choices: [], usage: { prompt_tokens: 40, completion_tokens: 9 } }), '[DONE]'], [30, 77])));
+    const pieces: string[] = [];
+    expect(await strategy.json({ ...REQUEST, onText: (d) => pieces.push(d) })).toEqual({ kind: 'ok', text: '{"steps":[]}', inputTokens: 40, outputTokens: 9 });
+    expect(pieces).toEqual(['{"ste', 'ps":[]}']);
+    const [, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(String(init.body))).toMatchObject({ stream: true, stream_options: { include_usage: true } });
+  });
+
+  it('FR-149: without onText nothing is streamed (the plain way stays as it was)', async () => {
+    vi.stubGlobal('fetch', reply(chat({ finish_reason: 'stop', message: { content: '{"ok":true}' } })));
+    await strategy.json(REQUEST);
+    const [, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(String(init.body))).not.toHaveProperty('stream');
+  });
+
+  it('FR-149: a stream that was cut by the size limit, refused, or sent an error is an outcome, not an exception', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(sse([delta('{"a"', { finish_reason: 'length' })])).mockResolvedValueOnce(sse([JSON.stringify({ choices: [{ delta: { refusal: 'no' } }] })])).mockResolvedValueOnce(sse([JSON.stringify({ error: { message: 'quota' } })])));
+    expect(await strategy.json({ ...REQUEST, onText: () => undefined })).toEqual({ kind: 'truncated' });
+    expect(await strategy.json({ ...REQUEST, onText: () => undefined })).toEqual({ kind: 'refused' });
+    expect(await strategy.json({ ...REQUEST, onText: () => undefined })).toEqual({ kind: 'failed', message: 'quota' });
+  });
+});
