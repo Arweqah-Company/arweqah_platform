@@ -644,12 +644,21 @@ describe('Tickets (FR-36 … FR-41)', () => {
       return { ...w, second, secondAgent, typeId };
     }
 
-    it('lists only the people sitting directly in the department as candidates', async () => {
+    it('lists the department manager and every employee of it and of the units below, any title, as candidates (FR-133)', async () => {
       const w = await sharedWorld();
-      const sub = await t.factories.user({ unit: w.org.unitA }); // sits below the desk: not a candidate
+      const sub = await t.factories.user({ unit: w.org.unitA }); // sits below the desk: a candidate
+      const outsider = await t.factories.user({ unit: w.org.unitOther }); // another company: not a candidate
       const found = (await w.agents.manager.get(`/api/tickets/setup/desks/${w.desk}/assignees`).expect(200)).body as { id: string }[];
-      expect(found.map((p) => p.id).sort()).toEqual([w.assignee.id, w.second.id].sort());
-      expect(found.map((p) => p.id)).not.toContain(sub.id);
+      expect(found.map((p) => p.id)).toEqual(expect.arrayContaining([w.manager.id, w.assignee.id, w.second.id, sub.id]));
+      expect(found.map((p) => p.id)).not.toContain(outsider.id);
+    });
+
+    it('accepts an employee of a unit below the department as a handler (FR-133)', async () => {
+      const w = await sharedWorld();
+      const sub = await t.factories.user({ unit: w.org.unitA });
+      const outsider = await t.factories.user({ unit: w.org.unitOther });
+      await addType(w.agents.manager, w.desk, { handlerUserIds: [sub.id] }).expect(201);
+      expect((await addType(w.agents.manager, w.desk, { handlerUserIds: [outsider.id] }).expect(422)).body.code).toBe('ASSIGNEE_INVALID');
     });
 
     it('leaves a ticket of a type with two handlers unassigned, in both inboxes, and the first to reply takes it', async () => {
@@ -674,10 +683,10 @@ describe('Tickets (FR-36 … FR-41)', () => {
       expect((await sendOne(w, single)).assignee).toMatchObject({ id: w.assignee.id });
     });
 
-    it('refuses a handler outside the unit, a personal type with two handlers, and one without keys', async () => {
+    it('refuses a handler outside the unit and its sub-units, a personal type with two handlers, and one without keys', async () => {
       const w = await sharedWorld();
-      const below = await t.factories.user({ unit: w.org.unitA });
-      expect((await addType(w.agents.manager, w.desk, { handlerUserIds: [w.assignee.id, below.id] }).expect(422)).body.code).toBe('ASSIGNEE_INVALID');
+      const outsider = await t.factories.user({ unit: w.org.unitOther });
+      expect((await addType(w.agents.manager, w.desk, { handlerUserIds: [w.assignee.id, outsider.id] }).expect(422)).body.code).toBe('ASSIGNEE_INVALID');
       expect((await addType(w.agents.manager, w.desk, { isPersonal: true, handlerUserIds: [w.assignee.id, w.second.id] }).expect(422)).body.code).toBe('TYPE_PERSONAL_ONE_HANDLER');
       await addType(w.agents.manager, w.desk, { handlerUserIds: ['not-an-id'] }).expect(400);
       await addType(w.agents.sender, w.desk, { handlerUserIds: [w.assignee.id] }).expect(403);
@@ -720,11 +729,11 @@ describe('Tickets (FR-36 … FR-41)', () => {
       await w.agents.assignee.get(`/api/tickets/${ticket.id}`).expect(200); // the stored assignee still has it
     });
 
-    it('lists as unavailable a personal type whose only handler no longer sits in the unit', async () => {
+    it('lists as unavailable a personal type whose only handler no longer belongs to the unit', async () => {
       const w = await world();
       await setupDesk(w.agents.manager, w.desk, { acceptsPersonal: true }).expect(200);
       const personal = (await addType(w.agents.manager, w.desk, { isPersonal: true, handlerUserIds: [w.assignee.id] }).expect(201)).body as { id: string };
-      await t.db.query('UPDATE employees SET org_node_id = $1 WHERE id = $2', [w.org.unitA.id, w.assignee.employeeId]); // moved below the desk
+      await t.db.query('UPDATE employees SET org_node_id = $1 WHERE id = $2', [w.org.unitOther.id, w.assignee.employeeId]); // moved out of the desk's branch
       const catalog = (await w.agents.sender.get('/api/tickets/catalog').expect(200)).body as TicketCatalogDto;
       const entry = catalog.desks[0]?.types.find((x) => x.id === personal.id);
       expect(entry).toMatchObject({ available: false, handlers: [] });
