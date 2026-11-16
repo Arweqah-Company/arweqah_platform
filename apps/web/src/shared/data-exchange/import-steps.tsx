@@ -1,7 +1,8 @@
 import { Download } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, FileDropzone } from '@/shared/ui';
-import { MAX_IMPORT_BYTES, MAX_IMPORT_ROWS, type ImportColumn } from './types';
+import { MAX_IMPORT_BYTES, MAX_IMPORT_ROWS, type ImportColumn, type ImportOption } from './types';
 import type { ImportFailure } from './use-import-flow';
 
 interface ErrorItem {
@@ -55,19 +56,27 @@ interface PreviewProps {
   validCount: number;
   invalid: { rowNumber: number; errors: string[] }[];
   total: number;
-  onStart: () => void;
+  onStart: (option?: boolean) => void;
   onAnother: () => void;
+  option?: ImportOption;
 }
 
-export function PreviewStep({ note, validCount, invalid, total, onStart, onAnother }: PreviewProps) {
+export function PreviewStep({ note, validCount, invalid, total, onStart, onAnother, option }: PreviewProps) {
   const { t } = useTranslation();
+  const [optionOn, setOptionOn] = useState(option?.defaultOn ?? false);
   return (
     <>
       <Alert tone={invalid.length ? 'info' : 'success'}>{t('dataExchange.summary', { valid: validCount, invalid: invalid.length, total })} {invalid.length > 0 && t('dataExchange.onlyValid')}</Alert>
       {note && <p className="text-sm text-muted">{note}</p>}
       {invalid.length > 0 && <ErrorList title={t('dataExchange.errorsTitle')} items={invalid.map((r) => ({ rowNumber: r.rowNumber, messages: r.errors }))} />}
+      {option && (
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" className="size-4 accent-petrol-800" checked={optionOn} onChange={(e) => setOptionOn(e.target.checked)} />
+          {option.label}
+        </label>
+      )}
       <div className="flex gap-3">
-        <Button disabled={validCount === 0} onClick={onStart}>{t('dataExchange.startImport', { count: validCount })}</Button>
+        <Button disabled={validCount === 0} onClick={() => onStart(option ? optionOn : undefined)}>{t('dataExchange.startImport', { count: validCount })}</Button>
         <Button variant="secondary" onClick={onAnother}>{t('dataExchange.another')}</Button>
       </div>
     </>

@@ -57,7 +57,7 @@ export function useEmployeesImport() {
 
   return {
     /** Add the people a file lists (for who may add employees). */
-    importing: can('employees.create') ? { filename: 'employees', columns, prepare: (rows: SheetRow[]) => prepareEmployeeRows(rows, { lists, reference, headers: headersOf(columns), t: common }), onImported } : undefined,
+    importing: can('employees.create') ? { filename: 'employees', columns, prepare: (rows: SheetRow[]) => prepareEmployeeRows(rows, { lists, reference, headers: headersOf(columns), t: common }), onImported, option: { label: t('import.sendInvite'), defaultOn: true } } : undefined,
     /** Update the people a file names by number: what a row fills changes, an empty cell changes nothing (for who may edit employees). */
     updating: can('employees.update') ? {
       filename: 'employees-update',

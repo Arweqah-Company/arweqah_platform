@@ -36,6 +36,19 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     return { org, admin, agent, lookups, pick, sa, payload };
   }
 
+  it('FR-17: sends no e-mail when sendInvite is left out or false, and the link can still be sent later', async () => {
+    const { agent, org, payload } = await setup();
+    const before = t.mail.sent.length;
+    const res = await agent.post('/api/employees').send(payload(org.unitA)).expect(201);
+    expect(res.body.invitation).toBeNull();
+    const off = await agent.post('/api/employees').send({ ...payload(org.unitA), sendInvite: false }).expect(201);
+    expect(off.body.invitation).toBeNull();
+    expect(t.mail.sent.length).toBe(before);
+    const later = await agent.post(`/api/employees/${res.body.employee.id}/resend-invite`).expect(200);
+    expect(later.body).toMatchObject({ sent: true });
+    expect(t.mail.sent.length).toBe(before + 1);
+  });
+
   it('creates an employee with every section of the form, a sign-in account and an activation e-mail', async () => {
     const { agent, lookups, pick, sa, payload, org } = await setup();
     const body = payload(org.unitA, {
@@ -48,7 +61,7 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
       profession: 'Engineer', isQiwaContract: true, hasMedicalInsurance: true, healthInsuranceCompanyId: org.companyId,
       monthlyGrossSalary: 15000.5, salaryCurrencyCountryId: sa, iban: 'SA03 8000 0000 6080 1016 7519', notes: 'Joined from referral',
     });
-    const res = await agent.post('/api/employees').send(body).expect(201);
+    const res = await agent.post('/api/employees').send({ ...body, sendInvite: true }).expect(201);
     const { employee, invitation } = res.body;
     expect(employee).toMatchObject({ fullName: body.fullName, workEmail: body.workEmail, isActive: true, authenticatorEnabled: false, sensitiveHidden: false, monthlyGrossSalary: 15000.5, idNumber: '1087654321', iban: 'SA0380000000608010167519' });
     expect(employee.orgNode.pathEn).toContain('Unit A');
