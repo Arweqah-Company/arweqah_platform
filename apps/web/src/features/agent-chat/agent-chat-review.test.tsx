@@ -82,10 +82,11 @@ describe('The assistant panel after the review of the release (FR-145)', () => {
   });
 
   it('a card that has expired stops its timer instead of scheduling a new one forever', async () => {
-    const soonDraft = draft({ expiresAt: new Date(Date.now() + 300).toISOString() });
+    const soonDraft = draft({ expiresAt: new Date(Date.now() + 1200).toISOString() });
     history(() => HttpResponse.json(conversation([{ ...reply('جهّزت الطلب', soonDraft), id: 'o1' }])));
     open();
     await openHistory();
+    expect(await screen.findByRole('button', { name: 'تأكيد' })).toBeInTheDocument();
     await waitFor(() => expect(screen.queryByRole('button', { name: 'تأكيد' })).not.toBeInTheDocument(), { timeout: 4000 });
     const timers = vi.spyOn(globalThis, 'setTimeout');
     await new Promise((resolve) => setTimeout(resolve, 300));
