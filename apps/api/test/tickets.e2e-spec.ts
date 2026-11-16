@@ -653,6 +653,15 @@ describe('Tickets (FR-36 … FR-41)', () => {
       expect(found.map((p) => p.id)).not.toContain(outsider.id);
     });
 
+    it('lists and accepts a system account placed in the department, such as the seeded administrator who works there (FR-133)', async () => {
+      const w = await sharedWorld();
+      const admin = await t.factories.user({ unit: w.org.unitA });
+      await t.db.query('UPDATE employees SET is_system_account = true WHERE id = $1', [admin.employeeId]);
+      const found = (await w.agents.manager.get(`/api/tickets/setup/desks/${w.desk}/assignees`).expect(200)).body as { id: string }[];
+      expect(found.map((p) => p.id)).toContain(admin.id);
+      await addType(w.agents.manager, w.desk, { handlerUserIds: [admin.id] }).expect(201);
+    });
+
     it('accepts an employee of a unit below the department as a handler (FR-133)', async () => {
       const w = await sharedWorld();
       const sub = await t.factories.user({ unit: w.org.unitA });
