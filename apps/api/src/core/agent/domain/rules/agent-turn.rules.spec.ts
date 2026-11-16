@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SayTextExtractor, expiryOf, idsIn, normalizeTurn, parseValues, splitByPlace, titleOf, ungroundedIds, withoutFence, withoutSensitive } from './agent-turn.rules';
+import { SayTextExtractor, expiryOf, idsIn, maskSensitive, normalizeTurn, parseValues, splitByPlace, titleOf, ungroundedIds, withoutFence, withoutSensitive } from './agent-turn.rules';
 
 const ID_A = '0b3d3a52-6c1f-4e0a-9d7e-2f1c8a5b7e11';
 const ID_B = '7c9e6679-7425-40de-944b-e07fc1f90ae7';
@@ -72,5 +72,13 @@ describe('The assistant turn rules (FR-139, FR-140, FR-144)', () => {
       expect(feed(['{"steps":[{"kind":"find","text":"x","operationId":"A.b"}', ',{"kind":"say","text":"late"'])).toEqual(['', '']);
       expect(feed(['{"steps":[{"text":"early","kind":"say"'])).toEqual(['']);
     });
+  });
+
+  it('FR-144: an IBAN and a number of ten digits or more are hidden from what the AI service receives', () => {
+    expect(maskSensitive('هويتي 1234567890 وشكرا')).toBe('هويتي [hidden number] وشكرا');
+    expect(maskSensitive('id 1234 567 890')).toBe('id [hidden number]');
+    expect(maskSensitive('iban SA03 8000 0000 6080 1016 7519 ok')).toBe('iban [hidden number] ok');
+    expect(maskSensitive('call 0551234567')).toBe('call [hidden number]');
+    expect(maskSensitive('ticket 4521 on 2026-11-16 for 12 people')).toBe('ticket 4521 on 2026-11-16 for 12 people');
   });
 });

@@ -223,3 +223,12 @@ export function parseLabels(labelsJson: string): Record<string, string> {
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
   return Object.fromEntries(Object.entries(parsed).filter((e): e is [string, string] => typeof e[1] === 'string' && e[1].trim() !== '').map(([k, v]) => [k, v.trim().slice(0, 60)]));
 }
+
+const IBAN = /\b[A-Za-z]{2}\d{2}(?:\s?\d){10,30}/g;
+const LONG_NUMBER = /\d(?:[\s-]?\d){9,}/g;
+export const MASKED_NUMBER = '[hidden number]';
+
+/** What the employee typed, without an IBAN or a number of ten digits or more (a national ID, a card, a phone): the AI service never receives it; the stored message keeps it. */
+export function maskSensitive(text: string): string {
+  return text.replace(IBAN, MASKED_NUMBER).replace(LONG_NUMBER, MASKED_NUMBER);
+}

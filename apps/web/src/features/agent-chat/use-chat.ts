@@ -98,6 +98,7 @@ export function useChat() {
       setMessages(detail.messages);
       setLive(null);
       setSendError(null);
+      drafts.reset();
       return true;
     } catch (error) {
       if (token === opening.current) setSendError(error);

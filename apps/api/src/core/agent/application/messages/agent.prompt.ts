@@ -1,5 +1,5 @@
 import type { AgentAction } from '../../domain/types/agent-catalog.types';
-import { AGENT_DATA_MAX_CHARS, withoutFence } from '../../domain/rules/agent-turn.rules';
+import { AGENT_DATA_MAX_CHARS, maskSensitive, withoutFence } from '../../domain/rules/agent-turn.rules';
 
 /** What the model is told. English on purpose: the instructions are ours, the employee writes Arabic or English. */
 export const AGENT_SYSTEM = `You are the assistant of the Arweqah platform, an internal ERP. An employee asks you to do something in the platform, or how to do it, or whether they may. You prepare the request and the employee confirms it. You never run anything yourself.
@@ -44,7 +44,7 @@ export interface TranscriptLine {
 
 /** The user turn: the list, the conversation in fences the text cannot close, and what this turn learned so far. */
 export function promptUser(actions: readonly AgentAction[], lines: readonly TranscriptLine[], notes: readonly string[]): string {
-  const talk = lines.map((l) => (l.role === 'assistant' ? `assistant: ${withoutFence(l.text)}` : `<${l.role === 'user' ? 'employee' : 'data'}>${withoutFence(l.text).slice(0, AGENT_DATA_MAX_CHARS)}</${l.role === 'user' ? 'employee' : 'data'}>`));
+  const talk = lines.map((l) => (l.role === 'assistant' ? `assistant: ${withoutFence(l.text)}` : `<${l.role === 'user' ? 'employee' : 'data'}>${withoutFence(l.role === 'user' ? maskSensitive(l.text) : l.text).slice(0, AGENT_DATA_MAX_CHARS)}</${l.role === 'user' ? 'employee' : 'data'}>`));
   const learned = notes.length ? `\n\nThis turn so far:\n${notes.map((n) => withoutFence(n)).join('\n')}` : '';
   return `Actions:\n${actionLines(actions)}\n\nConversation:\n${talk.join('\n')}${learned}`;
 }

@@ -33,28 +33,47 @@ export function humanize(name: string): string {
 
 const RECORD_MAX_CHARS = 2000;
 
+/** Which characters of the text lie inside a JSON string (a brace there is part of a name, not of the structure). */
+function insideStrings(text: string): boolean[] {
+  const inside: boolean[] = [];
+  let open = false;
+  let escaped = false;
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    inside.push(open);
+    if (escaped) escaped = false;
+    else if (open && char === '\\') escaped = true;
+    else if (char === '"') open = !open;
+  }
+  return inside;
+}
+
 /** Where the object that holds `at` opens: the nearest `{` that no closed object lies between (0 when the data was cut before it). */
-function recordStart(text: string, at: number): number {
+function recordStart(text: string, at: number, inside: boolean[]): number {
   let depth = 0;
   for (let i = at; i >= 0 && at - i < RECORD_MAX_CHARS; i--) {
+    if (inside[i] || (text[i] !== '{' && text[i] !== '}')) continue;
     if (text[i] === '}') depth++;
-    else if (text[i] === '{' && depth-- === 0) return i;
+    else if (depth-- === 0) return i;
   }
   return 0;
 }
 
 /** Where that object closes (the end of the text when the data was cut short). */
-function recordEnd(text: string, at: number): number {
+function recordEnd(text: string, at: number, inside: boolean[]): number {
   let depth = 0;
   for (let i = at; i < text.length && i - at < RECORD_MAX_CHARS; i++) {
+    if (inside[i] || (text[i] !== '{' && text[i] !== '}')) continue;
     if (text[i] === '{') depth++;
-    else if (text[i] === '}' && depth-- === 0) return i + 1;
+    else if (depth-- === 0) return i + 1;
   }
   return text.length;
 }
 
 /** The object that holds the text at `at`, found by counting braces (the data may be cut short, so it is not parsed as JSON). */
-const recordAround = (text: string, at: number): string => text.slice(recordStart(text, at), recordEnd(text, at));
+function recordAround(text: string, at: number, inside: boolean[]): string {
+  return text.slice(recordStart(text, at, inside), recordEnd(text, at, inside));
+}
 
 /** Every value in `options` must be an id some lookup showed, inside the same record as the label the model gave it (so a name is never put on another id). */
 export function pairedInData(option: ChoiceOption, dataTexts: readonly string[]): boolean {
@@ -62,8 +81,9 @@ export function pairedInData(option: ChoiceOption, dataTexts: readonly string[])
   const value = option.value.toLowerCase();
   return dataTexts.some((text) => {
     const lower = text.toLowerCase();
+    const inside = insideStrings(text);
     for (let at = lower.indexOf(value); at !== -1; at = lower.indexOf(value, at + 1)) {
-      if (normalizeText(recordAround(text, at)).includes(wanted)) return true;
+      if (normalizeText(recordAround(text, at, inside)).includes(wanted)) return true;
     }
     return false;
   });

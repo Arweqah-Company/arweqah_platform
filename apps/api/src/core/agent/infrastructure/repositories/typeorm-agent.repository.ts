@@ -61,8 +61,8 @@ export class TypeOrmAgentRepository extends AgentRepository {
   }
 
   async claimDraft(id: string, now: Date): Promise<boolean> {
-    // The expiry is read from the database clock at the moment of the update, not from a time taken before the claim waited for its connection or the row lock.
-    const done = await this.messages.createQueryBuilder().update().set({ draftStatus: 'confirmed', executedAt: now }).where('id = :id AND draft_status = :pending AND draft_expires_at > NOW()', { id, pending: 'pending' }).execute();
+    // The expiry is read from the database clock when the row is checked (clock_timestamp, not the transaction's start), so a draft that lapsed while the claim waited for the row lock is refused.
+    const done = await this.messages.createQueryBuilder().update().set({ draftStatus: 'confirmed', executedAt: now }).where('id = :id AND draft_status = :pending AND draft_expires_at > clock_timestamp()', { id, pending: 'pending' }).execute();
     return (done.affected ?? 0) === 1;
   }
 
