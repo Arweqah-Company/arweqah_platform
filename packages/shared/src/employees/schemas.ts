@@ -136,7 +136,7 @@ function checkConditionalFields(v: Draft, issue: Issue): void {
 }
 
 export const createEmployeeSchema = z
-  .strictObject({ ...employeeShape, /** Left out = the default roles (Employee and the role of the job title); an empty list = none. */ roleIds: z.array(z.uuid()).max(20).optional(), roleExpiries: roleExpiriesSchema.optional(), /** Make the person the leader of the unit they are placed in (needs `org.leaders_manage`; FR-100). */ leadsUnit: z.boolean().optional() })
+  .strictObject({ ...employeeShape, /** Left out = the default roles (Employee and the role of the job title); an empty list = none. */ roleIds: z.array(z.uuid()).max(20).optional(), roleExpiries: roleExpiriesSchema.optional(), /** Make the person the leader of the unit they are placed in (needs `org.leaders_manage`; FR-100). */ leadsUnit: z.boolean().optional(), /** E-mail the activation link now. Left out or false = nothing is sent (it can be sent later with «resend invitation»). */ sendInvite: z.boolean().optional() })
   .superRefine(refineEmployee);
 export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
 
@@ -365,6 +365,7 @@ export interface InviteResultDto {
 
 export interface CreateEmployeeResultDto {
   employee: EmployeeDto;
-  invitation: InviteResultDto;
+  /** Null when the person who added the employee chose not to send the e-mail. */
+  invitation: InviteResultDto | null;
 }
 

@@ -53,14 +53,14 @@ function draftOf(check: RowChecker, ctx: EmployeeImportContext): Record<string, 
 }
 
 /** Looks the direct manager up by employee number, then creates the employee (the API stays the final authority). */
-async function createEmployee(input: CreateEmployeeInput, managerNumber: string): Promise<void> {
+async function createEmployee(input: CreateEmployeeInput, managerNumber: string, sendInvite: boolean): Promise<void> {
   let managerId: string | null = null;
   if (managerNumber) {
     const found = await apiClient.get<{ id: string; employeeNumber: string }[]>('/employees/managers', { search: managerNumber });
     managerId = found.find((m) => m.employeeNumber === managerNumber)?.id ?? null;
     if (!managerId) throw new ApiError(422, 'MANAGER_NOT_FOUND', 'Direct manager not found');
   }
-  await apiClient.post('/employees', { ...input, managerId });
+  await apiClient.post('/employees', { ...input, managerId, sendInvite });
 }
 
 /** Checks every row of the file: cell by cell, then the shared employee schema, then duplicates inside the file. */
@@ -74,6 +74,6 @@ export function prepareEmployeeRows(rows: SheetRow[], ctx: EmployeeImportContext
     const schemaErrors = check.errors.length || parsed.success ? [] : zodMessages(parsed.error, ctx.headers, ctx.t);
     const errors = [...check.errors, ...schemaErrors, ...[emails.get(row.rowNumber), numbers.get(row.rowNumber)].filter((e): e is string => !!e)];
     const data = parsed.success ? parsed.data : null;
-    return { rowNumber: row.rowNumber, errors, run: !errors.length && data ? () => createEmployee(data, row.cells.managerNumber ?? '') : undefined };
+    return { rowNumber: row.rowNumber, errors, run: !errors.length && data ? (sendInvite) => createEmployee(data, row.cells.managerNumber ?? '', sendInvite ?? false) : undefined };
   });
 }

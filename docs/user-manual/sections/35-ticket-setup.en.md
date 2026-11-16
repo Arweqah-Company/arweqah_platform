@@ -36,7 +36,7 @@ The page has two tabs: **Settings** and **Types**.
 
 1. Open the **Types** tab and click **Add type**.
 2. Write the name and the description (Arabic and English).
-3. Choose the handlers: one or more employees sitting directly in the unit who answer tickets of this kind. Leave it empty and the unit manager handles them. In **Instructions** write what the sender must include (for example: take a screenshot of the problem and one of Inspect); the sender sees it before sending.
+3. Choose the handlers: one or more people from the unit manager and the employees of the unit and of the units below it (any title) who answer tickets of this kind. Leave it empty and the unit manager handles them. In **Instructions** write what the sender must include (for example: take a screenshot of the problem and one of Inspect); the sender sees it before sending.
 4. Optionally set a special duration in working days; leave it empty to use the unit's usual duration.
 5. Tick «Personal type» if the type is for complaints or private matters; a personal type must have exactly one handler. Keep «Active type» ticked and save.
 
@@ -77,7 +77,7 @@ The page has two tabs: **Settings** and **Types**.
 |---|---|---|---|
 | Name in Arabic / Name in English | The name of the kind of request, shown to the employee when they send. | Yes | 2 to 120 characters each. The English one is filled from the Arabic when left empty. |
 | Description in Arabic / in English | One line telling the employee when to choose this type. | No | Up to 300 characters each. |
-| Handlers | The employees who answer tickets of this type and are notified when one arrives. One handler: the ticket is assigned to them. Several: the ticket shows to all and the first to reply takes it. Empty means the unit manager handles them. | Only for a personal type (exactly one) | Active employees sitting directly in the unit (not the units below). |
+| Handlers | The employees who answer tickets of this type and are notified when one arrives. One handler: the ticket is assigned to them. Several: the ticket shows to all and the first to reply takes it. Empty means the unit manager handles them. | Only for a personal type (exactly one) | Active employees of the unit and of every unit below it, any title, and the unit manager. |
 | Instructions for the sender (Arabic) / (English) | Formatted text (bold, italic, underline, lists, links) the sender reads above the fields when sending a ticket of this type, telling them what to include. | No | Up to 5000 characters each; no images. |
 | Own duration in working days | The usual time for this type only; it pre-fills the sender's date. Empty uses the unit's usual completion time. | No | 1 to 60 whole days. |
 | Personal type: the unit manager does not see it, only the sender and the assignee | Makes every ticket of this type private to its sender and its assignee. | No | Tick box. Needs an assignee, and the unit must accept personal requests. |
@@ -130,7 +130,7 @@ The page has two tabs: **Settings** and **Types**.
   - automatic close after a close request, in calendar days, default 4
   - the time allowed to reopen a closed ticket, in calendar days, default 7
   - a ticket counts as stale after, in calendar days, default 14
-- A type has a name, a description, instructions for the sender, one or more handlers (from the people sitting directly in the unit; with several, the ticket is unassigned until the first one replies), an optional special duration and a flag for personal. If the type has no handlers, the unit manager handles its tickets (a type with several handlers is not «no handler»: its tickets wait for the first handler's reply).
+- A type has a name, a description, instructions for the sender, one or more handlers (from the unit manager and the employees of the unit and the units below it; with several, the ticket is unassigned until the first one replies), an optional special duration and a flag for personal. If the type has no handlers, the unit manager handles its tickets (a type with several handlers is not «no handler»: its tickets wait for the first handler's reply).
 - **Personal types** are invisible to the unit manager and to platform administrators; they need an active assignee. (FR-38)
 - **Deleting a type:** if tickets already use it, it is only deactivated and keeps its tickets; otherwise it is deleted. The message tells you which happened.
 - A unit that takes tickets (active or paused) or has open tickets cannot be moved or deleted in the organization structure.

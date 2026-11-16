@@ -23,7 +23,10 @@ describe('Employees import (FR-29)', () => {
     server.use(http.post('*/api/employees', async ({ request }) => { body = (await request.json()) as Record<string, unknown>; return HttpResponse.json({}, { status: 201 }); }));
     const [row] = prepareEmployeeRows([{ rowNumber: 2, cells: good }], ctx);
     expect(row?.errors).toEqual([]);
+    await row?.run?.(true);
+    expect(body).toMatchObject({ sendInvite: true });
     await row?.run?.();
+    expect(body).toMatchObject({ sendInvite: false });
     expect(body).toMatchObject({ companyId: '11111111-1111-4111-8111-111111111111', orgNodeId: '33333333-3333-4333-8333-333333333333', jobTitleId: '55555555-5555-4555-8555-555555555555', workEmail: 'sara@arweqah.sa', gender: 1, managerId: null });
   });
 

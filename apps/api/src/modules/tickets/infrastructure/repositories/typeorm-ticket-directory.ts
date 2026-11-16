@@ -27,6 +27,10 @@ const MANAGED = `SELECT d."orgNodeId" AS id FROM (${DEPARTMENTS}) d WHERE $1 = A
 const ACTIVE_EMPLOYEE = `SELECT u.id, COALESCE(e.full_name, u.name) AS name FROM users u JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE u.id = $1 AND u.is_active`;
 const PEOPLE = `SELECT u.id, COALESCE(e.full_name, u.name) AS name FROM users u LEFT JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE u.id = ANY($1)`;
 
+/** The people of a unit: whoever sits in it or in any unit below it (any title), and the unit's own manager wherever they sit. */
+const IN_UNIT_AND_BELOW = `(e.org_node_id IN (SELECT c.descendant_id FROM org_node_closure c WHERE c.ancestor_id = $1)
+         OR e.id = (SELECT n.manager_id FROM org_nodes n WHERE n.id = $1 AND n.deleted_at IS NULL))`;
+
 const COMPANIES_OF = `SELECT u.id, e.company_id AS "companyId" FROM users u JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE u.is_active AND u.id = ANY($1)`;
 const MENTIONABLES = `SELECT u.id, COALESCE(e.full_name, u.name) AS name FROM users u JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE u.is_active AND e.company_id = $1`;
 const MENTIONABLES_BY_NAME = `${MENTIONABLES} AND COALESCE(e.full_name, u.name) ILIKE $2 ORDER BY name LIMIT 20`;
@@ -84,7 +88,7 @@ export class TypeOrmTicketDirectory extends TicketDirectory {
     if (!userIds.length) return [];
     const rows: { id: string }[] = await this.ds.query(
       `SELECT u.id FROM employees e JOIN users u ON u.id = e.user_id AND u.is_active
-       WHERE e.org_node_id = $1 AND e.deleted_at IS NULL AND NOT e.is_system_account AND u.id = ANY($2)`,
+       WHERE ${IN_UNIT_AND_BELOW} AND e.deleted_at IS NULL AND NOT e.is_system_account AND u.id = ANY($2)`,
       [nodeId, userIds],
     );
     return rows.map((r) => r.id);
@@ -94,9 +98,9 @@ export class TypeOrmTicketDirectory extends TicketDirectory {
     const like = search ? likeContains(search) : null;
     return this.ds.query(
       `SELECT u.id, e.full_name AS name FROM employees e JOIN users u ON u.id = e.user_id AND u.is_active
-       WHERE e.org_node_id = $1 AND e.deleted_at IS NULL AND NOT e.is_system_account
+       WHERE ${IN_UNIT_AND_BELOW} AND e.deleted_at IS NULL AND NOT e.is_system_account
          AND ($2::text IS NULL OR e.full_name ILIKE $2 OR e.employee_number ILIKE $2)
-       ORDER BY e.full_name LIMIT 100`,
+       ORDER BY e.full_name LIMIT 200`,
       [nodeId, like],
     );
   }

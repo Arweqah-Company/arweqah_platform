@@ -83,7 +83,7 @@ describe('Employee form (FR-17, FR-18)', () => {
     await open();
     let called = false;
     server.use(http.post('*/api/employees', () => { called = true; return HttpResponse.json({}); }));
-    fireEvent.click(screen.getByRole('button', { name: 'حفظ وإرسال الدعوة' }));
+    fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
     expect((await screen.findAllByText('هذا الحقل مطلوب.')).length).toBeGreaterThan(3);
     expect(called).toBe(false);
   });
@@ -91,7 +91,7 @@ describe('Employee form (FR-17, FR-18)', () => {
   it('rejects a work e-mail that is not an address before it reaches the server', async () => {
     await open();
     fireEvent.change(screen.getByLabelText('بريد العمل *'), { target: { value: 'not an address' } });
-    fireEvent.click(screen.getByRole('button', { name: 'حفظ وإرسال الدعوة' }));
+    fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
     expect(await screen.findByText('بريد العمل غير صحيح.')).toBeInTheDocument();
   });
 });
@@ -103,7 +103,7 @@ describe('Employee form validation while typing (FR-17, FR-18)', () => {
     await open();
     await chooseOption(screen.getByLabelText('نوع الهوية'), 'id-national_id');
     fireEvent.change(screen.getByLabelText('رقم الهوية'), { target: { value: '1087654322' } });
-    fireEvent.click(screen.getByRole('button', { name: 'حفظ وإرسال الدعوة' }));
+    fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
     expect(await screen.findByText('رقم الهوية الوطنية غير صالح')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('رقم الهوية'), { target: { value: '1087654321' } });
     await waitFor(() => expect(screen.queryByText('رقم الهوية الوطنية غير صالح')).not.toBeInTheDocument());
@@ -123,7 +123,7 @@ describe('Employee form validation while typing (FR-17, FR-18)', () => {
   it('has two steps only for who may give roles, and stays on the first step while it has mistakes', async () => {
     await open(['employees.create', 'employees.assign_roles', 'roles.view']);
     expect(screen.getByRole('list', { name: 'خطوات النموذج' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'حفظ وإرسال الدعوة' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'حفظ' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'التالي: الأدوار' }));
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(screen.getByRole('heading', { level: 2, name: 'بيانات العمل' })).toBeInTheDocument();
@@ -133,6 +133,14 @@ describe('Employee form validation while typing (FR-17, FR-18)', () => {
   it('keeps one step without the permission to give roles', async () => {
     await open(['employees.create']);
     expect(screen.queryByRole('list', { name: 'خطوات النموذج' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'حفظ وإرسال الدعوة' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'حفظ' })).toBeInTheDocument();
+  });
+
+  it('FR-17: ends with a checkbox «send the invitation e-mail», ticked at first, and sends its answer with the new employee', async () => {
+    await open(['employees.create']);
+    const box = screen.getByLabelText('إرسال دعوة التفعيل بالبريد الإلكتروني بعد الحفظ');
+    expect(box).toBeChecked();
+    fireEvent.click(box);
+    expect(box).not.toBeChecked();
   });
 });

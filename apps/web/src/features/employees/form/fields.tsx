@@ -17,8 +17,8 @@ export function useLock(name: string): { locked: boolean; hint?: string } {
   return { locked, hint: locked ? t('hints.notEditable') : undefined };
 }
 
-type TextName = Exclude<keyof FormState, 'isGosiRegistered' | 'isQiwaContract' | 'hasMedicalInsurance' | 'roleIds' | 'roleExpiries'>;
-type BooleanName = 'isGosiRegistered' | 'isQiwaContract' | 'hasMedicalInsurance' | 'leadsUnit';
+type TextName = Exclude<keyof FormState, 'isGosiRegistered' | 'isQiwaContract' | 'hasMedicalInsurance' | 'roleIds' | 'roleExpiries' | 'sendInvite'>;
+type BooleanName = 'isGosiRegistered' | 'isQiwaContract' | 'hasMedicalInsurance' | 'leadsUnit' | 'sendInvite';
 
 /** The error text under a field: a rule's own words when the API sent them, otherwise a message per field. */
 function useFieldError(name: string): string | undefined {

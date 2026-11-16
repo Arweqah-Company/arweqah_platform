@@ -27,7 +27,6 @@
   "yes": "Yes",
   "no": "No",
   "sectionsNav": "Form sections",
-  "saveAndInvite": "Save and send invitation",
   "saved": "Changes saved.",
   "sections": {
     "roles": "Roles",
@@ -82,7 +81,8 @@
     "salaryCurrencyCountryId": "Currency",
     "iban": "IBAN",
     "notes": "Notes",
-    "leadsUnit": "Leader of this unit"
+    "leadsUnit": "Leader of this unit",
+    "sendInvite": "Send the activation invitation by e-mail after saving"
   },
   "gender": {
     "male": "Male",
@@ -186,6 +186,7 @@
   },
   "import": {
     "managerNumber": "Direct manager employee number",
+    "sendInvite": "Send the activation invitation e-mail to everyone imported",
     "notFound": "No employee has the number “{{value}}” within your reach.",
     "titleWithUnit": "Give the job title together with the new unit so it fits.",
     "nothingToChange": "No value in this row changes anything.",

@@ -33,7 +33,7 @@ export class TicketCatalogService {
     return { desks: desks.sort((a, b) => a.nameAr.localeCompare(b.nameAr, 'ar')), today };
   }
 
-  /** Per type, its handlers who are still active employees sitting directly in the desk (the rule creation applies). */
+  /** Per type, its handlers who are still active employees of the desk or the units below it (the rule creation applies). */
   private async eligibleHandlers(types: TypeRecord[]): Promise<Map<string, Set<string>>> {
     const entries = await Promise.all(types.map(async (t) => [t.id, new Set(await this.directory.membersOf(t.deskId, t.handlers.map((h) => h.id)))] as const));
     return new Map(entries);

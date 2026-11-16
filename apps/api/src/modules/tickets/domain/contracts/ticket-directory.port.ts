@@ -15,8 +15,8 @@ export abstract class TicketDirectory {
   abstract mentionables(companyId: string, search?: string): Promise<PersonRecord[]>;
   /** Active employees of a company sitting in the given units (null = anywhere in the company), by name or number, at most 30: who a ticket may be reassigned to. `userId` narrows to that one person. */
   abstract reassignCandidates(companyId: string, nodeIds: readonly string[] | null, filter: { search?: string; userId?: string }): Promise<PersonRecord[]>;
-  /** Active employees sitting directly in a unit who can be picked as handlers of its types (searched by name or number, at most 30). */
+  /** Active employees of a unit and of every unit below it (and the unit's manager), any title, who can be picked as handlers of its types (searched by name or number, at most 200). */
   abstract assignableEmployees(nodeId: string, search?: string): Promise<PersonRecord[]>;
-  /** Of these accounts, the ones that are active employees sitting directly in the unit. */
+  /** Of these accounts, the ones that are active employees of the unit, of the units below it, or its manager. */
   abstract membersOf(nodeId: string, userIds: string[]): Promise<string[]>;
 }
