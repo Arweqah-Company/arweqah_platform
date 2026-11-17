@@ -95,6 +95,7 @@ export class TaskAccessPolicy {
       isApprover: this.isApprover(viewer, task, P.TasksApprove),
       isCreator,
       isAssignee: task.assigneeUserId === viewer.userId,
+      isFollowing: task.isFollowing,
       hasOpenObjection: task.hasOpenObjection,
       mayObject: refusal === null,
       can: {

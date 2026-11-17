@@ -47,7 +47,8 @@ describe('Tasks: my tasks, creating and assigning (FR-48), my team and the matri
       await w.agents.report.get(`/api/tasks/${mine.id}`).expect(404);
       expect((await list(w.agents.report)).items.map((x) => x.id)).not.toContain(mine.id);
       const [row] = (await t.db.query('SELECT deleted_at FROM tasks WHERE id = $1', [mine.id])) as { deleted_at: Date | null }[];
-      expect(row?.deleted_at).not.toBeNull(); // hidden, never erased
+      expect(row).toBeDefined(); // the row is still there...
+      expect(row?.deleted_at).not.toBeNull(); // ...hidden, never erased
     });
 
     it('lets a leader whose delete scope reaches the assignee hide a task someone else gave', async () => {
@@ -178,6 +179,18 @@ describe('Tasks: my tasks, creating and assigning (FR-48), my team and the matri
       const after = (await w.agents.report.post(`/api/tasks/${own.id}/follow`).expect(200)).body as TaskDto;
       expect(after).toMatchObject({ isFollowing: false, followers: 0 });
       expect((await list(w.agents.report, '?tab=following')).items).toHaveLength(0);
+    });
+
+    it('lets me cancel a follow that already exists when the task was later given to me, though I cannot start one (CodeRabbit PR 121)', async () => {
+      const w = await world();
+      const own = await made(w.agents.report);
+      await t.db.query('INSERT INTO task_followers (task_id, user_id) VALUES ($1, $2)', [own.id, w.report.id]);
+      const seen = (await w.agents.report.get(`/api/tasks/${own.id}`).expect(200)).body as TaskDto;
+      expect(seen).toMatchObject({ isFollowing: true });
+      expect(seen.abilities.follow).toBe(true); // the «Unfollow» button stays
+      const after = (await w.agents.report.delete(`/api/tasks/${own.id}/follow`).expect(200)).body as TaskDto;
+      expect(after).toMatchObject({ isFollowing: false });
+      expect(after.abilities.follow).toBe(false); // nothing left to cancel, and no new follow for the assignee
     });
 
     it('splits my tasks into assigned to me, assigned by me and following', async () => {
