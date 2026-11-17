@@ -61,8 +61,9 @@ GitHub Actions (environment: staging)            سيرفر staging             
 | `employees.id_number_enc`, `id_number_hash`, `iban_enc`, `monthly_gross_salary_enc` | `NULL` (ثم قيم تجريبية اختيارية) | حساسة؛ مفتاح staging غير مفتاح الإنتاج. الـhash مرتبط بـ`BLIND_INDEX_KEY` الخاص بالإنتاج. |
 | `employees.personal_email`, `personal_phone`, `work_phone`, `birth_date` | استبدال بقيم مولَّدة ثابتة من المعرّف | بيانات شخصية. |
 | `employees.work_email`, `users.email` | **تبقى** | الدخول عبر Microsoft يربط بالبريد (`accountLinking`)، ولازم يعمل الاختبار بحسابات حقيقية. إرسال البريد مغلق (الصف بعده). |
-| `integration_providers.config`, `verified_hash` | تفريغ `config = '{}'`، ثم يُدرج مزوّد البريد Mailpit ويُفعَّل (الترجمة وTurnstile تبقى فارغة حتى يضع staging مفاتيحه) | فيه مفاتيح خارجية حقيقية. بعد التفريغ لا يغادر أي بريد السيرفر. |
+| `integration_providers.config`, `verified_hash` | تفريغ `config = '{}'`، ثم يُدرج مزوّد البريد Mailpit ويُفعَّل (الترجمة وTurnstile: مفاتيح staging نفسه **تُحفظ قبل التفريغ وتُعاد بعده** من نسخة محلية على staging لا تغادره، ولا تُستعاد قيم الإنتاج أبدًا، فلا تضيع المفاتيح التي أدخلها staging عند كل دورة) | فيه مفاتيح خارجية حقيقية. بعد التفريغ لا يغادر أي بريد السيرفر. |
 | `authenticators.secret_enc`, `authenticator_backup_codes`, `enrollment_invites`, `trusted_devices` | حذف الصفوف | الأسرار مشفرة بمفتاح الإنتاج فلا تُفتح؛ يدخل الموظف بمايكروسوفت أو يسجّل مصادقًا جديدًا. |
+| `auth_accounts` | `UPDATE` تفريغ `access_token` و`refresh_token` و`id_token` وتواريخ انتهائها (يبقى الصف لأن الربط بالبريد يعتمد عليه) | رموز Microsoft الحقيقية لا يجب أن تعيش في staging. |
 | `auth_sessions` (والجدول الشقيق للتحقق إن وُجد) | `TRUNCATE` | `BETTER_AUTH_SECRET` مختلف؛ جلسات الإنتاج لا يجب أن تعيش في staging. |
 | `outbox_messages`, `scheduled_jobs` | `TRUNCATE` | وإلا تُنفَّذ التذكيرات والرسائل مرتين (إنتاج + staging). |
 | `email_logs`, `notifications` | `TRUNCATE` | تحتوي نصوصًا وعناوين حقيقية. |
@@ -77,7 +78,7 @@ GitHub Actions (environment: staging)            سيرفر staging             
 ## 6. الملفات المرفوعة (`storage`) — قرار المالك: تُنقل كلها
 
 - الإنتاج الآن `FILE_STORAGE=local` (مجلد `/data/storage` داخل حاوية api، ومنه `scripts/server/backup.sh` يأخذ `tar`)، والخيار S3 موجود (`S3_BUCKET`).
-- التصدير: وضع ثانٍ في `export-for-staging.sh` (`files`) يبث `tar -cz` من الحاوية عبر نفس الـforced command (الوضع يُقرأ من `SSH_ORIGINAL_COMMAND` ضمن قائمة بيضاء من كلمتين فقط: `db` و`files`، وأي شيء آخر يُرفض)، وstaging يفكه في مجلد مؤقت ثم يبدّله مع مجلد `storage` الحالي بعد نجاح قاعدة البيانات.
+- التصدير: وضع ثانٍ في `export-for-staging.sh` (`files`) يبث `tar -cz` من الحاوية عبر نفس الـforced command (الوضع يُقرأ من `SSH_ORIGINAL_COMMAND` ضمن قائمة بيضاء من كلمتين فقط: `db` و`files`، وأي شيء آخر يُرفض)، وstaging يفكه في مجلد مؤقت **قبل** تبديل قاعدة البيانات، ثم يبدّل القاعدة والملفات معًا كوحدة واحدة؛ وعند فشل أي مرحلة (تجهيز، تبديل، إقلاع الـAPI) تُستعاد القاعدة ومجلد `storage` معًا إلى نسختيهما السابقتين.
 - لو صار التخزين S3 أو GCS لاحقًا: `rclone sync` من bucket الإنتاج (قراءة فقط) إلى bucket staging بدل `tar`؛ يتغير هذا الوضع في سكريبت التصدير والمزامنة فقط.
 - المخاطرة: مستندات حقيقية على staging (D8).
 
@@ -98,7 +99,7 @@ GitHub Actions (environment: staging)            سيرفر staging             
 | ملف | عمل |
 |---|---|
 | `.github/workflows/sync-staging.yml` | `workflow_dispatch` فقط (+ `schedule` بعد الإصدار إلى `main`)، `environment: staging` للمهمة، `ssh` إلى staging يشغّل `sync-from-prod.sh`، ثم فحص `APP_URL/api/health`. `concurrency` يمنع تشغيلين معًا. أفعال GitHub مثبتة بـSHA كبقية الملفات، `permissions: contents: read`. |
-| `scripts/server/sync-from-prod.sh` | يشغّله `cron` كل 6 ساعات أو الـworkflow؛ الخطوات 1–8 في القسم 3، `set -euo pipefail`، قفل `flock` ضد التداخل، تنظيف عند الخروج (`trap`) يمسح المفتاح والملفات المؤقتة. |
+| `scripts/server/sync-from-prod.sh` | يشغّله `cron` كل 6 ساعات أو الـworkflow؛ الخطوات 1–8 في القسم 3، `set -euo pipefail`، قفل `flock` ضد التداخل، تنظيف عند الخروج (`trap`) يمسح الملفات المؤقتة فقط، ويُبقي مفتاح المزامنة الدائم (D5). |
 | `scripts/server/export-for-staging.sh` | يُنسخ إلى الإنتاج مع الـdeploy؛ التصدير فقط (القسم 4). |
 | `scripts/server/sanitize-staging.sql` | القسم 5. |
 | `scripts/server/setup-sync-user.sh` | يدوي مرة واحدة على الإنتاج: يخلق `arweqah_sync_ro`. |
