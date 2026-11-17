@@ -7,6 +7,7 @@ import { OrgNodeDependentsPort } from '../org/domain/contracts/org-node-dependen
 import { OrgModule } from '../org/org.module';
 import { TicketCatalogService } from './application/services/ticket-catalog.service';
 import { TicketFiguresService } from './application/services/ticket-figures.service';
+import { TicketDeleteService } from './application/services/ticket-delete.service';
 import { TicketReassignService } from './application/services/ticket-reassign.service';
 import { TicketLifecycleService } from './application/services/ticket-lifecycle.service';
 import { TicketNotifier } from './application/services/ticket-notifier.service';
@@ -48,6 +49,7 @@ import { TicketsController } from './presentation/controllers/tickets.controller
     TicketsService,
     TicketLifecycleService,
     TicketReassignService,
+    TicketDeleteService,
     TicketSetupService,
     TicketCatalogService,
     TicketFiguresService,

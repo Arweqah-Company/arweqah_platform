@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { BaseEntity } from '../../../../common/domain/base.entity';
+import { BaseEntity, SoftDeletableEntity } from '../../../../common/domain/base.entity';
 
 /** A company's tag for tasks, kept by a department (an organization node). */
 @Entity('task_tags')
@@ -72,7 +72,7 @@ export class TaskPolicy {
 @Index('IDX_tasks_assignee_status', ['assigneeUserId', 'status'])
 @Index('IDX_tasks_status_activity', ['status', 'lastActivityAt'])
 @Index('IDX_tasks_tag_status', ['tagId', 'status'])
-export class Task extends BaseEntity {
+export class Task extends SoftDeletableEntity {
   /** Human number shown as TSK-000123, from a database sequence. */
   @Index('UQ_tasks_number', { unique: true })
   @Column({ type: 'bigint', generated: 'increment' })

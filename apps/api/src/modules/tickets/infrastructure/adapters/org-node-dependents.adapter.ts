@@ -5,7 +5,7 @@ import { OrgNodeDependentsPort } from '../../../org/domain/contracts/org-node-de
 /** A department is in use while its desk receives tickets (active or paused) or any of its tickets is not closed. */
 const UNITS_IN_USE = `SELECT d.org_node_id AS id FROM ticket_desks d
   WHERE d.org_node_id = ANY($1)
-    AND (d.reception_status <> 'stopped' OR EXISTS (SELECT 1 FROM tickets t WHERE t.desk_id = d.org_node_id AND t.status <> 'closed'))`;
+    AND (d.reception_status <> 'stopped' OR EXISTS (SELECT 1 FROM tickets t WHERE t.desk_id = d.org_node_id AND t.status <> 'closed' AND t.deleted_at IS NULL))`;
 
 @Injectable()
 export class TicketOrgNodeDependentsAdapter extends OrgNodeDependentsPort {

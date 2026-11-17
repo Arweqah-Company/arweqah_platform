@@ -32,7 +32,7 @@ const TASK_COLUMNS = `t.id, t.number::text AS number, t.company_id AS "companyId
   EXISTS (SELECT 1 FROM task_objections o WHERE o.task_id = t.id AND o.status = 'open' AND o.expires_at > now()) AS "hasOpenObjection"`;
 
 /** The select of one task row; `where` and `tail` are fixed SQL text, every value is a parameter. */
-export const taskQuery = (where: string, tail = ''): string => `SELECT ${TASK_COLUMNS} ${TASK_FROM} WHERE ${where} ${tail}`;
+export const taskQuery = (where: string, tail = ''): string => `SELECT ${TASK_COLUMNS} ${TASK_FROM} WHERE t.deleted_at IS NULL AND (${where}) ${tail}`;
 
 export const STATUS_ORDER = `CASE t.status WHEN 'pending_approval' THEN 0 WHEN 'todo' THEN 1 WHEN 'in_progress' THEN 2 WHEN 'awaiting_review' THEN 3 WHEN 'done' THEN 4 ELSE 5 END`;
 export const PRIORITY_ORDER = `CASE t.priority WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END`;

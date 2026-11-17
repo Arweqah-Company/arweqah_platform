@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { BaseEntity } from '../../../../common/domain/base.entity';
+import { BaseEntity, SoftDeletableEntity } from '../../../../common/domain/base.entity';
 
 /** A department that receives tickets. The key is the organization node itself, so "desk id" and "department id" are the same value. */
 @Entity('ticket_desks')
@@ -112,7 +112,7 @@ export class TicketTypeHandler {
 }
 
 @Entity('tickets')
-export class Ticket extends BaseEntity {
+export class Ticket extends SoftDeletableEntity {
   /** Human number shown as TKT-000123, from a database sequence. */
   @Index('UQ_tickets_number', { unique: true })
   @Column({ type: 'bigint', generated: 'increment' })

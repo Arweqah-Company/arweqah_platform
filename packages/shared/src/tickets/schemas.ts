@@ -271,6 +271,8 @@ export interface TicketAbilitiesDto {
   reopen: boolean;
   /** The unit side may hand an open ticket to someone else inside the reach of its reassign key. */
   reassign: boolean;
+  /** The viewer's `tickets.delete` reaches the ticket's department. */
+  delete: boolean;
 }
 
 export interface TicketDto extends TicketListItemDto {

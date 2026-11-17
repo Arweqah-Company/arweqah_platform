@@ -71,6 +71,12 @@ export class TaskAccessPolicy {
     return task.creatorUserId === viewer.userId || task.assigneeUserId === viewer.userId || this.reaches(viewer, P.TasksUpdate, task);
   }
 
+  /** Deleting (hiding): the key, and the giver of the task or a person whose delete scope reaches the assignee. */
+  mayDelete(viewer: TaskViewer, task: TaskRow): boolean {
+    if (!holds(viewer, P.TasksDelete)) return false;
+    return task.creatorUserId === viewer.userId || this.reaches(viewer, P.TasksDelete, task);
+  }
+
   /** The approver named on the task, or somebody whose approve scope reaches the assignee. */
   isApprover(viewer: TaskViewer, task: TaskRow, key: string): boolean {
     if (task.approverUserId === viewer.userId) return holds(viewer, key);
@@ -99,6 +105,7 @@ export class TaskAccessPolicy {
         logTime: holds(viewer, P.TasksLogTime),
         resubmit: holds(viewer, P.TasksResubmit),
         restore: holds(viewer, P.TasksRestore),
+        delete: this.mayDelete(viewer, task),
         move: actor.isAssignee || actor.isReviewer || actor.isCreator || actor.isTeamManager,
       },
     });

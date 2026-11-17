@@ -8,6 +8,7 @@ import { Access, HiddenWithPage, RequirePermission } from '../../../../core/acce
 import { TaskViewerFactory } from '../../application/policies/task-viewer';
 import { TaskApprovalService } from '../../application/services/task-approval.service';
 import { TaskArchiveService } from '../../application/services/task-archive.service';
+import { TaskDeleteService } from '../../application/services/task-delete.service';
 import { TaskObjectionService } from '../../application/services/task-objection.service';
 import { TaskQueryService } from '../../application/services/task-query.service';
 import { TaskSummaryService } from '../../application/services/task-summary.service';
@@ -31,6 +32,7 @@ export class TasksController {
     private readonly approvals: TaskApprovalService,
     private readonly objections: TaskObjectionService,
     private readonly archive: TaskArchiveService,
+    private readonly remover: TaskDeleteService,
     private readonly time: TaskTimeService,
     private readonly summary: TaskSummaryService,
     private readonly viewers: TaskViewerFactory,
@@ -171,6 +173,14 @@ export class TasksController {
   @RequirePermission(CorePermission.TasksLogTime)
   async logTime(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: TimeEntryBody): Promise<TaskDto> {
     return this.time.log(await this.viewers.of(ctx), id, body);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  @HiddenWithPage('tasks')
+  @RequirePermission(CorePermission.TasksDelete)
+  async remove(@Access() ctx: AccessContext, @Param() { id }: IdParam): Promise<void> {
+    await this.remover.delete(await this.viewers.of(ctx), id);
   }
 
   @Post(':id/restore')

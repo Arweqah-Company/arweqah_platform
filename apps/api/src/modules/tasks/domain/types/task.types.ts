@@ -115,6 +115,8 @@ export interface TaskPatch {
   completedOn?: string | null;
   lastActivityAt?: Date;
   archivedAt?: Date | null;
+  /** Hides the task from everyone (the delete button): set once, never cleared by the screens. */
+  deletedAt?: Date;
   remindedAt?: Date | null;
   overdueNotifiedAt?: Date | null;
   estimateNotifiedAt?: Date | null;

@@ -1,5 +1,5 @@
 import { CorePermission } from '@arweqah-platform/shared';
-import { Body, Controller, Get, HttpCode, Param, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Query, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import type { PersonRefDto, TicketCatalogDto, TicketDto, TicketFilterOptionsDto, TicketsPageDto } from '@arweqah-platform/shared';
@@ -9,6 +9,7 @@ import { Access, HiddenWithPage, RequirePermission } from '../../../../core/acce
 import { viewerOf } from '../../application/policies/ticket-viewer';
 import { TicketCatalogService } from '../../application/services/ticket-catalog.service';
 import { TicketLifecycleService, type PersonAction } from '../../application/services/ticket-lifecycle.service';
+import { TicketDeleteService } from '../../application/services/ticket-delete.service';
 import { TicketReassignService } from '../../application/services/ticket-reassign.service';
 import { TicketsService } from '../../application/services/tickets.service';
 import { sendOpenedFile, sendPreviewStream } from '../../../../core/files/presentation/send-file';
@@ -27,6 +28,7 @@ export class TicketsController {
     private readonly lifecycle: TicketLifecycleService,
     private readonly catalog: TicketCatalogService,
     private readonly reassigner: TicketReassignService,
+    private readonly remover: TicketDeleteService,
   ) {}
 
   @Get()
@@ -118,6 +120,13 @@ export class TicketsController {
   async reassign(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: ReassignTicketBody): Promise<TicketDto> {
     await this.reassigner.reassign(viewerOf(ctx), id, body.assigneeUserId);
     return this.tickets.get(viewerOf(ctx), id);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  @RequirePermission(CorePermission.TicketsDelete)
+  async remove(@Access() ctx: AccessContext, @Param() { id }: IdParam): Promise<void> {
+    await this.remover.delete(viewerOf(ctx), id);
   }
 
   @Get(':id/attachments/:fileId')
