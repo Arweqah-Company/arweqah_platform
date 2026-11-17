@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Static security checks for the Arweqah platform (see .claude/skills/security-check).
-// Usage: node scripts/security-check.mjs [--audit]   (--audit also runs `npm audit --omit=dev --audit-level=high`)
+// Usage: node scripts/security-check.mjs [--audit]   (--audit also runs `scripts/audit-gate.mjs`: npm audit on production dependencies, minus scripts/audit-allowlist.json)
 import { execSync } from 'node:child_process';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -64,9 +64,9 @@ for (const file of walk(join(ROOT, 'apps/api/src')).filter((f) => f.endsWith('.c
 
 if (process.argv.includes('--audit')) {
   try {
-    execSync('npm audit --omit=dev --audit-level=high', { cwd: ROOT, stdio: 'pipe' });
+    execSync('node scripts/audit-gate.mjs', { cwd: ROOT, stdio: 'pipe' });
   } catch (error) {
-    problems.push(`npm audit (production dependencies) reported high or critical advisories:\n${String(error.stdout ?? error.message).slice(0, 1500)}`);
+    problems.push(`npm audit (production dependencies) reported high or critical advisories:\n${String(error.stderr || error.stdout || error.message).slice(0, 1500)}`);
   }
 }
 
