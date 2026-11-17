@@ -27,7 +27,7 @@
 | Reopen | Brings a finished task back | `tasks.reopen` (Reopen a finished task) |
 | Resubmit | Sends a rejected task for approval again | `tasks.resubmit` |
 | Object | Objects to a task given to you | `tasks.object` |
-| Follow / Unfollow | Adds the task to your «Following» tab | `tasks.follow` (Follow a task) |
+| Follow / Unfollow | Adds the task to your «Following» tab; the button is not shown on a task given to you (it is under «Assigned to me»), because following is for tasks that are not yours | `tasks.follow` (Follow a task) |
 | Log time | Records time worked | `tasks.log_time` |
 | Archived filter | Shows archived tasks | `tasks.archive_view` (View archived tasks) |
 | Restore | Brings an archived task back | `tasks.restore` (Restore an archived task) |
