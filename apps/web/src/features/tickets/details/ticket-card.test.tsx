@@ -25,7 +25,7 @@ describe('The ticket card stands apart from the conversation (FR-128)', () => {
     expect(within(card).getByText('الطابعة لا تعمل منذ الصباح')).toHaveClass('text-base');
     expect(within(card).getByRole('button', { name: 'عرض shot.png' })).toBeInTheDocument();
     expect(within(card).getByText('تقنية المعلومات')).toBeInTheDocument();
-    const conversation = screen.getByRole('region', { name: 'سجل التذكرة' });
+    const conversation = screen.getByRole('region', { name: 'المحادثة والردود' });
     expect(within(conversation).getByText('جاري الفحص')).toBeInTheDocument();
     expect(within(conversation).queryByText('الطابعة لا تعمل منذ الصباح')).not.toBeInTheDocument();
   });

@@ -1,8 +1,7 @@
 import type { TaskDto, TaskEventDto, TaskEventType } from '@arweqah-platform/shared';
-import { ArrowRight, History } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Avatar, Badge, Button, DataTable, Dialog, type Column } from '@/shared/ui';
+import { Badge, HistoryActor, HistorySection, HistoryWhen, type Column } from '@/shared/ui';
 import { TaskStatusBadge } from '../task-badges';
 
 type EventTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
@@ -43,47 +42,20 @@ function Detail({ event }: { event: TaskEventDto }) {
 }
 
 function useColumns(events: TaskEventDto[]): Column<TaskEventDto>[] {
-  const { t, i18n } = useTranslation('tasks');
+  const { t } = useTranslation('tasks');
   const number = new Map(events.map((e, i) => [e.id, i + 1]));
   return [
     { id: 'n', header: '#', cell: (e) => number.get(e.id), className: 'w-10 tabular-nums text-muted' },
-    {
-      id: 'when',
-      header: t('history.when'),
-      cell: (e) => <time dateTime={e.createdAt} className="whitespace-nowrap">{new Date(e.createdAt).toLocaleString(i18n.language, { dateStyle: 'medium', timeStyle: 'short' })}</time>,
-    },
-    {
-      id: 'who',
-      header: t('history.who'),
-      cell: (e) => (e.actor ? <span className="inline-flex items-center gap-2"><Avatar name={e.actor.name} size="sm" />{e.actor.name}</span> : <span className="text-muted">{t('timeline.system')}</span>),
-    },
+    { id: 'when', header: t('history.when'), cell: (e) => <HistoryWhen at={e.createdAt} /> },
+    { id: 'who', header: t('history.who'), cell: (e) => <HistoryActor name={e.actor?.name ?? null} systemLabel={t('timeline.system')} /> },
     { id: 'what', header: t('history.what'), cell: (e) => <Badge tone={EVENT_TONE[e.type]}>{t(`events.${e.type}`)}</Badge> },
     { id: 'detail', header: t('history.detail'), cell: (e) => <Detail event={e} /> },
   ];
 }
 
-function HistoryTable({ events }: { events: TaskEventDto[] }) {
-  const { t } = useTranslation('tasks');
-  const columns = useColumns(events);
-  return <DataTable<TaskEventDto> caption={t('timeline.label')} columns={columns} rows={events} rowKey={(e) => e.id} />;
-}
-
 /** Everything that happened to the task (who, what, when), oldest first, opened from a button as a table. */
 export function TaskHistory({ task }: { task: TaskDto }) {
   const { t } = useTranslation('tasks');
-  const [open, setOpen] = useState(false);
-  return (
-    <section aria-label={t('timeline.label')} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white p-4">
-      <div>
-        <h2 className="text-lg font-bold">{t('timeline.label')}</h2>
-        <p className="text-sm text-muted">{t('history.count', { count: task.events.length })}</p>
-      </div>
-      <Button type="button" variant="secondary" onClick={() => setOpen(true)}><History className="size-4" aria-hidden />{t('history.open')}</Button>
-      {open && (
-        <Dialog open xl onOpenChange={setOpen} title={t('timeline.label')} description={`${task.number} · ${task.title}`}>
-          <HistoryTable events={task.events} />
-        </Dialog>
-      )}
-    </section>
-  );
+  const columns = useColumns(task.events);
+  return <HistorySection title={t('timeline.label')} description={`${task.number} · ${task.title}`} countText={t('history.count', { count: task.events.length })} openLabel={t('history.open')} rows={task.events} rowKey={(e) => e.id} columns={columns} />;
 }
