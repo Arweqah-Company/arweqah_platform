@@ -159,7 +159,7 @@ Replying never changes the status by itself, except a sender's reply while the t
 
 - Default durations of a department: usual completion 3 working days, automatic close 4 days after the close request, reopen window 7 days, stale after 14 days. Each department can change them (see Ticket setup). Working days exclude Friday and Saturday. Only the usual completion time and the earliest date are counted in working days; automatic close, the reopen window and the stale period are calendar days. (FR-41)
 - **Personal tickets** (complaints and personal matters) go straight to the person assigned to that type. They are hidden from the unit manager and from platform administrators; the figures count them but never list them. (FR-38)
-- Replies: up to 5 files each, text up to 5000 characters, one level of answers to a reply. In a personal ticket only the sender and the assignee can be mentioned. Previews open for images and PDF; Word and Excel files are accepted.
+- Replies: up to 5 files each, text up to 5000 characters, one level of answers to a reply. In a personal ticket only the sender and the assignee can be mentioned. Previews open for images, PDF, Word, Excel and CSV (a CSV is drawn as a table, in UTF-8 or Excel's Arabic encoding).
 - Notices (in the app, and by e-mail for important ones) carry only the ticket number and the department, never its text. The person you mention is told, and so is the person whose reply you answer. (FR-39)
 - Two people changing a ticket at the same moment: the second action is refused and must be repeated.
 

@@ -8,9 +8,10 @@ import { Alert } from './alert';
 import { Button } from './button';
 import { Dialog } from './dialog';
 
-// Word and Excel are drawn by libraries that load only when such a file is opened.
+// Word, Excel and CSV are drawn by code that loads only when such a file is opened.
 const DocxView = lazy(() => import('./office-views').then((m) => ({ default: m.DocxView })));
 const WorkbookView = lazy(() => import('./office-views').then((m) => ({ default: m.WorkbookView })));
+const CsvView = lazy(() => import('./office-views').then((m) => ({ default: m.CsvView })));
 
 export interface PreviewableFile {
   name: string;
@@ -52,11 +53,12 @@ function Content({ file, blob }: { file: PreviewableFile; blob: Blob }) {
   const url = useObjectUrl(kind === 'image' || kind === 'pdf' ? blob : null);
   if (kind === 'pdf' && url) return <iframe src={url} title={file.name} className="h-[60vh] w-full rounded-xl border border-neutral-200" />;
   if (kind === 'image' && url) return <img src={url} alt={file.name} className="mx-auto max-h-[60vh] max-w-full rounded-xl object-contain" />;
-  if (kind !== 'docx' && kind !== 'xlsx') return null;
+  if (kind !== 'docx' && kind !== 'xlsx' && kind !== 'csv') return null;
+  const view = { docx: <DocxView blob={blob} />, xlsx: <WorkbookView blob={blob} />, csv: <CsvView blob={blob} /> }[kind];
   return (
     <div className="flex flex-col gap-3">
-      <Alert tone="info">{t('files.approximate')}</Alert>
-      <Suspense fallback={<p role="status" className="text-sm text-muted">{t('files.loading')}</p>}>{kind === 'docx' ? <DocxView blob={blob} /> : <WorkbookView blob={blob} />}</Suspense>
+      {kind !== 'csv' && <Alert tone="info">{t('files.approximate')}</Alert>}
+      <Suspense fallback={<p role="status" className="text-sm text-muted">{t('files.loading')}</p>}>{view}</Suspense>
     </div>
   );
 }

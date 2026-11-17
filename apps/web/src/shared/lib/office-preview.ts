@@ -1,5 +1,6 @@
 import DOMPurify from 'dompurify';
 import { cellToText } from '../data-exchange/cells';
+import { parseCsv } from '../data-exchange/csv';
 
 /** A large workbook never fills the window: the first rows and columns of each sheet are drawn, and the screen says so. */
 export const PREVIEW_MAX_ROWS = 200;
@@ -44,4 +45,23 @@ export async function xlsxToSheets(blob: Blob): Promise<PreviewSheet[]> {
     const wide = data.some((row) => row.length > PREVIEW_MAX_COLUMNS);
     return { name: sheet, rows, truncated: data.length > PREVIEW_MAX_ROWS || wide };
   });
+}
+
+/** The text of a CSV in the encoding Excel saved it: UTF-16 (byte order mark), UTF-8, or the Windows-1256 «ANSI» Arabic that is not valid UTF-8. */
+export function decodeCsv(bytes: ArrayBuffer): string {
+  const head = new Uint8Array(bytes.slice(0, 2));
+  if (head[0] === 0xff && head[1] === 0xfe) return new TextDecoder('utf-16le').decode(bytes);
+  if (head[0] === 0xfe && head[1] === 0xff) return new TextDecoder('utf-16be').decode(bytes);
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  } catch {
+    return new TextDecoder('windows-1256').decode(bytes);
+  }
+}
+
+/** A CSV as one sheet of plain text cells (never run), with the same limits as a workbook. */
+export async function csvToSheets(blob: Blob): Promise<PreviewSheet[]> {
+  const data = parseCsv(decodeCsv(await blob.arrayBuffer())).filter((row) => row.some((cell) => cell.trim() !== ''));
+  const rows = data.slice(0, PREVIEW_MAX_ROWS).map((row) => row.slice(0, PREVIEW_MAX_COLUMNS).map((cell) => cell.trim()));
+  return [{ name: 'CSV', rows, truncated: data.length > PREVIEW_MAX_ROWS || data.some((row) => row.length > PREVIEW_MAX_COLUMNS) }];
 }
