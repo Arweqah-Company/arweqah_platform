@@ -35,6 +35,20 @@ const placeholders = (text) => [...text.matchAll(/{{\s*(\w+)\s*}}/g)].map((m) =>
 // Plural suffixes (_one, _other, _zero, _two, _few, _many) differ per language; compare base keys.
 const baseKey = (key) => key.replace(/_(zero|one|two|few|many|other)$/, '');
 
+/** Every module that registers permissions needs a name in the roles files (the permissions page and «My permissions» group by it); otherwise the screen shows the raw id (e.g. career-profile). */
+function checkModuleNames() {
+  const ids = new Set();
+  for (const file of walk(join(ROOT, 'apps/api/src')).filter((f) => /permissions?\.ts$/.test(f) || /\.permissions\.ts$/.test(f))) {
+    const text = readFileSync(file, 'utf8');
+    for (const m of text.matchAll(/\bmodule:\s*'([\w-]+)'/g)) ids.add(m[1]);
+    for (const m of text.matchAll(/\bconst MODULE\s*=\s*'([\w-]+)'/g)) ids.add(m[1]);
+  }
+  for (const lang of ['ar', 'en']) {
+    const names = JSON.parse(readFileSync(join(WEB_SRC, `features/roles/i18n/${lang}.json`), 'utf8')).module ?? {};
+    for (const id of ids) if (!names[id]) problems.push(`features/roles/i18n/${lang}.json: module "${id}" has no name (module.${id})`);
+  }
+}
+
 function checkPair(arPath, enPath) {
   const label = relative(ROOT, arPath).replace('/ar.json', '');
   const ar = flatten(JSON.parse(readFileSync(arPath, 'utf8')));
@@ -63,6 +77,8 @@ for (const arPath of files.filter((f) => f.endsWith('/ar.json'))) {
     problems.push(`${relative(ROOT, arPath)}: ${error.message}`);
   }
 }
+
+checkModuleNames();
 
 // Hard-coded Arabic belongs in the JSON files, not in components (tests and comments excluded).
 for (const file of files.filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f))) {

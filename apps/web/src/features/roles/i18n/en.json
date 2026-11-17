@@ -26,7 +26,13 @@
     "notifications": "Notifications and e-mail",
     "lists": "Lists",
     "tickets": "Tickets",
-    "tasks": "Tasks"
+    "tasks": "Tasks",
+    "templates": "Templates",
+    "agent": "Platform assistant",
+    "integrations": "Settings and integrations",
+    "career-profile": "Career path",
+    "performance": "Performance evaluation",
+    "tour": "Welcome tour"
   },
   "holders": "Users",
   "searchLabel": "Search roles",
