@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 870 190" width="870" height="190" role="img" aria-label="Sign-in: open the app, choose Microsoft or work e-mail, authenticator code, home">
+<title>Sign-in: open the app, choose Microsoft or work e-mail, authenticator code, home</title>
+<rect width="870" height="190" rx="14" fill="#FFFCEE"/>
+<style>text{font-family:Tajawal, 'Segoe UI', Arial, sans-serif;font-size:14px;fill:#0C2028;text-anchor:middle} .s{font-size:11px;fill:#00415B} .t{font-size:16px;font-weight:700}</style>
+<line x1="160.0" y1="90" x2="200.0" y2="90" stroke="#D7D2CB" stroke-width="3"/>
+<line x1="330.0" y1="90" x2="370.0" y2="90" stroke="#D7D2CB" stroke-width="3"/>
+<line x1="500.0" y1="90" x2="540.0" y2="90" stroke="#D7D2CB" stroke-width="3"/>
+<line x1="670.0" y1="90" x2="710.0" y2="90" stroke="#D7D2CB" stroke-width="3"/>
+<rect x="30" y="60" width="130" height="60" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"><animate attributeName="fill" values="#85BA95;#85BA95;#fff;#fff" keyTimes="0;0.070;0.112;1" dur="8.0s" repeatCount="indefinite"/></rect>
+<text x="95.0" y="88.0">Open the app</text><text class="s" x="95.0" y="105.0">no valid session</text>
+<rect x="200" y="60" width="130" height="60" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"><animate attributeName="fill" values="#fff;#fff;#85BA95;#85BA95;#fff;#fff" keyTimes="0;0.138;0.180;0.320;0.362;1" dur="8.0s" repeatCount="indefinite"/></rect>
+<text x="265.0" y="88.0">Choose method</text><text class="s" x="265.0" y="105.0">Microsoft or e-mail</text>
+<rect x="370" y="60" width="130" height="60" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"><animate attributeName="fill" values="#fff;#fff;#85BA95;#85BA95;#fff;#fff" keyTimes="0;0.388;0.430;0.570;0.612;1" dur="8.0s" repeatCount="indefinite"/></rect>
+<text x="435.0" y="88.0">Authenticator</text><text class="s" x="435.0" y="105.0">link once with a QR</text>
+<rect x="540" y="60" width="130" height="60" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"><animate attributeName="fill" values="#fff;#fff;#85BA95;#85BA95;#fff;#fff" keyTimes="0;0.638;0.680;0.820;0.862;1" dur="8.0s" repeatCount="indefinite"/></rect>
+<text x="605.0" y="88.0">Code verified</text><text class="s" x="605.0" y="105.0">rate limit, lock after 5</text>
+<rect x="710" y="60" width="130" height="60" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"><animate attributeName="fill" values="#fff;#fff;#85BA95;#85BA95" keyTimes="0;0.888;0.930;1" dur="8.0s" repeatCount="indefinite"/></rect>
+<text x="775.0" y="88.0">Home</text><text class="s" x="775.0" y="105.0">session cookie</text>
+<circle r="7" fill="#C16426"><animateMotion dur="8.0s" begin="0s" repeatCount="indefinite" path="M95.0,90 L775.0,90"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="8.0s" begin="0s" repeatCount="indefinite"/></circle>
+<text class="s" x="435.0" y="165">No passwords · first time: QR link by e-mail · one generic error on failure</text>
+</svg>
