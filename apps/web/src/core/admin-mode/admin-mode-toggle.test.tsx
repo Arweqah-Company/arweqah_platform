@@ -42,6 +42,26 @@ describe('Platform admin mode switch (FR-34)', () => {
     expect(screen.queryByLabelText('رمز تطبيق المصادقة 1')).not.toBeInTheDocument();
   });
 
+  it('opens the code dialog when the server turned the code on after the profile said it was not needed (CodeRabbit PR 121)', async () => {
+    const state = { adminMode: OFF };
+    let required = false;
+    server.use(
+      http.get('*/api/me', () => HttpResponse.json({ ...me(), adminMode: state.adminMode, adminModeCodeRequired: required })),
+      http.post('*/api/admin-mode/activate', async ({ request }) => {
+        const { code } = (await request.json()) as { code?: string };
+        if (code === undefined) {
+          required = true; // the setting was switched on after this profile was read
+          return error(422, 'INVALID_CODE');
+        }
+        state.adminMode = ON;
+        return HttpResponse.json(ON);
+      }),
+    );
+    open();
+    fireEvent.click(await screen.findByRole('button', { name: 'تفعيل وضع مدير المنصة' }));
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+  });
+
   it('is not shown to someone who has no administrative capability', async () => {
     serve({ adminMode: { available: false, active: false, expiresAt: null } }, () => error(403, 'ADMIN_MODE_NOT_ALLOWED'));
     open();
