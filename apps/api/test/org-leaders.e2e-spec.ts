@@ -44,6 +44,9 @@ describe('Leaders per company and acting leaders (FR-100)', () => {
     expect(dto.effectiveMode).toBe('per_company');
     expect(dto.items).toHaveLength(1);
     expect(dto.items[0]).toMatchObject({ companyId: s.companyB, employeeId: b1.employeeId, kind: 'leader', status: 'current', reason: 'test' });
+    expect(dto.items[0]?.employeeNumber).toBeTruthy(); // the leader's popup shows work number, work e-mail and manager (the leader may sit in another unit)
+    expect(dto.items[0]?.workEmail).toContain('@');
+    expect(dto.items[0]).toHaveProperty('managerName');
     const row = dto.companies.find((c) => c.companyId === s.companyB);
     expect(row).toMatchObject({ staffCount: 2, escalatesTo: null });
     expect(row?.leader?.employeeId).toBe(b1.employeeId);

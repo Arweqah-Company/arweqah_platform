@@ -200,7 +200,11 @@
     "followed": "You follow this task.",
     "unfollowed": "You no longer follow this task.",
     "restore": "Restore",
-    "restored": "The task was restored."
+    "restored": "The task was restored.",
+    "delete": "Delete",
+    "deleteTitle": "Delete task {{number}}?",
+    "deleteDescription": "The task disappears for everyone: the assignee, the giver, the board and the numbers. Its record and conversation are kept in the database and the audit log shows who deleted it.",
+    "deleted": "The task was deleted."
   },
   "decision": {
     "note": "Note (optional)",
@@ -440,5 +444,15 @@
         "object": "You object to it if it was assigned to you unfairly"
       }
     }
+  },
+  "history": {
+    "when": "Date and time",
+    "who": "By",
+    "what": "Event",
+    "detail": "Details",
+    "to": "to",
+    "open": "View history",
+    "count_one": "1 event",
+    "count_other": "{{count}} events"
   }
 }

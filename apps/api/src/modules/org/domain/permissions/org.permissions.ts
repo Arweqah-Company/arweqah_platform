@@ -11,6 +11,7 @@ export const ORG_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.CompaniesExport, 'تصدير الشركات', 'Export companies'),
   def(CorePermission.CompaniesImport, 'استيراد الشركات من ملف', 'Import companies from a file'),
   def(CorePermission.OrgView, 'عرض الهيكل التنظيمي', 'View the organization structure', ['unit', 'subtree', ...COMPANY_LEVEL]),
+  def(CorePermission.OrgHistoryView, 'عرض سجل الوحدة (إصداراتها وسجل تغييراتها)', 'View a unit\'s history (its versions and change log)', ['unit', 'subtree', ...COMPANY_LEVEL]),
   def(CorePermission.OrgUnitCreate, 'إضافة وحدة في الهيكل', 'Add a unit to the structure', COMPANY_LEVEL),
   def(CorePermission.OrgUnitUpdate, 'تعديل وحدة (الاسم والمسؤول وتاريخ البدء)', 'Edit a unit (name, manager, start date)', COMPANY_LEVEL),
   def(CorePermission.OrgUnitMove, 'نقل وحدة إلى مكان آخر', 'Move a unit', COMPANY_LEVEL),

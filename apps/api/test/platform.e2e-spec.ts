@@ -70,6 +70,14 @@ describe('Notification filters (FR-08)', () => {
 describe('Files (FR-09)', () => {
   const t = useTestApp();
 
+  it('accepts a CSV of plain text by name and content, and refuses a binary or an unnamed one', async () => {
+    const agent = await t.factories.signIn(await t.factories.user());
+    const csv = await agent.post('/api/files').attach('file', Buffer.from('الاسم,العدد\nأحمد,3\n', 'utf8'), 'report.csv').expect(201);
+    expect(csv.body.contentType).toBe('text/csv');
+    await agent.post('/api/files').attach('file', Buffer.from([0x00, 0x01, 0x02, 0xff]), 'report.csv').expect(422);
+    await agent.post('/api/files').attach('file', Buffer.from('a,b\n1,2\n'), 'report.txt').expect(422);
+  });
+
   it('accepts allowed types by content, rejects disguised files, and hides files from other users', async () => {
     const owner = await t.factories.user();
     const agent = await t.factories.signIn(owner);

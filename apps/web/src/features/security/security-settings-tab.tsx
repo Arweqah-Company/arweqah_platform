@@ -33,6 +33,7 @@ const asText = (values: SecuritySettingsInput): Typed => ({
   agentEnabled: String(values.agentEnabled ?? SECURITY_SETTINGS.agentEnabled.default),
   agentMessagesPerHour: String(values.agentMessagesPerHour ?? SECURITY_SETTINGS.agentMessagesPerHour.default),
   agentDraftMinutes: String(values.agentDraftMinutes ?? SECURITY_SETTINGS.agentDraftMinutes.default),
+  adminModeRequiresCode: String(values.adminModeRequiresCode ?? SECURITY_SETTINGS.adminModeRequiresCode.default),
 });
 const asNumbers = (form: Typed): SecuritySettingsInput => ({
   trustedDeviceDays: Number(form.trustedDeviceDays),
@@ -42,6 +43,7 @@ const asNumbers = (form: Typed): SecuritySettingsInput => ({
   agentEnabled: Number(form.agentEnabled),
   agentMessagesPerHour: Number(form.agentMessagesPerHour),
   agentDraftMinutes: Number(form.agentDraftMinutes),
+  adminModeRequiresCode: Number(form.adminModeRequiresCode),
 });
 
 function SettingsForm({ initial }: { initial: SecuritySettingsInput }) {
@@ -54,7 +56,7 @@ function SettingsForm({ initial }: { initial: SecuritySettingsInput }) {
     const value = Number(form[key]);
     return form[key] !== '' && Number.isInteger(value) && value >= SECURITY_SETTINGS[key].min && value <= SECURITY_SETTINGS[key].max;
   };
-  const valid = (['trustedDeviceDays', 'requestsPerMinute', 'impersonationEnabled', 'impersonationIdleMinutes', 'agentEnabled', 'agentMessagesPerHour', 'agentDraftMinutes'] as const).every(inRange);
+  const valid = (['trustedDeviceDays', 'requestsPerMinute', 'impersonationEnabled', 'impersonationIdleMinutes', 'agentEnabled', 'agentMessagesPerHour', 'agentDraftMinutes', 'adminModeRequiresCode'] as const).every(inRange);
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     try {
@@ -73,6 +75,7 @@ function SettingsForm({ initial }: { initial: SecuritySettingsInput }) {
       <FormField label={t('settings.requestsPerMinute')} hint={t('settings.requestsPerMinuteHint')} error={inRange('requestsPerMinute') ? undefined : t('settings.range', SECURITY_SETTINGS.requestsPerMinute)}>
         {(p) => <Input {...p} type="number" dir="ltr" inputMode="numeric" disabled={!canEdit} value={form.requestsPerMinute} onChange={(e) => setForm((f) => ({ ...f, requestsPerMinute: e.target.value }))} />}
       </FormField>
+      <AdminModeFields form={form} setForm={setForm} disabled={!canEdit} />
       <ImpersonationFields form={form} setForm={setForm} disabled={!canEdit} inRange={inRange} />
       <AgentFields form={form} setForm={setForm} disabled={!canEdit} inRange={inRange} />
       {canEdit && <div className="flex justify-end"><Button type="submit" disabled={!valid || save.isPending}>{tc('actions.save')}</Button></div>}
@@ -85,6 +88,25 @@ interface FieldsProps {
   setForm: (update: (form: Typed) => Typed) => void;
   disabled: boolean;
   inRange: (key: keyof SecuritySettingsInput) => boolean;
+}
+
+/** Platform admin mode: does switching it on ask for a code of the authenticator app? On by default; off only while testing (a warning says so). */
+function AdminModeFields({ form, setForm, disabled }: Omit<FieldsProps, 'inRange'>) {
+  const { t } = useTranslation('security');
+  const required = form.adminModeRequiresCode === '1';
+  return (
+    <fieldset className="flex flex-col gap-3 border-t border-neutral-200 pt-4" data-tour="admin-mode-settings">
+      <legend className="sr-only">{t('settings.adminModeGroup')}</legend>
+      <label className="flex items-start gap-3 text-sm">
+        <input type="checkbox" className="mt-0.5 size-5 accent-petrol-800" disabled={disabled} checked={required} onChange={(e) => setForm((f) => ({ ...f, adminModeRequiresCode: e.target.checked ? '1' : '0' }))} />
+        <span>
+          <span className="block font-medium text-fg">{t('settings.adminModeRequiresCode')}</span>
+          <span className="block text-muted">{t('settings.adminModeRequiresCodeHint')}</span>
+        </span>
+      </label>
+      {!required && <Alert tone="warning">{t('settings.adminModeCodeOffWarning')}</Alert>}
+    </fieldset>
+  );
 }
 
 /** «Sign in as»: a switch (off by default) and the idle minutes after which that session ends. */

@@ -63,6 +63,25 @@ describe('My team tab (FR-92)', () => {
     expect(within(dialog).getByRole('link', { name: 'فتح سجل الموظف' })).toHaveAttribute('href', '/employees/e1');
   });
 
+  it('offers «Chat on Teams» in the profile only with its key (FR-154)', async () => {
+    serve(['directory.view', 'directory.contact_teams']);
+    server.use(http.get('*/api/directory/e1', () => HttpResponse.json(profile())));
+    open();
+    fireEvent.click(await screen.findByText('خالد المدير'));
+    const dialog = await screen.findByRole('dialog');
+    expect(await within(dialog).findByRole('link', { name: 'محادثة على Teams' })).toHaveAttribute('href', 'https://teams.microsoft.com/l/chat/0/0?users=khaled%40arweqah.sa');
+  });
+
+  it('hides «Chat on Teams» from a person without the key (FR-154)', async () => {
+    serve(['directory.view']);
+    server.use(http.get('*/api/directory/e1', () => HttpResponse.json(profile())));
+    open();
+    fireEvent.click(await screen.findByText('خالد المدير'));
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText('بيانات أساسية');
+    expect(within(dialog).queryByRole('link', { name: 'محادثة على Teams' })).not.toBeInTheDocument();
+  });
+
   it('offers the export only with the export key', async () => {
     serve(['directory.view']);
     open();

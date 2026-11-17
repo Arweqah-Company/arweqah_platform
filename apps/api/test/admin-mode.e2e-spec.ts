@@ -2,6 +2,7 @@ import { CorePermission } from '@arweqah-platform/shared';
 import { describe, expect, it } from 'vitest';
 import { generateBackupCodes } from '../src/core/auth/domain/totp';
 import { codeFor } from './helpers/totp';
+import { ADMIN_MODE_GRANT } from './factories/factories';
 import { useTestApp } from './setup/test-app';
 
 const NEXT_STEP = 30_000;
@@ -49,6 +50,26 @@ describe('Platform admin mode (FR-34)', () => {
     await agent.post('/api/admin-mode/deactivate').expect(204);
     // Every activation is a new proof: the same code again is refused until its step has passed.
     await agent.post('/api/admin-mode/activate').send({ code: nextCode(user.secret) }).expect(422);
+  });
+
+  it('turns on without a code while the security setting is off, and asks for it again once it is back on (FR-34)', async () => {
+    const { user, agent } = await admin();
+    const settings = await t.factories.signInAdminMode(await t.factories.user({ grants: [ADMIN_MODE_GRANT, { key: CorePermission.SecuritySettingsView, scope: 'all' }, { key: CorePermission.SecuritySettingsEdit, scope: 'all' }] }));
+    const save = (adminModeRequiresCode: number) => settings.put('/api/security-settings').send({ trustedDeviceDays: 0, requestsPerMinute: 100000, impersonationEnabled: 0, impersonationIdleMinutes: 30, adminModeRequiresCode });
+    expect((await agent.get('/api/me').expect(200)).body.adminModeCodeRequired).toBe(true);
+    await save(0).expect(200);
+    try {
+      expect((await agent.get('/api/me').expect(200)).body.adminModeCodeRequired).toBe(false);
+      expect((await agent.post('/api/admin-mode/activate').send({}).expect(200)).body).toMatchObject({ available: true, active: true });
+      await agent.get('/api/test-admin-probe').expect(200);
+      await agent.post('/api/admin-mode/deactivate').expect(204);
+      const employee = await t.factories.user({ grants: [] });
+      expect((await (await t.factories.signIn(employee)).post('/api/admin-mode/activate').send({}).expect(403)).body.code).toBe('ADMIN_MODE_NOT_ALLOWED'); // no capability, no code needed or not
+    } finally {
+      await save(1).expect(200);
+    }
+    expect((await agent.post('/api/admin-mode/activate').send({}).expect(400)).body.code).toBe('INVALID_CODE');
+    await agent.post('/api/admin-mode/activate').send({ code: nextCode(user.secret) }).expect(200);
   });
 
   it('rejects wrong codes and backup codes, and locks after five wrong attempts', async () => {

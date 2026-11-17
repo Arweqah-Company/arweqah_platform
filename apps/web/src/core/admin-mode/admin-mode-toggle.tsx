@@ -2,6 +2,7 @@ import { ShieldCheck } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import { ApiError } from '../api/api-client';
 import { Button } from '@/shared/ui';
 import { cn } from '@/shared/lib/cn';
 import { AdminModeDialog } from './admin-mode-dialog';
@@ -41,6 +42,17 @@ export function AdminModeToggle() {
   const [asking, setAsking] = useState(false);
   const markManualOff = useExpiryWatch(adminMode);
   if (!adminMode.available) return null;
+  /** The profile said no code is needed; if the setting was turned on since, the server answers INVALID_CODE: read the profile again and ask for the code. */
+  const activateWithoutCode = () =>
+    adminMode.activate.mutate(undefined, {
+      onSuccess: () => toast.success(t('adminMode.turnedOn')),
+      onError: (failure) => {
+        if (failure instanceof ApiError && failure.code === 'INVALID_CODE') {
+          void adminMode.refresh();
+          setAsking(true);
+        }
+      },
+    });
   const label = t(adminMode.active ? 'adminMode.turnOff' : 'adminMode.turnOn');
   return (
     <>
@@ -52,7 +64,7 @@ export function AdminModeToggle() {
         aria-label={label}
         title={label}
         onClick={() => {
-          if (!adminMode.active) return setAsking(true);
+          if (!adminMode.active) return adminMode.codeRequired ? setAsking(true) : activateWithoutCode();
           markManualOff();
           adminMode.deactivate.mutate();
         }}

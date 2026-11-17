@@ -719,6 +719,7 @@ erDiagram
     uuid id PK
     timestamp_with_time_zone created_at
     timestamp_with_time_zone updated_at
+    timestamp_with_time_zone deleted_at
     bigint number
     uuid sender_user_id FK
     uuid desk_id FK
@@ -783,6 +784,7 @@ erDiagram
     uuid id PK
     timestamp_with_time_zone created_at
     timestamp_with_time_zone updated_at
+    timestamp_with_time_zone deleted_at
     bigint number
     uuid company_id FK
     character_varying title
@@ -1426,7 +1428,7 @@ erDiagram
 | `ticket_desks` | One per receiving unit (`org_node_id`): reception status, accepts-personal flag, default / minimum due days, auto-close, reopen window and stale-after days. |
 | `ticket_types` | Kinds of ticket per desk (names ar / en, instructions for the sender ar / en, due days, personal flag). |
 | `ticket_type_handlers` | The employees of the unit who answer the tickets of a type (one or more; with several, the first to reply takes the ticket). |
-| `tickets` | The ticket: sender, desk, type, title, details, priority, needed-by date, assignee, status, close reason, response and activity timestamps, reopen count. |
+| `tickets` | The ticket: sender, desk, type, title, details, priority, needed-by date, assignee, status, close reason, response and activity timestamps, reopen count, `deleted_at` (the delete button hides the ticket, never erases it). |
 | `ticket_events` | Timeline of a ticket: answers, status changes, assignment, close and reopen. |
 | `ticket_attachments` | Files attached to a ticket (links to `files`). |
 | `ticket_event_mentions` | The people a reply names with `@` (they may read and answer the ticket). `ticket_events` also holds `parent_event_id` (the first reply an answer sits under) and `reply_to_user_id` (whom it answers). |
@@ -1435,7 +1437,7 @@ erDiagram
 
 | Table | What it does |
 |---|---|
-| `tasks` | The task: company, creator, assignee, reviewer, approver, status, priority, due date, estimate, tag, recurrence, source (manual / ticket / project), completion and archive dates, reminder markers. |
+| `tasks` | The task: company, creator, assignee, reviewer, approver, status, priority, due date, estimate, tag, recurrence, source (manual / ticket / project), completion and archive dates, reminder markers, `deleted_at` (the delete button hides the task, never erases it). |
 | `task_events` | Timeline of a task: type, actor, from / to status and note. |
 | `task_followers` | People who follow a task and are notified. |
 | `task_objections` | An objection raised on a task: reason code, note, expiry, status and who answered. |

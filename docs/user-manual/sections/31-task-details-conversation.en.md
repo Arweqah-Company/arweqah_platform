@@ -1,6 +1,6 @@
 ## Task details and conversation
 
-Click any task in the list to open its page. The page shows what the task is, who is involved, the buttons you may use at this moment, the task conversation, and the history of everything that happened to the task. The conversation holds comments, replies, files and mentions of colleagues with `@`.
+Click any task in the list to open its page. The page shows what the task is, who is involved, the buttons you may use at this moment, the task conversation, and a button that opens the history of everything that happened to the task as a table. The conversation holds comments, replies, files and mentions of colleagues with `@`.
 
 ### Who sees it
 
@@ -22,6 +22,7 @@ Click any task in the list to open its page. The page shows what the task is, wh
 | Log time | Records minutes worked on a day | `tasks.log_time` |
 | Follow / Unfollow | Starts or stops notices about the task | `tasks.follow` |
 | Restore | Brings an archived task back | `tasks.restore` |
+| Delete | Hides the task (and its conversation) from everyone after a confirmation; the record stays in the database and the audit log says who deleted it. Offered to its giver, and to a person whose scope reaches the assignee | `tasks.delete` (Delete a task); not held by the «Employee» role, held by the head role of every unit for its unit and below |
 | Write a comment | Adds a comment to the conversation | `tasks.comment_add` (Write a comment on a task) |
 | Reply | Answers a comment | `tasks.comment_reply` (Reply to a comment on a task) |
 | Attach files | Adds files to a comment | `tasks.comment_upload` (Attach files to a comment) |
@@ -116,7 +117,7 @@ The task keeps the life described in the «My tasks» page (statuses and moves).
 
 1. Open the task. The banner tells its state: waiting for approval (with the approver's name), open objection (with the lapse date) or archived.
 2. The buttons shown are only the ones the API allows now: **Approve** / **Reject** for the approver of a pending task; **Send again** for the owner of a rejected task; **Move to** for the assignee or a manager; **Object** and **Answer the objection**; **Log time**; **Edit**; **Follow**; **Restore** for an archived task.
-3. Every step adds a line to the history: Created, Edited, Changed status, Approved, Rejected, Sent again, Objected, Objection answered, Objection lapsed, Archived, Restored, Handed over, Given to someone else, Time logged.
+3. The **View history** button (the «History of the task» section at the bottom of the page) opens a window with a table: number, date and time, by (or «The system»), event and details (the two statuses of a status change, the reason of an objection, the minutes logged, the note). Oldest first; anyone who can see the task sees it. Every step adds a line to the history: Created, Edited, Changed status, Approved, Rejected, Sent again, Objected, Objection answered, Objection lapsed, Archived, Restored, Handed over, Given to someone else, Time logged.
 4. **The conversation:** a person with the keys and a relation that allows it writes a comment (with files and `@`), replies to a comment, and edits or deletes their own comment within the edit time. The people notified are listed under Business rules.
 5. When the task is closed and archived, the conversation becomes read-only; the company may also close it some days after the task is done.
 
@@ -148,7 +149,7 @@ The task keeps the life described in the «My tasks» page (statuses and moves).
 - A comment needs text or at least one file. Text is limited to 5000 characters.
 - The conversation stays open after the task is done. When the task is archived it is read-only, and the company may close it some days after the task is closed (0 = never). The page then says «The conversation of this task is closed: you can only read».
 - **Notices:** the mentioned person (also by e-mail), the person you reply to, the assignee and the person who gave the task, and followers (once, while an earlier notice is unread). Nobody is notified of their own comment. E-mail never carries the text of a comment.
-- File previews open for images and PDF only; other files download. Word and Excel files are accepted; the system checks the real file type, not just the name.
+- Images, PDF, Word, Excel and CSV open in a window (a CSV as a table); other files download. Word, Excel and CSV files are accepted; the system checks the real file type, not just the name.
 - The conversation has no list, so it has no export. Comments are recorded in the audit log without their text. (FR-66)
 
 ### Tips / common problems

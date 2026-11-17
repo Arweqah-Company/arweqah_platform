@@ -261,6 +261,7 @@
     }
   },
   "leaders": {
+    "ledUnit": "Unit they lead",
     "loading": "Loading the leaders…",
     "roleNote": "The role «leader of {{name}}» is one role, not tied to a company. Everyone with a leader row in force holds it, and its permissions are the same in every company.",
     "sharedLabel": "Leader of the shared unit",

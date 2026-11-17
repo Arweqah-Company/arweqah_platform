@@ -74,7 +74,7 @@ export class TypeOrmTaskCommentRepository extends TaskCommentRepository {
 
   async hasOpenTaskInCategory(userId: string, tagId: string): Promise<boolean> {
     const rows = await this.ds.query(
-      `SELECT 1 FROM tasks WHERE assignee_user_id = $1 AND tag_id = $2 AND status NOT IN ('done', 'rejected') AND archived_at IS NULL LIMIT 1`,
+      `SELECT 1 FROM tasks WHERE assignee_user_id = $1 AND tag_id = $2 AND status NOT IN ('done', 'rejected') AND archived_at IS NULL AND deleted_at IS NULL LIMIT 1`,
       [userId, tagId],
     );
     return rows.length > 0;

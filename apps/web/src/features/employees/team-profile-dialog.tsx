@@ -1,8 +1,9 @@
-import type { DirectoryLevel, DirectoryProfileDto } from '@arweqah-platform/shared';
+import { CorePermission, type DirectoryLevel, type DirectoryProfileDto } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { errorMessage } from '@/shared/lib/error-message';
-import { Alert, Badge, Button, Dialog } from '@/shared/ui';
+import { Can } from '@/core/permissions/can';
+import { Alert, Badge, Button, Dialog, TeamsChatButton } from '@/shared/ui';
 import { useTeamProfile } from './api';
 import { EmployeeAvatar } from './employee-avatar';
 
@@ -46,7 +47,8 @@ function ProfileBody({ p, onClose }: { p: DirectoryProfileDto; onClose: () => vo
         [t('workPhone'), p.workPhone, true],
       ]} />
       {p.details && <Details details={p.details} />}
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
+        <Can permission={CorePermission.DirectoryContactTeams}><TeamsChatButton email={p.workEmail} /></Can>
         {p.level === 'full' && <Button asChild variant="secondary"><Link to={`/employees/${p.id}`}>{t('openRecord')}</Link></Button>}
         <Button variant="secondary" onClick={onClose}>{tc('actions.close')}</Button>
       </div>

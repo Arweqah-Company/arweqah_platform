@@ -110,8 +110,8 @@ A star (*) on screen marks a required field. The form is in two steps: «Employe
 | Nationality | Also decides the ID number rule for some ID types | No | A value from the list |
 | Marital status | | No | A value from the list |
 | Residency status | | No | A value from the list |
-| ID type | The kind of identity document | No (see rules) | Shown only to who holds `employees.view_sensitive`. Required once an ID number is typed |
-| ID number | The document number, stored encrypted | No (see rules) | Shown only to who holds `employees.view_sensitive`. Checked by the ID type (and nationality for some types); required with the ID type; one number per ID type across the system |
+| ID type | The kind of identity document | No (see rules) | Shown when adding an employee to whoever holds `employees.create`, and when editing only to who holds `employees.view_sensitive`. Required once an ID number is typed |
+| ID number | The document number, stored encrypted | No (see rules) | Shown when adding an employee (in the form and in the import template) to whoever holds `employees.create`; when editing or reading, only to who holds `employees.view_sensitive`. Checked by the ID type (and nationality for some types); required with the ID type; one number per ID type across the system |
 | ID expiry date | Feeds the «ID expiring soon» badge and filter (30 days) | No | After the birth date |
 
 #### Contract
@@ -134,7 +134,7 @@ A star (*) on screen marks a required field. The form is in two steps: «Employe
 | Termination reason | Why the relationship ends | No (shows once an end date is set) | A value from the list. Needs the end date |
 | State the reason | | Yes, when the reason is «Other» | Up to 255 characters |
 
-#### Salary and cost (shown only to who holds `employees.view_sensitive`)
+#### Salary and cost (shown when adding to whoever holds `employees.create`, and when editing only to who holds `employees.view_sensitive`)
 
 | Field | What it means / what to type | Required | Allowed values / rules |
 |---|---|---|---|
@@ -178,7 +178,7 @@ A star (*) on screen marks a required field. The form is in two steps: «Employe
 
 #### Import from a file
 
-The template has one column for each field above, with the system's lists as drop-downs, plus «Direct manager employee number». After the file is checked, the preview has one box «Send the activation invitation e-mail to everyone imported» (ticked at first): it applies to all the imported employees at once; unticked, no e-mail is sent. Required columns: Company, Unit, Job title, Work email, Employee number, Full name, Start date. The ID number, salary and IBAN columns are in the template only for who holds `employees.view_sensitive`. The three yes / no columns take Yes or No. «Update from file» uses the same columns without Company and Work email; only «Employee number» is required, and an empty cell leaves the record as it is.
+The template has one column for each field above, with the system's lists as drop-downs, plus «Direct manager employee number». After the file is checked, the preview has one box «Send the activation invitation e-mail to everyone imported» (ticked at first): it applies to all the imported employees at once; unticked, no e-mail is sent. Required columns: Company, Unit, Job title, Work email, Employee number, Full name, Start date. The ID number, salary and IBAN columns are in the **add template** for everyone who holds `employees.create`, and in the **«Update from a file»** template only for who holds `employees.view_sensitive`. The three yes / no columns take Yes or No. Every date column (birth date, ID expiry, start and end date, GOSI registration date) takes year-month-day, for example `1990-04-15`: the template shows this format when you select a cell of such a column, and `2024-1-5` or `2024/01/05` are also read; a day written `5/1/2024` is refused because its day / month order is unclear. Phones (work and personal) take the international format `+966501234567`; Excel drops the `+` of a number typed in a cell, so `966501234567` is accepted and read as `+966501234567`, but a local number such as `0501234567` is refused because it has no country code; so is a numeric cell that lost its leading zero (`501234567`): type the number as text or with the country code. A day that does not exist in the calendar (such as `2023-02-29`) is refused. «Update from file» uses the same columns without Company and Work email; only «Employee number» is required, and an empty cell leaves the record as it is.
 
 #### Photo (dialog)
 
@@ -241,9 +241,9 @@ The badges «Authenticator app linked / App not linked yet», «ID expiring soon
 - **Reset authenticator app** ends the employee's sessions and sends a new invitation. **Resend invitation** sends a new link (one per minute per address).
 - **History:** every change of unit, job title or manager closes the previous value the day before it starts, and is kept with its reason and who made it. A change cannot start in the past. (FR-89, FR-90)
 - **Photo:** JPEG or PNG up to 2 MB, cropped square with zoom and position before upload; when removed, the first letter of the name shows. (FR-91)
-- **«My team»:** every employee sees only the colleagues of their own unit with basic details (name, photo, job title, e-mail, phone), not the units above or below; a manager of a colleague sees more about them. Someone without a unit sees a message explaining it. (FR-92)
+- **«My team»:** every employee sees only the colleagues of their own unit with basic details (name, photo, job title, e-mail, phone), not the units above or below, and including the platform administrator's account when it holds a place in the unit; a manager of a colleague sees more about them. Someone without a unit sees a message explaining it. In a colleague's window, «Chat on Teams» (key `directory.contact_teams`, «Chat with a colleague on Teams», held by the «Employee» role and the head role of every unit) opens a Microsoft Teams chat with their work e-mail in a new tab. (FR-92, FR-154)
 - **Bulk edit:** at most 500 employees; each goes through the same dated-placement rules, and the platform is told once. (FR-93)
-- **Import:** download the template (its drop-downs hold the system's lists), fill it, then the preview shows errors, only valid rows are imported, and an error report can be downloaded. Every row passes the same checks as the form. (FR-29)
+- **Import:** download the template (its drop-downs hold the system's lists), fill it, then the preview shows errors, only valid rows are imported, and an error report can be downloaded. A row the server refuses starts its reason with the column name as in the file. Every row passes the same checks as the form. (FR-29)
 - **Update from file:** a row is identified by employee number; the cells you fill are what changes and an empty cell leaves the record as it is; no new employee is made in this mode. A change of unit, title or manager takes effect today with the reason «Imported from a file». (FR-95)
 - **Sign in as an employee:** off by default, switched on in Settings → Security; it needs platform admin mode. The administrator works with the employee's permissions without a code; everything done is recorded under the employee's name with the administrator beside it, and the employee gets a notice afterwards. Roles, security and account status stay closed. It ends with «Back to my account» or after an idle time. (FR-85)
 

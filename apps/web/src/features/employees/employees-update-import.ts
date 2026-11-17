@@ -3,7 +3,7 @@ import { ApiError, apiClient } from '@/core/api/api-client';
 import { flagDuplicates, RowChecker, type Choice } from '@/shared/data-exchange/mapping';
 import type { PreparedRow, SheetRow } from '@/shared/data-exchange/types';
 import { toFormState, toPayload, type FormState } from './form/form-state';
-import { unitsOf, YES_NO, type EmployeeImportContext } from './employees-import-rows';
+import { DATES, PHONES, unitsOf, YES_NO, type EmployeeImportContext } from './employees-import-rows';
 
 /** Fixed in an update: who the person is, the work e-mail (their sign-in) and the company. */
 export const UPDATE_EXCLUDED = ['companyId', 'workEmail'];
@@ -13,7 +13,6 @@ export const IMPORT_REASON = 'Imported from a file';
 const CHOICE_FIELDS = ['relationTypeId', 'workCountryId', 'nationalityId', 'maritalStatusId', 'residencyStatusId', 'idTypeId', 'contractTypeId', 'gosiSystemId', 'salaryCurrencyCountryId', 'contractCompanyId', 'gosiCompanyId', 'healthInsuranceCompanyId'];
 const CODED = ['gender', 'workMode'];
 const TEXT = ['workLocation', 'personalEmail', 'workPhone', 'personalPhone', 'fullName', 'fullNameEn', 'idNumber', 'contractTypeOther', 'profession', 'iban', 'notes'];
-const DATES = ['birthDate', 'idExpiryDate', 'startDate', 'endDate', 'gosiRegistrationDate'];
 const NUMBERS = ['monthlyGrossSalary'];
 const LOOKUP_CHUNK = 100;
 
@@ -44,7 +43,7 @@ function overlayOf(row: SheetRow, check: RowChecker, ctx: EmployeeImportContext,
   const choice: Reader = (id) => check.choice(id, ctx.lists[id] as Choice[]);
   read(CHOICE_FIELDS, choice);
   read(CODED, choice);
-  read(TEXT, (id) => check.text(id));
+  read(TEXT, (id) => (PHONES.includes(id) ? check.phone(id) : check.text(id)));
   read(DATES, (id) => check.date(id));
   read(YES_NO, (id) => check.yesNo(id));
   read(NUMBERS, (id) => check.number(id));

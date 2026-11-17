@@ -42,6 +42,7 @@ export const useTicketAction = (id: string) => useTicketMutation((input: { actio
 /** Who the ticket may be handed to (inside the reach of the reassign key), by what was typed. */
 export const useTicketAssignees = (ticketId: string, search: string) =>
   useQuery({ queryKey: [KEY, 'reassign-candidates', ticketId, search], staleTime: 30_000, queryFn: () => apiClient.get<PersonRefDto[]>(`/tickets/${ticketId}/assignees`, { search }), placeholderData: keepPreviousData });
+export const useDeleteTicket = (id: string) => useTicketMutation(() => apiClient.request<void>(`/tickets/${id}`, { method: 'DELETE' }));
 export const useTicketReassign = (id: string) => useTicketMutation((assigneeUserId: string) => apiClient.post<TicketDto>(`/tickets/${id}/reassign`, { assigneeUserId }));
 
 // ------------------------------------------------------------------ setup (by the key and its scope)

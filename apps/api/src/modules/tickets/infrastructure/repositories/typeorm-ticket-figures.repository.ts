@@ -32,7 +32,7 @@ export class TypeOrmTicketFiguresRepository extends TicketFiguresRepository {
               count(*) FILTER (WHERE created_at >= $2 AND is_personal)::int AS "personalCount",
               ${avgHours('first_response_at', 'created_at', 'created_at >= $2 AND first_response_at IS NOT NULL')} AS "firstResponse",
               ${avgHours('closed_at', 'created_at', 'created_at >= $2 AND closed_at IS NOT NULL')} AS resolution
-       FROM tickets WHERE desk_id = ANY($1)`,
+       FROM tickets WHERE desk_id = ANY($1) AND deleted_at IS NULL`,
       [deskIds, since],
     );
     const t = rows[0] ?? {};
@@ -44,8 +44,8 @@ export class TypeOrmTicketFiguresRepository extends TicketFiguresRepository {
       `SELECT count(*) FILTER (WHERE close_reason = 'confirmed' AND closed_at >= $2)::int AS confirmed,
               count(*) FILTER (WHERE close_reason = 'auto' AND closed_at >= $2)::int AS auto,
               count(*) FILTER (WHERE close_reason = 'not_executed' AND closed_at >= $2)::int AS "notExecuted",
-              (SELECT count(*)::int FROM ticket_events ev JOIN tickets x ON x.id = ev.ticket_id WHERE x.desk_id = ANY($1) AND ev.type = 'reopened' AND ev.created_at >= $2) AS reopened
-       FROM tickets WHERE desk_id = ANY($1)`,
+              (SELECT count(*)::int FROM ticket_events ev JOIN tickets x ON x.id = ev.ticket_id WHERE x.deleted_at IS NULL AND x.desk_id = ANY($1) AND ev.type = 'reopened' AND ev.created_at >= $2) AS reopened
+       FROM tickets WHERE desk_id = ANY($1) AND deleted_at IS NULL`,
       [deskIds, since],
     );
     return rows[0] ?? { confirmed: 0, auto: 0, notExecuted: 0, reopened: 0 };
@@ -54,7 +54,7 @@ export class TypeOrmTicketFiguresRepository extends TicketFiguresRepository {
   private byType(deskIds: string[], since: Date): Promise<DeskFigureRows['byType']> {
     return this.ds.query(
       `SELECT ty.id AS "typeId", ty.desk_id AS "deskId", ty.name_ar AS "nameAr", ty.name_en AS "nameEn", count(t.id)::int AS count
-       FROM ticket_types ty LEFT JOIN tickets t ON t.type_id = ty.id AND t.created_at >= $2
+       FROM ticket_types ty LEFT JOIN tickets t ON t.type_id = ty.id AND t.created_at >= $2 AND t.deleted_at IS NULL
        WHERE ty.desk_id = ANY($1) GROUP BY ty.id ORDER BY count DESC, ty.name_ar`,
       [deskIds, since],
     );
@@ -67,7 +67,7 @@ export class TypeOrmTicketFiguresRepository extends TicketFiguresRepository {
               count(*) FILTER (WHERE t.status = 'closed' AND t.closed_at >= $2)::int AS closed,
               ${avgHours('t.first_response_at', 't.created_at', 't.created_at >= $2 AND t.first_response_at IS NOT NULL')} AS "firstResponse"
        FROM tickets t LEFT JOIN users u ON u.id = t.assignee_user_id LEFT JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL
-       WHERE t.desk_id = ANY($1) GROUP BY t.assignee_user_id, t.desk_id, e.full_name, u.name ORDER BY open DESC, name NULLS LAST`,
+       WHERE t.deleted_at IS NULL AND t.desk_id = ANY($1) GROUP BY t.assignee_user_id, t.desk_id, e.full_name, u.name ORDER BY open DESC, name NULLS LAST`,
       [deskIds, since],
     );
     return rows.map((r) => ({ userId: r.userId, deskId: r.deskId, name: r.name, open: r.open, closed: r.closed, avgFirstResponseHours: hours(r.firstResponse) }));

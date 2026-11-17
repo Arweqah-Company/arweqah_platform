@@ -137,4 +137,17 @@ describe('Ticket replies to replies and mentions (FR-128)', () => {
     await w.agents.sender.post('/api/files').attach('file', DOCX, 'macro.docm').expect((r) => expect(r.status).toBe(201)); // the bytes decide, not the name
     await w.agents.sender.post('/api/files').attach('file', Buffer.from('MZ not an office file'), 'x.docx').expect(422);
   });
+
+  it('accepts a CSV on a reply: the people of the ticket download it and read it in the preview window (FR-09)', async () => {
+    const w = await world();
+    const csv = (await w.agents.sender.post('/api/files').attach('file', Buffer.from('الاسم,العدد\nأحمد,3\n', 'utf8'), 'figures.csv').expect(201)).body as { id: string; contentType: string };
+    expect(csv.contentType).toBe('text/csv');
+    const posted = (await w.agents.sender.post(`/api/tickets/${w.ticket.id}/replies`).send({ body: 'جدول', fileIds: [csv.id] }).expect(201)).body as TicketDto;
+    expect(posted.events.at(-1)!.attachments.map((a) => a.originalName)).toEqual(['figures.csv']);
+    await w.agents.assignee.get(`/api/tickets/${w.ticket.id}/attachments/${csv.id}`).expect(200);
+    const preview = await w.agents.assignee.get(`/api/tickets/${w.ticket.id}/attachments/${csv.id}/preview`).expect(200);
+    expect(preview.headers['content-type']).toContain('text/csv');
+    await w.agents.colleague.get(`/api/tickets/${w.ticket.id}/attachments/${csv.id}/preview`).expect(404);
+    await w.agents.colleague.get(`/api/tickets/${w.ticket.id}/attachments/${csv.id}`).expect(404);
+  });
 });

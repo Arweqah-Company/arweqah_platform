@@ -59,6 +59,7 @@
     "signOut": "Sign out",
     "retry": "Try again",
     "close": "Close",
+    "chatOnTeams": "Chat on Teams",
     "confirm": "Confirm",
     "view": "View"
   },
@@ -98,7 +99,7 @@
     "TOO_MANY_REQUESTS": "Too many requests in a short time. Wait a minute and try again.",
     "DERIVED_ROLE": "This role follows a job title or a level of the structure, so its name and members are not changed by hand.",
     "ROLE_TEMPLATE_INVALID": "That template role cannot be used: choose a manual role or the Employee role.",
-    "FILE_TYPE_NOT_ALLOWED": "File type not allowed. Use PDF, PNG or JPEG.",
+    "FILE_TYPE_NOT_ALLOWED": "File type not allowed. Use PDF, PNG, JPEG, Word (docx), Excel (xlsx) or CSV.",
     "INVALID_CODE": "The code is not valid.",
     "AUTHENTICATOR_LOCKED": "Too many attempts. Try again in a moment.",
     "ALREADY_ENROLLED": "An authenticator app is already linked.",
@@ -275,6 +276,10 @@
     "chooseFile": "Choose an Excel or CSV file",
     "dropFile": "Drop an Excel or CSV file here, or click to browse",
     "fileHint": "Up to {{rows}} rows.",
+    "dateTitle": "Date format",
+    "dateInput": "Write the date as year-month-day, for example 1990-04-15",
+    "phoneTitle": "Phone format",
+    "phoneInput": "Write the number in international format with the country code, e.g. +966501234567 (if Excel drops the +, 966501234567 is accepted too)",
     "sheetTemplate": "Template",
     "sheetLists": "Lists",
     "checking": "Checking the file…",
@@ -302,7 +307,7 @@
     "cell": {
       "required": "“{{column}}” is required.",
       "unknownOption": "“{{column}}”: “{{value}}” is not one of the options.",
-      "badDate": "“{{column}}”: the date must be year-month-day.",
+      "badDate": "“{{column}}”: the date must be year-month-day, for example 1990-04-15.",
       "badNumber": "“{{column}}”: not a valid number.",
       "badYesNo": "“{{column}}”: write yes or no.",
       "duplicate": "Duplicate in the file: “{{column}}” = “{{value}}”.",
@@ -404,7 +409,7 @@
     "remove": "Remove {{name}}",
     "tooMany": "At most {{max}} files.",
     "failed": "The file could not be uploaded.",
-    "hint": "Optional. Images, PDF, Word (.docx) or Excel (.xlsx) files."
+    "hint": "Optional. Images, PDF, Word (.docx), Excel (.xlsx) or CSV files."
   },
   "groups": {
     "nameAr": "Name in Arabic",

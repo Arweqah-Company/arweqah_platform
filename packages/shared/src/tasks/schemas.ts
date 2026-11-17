@@ -205,6 +205,8 @@ export interface TaskAbilitiesDto {
   follow: boolean;
   logTime: boolean;
   restore: boolean;
+  /** The viewer may delete the task (hide it from everyone): the key `tasks.delete`, as its giver or inside its scope. */
+  delete: boolean;
 }
 
 export interface TaskDto extends TaskListItemDto {

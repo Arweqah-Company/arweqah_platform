@@ -32,6 +32,15 @@ const perCompany = () => {
 };
 
 describe('The leaders tab of a unit (FR-100)', () => {
+  it('opens the leader\'s popup on a click on the name: number, e-mail, the unit they lead, the manager and «Chat on Teams»', async () => {
+    openOrgPage({ handlers: [serve(leadersDto())] });
+    const details = await openLeaders('قسم الموارد البشرية');
+    fireEvent.click(await within(details).findByRole('button', { name: 'خالد العتيبي' }));
+    const dialog = await screen.findByRole('dialog');
+    for (const text of ['E-2001', 'khaled@arweqah.sa', 'نورة السالم', 'الوحدة التي يقودها']) expect(within(dialog).getByText(text)).toBeInTheDocument();
+    expect(within(dialog).getByRole('link', { name: 'محادثة على Teams' })).toHaveAttribute('href', 'https://teams.microsoft.com/l/chat/0/0?users=khaled%40arweqah.sa');
+  });
+
   it('shows one leader from the group company for a shared unit, with the note that the role is not tied to a company', async () => {
     openOrgPage({ handlers: [serve(leadersDto())] });
     const details = await openLeaders('قسم الموارد البشرية');

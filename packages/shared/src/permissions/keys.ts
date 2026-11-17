@@ -157,6 +157,7 @@ export const CorePermission = {
   CompaniesExport: 'companies.export',
   CompaniesImport: 'companies.import',
   OrgView: 'org.view',
+  OrgHistoryView: 'org.history_view',
   OrgUnitCreate: 'org.unit_create',
   OrgUnitUpdate: 'org.unit_update',
   OrgUnitMove: 'org.unit_move',
@@ -190,6 +191,7 @@ export const CorePermission = {
   EmployeesBulkUpdate: 'employees.bulk_update',
   DirectoryView: 'directory.view',
   DirectoryExport: 'directory.export',
+  DirectoryContactTeams: 'directory.contact_teams',
   EmployeesResendInvite: 'employees.resend_invite',
   EmployeesResetAuthenticator: 'employees.reset_authenticator',
   EmployeesExport: 'employees.export',
@@ -204,6 +206,7 @@ export const CorePermission = {
   TicketsCloseWithoutExecution: 'tickets.close_without_execution',
   TicketsReopen: 'tickets.reopen',
   TicketsReassign: 'tickets.reassign',
+  TicketsDelete: 'tickets.delete',
   TicketsCommentReply: 'tickets.comment_reply',
   TicketsCommentMention: 'tickets.comment_mention',
   TicketsSetupView: 'tickets.setup_view',
@@ -231,6 +234,7 @@ export const CorePermission = {
   TasksLogTime: 'tasks.log_time',
   TasksArchiveView: 'tasks.archive_view',
   TasksRestore: 'tasks.restore',
+  TasksDelete: 'tasks.delete',
   TasksExport: 'tasks.export',
   TasksTagsView: 'tasks.tags_view',
   TasksTagCreate: 'tasks.tag_create',
@@ -287,6 +291,7 @@ export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own
   { key: CorePermission.EmployeesHistoryView, scope: 'own' },
   { key: CorePermission.EmployeesPhotoUpdate, scope: 'own' },
   { key: CorePermission.DirectoryView, scope: 'all' },
+  { key: CorePermission.DirectoryContactTeams, scope: 'all' },
   { key: CorePermission.EmployeesUpdate, scope: 'own', fields: LEGACY_SELF_EDITABLE_FIELDS },
   { key: CorePermission.TicketsView, scope: 'own' },
   { key: CorePermission.TicketsCreate, scope: 'all' },
@@ -325,6 +330,12 @@ export const COLLABORATOR_BASE_PERMISSIONS: { key: CorePermissionKey; scope: 'ow
   ...OWN_ACCOUNT_PERMISSIONS,
 ];
 
+/** What the automatic «Direct manager» role (`auto_rule = 'has_reports'`) starts with: approving and rejecting the self-assigned tasks of the people who report to the person. */
+export const DIRECT_MANAGER_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'subtree' }[] = [
+  { key: CorePermission.TasksApprove, scope: 'subtree' },
+  { key: CorePermission.TasksReject, scope: 'subtree' },
+];
+
 export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'subtree' | 'all'; fields?: readonly string[] }[] = [
   // the leader's own account: profile (edit), security, access page, notifications
   ...OWN_ACCOUNT_PERMISSIONS,
@@ -345,6 +356,9 @@ export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 's
   { key: CorePermission.EmployeesImport, scope: 'subtree' },
   { key: CorePermission.DirectoryView, scope: 'all' },
   { key: CorePermission.DirectoryExport, scope: 'all' },
+  { key: CorePermission.DirectoryContactTeams, scope: 'all' },
+  // the history of the unit and the units below it (versions and change log)
+  { key: CorePermission.OrgHistoryView, scope: 'subtree' },
   { key: CorePermission.EmployeesPhotoUpdate, scope: 'subtree' },
   { key: CorePermission.EmployeesResendInvite, scope: 'subtree' },
   { key: CorePermission.EmployeesResetAuthenticator, scope: 'subtree' },
@@ -382,6 +396,8 @@ export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 's
   { key: CorePermission.TicketsView, scope: 'subtree' },
   { key: CorePermission.TicketsReply, scope: 'subtree' },
   { key: CorePermission.TicketsReassign, scope: 'subtree' },
+  { key: CorePermission.TicketsDelete, scope: 'subtree' },
+  { key: CorePermission.TasksDelete, scope: 'subtree' },
   { key: CorePermission.TicketsCommentReply, scope: 'all' },
   { key: CorePermission.TicketsCommentMention, scope: 'all' },
   { key: CorePermission.TicketsSetupView, scope: 'subtree' },
@@ -395,6 +411,7 @@ export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 's
 /** Groups of keys that belong together (used by seeds and tests, and to give an administrator a whole area at once). */
 export const ORG_ADMIN_PERMISSIONS: CorePermissionKey[] = [
   CorePermission.OrgView,
+  CorePermission.OrgHistoryView,
   CorePermission.OrgUnitCreate,
   CorePermission.OrgUnitUpdate,
   CorePermission.OrgUnitMove,

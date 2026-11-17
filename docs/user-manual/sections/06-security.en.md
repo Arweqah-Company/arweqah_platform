@@ -87,6 +87,7 @@ This page has almost nothing to type: you read your protection and press buttons
 - You do not change the link from this page; a reset is done by asking HR.
 - A **trusted device** skips the code only after a Microsoft sign-in and one code entry, and for a time the platform administrator sets. Signing in with the e-mail always asks for the code. If the time is 0 the option is off (the default).
 - Ending a session or removing trust takes effect at once.
+- **The code of platform admin mode** (Settings, «Security» tab, `security_settings.edit`, in admin mode): «Switching on admin mode needs a code from the authenticator app» is ticked by default, so every activation asks for a fresh 6-digit code. Untick it only while testing: admin mode then turns on with one click and a warning shows under the box, because anyone holding an open session of an administrator could switch it on. Tick it again when you finish; the change is recorded in the audit log. (FR-34)
 - A system administrator who signs in as you (the «Sign in as another employee» feature) cannot change your security from inside the session, and you are notified when it ends.
 - When your account is deactivated, all your sessions end at once.
 

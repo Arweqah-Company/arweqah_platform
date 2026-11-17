@@ -59,6 +59,7 @@
     "signOut": "تسجيل الخروج",
     "retry": "إعادة المحاولة",
     "close": "إغلاق",
+    "chatOnTeams": "محادثة على Teams",
     "confirm": "تأكيد",
     "view": "عرض"
   },
@@ -98,7 +99,7 @@
     "TOO_MANY_REQUESTS": "طلبات كثيرة في وقت قصير. انتظر دقيقة ثم أعد المحاولة.",
     "DERIVED_ROLE": "هذا الدور يتبع مسمى وظيفيًا أو مستوى في الهيكل، فاسمه وأعضاؤه لا يتغيّران يدويًا.",
     "ROLE_TEMPLATE_INVALID": "دور القالب غير صالح: اختر دورًا يدويًا أو دور «موظف».",
-    "FILE_TYPE_NOT_ALLOWED": "نوع الملف غير مسموح. المسموح: PDF و PNG و JPEG.",
+    "FILE_TYPE_NOT_ALLOWED": "نوع الملف غير مسموح. المسموح: PDF و PNG و JPEG و Word (docx) و Excel (xlsx) و CSV.",
     "INVALID_CODE": "الرمز غير صحيح.",
     "AUTHENTICATOR_LOCKED": "محاولات كثيرة. حاول بعد قليل.",
     "ALREADY_ENROLLED": "تطبيق المصادقة مربوط بالفعل.",
@@ -275,6 +276,10 @@
     "chooseFile": "اختر ملف Excel أو CSV",
     "dropFile": "أسقط ملف Excel أو CSV هنا، أو انقر للتصفح",
     "fileHint": "حتى {{rows}} صف.",
+    "dateTitle": "صيغة التاريخ",
+    "dateInput": "اكتب التاريخ بصيغة سنة-شهر-يوم، مثل 1990-04-15",
+    "phoneTitle": "صيغة الجوال",
+    "phoneInput": "اكتب الرقم بالصيغة الدولية مع رمز الدولة، مثل +966501234567 (إن حذف Excel علامة + فلا مشكلة: 966501234567 تُقبل أيضًا)",
     "sheetTemplate": "القالب",
     "sheetLists": "القوائم",
     "checking": "جارٍ فحص الملف…",
@@ -302,7 +307,7 @@
     "cell": {
       "required": "«{{column}}» مطلوب.",
       "unknownOption": "«{{column}}»: القيمة «{{value}}» ليست من الخيارات.",
-      "badDate": "«{{column}}»: التاريخ يجب أن يكون بصيغة سنة-شهر-يوم.",
+      "badDate": "«{{column}}»: التاريخ يجب أن يكون بصيغة سنة-شهر-يوم، مثل 1990-04-15.",
       "badNumber": "«{{column}}»: رقم غير صالح.",
       "badYesNo": "«{{column}}»: اكتب نعم أو لا.",
       "duplicate": "مكرر في الملف: «{{column}}» = «{{value}}».",
@@ -404,7 +409,7 @@
     "remove": "إزالة {{name}}",
     "tooMany": "الحد الأقصى {{max}} ملفات.",
     "failed": "تعذّر رفع الملف.",
-    "hint": "اختياري. صور أو ملفات PDF أو Word (docx) أو Excel (xlsx)."
+    "hint": "اختياري. صور أو ملفات PDF أو Word (docx) أو Excel (xlsx) أو CSV."
   },
   "groups": {
     "nameAr": "الاسم بالعربية",

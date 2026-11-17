@@ -91,6 +91,34 @@ describe('Dated versions and the charter of a unit (FR-99)', () => {
     expect((await versions()).charter?.purpose.en).toBe('New purpose');
   });
 
+  it('gives the history (versions and log) only with org.history_view; the charter in force stays for every viewer of the unit (FR-99)', async () => {
+    const org = await t.factories.org();
+    const { agent: admin } = await orgAdmin(t);
+    await admin.put(`/api/org/nodes/${org.sectionAB}/charter`).send({ ...charter('Run the section'), reason: 'First charter' }).expect(200);
+    const { agent } = await orgAdmin(t, orgGrantsWithout(CorePermission.OrgHistoryView));
+    const seen = (await agent.get(`/api/org/nodes/${org.sectionAB}/versions`).expect(200)).body as OrgNodeVersionsDto;
+    expect(seen.charter?.purpose.en).toBe('Run the section');
+    expect(seen.versions).toEqual([]);
+    expect(seen.log).toEqual([]);
+    const full = (await admin.get(`/api/org/nodes/${org.sectionAB}/versions`).expect(200)).body as OrgNodeVersionsDto;
+    expect(full.versions.length).toBeGreaterThan(0);
+    expect(full.log.length).toBeGreaterThan(0);
+    const written = (await agent.put(`/api/org/nodes/${org.sectionAB}/charter`).send({ ...charter('Again'), reason: 'Second' }).expect(200)).body as OrgNodeVersionsDto;
+    expect(written.versions).toEqual([]); // the answer of a write does not leak the history either
+  });
+
+  it('gives the history of a unit only inside the reach of org.history_view: a leader with the key at «unit» sees their own unit\'s history, not another unit\'s (CodeRabbit PR 121)', async () => {
+    const org = await t.factories.org();
+    const leader = await t.factories.user({ unit: org.unitA, grants: [{ key: CorePermission.OrgView, scope: 'all' }, { key: CorePermission.OrgHistoryView, scope: 'unit' }] });
+    await t.factories.user({ unit: org.unitB }); // somebody sits in the other unit, so the leader may see it exist
+    const agent = await t.factories.signIn(leader);
+    const own = (await agent.get(`/api/org/nodes/${org.unitA.id}/versions`).expect(200)).body as OrgNodeVersionsDto;
+    expect(own.versions.length).toBeGreaterThan(0);
+    const other = (await agent.get(`/api/org/nodes/${org.unitB.id}/versions`).expect(200)).body as OrgNodeVersionsDto;
+    expect(other.versions).toEqual([]);
+    expect(other.log).toEqual([]);
+  });
+
   it('refuses a date in the past (422), a date before the last version (422), and a change without a reason or with a bad shape (400)', async () => {
     const { agent, route, rename } = await setup();
     const body = { ...charter('X'), reason: 'why' };

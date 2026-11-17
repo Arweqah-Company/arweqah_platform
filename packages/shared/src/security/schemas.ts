@@ -17,6 +17,8 @@ export const SECURITY_SETTINGS = {
   agentMessagesPerHour: { default: 30, min: 5, max: 300 },
   /** Minutes a draft of the assistant waits for the employee's confirmation before it expires. */
   agentDraftMinutes: { default: 30, min: 5, max: 1440 },
+  /** 1: switching on platform admin mode asks for a fresh code of the authenticator app (the default and the safe choice); 0: it switches on with one click (for testing only). */
+  adminModeRequiresCode: { default: 1, min: 0, max: 1 },
 } as const;
 export type SecuritySettingKey = keyof typeof SECURITY_SETTINGS;
 export const SECURITY_SETTING_KEYS = Object.keys(SECURITY_SETTINGS) as SecuritySettingKey[];
@@ -32,6 +34,7 @@ export const securitySettingsSchema = z.strictObject({
   agentEnabled: field('agentEnabled').optional(),
   agentMessagesPerHour: field('agentMessagesPerHour').optional(),
   agentDraftMinutes: field('agentDraftMinutes').optional(),
+  adminModeRequiresCode: field('adminModeRequiresCode').optional(),
 });
 export type SecuritySettingsInput = z.infer<typeof securitySettingsSchema>;
 

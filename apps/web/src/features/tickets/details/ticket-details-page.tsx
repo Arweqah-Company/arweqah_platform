@@ -8,6 +8,7 @@ import { useTicket } from '../api';
 import { ReplyBox } from './reply-box';
 import { TicketCard } from './ticket-card';
 import { TicketActions } from './ticket-actions';
+import { TicketHistory } from './ticket-history';
 import { TicketTimeline } from './ticket-timeline';
 
 export function TicketDetailsPage() {
@@ -25,6 +26,7 @@ export function TicketDetailsPage() {
         <TicketCard ticket={ticket} />
         <TicketActions ticket={ticket} />
         <TicketTimeline ticket={ticket} />
+        <TicketHistory ticket={ticket} />
         {ticket.abilities.reply ? <Can permission={CorePermission.TicketsReply}><ReplyBox ticketId={ticket.id} /></Can> : <Alert tone="info">{t('reply.closedNote')}</Alert>}
       </div>
     </>

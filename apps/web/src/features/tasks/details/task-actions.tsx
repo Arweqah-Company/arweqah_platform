@@ -2,10 +2,11 @@ import { TASK_STATUSES, type TaskDto, type TaskStatus } from '@arweqah-platform/
 import { Archive, Check, Clock, Eye, EyeOff, Pencil, RotateCcw, ThumbsDown, X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
-import { Button, FormField, Select } from '@/shared/ui';
-import { useFollow, useRestore } from '../api';
+import { Button, DeleteRecordButton, FormField, Select } from '@/shared/ui';
+import { useDeleteTask, useFollow, useRestore } from '../api';
 import { TransitionDialogs } from '../board/transition-dialogs';
 import { useBoardMove } from '../board/use-board-move';
 import { DecisionDialog } from './decision-dialog';
@@ -63,6 +64,14 @@ function QuickActions({ task }: { task: TaskDto }) {
   );
 }
 
+/** «Delete»: hides the task from everyone after a confirmation, then leaves its page. */
+function DeleteTask({ task }: { task: TaskDto }) {
+  const { t } = useTranslation('tasks');
+  const remove = useDeleteTask(task.id);
+  const navigate = useNavigate();
+  return <DeleteRecordButton label={t('actions.delete')} title={t('actions.deleteTitle', { number: task.number })} description={t('actions.deleteDescription')} done={t('actions.deleted')} onDelete={() => remove.mutateAsync()} onDone={() => void navigate('/tasks')} />;
+}
+
 /** The buttons this person may use now; the API decides which, and checks again on every request. */
 export function TaskActions({ task, today }: { task: TaskDto; today: string }) {
   const { t } = useTranslation('tasks');
@@ -84,6 +93,7 @@ export function TaskActions({ task, today }: { task: TaskDto; today: string }) {
       <MoveMenu task={task} today={today} />
       {buttons.filter((b) => b.allowed).map(({ kind, icon: Icon, variant }) => <Button key={kind} variant={variant} onClick={() => setAsking(kind)}><Icon className="size-4" aria-hidden />{t(`actions.${kind}`)}</Button>)}
       <QuickActions task={task} />
+      {a.delete && <DeleteTask task={task} />}
       {(['approve', 'reject', 'resubmit'] as const).map((kind) => dialog(kind) && <DecisionDialog key={kind} taskId={task.id} revision={task.revision} action={kind} onClose={close} />)}
       {dialog('object') && <ObjectionDialog taskId={task.id} onClose={close} />}
       {dialog('answer') && <AnswerDialog taskId={task.id} currentAssigneeId={task.assignee.id} onClose={close} />}

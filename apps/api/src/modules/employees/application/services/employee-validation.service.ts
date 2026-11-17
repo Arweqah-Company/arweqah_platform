@@ -40,7 +40,8 @@ export class EmployeeValidationService {
   }
 
   async prepare(ctx: AccessContext, input: EmployeeInput, existing?: Employee): Promise<PreparedEmployee> {
-    const sensitive = this.canHandleSensitive(ctx, { ownerId: existing?.userId, companyId: input.companyId, orgNodeId: input.orgNodeId });
+    // Whoever may add an employee (the route's permission and scope) fills every field; the sensitive ones are gated only when an existing record is edited.
+    const sensitive = !existing || this.canHandleSensitive(ctx, { ownerId: existing?.userId, companyId: input.companyId, orgNodeId: input.orgNodeId });
     const effective = sensitive ? input : { ...input, idTypeId: null, idNumber: null, iban: null, monthlyGrossSalary: null, salaryCurrencyCountryId: null };
     const ruled = applyFlagRules(effective, await this.ruleLookups(effective));
     await this.org.assertPlacement({ orgNodeId: ruled.orgNodeId, jobTitleId: ruled.jobTitleId });

@@ -1,0 +1,9 @@
+[
+  {
+    "advisory": "GHSA-fc5q-39xc-vjpf",
+    "package": "picomatch",
+    "reason": "ReDoS needs an attacker-controlled glob pattern. picomatch reaches us only through typeorm -> tinyglobby, matching the migration paths we write in config; no user input reaches it. No patched version exists (first_patched_version: null, vulnerable <= 4.0.7).",
+    "added": "2026-11-17",
+    "decision": 427
+  }
+]

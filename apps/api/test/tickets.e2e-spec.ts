@@ -634,6 +634,55 @@ describe('Tickets (FR-36 … FR-41)', () => {
       expect((await w.leaderAgent.post(`/api/tickets/${w.ticket.id}/reassign`).send({ assigneeUserId: w.mate.id }).expect(422)).body.code).toBe('TICKET_STATE_INVALID');
     });
   });
+  describe('Deleting a ticket (FR-158)', () => {
+    const DELETE = [{ key: CorePermission.TicketsView, scope: 'subtree' as const }, { key: CorePermission.TicketsDelete, scope: 'subtree' as const }];
+
+    async function deleterWorld() {
+      const w = await world();
+      const typeId = await openDesk(w);
+      const ticket = await sendOne(w, typeId);
+      const leader = await t.factories.user({ unit: { ...w.org.unitA, id: w.org.department }, grants: DELETE });
+      return { ...w, typeId, ticket, leader, leaderAgent: await t.factories.signIn(leader) };
+    }
+
+    it('lets the holder of the key hide a ticket of their department: it leaves every list, its page, the figures and the filters, and the record stays with who deleted it in the audit log', async () => {
+      const w = await deleterWorld();
+      expect((await w.agents.manager.get('/api/tickets/figures').expect(200)).body.figures.openNow).toBe(1);
+      const abilities = (await w.leaderAgent.get(`/api/tickets/${w.ticket.id}`).expect(200)).body.abilities;
+      expect(abilities.delete).toBe(true);
+      await w.leaderAgent.delete(`/api/tickets/${w.ticket.id}`).expect(204);
+      await w.agents.sender.get(`/api/tickets/${w.ticket.id}`).expect(404);
+      await w.leaderAgent.get(`/api/tickets/${w.ticket.id}`).expect(404);
+      for (const tab of ['mine', 'inbox']) {
+        const agent = tab === 'mine' ? w.agents.sender : w.agents.assignee;
+        expect(((await agent.get(`/api/tickets?tab=${tab}`).expect(200)).body.items as { id: string }[]).map((x) => x.id)).not.toContain(w.ticket.id);
+      }
+      const rows = (await t.db.query('SELECT deleted_at FROM tickets WHERE id = $1', [w.ticket.id])) as { deleted_at: Date | null }[];
+      expect(rows[0]?.deleted_at).not.toBeNull(); // hidden, never erased
+      expect((await w.agents.manager.get('/api/tickets/figures').expect(200)).body.figures.openNow).toBe(0);
+    });
+
+    it('is 403 for who sees the ticket but lacks the key (the sender, the assignee), 404 for who cannot see it, and the button is not offered', async () => {
+      const w = await deleterWorld();
+      await w.agents.sender.delete(`/api/tickets/${w.ticket.id}`).expect(403);
+      expect((await w.agents.sender.get(`/api/tickets/${w.ticket.id}`).expect(200)).body.abilities.delete).toBe(false);
+      await w.agents.assignee.delete(`/api/tickets/${w.ticket.id}`).expect(403);
+      const stranger = await t.factories.signIn(await t.factories.user({ unit: w.org.unitOther, grants: DELETE }));
+      await stranger.delete(`/api/tickets/${w.ticket.id}`).expect(404);
+      await w.leaderAgent.delete('/api/tickets/00000000-0000-4000-8000-000000000000').expect(404);
+      const [row] = (await t.db.query('SELECT deleted_at FROM tickets WHERE id = $1', [w.ticket.id])) as { deleted_at: Date | null }[];
+      expect(row?.deleted_at).toBeNull();
+    });
+
+    it('refuses a ticket whose department is above the unit of the key (403) and deletes a closed one too', async () => {
+      const w = await deleterWorld();
+      const sectionLeader = await t.factories.signIn(await t.factories.user({ unit: { ...w.org.unitA, id: w.org.sectionAB }, grants: DELETE }));
+      await sectionLeader.delete(`/api/tickets/${w.ticket.id}`).expect(403); // sees it through the sender, but the desk is above their unit
+      await w.agents.assignee.post(`/api/tickets/${w.ticket.id}/close-without-execution`).send({}).expect(200);
+      await w.leaderAgent.delete(`/api/tickets/${w.ticket.id}`).expect(204);
+    });
+  });
+
   describe('Several handlers for a type (FR-133)', () => {
     async function sharedWorld() {
       const w = await world();

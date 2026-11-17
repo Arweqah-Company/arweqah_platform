@@ -11,7 +11,9 @@ export function useAdminMode() {
   const state = useMe().data?.adminMode ?? OFF;
   /** The mode changes what the person may do, so every list is read again, not only the profile. */
   const refresh = () => client.invalidateQueries();
-  const activate = useMutation({ mutationFn: (code: string) => apiClient.post<AdminModeDto>('/admin-mode/activate', { code }), onSuccess: refresh });
+  const activate = useMutation({ mutationFn: (code?: string) => apiClient.post<AdminModeDto>('/admin-mode/activate', code === undefined ? {} : { code }), onSuccess: refresh });
   const deactivate = useMutation({ mutationFn: () => apiClient.post<void>('/admin-mode/deactivate'), onSuccess: refresh });
-  return { ...state, activate, deactivate, refresh };
+  /** False while the security setting is off (testing): the switch turns on with one click, no code. */
+  const codeRequired = useMe().data?.adminModeCodeRequired !== false;
+  return { ...state, codeRequired, activate, deactivate, refresh };
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { docxToFragment, xlsxToSheets, type PreviewSheet } from '../lib/office-preview';
+import { csvToSheets, docxToFragment, xlsxToSheets, type PreviewSheet } from '../lib/office-preview';
 import { Alert } from './alert';
 import { Tabs } from './tabs';
 
@@ -75,4 +75,13 @@ export function WorkbookView({ blob }: { blob: Blob }) {
       <SheetTable sheet={sheet} />
     </div>
   );
+}
+
+/** A CSV, drawn as one table of text cells. */
+export function CsvView({ blob }: { blob: Blob }) {
+  const { t } = useTranslation();
+  const { value, failed } = useRead(blob, csvToSheets);
+  if (failed) return <Alert>{t('files.unreadable')}</Alert>;
+  if (value === null) return <p role="status" className="text-sm text-muted">{t('files.loading')}</p>;
+  return <SheetTable sheet={value[0] as PreviewSheet} />;
 }

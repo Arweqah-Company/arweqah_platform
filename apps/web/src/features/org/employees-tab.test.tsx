@@ -26,6 +26,21 @@ describe('The employees tab of a unit (FR-17)', () => {
     for (const text of ['E-1001', 'sara@arweqah.sa', 'قسم الموارد البشرية', 'خالد العتيبي']) expect(within(dialog).getByText(text)).toBeInTheDocument();
   });
 
+  it('lists names only (the tab is narrow): the number, e-mail and manager show only in the popup', async () => {
+    openOrgPage({ handlers: [http.get('*/api/org/nodes/:id/employees', () => HttpResponse.json(people))] });
+    const details = await openTab();
+    expect(await within(details).findByText('سارة أحمد')).toBeInTheDocument();
+    for (const text of ['E-1001', 'sara@arweqah.sa', 'خالد العتيبي']) expect(within(details).queryByText(text)).not.toBeInTheDocument();
+  });
+
+  it('puts «Chat on Teams» in the dialog (the Employee role holds its key) (FR-154)', async () => {
+    openOrgPage({ handlers: [http.get('*/api/org/nodes/:id/employees', () => HttpResponse.json(people))] });
+    const details = await openTab();
+    fireEvent.click(await within(details).findByText('سارة أحمد'));
+    const dialog = await screen.findByRole('dialog');
+    expect(await within(dialog).findByRole('link', { name: 'محادثة على Teams' })).toHaveAttribute('href', 'https://teams.microsoft.com/l/chat/0/0?users=sara%40arweqah.sa');
+  });
+
   it('shows loading (not «0 employees» or the empty text) while the list is on its way', async () => {
     openOrgPage({ handlers: [http.get('*/api/org/nodes/:id/employees', async () => { await delay(300); return HttpResponse.json(people); })] });
     const details = await openTab();
@@ -33,12 +48,19 @@ describe('The employees tab of a unit (FR-17)', () => {
     expect(await within(details).findByText('سارة أحمد')).toBeInTheDocument();
   });
 
-  it('is a list like the others: a search box that finds by name or e-mail, the table / cards switch, and a message when nothing matches', async () => {
+  it('is a list like the others, with the table / cards switch: a search box that finds by name or e-mail, and a message when nothing matches', async () => {
     openOrgPage({ handlers: [http.get('*/api/org/nodes/:id/employees', () => HttpResponse.json(people))] });
     const details = await openTab();
     expect(await within(details).findByText('سارة أحمد')).toBeInTheDocument();
-    expect(within(details).getAllByRole('button', { pressed: true }).length).toBeGreaterThan(0); // the table / cards switch is there (its pressed button)
-    expect(document.querySelector('[data-tour="view-switch"]')).not.toBeNull();
+    const switcher = details.querySelector('[data-tour="view-switch"]') as HTMLElement; // standing rule 1: every table has more than one view
+    expect(switcher).not.toBeNull();
+    const [tableButton, cardsButton] = Array.from(switcher.querySelectorAll('button'));
+    expect(tableButton).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(cardsButton as HTMLElement);
+    expect(cardsButton).toHaveAttribute('aria-pressed', 'true');
+    expect(within(details).queryByRole('table')).not.toBeInTheDocument();
+    expect(within(details).getByText('سارة أحمد')).toBeInTheDocument();
+    fireEvent.click(tableButton as HTMLElement);
     fireEvent.change(within(details).getByRole('searchbox', { name: 'البحث في موظفي الوحدة' }), { target: { value: 'laila@' } });
     expect(await within(details).findByText('ليلى سعد')).toBeInTheDocument();
     await vi.waitFor(() => expect(within(details).queryByText('سارة أحمد')).not.toBeInTheDocument());

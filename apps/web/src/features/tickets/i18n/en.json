@@ -195,6 +195,12 @@
       "personHint": "Type a name or number to search.",
       "confirm": "Reassign",
       "done": "The ticket was reassigned."
+    },
+    "delete": {
+      "button": "Delete",
+      "title": "Delete ticket {{number}}?",
+      "description": "The ticket and its replies disappear for everyone: senders, handlers and the figures. Its record is kept in the database and the audit log shows who deleted it.",
+      "done": "The ticket was deleted."
     }
   },
   "setup": {
@@ -347,5 +353,14 @@
         "confirm_close": "You confirm the closing, or decline it if the request is not complete"
       }
     }
+  },
+  "history": {
+    "when": "Date and time",
+    "who": "By",
+    "what": "Event",
+    "detail": "Details",
+    "open": "View history",
+    "count_one": "1 step",
+    "count_other": "{{count}} steps"
   }
 }

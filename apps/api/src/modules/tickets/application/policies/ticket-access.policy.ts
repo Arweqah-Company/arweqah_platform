@@ -52,6 +52,11 @@ export class TicketAccessPolicy {
     return { companyId: ticket.deskCompanyId, nodeIds: viewer.reassign.kind === 'nodes' ? viewer.reassign.ids : null };
   }
 
+  /** Does the viewer's delete key reach the ticket's department (any status, personal or not)? */
+  mayDelete(viewer: TicketViewer, ticket: TicketRow): boolean {
+    return inScope(viewer.delete, { orgNodeId: ticket.deskId, companyId: ticket.deskCompanyId });
+  }
+
   /** The people the unit side of a ticket means: its assignee, else the handlers of its type and the desk manager (never for a personal ticket without an assignee). */
   unitRecipients(ticket: TicketRow): string[] {
     if (ticket.assigneeUserId) return [ticket.assigneeUserId];

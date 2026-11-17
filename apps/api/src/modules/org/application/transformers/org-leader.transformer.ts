@@ -1,4 +1,4 @@
-import type { LeaderEscalationDto, OrgLeaderCompanyDto, OrgNodeLeaderDto } from '@arweqah-platform/shared';
+import type { LeaderEscalationDto, OrgLeaderCompanyDto, OrgNodeLeaderDto, OrgUnitEmployeeDto } from '@arweqah-platform/shared';
 import { leaderStatus } from '../../domain/rules/org-leader.rules';
 import type { LeaderRow } from '../../domain/types/org-leader.types';
 import type { CompanyView } from '../../domain/types/org.types';
@@ -6,7 +6,11 @@ import type { CompanyView } from '../../domain/types/org.types';
 export interface LeaderNames {
   companies: ReadonlyMap<string, Pick<CompanyView, 'nameAr' | 'nameEn'>>;
   employees: ReadonlyMap<string, string>;
+  contacts: ReadonlyMap<string, OrgUnitEmployeeDto>;
 }
+
+const NO_CONTACT = { employeeNumber: '', workEmail: '', managerName: null } as const;
+const pickContact = (c: OrgUnitEmployeeDto | undefined) => (c ? { employeeNumber: c.employeeNumber, workEmail: c.workEmail, managerName: c.managerName } : NO_CONTACT);
 
 export const toLeaderDto = (r: LeaderRow, names: LeaderNames, today: string): OrgNodeLeaderDto => ({
   id: r.id,
@@ -16,6 +20,7 @@ export const toLeaderDto = (r: LeaderRow, names: LeaderNames, today: string): Or
   companyNameEn: names.companies.get(r.companyId)?.nameEn ?? '',
   employeeId: r.employeeId,
   employeeName: names.employees.get(r.employeeId) ?? '',
+  ...pickContact(names.contacts.get(r.employeeId)),
   kind: r.kind,
   validFrom: r.validFrom,
   validTo: r.validTo,

@@ -32,6 +32,48 @@ describe('Tasks: my tasks, creating and assigning (FR-48), my team and the matri
   const notices = async (agent: TestAgent) => (await agent.get('/api/notifications').expect(200)).body.items as { link: string; bodyEn: string; titleEn: string }[];
   const idOf = (u: TestUser) => u.id;
 
+  describe('Deleting a task (FR-157)', () => {
+    const DELETE = [{ key: P.TasksDelete, scope: 'subtree' as const }];
+
+    it('lets its giver hide it and who reaches the assignee: it leaves the lists, the page and the figures, the record stays, and the audit log says who', async () => {
+      const w = await world();
+      const giver = await t.factories.user({ unit: w.org.unitA, grants: [...taskManagerGrants('subtree'), ...DELETE] });
+      await t.db.query('UPDATE employees SET manager_id = $1 WHERE id = $2', [w.manager.employeeId, giver.employeeId]);
+      const giverAgent = await t.factories.signIn(giver);
+      const mine = await made(giverAgent, { assigneeUserId: w.report.id });
+      expect(mine.abilities.delete).toBe(true);
+      await giverAgent.delete(`/api/tasks/${mine.id}`).expect(204);
+      await giverAgent.get(`/api/tasks/${mine.id}`).expect(404);
+      await w.agents.report.get(`/api/tasks/${mine.id}`).expect(404);
+      expect((await list(w.agents.report)).items.map((x) => x.id)).not.toContain(mine.id);
+      const [row] = (await t.db.query('SELECT deleted_at FROM tasks WHERE id = $1', [mine.id])) as { deleted_at: Date | null }[];
+      expect(row).toBeDefined(); // the row is still there...
+      expect(row?.deleted_at).not.toBeNull(); // ...hidden, never erased
+    });
+
+    it('lets a leader whose delete scope reaches the assignee hide a task someone else gave', async () => {
+      const w = await world();
+      const task = await made(w.agents.manager, { assigneeUserId: w.report2.id });
+      const lead = await t.factories.signIn(await t.factories.user({ unit: w.org.unitA, grants: [...TASK_EMPLOYEE_GRANTS, { key: P.TasksTeamView, scope: 'subtree' }, ...DELETE] }));
+      expect((await lead.get(`/api/tasks/${task.id}`).expect(200)).body.abilities.delete).toBe(true);
+      await lead.delete(`/api/tasks/${task.id}`).expect(204);
+      await w.agents.manager.get(`/api/tasks/${task.id}`).expect(404);
+    });
+
+    it('is 403 for who sees the task but lacks the key or the reach, 404 for who cannot see it, and the button is not offered', async () => {
+      const w = await world();
+      const task = await made(w.agents.manager, { assigneeUserId: w.report.id });
+      await w.agents.report.delete(`/api/tasks/${task.id}`).expect(403);
+      expect((await w.agents.report.get(`/api/tasks/${task.id}`).expect(200)).body.abilities.delete).toBe(false);
+      await w.agents.peer.delete(`/api/tasks/${task.id}`).expect(403); // no key at all
+      const outsider = await t.factories.signIn(await t.factories.user({ unit: w.org.unitOther, grants: [...TASK_EMPLOYEE_GRANTS, ...DELETE] }));
+      await outsider.delete(`/api/tasks/${task.id}`).expect(404); // the key, but the task is not theirs to see
+      await outsider.delete('/api/tasks/00000000-0000-4000-8000-000000000000').expect(404);
+      const [row] = (await t.db.query('SELECT deleted_at FROM tasks WHERE id = $1', [task.id])) as { deleted_at: Date | null }[];
+      expect(row?.deleted_at).toBeNull();
+    });
+  });
+
   describe('Creating a task', () => {
     it('gives the defaults: today, medium priority, and a task for oneself waits for the direct manager', async () => {
       const w = await world();
@@ -127,6 +169,28 @@ describe('Tasks: my tasks, creating and assigning (FR-48), my team and the matri
       expect((await list(w.agents.manager, '?tab=following')).items.map((i) => i.id)).toEqual([task.id]);
       const unfollowed = (await w.agents.manager.delete(`/api/tasks/${task.id}/follow`).expect(200)).body as TaskDto;
       expect(unfollowed).toMatchObject({ isFollowing: false, followers: 0 });
+    });
+
+    it('offers no «follow» on a task given to myself, and following it does nothing (FR-48)', async () => {
+      const w = await world();
+      const own = await made(w.agents.report);
+      const seen = (await w.agents.report.get(`/api/tasks/${own.id}`).expect(200)).body as TaskDto;
+      expect(seen.abilities.follow).toBe(false);
+      const after = (await w.agents.report.post(`/api/tasks/${own.id}/follow`).expect(200)).body as TaskDto;
+      expect(after).toMatchObject({ isFollowing: false, followers: 0 });
+      expect((await list(w.agents.report, '?tab=following')).items).toHaveLength(0);
+    });
+
+    it('lets me cancel a follow that already exists when the task was later given to me, though I cannot start one (CodeRabbit PR 121)', async () => {
+      const w = await world();
+      const own = await made(w.agents.report);
+      await t.db.query('INSERT INTO task_followers (task_id, user_id) VALUES ($1, $2)', [own.id, w.report.id]);
+      const seen = (await w.agents.report.get(`/api/tasks/${own.id}`).expect(200)).body as TaskDto;
+      expect(seen).toMatchObject({ isFollowing: true });
+      expect(seen.abilities.follow).toBe(true); // the «Unfollow» button stays
+      const after = (await w.agents.report.delete(`/api/tasks/${own.id}/follow`).expect(200)).body as TaskDto;
+      expect(after).toMatchObject({ isFollowing: false });
+      expect(after.abilities.follow).toBe(false); // nothing left to cancel, and no new follow for the assignee
     });
 
     it('splits my tasks into assigned to me, assigned by me and following', async () => {

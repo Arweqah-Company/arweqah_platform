@@ -7,7 +7,7 @@ const SHARED = `SELECT EXISTS (
   SELECT 1 FROM tickets t
   JOIN org_nodes n ON n.id = t.desk_id
   LEFT JOIN employees dm ON dm.id = n.manager_id AND dm.deleted_at IS NULL
-  WHERE t.status <> 'closed' AND NOT t.is_personal
+  WHERE t.deleted_at IS NULL AND t.status <> 'closed' AND NOT t.is_personal
     AND $1 IN (t.sender_user_id, t.assignee_user_id, dm.user_id)
     AND $2 IN (t.sender_user_id, t.assignee_user_id, dm.user_id)
 ) AS yes`;

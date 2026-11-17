@@ -1,35 +1,82 @@
 # Arweqah Platform
 
-Internal ERP for Arweqah Alreyadah: one place for people, organization, requests, projects, tickets and finance tracking. This repository currently contains the **foundation** every business module is built on. Business modules are added one at a time from a written description of each feature (see [Adding a feature](#adding-a-feature)).
+> Internal ERP for **Arweqah Alreyadah** (أروقة الريادة): people, organization, tasks, tickets and, next, requests, projects and finance tracking. Bilingual (Arabic RTL default, English), passwordless, every action scoped and audited.
+
+![Architecture](docs/assets/architecture.svg)
+
+**Quick start:** `./scripts/setup.sh` then `npm run dev` → web http://localhost:5173, API http://localhost:3000/api/docs. Details in [10. Run and deploy](#10-run-and-deploy).
+
+## Table of contents
+
+- [1. Overview](#1-overview)
+- [2. Vision and mission](#2-vision-and-mission)
+- [3. Modules](#3-modules)
+- [4. Functional requirements](#4-functional-requirements)
+- [5. Non-functional requirements](#5-non-functional-requirements)
+- [6. ERD](#6-erd)
+- [7. Flowcharts](#7-flowcharts)
+  - [Task life cycle (FR-48 to FR-53)](#task-life-cycle-fr-48-to-fr-53)
+  - [Ticket life cycle (FR-37 to FR-41)](#ticket-life-cycle-fr-37-to-fr-41)
+  - [Who sees a ticket, and how pages and lists are shown (FR-38, FR-42, FR-44)](#who-sees-a-ticket-and-how-pages-and-lists-are-shown-fr-38-fr-42-fr-44)
+  - [Sign-in (two steps, no password)](#sign-in-two-steps-no-password)
+  - [Create an employee (HR)](#create-an-employee-hr)
+  - [Change the unit types and the parent–child table (one structure for the group)](#change-the-unit-types-and-the-parentchild-table-one-structure-for-the-group)
+  - [Import from a file (employees, companies)](#import-from-a-file-employees-companies)
+  - [Build a role](#build-a-role)
+  - [Welcome tour (FR-67)](#welcome-tour-fr-67)
+- [8. Sequence diagrams](#8-sequence-diagrams)
+  - [E-mail + code sign-in and an authorized request](#e-mail--code-sign-in-and-an-authorized-request)
+  - [First sign-in: activation link and QR code](#first-sign-in-activation-link-and-qr-code)
+  - [Workflow transition with a durable timeout](#workflow-transition-with-a-durable-timeout)
+  - [Notifications by email](#notifications-by-email)
+  - [Microsoft sign-in (Entra ID), then the code](#microsoft-sign-in-entra-id-then-the-code)
+  - [Moving a task (FR-50, FR-56)](#moving-a-task-fr-50-fr-56)
+  - [Ticket send and answer (FR-37, FR-39)](#ticket-send-and-answer-fr-37-fr-39)
+  - [What a person may do (FR-45 to FR-47)](#what-a-person-may-do-fr-45-to-fr-47)
+  - [Automatic roles (FR-43)](#automatic-roles-fr-43)
+  - [Editing the welcome tour (FR-67)](#editing-the-welcome-tour-fr-67)
+  - [Platform admin mode (FR-34)](#platform-admin-mode-fr-34)
+  - [Sign in as another employee (FR-85)](#sign-in-as-another-employee-fr-85)
+- [9. Stack](#9-stack)
+- [10. Run and deploy](#10-run-and-deploy)
+  - [Local](#local)
+  - [Deploy](#deploy)
+- [11. Testing](#11-testing)
+- [12. Actors](#12-actors)
+- [13. Constraints](#13-constraints)
+- [14. Assumptions](#14-assumptions)
+- [15. Third parties](#15-third-parties)
+- [More](#more)
+  - [Project structure](#project-structure)
+  - [Architecture and patterns](#architecture-and-patterns)
+  - [Adding a feature](#adding-a-feature)
+  - [Brand](#brand)
+  - [Hosting](#hosting)
+  - [Further reading](#further-reading)
 
 ## 1. Overview
 
-**Organization.** Arweqah Alreyadah (أروقة الريادة), a Saudi company with 1,000–5,000 employees across several branches.
+| | |
+|---|---|
+| **Organization** | Arweqah Alreyadah, a Saudi company, 1,000–5,000 employees, several branches |
+| **Problem** | Employee data, approvals, projects and tickets live in separate tools (Airtable, Google Sheets, e-mail): no single view, slow approvals, sensitive data (national IDs, salaries) spread across files |
+| **Solution** | One web platform: sign in with Microsoft 365 or a work e-mail, always confirmed by an authenticator-app code (no passwords); each person sees only what their role and place in the organization allow; every sensitive action is recorded |
 
-**Problem.** Employee data, approvals, projects and tickets live in separate tools (Airtable, Google Sheets, email). Nobody has one view, approvals are slow to chase, and sensitive data (national IDs, salaries) is spread across files.
+## 2. Vision and mission
 
-**Solution.** A bilingual (Arabic RTL / English) web platform where every employee signs in with Microsoft 365 or a work e-mail, always confirmed by a code from an authenticator app (no passwords), sees only what their role and position in the organization allow, and where every sensitive action is recorded.
+**Vision.** A unified digital workplace that runs all of the company's resources efficiently and transparently.
 
-**Main journeys in the foundation**
+**Mission.** Bring employee, project and request management into one secure platform that speeds up decisions and removes manual work.
 
-1. The startup administrator (`s.magdy@arweqah.sa`, created by the seeder) signs in with Microsoft, scans the QR code once to link an authenticator app, and from then on enters the 6-digit code at every sign-in.
-2. An administrator builds each company's structure with forms: levels (sector / department / section / unit by default), units under any level, and job titles (mandatory on units that accept employees). Changing levels that hold data shows the impact and needs confirmation.
-3. HR creates an employee from the 40-field form; the system creates a sign-in account and e-mails an activation link. The employee also gets the link on their first sign-in attempt (the e-mail step recognizes a first time and sends the QR link), scans the QR code and enters the code.
-4. An administrator builds roles from the permission catalog and chooses how far each permission reaches (own → unit → subtree → company → all).
-5. Every person has a profile page: they pick the light or dark theme and the language, and edit their personal phone, personal e-mail and English name; the rest of their record is HR's.
-6. A user receives notifications in the app (and by e-mail); an auditor reviews the audit log; an administrator follows every e-mail the platform sent (sent / failed and why).
+## 3. Modules
 
-**In scope now:** passwordless authentication (Microsoft + authenticator app), tasks (my tasks, my team, matrix, table and Kanban, approval, objection, reminders, archive), companies, dynamic organization structure, employees, dynamic roles and scoped permissions, audit log, notifications (in-app, email, SMS adapter), file storage, workflow engine, messaging (outbox + RabbitMQ + durable scheduled jobs), sent-e-mail log, bilingual UI shell with grouped navigation.
+Business modules are added one at a time from a written description of each feature (see [Adding a feature](#adding-a-feature)).
 
-**Out of scope now (planned modules):** attendance, leaves, requests, projects (tasks already exist on their own; project tasks, the project manager's approval and Gantt come with that module), tickets with SLA, expenses / advances / invoices tracking, payroll records, dashboards, two-way Airtable / Google Sheets sync. Out of scope for version 1 entirely: double-entry accounting, e-invoicing (ZATCA), GOSI / Mudad / WPS integrations.
-
-## 2. Vision
-
-A unified digital workplace that runs all of the company's resources efficiently and transparently.
-
-## 3. Mission
-
-Bring employee, project and request management into one secure platform that speeds up decisions and removes manual work.
+| Status | Modules |
+|---|---|
+| **Built** | Passwordless authentication (Microsoft + authenticator app) · companies · dynamic organization structure · employees · dynamic roles and scoped permissions · audit log · notifications (in-app, e-mail, SMS adapter) · file storage · workflow engine · messaging (outbox + RabbitMQ + durable scheduled jobs) · sent-e-mail log · **tasks** (my tasks, my team, matrix, table and Kanban, approval, objection, reminders, archive, conversations) · **tickets** (between departments) · admin mode · page visibility · list management · welcome tour · user manual |
+| **Planned** | Attendance · leaves · requests engine · projects (project tasks, manager approval, Gantt on top of tasks) · tickets with SLA for customers · expenses / advances / invoices tracking · payroll records + Arabic PDF payslips · dashboards · two-way Airtable / Google Sheets sync |
+| **Not in v1** | Double-entry accounting · e-invoicing (ZATCA) · GOSI / Mudad / WPS integrations |
 
 ## 4. Functional requirements
 
@@ -43,7 +90,7 @@ Bring employee, project and request management into one secure platform that spe
 | FR-06 | Every permission is scoped (own / unit / subtree / company / all); lists and records outside the scope are hidden (404) | All | Must | `apps/api/src/core/access/application/access.spec.ts`, `apps/api/test/security.e2e-spec.ts` |
 | FR-07 | Replaced by FR-13 and FR-24 (companies, levels, units, job titles) | Admin | — | see FR-13, FR-24 |
 | FR-08 | In-app notifications with unread count; email (and SMS) delivered in the background through the outbox | All | Must | `apps/api/test/platform.e2e-spec.ts` (Notifications) |
-| FR-09 | Upload files (PDF, PNG, JPEG ≤ 10 MB) checked by content; only the owner can read them | All | Should | `apps/api/test/platform.e2e-spec.ts` (Files) |
+| FR-09 | Upload files (PDF, PNG, JPEG, Word `.docx`, Excel `.xlsx`, CSV `.csv` ≤ 10 MB) checked by content (a CSV by name and by being text in any encoding Excel writes (UTF-8, Windows-1256, UTF-16) with no control bytes; it only downloads, never shows inline); only the owner can read them | All | Should | `apps/api/test/platform.e2e-spec.ts` (Files) |
 | FR-10 | Workflow engine: persisted state machines with history, optimistic locking and durable timeouts (escalations) | Feature modules | Must | `apps/api/test/platform.e2e-spec.ts` (Workflow engine) |
 | FR-11 | Audit log of sign-ins and sensitive changes, secrets redacted, readable by auditors only | Auditor | Must | `apps/api/test/platform.e2e-spec.ts` (Audit log), `apps/api/src/core/audit/application/audit.service.spec.ts` |
 | FR-12 | Arabic (RTL) and English interface, switchable at any time | All | Must | `apps/web/src/core/i18n/i18n.test.ts` |
@@ -161,6 +208,13 @@ Bring employee, project and request management into one secure platform that spe
 | FR-130 | **Reassigning a ticket** (`docs/plans/phase-2-tickets.md` §22): key `tickets.reassign` (unit, unit and below, company, all; in the head role at «unit and below»). A person whose key reaches a department hands an open, non-personal ticket of it to another active employee of the company who sits inside the same reach (never the current assignee). `GET /tickets/:id/assignees`, `POST /tickets/:id/reassign`; the history gets a `reassigned` entry, the new assignee gets a notice (template `ticket.reassigned`), the audit trail `ticket.reassigned`. Out of the key's reach: 422; ticket not visible: 404; no key: 403. | Unit leaders, department managers | Must | `apps/api/test/tickets.e2e-spec.ts` |
 | FR-131 | **The audit log reads in plain words** (`docs/plans/phase-1-auth-employees.md`, log 2026-11-15): every entry comes with `details` (a label in Arabic and English for each key, and the name behind every id: people, roles, groups of roles, companies, units, job titles, tickets, tasks; the names of the employee details that changed; yes / no; sensitive values stay «hidden») and `entityName` (the record the entry is about). The table has a «record» column, the entry window lists the changes line by line and keeps the technical JSON below for support, and the export carries both. Nothing changes in what is written: the chain and the redaction are untouched. | Auditors, platform admin | Must | `apps/api/test/audit-chain.e2e-spec.ts`, `apps/api/src/core/audit/application/transformers/audit-readable.transformer.spec.ts` |
 | FR-132 | **IP address and city in the audit log** (`docs/plans/phase-1-auth-employees.md`, log 2026-11-15): every audit entry written during a request carries the address the request came from (`requestOrigin` stamp, behind nginx with `trust proxy`), and the table, the entry window and the export show the address and its city. The city comes from MaxMind's free GeoLite2-City database, **downloaded to the server** with the account number and license key saved on the new «Address locations» tab of the service settings (kind `geoip`, provider `maxmind`, keys `integrations.geoip_*`, a how-to guide, hints, tour step); trying the data downloads and installs the database, only a passing try can be activated, and it is downloaded again every Monday 03:00 (Riyadh) while active. No address leaves the server; with the service off the log shows addresses only. The city is read when the log is shown, so what is written and hashed is unchanged. | Auditors, platform admin | Must | `apps/api/test/geoip.e2e-spec.ts`, `apps/api/src/core/integrations/infrastructure/adapters/maxmind-geoip.database.spec.ts` |
+| FR-160 | **Ticket history as a table** (`docs/plans/phase-2-tickets.md`, log 2026-11-17): the conversation of a ticket shows replies only; every other step (sent, close requested or declined, confirmed, closed automatically or without execution, reopened, reassigned) goes to «History of the ticket»: a count and a **View history** button that opens a window with a table (number, date and time, by, event badge, details: the message, the files, «to <person>» for a reassignment). Shared component with the task history (`shared/ui/history-section.tsx`); no API or key change. | Anyone who sees the ticket | Should | `apps/web/src/features/tickets/details/ticket-history.test.tsx` |
+| FR-159 | **Task history as a table** (`docs/plans/phase-3-tasks.md`, log 2026-11-17): the task page shows «History of the task» with a count and a **View history** button that opens a window with a table (number, date and time, by, event as a colored badge, details: the two statuses of a change, objection reason, minutes, note), oldest first; same visibility as the task (no new key, no API change). | Anyone who sees the task | Should | `apps/web/src/features/tasks/details/task-history.test.tsx`, `e2e/tests/tasks.spec.ts` |
+| FR-158 | **Delete a ticket** (`docs/plans/phase-2-tickets.md`): `tickets.delete` (scopes unit / unit and below / company / all, by the ticket's department; not in the Employee role, in the head role of every unit) hides the ticket and its replies from everyone (`tickets.deleted_at`; lists, page, figures, filters, summaries, stale and auto-close, desk-stop check) behind a confirmation; the record stays and `ticket.deleted` is audited. 403 for who sees it without the reach, 404 for who cannot see it. | Unit heads | Should | `tickets.e2e-spec.ts` (FR-158), `ticket-delete.test.tsx` |
+| FR-157 | **Delete a task** (`docs/plans/phase-3-tasks.md`): `tasks.delete` (own / unit / unit and below / company / all; its giver, or whose scope reaches the assignee; not in the Employee role, in the head role of every unit) hides the task from everyone (`tasks.deleted_at`; lists, board, matrix, summaries, reminders, overdue notices, archiving) behind a confirmation; the record and its conversation stay and `task.deleted` is audited. | Unit heads | Should | `tasks.e2e-spec.ts` (FR-157), `task-details-page.test.tsx` |
+| FR-156 | **Admin mode without the code, for testing** (`docs/plans/phase-4-access.md`): the security setting `adminModeRequiresCode` (Settings, «Security» tab, `security_settings.edit`, default on) says whether switching on platform admin mode asks for a fresh authenticator code. Off: one click, the code is optional in `POST /admin-mode/activate`, a warning shows under the setting, the change is audited. `GET /me` carries `adminModeCodeRequired`. | System administrators | Should | `admin-mode.e2e-spec.ts`, `device-security.e2e-spec.ts`, `admin-mode-toggle.test.tsx`, `security-settings-tab.test.tsx` |
+| FR-155 | **A unit's history has its own key and a leader opens like an employee** (`docs/plans/phase-5-people-structure-profile.md`): the «History» tab of the structure page (versions and change log) needs `org.history_view` (HR / structure administrators and the head role of every unit; not the Employee role); without it the API returns no versions and no log and the tab is hidden. In the «Leaders» tab a click on a leader's name opens the same popup as «Unit employees» (work number, work e-mail, the unit they lead, manager, Chat on Teams). | Employees | Must | `org-versions.e2e-spec.ts`, `org-history-grants.e2e-spec.ts`, `org-leaders.e2e-spec.ts`, `leaders-tab.test.tsx`, `org-page.test.tsx` |
+| FR-154 | **Chat with a colleague on Microsoft Teams** (`docs/plans/phase-5-people-structure-profile.md`): the «My team» profile popup and the «Unit employees» popup of the structure page show a «Chat on Teams» button that opens `teams.microsoft.com/l/chat/0/0?users=<work e-mail>` in a new tab (a plain link: no Graph API, no tenant setup, no data sent by the platform). Key `directory.contact_teams` (scope all), in the Employee role and the head role of every unit. | Employees | Should | `teams-chat-button.test.tsx`, `employee-default-permissions.spec.ts`, `apps/api/test/teams-chat-grants.e2e-spec.ts` |
 | FR-153 | **Links under an explanation** (`docs/plans/phase-7-agent-chat.md` §15ح): after the assistant explains where something is, buttons under its message open the matching section of the user manual and the page itself (the page button only while the page is in the person's menu now; admin-mode pages say so). The server only links manual sections its own search found for that person; links are saved with the message. | Employees (who hold `agent.view`) | Must | `apps/api/test/agent-chat.e2e-spec.ts`, `apps/web/src/features/agent-chat/agent-chat.test.tsx`, `e2e/tests/agent-chat.spec.ts` |
 | FR-152 | **The form inside the chat** (§15ز): when fields are missing the assistant asks and offers a button that opens a real form drawn from the action's schema (text, long text, number, date, check box, choice lists), filled with what it understood; choices of an id field come from lookups and are checked against the lookup data; sending it makes the confirmation card; mistakes come back field by field; a form is sent once. | Employees (who hold `agent.view`) | Must | `apps/api/test/agent-chat.e2e-spec.ts`, `apps/web/src/features/agent-chat/agent-chat.test.tsx`, `e2e/tests/agent-chat.spec.ts` |
 | FR-151 | **«Do I have permission to …?»** (§15و): the assistant searches everything the platform can do, not only the person's list, and says plainly whether they can, lack the named permission, have the page hidden, or must do it from its page (admin mode, upload, import), or that the platform has nothing like it. Only names of actions and permissions are sent to the model. | Employees (who hold `agent.view`) | Must | `apps/api/test/agent-chat.e2e-spec.ts` |
@@ -182,7 +236,6 @@ Bring employee, project and request management into one secure platform that spe
 | FR-135 | **A catalog of assistant actions generated from the routes** (`docs/plans/phase-7-agent-chat.md`, batch A): every route with a permission key becomes an action (write, or read for GET) with its key, Arabic and English names taken from the key's labels, and its path / query / body fields and mandatory ones taken from the zod schemas; nothing to maintain per module. The chat itself (FR-138…FR-147) comes in the next batches. | Employees (who hold `agent.view`) | Must | `apps/api/test/agent-catalog.e2e-spec.ts` |
 | FR-134 | **Instructions for the sender on a ticket type** (`docs/plans/phase-2-tickets.md` §24): a formatted-text field (Arabic and English) on the type, written by the desk manager; the sender sees it above the fields when opening a ticket of that type. Cleaned on save and on display. | Must |
 | FR-133 | **Several handlers for a ticket type** (`docs/plans/phase-2-tickets.md` §23): the «handlers» field of a ticket type lists the unit manager and every employee of the unit and of the units below it, any title, and takes none, one or more (none: the unit manager handles the tickets). One handler: tickets of the type are assigned to them. Several: the ticket is unassigned, shows in every handler's inbox and notifies all of them, and the first to reply becomes its assignee. A personal type has exactly one. | Must |
-
 
 Every test suite names the requirement IDs it covers in its `describe(...)` title.
 
@@ -207,7 +260,13 @@ The database design (every table with its columns and relations in mermaid diagr
 
 ## 7. Flowcharts
 
-**Task life cycle (FR-48 to FR-53)**
+Animated overviews first, then the detailed diagrams (mermaid).
+
+![Task life cycle](docs/assets/task-lifecycle.svg)
+
+![Sign-in](docs/assets/sign-in.svg)
+
+### Task life cycle (FR-48 to FR-53)
 
 ```mermaid
 flowchart TD
@@ -230,7 +289,7 @@ flowchart TD
   done -- standalone and quiet for the policy's days --> archived([Archived: restored from the archive tab])
 ```
 
-**Ticket life cycle (FR-37 to FR-41)**
+### Ticket life cycle (FR-37 to FR-41)
 
 ```mermaid
 flowchart TD
@@ -251,7 +310,7 @@ flowchart TD
   stale -- yes --> told[Assignee and manager told once]
 ```
 
-**Who sees a ticket, and how pages and lists are shown (FR-38, FR-42, FR-44)**
+### Who sees a ticket, and how pages and lists are shown (FR-38, FR-42, FR-44)
 
 ```mermaid
 flowchart TD
@@ -266,7 +325,7 @@ flowchart TD
   ticket -- yes --> show[Shown]
 ```
 
-**Sign-in (two steps, no password)**
+### Sign-in (two steps, no password)
 
 ```mermaid
 flowchart TD
@@ -288,7 +347,7 @@ flowchart TD
   linked -- yes --> verify[/Enter the code/] --> home
 ```
 
-**Create an employee (HR)**
+### Create an employee (HR)
 
 ```mermaid
 flowchart TD
@@ -301,7 +360,7 @@ flowchart TD
   valid -- yes --> create[Create sign-in account and employee in one transaction] --> invite[E-mail the activation link, log it in email_logs] --> audit[Audit: employee.created] --> done([Employee can activate their authenticator])
 ```
 
-**Change the unit types and the parent–child table (one structure for the group)**
+### Change the unit types and the parent–child table (one structure for the group)
 
 ```mermaid
 flowchart TD
@@ -314,7 +373,7 @@ flowchart TD
   fixed -- no --> only([Stored: it only stops new units])
 ```
 
-**Import from a file (employees, companies)**
+### Import from a file (employees, companies)
 
 ```mermaid
 flowchart TD
@@ -328,7 +387,7 @@ flowchart TD
   run --> result[/Result and downloadable error report/]
 ```
 
-**Build a role**
+### Build a role
 
 ```mermaid
 flowchart LR
@@ -360,7 +419,7 @@ flowchart TD
 
 ## 8. Sequence diagrams
 
-**E-mail + code sign-in and an authorized request**
+### E-mail + code sign-in and an authorized request
 
 ```mermaid
 sequenceDiagram
@@ -388,7 +447,7 @@ sequenceDiagram
   DB-->>W: 200 page of employees
 ```
 
-**First sign-in: activation link and QR code**
+### First sign-in: activation link and QR code
 
 ```mermaid
 sequenceDiagram
@@ -412,7 +471,7 @@ sequenceDiagram
   A-->>W: backup codes (shown once)
 ```
 
-**Workflow transition with a durable timeout**
+### Workflow transition with a durable timeout
 
 ```mermaid
 sequenceDiagram
@@ -433,7 +492,7 @@ sequenceDiagram
   E->>E: fire event only if still in the same state
 ```
 
-**Notifications by email**
+### Notifications by email
 
 ```mermaid
 sequenceDiagram
@@ -450,7 +509,7 @@ sequenceDiagram
   N->>M: send in the recipient's language
 ```
 
-**Microsoft sign-in (Entra ID), then the code**
+### Microsoft sign-in (Entra ID), then the code
 
 ```mermaid
 sequenceDiagram
@@ -679,7 +738,7 @@ To use Amazon RDS or S3 later: set `DB_HOST`/`DB_SSL` or `FILE_STORAGE=s3` + `S3
 | API e2e (real PostgreSQL) | `npm run test:e2e:api` | Sign-in and authenticator flows with real TOTP, organization, employees (every filter), lookups, seeders, e-mail log, notifications, audit, IDOR, mass assignment, SQL injection, workflow concurrency |
 | Security suite | part of API e2e (`test/security.e2e-spec.ts`) | 401 on every route, 403 on every permission route (discovered from Nest metadata), headers, CORS, 413, forged cookies |
 | Web components | `npm test -w @arweqah-platform/web` | DataTable, list toolbar (search, filters, table / cards), export and import dialogs and file readers, employee and company import rules, error pages and the 403 route guard, sign-in steps, org page, role editor (MSW) |
-| Full-stack e2e | `npm run test:e2e:web` | Own API on port 3100 against its own database `arweqah_platform_e2e` (never a development server, and never the API suite's `arweqah_platform_test`, so `npm run test:e2e` runs both suites at the same time), sidebar menus, e-mail + code sign-in and sign-out, 404 / 403 / 401 pages, search, filters, table / cards memory, export to CSV, import template download, company import from a file, no tokens in storage, no secret values in the bundle, axe on each page, desktop + phone (46 tests); in CI it runs as four shards (`E2E_SHARD=1/4`…`4/4`), see decision 253 |
+| Full-stack e2e | `npm run test:e2e:web` | Own API on port 3100 against its own database `arweqah_platform_e2e` (never a development server, and never the API suite's `arweqah_platform_test`, so `npm run test:e2e` runs both suites at the same time), sidebar menus, e-mail + code sign-in and sign-out, 404 / 403 / 401 pages, search, filters, table / cards memory, export to CSV, import template download, company import from a file, no tokens in storage, no secret values in the bundle, axe on each page, desktop + phone; in CI it runs as four shards (`E2E_SHARD=1/4`…`4/4`), see decision 253 |
 | Everything, as one gate | `npm run verify` | Architecture, design, testing and security checks, one line each |
 | Static and supply chain | CI `security` workflow | npm audit (high), gitleaks, Semgrep (OWASP, Node, TypeScript, secrets), Trivy (fs + images), ZAP baseline + API scan (four parallel shards by module, `scripts/zap-shard.mjs`; on the push to `main` only, not on pull requests: decision 235) |
 
@@ -702,7 +761,9 @@ Requirement traceability: each `describe` title lists the FR/NFR IDs it covers, 
 | Translation and e-mail services (AWS, Google, Azure, SMTP, SES, SendGrid, Microsoft 365) / SMS provider | Translate text, deliver messages | Read any data beyond the message |
 | GitHub Actions | Build, test, deploy | Read production secrets (they live on the server) |
 
-Permission scopes: `own`, `unit`, `subtree:1` to `subtree:5`, `subtree`, `company`, `all` (FR-80). Permission catalog (one key for every **page** (view) and every **button or action**; the API refuses an action without its key and the web hides the button): admin mode `admin_mode.use`; roles `roles.view/create/update/delete/export`; groups of roles `role_groups.view/create/update/delete`; groups of people `user_groups.view/create/update/delete`; the permissions page `permissions.view`, `permissions.role_update/role_group_update/user_update/user_group_update`; pages `pages.view/manage`; lists `lists.view/manage`; audit `audit.view/export`; e-mail log `notifications.email_log`, `notifications.email_log_export`; `lookups.view`; own account `profile.view/update`, `security.view`, `notifications.view/mark_read/export`; companies `companies.view/create/update/delete/export/import`; organization `org.view`, `org.unit_create/update/move/delete`, `org.levels_manage`, `org.titles_manage`, `org.export`; employees `employees.view/create/update/deactivate/terminate/assign_roles/assign_change/history_view/photo_update/bulk_update/view_sensitive/resend_invite/reset_authenticator/export/import`; directory `directory.view/export`; tickets `tickets.view/create/reply/request_close/confirm_close` (approve) `/decline_close` (reject) `/close_without_execution/reopen`, `tickets.setup_view/setup_edit/type_create/type_update/type_delete/figures_view`, `tickets.administer` (every department). The **Employee** role starts with the own-account and ticket keys (`EMPLOYEE_DEFAULT_PERMISSIONS`); everything else is given by an administrator from the roles page. Each feature module adds its own keys the same way. Welcome tour settings `tour.settings_view`, `tour.settings_edit`, `tour.settings_reorder`, `tour.settings_reset`, `tour.settings_export` (the tour itself needs no key).
+**Permission scopes:** `own`, `unit`, `subtree:1` to `subtree:5`, `subtree`, `company`, `all` (FR-80).
+
+**Permission catalog:** one key for every page (`view`) and every button or action; the API refuses an action without its key and the web hides the button. The single source is [`packages/shared/src/permissions/keys.ts`](packages/shared/src/permissions/keys.ts) (each module also declares its keys, with Arabic and English labels, in `domain/<feature>.permissions.ts`); the roles and permissions pages show them. The **Employee** role starts with `EMPLOYEE_DEFAULT_PERMISSIONS` (own account, tickets, tasks); the head role of every unit starts with `LEVEL_HEAD_DEFAULT_PERMISSIONS`; everything else is given by an administrator.
 
 ## 13. Constraints
 
@@ -746,77 +807,67 @@ Permission scopes: `own`, `unit`, `subtree:1` to `subtree:5`, `subtree`, `compan
 ```
 apps/
   api/src/
-    common/        base entity, domain errors, unit of work, field cipher, error filter
-    config/        env validation (zod), typed AppConfig, TypeORM options
-    core/          infrastructure every feature uses
-      auth/        Better Auth adapter, authenticator app (TOTP), activation links
-      access/      roles, permission catalog, scopes, CASL, PermissionsGuard
-      audit/       audit log
-      messaging/   outbox, RabbitMQ / in-memory bus, scheduled jobs, idempotency
-      workflow/    XState engine, registry, history
-      notifications/ in-app + channels (email, SMS), sent-e-mail log
-      files/       storage strategies, content inspection
-    modules/       org (companies, levels, units, job titles), employees, lookups; more are added one at a time
-    database/      entities list, migrations, seeds
+    common/          base entity, domain errors, transaction runner, field cipher, error filter
+    config/          env validation (zod), typed AppConfig, TypeORM options
+    core/            auth · access (roles, scopes, CASL) · audit · messaging · workflow · notifications · files
+    modules/         one folder per business feature (org, employees, tasks, tickets, ...), each domain / application / infrastructure / presentation
+    database/        entities list, migrations, seeds
   web/src/
-    app/           composition root: features list, router, layout, providers
-    core/          API client, auth/session, permissions, i18n, theme (light / dark provider), feature contract
-    shared/ui/     DataTable, ListToolbar, Dialog, FormField, Button…
-    shared/lib/    list hooks (useListPage, useServerList, useFilters, useViewMode), fetchAllPages, matchesText
-    shared/data-exchange/  export, import and template (xlsx / csv) used by every list
-    features/      auth, home, employees, org, companies, roles, audit, email-log, notifications, profile, security
-                   (sidebar menus come from each feature's `nav` + `group`)
-packages/shared    zod schemas, DTO types, permission scopes (used by api and web)
-e2e/               Playwright specs + page objects
-docker/            nginx (web + edge), postgres init
+    app/             composition root: features list, router, layout, providers
+    core/            API client, session, permissions, i18n, theme, feature contract
+    shared/ui/       DataTable, ListToolbar, Dialog, FormField, FileDropzone ...
+    shared/lib/      list hooks, fetchAllPages, matchesText
+    shared/data-exchange/   export / import / template (xlsx, csv) used by every list
+    features/        one folder per page group, exported through its index.ts
+packages/shared      zod schemas, DTO types, permission keys and scopes (api + web)
+e2e/                 Playwright specs + page objects
+docs/                decisions, plans, database design, user manual, brand
+docker/              nginx (web + edge), postgres init
 ```
 
 ### Architecture and patterns
 
-Every API module has `domain / application / infrastructure / presentation`, each split into one folder per kind of file (entities, types, errors, contracts, rules, permissions; services, policies, transformers, messages; repositories, adapters, jobs; controllers, dtos), as described in `.claude/skills/module-architecture`; imports only point inward, enforced by `eslint-plugin-boundaries`. Patterns in use, each where its trigger exists: Repository (every aggregate), Adapter (Better Auth, S3, SMTP, RabbitMQ), Strategy (file storage, notification channels, message bus), Registry (permission catalog, workflow definitions, web features), Observer (in-process audit events), Outbox (cross-process events), Unit of Work (`TransactionRunner`), Specification (`applyScope` for list queries), State machine (XState). On the web, pages import features only through their `index.ts`; components use hooks, hooks use the single `apiClient`.
+Every API module has `domain / application / infrastructure / presentation`, each split into one folder per kind of file (see `.claude/skills/module-architecture`); imports only point inward, enforced by `eslint-plugin-boundaries`. Patterns, each where its trigger exists: Repository, Adapter (Better Auth, S3, SMTP, RabbitMQ), Strategy (file storage, notification channels, message bus), Registry (permissions, workflows, web features), Observer (audit events), Outbox, Unit of Work (`TransactionRunner`), Specification (`applyScope`), State machine (XState). On the web, features are imported only through their `index.ts`; components use hooks, hooks use the single `apiClient`.
 
 ### Adding a feature
 
-1. Describe it: name, goal, users and roles, journeys step by step, data and fields, business rules, approval path, notifications, reports, links to other modules.
-2. API: `apps/api/src/modules/<feature>/{domain,application,infrastructure,presentation}`, a `<feature>.permissions.ts` registered on module init, entities added to `database/entities.ts`, a migration (`npm run db:migration:generate --name=<Feature>`), a workflow definition registered in `WorkflowRegistry` if it has approvals, e2e specs named with its FR IDs.
+1. Describe it: goal, users and roles, journeys, data and fields, business rules, approvals, notifications, reports, links to other modules. Write it in `docs/plans/<phase>.md` first.
+2. API: `apps/api/src/modules/<feature>/...`, a `<feature>.permissions.ts` registered on module init, entities in `database/entities.ts`, a migration, a workflow definition if it has approvals, e2e specs named with FR ids.
 3. Shared: request schemas and DTOs in `packages/shared/src/<feature>/`.
 4. Web: `apps/web/src/features/<feature>/` with `index.ts` exporting a `FeatureModule` (lazy routes, nav item with its permission, `i18n/{ar,en}.json`), then one line in `app/features.ts`.
-5. Add the welcome-tour steps of every new page (`packages/shared/src/tour/catalog.ts`, `FeatureModule.tour`, `data-tour`, `tour.<key>.{title,body}` in ar and en, a Playwright check) — standing rule 9; the plan lists them without being asked.
+5. Welcome-tour steps for each new page, user-manual text (ar + en), `docs/database-design.md` rows for new tables.
 6. Update sections 4, 6, 7, 8 and 12 of this README in the same PR.
 
 ### Brand
 
-Official palette: primary 60 % (cream, green, ink) and secondary 35 % (orange, beige, petrol, yellow); yellow never above 5 % of a design. The dashboard itself uses derived cool neutrals for surfaces (approved screens): page `neutral-50`, panels white, borders `neutral-200`; brand `cream` and `beige` stay for the sign-in, e-mails and printed material. Full roles, derived accessible shades and measured contrast are in `.claude/skills/arweqah-design-system/SKILL.md`.
+Primary 60 % (cream, green, ink), secondary 35 % (orange, beige, petrol, yellow); yellow never above 5 % of a design and never text. Full roles, accessible shades and contrast are in `.claude/skills/arweqah-design-system/SKILL.md`.
 
-| Token | Value | Share | Use |
-|---|---|---|---|
-| `cream` (Clarity) | `#FFFCEE` | Primary | Text on dark, e-mails, printed material, the primary button in the dark theme |
-| `green-400` (Growth) | `#85BA95` | Primary | Positive states, accents (never text on light) |
-| `ink` (Strength) | `#0C2028` | Primary | Text, sidebar, primary buttons, sign-in screen |
-| `orange-500` (Ambition) | `#C16426` | Secondary | Highlights, large text only |
-| `beige-300` (Balance) | `#D7D2CB` | Secondary | Branded dividers (the dashboard uses `neutral-200`) |
-| `petrol-800` (Trust) | `#00415B` | Secondary | Links, selected items, focus ring, avatar |
-| `yellow-300` (Light) | `#FBD564` | Secondary, ≤ 5 % | Notification dot only; never text |
-| `neutral-50 / 200 / 500 / 700`, `white` | `#F4F5F7` / `#E4E7EB` / `#8B939C` / `#5F6770`, `#FFFFFF` | Derived | Dashboard page, borders, hover borders, muted icons, panels |
+| Token | Value | Use |
+|---|---|---|
+| `cream` | `#FFFCEE` | Text on dark, e-mails, printed material |
+| `green-400` | `#85BA95` | Positive states, accents (never text on light) |
+| `ink` | `#0C2028` | Text, sidebar, primary buttons, sign-in screen |
+| `orange-500` | `#C16426` | Highlights, large text only |
+| `beige-300` | `#D7D2CB` | Branded dividers |
+| `petrol-800` | `#00415B` | Links, selected items, focus ring |
+| `yellow-300` | `#FBD564` | Notification dot only |
 
-**Light and dark theme:** the dashboard has both. Components use semantic colors (`fg` text, `link`, `primary` / `on-primary`, `success`, `warning`, `danger-text`) and the surface tokens (`white`, `neutral-*`, the `*-50` tints, `muted`), which `theme.css` re-points under `html[data-theme=dark]`; the sidebar and the sign-in screen stay `ink`. Measured in dark: text 14.9:1, muted 7.8:1, links 8.9:1, control borders 4.0:1 on the surface. The choice is kept in the browser (`localStorage.theme`, applied before first paint by `public/theme-init.js`) and on the account (`users.theme`).
-
-Typeface: Tajawal only (Arabic and Latin; delivered files in `docs/brand/fonts/`, Regular/Medium/Bold self-hosted from `apps/web/src/assets/fonts/`).
-
-Logo: the delivered set (`PNG.zip` and 8 originals) is in `docs/brand/`; web copies are in `apps/web/public/brand/` (color, color-on-dark, ink and white variants, horizontal and vertical, plus the mark alone and favicons) and are used only through the `BrandLogo` component (the sidebar uses the white variant). Usage rules (which variant on which background, clear space, minimum sizes) are in the design-system skill.
+Components use semantic colors and surface tokens so the light and dark themes both work (kept in `localStorage.theme` and on the account). Typeface: Tajawal. Logos: `docs/brand/`, used only through `BrandLogo`.
 
 ### Hosting
 
-Interim region `me-south-1` (Bahrain). Move to the AWS Saudi region when it opens: create RDS and EC2 there, restore the latest snapshot, copy the S3 bucket, switch DNS, then decommission Bahrain. Plan a short maintenance window.
+Interim region `me-south-1` (Bahrain); move to the AWS Saudi region when it opens: create RDS and EC2 there, restore the latest snapshot, copy the S3 bucket, switch DNS, decommission Bahrain (short maintenance window).
 
-### Security
+### Further reading
 
-See [SECURITY.md](SECURITY.md).
+| Document | What |
+|---|---|
+| [docs/decisions.md](docs/decisions.md) | Every architecture decision, newest first |
+| [docs/database-design.md](docs/database-design.md) | Every table, columns and relations |
+| [docs/plans/](docs/plans/) | Plan and implementation log of each module |
+| [docs/microsoft-sign-in.md](docs/microsoft-sign-in.md) | Microsoft Entra setup |
+| [SECURITY.md](SECURITY.md) | Security policy and controls |
+| [CLAUDE.md](CLAUDE.md) | Working rules and commands for contributors and Claude Code |
 
-### Decisions
+Conventions: Conventional Commits (`feat(users): …`), branches `feat/*`, `fix/*`, `chore/*`; `dev` deploys to staging, `main` to production.
 
-See [docs/decisions.md](docs/decisions.md).
-
-### Conventions
-
-Conventional Commits (`feat(users): …`), branches `feat/*`, `fix/*`, `chore/*`; `main` is protected and deploys on merge. The PR template includes the README checkbox.
