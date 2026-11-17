@@ -10,7 +10,7 @@ const TARGET = `t.id, t.number::text AS number, t.title, t.assignee_user_id AS "
 /** Open and waiting for somebody to do something (a task still waiting for approval or already refused is not). */
 const WORKING = `t.status IN ('todo', 'in_progress', 'awaiting_review')`;
 
-const OVERDUE = `SELECT ${TARGET} FROM tasks t WHERE t.archived_at IS NULL AND ${WORKING} AND t.overdue_notified_at IS NULL AND t.due_date < $1::date`;
+const OVERDUE = `SELECT ${TARGET} FROM tasks t WHERE t.archived_at IS NULL AND t.deleted_at IS NULL AND ${WORKING} AND t.overdue_notified_at IS NULL AND t.due_date < $1::date`;
 
 @Injectable()
 export class TypeOrmTaskMaintenanceRepository extends TaskMaintenanceRepository {
@@ -21,7 +21,7 @@ export class TypeOrmTaskMaintenanceRepository extends TaskMaintenanceRepository 
   dueForReminder(today: string): Promise<TaskNoticeTarget[]> {
     return this.ds.query(
       `SELECT ${TARGET} FROM tasks t LEFT JOIN task_policies p ON p.company_id = t.company_id
-       WHERE t.archived_at IS NULL AND ${WORKING} AND t.reminded_at IS NULL
+       WHERE t.archived_at IS NULL AND t.deleted_at IS NULL AND ${WORKING} AND t.reminded_at IS NULL
          AND t.due_date >= $1::date AND t.due_date <= $1::date + COALESCE(p.reminder_days_before, 1)`,
       [today],
     );
@@ -47,7 +47,7 @@ export class TypeOrmTaskMaintenanceRepository extends TaskMaintenanceRepository 
        JOIN employees m ON m.id = ae.manager_id AND m.deleted_at IS NULL
        JOIN users mu ON mu.id = m.user_id AND mu.is_active
        LEFT JOIN task_policies p ON p.company_id = t.company_id
-       WHERE t.archived_at IS NULL AND ${WORKING} AND t.due_date < $1::date AND COALESCE(p.digest_weekday, 0) = $2
+       WHERE t.archived_at IS NULL AND t.deleted_at IS NULL AND ${WORKING} AND t.due_date < $1::date AND COALESCE(p.digest_weekday, 0) = $2
        GROUP BY mu.id`,
       [today, weekday],
     );
@@ -57,7 +57,7 @@ export class TypeOrmTaskMaintenanceRepository extends TaskMaintenanceRepository 
     const result = await managerOf(tx, this.ds.manager).query(
       `UPDATE tasks t SET archived_at = now(), revision = t.revision + 1, updated_at = now()
        FROM (SELECT x.id FROM tasks x LEFT JOIN task_policies p ON p.company_id = x.company_id
-             WHERE x.archived_at IS NULL AND x.source = 'standalone' AND x.project_id IS NULL AND x.ticket_id IS NULL AND x.status IN ('done', 'rejected')
+             WHERE x.archived_at IS NULL AND x.deleted_at IS NULL AND x.source = 'standalone' AND x.project_id IS NULL AND x.ticket_id IS NULL AND x.status IN ('done', 'rejected')
                AND x.last_activity_at < $1::timestamptz - (COALESCE(p.standalone_retention_days, 30) * interval '1 day')) due
        WHERE t.id = due.id RETURNING ${TARGET}`,
       [now],
@@ -78,7 +78,7 @@ export class TypeOrmTaskMaintenanceRepository extends TaskMaintenanceRepository 
   openWorkOf(userId: string): Promise<OpenWorkRow[]> {
     return this.ds.query(
       `SELECT ${TARGET}, t.reviewer_user_id AS "reviewerUserId", t.status, t.revision, t.project_id AS "projectId"
-       FROM tasks t WHERE t.archived_at IS NULL AND ${WORKING} AND (t.assignee_user_id = $1 OR t.reviewer_user_id = $1)`,
+       FROM tasks t WHERE t.archived_at IS NULL AND t.deleted_at IS NULL AND ${WORKING} AND (t.assignee_user_id = $1 OR t.reviewer_user_id = $1)`,
       [userId],
     );
   }

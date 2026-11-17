@@ -32,6 +32,47 @@ describe('Tasks: my tasks, creating and assigning (FR-48), my team and the matri
   const notices = async (agent: TestAgent) => (await agent.get('/api/notifications').expect(200)).body.items as { link: string; bodyEn: string; titleEn: string }[];
   const idOf = (u: TestUser) => u.id;
 
+  describe('Deleting a task (FR-157)', () => {
+    const DELETE = [{ key: P.TasksDelete, scope: 'subtree' as const }];
+
+    it('lets its giver hide it and who reaches the assignee: it leaves the lists, the page and the figures, the record stays, and the audit log says who', async () => {
+      const w = await world();
+      const giver = await t.factories.user({ unit: w.org.unitA, grants: [...taskManagerGrants('subtree'), ...DELETE] });
+      await t.db.query('UPDATE employees SET manager_id = $1 WHERE id = $2', [w.manager.employeeId, giver.employeeId]);
+      const giverAgent = await t.factories.signIn(giver);
+      const mine = await made(giverAgent, { assigneeUserId: w.report.id });
+      expect(mine.abilities.delete).toBe(true);
+      await giverAgent.delete(`/api/tasks/${mine.id}`).expect(204);
+      await giverAgent.get(`/api/tasks/${mine.id}`).expect(404);
+      await w.agents.report.get(`/api/tasks/${mine.id}`).expect(404);
+      expect((await list(w.agents.report)).items.map((x) => x.id)).not.toContain(mine.id);
+      const [row] = (await t.db.query('SELECT deleted_at FROM tasks WHERE id = $1', [mine.id])) as { deleted_at: Date | null }[];
+      expect(row?.deleted_at).not.toBeNull(); // hidden, never erased
+    });
+
+    it('lets a leader whose delete scope reaches the assignee hide a task someone else gave', async () => {
+      const w = await world();
+      const task = await made(w.agents.manager, { assigneeUserId: w.report2.id });
+      const lead = await t.factories.signIn(await t.factories.user({ unit: w.org.unitA, grants: [...TASK_EMPLOYEE_GRANTS, { key: P.TasksTeamView, scope: 'subtree' }, ...DELETE] }));
+      expect((await lead.get(`/api/tasks/${task.id}`).expect(200)).body.abilities.delete).toBe(true);
+      await lead.delete(`/api/tasks/${task.id}`).expect(204);
+      await w.agents.manager.get(`/api/tasks/${task.id}`).expect(404);
+    });
+
+    it('is 403 for who sees the task but lacks the key or the reach, 404 for who cannot see it, and the button is not offered', async () => {
+      const w = await world();
+      const task = await made(w.agents.manager, { assigneeUserId: w.report.id });
+      await w.agents.report.delete(`/api/tasks/${task.id}`).expect(403);
+      expect((await w.agents.report.get(`/api/tasks/${task.id}`).expect(200)).body.abilities.delete).toBe(false);
+      await w.agents.peer.delete(`/api/tasks/${task.id}`).expect(403); // no key at all
+      const outsider = await t.factories.signIn(await t.factories.user({ unit: w.org.unitOther, grants: [...TASK_EMPLOYEE_GRANTS, ...DELETE] }));
+      await outsider.delete(`/api/tasks/${task.id}`).expect(404); // the key, but the task is not theirs to see
+      await outsider.delete('/api/tasks/00000000-0000-4000-8000-000000000000').expect(404);
+      const [row] = (await t.db.query('SELECT deleted_at FROM tasks WHERE id = $1', [task.id])) as { deleted_at: Date | null }[];
+      expect(row?.deleted_at).toBeNull();
+    });
+  });
+
   describe('Creating a task', () => {
     it('gives the defaults: today, medium priority, and a task for oneself waits for the direct manager', async () => {
       const w = await world();

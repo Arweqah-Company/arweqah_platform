@@ -25,6 +25,7 @@ A ticket is the official way to ask another department for something: you choose
 | Not done yet | The sender rejects the closing; the ticket returns to the department | `tickets.decline_close` (Reject the closing of a ticket) |
 | Close without carrying out | The department closes it, explaining why | `tickets.close_without_execution` (Close a ticket without executing it) |
 | Reopen | The sender reopens a closed ticket within the allowed days | `tickets.reopen` (Reopen a closed ticket) |
+| Delete | Hides a ticket and its replies from everyone after a confirmation (any status); the record stays in the database and the audit log says who deleted it. Offered where your scope reaches the ticket's department | `tickets.delete` (Delete a ticket); not held by the «Employee» role, held by the head role of every unit for its unit and below |
 | Reassign | A unit head hands an open ticket of their unit to someone on their team | `tickets.reassign` (Reassign a ticket to another employee) |
 | Quick reply | On the board, a short reply from the card | `tickets.reply` |
 

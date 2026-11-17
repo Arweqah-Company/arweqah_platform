@@ -30,4 +30,4 @@ interface RawTicket extends Omit<TicketRow, 'priority'> {
 export const toTicketRow = (r: RawTicket): TicketRow => ({ ...r, priority: r.priority === 1 ? 1 : 0 });
 
 /** The ticket query with a fixed WHERE fragment (placeholders only, never user text) and a fixed tail such as ORDER BY / LIMIT. */
-export const ticketQuery = (where: string, tail = ''): string => `${TICKET_SELECT} WHERE ${where} ${tail}`.trim();
+export const ticketQuery = (where: string, tail = ''): string => `${TICKET_SELECT} WHERE t.deleted_at IS NULL AND (${where}) ${tail}`.trim();

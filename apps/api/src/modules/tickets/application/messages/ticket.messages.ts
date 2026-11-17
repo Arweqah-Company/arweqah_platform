@@ -9,6 +9,7 @@ export const TICKET_AUDIT = {
   closedNotExecuted: 'ticket.closed_not_executed',
   reopened: 'ticket.reopened',
   reassigned: 'ticket.reassigned',
+  deleted: 'ticket.deleted',
   deskUpdated: 'ticket.desk.updated',
   typeCreated: 'ticket.type.created',
   typeUpdated: 'ticket.type.updated',

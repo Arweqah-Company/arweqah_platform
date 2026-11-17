@@ -103,6 +103,7 @@ export class TypeOrmTicketRepository extends TicketRepository {
     if (p.closedAt !== undefined) set('closed_at', p.closedAt);
     if (p.lastActivityAt !== undefined) set('last_activity_at', p.lastActivityAt);
     if (p.assigneeUserId !== undefined) set('assignee_user_id', p.assigneeUserId);
+    if (p.deletedAt !== undefined) set('deleted_at', p.deletedAt);
     if (p.reopenCountIncrement) sets.push('reopen_count = reopen_count + 1');
     const sql = `UPDATE tickets SET ${sets.join(', ')} WHERE id = $1 AND revision = $2 RETURNING id`; // column names are fixed above, values are parameters
     const result = await this.m(tx).query(sql, values);
@@ -114,7 +115,7 @@ export class TypeOrmTicketRepository extends TicketRepository {
     const values: unknown[] = [f.viewer.userId];
     // only the chosen tab is built: each builder pushes its scope value, and a value no part of the query uses makes PostgreSQL fail (500)
     const first = { mine: () => 't.sender_user_id = $1', inbox: () => inboxSql(f.viewer, values), team: () => teamSql(f.viewer, values) }[f.tab]();
-    const where: string[] = [first];
+    const where: string[] = ['t.deleted_at IS NULL', first];
     const add = (column: string, value: unknown) => {
       values.push(value);
       where.push(`${column} = $${values.length}`);
@@ -184,12 +185,12 @@ export class TypeOrmTicketRepository extends TicketRepository {
     const values: unknown[] = [viewer.userId];
     const inbox = inboxSql(viewer, values);
     const team = teamSql(viewer, values);
-    const visible = `FROM tickets t JOIN org_nodes n ON n.id = t.desk_id LEFT JOIN employees dm ON dm.id = n.manager_id AND dm.deleted_at IS NULL ${PEOPLE_JOINS} WHERE (t.sender_user_id = $1 OR ${inbox} OR ${team})`;
+    const visible = `FROM tickets t JOIN org_nodes n ON n.id = t.desk_id LEFT JOIN employees dm ON dm.id = n.manager_id AND dm.deleted_at IS NULL ${PEOPLE_JOINS} WHERE t.deleted_at IS NULL AND (t.sender_user_id = $1 OR ${inbox} OR ${team})`;
     const desksSql = `SELECT DISTINCT t.desk_id AS id ${visible}`;
     const typesSql = `SELECT ty.id, ty.desk_id AS "deskId", ty.name_ar AS "nameAr", ty.name_en AS "nameEn" FROM ticket_types ty WHERE ty.id IN (SELECT t.type_id ${visible}) ORDER BY ty.name_ar`;
     const assigneeValues: unknown[] = [viewer.userId];
     const assigneesSql = `SELECT DISTINCT u.id, COALESCE(e.full_name, u.name) AS name FROM tickets t JOIN org_nodes n ON n.id = t.desk_id LEFT JOIN employees dm ON dm.id = n.manager_id AND dm.deleted_at IS NULL
-      JOIN users u ON u.id = t.assignee_user_id LEFT JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE ${inboxSql(viewer, assigneeValues)} ORDER BY name`;
+      JOIN users u ON u.id = t.assignee_user_id LEFT JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE t.deleted_at IS NULL AND ${inboxSql(viewer, assigneeValues)} ORDER BY name`;
     const [desks, types, assignees, inboxRow] = await Promise.all([
       this.ds.query(desksSql, values),
       this.ds.query(typesSql, values),
@@ -211,7 +212,7 @@ export class TypeOrmTicketRepository extends TicketRepository {
   async reassignOrphanedPersonal(typeId: string, newAssigneeUserId: string, tx: TransactionContext): Promise<number> {
     const result = await this.m(tx).query(
       `UPDATE tickets t SET assignee_user_id = $2, revision = revision + 1, updated_at = now()
-       WHERE t.type_id = $1 AND t.is_personal AND t.status <> 'closed'
+       WHERE t.type_id = $1 AND t.is_personal AND t.status <> 'closed' AND t.deleted_at IS NULL
          AND (t.assignee_user_id IS NULL OR NOT EXISTS (SELECT 1 FROM users a WHERE a.id = t.assignee_user_id AND a.is_active))
        RETURNING t.id`,
       [typeId, newAssigneeUserId],
@@ -221,7 +222,7 @@ export class TypeOrmTicketRepository extends TicketRepository {
 
   async orphanedPersonalCount(deskId: string): Promise<number> {
     const rows = await this.ds.query(
-      `SELECT count(*)::int AS n FROM tickets t WHERE t.desk_id = $1 AND t.is_personal AND t.status <> 'closed'
+      `SELECT count(*)::int AS n FROM tickets t WHERE t.desk_id = $1 AND t.is_personal AND t.status <> 'closed' AND t.deleted_at IS NULL
          AND (t.assignee_user_id IS NULL OR NOT EXISTS (SELECT 1 FROM users a WHERE a.id = t.assignee_user_id AND a.is_active))`,
       [deskId],
     );

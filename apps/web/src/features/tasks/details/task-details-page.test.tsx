@@ -1,5 +1,5 @@
 import { CorePermission as P, type TaskAbilitiesDto, type TaskDto } from '@arweqah-platform/shared';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { me, server } from '../../../../test/msw';
@@ -8,7 +8,7 @@ import { taskDetail } from '../../../../test/task-fixtures';
 import { TaskDetailsPage } from './task-details-page';
 import { chooseOption, optionLabels } from '../../../../test/select';
 
-const closed: TaskAbilitiesDto = { moveTo: [], edit: false, approve: false, object: false, answerObjection: false, resubmit: false, follow: false, logTime: false, restore: false };
+const closed: TaskAbilitiesDto = { moveTo: [], edit: false, approve: false, object: false, answerObjection: false, resubmit: false, follow: false, logTime: false, restore: false, delete: false };
 
 function serve(task: TaskDto) {
   const calls: { path: string; body: unknown }[] = [];
@@ -44,6 +44,26 @@ describe('Task details (FR-48 to FR-52)', () => {
     page();
     await screen.findByRole('heading', { name: /TSK-000001/ });
     for (const name of ['اعتماد', 'رفض', 'اعتراض', 'تسجيل وقت', 'تعديل', 'متابعة', 'استرجاع']) expect(screen.queryByRole('button', { name })).not.toBeInTheDocument();
+  });
+
+  it('offers «Delete» only when the API says so, asks to confirm, deletes, and leaves the page (FR-157)', async () => {
+    let deleted = false;
+    serve(taskDetail({ abilities: { ...closed, delete: true } }));
+    server.use(http.delete('*/api/tasks/:id', () => { deleted = true; return new HttpResponse(null, { status: 204 }); }));
+    renderRoute([{ path: '/tasks/:id', element: <TaskDetailsPage /> }, { path: '/tasks', element: <p>قائمة المهام</p> }], '/tasks/t1');
+    fireEvent.click(await screen.findByRole('button', { name: 'حذف' }));
+    expect(deleted).toBe(false); // nothing happens before the confirmation
+    const confirm = await screen.findByRole('dialog');
+    fireEvent.click(within(confirm).getByRole('button', { name: 'حذف' }));
+    await waitFor(() => expect(deleted).toBe(true));
+    expect(await screen.findByText('قائمة المهام')).toBeInTheDocument();
+  });
+
+  it('shows no «Delete» button without the ability', async () => {
+    serve(taskDetail());
+    page();
+    await screen.findByRole('heading', { name: /TSK-000001/ });
+    expect(screen.queryByRole('button', { name: 'حذف' })).not.toBeInTheDocument();
   });
 
   it('offers approval of a task waiting for it, and sends the decision with the revision and the note', async () => {
