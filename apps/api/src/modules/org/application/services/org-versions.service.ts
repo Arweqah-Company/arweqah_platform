@@ -52,7 +52,8 @@ export class OrgVersionsService {
 
   async get(ctx: AccessContext, nodeId: string): Promise<OrgNodeVersionsDto> {
     await this.visibility.assertVisible(ctx, nodeId);
-    return this.forViewer(ctx, await this.describe(await this.mustNode(nodeId)));
+    const node = await this.mustNode(nodeId);
+    return this.forViewer(ctx, await this.describe(node), node);
   }
 
   async updateCharter(ctx: AccessContext, nodeId: string, input: UpdateCharterInput, actorId: string): Promise<OrgNodeVersionsDto> {
@@ -62,12 +63,13 @@ export class OrgVersionsService {
     const applied = await this.tx.run((tx) => this.record(node, { charter }, { effectiveFrom, reason, actorId }, tx));
     this.events.emit(AUDIT_EVENT, { actorId, action: ORG_AUDIT.unitCharterChanged, entityType: 'org', entityId: nodeId, changes: { effectiveFrom, reason, applied } } satisfies AuditEvent);
     if (applied) await this.events.emitAsync(ORG_CHANGED);
-    return this.forViewer(ctx, await this.describe(await this.mustNode(nodeId)));
+    const fresh = await this.mustNode(nodeId);
+    return this.forViewer(ctx, await this.describe(fresh), fresh);
   }
 
-  /** The unit's history (its versions and change log) goes only to who holds `org.history_view`; the charter in force is for every viewer of the unit. */
-  private forViewer(ctx: AccessContext, dto: OrgNodeVersionsDto): OrgNodeVersionsDto {
-    return ctx.has(ORG_HISTORY_VIEW) ? dto : { ...dto, versions: [], log: [] };
+  /** The unit's history (its versions and change log) goes only to who holds `org.history_view` **and** whose scope reaches this unit; the charter in force is for every viewer of the unit. */
+  private forViewer(ctx: AccessContext, dto: OrgNodeVersionsDto, node: NodeView): OrgNodeVersionsDto {
+    return ctx.reaches(ORG_HISTORY_VIEW, { orgNodeId: node.id, companyId: node.companyId }) ? dto : { ...dto, versions: [], log: [] };
   }
 
   /**

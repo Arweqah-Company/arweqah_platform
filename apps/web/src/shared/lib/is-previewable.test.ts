@@ -6,6 +6,7 @@ describe('isPreviewable (FR-128)', () => {
     expect(isPreviewable('image/png')).toBe(true);
     expect(previewKindOf('application/vnd.openxmlformats-officedocument.wordprocessingml.document')).toBe('docx');
     expect(previewKindOf('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')).toBe('xlsx');
+    expect(previewKindOf('text/csv; charset=utf-8')).toBe('csv');
     expect(isPreviewable('Application/PDF; charset=binary')).toBe(true);
     for (const type of ['image/svg+xml', 'text/html', 'application/msword', '']) expect(isPreviewable(type)).toBe(false);
   });

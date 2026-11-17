@@ -26,7 +26,13 @@
     "notifications": "الإشعارات والبريد",
     "lists": "القوائم",
     "tickets": "التذاكر",
-    "tasks": "المهام"
+    "tasks": "المهام",
+    "templates": "القوالب",
+    "agent": "المساعد الذكي",
+    "integrations": "الإعدادات والتكاملات",
+    "career-profile": "المسار الوظيفي",
+    "performance": "تقييم الأداء",
+    "tour": "الجولة التعريفية"
   },
   "holders": "المستخدمون",
   "searchLabel": "بحث في الأدوار",

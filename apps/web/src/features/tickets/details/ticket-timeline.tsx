@@ -7,8 +7,6 @@ import { cn } from '@/shared/lib/cn';
 import { FileChip, MentionedText, RowAction } from '@/shared/ui';
 import { ReplyBox } from './reply-box';
 
-const QUIET = new Set<TicketEventDto['type']>(['created', 'reply']);
-
 /** The files of one entry, each with its «View» button. */
 export function TicketFiles({ ticketId, event }: { ticketId: string; event: TicketEventDto }) {
   if (event.attachments.length === 0) return null;
@@ -32,11 +30,10 @@ interface EntryProps {
 
 function Entry({ ticketId, event, canAnswer, onAnswer, nested }: EntryProps) {
   const { t, i18n } = useTranslation('tickets');
-  const reply = QUIET.has(event.type);
   return (
-    <div id={`event-${event.id}`} className={cn('rounded-2xl border p-4', reply ? 'border-neutral-200 bg-white' : 'border-petrol-50 bg-petrol-50', nested && 'bg-neutral-50')}>
+    <div id={`event-${event.id}`} className={cn('rounded-2xl border p-4', 'border-neutral-200 bg-white', nested && 'bg-neutral-50')}>
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-        <span className="font-medium text-fg">{event.actor?.name ?? t('timeline.system')} <span className="font-normal text-muted">· {t(`events.${event.type}`)}{event.replyTo && ` · ${t(event.type === 'reassigned' ? 'events.reassignedTo' : 'reply.inReplyTo', { name: event.replyTo.name })}`}</span></span>
+        <span className="font-medium text-fg">{event.actor?.name ?? t('timeline.system')} <span className="font-normal text-muted">· {t('events.reply')}{event.replyTo && ` · ${t('reply.inReplyTo', { name: event.replyTo.name })}`}</span></span>
         <span className="flex items-center gap-1">
           <time dateTime={event.createdAt}>{new Date(event.createdAt).toLocaleString(i18n.language)}</time>
           {canAnswer && onAnswer && <RowAction label={t('reply.answer')} icon={MessageSquareReply} onClick={onAnswer} />}
@@ -48,17 +45,17 @@ function Entry({ ticketId, event, canAnswer, onAnswer, nested }: EntryProps) {
   );
 }
 
-/** Replies and every change of the ticket, oldest first; the answers to a reply sit under it. */
+/** The conversation: the replies of the ticket, oldest first; the answers to a reply sit under it. Every other step is in the history (`TicketHistory`). */
 export function TicketTimeline({ ticket }: { ticket: TicketDto }) {
   const { t } = useTranslation('tickets');
   const mayAnswer = usePermissions().can(CorePermission.TicketsCommentReply) && ticket.abilities.reply;
   const [answering, setAnswering] = useState<string | null>(null);
   const answersOf = (id: string) => ticket.events.filter((e) => e.parentId === id);
   return (
-    <section aria-label={t('timeline.label')} className="flex flex-col gap-3">
+    <section aria-label={t('timeline.heading')} className="flex flex-col gap-3">
       <h2 className="text-sm font-bold text-muted">{t('timeline.heading')}</h2>
       <ol className="flex flex-col gap-3">
-        {ticket.events.filter((e) => !e.parentId && e.type !== 'created').map((e) => (
+        {ticket.events.filter((e) => e.type === 'reply' && !e.parentId).map((e) => (
           <li key={e.id} className="flex flex-col gap-2">
             <Entry ticketId={ticket.id} event={e} canAnswer={mayAnswer && e.type === 'reply'} onAnswer={() => setAnswering(e.id)} />
             {(answersOf(e.id).length > 0 || answering === e.id) && (

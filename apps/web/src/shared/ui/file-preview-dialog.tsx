@@ -8,9 +8,10 @@ import { Alert } from './alert';
 import { Button } from './button';
 import { Dialog } from './dialog';
 
-// Word and Excel are drawn by libraries that load only when such a file is opened.
+// Word, Excel and CSV are drawn by code that loads only when such a file is opened.
 const DocxView = lazy(() => import('./office-views').then((m) => ({ default: m.DocxView })));
 const WorkbookView = lazy(() => import('./office-views').then((m) => ({ default: m.WorkbookView })));
+const CsvView = lazy(() => import('./office-views').then((m) => ({ default: m.CsvView })));
 
 export interface PreviewableFile {
   name: string;
@@ -45,20 +46,31 @@ function useObjectUrl(blob: Blob | null): string | null {
   return url;
 }
 
-/** What the window shows once the bytes are there: the image, the PDF in a frame, or Word / Excel drawn by the page with a note that it is approximate. */
-function Content({ file, blob }: { file: PreviewableFile; blob: Blob }) {
+/** An image or a PDF: the browser shows it from an object URL that is released when the window closes. */
+function MediaView({ file, blob, kind }: { file: PreviewableFile; blob: Blob; kind: 'image' | 'pdf' }) {
+  const url = useObjectUrl(blob);
+  if (!url) return null;
+  if (kind === 'pdf') return <iframe src={url} title={file.name} className="h-[60vh] w-full rounded-xl border border-neutral-200" />;
+  return <img src={url} alt={file.name} className="mx-auto max-h-[60vh] max-w-full rounded-xl object-contain" />;
+}
+
+/** Word, Excel (with a note that they are approximate) or a CSV (a table of the text as it is), drawn by the page. */
+function OfficeView({ kind, blob }: { kind: 'docx' | 'xlsx' | 'csv'; blob: Blob }) {
   const { t } = useTranslation();
-  const kind = previewKindOf(file.contentType);
-  const url = useObjectUrl(kind === 'image' || kind === 'pdf' ? blob : null);
-  if (kind === 'pdf' && url) return <iframe src={url} title={file.name} className="h-[60vh] w-full rounded-xl border border-neutral-200" />;
-  if (kind === 'image' && url) return <img src={url} alt={file.name} className="mx-auto max-h-[60vh] max-w-full rounded-xl object-contain" />;
-  if (kind !== 'docx' && kind !== 'xlsx') return null;
+  const view = { docx: <DocxView blob={blob} />, xlsx: <WorkbookView blob={blob} />, csv: <CsvView blob={blob} /> }[kind];
   return (
     <div className="flex flex-col gap-3">
-      <Alert tone="info">{t('files.approximate')}</Alert>
-      <Suspense fallback={<p role="status" className="text-sm text-muted">{t('files.loading')}</p>}>{kind === 'docx' ? <DocxView blob={blob} /> : <WorkbookView blob={blob} />}</Suspense>
+      {kind !== 'csv' && <Alert tone="info">{t('files.approximate')}</Alert>}
+      <Suspense fallback={<p role="status" className="text-sm text-muted">{t('files.loading')}</p>}>{view}</Suspense>
     </div>
   );
+}
+
+/** What the window shows once the bytes are there: the image, the PDF in a frame, or Word / Excel / CSV drawn by the page. */
+function Content({ file, blob }: { file: PreviewableFile; blob: Blob }) {
+  const kind = previewKindOf(file.contentType);
+  if (kind === 'image' || kind === 'pdf') return <MediaView file={file} blob={blob} kind={kind} />;
+  return kind ? <OfficeView kind={kind} blob={blob} /> : null;
 }
 
 /** What the window shows: a note for a type that cannot be shown, the loading or failure state, or the content. */

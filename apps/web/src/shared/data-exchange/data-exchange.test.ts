@@ -3,7 +3,7 @@ import { columnLetter, safeText } from './cells';
 import { parseCsv, toCsv } from './csv';
 import { buildExportBlob } from './export-file';
 import { ImportFileError, readImportFile } from './read-sheet';
-import { normalizeDate, normalizePhone } from './mapping';
+import { isIsoDate, normalizeDate, normalizePhone } from './mapping';
 import { buildTemplateBlob } from './template';
 import type { ImportColumn } from './types';
 
@@ -27,6 +27,16 @@ describe('Data exchange: files (FR-28, FR-29)', () => {
   it('accepts a day written 2024-1-5 or 2024/01/05 as 2024-01-05, and never guesses day / month order (FR-29)', () => {
     expect(['2024-1-5', '2024/01/05', '2024.1.5', '2024-01-05'].map(normalizeDate)).toEqual(['2024-01-05', '2024-01-05', '2024-01-05', '2024-01-05']);
     expect(normalizeDate('5/1/2024')).toBe('5/1/2024');
+  });
+
+  it('rejects a day that does not exist, and keeps a real leap day (FR-29, CodeRabbit PR 121)', () => {
+    expect(['2023-02-29', '2024-04-31', '2024-13-01', '2024-00-10'].map((d) => isIsoDate(normalizeDate(d)))).toEqual([false, false, false, false]);
+    expect(['2024/2/29', '2024-02-29', '2023-12-31'].map((d) => isIsoDate(normalizeDate(d)))).toEqual([true, true, true]);
+  });
+
+  it('does not turn a Saudi mobile whose leading zero Excel dropped (554840852) into +554840852 (FR-29, CodeRabbit PR 121)', () => {
+    expect(normalizePhone('554840852')).toBe('554840852'); // left as typed, so the form rule refuses it and asks for a country code
+    expect(normalizePhone('966554840852')).toBe('+966554840852');
   });
 
   it('restores the + that Excel drops from a phone, and never guesses a local number (FR-29)', () => {

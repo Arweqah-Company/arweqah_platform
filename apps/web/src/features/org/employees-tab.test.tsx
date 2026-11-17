@@ -48,11 +48,19 @@ describe('The employees tab of a unit (FR-17)', () => {
     expect(await within(details).findByText('سارة أحمد')).toBeInTheDocument();
   });
 
-  it('is a list like the others without the cards view: a search box that finds by name or e-mail, and a message when nothing matches', async () => {
+  it('is a list like the others, with the table / cards switch: a search box that finds by name or e-mail, and a message when nothing matches', async () => {
     openOrgPage({ handlers: [http.get('*/api/org/nodes/:id/employees', () => HttpResponse.json(people))] });
     const details = await openTab();
     expect(await within(details).findByText('سارة أحمد')).toBeInTheDocument();
-    expect(details.querySelector('[data-tour="view-switch"]')).toBeNull(); // no table / cards switch: the tab is too narrow for cards
+    const switcher = details.querySelector('[data-tour="view-switch"]') as HTMLElement; // standing rule 1: every table has more than one view
+    expect(switcher).not.toBeNull();
+    const [tableButton, cardsButton] = Array.from(switcher.querySelectorAll('button'));
+    expect(tableButton).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(cardsButton as HTMLElement);
+    expect(cardsButton).toHaveAttribute('aria-pressed', 'true');
+    expect(within(details).queryByRole('table')).not.toBeInTheDocument();
+    expect(within(details).getByText('سارة أحمد')).toBeInTheDocument();
+    fireEvent.click(tableButton as HTMLElement);
     fireEvent.change(within(details).getByRole('searchbox', { name: 'البحث في موظفي الوحدة' }), { target: { value: 'laila@' } });
     expect(await within(details).findByText('ليلى سعد')).toBeInTheDocument();
     await vi.waitFor(() => expect(within(details).queryByText('سارة أحمد')).not.toBeInTheDocument());

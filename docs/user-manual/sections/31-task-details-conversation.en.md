@@ -149,7 +149,7 @@ The task keeps the life described in the «My tasks» page (statuses and moves).
 - A comment needs text or at least one file. Text is limited to 5000 characters.
 - The conversation stays open after the task is done. When the task is archived it is read-only, and the company may close it some days after the task is closed (0 = never). The page then says «The conversation of this task is closed: you can only read».
 - **Notices:** the mentioned person (also by e-mail), the person you reply to, the assignee and the person who gave the task, and followers (once, while an earlier notice is unread). Nobody is notified of their own comment. E-mail never carries the text of a comment.
-- File previews open for images and PDF only; other files download. Word and Excel files are accepted; the system checks the real file type, not just the name.
+- Images, PDF, Word, Excel and CSV open in a window (a CSV as a table); other files download. Word, Excel and CSV files are accepted; the system checks the real file type, not just the name.
 - The conversation has no list, so it has no export. Comments are recorded in the audit log without their text. (FR-66)
 
 ### Tips / common problems
