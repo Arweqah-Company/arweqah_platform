@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 380" width="900" height="380" role="img" aria-label="Arweqah Platform architecture: browser, nginx, API, database, queue, files, e-mail">
+<title>Arweqah Platform architecture: browser, nginx, API, database, queue, files, e-mail</title>
+<rect width="900" height="380" rx="14" fill="#FFFCEE"/>
+<style>text{font-family:Tajawal, 'Segoe UI', Arial, sans-serif;font-size:14px;fill:#0C2028;text-anchor:middle} .s{font-size:11px;fill:#00415B} .t{font-size:16px;font-weight:700}</style>
+<line x1="150" y1="175" x2="210" y2="175" stroke="#D7D2CB" stroke-width="3"/>
+<line x1="330" y1="175" x2="400" y2="175" stroke="#D7D2CB" stroke-width="3"/>
+<line x1="580" y1="175" x2="700" y2="55" stroke="#D7D2CB" stroke-width="3"/>
+<line x1="580" y1="175" x2="700" y2="135" stroke="#D7D2CB" stroke-width="3"/>
+<line x1="580" y1="175" x2="700" y2="215" stroke="#D7D2CB" stroke-width="3"/>
+<line x1="580" y1="175" x2="700" y2="295" stroke="#D7D2CB" stroke-width="3"/>
+<line x1="90" y1="200" x2="210" y2="295" stroke="#D7D2CB" stroke-width="3" stroke-dasharray="6 5"/>
+<rect x="30" y="150" width="120" height="50" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"></rect>
+<text x="90.0" y="173.0">Browser</text><text class="s" x="90.0" y="190.0">React SPA ar / en</text>
+<rect x="210" y="150" width="120" height="50" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"></rect>
+<text x="270.0" y="173.0">nginx</text><text class="s" x="270.0" y="190.0">HTTPS, /api proxy</text>
+<rect x="400" y="120" width="180" height="110" rx="10" fill="#0C2028" stroke="#0C2028" stroke-width="2"></rect>
+<text x="490" y="160" style="fill:#FFFCEE" class="t">NestJS API</text><text class="s" x="490" y="182" style="fill:#85BA95">core + modules</text><text class="s" x="490" y="200" style="fill:#FFFCEE">roles · scopes · audit</text>
+<rect x="700" y="30" width="160" height="50" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"></rect>
+<text x="780.0" y="53.0">PostgreSQL 16</text><text class="s" x="780.0" y="70.0">TypeORM, migrations</text>
+<rect x="700" y="110" width="160" height="50" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"></rect>
+<text x="780.0" y="133.0">RabbitMQ</text><text class="s" x="780.0" y="150.0">outbox + scheduled jobs</text>
+<rect x="700" y="190" width="160" height="50" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"></rect>
+<text x="780.0" y="213.0">File storage</text><text class="s" x="780.0" y="230.0">S3 / local folder</text>
+<rect x="700" y="270" width="160" height="50" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"></rect>
+<text x="780.0" y="293.0">E-mail / SMS</text><text class="s" x="780.0" y="310.0">SMTP, SES, SendGrid</text>
+<rect x="210" y="270" width="120" height="50" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"></rect>
+<text x="270.0" y="293.0">Microsoft Entra</text><text class="s" x="270.0" y="310.0">company tenant</text>
+<text class="s" x="450" y="350">Every request: session cookie, authenticator code verified, permission key, scope check</text>
+<circle r="5" fill="#C16426"><animateMotion dur="2.4s" begin="0s" repeatCount="indefinite" path="M150,175 L400,175"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="2.4s" begin="0s" repeatCount="indefinite"/></circle>
+<circle r="5" fill="#85BA95"><animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite" path="M400,175 L150,175"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="2.4s" begin="1.2s" repeatCount="indefinite"/></circle>
+<circle r="5" fill="#C16426"><animateMotion dur="2.4s" begin="0.2s" repeatCount="indefinite" path="M580,175 L700,55"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="2.4s" begin="0.2s" repeatCount="indefinite"/></circle>
+<circle r="5" fill="#C16426"><animateMotion dur="2.4s" begin="0.7s" repeatCount="indefinite" path="M580,175 L700,135"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="2.4s" begin="0.7s" repeatCount="indefinite"/></circle>
+<circle r="5" fill="#C16426"><animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite" path="M580,175 L700,215"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="2.4s" begin="1.2s" repeatCount="indefinite"/></circle>
+<circle r="5" fill="#C16426"><animateMotion dur="2.4s" begin="1.7s" repeatCount="indefinite" path="M580,175 L700,295"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="2.4s" begin="1.7s" repeatCount="indefinite"/></circle>
+<circle r="5" fill="#00415B"><animateMotion dur="3s" begin="0.4s" repeatCount="indefinite" path="M90,200 L210,295"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="3s" begin="0.4s" repeatCount="indefinite"/></circle>
+</svg>

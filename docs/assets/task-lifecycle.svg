@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 190" width="1040" height="190" role="img" aria-label="Task life cycle: pending approval, to do, in progress, awaiting review, done, archived">
+<title>Task life cycle: pending approval, to do, in progress, awaiting review, done, archived</title>
+<rect width="1040" height="190" rx="14" fill="#FFFCEE"/>
+<style>text{font-family:Tajawal, 'Segoe UI', Arial, sans-serif;font-size:14px;fill:#0C2028;text-anchor:middle} .s{font-size:11px;fill:#00415B} .t{font-size:16px;font-weight:700}</style>
+<line x1="160.0" y1="90" x2="200.0" y2="90" stroke="#D7D2CB" stroke-width="3"/>
+<line x1="330.0" y1="90" x2="370.0" y2="90" stroke="#D7D2CB" stroke-width="3"/>
+<line x1="500.0" y1="90" x2="540.0" y2="90" stroke="#D7D2CB" stroke-width="3"/>
+<line x1="670.0" y1="90" x2="710.0" y2="90" stroke="#D7D2CB" stroke-width="3"/>
+<line x1="840.0" y1="90" x2="880.0" y2="90" stroke="#D7D2CB" stroke-width="3"/>
+<rect x="30" y="60" width="130" height="60" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"><animate attributeName="fill" values="#85BA95;#85BA95;#fff;#fff" keyTimes="0;0.070;0.112;1" dur="9.600000000000001s" repeatCount="indefinite"/></rect>
+<text x="95.0" y="88.0">Created</text><text class="s" x="95.0" y="105.0">self task: manager decides</text>
+<rect x="200" y="60" width="130" height="60" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"><animate attributeName="fill" values="#fff;#fff;#85BA95;#85BA95;#fff;#fff" keyTimes="0;0.088;0.130;0.270;0.312;1" dur="9.600000000000001s" repeatCount="indefinite"/></rect>
+<text x="265.0" y="95.0">To do</text>
+<rect x="370" y="60" width="130" height="60" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"><animate attributeName="fill" values="#fff;#fff;#85BA95;#85BA95;#fff;#fff" keyTimes="0;0.288;0.330;0.470;0.512;1" dur="9.600000000000001s" repeatCount="indefinite"/></rect>
+<text x="435.0" y="88.0">In progress</text><text class="s" x="435.0" y="105.0">assignee or manager starts</text>
+<rect x="540" y="60" width="130" height="60" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"><animate attributeName="fill" values="#fff;#fff;#85BA95;#85BA95;#fff;#fff" keyTimes="0;0.488;0.530;0.670;0.712;1" dur="9.600000000000001s" repeatCount="indefinite"/></rect>
+<text x="605.0" y="88.0">Awaiting review</text><text class="s" x="605.0" y="105.0">reviewer decides</text>
+<rect x="710" y="60" width="130" height="60" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"><animate attributeName="fill" values="#fff;#fff;#85BA95;#85BA95;#fff;#fff" keyTimes="0;0.688;0.730;0.870;0.912;1" dur="9.600000000000001s" repeatCount="indefinite"/></rect>
+<text x="775.0" y="88.0">Done</text><text class="s" x="775.0" y="105.0">real day recorded</text>
+<rect x="880" y="60" width="130" height="60" rx="10" fill="#fff" stroke="#00415B" stroke-width="2"><animate attributeName="fill" values="#fff;#fff;#85BA95;#85BA95" keyTimes="0;0.888;0.930;1" dur="9.600000000000001s" repeatCount="indefinite"/></rect>
+<text x="945.0" y="88.0">Archived</text><text class="s" x="945.0" y="105.0">quiet for policy days</text>
+<circle r="7" fill="#C16426"><animateMotion dur="9.600000000000001s" begin="0s" repeatCount="indefinite" path="M95.0,90 L945.0,90"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="9.600000000000001s" begin="0s" repeatCount="indefinite"/></circle>
+<text class="s" x="520.0" y="165">Rejected goes back to the owner · review can send back to In progress · Done can be reopened · Archived is restored from its tab</text>
+</svg>
