@@ -45,6 +45,10 @@ export interface OrgNodeLeaderDto {
   companyNameEn: string;
   employeeId: string;
   employeeName: string;
+  /** What the popup of a leader shows, as the «Unit employees» popup does: work number, work e-mail and direct manager (the leader may sit in another unit). */
+  employeeNumber: string;
+  workEmail: string;
+  managerName: string | null;
   kind: LeaderKind;
   validFrom: string;
   validTo: string | null;

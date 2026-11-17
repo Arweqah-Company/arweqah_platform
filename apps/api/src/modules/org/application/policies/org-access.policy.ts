@@ -15,6 +15,7 @@ export function assertCompanyAccess(ctx: AccessContext, key: string, companyId: 
 }
 
 export const ORG_VIEW = CorePermission.OrgView;
+export const ORG_HISTORY_VIEW = CorePermission.OrgHistoryView;
 export const ORG_UNIT_CREATE = CorePermission.OrgUnitCreate;
 export const ORG_UNIT_UPDATE = CorePermission.OrgUnitUpdate;
 export const ORG_UNIT_MOVE = CorePermission.OrgUnitMove;

@@ -14,8 +14,8 @@ export type PlacementInput = z.infer<typeof placementSchema>;
 export const authCodeSchema = z.strictObject({ code: z.string().trim().min(6).max(12) });
 export type AuthCodeInput = z.infer<typeof authCodeSchema>;
 
-/** A fresh 6-digit code from the authenticator app (backup codes are not accepted here). */
-export const adminModeActivateSchema = z.strictObject({ code: z.string().trim().regex(/^\d{6}$/) });
+/** A fresh 6-digit code from the authenticator app (backup codes are not accepted here); it may be left out only while the security setting `adminModeRequiresCode` is off. */
+export const adminModeActivateSchema = z.strictObject({ code: z.string().trim().regex(/^\d{6}$/).optional() });
 export type AdminModeActivateInput = z.infer<typeof adminModeActivateSchema>;
 
 /** Platform admin mode switches off by itself after this many minutes without admin activity. */
@@ -83,6 +83,8 @@ export interface MeDto extends UserDto {
   impersonationEnabled: boolean;
   /** The platform assistant is switched on in the security settings (its button shows only then). */
   agentEnabled: boolean;
+  /** Does switching on admin mode ask for an authenticator code? (the security setting `adminModeRequiresCode`) */
+  adminModeCodeRequired: boolean;
   /** The administrator allows trusting a browser after the code step that follows a Microsoft sign-in. */
   trustedDevicesEnabled: boolean;
   /** Pages hidden from every role of this person (the menu leaves them out and the API refuses them). */

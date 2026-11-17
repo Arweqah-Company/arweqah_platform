@@ -28,8 +28,11 @@ The «Organization structure» page shows one tree for the whole group and all i
 | Move | Moves the unit under another parent | `org.unit_move` (Move a unit) |
 | Delete | Deletes a unit with nothing under it | `org.unit_delete` (Delete a unit) |
 | «Leaders» tab: assign a leader or acting leader, end, delete | Manages the leaders of the unit | `org.leaders_manage` (Assign unit leaders and acting leaders) |
+| «Leaders» tab: click a leader's name | Opens the same popup as «Unit employees» (work number, work e-mail, the unit they lead, direct manager, «Chat on Teams») | `org.view` |
+| «History» tab: versions of the unit and its change log | Shows the unit's dated versions and the change log. Without the key the tab is hidden and the API sends nothing of the history | `org.history_view` (View a unit's history); given to HR / structure administrators and to the head role of every unit (its unit and below), not to the «Employee» role |
 | «Charter» tab: write / edit | Writes the purpose, outputs, scope and limits | `org.charter_edit` (Edit the charter of a unit) |
 | «Titles» tab: add and edit a title | Manages the unit's job titles | `org.titles_manage` (Manage job titles) and `job_titles.create` / `job_titles.update` |
+| «Unit employees» tab: open a person, then «Chat on Teams» | Shows the work number, work e-mail, unit and direct manager; «Chat on Teams» opens a Microsoft Teams chat with them in a new tab (the person must use the same Microsoft work account) | `org.view`; the button needs `directory.contact_teams` (Chat with a colleague on Teams, held by the «Employee» role and the head role of every unit) |
 
 There is no import on this page on purpose: the structure is built from the screen, and job titles are imported from the «Job titles» page.
 

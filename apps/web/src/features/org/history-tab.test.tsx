@@ -7,7 +7,7 @@ import { openOrgPage } from '../../../test/org-harness';
 beforeEach(() => window.localStorage.clear());
 
 async function openHistory(dto: ReturnType<typeof versionsDto>) {
-  openOrgPage({ handlers: [http.get('*/api/org/nodes/:id/versions', () => HttpResponse.json(dto))] });
+  openOrgPage({ keys: ['org.history_view'], handlers: [http.get('*/api/org/nodes/:id/versions', () => HttpResponse.json(dto))] });
   fireEvent.click(await screen.findByRole('button', { name: 'قسم الموارد البشرية' }));
   const details = await screen.findByRole('complementary', { name: 'تفاصيل الوحدة: قسم الموارد البشرية' });
   fireEvent.click(within(details).getByRole('tab', { name: 'السجل' }));

@@ -9,7 +9,7 @@ const TEMPLATE_ROWS = 1000;
  * The import template: a "Template" sheet with the headers (required ones starred) and a drop-down on every
  * column that has options, fed by a "Lists" sheet that holds every option one column each.
  */
-export async function buildTemplateBlob(columns: ImportColumn[], sheets: { template: string; lists: string }): Promise<Blob> {
+export async function buildTemplateBlob(columns: ImportColumn[], sheets: { template: string; lists: string; prompts: Record<NonNullable<ImportColumn['format']>, { title: string; text: string }> }): Promise<Blob> {
   const [{ default: writeXlsxFile }, { default: dataValidation }] = await Promise.all([import('write-excel-file/universal'), import('@onparallel/write-excel-file-data-validation')]);
   const withOptions = columns.map((c, index) => ({ c, index })).filter(({ c }) => c.options?.length);
   const listHeight = Math.max(1, ...withOptions.map(({ c }) => c.options?.length ?? 0));
@@ -21,11 +21,15 @@ export async function buildTemplateBlob(columns: ImportColumn[], sheets: { templ
     cellRange: { from: { row: 2, column: index + 1 }, to: { row: TEMPLATE_ROWS + 1, column: index + 1 } },
     validation: { type: 'list' as const, valuesRange: `'${sheets.lists}'!$${columnLetter(listColumn)}$2:$${columnLetter(listColumn)}$${(c.options?.length ?? 0) + 1}` },
   }));
+  const formats = columns.flatMap((c, index) => (c.format ? [{
+    cellRange: { from: { row: 2, column: index + 1 }, to: { row: TEMPLATE_ROWS + 1, column: index + 1 } },
+    validation: { type: 'any' as const, inputTitle: sheets.prompts[c.format].title, input: sheets.prompts[c.format].text },
+  }] : []));
   const templateSheet: Sheet<Blob> & DataValidationSheetOptions = {
     sheet: sheets.template,
     data: [columns.map((c) => ({ value: templateHeader(c.header, c.required), fontWeight: 'bold' as const }))],
     columns: columns.map((c) => ({ width: Math.max(16, c.header.length + 6) })),
-    dataValidation: validations,
+    dataValidation: [...validations, ...formats],
   };
   return writeXlsxFile([templateSheet, { sheet: sheets.lists, data: withOptions.length ? lists : [['']] }], { features: [dataValidation] }).toBlob();
 }

@@ -3,6 +3,7 @@ import { columnLetter, safeText } from './cells';
 import { parseCsv, toCsv } from './csv';
 import { buildExportBlob } from './export-file';
 import { ImportFileError, readImportFile } from './read-sheet';
+import { normalizeDate, normalizePhone } from './mapping';
 import { buildTemplateBlob } from './template';
 import type { ImportColumn } from './types';
 
@@ -21,6 +22,17 @@ describe('Data exchange: files (FR-28, FR-29)', () => {
     expect(safeText(-5)).toBe('-5');
     expect(safeText(null)).toBe('');
     expect(safeText('عادي')).toBe('عادي');
+  });
+
+  it('accepts a day written 2024-1-5 or 2024/01/05 as 2024-01-05, and never guesses day / month order (FR-29)', () => {
+    expect(['2024-1-5', '2024/01/05', '2024.1.5', '2024-01-05'].map(normalizeDate)).toEqual(['2024-01-05', '2024-01-05', '2024-01-05', '2024-01-05']);
+    expect(normalizeDate('5/1/2024')).toBe('5/1/2024');
+  });
+
+  it('restores the + that Excel drops from a phone, and never guesses a local number (FR-29)', () => {
+    expect(['966554840852', '00966554840852', '+966554840852', '+966 55 484 0852', '966-55-484-0852'].map(normalizePhone)).toEqual(['+966554840852', '+966554840852', '+966554840852', '+966554840852', '+966554840852']);
+    expect(normalizePhone('0554840852')).toBe('0554840852'); // no country code: left as typed, so the form rule refuses it
+    expect(normalizePhone('12345')).toBe('12345');
   });
 
   it('names Excel columns', () => {
@@ -46,8 +58,21 @@ describe('Data exchange: files (FR-28, FR-29)', () => {
     expect(await readSheet(await buildExportBlob('xlsx', cols, rows))).toEqual([['الاسم', 'العدد'], ['أروقة', 3], ['لدن', 0]]);
   });
 
+  it('builds a template with a date column that tells the format when a cell is selected (FR-29)', async () => {
+    const withDate: ImportColumn[] = [...columns, { id: 'born', header: 'تاريخ الميلاد', format: 'date' as const }];
+    const template = await buildTemplateBlob(withDate, { template: 'Template', lists: 'Lists', prompts: { date: { title: 'Date format', text: 'Year-month-day' }, phone: { title: 'Phone', text: '+966501234567' } } });
+    const { default: JSZip } = await import('jszip').catch(() => ({ default: null }));
+    if (JSZip) {
+      const xml = await (await JSZip.loadAsync(await template.arrayBuffer())).file('xl/worksheets/sheet1.xml')!.async('string');
+      expect(xml).toContain('promptTitle="Date format"');
+      expect(xml).toContain('prompt="Year-month-day"');
+    }
+    const { readSheet } = await import('read-excel-file/universal');
+    expect((await readSheet(template))[0]).toContain('تاريخ الميلاد');
+  });
+
   it('builds a template whose first sheet has the headers (required ones starred) that can be read back', async () => {
-    const template = await buildTemplateBlob(columns, { template: 'Template', lists: 'Lists' });
+    const template = await buildTemplateBlob(columns, { template: 'Template', lists: 'Lists', prompts: { date: { title: 'Date format', text: 'Year-month-day' }, phone: { title: 'Phone', text: '+966501234567' } } });
     const { readSheet } = await import('read-excel-file/universal');
     expect(await readSheet(template)).toEqual([['الرمز *', 'الاسم *', 'الحالة']]);
     await expect(readImportFile(fileOf(template, 'x.xlsx'), columns)).rejects.toMatchObject({ reason: 'empty' });

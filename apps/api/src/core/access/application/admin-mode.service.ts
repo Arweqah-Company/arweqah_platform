@@ -3,6 +3,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { AdminModeDto } from '@arweqah-platform/shared';
 import { Clock } from '../../../common/application/clock';
 import { AUDIT_EVENT, type AuditEvent } from '../../audit/application/audit.events';
+import { SecuritySettingsService } from '../../auth/application/security-settings.service';
 import { AuthenticatorService } from '../../auth/application/authenticator.service';
 import { AuthenticatorLockedError, InvalidCodeError } from '../../auth/domain/errors';
 import type { AccessContext } from '../domain/access-context';
@@ -22,6 +23,7 @@ export class AdminModeService {
     private readonly repo: AdminModeRepository,
     private readonly authenticator: AuthenticatorService,
     private readonly eligibility: AdminModeEligibility,
+    private readonly security: SecuritySettingsService,
     private readonly clock: Clock,
     private readonly events: EventEmitter2,
   ) {}
@@ -44,16 +46,24 @@ export class AdminModeService {
     return (await this.isActive(ctx, sessionId)) ? ctx.elevate() : ctx;
   }
 
-  /** Needs a code that was never used before, so every activation is a fresh proof. */
-  async activate(ctx: AccessContext, sessionId: string, code: string): Promise<AdminModeDto> {
+  /**
+   * Needs a code that was never used before, so every activation is a fresh proof; unless an administrator switched the security setting
+   * `adminModeRequiresCode` off (for testing), when the code is not asked for.
+   */
+  async activate(ctx: AccessContext, sessionId: string, code: string | undefined): Promise<AdminModeDto> {
     if (!(await this.eligibility.isEligible(ctx))) throw new AdminModeNotAllowedError();
-    const result = await this.authenticator.verifyAppCode(ctx.userId, code);
-    if (result === 'locked') throw new AuthenticatorLockedError();
-    if (result === 'used') throw new CodeAlreadyUsedError();
-    if (result !== 'ok') throw new InvalidCodeError();
+    if ((await this.security.get('adminModeRequiresCode')) === 1) await this.assertFreshCode(ctx.userId, code);
     await this.repo.activate(sessionId, ctx.userId, this.clock.now());
     this.audit(ctx.userId, ADMIN_MODE_AUDIT.enabled);
     return this.status(ctx, sessionId);
+  }
+
+  private async assertFreshCode(userId: string, code: string | undefined): Promise<void> {
+    if (code === undefined) throw new InvalidCodeError();
+    const result = await this.authenticator.verifyAppCode(userId, code);
+    if (result === 'locked') throw new AuthenticatorLockedError();
+    if (result === 'used') throw new CodeAlreadyUsedError();
+    if (result !== 'ok') throw new InvalidCodeError();
   }
 
   async deactivate(ctx: AccessContext, sessionId: string): Promise<void> {

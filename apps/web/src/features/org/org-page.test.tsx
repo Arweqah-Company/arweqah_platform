@@ -246,11 +246,18 @@ describe('Organization page: scheduled changes and links (FR-99)', () => {
     expect(within(details).getByText('تغيير مجدول')).toBeInTheDocument();
   });
 
-  it('shows the three new tabs, each for a holder of the view key', async () => {
-    openOrgPage();
+  it('shows the tabs, each for a holder of its key (the history has its own key, org.history_view)', async () => {
+    openOrgPage({ keys: ['org.history_view'] });
     fireEvent.click(await screen.findByRole('button', { name: 'قسم الموارد البشرية' }));
     const details = await screen.findByRole('complementary', { name: 'تفاصيل الوحدة: قسم الموارد البشرية' });
     expect(within(details).getAllByRole('tab').map((t) => t.textContent)).toEqual(['نظرة عامة', 'القادة', 'موظفو الوحدة', 'المسميات', 'الميثاق', 'السجل']);
+  });
+
+  it('hides the history tab from who lacks org.history_view (FR-99)', async () => {
+    openOrgPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'قسم الموارد البشرية' }));
+    const details = await screen.findByRole('complementary', { name: 'تفاصيل الوحدة: قسم الموارد البشرية' });
+    expect(within(details).getAllByRole('tab').map((t) => t.textContent)).toEqual(['نظرة عامة', 'القادة', 'موظفو الوحدة', 'المسميات', 'الميثاق']);
   });
 
   it('opens the first top unit on a tab from a link (the welcome tour uses it), once', async () => {

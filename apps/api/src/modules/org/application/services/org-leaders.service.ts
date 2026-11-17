@@ -244,7 +244,8 @@ export class OrgLeadersService {
     ]);
     const modes = effectiveModes(nodes.map((n) => ({ id: n.id, parentId: n.parentId, mode: n.managementMode })));
     const mode = modes.get(node.id) ?? 'per_company';
-    const names = { companies: new Map(companies.map((c) => [c.id, c])), employees: await this.employees.namesOf([...new Set(rows.map((r) => r.employeeId))]) };
+    const ids = [...new Set(rows.map((r) => r.employeeId))];
+    const names = { companies: new Map(companies.map((c) => [c.id, c])), employees: await this.employees.namesOf(ids), contacts: await this.employees.contactsOf(ids) };
     const items = rows.map((r) => toLeaderDto(r, names, today));
     const staffHere = staff.get(node.id) ?? new Map<string, number>();
     const companyIds = new Set<string>([...staffHere.keys(), ...rows.map((r) => r.companyId), ...(mode === 'shared' ? [groupCompanyId] : [])]);

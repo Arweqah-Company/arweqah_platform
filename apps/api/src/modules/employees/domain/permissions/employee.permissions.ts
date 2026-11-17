@@ -30,5 +30,6 @@ const directory = (key: string, labelAr: string, labelEn: string): PermissionDef
 export const DIRECTORY_PERMISSIONS: PermissionDefinition[] = [
   directory(CorePermission.DirectoryView, 'عرض فريقي (زملاء وحدتي)', 'View my team (colleagues of my unit)'),
   directory(CorePermission.DirectoryExport, 'تصدير فريقي', 'Export my team'),
+  directory(CorePermission.DirectoryContactTeams, 'محادثة زميل على Teams', 'Chat with a colleague on Teams'),
 ];
 

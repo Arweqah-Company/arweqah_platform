@@ -62,6 +62,16 @@ export class EmployeePlacementAdapter extends EmployeePlacementPort {
     return new Map(rows.map((r) => [r.id, r.full_name]));
   }
 
+  async contactsOf(employeeIds: string[]): Promise<Map<string, OrgUnitEmployeeDto>> {
+    if (!employeeIds.length) return new Map();
+    const rows: { id: string; employee_number: string; full_name: string; work_email: string; manager_name: string | null }[] = await this.ds.query(
+      `SELECT e.id, e.employee_number, e.full_name, e.work_email, m.full_name AS manager_name
+         FROM employees e LEFT JOIN employees m ON m.id = e.manager_id AND m.deleted_at IS NULL WHERE e.id = ANY($1)`,
+      [employeeIds],
+    );
+    return new Map(rows.map((r) => [r.id, { id: r.id, employeeNumber: r.employee_number, fullName: r.full_name, workEmail: r.work_email, managerName: r.manager_name }]));
+  }
+
   async exists(employeeId: string, companyId?: string): Promise<boolean> {
     const rows: unknown[] = companyId
       ? await this.ds.query('SELECT 1 FROM employees WHERE id = $1 AND company_id = $2 AND deleted_at IS NULL', [employeeId, companyId])

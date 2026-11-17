@@ -12,7 +12,7 @@
  *   POST   /nodes/:id/move    MoveNodeBody      OrgNodeDto             org.unit_move (admin mode)
  *   POST   /nodes/:id/management-mode ChangeModeBody ChangeManagementModeResultDto  org.unit_share (admin mode): {mode, reason}; returns the impact
  *   DELETE /nodes/:id                                                  org.unit_delete (admin mode)
- *   GET    /nodes/:id/versions                  OrgNodeVersionsDto     org.view: the unit's dated versions (past, current, scheduled) and its change log; a unit the viewer does not see is 404
+ *   GET    /nodes/:id/versions                  OrgNodeVersionsDto     org.view: the charter in force; the dated versions and the change log only with org.history_view (empty otherwise); a unit the viewer does not see is 404
  *   PUT    /nodes/:id/charter UpdateCharterBody OrgNodeVersionsDto     org.charter_edit (admin mode): {purpose, outputs, inScope, outOfScope, limits, effectiveFrom?, reason}
  *   GET    /nodes/:id/leaders                   OrgNodeLeadersDto      org.view: leaders and acting leaders per company, and where the manager goes when a company has none
  *   GET    /nodes/:id/employees                 OrgUnitEmployeeDto[]   org.view: the active employees placed directly in the unit (name, number, work e-mail, manager)

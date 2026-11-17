@@ -8,12 +8,24 @@ import { SecuritySettingsTab } from './security-settings-tab';
 const open = (keys = ['security_settings.view', 'security_settings.edit']) => {
   server.use(
     http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'all' as const }))))),
-    http.get('*/api/security-settings', () => HttpResponse.json({ trustedDeviceDays: 0, requestsPerMinute: 600, impersonationEnabled: 0, impersonationIdleMinutes: 30, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30 })),
+    http.get('*/api/security-settings', () => HttpResponse.json({ trustedDeviceDays: 0, requestsPerMinute: 600, impersonationEnabled: 0, impersonationIdleMinutes: 30, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30, adminModeRequiresCode: 1 })),
   );
   renderPage(<SecuritySettingsTab />);
 };
 
 describe('Security settings tab (FR-73, FR-76)', () => {
+  it('lets an administrator switch off the authenticator code of admin mode (for testing), with a warning, and saves it (FR-34)', async () => {
+    let saved: Record<string, number> | undefined;
+    server.use(http.put('*/api/security-settings', async ({ request }) => { saved = (await request.json()) as Record<string, number>; return HttpResponse.json(saved); }));
+    open();
+    const box = await screen.findByRole('checkbox', { name: /اشتراط رمز تطبيق المصادقة لتفعيل وضع المدير/ });
+    expect(box).toBeChecked();
+    fireEvent.click(box);
+    expect(await screen.findByText(/وضع المدير يعمل الآن بلا رمز/)).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
+    await waitFor(() => expect(saved?.adminModeRequiresCode).toBe(0));
+  });
+
   it('shows the numbers, checks their range, and saves them', async () => {
     let saved: Record<string, number> | undefined;
     server.use(http.put('*/api/security-settings', async ({ request }) => { saved = (await request.json()) as Record<string, number>; return HttpResponse.json(saved); }));
@@ -25,7 +37,7 @@ describe('Security settings tab (FR-73, FR-76)', () => {
     expect(await screen.findByRole('button', { name: 'حفظ' })).toBeDisabled();
     fireEvent.change(days, { target: { value: '30' } });
     fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
-    await waitFor(() => expect(saved).toEqual({ trustedDeviceDays: 30, requestsPerMinute: 600, impersonationEnabled: 0, impersonationIdleMinutes: 30, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30 }));
+    await waitFor(() => expect(saved).toEqual({ trustedDeviceDays: 30, requestsPerMinute: 600, impersonationEnabled: 0, impersonationIdleMinutes: 30, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30, adminModeRequiresCode: 1 }));
   });
 
   it('switches «sign in as» on, checks its idle minutes, and saves both (FR-85)', async () => {
@@ -42,7 +54,7 @@ describe('Security settings tab (FR-73, FR-76)', () => {
     expect(await screen.findByRole('button', { name: 'حفظ' })).toBeDisabled();
     fireEvent.change(minutes, { target: { value: '45' } });
     fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
-    await waitFor(() => expect(saved).toEqual({ trustedDeviceDays: 0, requestsPerMinute: 600, impersonationEnabled: 1, impersonationIdleMinutes: 45, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30 }));
+    await waitFor(() => expect(saved).toEqual({ trustedDeviceDays: 0, requestsPerMinute: 600, impersonationEnabled: 1, impersonationIdleMinutes: 45, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30, adminModeRequiresCode: 1 }));
   });
 
   it('shows the assistant numbers, checks their range and saves them (FR-147)', async () => {
@@ -68,7 +80,7 @@ describe('Security settings tab (FR-73, FR-76)', () => {
     expect(box).toBeChecked();
     fireEvent.click(box);
     fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
-    await waitFor(() => expect(saved).toMatchObject({ agentEnabled: 0, agentMessagesPerHour: 30, agentDraftMinutes: 30 }));
+    await waitFor(() => expect(saved).toMatchObject({ agentEnabled: 0, agentMessagesPerHour: 30, agentDraftMinutes: 30, adminModeRequiresCode: 1 }));
   });
 
   it('is read-only without the edit key', async () => {
