@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import type { Readable } from 'node:stream';
 import { ALLOWED_UPLOAD_TYPES, MAX_UPLOAD_BYTES, isPreviewable, type FileDto } from '@arweqah-platform/shared';
 import { NotFoundError } from '../../../common/domain/domain-error';
+import { CSV_TYPE, isCsvText } from '../domain/csv-text';
 import { FileNotPreviewableError, FileTooLargeError, FileTypeNotAllowedError } from '../domain/errors';
 import { StoredFile } from '../domain/stored-file.entity';
 import { ContentInspector, FileStorage } from './file-storage';
@@ -30,7 +31,7 @@ export class FilesService {
 
   async upload(ownerId: string, file: IncomingFile, rules: UploadRules = { maxBytes: MAX_UPLOAD_BYTES, types: ALLOWED_UPLOAD_TYPES }): Promise<FileDto> {
     if (file.size > rules.maxBytes) throw new FileTooLargeError();
-    const type = await this.inspector.detectType(file.buffer);
+    const type = (await this.inspector.detectType(file.buffer)) ?? (isCsvText(file.originalName, file.buffer) ? CSV_TYPE : null);
     if (!type || !rules.types.includes(type)) throw new FileTypeNotAllowedError();
     const now = new Date();
     const storageKey = `${now.getUTCFullYear()}/${now.getUTCMonth() + 1}/${randomUUID()}`;
