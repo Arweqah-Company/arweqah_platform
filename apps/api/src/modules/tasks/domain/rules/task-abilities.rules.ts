@@ -9,6 +9,8 @@ export interface AbilityFacts {
   isApprover: boolean;
   isCreator: boolean;
   isAssignee: boolean;
+  /** The viewer already follows the task. */
+  isFollowing: boolean;
   hasOpenObjection: boolean;
   /** Which keys the viewer holds (the screen hides what a person lacks; the API checks again). */
   can: { update: boolean; approve: boolean; object: boolean; follow: boolean; logTime: boolean; resubmit: boolean; restore: boolean; delete: boolean; move: boolean };
@@ -29,7 +31,7 @@ export function abilitiesOf(f: AbilityFacts): TaskAbilitiesDto {
     object: all(live, f.can.object, f.mayObject),
     answerObjection: all(live, f.hasOpenObjection, f.isCreator, f.can.update),
     resubmit: all(live, f.can.resubmit, f.isCreator, f.status === 'rejected'),
-    follow: all(f.can.follow, !f.isAssignee), // the «following» tab lists tasks that are not mine: my own task needs no following
+    follow: all(f.can.follow, !f.isAssignee || f.isFollowing), // the «following» tab lists tasks that are not mine: my own task needs no following, but a follow that already exists (the task was given to me later) can still be cancelled
     logTime: all(live, open, f.can.logTime, f.isAssignee),
     restore: all(f.archived, f.can.restore),
     delete: f.can.delete,

@@ -22,8 +22,13 @@ function runAudit() {
 
 const advisoryId = (url) => url.split('/').pop();
 const report = JSON.parse(runAudit());
+// An audit that could not run (registry down, bad token...) prints an error object and exits non-zero: that is a failure, never an empty report.
+if (report.error || typeof report.vulnerabilities !== 'object' || report.vulnerabilities === null || typeof report.metadata !== 'object') {
+  console.error(`npm audit did not return a report: ${JSON.stringify(report.error ?? report).slice(0, 500)}`);
+  process.exit(1);
+}
 const found = new Map();
-for (const vulnerability of Object.values(report.vulnerabilities ?? {})) {
+for (const vulnerability of Object.values(report.vulnerabilities)) {
   for (const via of vulnerability.via) {
     if (typeof via === 'object' && via.url) found.set(advisoryId(via.url), { ...via, package: vulnerability.name, fixAvailable: vulnerability.fixAvailable });
   }
