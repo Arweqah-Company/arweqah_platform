@@ -35,7 +35,8 @@ describe('Task details (FR-48 to FR-52)', () => {
     expect(await screen.findByRole('heading', { name: /TSK-000001 · إعداد تقرير المبيعات/ })).toBeInTheDocument();
     expect(screen.getByText('تفاصيل المهمة')).toBeInTheDocument();
     expect(screen.getAllByText('عاجلة').length).toBeGreaterThan(0);
-    expect(screen.getByText(/أُنشئت/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'عرض السجل' })).toBeInTheDocument();
+    expect(screen.getByText('عدد الأحداث: 1')).toBeInTheDocument();
     expect(screen.getByText('0:30 / 1:30')).toBeInTheDocument();
   });
 

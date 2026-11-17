@@ -9,7 +9,7 @@ import { TaskFlags, TaskPriorityBadge, TaskStatusBadge } from '../task-badges';
 import { Conversation } from '../comments/conversation';
 import { TaskActions } from './task-actions';
 import { TaskFacts } from './task-facts';
-import { TaskTimeline } from './task-timeline';
+import { TaskHistory } from './task-history';
 
 function Notes({ task }: { task: TaskDto }) {
   const { t, i18n } = useTranslation('tasks');
@@ -46,7 +46,7 @@ export function TaskDetailsPage() {
             <Conversation taskId={task.id} />
           </section>
         </Can>
-        <TaskTimeline task={task} />
+        <TaskHistory task={task} />
       </div>
     </>
   );

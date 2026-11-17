@@ -46,6 +46,14 @@ test.describe('Tasks (FR-48, FR-49, FR-50, FR-51)', () => {
     await choose(page.getByLabel('نقل إلى'), 'قيد التنفيذ');
     await expect(page.getByText('قيد التنفيذ').first()).toBeVisible();
 
+    await page.getByRole('button', { name: 'عرض السجل' }).click(); // FR-159: the history is a table in a window
+    const history = page.getByRole('dialog', { name: 'تاريخ المهمة' });
+    await expect(history.getByRole('columnheader', { name: 'الحدث' })).toBeVisible();
+    await expect(history.getByRole('row')).toHaveCount(4); // header + created, time logged, status changed
+    await settled(page);
+    await new Screen(page).expectNoSeriousA11yIssues();
+    await page.keyboard.press('Escape');
+
     await page.goto('/tasks');
     await expect(page.getByRole('link', { name: title })).toBeVisible();
     await page.getByRole('button', { name: 'لوحة كانبان' }).click();
