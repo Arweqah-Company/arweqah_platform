@@ -328,6 +328,12 @@ export const COLLABORATOR_BASE_PERMISSIONS: { key: CorePermissionKey; scope: 'ow
   ...OWN_ACCOUNT_PERMISSIONS,
 ];
 
+/** What the automatic «Direct manager» role (`auto_rule = 'has_reports'`) starts with: approving and rejecting the self-assigned tasks of the people who report to the person. */
+export const DIRECT_MANAGER_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'subtree' }[] = [
+  { key: CorePermission.TasksApprove, scope: 'subtree' },
+  { key: CorePermission.TasksReject, scope: 'subtree' },
+];
+
 export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'subtree' | 'all'; fields?: readonly string[] }[] = [
   // the leader's own account: profile (edit), security, access page, notifications
   ...OWN_ACCOUNT_PERMISSIONS,
