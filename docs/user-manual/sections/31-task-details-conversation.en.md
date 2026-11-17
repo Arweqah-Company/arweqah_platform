@@ -1,6 +1,6 @@
 ## Task details and conversation
 
-Click any task in the list to open its page. The page shows what the task is, who is involved, the buttons you may use at this moment, the task conversation, and the history of everything that happened to the task. The conversation holds comments, replies, files and mentions of colleagues with `@`.
+Click any task in the list to open its page. The page shows what the task is, who is involved, the buttons you may use at this moment, the task conversation, and a button that opens the history of everything that happened to the task as a table. The conversation holds comments, replies, files and mentions of colleagues with `@`.
 
 ### Who sees it
 
@@ -116,7 +116,7 @@ The task keeps the life described in the «My tasks» page (statuses and moves).
 
 1. Open the task. The banner tells its state: waiting for approval (with the approver's name), open objection (with the lapse date) or archived.
 2. The buttons shown are only the ones the API allows now: **Approve** / **Reject** for the approver of a pending task; **Send again** for the owner of a rejected task; **Move to** for the assignee or a manager; **Object** and **Answer the objection**; **Log time**; **Edit**; **Follow**; **Restore** for an archived task.
-3. Every step adds a line to the history: Created, Edited, Changed status, Approved, Rejected, Sent again, Objected, Objection answered, Objection lapsed, Archived, Restored, Handed over, Given to someone else, Time logged.
+3. The **View history** button (the «History of the task» section at the bottom of the page) opens a window with a table: number, date and time, by (or «The system»), event and details (the two statuses of a status change, the reason of an objection, the minutes logged, the note). Oldest first; anyone who can see the task sees it. Every step adds a line to the history: Created, Edited, Changed status, Approved, Rejected, Sent again, Objected, Objection answered, Objection lapsed, Archived, Restored, Handed over, Given to someone else, Time logged.
 4. **The conversation:** a person with the keys and a relation that allows it writes a comment (with files and `@`), replies to a comment, and edits or deletes their own comment within the edit time. The people notified are listed under Business rules.
 5. When the task is closed and archived, the conversation becomes read-only; the company may also close it some days after the task is done.
 

@@ -440,5 +440,15 @@
         "object": "You object to it if it was assigned to you unfairly"
       }
     }
+  },
+  "history": {
+    "when": "Date and time",
+    "who": "By",
+    "what": "Event",
+    "detail": "Details",
+    "to": "to",
+    "open": "View history",
+    "count_one": "1 event",
+    "count_other": "{{count}} events"
   }
 }
