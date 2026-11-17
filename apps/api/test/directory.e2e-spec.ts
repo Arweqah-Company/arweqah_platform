@@ -47,11 +47,18 @@ describe('My team: the colleagues of my own unit (FR-92)', () => {
     await agent.get(`/api/directory?orgNodeId=${org.unitB.id}`).expect(400);
   });
 
-  it('is empty for a person with no unit, and a system account is never in a team', async () => {
+  it('is empty for a person with no unit, and a system account without a unit is never in a team', async () => {
     const { agent } = await setup();
     const unplaced = await t.factories.signIn(await t.factories.user({}));
     expect((await list(unplaced)).total).toBe(0);
     expect((await list(agent, '?pageSize=100')).items.some((i) => i.fullName.includes('System'))).toBe(false);
+  });
+
+  it('FR-92: a system account placed in my unit is in my team and opens as a teammate', async () => {
+    const { agent, colleague } = await setup();
+    await t.db.query('UPDATE employees SET is_system_account = true WHERE id = $1', [colleague.employeeId]);
+    expect((await list(agent, '?pageSize=100')).items.map((i) => i.id)).toContain(colleague.employeeId);
+    await agent.get(`/api/directory/${colleague.employeeId}`).expect(200);
   });
 
   it('gives the basics to a teammate, more to the managers, and the whole record to who may open it; a person of another unit is a 404', async () => {

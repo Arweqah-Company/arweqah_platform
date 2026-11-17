@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { errorMessage } from '@/shared/lib/error-message';
 import { ImportFileError, readImportFile } from './read-sheet';
+import { rowErrorMessage } from './row-error';
 import type { ImportColumn, PreparedRow, SheetRow } from './types';
 
 export type ImportPhase = 'pick' | 'checking' | 'preview' | 'running' | 'done';
@@ -63,7 +63,8 @@ export type BatchCommit = (rows: PreparedRow[]) => Promise<ImportFailure[]>;
  * With `commit` the valid rows are saved by that one call; otherwise each row runs by itself (`PreparedRow.run`), a few at a time.
  */
 export function useImportFlow(columns: ImportColumn[], prepare: (rows: SheetRow[]) => PreparedRow[] | Promise<PreparedRow[]>, onImported?: () => void, commit?: BatchCommit) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const describe = (error: unknown) => rowErrorMessage(t, error, columns, i18n.language);
   const [phase, setPhase] = useState<ImportPhase>('pick');
   const [fileError, setFileError] = useState<string | null>(null);
   const [rows, setRows] = useState<PreparedRow[]>([]);
@@ -86,7 +87,7 @@ export function useImportFlow(columns: ImportColumn[], prepare: (rows: SheetRow[
     setPhase('running');
     setProgress(0);
     const valid = rows.filter((r) => r.run);
-    setFailures(commit ? await commitAll(commit, valid, (error) => errorMessage(t, error)) : (await runRows(valid, (error) => errorMessage(t, error), setProgress, option)).failures);
+    setFailures(commit ? await commitAll(commit, valid, describe) : (await runRows(valid, describe, setProgress, option)).failures);
     setPhase('done');
     onImported?.();
   };

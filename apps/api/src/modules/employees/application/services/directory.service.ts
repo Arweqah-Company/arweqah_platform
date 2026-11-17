@@ -28,7 +28,7 @@ export class DirectoryService {
 
   async profile(ctx: AccessContext, id: string): Promise<DirectoryProfileDto> {
     const employee = await this.employees.findById(id);
-    if (!employee || employee.isSystemAccount || !(await this.reach.isOfMyTeam(ctx, employee))) throw new NotFoundError('Employee', id);
+    if (!employee || !(await this.reach.isOfMyTeam(ctx, employee))) throw new NotFoundError('Employee', id);
     const viewer = await this.employees.findByUserId(ctx.userId);
     const level = profileLevel({
       canOpenRecord: this.reach.can(ctx, CorePermission.EmployeesView, employee),

@@ -2,6 +2,14 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-17 — Import names the column of a server refusal
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 421 | **A sidebar link made of tabs shows only for whoever holds one of its tabs' view keys (`NavItem.anyPermission`); «Settings» (`/service-settings`) uses the view keys of its tabs.** It showed for every person in admin mode, and opened to «you may not view any of these settings». | Owner, live: a team head who is also an administrator saw Settings in the sidebar and was refused inside (his admin role lacks the tabs' keys). | The tabs' keys are given to the administrator role by default. |
+| 420 | **«My team» includes a system account that holds a unit** (the platform administrator who also works in it); the exclusion of system accounts is dropped from `isTeammate`, the team query and the profile check (one with no unit is still in no team, as the match is on the unit). Supersedes the «not system accounts» part of 185. | Owner, signed in as a teammate: the administrator was not in the list of her own team (her account is the system account and holds a title, 296). | — |
+| 419 | A row the API refuses during an import is reported as «column: message», the column being the header of the file (`rowErrorMessage`, from `details.path` or the validation issues). **Adding an employee is not limited by field:** whoever may add (`employees.create`) fills every field, ID number, IBAN and salary included, in the form and in the import template; `prepare` gates the sensitive fields only when an existing record is edited (supersedes the add part of 23, 152, 381; reading and editing stay behind `employees.view_sensitive`). | Owner: the import did not say which column was wrong. | The head role gets `view_sensitive`. |
+
 ## 2026-11-16 — Review of PR 112 (the release of the assistant)
 
 **Second round (PR 112, review of 21:32).**
