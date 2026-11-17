@@ -15,6 +15,8 @@ export interface NavItem {
   rank?: number;
   /** Hidden from users without it (the API enforces it regardless). */
   permission?: string;
+  /** Hidden from users who hold none of these (a page made of tabs, each with its own view key); the API enforces each tab regardless. */
+  anyPermission?: string[];
   /** Highlight this link only on its exact address (it is the start of its siblings' addresses). */
   end?: boolean;
   /** An admin page: shown only while platform admin mode is on (the API enforces it with @RequireAdminMode). */

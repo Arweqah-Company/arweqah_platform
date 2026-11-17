@@ -49,6 +49,26 @@ describe('AppLayout navigation', () => {
   });
 });
 
+describe('Settings link in admin mode', () => {
+  const openAdmin = (keys: string[]) => {
+    server.use(http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'all' as const })), { adminMode: true }))));
+    renderRoute([{ path: '/', element: <AppLayout />, children: [{ index: true, element: <p>home</p> }] }]);
+  };
+
+  it('is left out while the person holds none of the settings tabs\' keys, and shown with one of them', async () => {
+    openAdmin([CorePermission.RolesView]);
+    fireEvent.click(await screen.findByRole('button', { name: 'إدارة النظام' }));
+    expect(await screen.findByRole('link', { name: 'الأدوار والصلاحيات' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'الإعدادات' })).not.toBeInTheDocument();
+  });
+
+  it('shows with the key of one tab', async () => {
+    openAdmin([CorePermission.RolesView, CorePermission.IntegrationsEmailView]);
+    fireEvent.click(await screen.findByRole('button', { name: 'إدارة النظام' }));
+    expect(await screen.findByRole('link', { name: 'الإعدادات' })).toBeInTheDocument();
+  });
+});
+
 describe('The career path in the sidebar and the hold of the acknowledgement (FR-111, FR-112)', () => {
   const serve = (ackRequired: boolean) => {
     const keys = [CorePermission.CareerProfileView, CorePermission.EmployeesView].map((key) => ({ key, scope: 'all' as const }));

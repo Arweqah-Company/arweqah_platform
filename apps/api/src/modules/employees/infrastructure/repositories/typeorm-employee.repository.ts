@@ -45,7 +45,7 @@ export class TypeOrmEmployeeRepository extends EmployeeRepository {
 
   async team(query: DirectoryQuery, viewer: Employee): Promise<{ items: Employee[]; total: number }> {
     const qb = this.repo.createQueryBuilder('e').orderBy('e.full_name', 'ASC').addOrderBy('e.id', 'ASC').skip((query.page - 1) * query.pageSize).take(query.pageSize);
-    qb.where('e.is_system_account = false').andWhere('EXISTS (SELECT 1 FROM users u WHERE u.id = e.user_id AND u.is_active)');
+    qb.where('EXISTS (SELECT 1 FROM users u WHERE u.id = e.user_id AND u.is_active)');
     qb.andWhere('e.org_node_id = :unitId AND e.id <> :viewerId', { unitId: viewer.orgNodeId, viewerId: viewer.id });
     if (query.companyId) qb.andWhere('e.company_id = :companyId', { companyId: query.companyId });
     if (query.jobTitleId) qb.andWhere('e.job_title_id = :jobTitleId', { jobTitleId: query.jobTitleId });

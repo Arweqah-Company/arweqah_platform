@@ -29,11 +29,11 @@ describe('Employee form (FR-17, FR-18)', () => {
     expect(screen.getByLabelText('رقم الهوية')).toBeInTheDocument();
   });
 
-  it('hides ID number, IBAN and salary for someone without employees.view_sensitive', async () => {
+  it('FR-17: adding an employee offers ID number, IBAN and salary to whoever may add, without employees.view_sensitive', async () => {
     await open(['employees.create']);
-    expect(screen.queryByRole('heading', { level: 2, name: 'الراتب والتكلفة' })).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('رقم الهوية')).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('الآيبان')).not.toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 2, name: 'الراتب والتكلفة' })).toBeInTheDocument();
+    expect(screen.getByLabelText('رقم الهوية')).toBeInTheDocument();
+    expect(screen.getByLabelText('الآيبان')).toBeInTheDocument();
   });
 
   it('shows the fields a choice asks for and hides them again', async () => {

@@ -110,8 +110,8 @@ A star (*) on screen marks a required field. The form is in two steps: «Employe
 | Nationality | Also decides the ID number rule for some ID types | No | A value from the list |
 | Marital status | | No | A value from the list |
 | Residency status | | No | A value from the list |
-| ID type | The kind of identity document | No (see rules) | Shown only to who holds `employees.view_sensitive`. Required once an ID number is typed |
-| ID number | The document number, stored encrypted | No (see rules) | Shown only to who holds `employees.view_sensitive`. Checked by the ID type (and nationality for some types); required with the ID type; one number per ID type across the system |
+| ID type | The kind of identity document | No (see rules) | Shown when adding an employee to whoever holds `employees.create`, and when editing only to who holds `employees.view_sensitive`. Required once an ID number is typed |
+| ID number | The document number, stored encrypted | No (see rules) | Shown when adding an employee (in the form and in the import template) to whoever holds `employees.create`; when editing or reading, only to who holds `employees.view_sensitive`. Checked by the ID type (and nationality for some types); required with the ID type; one number per ID type across the system |
 | ID expiry date | Feeds the «ID expiring soon» badge and filter (30 days) | No | After the birth date |
 
 #### Contract
@@ -134,7 +134,7 @@ A star (*) on screen marks a required field. The form is in two steps: «Employe
 | Termination reason | Why the relationship ends | No (shows once an end date is set) | A value from the list. Needs the end date |
 | State the reason | | Yes, when the reason is «Other» | Up to 255 characters |
 
-#### Salary and cost (shown only to who holds `employees.view_sensitive`)
+#### Salary and cost (shown when adding to whoever holds `employees.create`, and when editing only to who holds `employees.view_sensitive`)
 
 | Field | What it means / what to type | Required | Allowed values / rules |
 |---|---|---|---|
@@ -241,9 +241,9 @@ The badges «Authenticator app linked / App not linked yet», «ID expiring soon
 - **Reset authenticator app** ends the employee's sessions and sends a new invitation. **Resend invitation** sends a new link (one per minute per address).
 - **History:** every change of unit, job title or manager closes the previous value the day before it starts, and is kept with its reason and who made it. A change cannot start in the past. (FR-89, FR-90)
 - **Photo:** JPEG or PNG up to 2 MB, cropped square with zoom and position before upload; when removed, the first letter of the name shows. (FR-91)
-- **«My team»:** every employee sees only the colleagues of their own unit with basic details (name, photo, job title, e-mail, phone), not the units above or below; a manager of a colleague sees more about them. Someone without a unit sees a message explaining it. (FR-92)
+- **«My team»:** every employee sees only the colleagues of their own unit with basic details (name, photo, job title, e-mail, phone), not the units above or below, and including the platform administrator's account when it holds a place in the unit; a manager of a colleague sees more about them. Someone without a unit sees a message explaining it. (FR-92)
 - **Bulk edit:** at most 500 employees; each goes through the same dated-placement rules, and the platform is told once. (FR-93)
-- **Import:** download the template (its drop-downs hold the system's lists), fill it, then the preview shows errors, only valid rows are imported, and an error report can be downloaded. Every row passes the same checks as the form. (FR-29)
+- **Import:** download the template (its drop-downs hold the system's lists), fill it, then the preview shows errors, only valid rows are imported, and an error report can be downloaded. A row the server refuses starts its reason with the column name as in the file. Every row passes the same checks as the form. (FR-29)
 - **Update from file:** a row is identified by employee number; the cells you fill are what changes and an empty cell leaves the record as it is; no new employee is made in this mode. A change of unit, title or manager takes effect today with the reason «Imported from a file». (FR-95)
 - **Sign in as an employee:** off by default, switched on in Settings → Security; it needs platform admin mode. The administrator works with the employee's permissions without a code; everything done is recorded under the employee's name with the administrator beside it, and the employee gets a notice afterwards. Roles, security and account status stay closed. It ends with «Back to my account» or after an idle time. (FR-85)
 
