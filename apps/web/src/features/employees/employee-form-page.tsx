@@ -101,16 +101,16 @@ function DetailsStep({ id, options, state, sensitive }: { id?: string; options: 
   );
 }
 
-/** The sensitive sections (ID, salary) show for a new employee when the person may handle them, and for an edited one when the API sent them. */
-function showsSensitive(editing: boolean, employee: { sensitiveHidden: boolean } | undefined, can: (key: string) => boolean): boolean {
-  return editing ? employee?.sensitiveHidden === false : can(CorePermission.EmployeesViewSensitive);
+/** The sensitive sections (ID, salary) show for every new employee (whoever may add fills every field), and for an edited one when the API sent them. */
+function showsSensitive(editing: boolean, employee: { sensitiveHidden: boolean } | undefined): boolean {
+  return !editing || employee?.sensitiveHidden === false;
 }
 
 function FormBody({ id, options, state }: { id?: string; options: ReturnType<typeof useEmployeeOptions>; state: ReturnType<typeof useEmployeeForm> }) {
   const { t } = useTranslation('employees');
   const { can } = usePermissions();
   const { form, employee, editing } = state;
-  const sensitive = showsSensitive(editing, employee.data, can);
+  const sensitive = showsSensitive(editing, employee.data);
   const twoSteps = can(CorePermission.EmployeesAssignRoles) && can(CorePermission.RolesView);
   const editable = employee.data?.editableFields ?? null;
   const flow = useStepFlow(state, twoSteps);

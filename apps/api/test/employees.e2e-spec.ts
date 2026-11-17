@@ -220,6 +220,15 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     await session.put(`/api/employees/${mine.body.employee.id}`).send({ ...asUpdate(mine.body.employee), orgNodeId: org.unitB.id, jobTitleId: org.unitB.titleId }).expect(404);
   });
 
+  it('FR-17: a person who may add employees fills every field, the ID number included, even without employees.view_sensitive', async () => {
+    const { org, agent, payload, lookups, pick, sa } = await setup();
+    const adder = await t.factories.user({ grants: [grant(P.EmployeesView, 'all'), grant(P.EmployeesCreate, 'all')] });
+    const session = await t.factories.signIn(adder);
+    const created = (await session.post('/api/employees').send(payload(org.unitA, { idTypeId: pick(lookups.idTypes, 'national_id'), nationalityId: sa, idNumber: '1087654321', monthlyGrossSalary: 12000, salaryCurrencyCountryId: sa, iban: 'SA0380000000608010167519' })).expect(201)).body.employee;
+    const seen = (await agent.get(`/api/employees/${created.id}`).expect(200)).body;
+    expect(seen).toMatchObject({ idNumber: '1087654321', monthlyGrossSalary: 12000, iban: 'SA0380000000608010167519', sensitiveHidden: false });
+  });
+
   it('masks ID number, IBAN and salary without employees.view_sensitive and leaves them untouched on update', async () => {
     const { org, agent, payload, lookups, pick, sa } = await setup();
     const created = (await agent.post('/api/employees').send(payload(org.unitA, { idTypeId: pick(lookups.idTypes, 'national_id'), nationalityId: sa, idNumber: '1087654321', monthlyGrossSalary: 12000, salaryCurrencyCountryId: sa, iban: 'SA0380000000608010167519' })).expect(201)).body.employee;

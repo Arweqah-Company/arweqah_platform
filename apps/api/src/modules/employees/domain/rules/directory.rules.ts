@@ -7,9 +7,9 @@ export interface TeamMember {
   isSystemAccount?: boolean;
 }
 
-/** A teammate is another person, not a system account, in the very same unit as the viewer (not its sub-units, not the units above). Someone with no unit has no team. */
+/** A teammate is another person in the very same unit (a system account that holds a place there counts: it is the administrator who works in the unit; one with no unit is in no team) as the viewer (not its sub-units, not the units above). Someone with no unit has no team. */
 export function isTeammate(viewer: TeamMember, employee: TeamMember): boolean {
-  return !!viewer.orgNodeId && viewer.orgNodeId === employee.orgNodeId && viewer.id !== employee.id && !employee.isSystemAccount;
+  return !!viewer.orgNodeId && viewer.orgNodeId === employee.orgNodeId && viewer.id !== employee.id;
 }
 
 /** What the viewer has to do with the colleague whose profile they open. */

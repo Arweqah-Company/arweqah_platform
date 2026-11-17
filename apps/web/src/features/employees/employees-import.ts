@@ -8,7 +8,7 @@ import { prepareEmployeeRows, REQUIRED, unitsOf, YES_NO } from './employees-impo
 import { prepareUpdateRows, UPDATE_EXCLUDED } from './employees-update-import';
 import { useEmployeeOptions } from './form/use-options';
 
-/** Sensitive columns are in the template only for people who may see them. */
+/** Sensitive columns are in the update template only for people who may see them; the add template has every column (whoever may add fills every field). */
 const SENSITIVE = ['idNumber', 'monthlyGrossSalary', 'iban'];
 /** Template column order: the sections of the form. */
 const ORDER = ['companyId', 'relationTypeId', 'orgNodeId', 'jobTitleId', 'managerNumber', 'workLocation', 'workCountryId', 'workMode', 'workEmail', 'personalEmail', 'workPhone', 'personalPhone', 'employeeNumber', 'fullName', 'fullNameEn', 'gender', 'birthDate', 'nationalityId', 'maritalStatusId', 'residencyStatusId', 'idTypeId', 'idNumber', 'idExpiryDate', 'startDate', 'endDate', 'contractTypeId', 'contractTypeOther', 'contractCompanyId', 'isGosiRegistered', 'gosiCompanyId', 'gosiRegistrationDate', 'gosiSystemId', 'profession', 'isQiwaContract', 'hasMedicalInsurance', 'healthInsuranceCompanyId', 'monthlyGrossSalary', 'salaryCurrencyCountryId', 'iban', 'notes'];
@@ -42,14 +42,14 @@ export function useEmployeesImport() {
   const lists = useImportLists();
   const sensitive = can('employees.view_sensitive');
   const yesNo = [common('dataExchange.yes'), common('dataExchange.no')];
-  const columnsFor = (ids: string[], required: string[]): ImportColumn[] =>
-    ids.filter((id) => sensitive || !SENSITIVE.includes(id)).map((id) => ({
+  const columnsFor = (ids: string[], required: string[], all = false): ImportColumn[] =>
+    ids.filter((id) => all || sensitive || !SENSITIVE.includes(id)).map((id) => ({
       id,
       header: id === 'managerNumber' ? t('import.managerNumber') : t(`fields.${id}`),
       required: required.includes(id),
       options: YES_NO.includes(id) ? yesNo : lists[id] ? dropdownOf(lists[id]) : undefined,
     }));
-  const columns = columnsFor(ORDER, REQUIRED);
+  const columns = columnsFor(ORDER, REQUIRED, true);
   const updateColumns = columnsFor(ORDER.filter((id) => !UPDATE_EXCLUDED.includes(id)), ['employeeNumber']);
   const headersOf = (list: ImportColumn[]) => Object.fromEntries(list.map((c) => [c.id, c.header]));
   const onImported = () => void client.invalidateQueries({ queryKey: ['employees'] });

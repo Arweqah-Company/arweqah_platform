@@ -15,10 +15,10 @@ describe('The level of a colleague profile in the directory (FR-92)', () => {
 describe('Who is a teammate in «My team» (FR-92)', () => {
   const me = { id: 'a', orgNodeId: 'u1' };
   it('is another person of the very same unit', () => expect(isTeammate(me, { id: 'b', orgNodeId: 'u1' })).toBe(true));
-  it('is not the viewer, another unit, a system account, or anyone when the viewer has no unit', () => {
+  it('is also a system account that holds a place in the unit (the platform administrator who works in it)', () => expect(isTeammate(me, { id: 'b', orgNodeId: 'u1', isSystemAccount: true })).toBe(true));
+  it('is not the viewer, another unit, or anyone when the viewer has no unit', () => {
     expect(isTeammate(me, { id: 'a', orgNodeId: 'u1' })).toBe(false);
     expect(isTeammate(me, { id: 'b', orgNodeId: 'u2' })).toBe(false);
-    expect(isTeammate(me, { id: 'b', orgNodeId: 'u1', isSystemAccount: true })).toBe(false);
     expect(isTeammate({ id: 'a', orgNodeId: null }, { id: 'b', orgNodeId: null })).toBe(false);
   });
 });
