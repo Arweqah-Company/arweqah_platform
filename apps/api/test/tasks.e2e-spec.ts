@@ -129,6 +129,16 @@ describe('Tasks: my tasks, creating and assigning (FR-48), my team and the matri
       expect(unfollowed).toMatchObject({ isFollowing: false, followers: 0 });
     });
 
+    it('offers no «follow» on a task given to myself, and following it does nothing (FR-48)', async () => {
+      const w = await world();
+      const own = await made(w.agents.report);
+      const seen = (await w.agents.report.get(`/api/tasks/${own.id}`).expect(200)).body as TaskDto;
+      expect(seen.abilities.follow).toBe(false);
+      const after = (await w.agents.report.post(`/api/tasks/${own.id}/follow`).expect(200)).body as TaskDto;
+      expect(after).toMatchObject({ isFollowing: false, followers: 0 });
+      expect((await list(w.agents.report, '?tab=following')).items).toHaveLength(0);
+    });
+
     it('splits my tasks into assigned to me, assigned by me and following', async () => {
       const w = await world();
       const given = await made(w.agents.manager, { assigneeUserId: w.report.id });

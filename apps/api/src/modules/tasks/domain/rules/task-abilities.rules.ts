@@ -29,7 +29,7 @@ export function abilitiesOf(f: AbilityFacts): TaskAbilitiesDto {
     object: all(live, f.can.object, f.mayObject),
     answerObjection: all(live, f.hasOpenObjection, f.isCreator, f.can.update),
     resubmit: all(live, f.can.resubmit, f.isCreator, f.status === 'rejected'),
-    follow: f.can.follow,
+    follow: all(f.can.follow, !f.isAssignee), // the «following» tab lists tasks that are not mine: my own task needs no following
     logTime: all(live, open, f.can.logTime, f.isAssignee),
     restore: all(f.archived, f.can.restore),
   };
