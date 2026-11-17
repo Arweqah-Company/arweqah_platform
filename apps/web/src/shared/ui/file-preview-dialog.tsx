@@ -46,14 +46,17 @@ function useObjectUrl(blob: Blob | null): string | null {
   return url;
 }
 
-/** What the window shows once the bytes are there: the image, the PDF in a frame, or Word / Excel drawn by the page with a note that it is approximate. */
-function Content({ file, blob }: { file: PreviewableFile; blob: Blob }) {
+/** An image or a PDF: the browser shows it from an object URL that is released when the window closes. */
+function MediaView({ file, blob, kind }: { file: PreviewableFile; blob: Blob; kind: 'image' | 'pdf' }) {
+  const url = useObjectUrl(blob);
+  if (!url) return null;
+  if (kind === 'pdf') return <iframe src={url} title={file.name} className="h-[60vh] w-full rounded-xl border border-neutral-200" />;
+  return <img src={url} alt={file.name} className="mx-auto max-h-[60vh] max-w-full rounded-xl object-contain" />;
+}
+
+/** Word, Excel (with a note that they are approximate) or a CSV (a table of the text as it is), drawn by the page. */
+function OfficeView({ kind, blob }: { kind: 'docx' | 'xlsx' | 'csv'; blob: Blob }) {
   const { t } = useTranslation();
-  const kind = previewKindOf(file.contentType);
-  const url = useObjectUrl(kind === 'image' || kind === 'pdf' ? blob : null);
-  if (kind === 'pdf' && url) return <iframe src={url} title={file.name} className="h-[60vh] w-full rounded-xl border border-neutral-200" />;
-  if (kind === 'image' && url) return <img src={url} alt={file.name} className="mx-auto max-h-[60vh] max-w-full rounded-xl object-contain" />;
-  if (kind !== 'docx' && kind !== 'xlsx' && kind !== 'csv') return null;
   const view = { docx: <DocxView blob={blob} />, xlsx: <WorkbookView blob={blob} />, csv: <CsvView blob={blob} /> }[kind];
   return (
     <div className="flex flex-col gap-3">
@@ -61,6 +64,13 @@ function Content({ file, blob }: { file: PreviewableFile; blob: Blob }) {
       <Suspense fallback={<p role="status" className="text-sm text-muted">{t('files.loading')}</p>}>{view}</Suspense>
     </div>
   );
+}
+
+/** What the window shows once the bytes are there: the image, the PDF in a frame, or Word / Excel / CSV drawn by the page. */
+function Content({ file, blob }: { file: PreviewableFile; blob: Blob }) {
+  const kind = previewKindOf(file.contentType);
+  if (kind === 'image' || kind === 'pdf') return <MediaView file={file} blob={blob} kind={kind} />;
+  return kind ? <OfficeView kind={kind} blob={blob} /> : null;
 }
 
 /** What the window shows: a note for a type that cannot be shown, the loading or failure state, or the content. */
