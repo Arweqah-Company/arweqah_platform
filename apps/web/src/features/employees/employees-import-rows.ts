@@ -9,7 +9,8 @@ export const YES_NO = ['isGosiRegistered', 'isQiwaContract', 'hasMedicalInsuranc
 const CHOICE_FIELDS = ['relationTypeId', 'workCountryId', 'nationalityId', 'maritalStatusId', 'residencyStatusId', 'idTypeId', 'contractTypeId', 'gosiSystemId', 'salaryCurrencyCountryId', 'contractCompanyId', 'gosiCompanyId', 'healthInsuranceCompanyId'];
 const NUMBER_CODED = ['gender', 'workMode'];
 const TEXT = ['workLocation', 'workEmail', 'personalEmail', 'workPhone', 'personalPhone', 'employeeNumber', 'fullName', 'fullNameEn', 'idNumber', 'contractTypeOther', 'profession', 'iban', 'notes'];
-const DATES = ['birthDate', 'idExpiryDate', 'startDate', 'endDate', 'gosiRegistrationDate'];
+export const PHONES = ['workPhone', 'personalPhone'];
+export const DATES = ['birthDate', 'idExpiryDate', 'startDate', 'endDate', 'gosiRegistrationDate'];
 
 export interface UnitChoice extends Choice {
   titles: Choice[];
@@ -45,7 +46,7 @@ function draftOf(check: RowChecker, ctx: EmployeeImportContext): Record<string, 
     const code = check.choice(id, ctx.lists[id] as Choice[]);
     draft[id] = code === null ? null : Number(code);
   }
-  for (const id of TEXT) draft[id] = check.text(id, REQUIRED.includes(id));
+  for (const id of TEXT) draft[id] = PHONES.includes(id) ? check.phone(id) : check.text(id, REQUIRED.includes(id));
   for (const id of DATES) draft[id] = check.date(id, REQUIRED.includes(id));
   for (const id of YES_NO) draft[id] = check.yesNo(id) ?? false;
   draft.monthlyGrossSalary = check.number('monthlyGrossSalary');

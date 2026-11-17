@@ -4,7 +4,7 @@ import { usePermissions } from '@/core/permissions/can';
 import { dropdownOf, type Choice } from '@/shared/data-exchange/mapping';
 import type { ImportColumn, SheetRow } from '@/shared/data-exchange/types';
 import { useOrgReference } from './api';
-import { prepareEmployeeRows, REQUIRED, unitsOf, YES_NO } from './employees-import-rows';
+import { DATES, PHONES, prepareEmployeeRows, REQUIRED, unitsOf, YES_NO } from './employees-import-rows';
 import { prepareUpdateRows, UPDATE_EXCLUDED } from './employees-update-import';
 import { useEmployeeOptions } from './form/use-options';
 
@@ -47,6 +47,7 @@ export function useEmployeesImport() {
       id,
       header: id === 'managerNumber' ? t('import.managerNumber') : t(`fields.${id}`),
       required: required.includes(id),
+      format: DATES.includes(id) ? 'date' : PHONES.includes(id) ? 'phone' : undefined,
       options: YES_NO.includes(id) ? yesNo : lists[id] ? dropdownOf(lists[id]) : undefined,
     }));
   const columns = columnsFor(ORDER, REQUIRED, true);

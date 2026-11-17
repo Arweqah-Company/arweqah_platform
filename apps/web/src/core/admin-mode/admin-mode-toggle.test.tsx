@@ -25,6 +25,23 @@ const type = (code: string) => code.split('').forEach((digit, i) => fireEvent.ch
 const error = (status: number, code: string) => HttpResponse.json({ statusCode: status, code, message: code }, { status });
 
 describe('Platform admin mode switch (FR-34)', () => {
+  it('turns on with one click and no code while the security setting does not ask for one', async () => {
+    const state = { adminMode: OFF };
+    let body: unknown = 'not called';
+    server.use(
+      http.get('*/api/me', () => HttpResponse.json({ ...me(), adminMode: state.adminMode, adminModeCodeRequired: false })),
+      http.post('*/api/admin-mode/activate', async ({ request }) => {
+        body = await request.json();
+        state.adminMode = ON;
+        return HttpResponse.json(ON);
+      }),
+    );
+    open();
+    fireEvent.click(await screen.findByRole('button', { name: 'تفعيل وضع مدير المنصة' }));
+    await waitFor(() => expect(body).toEqual({}));
+    expect(screen.queryByLabelText('رمز تطبيق المصادقة 1')).not.toBeInTheDocument();
+  });
+
   it('is not shown to someone who has no administrative capability', async () => {
     serve({ adminMode: { available: false, active: false, expiresAt: null } }, () => error(403, 'ADMIN_MODE_NOT_ALLOWED'));
     open();

@@ -16,7 +16,7 @@ import { planVersion } from '../../domain/rules/org-version.rules';
 import type { UnitValues, VersionView } from '../../domain/types/org-version.types';
 import type { NodeView } from '../../domain/types/org.types';
 import { ORG_AUDIT } from '../messages/org.messages';
-import { assertCompanyAccess, ORG_CHARTER_EDIT } from '../policies/org-access.policy';
+import { assertCompanyAccess, ORG_CHARTER_EDIT, ORG_HISTORY_VIEW } from '../policies/org-access.policy';
 import { nodeAsVersionDto, toLogLineDto, toVersionDto } from '../transformers/org-version.transformer';
 import { OrgLeadersService } from './org-leaders.service';
 import { OrgVisibilityService } from './org-visibility.service';
@@ -52,7 +52,7 @@ export class OrgVersionsService {
 
   async get(ctx: AccessContext, nodeId: string): Promise<OrgNodeVersionsDto> {
     await this.visibility.assertVisible(ctx, nodeId);
-    return this.describe(await this.mustNode(nodeId));
+    return this.forViewer(ctx, await this.describe(await this.mustNode(nodeId)));
   }
 
   async updateCharter(ctx: AccessContext, nodeId: string, input: UpdateCharterInput, actorId: string): Promise<OrgNodeVersionsDto> {
@@ -62,7 +62,12 @@ export class OrgVersionsService {
     const applied = await this.tx.run((tx) => this.record(node, { charter }, { effectiveFrom, reason, actorId }, tx));
     this.events.emit(AUDIT_EVENT, { actorId, action: ORG_AUDIT.unitCharterChanged, entityType: 'org', entityId: nodeId, changes: { effectiveFrom, reason, applied } } satisfies AuditEvent);
     if (applied) await this.events.emitAsync(ORG_CHANGED);
-    return this.describe(await this.mustNode(nodeId));
+    return this.forViewer(ctx, await this.describe(await this.mustNode(nodeId)));
+  }
+
+  /** The unit's history (its versions and change log) goes only to who holds `org.history_view`; the charter in force is for every viewer of the unit. */
+  private forViewer(ctx: AccessContext, dto: OrgNodeVersionsDto): OrgNodeVersionsDto {
+    return ctx.has(ORG_HISTORY_VIEW) ? dto : { ...dto, versions: [], log: [] };
   }
 
   /**

@@ -1,4 +1,4 @@
-import { COLLABORATOR_BASE_PERMISSIONS, CorePermission, EMPLOYEE_DEFAULT_PERMISSIONS } from '@arweqah-platform/shared';
+import { COLLABORATOR_BASE_PERMISSIONS, CorePermission, EMPLOYEE_DEFAULT_PERMISSIONS, LEVEL_HEAD_DEFAULT_PERMISSIONS } from '@arweqah-platform/shared';
 import { describe, expect, it } from 'vitest';
 
 const ORG_ADMIN_KEYS: string[] = [CorePermission.OrgUnitCreate, CorePermission.OrgUnitUpdate, CorePermission.OrgUnitMove, CorePermission.OrgUnitDelete, CorePermission.OrgLevelsManage, CorePermission.OrgTitlesManage];
@@ -19,5 +19,12 @@ describe('The Employee role gives every person the baseline (FR-86)', () => {
     expect(scope(CorePermission.EmployeesView)).toBe('own');
     expect(scope(CorePermission.TasksView)).toBe('own');
     expect(keys).not.toContain(CorePermission.TasksTeamView);
+  });
+});
+
+describe('Chat on Teams reaches everyone (FR-154)', () => {
+  it('the Employee role and the head role of a unit hold directory.contact_teams', () => {
+    expect(EMPLOYEE_DEFAULT_PERMISSIONS.map((p) => p.key)).toContain(CorePermission.DirectoryContactTeams);
+    expect(LEVEL_HEAD_DEFAULT_PERMISSIONS.map((p) => p.key)).toContain(CorePermission.DirectoryContactTeams);
   });
 });

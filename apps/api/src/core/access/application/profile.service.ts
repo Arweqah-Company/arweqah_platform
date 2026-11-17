@@ -44,6 +44,7 @@ export class ProfileService {
       impersonation,
       impersonationEnabled: await this.impersonation.isEnabled(),
       agentEnabled: (await this.security.get('agentEnabled')) === 1,
+      adminModeCodeRequired: (await this.security.get('adminModeRequiresCode')) === 1,
       roles: (roles.get(user.id) ?? []).map((r) => ({ id: r.id, nameAr: r.nameAr, nameEn: r.nameEn })),
       placement: placements.get(user.id) ?? NO_PLACEMENT,
       createdAt: user.createdAt.toISOString(),

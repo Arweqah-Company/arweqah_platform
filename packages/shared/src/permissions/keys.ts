@@ -157,6 +157,7 @@ export const CorePermission = {
   CompaniesExport: 'companies.export',
   CompaniesImport: 'companies.import',
   OrgView: 'org.view',
+  OrgHistoryView: 'org.history_view',
   OrgUnitCreate: 'org.unit_create',
   OrgUnitUpdate: 'org.unit_update',
   OrgUnitMove: 'org.unit_move',
@@ -190,6 +191,7 @@ export const CorePermission = {
   EmployeesBulkUpdate: 'employees.bulk_update',
   DirectoryView: 'directory.view',
   DirectoryExport: 'directory.export',
+  DirectoryContactTeams: 'directory.contact_teams',
   EmployeesResendInvite: 'employees.resend_invite',
   EmployeesResetAuthenticator: 'employees.reset_authenticator',
   EmployeesExport: 'employees.export',
@@ -287,6 +289,7 @@ export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own
   { key: CorePermission.EmployeesHistoryView, scope: 'own' },
   { key: CorePermission.EmployeesPhotoUpdate, scope: 'own' },
   { key: CorePermission.DirectoryView, scope: 'all' },
+  { key: CorePermission.DirectoryContactTeams, scope: 'all' },
   { key: CorePermission.EmployeesUpdate, scope: 'own', fields: LEGACY_SELF_EDITABLE_FIELDS },
   { key: CorePermission.TicketsView, scope: 'own' },
   { key: CorePermission.TicketsCreate, scope: 'all' },
@@ -345,6 +348,9 @@ export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 's
   { key: CorePermission.EmployeesImport, scope: 'subtree' },
   { key: CorePermission.DirectoryView, scope: 'all' },
   { key: CorePermission.DirectoryExport, scope: 'all' },
+  { key: CorePermission.DirectoryContactTeams, scope: 'all' },
+  // the history of the unit and the units below it (versions and change log)
+  { key: CorePermission.OrgHistoryView, scope: 'subtree' },
   { key: CorePermission.EmployeesPhotoUpdate, scope: 'subtree' },
   { key: CorePermission.EmployeesResendInvite, scope: 'subtree' },
   { key: CorePermission.EmployeesResetAuthenticator, scope: 'subtree' },
@@ -395,6 +401,7 @@ export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 's
 /** Groups of keys that belong together (used by seeds and tests, and to give an administrator a whole area at once). */
 export const ORG_ADMIN_PERMISSIONS: CorePermissionKey[] = [
   CorePermission.OrgView,
+  CorePermission.OrgHistoryView,
   CorePermission.OrgUnitCreate,
   CorePermission.OrgUnitUpdate,
   CorePermission.OrgUnitMove,

@@ -26,6 +26,19 @@ export function parseYesNo(text: string): boolean | null | undefined {
   return words('noWords').includes(norm(text)) ? false : undefined;
 }
 
+/** `2024-1-5` and `2024/01/05` as `2024-01-05`; anything else unchanged (the day / month order of `5/1/2024` is ambiguous, so it is never guessed). */
+export const normalizeDate = (text: string): string => text.replace(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/, (_, y: string, m: string, d: string) => `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`);
+
+/**
+ * A phone as the system keeps it (`+` and digits). Excel drops the `+` of a number typed in a cell, so `966554840852` and `00966554840852` become `+966554840852`;
+ * spaces, dashes and brackets go. A local number (`0554840852`) is never guessed: it has no country code.
+ */
+export const normalizePhone = (text: string): string => {
+  const compact = text.replace(/[\s\-().]/g, '');
+  if (/^00[1-9]\d{6,14}$/.test(compact)) return `+${compact.slice(2)}`;
+  return /^[1-9]\d{6,14}$/.test(compact) ? `+${compact}` : compact;
+};
+
 export const isIsoDate = (text: string): boolean => /^\d{4}-\d{2}-\d{2}$/.test(text) && !Number.isNaN(Date.parse(text));
 
 export function parseNumber(text: string): number | undefined {
@@ -66,9 +79,15 @@ export class RowChecker {
   }
 
   date(id: string, required = false): string | null {
-    const value = this.text(id, required);
+    const text = this.text(id, required);
+    const value = text === null ? null : normalizeDate(text);
     if (value !== null && !isIsoDate(value)) this.errors.push(this.t('dataExchange.cell.badDate', { column: this.headers[id] }));
     return value !== null && isIsoDate(value) ? value : null;
+  }
+
+  phone(id: string): string | null {
+    const value = this.text(id);
+    return value === null ? null : normalizePhone(value);
   }
 
   yesNo(id: string): boolean | null {

@@ -31,7 +31,7 @@ interface ImportDialogProps {
 export function ImportDialog({ open, onOpenChange, filename, columns, prepare, onImported, commit, previewNote, title, description, option }: ImportDialogProps) {
   const { t } = useTranslation();
   const flow = useImportFlow(columns, prepare, onImported, commit);
-  const template = async () => downloadBlob(await buildTemplateBlob(columns, { template: t('dataExchange.sheetTemplate'), lists: t('dataExchange.sheetLists') }), `${filename}-template.xlsx`);
+  const template = async () => downloadBlob(await buildTemplateBlob(columns, { template: t('dataExchange.sheetTemplate'), lists: t('dataExchange.sheetLists'), prompts: { date: { title: t('dataExchange.dateTitle'), text: t('dataExchange.dateInput') }, phone: { title: t('dataExchange.phoneTitle'), text: t('dataExchange.phoneInput') } } }), `${filename}-template.xlsx`);
   const report = () => downloadBlob(new Blob([toCsv([t('dataExchange.rowColumn'), t('dataExchange.errorColumn')], flow.failures.map((f) => [f.rowNumber, f.message]))], { type: 'text/csv;charset=utf-8' }), 'import-errors.csv');
   const close = (next: boolean) => {
     if (!next && flow.phase === 'running') return;

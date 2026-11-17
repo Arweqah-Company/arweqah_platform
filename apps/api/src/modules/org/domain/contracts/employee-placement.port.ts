@@ -25,6 +25,8 @@ export abstract class EmployeePlacementPort {
   abstract countByNodes(nodeIds: string[]): Promise<Map<string, number>>;
   abstract countByTitles(titleIds: string[]): Promise<Map<string, number>>;
   abstract namesOf(employeeIds: string[]): Promise<Map<string, string>>;
+  /** Work number, work e-mail and direct manager of each of the given employees (the popup of a unit leader). */
+  abstract contactsOf(employeeIds: string[]): Promise<Map<string, OrgUnitEmployeeDto>>;
   /** True when the employee exists, optionally within one company. */
   abstract exists(employeeId: string, companyId?: string): Promise<boolean>;
   /** Direct employees of each unit per company: `unitId → companyId → count` (active employees only). */

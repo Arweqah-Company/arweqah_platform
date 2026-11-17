@@ -35,6 +35,7 @@ export const me = (permissions: PermissionGrant[] = [], options: { adminMode?: b
   impersonation: null,
   impersonationEnabled: false,
   agentEnabled: true,
+  adminModeCodeRequired: true,
   adminMode: { available: options.adminMode === true, active: options.adminMode === true, expiresAt: null },
   trustedDevicesEnabled: false,
   roles: [],

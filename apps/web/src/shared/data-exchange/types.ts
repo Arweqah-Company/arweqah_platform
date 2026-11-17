@@ -14,6 +14,8 @@ export interface ImportColumn {
   header: string;
   required?: boolean;
   options?: string[];
+  /** A column with a written format (a date, a phone): the template tells the person the format when they select a cell of it. */
+  format?: 'date' | 'phone';
   /** Short help shown in the import dialog's column list. */
   hint?: string;
 }

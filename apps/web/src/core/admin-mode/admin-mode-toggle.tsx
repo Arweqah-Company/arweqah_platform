@@ -52,7 +52,7 @@ export function AdminModeToggle() {
         aria-label={label}
         title={label}
         onClick={() => {
-          if (!adminMode.active) return setAsking(true);
+          if (!adminMode.active) return adminMode.codeRequired ? setAsking(true) : adminMode.activate.mutate(undefined, { onSuccess: () => toast.success(t('adminMode.turnedOn')) });
           markManualOff();
           adminMode.deactivate.mutate();
         }}

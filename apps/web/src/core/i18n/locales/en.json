@@ -59,6 +59,7 @@
     "signOut": "Sign out",
     "retry": "Try again",
     "close": "Close",
+    "chatOnTeams": "Chat on Teams",
     "confirm": "Confirm",
     "view": "View"
   },
@@ -275,6 +276,10 @@
     "chooseFile": "Choose an Excel or CSV file",
     "dropFile": "Drop an Excel or CSV file here, or click to browse",
     "fileHint": "Up to {{rows}} rows.",
+    "dateTitle": "Date format",
+    "dateInput": "Write the date as year-month-day, for example 1990-04-15",
+    "phoneTitle": "Phone format",
+    "phoneInput": "Write the number in international format with the country code, e.g. +966501234567 (if Excel drops the +, 966501234567 is accepted too)",
     "sheetTemplate": "Template",
     "sheetLists": "Lists",
     "checking": "Checking the file…",
@@ -302,7 +307,7 @@
     "cell": {
       "required": "“{{column}}” is required.",
       "unknownOption": "“{{column}}”: “{{value}}” is not one of the options.",
-      "badDate": "“{{column}}”: the date must be year-month-day.",
+      "badDate": "“{{column}}”: the date must be year-month-day, for example 1990-04-15.",
       "badNumber": "“{{column}}”: not a valid number.",
       "badYesNo": "“{{column}}”: write yes or no.",
       "duplicate": "Duplicate in the file: “{{column}}” = “{{value}}”.",
