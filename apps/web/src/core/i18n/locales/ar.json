@@ -99,7 +99,7 @@
     "TOO_MANY_REQUESTS": "طلبات كثيرة في وقت قصير. انتظر دقيقة ثم أعد المحاولة.",
     "DERIVED_ROLE": "هذا الدور يتبع مسمى وظيفيًا أو مستوى في الهيكل، فاسمه وأعضاؤه لا يتغيّران يدويًا.",
     "ROLE_TEMPLATE_INVALID": "دور القالب غير صالح: اختر دورًا يدويًا أو دور «موظف».",
-    "FILE_TYPE_NOT_ALLOWED": "نوع الملف غير مسموح. المسموح: PDF و PNG و JPEG.",
+    "FILE_TYPE_NOT_ALLOWED": "نوع الملف غير مسموح. المسموح: PDF و PNG و JPEG و Word (docx) و Excel (xlsx) و CSV.",
     "INVALID_CODE": "الرمز غير صحيح.",
     "AUTHENTICATOR_LOCKED": "محاولات كثيرة. حاول بعد قليل.",
     "ALREADY_ENROLLED": "تطبيق المصادقة مربوط بالفعل.",
@@ -409,7 +409,7 @@
     "remove": "إزالة {{name}}",
     "tooMany": "الحد الأقصى {{max}} ملفات.",
     "failed": "تعذّر رفع الملف.",
-    "hint": "اختياري. صور أو ملفات PDF أو Word (docx) أو Excel (xlsx)."
+    "hint": "اختياري. صور أو ملفات PDF أو Word (docx) أو Excel (xlsx) أو CSV."
   },
   "groups": {
     "nameAr": "الاسم بالعربية",

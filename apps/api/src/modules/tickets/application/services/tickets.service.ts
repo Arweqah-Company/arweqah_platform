@@ -92,7 +92,7 @@ export class TicketsService {
     const events = await this.tickets.events(id);
     const ids = events.map((e) => e.id);
     const [attachments, mentions, names] = await Promise.all([this.tickets.attachments(ids), this.tickets.mentions(ids), this.deskNames([found.deskId])]);
-    return this.transformer.toDetail({ row: found, desk: names.get(found.deskId), relations, events, attachments, mentions, now: this.clock.now(), canReassign: this.policy.reassignReach(viewer, found) !== null });
+    return this.transformer.toDetail({ row: found, desk: names.get(found.deskId), relations, events, attachments, mentions, now: this.clock.now(), canReassign: this.policy.reassignReach(viewer, found) !== null, canDelete: this.policy.mayDelete(viewer, found) });
   }
 
   async reply(viewer: TicketViewer, id: string, input: TicketReplyInput): Promise<TicketDto> {

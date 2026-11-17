@@ -10,7 +10,7 @@ const WAITING = `t.status = 'open'
   AND (SELECT e.actor_user_id FROM ticket_events e WHERE e.ticket_id = t.id ORDER BY e.created_at DESC, e.id DESC LIMIT 1) IS DISTINCT FROM $1`;
 const DESK = `JOIN org_nodes n ON n.id = t.desk_id LEFT JOIN employees dm ON dm.id = n.manager_id AND dm.deleted_at IS NULL`;
 
-const WAITING_COUNT = `SELECT count(*)::int AS n FROM tickets t ${DESK} WHERE ${WAITING}`;
+const WAITING_COUNT = `SELECT count(*)::int AS n FROM tickets t ${DESK} WHERE t.deleted_at IS NULL AND ${WAITING}`;
 
 @Injectable()
 export class TypeOrmTicketSummaryRepository extends TicketSummaryRepository {
@@ -21,7 +21,7 @@ export class TypeOrmTicketSummaryRepository extends TicketSummaryRepository {
   async counts(userId: string): Promise<TicketSummaryCounts> {
     const sent: { sentOpen: number; awaitingMyConfirmation: number }[] = await this.ds.query(
       `SELECT count(*) FILTER (WHERE t.status <> 'closed')::int AS "sentOpen", count(*) FILTER (WHERE t.status = 'close_requested')::int AS "awaitingMyConfirmation"
-       FROM tickets t WHERE t.sender_user_id = $1`,
+       FROM tickets t WHERE t.sender_user_id = $1 AND t.deleted_at IS NULL`,
       [userId],
     );
     const waiting: { n: number }[] = await this.ds.query(WAITING_COUNT, [userId]);
@@ -30,13 +30,13 @@ export class TypeOrmTicketSummaryRepository extends TicketSummaryRepository {
 
   sent(userId: string, limit: number): Promise<TicketSummaryRow[]> {
     return this.ds.query(
-      `SELECT ${ROW} FROM tickets t WHERE t.sender_user_id = $1 AND t.status <> 'closed' ORDER BY (t.status = 'close_requested') DESC, t.needed_by, t.id LIMIT ${Math.trunc(limit)}`,
+      `SELECT ${ROW} FROM tickets t WHERE t.sender_user_id = $1 AND t.deleted_at IS NULL AND t.status <> 'closed' ORDER BY (t.status = 'close_requested') DESC, t.needed_by, t.id LIMIT ${Math.trunc(limit)}`,
       [userId],
     );
   }
 
   waiting(userId: string, limit: number): Promise<TicketSummaryRow[]> {
-    const sql = `SELECT ${ROW} FROM tickets t ${DESK} WHERE ${WAITING} ORDER BY t.needed_by, t.id LIMIT ${Math.trunc(limit)}`;
+    const sql = `SELECT ${ROW} FROM tickets t ${DESK} WHERE t.deleted_at IS NULL AND ${WAITING} ORDER BY t.needed_by, t.id LIMIT ${Math.trunc(limit)}`;
     return this.ds.query(sql, [userId]);
   }
 }

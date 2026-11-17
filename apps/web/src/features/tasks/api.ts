@@ -47,6 +47,7 @@ export const useDecide = (id: string) => useTaskMutation(({ action, ...body }: D
 export const useObject = (id: string) => useTaskMutation((input: ObjectTaskInput) => apiClient.post<TaskDto>(`/tasks/${id}/objection`, input));
 export const useAnswerObjection = (id: string) => useTaskMutation((input: AnswerObjectionInput) => apiClient.post<TaskDto>(`/tasks/${id}/objection/answer`, input));
 export const useLogTime = (id: string) => useTaskMutation((input: TimeEntryInput) => apiClient.post<TaskDto>(`/tasks/${id}/time`, input));
+export const useDeleteTask = (id: string) => useTaskMutation(() => apiClient.request<void>(`/tasks/${id}`, { method: 'DELETE' }));
 export const useRestore = (id: string) => useTaskMutation(() => apiClient.post<TaskDto>(`/tasks/${id}/restore`));
 export const useFollow = (id: string) =>
   useTaskMutation((on: boolean) => (on ? apiClient.post<TaskDto>(`/tasks/${id}/follow`) : apiClient.request<TaskDto>(`/tasks/${id}/follow`, { method: 'DELETE' })));

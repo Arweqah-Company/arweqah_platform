@@ -19,6 +19,7 @@ import { TaskCommentsController } from './presentation/controllers/task-comments
 import { TaskApprovalService } from './application/services/task-approval.service';
 import { TaskObjectionService } from './application/services/task-objection.service';
 import { TaskArchiveService } from './application/services/task-archive.service';
+import { TaskDeleteService } from './application/services/task-delete.service';
 import { TaskHandoverService } from './application/services/task-handover.service';
 import { TaskRecurrenceService } from './application/services/task-recurrence.service';
 import { TaskReminderService } from './application/services/task-reminder.service';
@@ -69,6 +70,7 @@ import { TasksController } from './presentation/controllers/tasks.controller';
     TaskObjectionService,
     TaskObjectionExpiryJob,
     TaskArchiveService,
+    TaskDeleteService,
     TaskHandoverService,
     TaskRecurrenceService,
     TaskReminderService,

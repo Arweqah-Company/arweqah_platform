@@ -43,7 +43,8 @@ function senderAbilities(sender: boolean, status: TicketStatus, reopenLeft: numb
 }
 
 /** What each relation may do now. The sender replies to an open ticket; the unit (assignee or manager) closes it. */
-export function abilitiesFor(relations: readonly TicketRelation[], status: TicketStatus, reopenLeft: number | null, canReassign = false): TicketAbilitiesDto {
+export function abilitiesFor(relations: readonly TicketRelation[], status: TicketStatus, reopenLeft: number | null, grants: { canReassign?: boolean; canDelete?: boolean } = {}): TicketAbilitiesDto {
+  const { canReassign = false, canDelete = false } = grants;
   const has = (relation: TicketRelation): boolean => relations.includes(relation);
   const sender = has('sender');
   const unit = UNIT_SIDE.some(has);
@@ -53,6 +54,7 @@ export function abilitiesFor(relations: readonly TicketRelation[], status: Ticke
     requestClose: unit && status === 'open',
     closeWithoutExecution: unit && live,
     reassign: canReassign && live,
+    delete: canDelete,
     ...senderAbilities(sender, status, reopenLeft),
   };
 }

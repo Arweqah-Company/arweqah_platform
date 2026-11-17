@@ -110,7 +110,9 @@ export class TasksService {
   }
 
   async follow(viewer: TaskViewer, id: string, on: boolean): Promise<TaskDto> {
-    this.access.assertCanView(viewer, await this.tasks.find(id, viewer.userId));
+    const task = await this.tasks.find(id, viewer.userId);
+    this.access.assertCanView(viewer, task);
+    if (on && task?.assigneeUserId === viewer.userId) return this.get(viewer, id); // one's own task is never «followed»
     if (on) await this.tasks.follow(id, viewer.userId);
     else await this.tasks.unfollow(id, viewer.userId);
     return this.get(viewer, id);

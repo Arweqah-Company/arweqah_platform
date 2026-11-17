@@ -28,6 +28,7 @@ export const TASK_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.TasksLogTime, 'تسجيل ساعات العمل على مهمة', 'Log time on a task'),
   def(CorePermission.TasksArchiveView, 'عرض المهام المؤرشفة', 'View archived tasks', WIDE),
   def(CorePermission.TasksRestore, 'استرجاع مهمة مؤرشفة', 'Restore an archived task', WIDE),
+  def(CorePermission.TasksDelete, 'حذف مهمة (تُخفى عن الجميع ويبقى سجلها)', 'Delete a task (hidden from everyone, its record is kept)', WIDE),
   def(CorePermission.TasksExport, 'تصدير قوائم المهام', 'Export task lists'),
   def(CorePermission.TasksTagsView, 'عرض صفحة فئات المهام', 'View the task tags page', WIDE),
   def(CorePermission.TasksTagCreate, 'إضافة فئة مهام', 'Add a task tag', WIDE),

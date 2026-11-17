@@ -39,6 +39,7 @@ const PATCH_COLUMNS: Record<keyof TaskPatch, string> = {
   completedOn: 'completed_on',
   lastActivityAt: 'last_activity_at',
   archivedAt: 'archived_at',
+  deletedAt: 'deleted_at',
   remindedAt: 'reminded_at',
   overdueNotifiedAt: 'overdue_notified_at',
   estimateNotifiedAt: 'estimate_notified_at',
@@ -91,7 +92,7 @@ export class TypeOrmTaskRepository extends TaskRepository {
       values.push(value);
       return `$${values.length}`;
     };
-    const where: string[] = [this.tabSql(f, values), f.archived ? 't.archived_at IS NOT NULL' : 't.archived_at IS NULL'];
+    const where: string[] = ['t.deleted_at IS NULL', this.tabSql(f, values), f.archived ? 't.archived_at IS NOT NULL' : 't.archived_at IS NULL'];
     if (f.status) where.push(`t.status = ${bind(f.status)}`);
     if (f.openOnly) where.push(OPEN);
     if (f.priority) where.push(`t.priority = ${bind(f.priority)}`);

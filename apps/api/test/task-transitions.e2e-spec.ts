@@ -120,7 +120,7 @@ describe('Tasks: table, board and the rules of moving a task (FR-50), notices of
       const asManager = (await w.agents.manager.get(`/api/tasks/${task.id}`).expect(200)).body as TaskDto;
       expect(asAssignee.abilities.moveTo).toEqual(['in_progress']);
       expect(asManager.abilities.moveTo).toEqual(['in_progress']);
-      expect(asAssignee.abilities).toMatchObject({ edit: true, object: true, follow: true, logTime: true, approve: false });
+      expect(asAssignee.abilities).toMatchObject({ edit: true, object: true, follow: false, logTime: true, approve: false });
     });
   });
 

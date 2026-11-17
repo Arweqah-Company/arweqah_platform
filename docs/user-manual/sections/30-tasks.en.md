@@ -27,7 +27,7 @@
 | Reopen | Brings a finished task back | `tasks.reopen` (Reopen a finished task) |
 | Resubmit | Sends a rejected task for approval again | `tasks.resubmit` |
 | Object | Objects to a task given to you | `tasks.object` |
-| Follow / Unfollow | Adds the task to your «Following» tab | `tasks.follow` (Follow a task) |
+| Follow / Unfollow | Adds the task to your «Following» tab; the button is not shown on a task given to you (it is under «Assigned to me»), because following is for tasks that are not yours | `tasks.follow` (Follow a task) |
 | Log time | Records time worked | `tasks.log_time` |
 | Archived filter | Shows archived tasks | `tasks.archive_view` (View archived tasks) |
 | Restore | Brings an archived task back | `tasks.restore` (Restore an archived task) |
@@ -101,7 +101,7 @@ There is no attachment field on a task: files are added in the task conversation
 
 1. The creator clicks **New task**, fills the form and clicks **Create the task**. The task gets a number such as TSK-000123 and the first line of its history, «Created».
 2. **Given to another person:** the task starts as «To do» at once. The assignee receives the notice «New task». If «Needs a review» is on, the reviewer is the creator.
-3. **Given to yourself, with a manager:** the task starts as «Pending approval» and the manager receives «Approval requested». The manager opens the task and clicks **Approve** (`tasks.approve`) or **Reject** (`tasks.reject`), with an optional note. Approving makes it «To do»; rejecting makes it «Rejected». The creator is notified of the decision.
+3. **Given to yourself, with a manager:** the task starts as «Pending approval» and the manager receives «Approval requested». The manager opens the task and clicks **Approve** (`tasks.approve`; the automatic «Direct manager» role holds it, so everyone with direct reports sees it unless an administrator removes it from the role) or **Reject** (`tasks.reject`), with an optional note. Approving makes it «To do»; rejecting makes it «Rejected». The creator is notified of the decision.
 4. **Rejected:** the owner edits the task and clicks **Send again** (`tasks.resubmit`); it goes back to the manager as «Pending approval». **Given to yourself, with no manager:** nobody has to approve, the task is «To do» at once, and the review switch has no effect because there is nobody to review.
 5. **Objection:** while the task is «To do», an assignee who got it from someone else may click **Object** and choose a reason. The person who gave the task answers: keep it with the assignee, or accept and give it to someone else (who is notified). Unanswered, the objection lapses after 3 working days by default (set in Task policies).
 6. **Start and work:** the assignee (or a manager of the team) moves the task to «In progress» by dragging the card or with «Move to». The assignee logs the time worked with **Log time**.

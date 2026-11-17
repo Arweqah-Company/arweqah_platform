@@ -23,6 +23,7 @@ const SCOPED_KEYS: string[] = [
   CorePermission.TasksLogTime,
   CorePermission.TasksArchiveView,
   CorePermission.TasksRestore,
+  CorePermission.TasksDelete,
   CorePermission.TasksCommentView,
   CorePermission.TasksCommentAdd,
   CorePermission.TasksCommentReply,

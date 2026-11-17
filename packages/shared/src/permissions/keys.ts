@@ -206,6 +206,7 @@ export const CorePermission = {
   TicketsCloseWithoutExecution: 'tickets.close_without_execution',
   TicketsReopen: 'tickets.reopen',
   TicketsReassign: 'tickets.reassign',
+  TicketsDelete: 'tickets.delete',
   TicketsCommentReply: 'tickets.comment_reply',
   TicketsCommentMention: 'tickets.comment_mention',
   TicketsSetupView: 'tickets.setup_view',
@@ -233,6 +234,7 @@ export const CorePermission = {
   TasksLogTime: 'tasks.log_time',
   TasksArchiveView: 'tasks.archive_view',
   TasksRestore: 'tasks.restore',
+  TasksDelete: 'tasks.delete',
   TasksExport: 'tasks.export',
   TasksTagsView: 'tasks.tags_view',
   TasksTagCreate: 'tasks.tag_create',
@@ -328,6 +330,12 @@ export const COLLABORATOR_BASE_PERMISSIONS: { key: CorePermissionKey; scope: 'ow
   ...OWN_ACCOUNT_PERMISSIONS,
 ];
 
+/** What the automatic «Direct manager» role (`auto_rule = 'has_reports'`) starts with: approving and rejecting the self-assigned tasks of the people who report to the person. */
+export const DIRECT_MANAGER_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'subtree' }[] = [
+  { key: CorePermission.TasksApprove, scope: 'subtree' },
+  { key: CorePermission.TasksReject, scope: 'subtree' },
+];
+
 export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'subtree' | 'all'; fields?: readonly string[] }[] = [
   // the leader's own account: profile (edit), security, access page, notifications
   ...OWN_ACCOUNT_PERMISSIONS,
@@ -388,6 +396,8 @@ export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 's
   { key: CorePermission.TicketsView, scope: 'subtree' },
   { key: CorePermission.TicketsReply, scope: 'subtree' },
   { key: CorePermission.TicketsReassign, scope: 'subtree' },
+  { key: CorePermission.TicketsDelete, scope: 'subtree' },
+  { key: CorePermission.TasksDelete, scope: 'subtree' },
   { key: CorePermission.TicketsCommentReply, scope: 'all' },
   { key: CorePermission.TicketsCommentMention, scope: 'all' },
   { key: CorePermission.TicketsSetupView, scope: 'subtree' },

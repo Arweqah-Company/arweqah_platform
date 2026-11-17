@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { DIRECT_MANAGER_DEFAULT_PERMISSIONS } from '@arweqah-platform/shared';
 import { Role } from '../../core/access/domain/role.entity';
 import { ENSURED_ROLES, ROLE_SEEDS } from './data/roles.data';
 
@@ -23,6 +24,7 @@ export class RolesCatalogSeeder {
     if ((await repo.count({ where: { isSystem: false } })) > 0) return;
     for (const seed of ROLE_SEEDS) {
       const role = Object.assign(new Role(), { nameAr: seed.ar, nameEn: seed.en, description: seed.note ?? null, isSystem: false, assignment: seed.assignment, autoRule: seed.autoRule ?? null, permissions: [] });
+      if (seed.autoRule === 'has_reports') role.replacePermissions(DIRECT_MANAGER_DEFAULT_PERMISSIONS);
       await repo.save(role);
     }
     this.logger.log(`${ROLE_SEEDS.length} roles created from the owner's list`);

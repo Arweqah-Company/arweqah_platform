@@ -14,6 +14,7 @@ export const TASK_AUDIT = {
   archived: 'task.archived',
   handoverSkipped: 'task.handover_skipped',
   restored: 'task.restored',
+  deleted: 'task.deleted',
   handedOver: 'task.handed_over',
   timeLogged: 'task.time_logged',
   tagCreated: 'task.tag.created',
