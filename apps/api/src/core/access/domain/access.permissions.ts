@@ -36,6 +36,7 @@ export const ACCESS_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.PagesManage, 'إخفاء الصفحات وإظهارها لكل دور', 'Hide and show pages for each role'),
   def(CorePermission.ProfileView, 'عرض الملف الشخصي', 'View my profile'),
   def(CorePermission.ProfileUpdate, 'تعديل بياناتي الشخصية والتفضيلات', 'Edit my contact details and preferences'),
+  def(CorePermission.ProfileUpdateBasic, 'طلب تعديل بياناتي الأساسية (بموافقة الموارد البشرية)', 'Request a change of my basic data (HR approves)'),
   def(CorePermission.SecurityView, 'عرض صفحة الأمان', 'View the security page'),
   def(CorePermission.MyAccessView, 'عرض صفحة صلاحياتي', 'View my access page'),
   def(CorePermission.MyAccessExport, 'تصدير صلاحياتي', 'Export my access'),

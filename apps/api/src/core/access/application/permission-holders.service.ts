@@ -23,17 +23,23 @@ export class PermissionHoldersService {
     private readonly config: AppConfig,
   ) {}
 
-  async holdersOf(key: string): Promise<string[]> {
-    const hit = this.cache.get(key);
+  /** `beyondOwn`: leave out those whose grant reaches only their own record (the Employee role holds `employees.update` that way), so the answer is who looks after others. */
+  async holdersOf(key: string, options: { beyondOwn?: boolean } = {}): Promise<string[]> {
+    const cacheKey = options.beyondOwn ? `${key}:beyond-own` : key;
+    const hit = this.cache.get(cacheKey);
     if (hit && hit.expiresAt > Date.now() && !this.config.isTest) return hit.userIds; // the tests change who holds a key between one request and the next
     const ids = await this.repo.activeUserIds();
     const holders: string[] = [];
     for (let i = 0; i < ids.length; i += BATCH) {
       const contexts = await Promise.all(ids.slice(i, i + BATCH).map((id) => this.contexts.forUser(id)));
-      contexts.forEach((c, n) => { if (c?.isActive && c.filterFor(key)) holders.push(ids[i + n] as string); });
+      contexts.forEach((c, n) => { if (c?.isActive && this.holds(c.filterFor(key), options.beyondOwn)) holders.push(ids[i + n] as string); });
     }
-    this.cache.set(key, { userIds: holders, expiresAt: Date.now() + CACHE_TTL_MS });
+    this.cache.set(cacheKey, { userIds: holders, expiresAt: Date.now() + CACHE_TTL_MS });
     return holders;
+  }
+
+  private holds(filter: { scope: string } | null, beyondOwn?: boolean): boolean {
+    return !!filter && !(beyondOwn && filter.scope === 'own');
   }
 
   @OnEvent(ACCESS_CHANGED)

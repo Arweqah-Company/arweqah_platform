@@ -33,6 +33,13 @@ import { EmployeeValidationService } from './application/services/employee-valid
 import { EmployeeProfileService } from './application/services/employee-profile.service';
 import { EmployeesService } from './application/services/employees.service';
 import { Employee } from './domain/entities/employee.entity';
+import { EmployeeBasicRequest } from './domain/entities/employee-basic-request.entity';
+import { EmployeeBasicRequestRepository } from './domain/contracts/employee-basic-request.repository';
+import { TypeOrmEmployeeBasicRequestRepository } from './infrastructure/repositories/typeorm-employee-basic-request.repository';
+import { EmployeeBasicRequestService } from './application/services/employee-basic-request.service';
+import { EmployeeBasicRequestDecisionService } from './application/services/employee-basic-request-decision.service';
+import { EmployeeBasicRequestNotifier } from './application/services/employee-basic-request-notifier.service';
+import { EmployeeBasicRequestsController, ProfileBasicRequestController } from './presentation/controllers/employee-basic-requests.controller';
 import { DIRECTORY_PERMISSIONS, EMPLOYEE_PERMISSIONS } from './domain/permissions/employee.permissions';
 import { EmployeeRepository } from './domain/contracts/employee.repository';
 import { EmployeeCareerAdapter } from './infrastructure/adapters/employee-career.adapter';
@@ -49,11 +56,15 @@ import { ProfileController } from './presentation/controllers/profile.controller
  */
 @Global()
 @Module({
-  imports: [TypeOrmModule.forFeature([Employee, EmployeeAssignment]), OrgModule, LookupsModule],
-  controllers: [EmployeesController, EmployeeBulkController, EmployeeAssignmentsController, EmployeeHistoryController, EmployeePhotoController, DirectoryController, ProfileController],
+  imports: [TypeOrmModule.forFeature([Employee, EmployeeAssignment, EmployeeBasicRequest]), OrgModule, LookupsModule],
+  controllers: [EmployeesController, EmployeeBulkController, EmployeeAssignmentsController, EmployeeHistoryController, EmployeePhotoController, DirectoryController, ProfileController, ProfileBasicRequestController, EmployeeBasicRequestsController],
   providers: [
     EmployeesService,
     EmployeeProfileService,
+    EmployeeBasicRequestService,
+    EmployeeBasicRequestDecisionService,
+    EmployeeBasicRequestNotifier,
+    { provide: EmployeeBasicRequestRepository, useClass: TypeOrmEmployeeBasicRequestRepository },
     EmployeeValidationService,
     EmployeeTransformer,
     EmployeeLifecycleJob,

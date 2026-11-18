@@ -386,5 +386,18 @@
     "noUnit": "You have no unit yet.",
     "noUnitHint": "Your team shows once you are placed in a unit."
   },
-  "fixDetails": "Something on the first page needs a look: we took you back to it and put the reason under the field."
+  "fixDetails": "Something on the first page needs a look: we took you back to it and put the reason under the field.",
+  "basicRequest": {
+    "title": "Request to change basic data",
+    "description": "Asked by the employee from their profile. Their record does not change until you approve.",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approved": "Request approved and the record updated.",
+    "rejected": "Request rejected.",
+    "rejectTitle": "Reject the request?",
+    "rejectBody": "The employee's record stays as it is and they get a notice of the rejection.",
+    "reason": "Reason for rejection (optional)",
+    "reasonHint": "The employee receives it with the notice.",
+    "noFields": "You may not change every field asked for, so you cannot decide this request."
+  }
 }

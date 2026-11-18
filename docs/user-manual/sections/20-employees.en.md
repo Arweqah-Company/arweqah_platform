@@ -20,6 +20,7 @@ The «Employees» page is the directory of employee records and their sign-in ac
 | Add employee | Opens the two-step form; a sign-in account is created and an activation invitation is sent | `employees.create` (Add employees) |
 | View (eye icon or click the row) | Opens the employee page | `employees.view` (View employees) |
 | Edit (pencil) | Opens the form to change the fields you are allowed | `employees.update` (Edit employees) |
+| «Request to change basic data» (a card on the employee page, shown when the employee asks to change the name, gender, nationality, birth date or marital status) | Shows today's and the requested value of each field. «Approve» writes the values to the record and notifies the employee; «Reject» (optional reason) leaves the record as it is and notifies them | `employees.update` (Edit employees) with a scope that reaches the employee **and all five fields asked for** |
 | Deactivate / Activate (power icon) | Stops the employee signing in and ends their sessions at once, or gives sign-in back | `employees.deactivate` (Deactivate and activate employees) |
 | Sign in as the employee (icon) | An administrator works as the employee to see what they see | `impersonation.start` (Sign in as another employee) |
 | Select several, then «Bulk edit» | Changes unit, job title, manager, work location, work mode or relation type for many | `employees.bulk_update` (Edit many employees at once), plus `employees.assign_change` when changing unit, title or manager |
@@ -230,6 +231,7 @@ The badges «Authenticator app linked / App not linked yet», «ID expiring soon
 
 ### Business rules
 
+- **Requests to change basic data:** nobody decides their own request, a person whose permission does not cover every field asked for sees no decision buttons, and a second decision on a request already decided is refused. The notice goes only to those whose permission reaches the employee and its fields.
 - **Scope:** a record outside your scope shows as if it does not exist (no «forbidden» message). (FR-06, FR-20)
 - **The work e-mail** is the sign-in identity and Microsoft account and cannot change after adding. Only allowed domains are accepted (default arweqah.sa; the list is set in Settings → Security). (FR-77)
 - **Employee states:** Active, Deactivated, «Needs a unit» (no unit or no job title). Badges: «Authenticator app linked / App not linked yet», «ID expiring soon», «Contract ending soon». (FR-72)
