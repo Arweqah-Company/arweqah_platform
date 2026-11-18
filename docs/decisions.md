@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-18 — Deleting a ticket does not wait for a refetch
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 429 | **`useDeleteTicket` drops the deleted ticket's own query (`removeQueries`) and refreshes the lists in the background (no awaited `invalidateQueries`).** | The shared mutation refetched the open ticket after the delete; it answered 404 and TanStack Query retried it 3 times (about 7 s) while the delete button waited. | The query client gets `retry: false` for 404 answers globally. |
+
 ## 2026-11-17 — Import names the column of a server refusal
 
 | # | Decision | Why | Revisit when |
