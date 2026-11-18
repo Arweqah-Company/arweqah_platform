@@ -28,6 +28,8 @@ const a = (category: AuditCategory, ar: string, en: string): AuditAction => ({ c
 export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'auth.sign_in': a('sign_in', 'تسجيل دخول', 'Signed in'),
   'auth.mfa.verified': a('sign_in', 'أدخل رمز التطبيق بنجاح', 'Verified the authenticator code'),
+  'auth.email_code.sent': a('sign_in', 'طلب رمز دخول بالبريد', 'Asked for a sign-in code by e-mail'),
+  'auth.email_code.used': a('sign_in', 'أدخل رمز البريد بنجاح', 'Entered the e-mailed code'),
   'auth.code.failed': a('sign_in', 'أدخل رمز تطبيق خاطئًا', 'Entered a wrong authenticator code'),
   'auth.authenticator.enabled': a('sign_in', 'ربط تطبيق المصادقة', 'Linked the authenticator app'),
   'auth.authenticator.reset': a('sign_in', 'أعاد ضبط تطبيق المصادقة لموظف', 'Reset an employee’s authenticator app'),

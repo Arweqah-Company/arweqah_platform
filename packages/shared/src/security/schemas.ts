@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { authCodeSchema } from '../auth/schemas';
+import { authCodeSchema, CODE_METHODS } from '../auth/schemas';
 
 /** The security numbers an administrator sets from the settings page (no value is fixed in the code): name → default and limits. */
 export const SECURITY_SETTINGS = {
@@ -60,8 +60,8 @@ export interface TrustedDeviceDto {
   current: boolean;
 }
 
-/** The code step: the six digits, and optionally trusting this browser. */
-export const verifyCodeSchema = authCodeSchema.extend({ rememberDevice: z.boolean().optional() });
+/** The code step: the six digits (from the app or the e-mail, `method`), and optionally trusting this browser. */
+export const verifyCodeSchema = authCodeSchema.extend({ rememberDevice: z.boolean().optional(), method: z.enum(CODE_METHODS).optional() });
 export type VerifyCodeInput = z.infer<typeof verifyCodeSchema>;
 
 /** At least two labels of letters, digits and inner hyphens (each up to 63 characters), the last of letters only. */

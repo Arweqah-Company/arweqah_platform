@@ -1,12 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
-import type { BackupCodesDto, CaptchaConfigDto, EnrollmentStartDto } from '@arweqah-platform/shared';
+import type { BackupCodesDto, CaptchaConfigDto, CodeMethod, EnrollmentStartDto } from '@arweqah-platform/shared';
 import { apiClient } from '@/core/api/api-client';
 
 /** E-mail + code of the authenticator app. A 401 always means "e-mail or code is not valid". */
-export const signInWithCode = (input: { email: string; code: string; rememberDevice?: boolean }) => apiClient.post<{ user: { id: string } }>('/auth/totp/sign-in', input);
+export const signInWithCode = (input: { email: string; code: string; rememberDevice?: boolean; method?: CodeMethod }) => apiClient.post<{ user: { id: string } }>('/auth/totp/sign-in', input);
 
 /** The code step for a session that is not code-verified yet (after Microsoft sign-in). */
-export const verifyCode = (code: string, rememberDevice = false) => apiClient.post<void>('/mfa/verify', { code, ...(rememberDevice ? { rememberDevice } : {}) });
+export const verifyCode = (code: string, rememberDevice = false, method: CodeMethod = 'app') => apiClient.post<void>('/mfa/verify', { code, ...(rememberDevice ? { rememberDevice } : {}), ...(method === 'email' ? { method } : {}) });
+
+/** On a browser the person trusted, the e-mail alone signs in (a 401 means this browser is not trusted). */
+export const trustedSignIn = (email: string) => apiClient.post<{ user: { id: string } }>('/auth/totp/trusted-sign-in', { email });
+
+/** E-mails a sign-in code to the address (always succeeds, whatever the address); the second form is for a signed-in session after Microsoft. */
+export const sendEmailCode = (email: string) => apiClient.post<void>('/mfa/email-code', { email });
+export const sendEmailCodeToMe = () => apiClient.post<void>('/mfa/email-code/me');
 
 /** After a Microsoft sign-in: the code step is skipped on a browser the person trusted. */
 export const skipCodeOnTrustedDevice = () => apiClient.post<{ skipped: boolean }>('/mfa/trusted-skip');

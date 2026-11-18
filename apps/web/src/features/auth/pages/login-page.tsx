@@ -6,7 +6,8 @@ import { ApiError } from '@/core/api/api-client';
 import { authClient } from '@/core/auth/auth-client';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { Alert, Button, CodeInput, FormField, Input, Turnstile } from '@/shared/ui';
-import { identifyEmail, signInWithCode, useCaptchaConfig } from '../api';
+import { identifyEmail, sendEmailCode, signInWithCode, trustedSignIn, useCaptchaConfig } from '../api';
+import { EmailCodeOption, useEmailCode, type EmailCodeState } from './email-code-option';
 import { AuthShell } from './auth-shell';
 
 type Step = 'email' | 'code';
@@ -17,6 +18,31 @@ function useBotCheck() {
   const [token, setToken] = useState<string | null>(null);
   const [round, setRound] = useState(0);
   return { siteKey, token, setToken, round, ready: !siteKey || !!token, refresh: () => setRound((r) => r + 1) };
+}
+
+function useMicrosoft(target: string, setError: (message: string | null) => void) {
+  const { t } = useTranslation('auth');
+  return async () => {
+    setError(null);
+    const result = await authClient.signIn.social({ provider: 'microsoft', callbackURL: window.location.origin + target });
+    if (result.error) setError(t('microsoftFailed'));
+  };
+}
+
+/** On a browser the person trusted, the e-mail alone signs in; any failure just means the code is asked. */
+function useTrustedEntry(target: string) {
+  const navigate = useNavigate();
+  const client = useQueryClient();
+  return async (email: string): Promise<boolean> => {
+    try {
+      await trustedSignIn(email);
+    } catch {
+      return false;
+    }
+    await client.invalidateQueries();
+    navigate(target, { replace: true });
+    return true;
+  };
 }
 
 function identifyFailure(failure: unknown, t: (key: string) => string): string {
@@ -30,24 +56,20 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const client = useQueryClient();
+  const target = (location.state as { from?: string } | null)?.from ?? '/';
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
-  const [firstTime, setFirstTime] = useState(false);
-  const [canRemember, setCanRemember] = useState(false);
+  const [identified, setIdentified] = useState({ firstTime: false, trustedDevicesEnabled: false });
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const enterWithTrustedDevice = useTrustedEntry(target);
   const bot = useBotCheck();
-  const rules = useRules();
-  const emailLive = useLiveError(email, rules.email);
-  const target = (location.state as { from?: string } | null)?.from ?? '/';
+  const emailCode = useEmailCode(() => sendEmailCode(email), () => setCode(''));
+  const emailLive = useLiveError(email, useRules().email);
 
-  const microsoft = async () => {
-    setError(null);
-    const result = await authClient.signIn.social({ provider: 'microsoft', callbackURL: window.location.origin + target });
-    if (result.error) setError(t('microsoftFailed'));
-  };
+  const microsoft = useMicrosoft(target, setError);
 
   const next = async (event: FormEvent) => {
     event.preventDefault();
@@ -55,9 +77,9 @@ export function LoginPage() {
     setBusy(true);
     setError(null);
     try {
-      const identified = await identifyEmail(email, bot.token ?? undefined);
-      setFirstTime(identified.firstTime);
-      setCanRemember(identified.trustedDevicesEnabled);
+      const found = await identifyEmail(email, bot.token ?? undefined);
+      setIdentified(found);
+      if (!found.firstTime && found.trustedDevicesEnabled && (await enterWithTrustedDevice(email))) return;
       setStep('code');
     } catch (failure) {
       setError(identifyFailure(failure, t));
@@ -73,7 +95,7 @@ export function LoginPage() {
     setBusy(true);
     setError(null);
     try {
-      await signInWithCode({ email, code: finalCode, ...(remember ? { rememberDevice: true } : {}) });
+      await signInWithCode({ email, code: finalCode, ...(remember ? { rememberDevice: true } : {}), ...(emailCode.method === 'email' ? { method: 'email' as const } : {}) });
       await client.invalidateQueries();
       navigate(target, { replace: true });
     } catch (failure) {
@@ -88,6 +110,7 @@ export function LoginPage() {
     setStep('email');
     setCode('');
     setError(null);
+    emailCode.useApp();
   };
 
   return (
@@ -108,7 +131,7 @@ export function LoginPage() {
           <Button type="submit" disabled={busy || !email || !bot.ready}>{t('next')}</Button>
         </form>
       ) : (
-        <CodeStep email={email} firstTime={firstTime} remember={canRemember ? { checked: remember, onChange: setRemember } : null} error={error} code={code} busy={busy} onCode={setCode} onSubmit={(e, full) => void submit(e, full)} onBack={back} />
+        <CodeStep email={email} firstTime={identified.firstTime} emailCode={emailCode} remember={identified.trustedDevicesEnabled ? { checked: remember, onChange: setRemember } : null} error={error} code={code} busy={busy} onCode={setCode} onSubmit={(e, full) => void submit(e, full)} onBack={back} />
       )}
     </AuthShell>
   );
@@ -117,6 +140,7 @@ export function LoginPage() {
 interface CodeStepProps {
   email: string;
   firstTime: boolean;
+  emailCode: EmailCodeState;
   remember: { checked: boolean; onChange: (value: boolean) => void } | null;
   error: string | null;
   code: string;
@@ -126,7 +150,7 @@ interface CodeStepProps {
   onBack: () => void;
 }
 
-function CodeStep({ email, firstTime, remember, error, code, busy, onCode, onSubmit, onBack }: CodeStepProps) {
+function CodeStep({ email, firstTime, emailCode, remember, error, code, busy, onCode, onSubmit, onBack }: CodeStepProps) {
   const { t } = useTranslation('auth');
   return (
     <form className="flex flex-col gap-4" onSubmit={(e) => onSubmit(e)} noValidate>
@@ -140,9 +164,10 @@ function CodeStep({ email, firstTime, remember, error, code, busy, onCode, onSub
         </label>
       )}
       <div className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-fg" id="code-label">{t('code')}</span>
-        <CodeInput label={t('code')} value={code} onChange={onCode} onComplete={(full) => onSubmit(undefined, full)} invalid={!!error} disabled={busy} />
-        <p className="text-xs text-muted">{t('codeHint')}</p>
+        <span className="text-sm font-medium text-fg" id="code-label">{emailCode.method === 'email' ? t('emailCode.label') : t('code')}</span>
+        <CodeInput label={emailCode.method === 'email' ? t('emailCode.label') : t('code')} value={code} onChange={onCode} onComplete={(full) => onSubmit(undefined, full)} invalid={!!error} disabled={busy} />
+        {emailCode.method === 'app' && <p className="text-xs text-muted">{t('codeHint')}</p>}
+        {!firstTime && <EmailCodeOption state={emailCode} disabled={busy} />}
       </div>
       <Button type="submit" disabled={busy || code.length < 6}>{t('submit')}</Button>
       <Button type="button" variant="ghost" size="sm" onClick={onBack}>{t('changeEmail')}</Button>

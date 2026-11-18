@@ -17,6 +17,7 @@
   },
   "purposes": {
     "activation": "دعوة تفعيل الحساب",
+    "sign_in": "رموز الدخول بالبريد",
     "tickets": "التذاكر",
     "tasks": "المهام",
     "notification": "إشعارات عامة",

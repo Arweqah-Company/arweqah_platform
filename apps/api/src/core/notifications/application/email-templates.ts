@@ -2,6 +2,7 @@ import { localizedVariable, variable } from '../../templates/domain/rules/define
 import type { TemplateDefinition } from '../../templates/domain/types/template.types';
 
 export const INVITATION_TEMPLATE = 'auth.invitation';
+export const LOGIN_CODE_TEMPLATE = 'auth.login_code';
 export const NOTIFICATION_EMAIL_TEMPLATE = 'notification.email';
 
 const NAME = localizedVariable('name', ['اسم المستلم', 'The recipient’s name'], ['سارة أحمد', 'Sara Ahmed']);
@@ -21,6 +22,21 @@ export const EMAIL_TEMPLATES: TemplateDefinition[] = [
     defaults: {
       ar: { title: 'فعّل حسابك في منصة أروقة', preheader: 'رابط تفعيل حسابك صالح 72 ساعة', buttonText: 'ربط تطبيق المصادقة', body: '<p>مرحبًا {{name}}،</p><p>تم إنشاء حساب لك في منصة أروقة. اضغط الزر أدناه خلال 72 ساعة لربط تطبيق المصادقة (Microsoft أو Google Authenticator).</p><p>يمكنك أيضًا الدخول بحساب Microsoft الخاص بالعمل.</p>' },
       en: { title: 'Activate your Arweqah account', preheader: 'Your activation link is valid for 72 hours', buttonText: 'Link authenticator app', body: '<p>Hello {{name}},</p><p>An Arweqah Platform account was created for you. Press the button below within 72 hours to link your authenticator app (Microsoft or Google Authenticator).</p><p>You can also sign in with your Microsoft work account.</p>' },
+      colors: { band: 'petrol', button: 'petrol' },
+    },
+  },
+  {
+    key: LOGIN_CODE_TEMPLATE,
+    kind: 'email',
+    area: 'sign_in',
+    nameAr: 'رمز الدخول بالبريد',
+    nameEn: 'E-mailed sign-in code',
+    descriptionAr: 'يُرسل عندما يختار الموظف رمز البريد بدل رمز تطبيق المصادقة؛ صالح 10 دقائق ويُستعمل مرة واحدة',
+    descriptionEn: 'Sent when an employee chooses the e-mailed code instead of the authenticator app code; valid for 10 minutes and used once',
+    variables: [NAME, { ...variable('code', ['رمز الدخول (6 أرقام)', 'The sign-in code (6 digits)'], '482915', true) }],
+    defaults: {
+      ar: { title: 'رمز الدخول إلى منصة أروقة', preheader: 'رمزك صالح 10 دقائق', buttonText: '', body: '<p>مرحبًا {{name}}،</p><p>رمز الدخول الخاص بك:</p><p><strong>{{code}}</strong></p><p>صالح 10 دقائق ويُستعمل مرة واحدة. إن لم تطلبه فتجاهل هذه الرسالة ولا تشاركه مع أحد.</p>' },
+      en: { title: 'Your Arweqah sign-in code', preheader: 'Your code is valid for 10 minutes', buttonText: '', body: '<p>Hello {{name}},</p><p>Your sign-in code:</p><p><strong>{{code}}</strong></p><p>It is valid for 10 minutes and can be used once. If you did not ask for it, ignore this message and do not share it with anyone.</p>' },
       colors: { band: 'petrol', button: 'petrol' },
     },
   },
