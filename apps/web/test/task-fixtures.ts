@@ -37,6 +37,6 @@ export const taskDetail = (over: Partial<TaskDto> = {}): TaskDto => ({
   followers: 0,
   objection: null,
   events: [{ id: 'e1', type: 'created', actor: { id: 'u2', name: 'منى خالد' }, fromStatus: null, toStatus: 'todo', note: null, createdAt: '2026-11-01T08:00:00.000Z' }],
-  abilities: { moveTo: [], edit: false, approve: false, object: false, answerObjection: false, resubmit: false, follow: false, logTime: false, restore: false, delete: false },
+  abilities: { moveTo: [], edit: false, approve: false, object: false, answerObjection: false, resubmit: false, follow: false, manageFollowers: false, logTime: false, restore: false, delete: false },
   ...over,
 });

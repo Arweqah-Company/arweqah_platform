@@ -5,14 +5,14 @@ import { Navigate, useLocation, useNavigate } from 'react-router';
 import { ApiError } from '@/core/api/api-client';
 import { ME_KEY, useMe, useSignOut } from '@/core/auth/session';
 import { Alert, Button, CodeInput, FormField, Input } from '@/shared/ui';
-import { skipCodeOnTrustedDevice, verifyCode } from '../api';
+import { sendEmailCodeToMe, skipCodeOnTrustedDevice, verifyCode } from '../api';
+import { EmailCodeOption, useEmailCode } from './email-code-option';
 import { AuthShell } from './auth-shell';
 
 /** Entering the code: state and submit in one place, so the page itself only draws. */
-function useCodeStep() {
+function useCodeStep(method: 'app' | 'email', code: string, setCode: (code: string) => void) {
   const { t } = useTranslation('auth');
   const client = useQueryClient();
-  const [code, setCode] = useState('');
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -22,7 +22,7 @@ function useCodeStep() {
     setBusy(true);
     setError(null);
     try {
-      await verifyCode(finalCode, remember);
+      await verifyCode(finalCode, remember, method);
       await client.invalidateQueries({ queryKey: ME_KEY });
     } catch (failure) {
       setError(failure instanceof ApiError && failure.code === 'AUTHENTICATOR_LOCKED' ? t('verify.locked') : t('verify.invalid'));
@@ -38,7 +38,9 @@ function useCodeStep() {
 function VerifyForm({ trusting }: { trusting: boolean }) {
   const { t } = useTranslation('auth');
   const signOut = useSignOut();
-  const step = useCodeStep();
+  const [code, setCode] = useState('');
+  const emailCode = useEmailCode(sendEmailCodeToMe, () => setCode(''));
+  const step = useCodeStep(emailCode.method, code, setCode);
   const [useBackup, setUseBackup] = useState(false);
   const toggle = () => {
     setUseBackup(!useBackup);
@@ -54,16 +56,17 @@ function VerifyForm({ trusting }: { trusting: boolean }) {
           {t('verify.remember')}
         </label>
       )}
-      {useBackup ? (
+      {useBackup && emailCode.method === 'app' ? (
         <FormField label={t('verify.backupLabel')}>
           {(p) => <Input {...p} dir="ltr" autoComplete="off" placeholder="XXXXX-XXXXX" value={step.code} onChange={(e) => step.setCode(e.target.value)} />}
         </FormField>
       ) : (
-        <CodeInput label={t('code')} value={step.code} onChange={step.setCode} onComplete={(full) => void step.submit(undefined, full)} invalid={!!step.error} disabled={step.busy} autoFocus />
+        <CodeInput label={emailCode.method === 'email' ? t('emailCode.label') : t('code')} value={step.code} onChange={step.setCode} onComplete={(full) => void step.submit(undefined, full)} invalid={!!step.error} disabled={step.busy} autoFocus />
       )}
       <Button type="submit" disabled={step.busy || step.code.length < 6}>{t('verify.submit')}</Button>
+      <EmailCodeOption state={emailCode} disabled={step.busy} />
       <div className="flex items-center justify-between text-sm">
-        <button type="button" className="text-link underline underline-offset-4" onClick={toggle}>{useBackup ? t('verify.useApp') : t('verify.useBackup')}</button>
+        {emailCode.method === 'app' ? <button type="button" className="text-link underline underline-offset-4" onClick={toggle}>{useBackup ? t('verify.useApp') : t('verify.useBackup')}</button> : <span />}
         <button type="button" className="text-muted underline underline-offset-4" onClick={() => void signOut()}>{t('verify.signOut')}</button>
       </div>
     </form>

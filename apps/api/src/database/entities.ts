@@ -16,6 +16,7 @@ import { AllowedEmailDomain } from '../core/auth/domain/allowed-email-domain.ent
 import { SecuritySetting } from '../core/auth/domain/security-setting.entity';
 import { AgentConversation, AgentMessage } from '../core/agent/domain/entities/agent.entities';
 import { TrustedDevice } from '../core/auth/domain/trusted-device.entity';
+import { EmailLoginCode } from '../core/auth/domain/email-login-code.entity';
 import { User } from '../core/auth/domain/user.entity';
 import { StoredFile } from '../core/files/domain/stored-file.entity';
 import { OutboxMessage } from '../core/messaging/domain/outbox-message.entity';
@@ -54,6 +55,7 @@ import { TICKET_ENTITIES } from '../modules/tickets/domain/entities/ticket.entit
 export const ENTITIES = [
   User,
   TrustedDevice,
+  EmailLoginCode,
   AllowedEmailDomain,
   SecuritySetting,
   AgentConversation,

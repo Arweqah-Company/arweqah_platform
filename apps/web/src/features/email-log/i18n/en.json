@@ -17,6 +17,7 @@
   },
   "purposes": {
     "activation": "Account activation invitations",
+    "sign_in": "Sign-in codes",
     "tickets": "Tickets",
     "tasks": "Tasks",
     "notification": "General notices",

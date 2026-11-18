@@ -71,6 +71,12 @@ export class TaskAccessPolicy {
     return task.creatorUserId === viewer.userId || task.assigneeUserId === viewer.userId || this.reaches(viewer, P.TasksUpdate, task);
   }
 
+  /** Adding and removing followers: the key, and the assignee, the giver of the task, or a person whose scope of the key reaches the assignee. */
+  mayManageFollowers(viewer: TaskViewer, task: TaskRow): boolean {
+    if (!holds(viewer, P.TasksFollowersManage)) return false;
+    return task.creatorUserId === viewer.userId || task.assigneeUserId === viewer.userId || this.reaches(viewer, P.TasksFollowersManage, task);
+  }
+
   /** Deleting (hiding): the key, and the giver of the task or a person whose delete scope reaches the assignee. */
   mayDelete(viewer: TaskViewer, task: TaskRow): boolean {
     if (!holds(viewer, P.TasksDelete)) return false;
@@ -103,6 +109,7 @@ export class TaskAccessPolicy {
         approve: holds(viewer, P.TasksApprove),
         object: holds(viewer, P.TasksObject),
         follow: holds(viewer, P.TasksFollow),
+        manageFollowers: this.mayManageFollowers(viewer, task),
         logTime: holds(viewer, P.TasksLogTime),
         resubmit: holds(viewer, P.TasksResubmit),
         restore: holds(viewer, P.TasksRestore),

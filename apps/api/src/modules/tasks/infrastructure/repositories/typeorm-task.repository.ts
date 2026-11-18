@@ -165,6 +165,19 @@ export class TypeOrmTaskRepository extends TaskRepository {
     return rows.map((r) => r.user_id);
   }
 
+  followers(taskId: string): Promise<{ userId: string; name: string }[]> {
+    return this.ds.query(
+      `SELECT f.user_id AS "userId", COALESCE(e.full_name, u.name) AS name FROM task_followers f JOIN users u ON u.id = f.user_id
+       LEFT JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL WHERE f.task_id = $1 ORDER BY name`,
+      [taskId],
+    );
+  }
+
+  async addFollowers(taskId: string, userIds: string[], tx: TransactionContext): Promise<string[]> {
+    const rows: { user_id: string }[] = await this.m(tx).query('INSERT INTO task_followers (task_id, user_id) SELECT $1, unnest($2::uuid[]) ON CONFLICT DO NOTHING RETURNING user_id', [taskId, userIds]);
+    return rows.map((r) => r.user_id);
+  }
+
   async addTime(entry: { taskId: string; userId: string; minutes: number; workedOn: string }, tx: TransactionContext): Promise<void> {
     await this.m(tx).query('INSERT INTO task_time_entries (task_id, user_id, minutes, worked_on) VALUES ($1, $2, $3, $4)', [entry.taskId, entry.userId, entry.minutes, entry.workedOn]);
   }

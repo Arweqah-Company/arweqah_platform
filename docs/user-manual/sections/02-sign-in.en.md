@@ -18,7 +18,8 @@ There is no password on the platform. You sign in **with the company Microsoft a
 | Enter the app code (6 digits) then «Sign in» | Opens the platform | Not needed |
 | «Change e-mail» | Takes you back to type another e-mail | Not needed |
 | «Use a backup code» | You sign in with one of the codes you saved when linking | Not needed |
-| «Remember this device and do not ask for the code there» | Trusts the browser, so the code is not asked there for the time the platform administrator set | Not needed |
+| «Send the code to my e-mail» | Sends a 6-digit code to your work e-mail, to enter instead of the app code (valid 10 minutes, used once) | Not needed |
+| «Remember this device and do not ask for the code there» | Trusts the browser: for the time the platform administrator set, typing your e-mail is enough to sign in there, with no code (also after Microsoft) | Not needed |
 
 ### How to
 
@@ -28,6 +29,12 @@ There is no password on the platform. You sign in **with the company Microsoft a
 1. Type your **work e-mail** and press «Continue». If a bot-protection check appears, complete it.
 2. Open the authenticator app and enter the **6-digit code** shown for your account.
 3. The platform opens. The code changes every 30 seconds.
+
+**Signing in with a code sent to your e-mail (no phone at hand)**
+
+1. Type your work e-mail and press «Continue».
+2. Press «Send the code to my e-mail». Within a minute a 6-digit code reaches your mailbox.
+3. Enter it in the boxes. It is valid 10 minutes, works once, and stops after 5 wrong tries. To get a new one press «Send the code again» (allowed once a minute) or go back with «Use the app code». It is only for people who already linked the app.
 
 **Signing in with the Microsoft account**
 
@@ -60,13 +67,15 @@ The sign-in has three small forms, one after the other. Nothing here is a permis
 | Field | What it means / what to type | Required | Allowed values / rules |
 |---|---|---|---|
 | Authenticator code | The 6-digit number your authenticator app shows for your account. It proves the phone is yours | Yes | 6 digits; it changes every 30 seconds and a code already used is never accepted |
-| Remember this device and do not ask for the code there | Asks the platform to trust this browser | No | A tick box, shown only when the administrator allowed trusted devices (Settings → Security, days above 0); the time is the one the administrator set |
+| Code e-mailed to you | The same 6-digit code, sent to your work e-mail when you press «Send the code to my e-mail» (not offered on a first sign-in) | Yes, if you use it instead of the app code | 6 digits; valid 10 minutes, works once, 5 wrong tries cancel it |
+| Remember this device and do not ask for the code there | Asks the platform to trust this browser; next time, typing your e-mail signs you in there with no code | No | A tick box, shown only when the administrator allowed trusted devices (Settings → Security, days above 0); the time is the one the administrator set |
 
 **The «Verify your identity» page** (after «Sign in with Microsoft»)
 
 | Field | What it means / what to type | Required | Allowed values / rules |
 |---|---|---|---|
 | Authenticator code | The same 6-digit code; Microsoft only proves who you are, the code is still asked | Yes | 6 digits |
+| Code e-mailed to you | The 6-digit code sent to your work e-mail after pressing «Send the code to my e-mail»; it replaces the app code | Yes, if you use it instead of the app code | 6 digits; valid 10 minutes, works once, 5 wrong tries cancel it |
 | Backup code | One of the codes you saved when you linked the app, for when the phone is lost (press «Use a backup code», and «Use the app code» to go back) | Yes, if you use it instead of the app code | 6 to 12 characters, such as `K7MQ2-X9PD4`; each works once |
 | Remember this device and do not ask for the code there | Trusts this browser | No | A tick box, shown only when trusted devices are allowed |
 

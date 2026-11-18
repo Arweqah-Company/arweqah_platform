@@ -2,6 +2,19 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-18 — Sign-in code by e-mail and a trusted device on the e-mail sign-in
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 433 | **The e-mailed code is a second way to give the code step, for every person who linked the authenticator app (no setting, owner's choice).** `email_login_codes` holds one row per person: an HMAC-SHA256 (key `BETTER_AUTH_SECRET`, message `userId:code`) of a 6-digit code, expiry 10 minutes, `attempts` (5 wrong tries kill the code), `created_at` (a new code only after 60 seconds, decided in one atomic `INSERT … ON CONFLICT … WHERE` so two servers cannot both send). `method: 'email'` (default `'app'`) on `POST /auth/totp/sign-in` and `POST /mfa/verify` picks the kind, so a wrong e-mailed code never counts toward the app's lock and the app code is never tried against it. `POST /mfa/email-code` is public and always 204 (nothing says whether the address exists, is active or asked too soon); it does not repeat the bot check (a Turnstile token is single use and the e-mail step already spent it), so the per-person 60-second wait and the request limit are what stop mailbox flooding. Not offered on a first sign-in (the person gets the QR link) and never to someone with no app linked. Audit `auth.email_code.sent` / `auth.email_code.used`; mail purpose `sign_in`; the body is never stored in the e-mail log. | The owner wants a way in when the phone is not at hand, without waiting for HR. Cost: whoever controls the mailbox can sign in; the mailbox already receives the QR link, and Microsoft sign-in is e-mail-based too. | Mailbox flooding is seen (then add the bot check to the send) or the owner wants the e-mailed code switchable. |
+| 434 | **A trusted device now also skips the code on the e-mail sign-in** (supersedes decision 130 and 171's «the e-mail sign-in is never skipped»): after the e-mail step the web calls `POST /auth/totp/trusted-sign-in { email }`; the server signs in only when the person is active, has linked the app, and the `arweqah_device` cookie is a trusted device of that person that has not expired while `trustedDeviceDays` is above 0. Any other case answers the same 401 and the code is asked. Not skipped on a first sign-in. Revoking works as before (reset of the app, deactivation, «Remove trust», days set to 0). Using a device is audited as `auth.trusted_device.used`. | Owner: on live the code was asked every time. Without the days (default 0, Settings → Security) nothing is remembered. | The owner wants the e-mail alone never to sign in. |
+
+## 2026-11-18 — Followers chosen by the owner of a task
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 432 | **`tasks.followers_manage` lets the assignee, the giver of a task and a manager whose scope reaches the assignee add active employees of the same company as followers, one at a time with a server-side search, and remove them; the Employee role holds it at `own`, the head role of each unit at `subtree` (migration `TaskFollowersManageKey`).** A follower stops by themselves with the existing «unfollow»; when that leaves them no way to see the task the API answers with nothing (not 404) and the web drops the task from its cache and returns to the list. `useDeleteTask` got the same no-refetch treatment as the ticket delete (decision 429). | The owner wanted a colleague of the same level to be able to follow a task (the «my team» tab only reaches people below). | Followers should also be addable at creation, or from a group. |
+
 ## 2026-11-18 — The employee asks, HR approves a change of basic data
 
 | # | Decision | Why | Revisit when |

@@ -28,6 +28,8 @@ const a = (category: AuditCategory, ar: string, en: string): AuditAction => ({ c
 export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'auth.sign_in': a('sign_in', 'تسجيل دخول', 'Signed in'),
   'auth.mfa.verified': a('sign_in', 'أدخل رمز التطبيق بنجاح', 'Verified the authenticator code'),
+  'auth.email_code.sent': a('sign_in', 'طلب رمز دخول بالبريد', 'Asked for a sign-in code by e-mail'),
+  'auth.email_code.used': a('sign_in', 'أدخل رمز البريد بنجاح', 'Entered the e-mailed code'),
   'auth.code.failed': a('sign_in', 'أدخل رمز تطبيق خاطئًا', 'Entered a wrong authenticator code'),
   'auth.authenticator.enabled': a('sign_in', 'ربط تطبيق المصادقة', 'Linked the authenticator app'),
   'auth.authenticator.reset': a('sign_in', 'أعاد ضبط تطبيق المصادقة لموظف', 'Reset an employee’s authenticator app'),
@@ -166,6 +168,8 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'task.objection_expired': a('tasks', 'انتهت مهلة اعتراض على مهمة', 'The time to object to a task ran out'),
   'task.time_logged': a('tasks', 'سجّل وقت عمل على مهمة', 'Logged time on a task'),
   'task.archived': a('tasks', 'أرشف مهمة', 'Archived a task'),
+  'task.followers_added': a('tasks', 'أضاف متابعين لمهمة', 'Added followers to a task'),
+  'task.follower_removed': a('tasks', 'أزال متابعًا من مهمة', 'Removed a follower from a task'),
   'task.restored': a('tasks', 'استعاد مهمة من الأرشيف', 'Restored a task from the archive'),
   'task.handed_over': a('tasks', 'سلّم مهام موظف لغيره', 'Handed an employee’s tasks to someone else'),
   'task.handover_skipped': a('tasks', 'تعذّر تسليم بعض المهام', 'Some tasks could not be handed over'),
