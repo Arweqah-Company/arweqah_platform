@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-18 — Export the permissions of the chosen target
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 430 | **`permissions.export` («Export permissions») downloads the saved grants of the chosen role, group or person as JSON `{ kind, nameAr, nameEn, permissions: [{ key, scope, fields? }] }`, built in the browser from the target already loaded (no new API).** Only the System Admin holds it (the seeder gives that role every catalog key); no migration, not in the head role (standing rule 17 covers modules' team keys, not an admin tool). | The owner needs to take a role's grants made in the UI and put them in the seeder. The shape is the one the seeders use. | A seeder reads such a file directly. |
+
 ## 2026-11-18 — Deleting a ticket does not wait for a refetch
 
 | # | Decision | Why | Revisit when |

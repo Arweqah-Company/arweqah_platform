@@ -33,6 +33,7 @@ export const CorePermission = {
   PermissionsRoleGroupUpdate: 'permissions.role_group_update',
   PermissionsUserUpdate: 'permissions.user_update',
   PermissionsUserGroupUpdate: 'permissions.user_group_update',
+  PermissionsExport: 'permissions.export',
   PagesView: 'pages.view',
   PagesManage: 'pages.manage',
   ListsView: 'lists.view',

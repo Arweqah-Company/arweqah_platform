@@ -9,7 +9,7 @@ export const permissionsFeature: FeatureModule = {
   routes: [{ path: '/permissions', lazy: () => import('./permissions-page').then((m) => ({ Component: m.PermissionsPage })) }],
   nav: [{ to: '/permissions', labelKey: 'nav.permissions', icon: ShieldCheck, group: 'administration', permission: CorePermission.PermissionsView, requiresAdminMode: true, pageKey: 'permissions' }],
   tour: [
-    { key: 'permissions', target: PAGE_MAIN_TARGET, route: '/permissions', placement: 'auto', can: [{ id: 'role', permission: CorePermission.PermissionsRoleUpdate }, { id: 'group', permission: CorePermission.PermissionsRoleGroupUpdate }, { id: 'user', permission: CorePermission.PermissionsUserUpdate }, { id: 'usergroup', permission: CorePermission.PermissionsUserGroupUpdate }] },
+    { key: 'permissions', target: PAGE_MAIN_TARGET, route: '/permissions', placement: 'auto', can: [{ id: 'role', permission: CorePermission.PermissionsRoleUpdate }, { id: 'group', permission: CorePermission.PermissionsRoleGroupUpdate }, { id: 'user', permission: CorePermission.PermissionsUserUpdate }, { id: 'usergroup', permission: CorePermission.PermissionsUserGroupUpdate }, { id: 'export', permission: CorePermission.PermissionsExport }] },
   ],
   i18n: { ar, en },
 };

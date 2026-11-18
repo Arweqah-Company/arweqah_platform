@@ -25,6 +25,7 @@ Every page of the platform has a «view» key, and every button or action (add, 
 | Save on a **group of roles** | They apply to everyone the group is given to and everyone who holds one of its roles | `permissions.role_group_update` (Set the permissions of a group of roles) |
 | Save on **one person** | They belong to that person alone, on top of what their roles and groups give | `permissions.user_update` (Set the permissions of one person) |
 | Save on a **group of people** | They apply to every member of the group | `permissions.user_group_update` (Set the permissions of a group of people) |
+| «Export permissions» (under the matrix) | Downloads a JSON file with the keys of what you chose (a role, a group or a person), their scopes and fields exactly as **saved** (no draft, nothing that reaches it from elsewhere), to hand to the developer for the seeder. The System Admin holds it by default | `permissions.export` (Export the permissions of the chosen role, group or person) |
 | «New group of roles» | Creates a group bundling roles under one name | `role_groups.create` (Add a role group) |
 | «Edit the group» (group of roles) | Change the name and the roles inside | `role_groups.update` (Edit a role group) |
 | Delete (group of roles) | Deletes it after you confirm | `role_groups.delete` (Delete a role group) |

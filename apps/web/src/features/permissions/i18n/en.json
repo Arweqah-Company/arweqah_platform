@@ -88,9 +88,15 @@
         "role": "Change a role’s permissions",
         "group": "Change a group of roles",
         "user": "Give one person particular permissions",
-        "usergroup": "Change a group of people’s permissions"
+        "usergroup": "Change a group of people’s permissions",
+        "export": "Export what you chose, to put its permissions in the seeder"
       }
     }
+  },
+  "export": {
+    "button": "Export permissions",
+    "hint": "A JSON file with the keys of what you chose, their scopes (and fields, if any) as saved, to put in the seeder.",
+    "done": "File downloaded."
   },
   "noTargets": {
     "role-group": "No groups of roles yet. Create the first with the «New group of roles» button below.",
