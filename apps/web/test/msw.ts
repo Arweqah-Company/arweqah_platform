@@ -89,5 +89,7 @@ export const server = setupServer(
   // The title picker (a reporting line) searches the job titles; no title unless a test says so.
   http.get('*/api/org/job-titles', () => HttpResponse.json({ items: [], total: 0, page: 1, pageSize: 20 })),
   // Translation is off unless a test turns it on, so typing Arabic never fills an English field by itself.
+  // A browser nobody trusted: the e-mail alone does not sign in.
+  http.post('*/api/auth/totp/trusted-sign-in', () => HttpResponse.json({ message: 'x' }, { status: 401 })),
   http.post('*/api/translate', () => HttpResponse.json({ statusCode: 502, code: 'TRANSLATION_UNAVAILABLE', message: 'Translation is not available' }, { status: 502 })),
 );

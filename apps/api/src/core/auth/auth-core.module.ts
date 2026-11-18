@@ -6,7 +6,10 @@ import { AccountPreferencesService } from './application/account-preferences.ser
 import { AuthenticatorService } from './application/authenticator.service';
 import { IdentityProvider } from './application/identity-provider';
 import type { TotpSignInDeps } from './infrastructure/totp-sign-in.plugin';
-import { DEVICE_COOKIE } from './presentation/device-cookie';
+import { DEVICE_COOKIE, deviceSecretFromHeader } from './presentation/device-cookie';
+import { EmailLoginCodesService } from './application/email-login-codes.service';
+import { EmailLoginCodeRepository } from './domain/email-login-code.repository';
+import { TypeOrmEmailLoginCodeRepository } from './infrastructure/typeorm-email-login-code.repository';
 import { InvitationService } from './application/invitation.service';
 import { AllowedEmailDomainsService } from './application/allowed-email-domains.service';
 import { SecuritySettingsService } from './application/security-settings.service';
@@ -57,14 +60,20 @@ import { AUTH_DB_POOL, BETTER_AUTH, TOTP_SIGN_IN_DEPS } from './infrastructure/t
     AccountPreferencesService,
     SecuritySettingsService,
     SessionsService,
+    { provide: EmailLoginCodeRepository, useClass: TypeOrmEmailLoginCodeRepository },
     TrustedDevicesService,
     AuthenticatorService,
+    EmailLoginCodesService,
     InvitationService,
     {
       provide: TOTP_SIGN_IN_DEPS,
-      inject: [AppConfig, AuthenticatorService, TrustedDevicesService],
-      useFactory: (c: AppConfig, authenticator: AuthenticatorService, trusted: TrustedDevicesService): TotpSignInDeps => ({
-        verifySignIn: (email, code) => authenticator.verifySignIn(email, code),
+      inject: [AppConfig, AuthenticatorService, TrustedDevicesService, EmailLoginCodesService],
+      useFactory: (c: AppConfig, authenticator: AuthenticatorService, trusted: TrustedDevicesService, emailCodes: EmailLoginCodesService): TotpSignInDeps => ({
+        verifySignIn: (email, code, method) => (method === 'email' ? emailCodes.verifySignIn(email, code) : authenticator.verifySignIn(email, code)),
+        trustedSignIn: async (email, cookieHeader) => {
+          const userId = await authenticator.enrolledUserIdByEmail(email);
+          return userId && (await trusted.accepts(userId, deviceSecretFromHeader(cookieHeader))) ? userId : null;
+        },
         trustDevice: (userId, userAgent) => trusted.trust(userId, userAgent),
         deviceCookie: { name: DEVICE_COOKIE, secure: c.isProduction },
       }),

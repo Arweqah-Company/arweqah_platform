@@ -67,7 +67,7 @@ This page has almost nothing to type: you read your protection and press buttons
 **Trusting a browser (only when allowed)**
 
 1. **You** sign in with Microsoft and enter the code, ticking «Remember this device and do not ask for the code there».
-2. **The platform** lists the browser under «Trusted devices» with the date the trust ends. On that browser the code is skipped after a Microsoft sign-in until that date.
+2. **The platform** lists the browser under «Trusted devices» with the date the trust ends. On that browser the code is skipped until that date: after a Microsoft sign-in, and when you sign in with your e-mail (typing it is enough). If the administrator has not set any days, nothing is remembered and the code is asked every time.
 3. **You** press «Remove trust» when you want the code asked there again.
 
 | Status | Meaning | Who can change it (permission key) | Moves to |

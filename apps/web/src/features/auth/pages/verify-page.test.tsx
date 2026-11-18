@@ -81,3 +81,22 @@ describe('The code step after Microsoft sign-in (FR-13)', () => {
     expect(skipped).toBe(1);
   });
 });
+
+describe('The code step: the code e-mailed to the person (FR-164)', () => {
+  it('sends the code to the signed-in person and verifies the session with the e-mailed kind', async () => {
+    unverified();
+    let sent: unknown;
+    let asked = 0;
+    server.use(
+      http.post('*/api/mfa/email-code/me', () => { asked += 1; return new HttpResponse(null, { status: 204 }); }),
+      http.post('*/api/mfa/verify', async ({ request }) => { sent = await request.json(); unverified({ mfaVerified: true }); return new HttpResponse(null, { status: 204 }); }),
+    );
+    open();
+    fireEvent.click(await screen.findByRole('button', { name: 'أرسل الرمز إلى بريدي' }));
+    expect(await screen.findByText(/أرسلنا رمزًا من 6 أرقام/)).toBeInTheDocument();
+    expect(asked).toBe(1);
+    '246810'.split('').forEach((d, i) => fireEvent.change(screen.getByLabelText(`الرمز المُرسل إلى بريدك ${i + 1}`), { target: { value: d } }));
+    await waitFor(() => expect(sent).toEqual({ code: '246810', method: 'email' }));
+    expect(await screen.findByText('الرئيسية')).toBeInTheDocument();
+  });
+});

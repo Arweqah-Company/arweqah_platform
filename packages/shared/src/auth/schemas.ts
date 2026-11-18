@@ -11,6 +11,10 @@ export const placementSchema = z.strictObject({
 export type PlacementInput = z.infer<typeof placementSchema>;
 
 /** A 6-digit code from the authenticator app, or a backup code such as "K7MQ2-X9PD4". */
+/** Which code is being entered: the one of the authenticator app (default, backup codes included) or the one e-mailed to the person. */
+export const CODE_METHODS = ['app', 'email'] as const;
+export type CodeMethod = (typeof CODE_METHODS)[number];
+
 export const authCodeSchema = z.strictObject({ code: z.string().trim().min(6).max(12) });
 export type AuthCodeInput = z.infer<typeof authCodeSchema>;
 

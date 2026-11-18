@@ -89,6 +89,13 @@ erDiagram
     timestamp_with_time_zone used_at
     timestamp_with_time_zone created_at
   }
+  email_login_codes {
+    uuid user_id PK, FK
+    character_varying code_hash
+    timestamp_with_time_zone expires_at
+    integer attempts
+    timestamp_with_time_zone created_at
+  }
   trusted_devices {
     uuid id PK
     uuid user_id FK
@@ -142,6 +149,7 @@ erDiagram
   users ||--o{ authenticator_backup_codes : "user_id"
   users ||--o{ enrollment_invites : "user_id"
   users ||--o{ trusted_devices : "user_id"
+  users ||--o| email_login_codes : "user_id"
 ```
 
 ### 2. Access (roles, groups, permissions)
@@ -1369,6 +1377,7 @@ erDiagram
 | `authenticators` | The user's authenticator-app secret (encrypted), replay guard (`last_used_step`), failed-attempt counter and lock time. |
 | `authenticator_backup_codes` | One-time backup codes for a user who lost the authenticator app. |
 | `enrollment_invites` | E-mailed QR link that lets a new user enroll the authenticator app the first time. |
+| `email_login_codes` | The one e-mailed sign-in code a person may hold (HMAC only; 10 minutes, 5 tries, deleted when used). |
 | `trusted_devices` | Devices a person chose to «remember», so the code is skipped there until expiry. |
 | `security_settings` | Single-row platform security settings (session length, request limit per minute, device trust…). |
 | `agent_conversations` | One chat of an employee with the platform assistant; private to its owner. |

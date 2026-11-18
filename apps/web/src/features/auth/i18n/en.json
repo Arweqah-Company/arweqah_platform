@@ -48,5 +48,14 @@
   "failed": "Could not continue. Try again.",
   "changeEmail": "Change e-mail",
   "firstTimeSent": "This is your first sign-in. We e-mailed you a link with a QR code: open it, scan the code with your authenticator app, then enter the code shown in the app here.",
-  "botCheckFailed": "The protection check did not pass, try again."
+  "botCheckFailed": "The protection check did not pass, try again.",
+  "emailCode": {
+    "use": "Send the code to my e-mail",
+    "sent": "We e-mailed a 6-digit code to you. It is valid for 10 minutes.",
+    "resend": "Send the code again",
+    "resendIn": "Send again in {{count}} s",
+    "useApp": "Use the app code",
+    "label": "The code e-mailed to you",
+    "failed": "Could not send the code. Try again."
+  }
 }
