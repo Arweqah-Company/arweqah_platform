@@ -652,6 +652,19 @@ erDiagram
     uuid created_by
     timestamp_with_time_zone applied_at
   }
+  employee_basic_requests {
+    uuid id PK
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+    uuid employee_id FK
+    jsonb changes
+    character_varying status
+    character_varying rejection_reason
+    uuid decided_by
+    timestamp_with_time_zone decided_at
+    timestamp_with_time_zone submitted_at
+  }
+  employees ||--o{ employee_basic_requests : "employee_id"
   companies ||--o{ employees : "company_id"
   companies ||--o{ employees : "contract_company_id"
   contract_types ||--o{ employees : "contract_type_id"
@@ -1420,6 +1433,7 @@ erDiagram
 |---|---|
 | `employees` | The employee file: company, unit, job title, manager, relation, work location / mode, contact data, ID, contract, GOSI, medical insurance, dates, termination, salary. National ID, salary and IBAN are encrypted (`*_enc`, ID also hashed for lookup). Soft-deleted (`deleted_at`); linked to `users`. |
 | `employee_assignments` | The dated placement of an employee (FR-89): one row per period of the unit, the job title or the direct manager (`field`), with `valid_from` / `valid_to`, the reason and who made it. A change closes the open period the day before the new one starts. `applied_at` is empty while a later period waits for its day; `employees` keeps the value in force today. One open period per employee and field. A manager period has a `manager_source`: `manual` (HR chose the person; it stays) or `auto_chain` (the system found the nearest occupied title above the employee's and follows it as people come and go; reason «chain»). |
+| `employee_basic_requests` | A request of an employee to change the basic data of their own record (FR-162): `changes` holds only the fields asked for (name, gender, nationality, birth date, marital status), `status` is `pending`, `approved`, `rejected` or `cancelled`, and a rejection may carry `rejection_reason`. At most one `pending` request per employee (a partial unique index). Approving writes `changes` to `employees`; the employee gets a notice either way. |
 
 ### 6. Tickets (internal, between departments)
 

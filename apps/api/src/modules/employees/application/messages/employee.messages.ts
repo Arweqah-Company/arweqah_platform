@@ -18,6 +18,10 @@ export const EMPLOYEE_AUDIT = {
   assignmentChanged: 'employee.assignment.changed',
   assignmentApplied: 'employee.assignment.applied',
   assignmentCancelled: 'employee.assignment.cancelled',
+  basicRequested: 'employee.basic_request.sent',
+  basicApproved: 'employee.basic_request.approved',
+  basicRejected: 'employee.basic_request.rejected',
+  basicCancelled: 'employee.basic_request.cancelled',
 } as const;
 
 /** The reason kept in the placement history when the employee form changes the unit, the title or the manager without stating one. */

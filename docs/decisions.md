@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-18 — The employee asks, HR approves a change of basic data
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 431 | **An employee changes the basic data of their record (Arabic name, gender, nationality, birth date, marital status) only through one pending request (`employee_basic_requests`, key `profile.update_basic`) that a holder of `employees.update` approves or rejects (optional reason); approving writes the values.** The decider must hold the grant for the employee **and every field asked for**, never decides their own request, and an Employee-role holder (own scope, contact fields only) cannot. The notice at sending goes to holders beyond their own record (`holdersOf(key, { beyondOwn: true })`). | The owner wants employees to correct their own basic data with HR control; no separate approve key (owner's choice). | HR wants a dedicated approve key or a second approver. |
+
 ## 2026-11-18 — Export the permissions of the chosen target
 
 | # | Decision | Why | Revisit when |

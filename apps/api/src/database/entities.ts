@@ -29,6 +29,7 @@ import { Notification } from '../core/notifications/domain/notification.entity';
 import { WorkflowInstance, WorkflowTransition } from '../core/workflow/domain/workflow-instance.entity';
 import { Employee } from '../modules/employees/domain/entities/employee.entity';
 import { EmployeeAssignment } from '../modules/employees/domain/entities/employee-assignment.entity';
+import { EmployeeBasicRequest } from '../modules/employees/domain/entities/employee-basic-request.entity';
 import { LOOKUP_ENTITIES } from '../modules/lookups/domain/entities/lookup.entities';
 import { ORG_ENTITIES } from '../modules/org/domain/entities/org.entities';
 import { TASK_ENTITIES } from '../modules/tasks/domain/entities/task.entities';
@@ -103,4 +104,5 @@ export const ENTITIES = [
   ...PERFORMANCE_MILESTONE_ENTITIES,
   Employee,
   EmployeeAssignment,
+  EmployeeBasicRequest,
 ];
