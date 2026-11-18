@@ -19,6 +19,10 @@ export abstract class TaskRepository {
   abstract follow(taskId: string, userId: string, tx?: TransactionContext): Promise<void>;
   abstract unfollow(taskId: string, userId: string, tx?: TransactionContext): Promise<void>;
   abstract followerIds(taskId: string): Promise<string[]>;
+  /** The people who follow the task, by name. */
+  abstract followers(taskId: string): Promise<{ userId: string; name: string }[]>;
+  /** Adds followers; returns only the ones that were not following yet. */
+  abstract addFollowers(taskId: string, userIds: string[], tx: TransactionContext): Promise<string[]>;
 
   abstract addTime(entry: { taskId: string; userId: string; minutes: number; workedOn: string }, tx: TransactionContext): Promise<void>;
   abstract loggedMinutes(taskId: string, tx?: TransactionContext): Promise<number>;

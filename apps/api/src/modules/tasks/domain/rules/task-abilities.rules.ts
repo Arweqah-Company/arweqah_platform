@@ -13,7 +13,7 @@ export interface AbilityFacts {
   isFollowing: boolean;
   hasOpenObjection: boolean;
   /** Which keys the viewer holds (the screen hides what a person lacks; the API checks again). */
-  can: { update: boolean; approve: boolean; object: boolean; follow: boolean; logTime: boolean; resubmit: boolean; restore: boolean; delete: boolean; move: boolean };
+  can: { update: boolean; approve: boolean; object: boolean; follow: boolean; manageFollowers: boolean; logTime: boolean; resubmit: boolean; restore: boolean; delete: boolean; move: boolean };
   /** Objection rules already applied. */
   mayObject: boolean;
 }
@@ -32,6 +32,7 @@ export function abilitiesOf(f: AbilityFacts): TaskAbilitiesDto {
     answerObjection: all(live, f.hasOpenObjection, f.isCreator, f.can.update),
     resubmit: all(live, f.can.resubmit, f.isCreator, f.status === 'rejected'),
     follow: all(f.can.follow, !f.isAssignee || f.isFollowing), // the «following» tab lists tasks that are not mine: my own task needs no following, but a follow that already exists (the task was given to me later) can still be cancelled
+    manageFollowers: all(live, f.can.manageFollowers),
     logTime: all(live, open, f.can.logTime, f.isAssignee),
     restore: all(f.archived, f.can.restore),
     delete: f.can.delete,

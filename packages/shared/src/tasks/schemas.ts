@@ -203,6 +203,8 @@ export interface TaskAbilitiesDto {
   answerObjection: boolean;
   resubmit: boolean;
   follow: boolean;
+  /** The viewer may add followers to the task and remove them (`tasks.followers_manage`: as its assignee or giver, or inside the scope). */
+  manageFollowers: boolean;
   logTime: boolean;
   restore: boolean;
   /** The viewer may delete the task (hide it from everyone): the key `tasks.delete`, as its giver or inside its scope. */

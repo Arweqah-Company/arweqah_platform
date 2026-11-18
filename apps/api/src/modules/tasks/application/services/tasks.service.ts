@@ -109,13 +109,15 @@ export class TasksService {
     return this.get(viewer, id);
   }
 
-  async follow(viewer: TaskViewer, id: string, on: boolean): Promise<TaskDto> {
+  /** Follow or stop following. Null after a stop that leaves the person with no other way to see the task (a follower someone else chose): the task is no longer theirs to read. */
+  async follow(viewer: TaskViewer, id: string, on: boolean): Promise<TaskDto | null> {
     const task = await this.tasks.find(id, viewer.userId);
     this.access.assertCanView(viewer, task);
     if (on && task?.assigneeUserId === viewer.userId) return this.get(viewer, id); // one's own task is never «followed»
     if (on) await this.tasks.follow(id, viewer.userId);
     else await this.tasks.unfollow(id, viewer.userId);
-    return this.get(viewer, id);
+    const after = await this.tasks.find(id, viewer.userId);
+    return after && this.access.relationsOf(viewer, after).length > 0 ? this.get(viewer, id) : null;
   }
 
   /** What the new-task form shows: who the viewer may give a task to, the tags of their unit and every unit above it, and who approves a task for themselves. */

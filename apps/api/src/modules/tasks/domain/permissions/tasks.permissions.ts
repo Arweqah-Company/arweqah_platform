@@ -25,6 +25,7 @@ export const TASK_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.TasksResubmit, 'إعادة إرسال مهمة مرفوضة للاعتماد', 'Resubmit a rejected task for approval'),
   def(CorePermission.TasksObject, 'الاعتراض على مهمة أُسندت لي', 'Object to a task given to me'),
   def(CorePermission.TasksFollow, 'متابعة مهمة', 'Follow a task'),
+  def(CorePermission.TasksFollowersManage, 'إضافة متابعين لمهمة وإزالتهم', 'Add followers to a task and remove them', WIDE),
   def(CorePermission.TasksLogTime, 'تسجيل ساعات العمل على مهمة', 'Log time on a task'),
   def(CorePermission.TasksArchiveView, 'عرض المهام المؤرشفة', 'View archived tasks', WIDE),
   def(CorePermission.TasksRestore, 'استرجاع مهمة مؤرشفة', 'Restore an archived task', WIDE),

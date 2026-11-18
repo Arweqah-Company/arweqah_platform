@@ -34,6 +34,13 @@ export class TaskAssignmentNotAllowedError extends BusinessRuleError {
   }
 }
 
+export class TaskFollowerInvalidError extends BusinessRuleError {
+  override readonly code = 'TASK_FOLLOWER_INVALID';
+  constructor() {
+    super('A follower must be an active employee of the same company');
+  }
+}
+
 export class TaskAssigneeInvalidError extends BusinessRuleError {
   override readonly code = 'TASK_ASSIGNEE_INVALID';
   constructor() {
