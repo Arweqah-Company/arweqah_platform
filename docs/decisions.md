@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-18 — Followers chosen by the owner of a task
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 432 | **`tasks.followers_manage` lets the assignee, the giver of a task and a manager whose scope reaches the assignee add active employees of the same company as followers, one at a time with a server-side search, and remove them; the Employee role holds it at `own`, the head role of each unit at `subtree` (migration `TaskFollowersManageKey`).** A follower stops by themselves with the existing «unfollow»; when that leaves them no way to see the task the API answers with nothing (not 404) and the web drops the task from its cache and returns to the list. `useDeleteTask` got the same no-refetch treatment as the ticket delete (decision 429). | The owner wanted a colleague of the same level to be able to follow a task (the «my team» tab only reaches people below). | Followers should also be addable at creation, or from a group. |
+
 ## 2026-11-18 — The employee asks, HR approves a change of basic data
 
 | # | Decision | Why | Revisit when |

@@ -106,14 +106,14 @@ export class TasksController {
   @HttpCode(200)
   @HiddenWithPage('tasks')
   @RequirePermission(CorePermission.TasksFollow)
-  async follow(@Access() ctx: AccessContext, @Param() { id }: IdParam): Promise<TaskDto> {
+  async follow(@Access() ctx: AccessContext, @Param() { id }: IdParam): Promise<TaskDto | null> {
     return this.tasks.follow(await this.viewers.of(ctx), id, true);
   }
 
   @Delete(':id/follow')
   @HiddenWithPage('tasks')
   @RequirePermission(CorePermission.TasksFollow)
-  async unfollow(@Access() ctx: AccessContext, @Param() { id }: IdParam): Promise<TaskDto> {
+  async unfollow(@Access() ctx: AccessContext, @Param() { id }: IdParam): Promise<TaskDto | null> {
     return this.tasks.follow(await this.viewers.of(ctx), id, false);
   }
 

@@ -1,15 +1,17 @@
-import { TASK_STATUSES, type TaskDto, type TaskStatus } from '@arweqah-platform/shared';
-import { Archive, Check, Clock, Eye, EyeOff, Pencil, RotateCcw, ThumbsDown, X } from 'lucide-react';
+import { CorePermission, TASK_STATUSES, type TaskDto, type TaskStatus } from '@arweqah-platform/shared';
+import { Archive, Check, Clock, Eye, EyeOff, Pencil, RotateCcw, ThumbsDown, UserPlus, X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
+import { usePermissions } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Button, DeleteRecordButton, FormField, Select } from '@/shared/ui';
 import { useDeleteTask, useFollow, useRestore } from '../api';
 import { TransitionDialogs } from '../board/transition-dialogs';
 import { useBoardMove } from '../board/use-board-move';
 import { DecisionDialog } from './decision-dialog';
+import { FollowersDialog } from './followers-dialog';
 import { EditTaskDialog } from './edit-task-dialog';
 import { AnswerDialog, ObjectionDialog } from './objection-dialogs';
 import { TimeDialog } from './time-dialog';
@@ -43,6 +45,9 @@ function QuickActions({ task }: { task: TaskDto }) {
   const { t: tc } = useTranslation();
   const follow = useFollow(task.id);
   const restore = useRestore(task.id);
+  const navigate = useNavigate();
+  const [managing, setManaging] = useState(false);
+  const { can } = usePermissions();
   const run = async (action: () => Promise<unknown>, done: string) => {
     try {
       await action();
@@ -54,10 +59,16 @@ function QuickActions({ task }: { task: TaskDto }) {
   return (
     <>
       {task.abilities.follow && (
-        <Button variant="secondary" disabled={follow.isPending} onClick={() => void run(() => follow.mutateAsync(!task.isFollowing), t(task.isFollowing ? 'actions.unfollowed' : 'actions.followed'))}>
+        <Button variant="secondary" disabled={follow.isPending} onClick={() => void run(async () => { if ((await follow.mutateAsync(!task.isFollowing)) === null) void navigate('/tasks'); }, t(task.isFollowing ? 'actions.unfollowed' : 'actions.followed'))}>
           {task.isFollowing ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
           {t(task.isFollowing ? 'actions.unfollow' : 'actions.follow')}
         </Button>
+      )}
+      {task.abilities.manageFollowers && can(CorePermission.TasksFollowersManage) && (
+        <>
+          <Button variant="secondary" onClick={() => setManaging(true)}><UserPlus className="size-4" aria-hidden />{t('actions.addFollowers')}</Button>
+          {managing && <FollowersDialog taskId={task.id} open={managing} onOpenChange={setManaging} />}
+        </>
       )}
       {task.abilities.restore && <Button disabled={restore.isPending} onClick={() => void run(() => restore.mutateAsync(), t('actions.restored'))}><Archive className="size-4" aria-hidden />{t('actions.restore')}</Button>}
     </>

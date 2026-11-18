@@ -1,6 +1,8 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import {
+  addTaskFollowersSchema,
+  taskFollowerCandidatesQuerySchema,
   answerObjectionSchema,
   commentRulesInputSchema,
   createCommentSchema,
@@ -26,6 +28,8 @@ export class DecideTaskBody extends createZodDto(decideTaskSchema) {}
 export class ObjectTaskBody extends createZodDto(objectTaskSchema) {}
 export class AnswerObjectionBody extends createZodDto(answerObjectionSchema) {}
 export class TimeEntryBody extends createZodDto(timeEntrySchema) {}
+export class AddTaskFollowersBody extends createZodDto(addTaskFollowersSchema) {}
+export class TaskFollowerCandidatesQueryDto extends createZodDto(taskFollowerCandidatesQuerySchema) {}
 export class TasksQueryDto extends createZodDto(tasksQuerySchema) {}
 export class TeamTasksQueryDto extends createZodDto(teamTasksQuerySchema) {}
 export class MatrixQueryDto extends createZodDto(taskMatrixQuerySchema) {}

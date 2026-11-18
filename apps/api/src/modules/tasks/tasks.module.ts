@@ -54,6 +54,8 @@ import { TypeOrmTaskSummaryRepository } from './infrastructure/repositories/type
 import { TypeOrmTaskTagRepository } from './infrastructure/repositories/typeorm-task-tag.repository';
 import { TypeOrmTaskRepository } from './infrastructure/repositories/typeorm-task.repository';
 import { TaskPoliciesController } from './presentation/controllers/task-policies.controller';
+import { TaskFollowersController } from './presentation/controllers/task-followers.controller';
+import { TaskFollowersService } from './application/services/task-followers.service';
 import { TaskTagsController } from './presentation/controllers/task-tags.controller';
 import { TasksController } from './presentation/controllers/tasks.controller';
 
@@ -61,9 +63,10 @@ import { TasksController } from './presentation/controllers/tasks.controller';
 @Module({
   imports: [OrgModule],
   // The fixed paths (tags, policies) have their own controllers; `tasks/:id` is last in its own.
-  controllers: [TaskTagsController, TaskPoliciesController, TaskCommentRulesController, TaskCommentsController, TasksController],
+  controllers: [TaskFollowersController, TaskTagsController, TaskPoliciesController, TaskCommentRulesController, TaskCommentsController, TasksController],
   providers: [
     TasksService,
+    TaskFollowersService,
     TaskQueryService,
     TaskTransitionService,
     TaskApprovalService,

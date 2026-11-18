@@ -21,6 +21,7 @@ Click any task in the list to open its page. The page shows what the task is, wh
 | Answer the objection | Rejects it or gives the task to someone else | the person who gave the task |
 | Log time | Records minutes worked on a day | `tasks.log_time` |
 | Follow / Unfollow | Starts or stops notices about the task | `tasks.follow` |
+| Add followers | Opens a window to add followers to the task and remove them | `tasks.followers_manage` |
 | Restore | Brings an archived task back | `tasks.restore` |
 | Delete | Hides the task (and its conversation) from everyone after a confirmation; the record stays in the database and the audit log says who deleted it. Offered to its giver, and to a person whose scope reaches the assignee | `tasks.delete` (Delete a task); not held by the «Employee» role, held by the head role of every unit for its unit and below |
 | Write a comment | Adds a comment to the conversation | `tasks.comment_add` (Write a comment on a task) |

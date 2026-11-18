@@ -12,6 +12,8 @@ export const TASK_AUDIT = {
   objectionAnswered: 'task.objection_answered',
   objectionExpired: 'task.objection_expired',
   archived: 'task.archived',
+  followersAdded: 'task.followers_added',
+  followerRemoved: 'task.follower_removed',
   handoverSkipped: 'task.handover_skipped',
   restored: 'task.restored',
   deleted: 'task.deleted',
@@ -55,7 +57,8 @@ export type TaskNoticeKind =
   | 'restored'
   | 'commentMentioned'
   | 'commentReplied'
-  | 'commentAdded';
+  | 'commentAdded'
+  | 'followerAdded';
 
 /** Notices that also go out by e-mail: their text never carries the title (e-mail is not the place for it). */
 export const EMAIL_NOTICES: ReadonlySet<TaskNoticeKind> = new Set<TaskNoticeKind>(['assigned', 'objected', 'completionRejected', 'awaitingReview', 'handedOver', 'handedOverMany', 'commentMentioned']);

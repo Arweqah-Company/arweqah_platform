@@ -204,7 +204,8 @@
     "delete": "Delete",
     "deleteTitle": "Delete task {{number}}?",
     "deleteDescription": "The task disappears for everyone: the assignee, the giver, the board and the numbers. Its record and conversation are kept in the database and the audit log shows who deleted it.",
-    "deleted": "The task was deleted."
+    "deleted": "The task was deleted.",
+    "addFollowers": "Add followers"
   },
   "decision": {
     "note": "Note (optional)",
@@ -422,7 +423,8 @@
       "body": "Use this button to create a task with a title, description, due date, priority and tag. Once saved it appears in your list and its conversation starts, where files can be attached and people mentioned.",
       "can": {
         "assign": "Assign it to a colleague instead of yourself",
-        "follow": "Add followers who get every update"
+        "follow": "Add followers who get every update",
+        "followers_manage": "Add followers to your task or your team’s tasks"
       }
     },
     "task-views": {
@@ -454,5 +456,16 @@
     "open": "View history",
     "count_one": "1 event",
     "count_other": "{{count}} events"
+  },
+  "followersDialog": {
+    "title": "Followers of the task",
+    "description": "A follower sees the task and is told what happens in it, and can stop following by themselves.",
+    "add": "Add a follower",
+    "hint": "Type the first letters of the name (employees of your company only).",
+    "added": "The follower was added and notified.",
+    "removed": "The follower was removed.",
+    "current": "Current followers",
+    "remove": "Remove {{name}} from the followers",
+    "none": "No followers yet."
   }
 }

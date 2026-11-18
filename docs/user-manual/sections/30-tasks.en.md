@@ -28,6 +28,7 @@
 | Resubmit | Sends a rejected task for approval again | `tasks.resubmit` |
 | Object | Objects to a task given to you | `tasks.object` |
 | Follow / Unfollow | Adds the task to your «Following» tab; the button is not shown on a task given to you (it is under «Assigned to me»), because following is for tasks that are not yours | `tasks.follow` (Follow a task) |
+| «Add followers» (task page) | You pick a colleague of your company (search from the first letter): they follow the task, see it under «Following» and get a notice, and can stop following by themselves; an icon beside each follower removes them. For the task's assignee, the person who gave it, and a manager whose scope reaches the assignee | `tasks.followers_manage` (Add followers to a task and remove them) |
 | Log time | Records time worked | `tasks.log_time` |
 | Archived filter | Shows archived tasks | `tasks.archive_view` (View archived tasks) |
 | Restore | Brings an archived task back | `tasks.restore` (Restore an archived task) |

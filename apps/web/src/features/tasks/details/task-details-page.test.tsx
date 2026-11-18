@@ -8,7 +8,7 @@ import { taskDetail } from '../../../../test/task-fixtures';
 import { TaskDetailsPage } from './task-details-page';
 import { chooseOption, optionLabels } from '../../../../test/select';
 
-const closed: TaskAbilitiesDto = { moveTo: [], edit: false, approve: false, object: false, answerObjection: false, resubmit: false, follow: false, logTime: false, restore: false, delete: false };
+const closed: TaskAbilitiesDto = { moveTo: [], edit: false, approve: false, object: false, answerObjection: false, resubmit: false, follow: false, manageFollowers: false, logTime: false, restore: false, delete: false };
 
 function serve(task: TaskDto) {
   const calls: { path: string; body: unknown }[] = [];

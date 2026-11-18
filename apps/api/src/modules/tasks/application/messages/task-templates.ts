@@ -31,6 +31,7 @@ export const TASK_TEMPLATE_KEYS: Record<TaskNoticeKind, string> = {
   commentMentioned: 'task.comment_mentioned',
   commentReplied: 'task.comment_replied',
   commentAdded: 'task.comment_added',
+  followerAdded: 'task.follower_added',
 };
 
 const NUMBER = variable('taskNumber', ['رقم المهمة', 'The task number'], formatTaskNumber(45));
@@ -65,6 +66,7 @@ const SPECS: Spec[] = [
   ['commentMentioned', ['ذكرك أحد في تعليق', 'Mentioned in a comment'], ['عندما يذكرك زميل بـ @ في تعليق على مهمة (البريد بلا نص التعليق)', 'When a colleague mentions you with @ in a comment on a task (the e-mail never carries the comment)'], ['ذكرك {{commenter}} في {{taskNumber}}', '{{commenter}} mentioned you in {{taskNumber}}'], ['ذكرك {{commenter}} في تعليق على المهمة {{task}}.', '{{commenter}} mentioned you in a comment on task {{task}}.']],
   ['commentReplied', ['ردّ على تعليقك', 'Reply to your comment'], ['عندما يرد أحد على تعليقك في مهمة', 'When someone replies to your comment on a task'], ['ردّ {{commenter}} على تعليقك في {{taskNumber}}', '{{commenter}} replied to your comment in {{taskNumber}}'], ['ردّ {{commenter}} على تعليقك في المهمة {{task}}.', '{{commenter}} replied to your comment on task {{task}}.']],
   ['commentAdded', ['تعليق جديد', 'New comment'], ['عند كتابة تعليق على مهمة أنت فيها (لا يصل تكراره ما دام السابق غير مقروء)', 'When someone comments on a task you are in (not repeated while the earlier notice is unread)'], ['تعليق جديد على {{taskNumber}}', 'New comment on {{taskNumber}}'], ['كتب {{commenter}} تعليقًا على المهمة {{task}}.', '{{commenter}} commented on task {{task}}.']],
+  ['followerAdded', ['إضافتك متابعًا لمهمة', 'Added as a follower'], ['عند إضافة شخص متابعًا لمهمة', 'When someone is added as a follower of a task'], ['تتابع الآن {{taskNumber}}', 'You now follow {{taskNumber}}'], ['أُضفتَ متابعًا للمهمة {{task}}.', 'You were added as a follower of task {{task}}.']],
 ];
 
 const COUNTED: ReadonlySet<TaskNoticeKind> = new Set(['digest', 'handedOverMany']);

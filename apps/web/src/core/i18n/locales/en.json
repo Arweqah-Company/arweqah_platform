@@ -152,6 +152,7 @@
     "TASK_REVISION_CONFLICT": "The task was changed by someone else. Reload the page and try again.",
     "TASK_TRANSITION_NOT_ALLOWED": "The task cannot be moved to this status.",
     "TASK_ASSIGNMENT_NOT_ALLOWED": "You cannot give a task to this person.",
+    "TASK_FOLLOWER_INVALID": "A follower must be an active employee of the same company.",
     "TASK_ASSIGNEE_INVALID": "The assignee must be an active employee of the same company.",
     "TASK_NOTE_REQUIRED": "Write a note when sending a task back from review.",
     "TASK_COMPLETION_DATE_REQUIRED": "The task is later than the allowed time; state the real completion date.",
