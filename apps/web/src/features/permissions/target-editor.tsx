@@ -1,12 +1,16 @@
-import { CorePermission, type PermissionGrant, type PermissionTargetKind } from '@arweqah-platform/shared';
+import { CorePermission, type PermissionGrant, type PermissionTargetDto, type PermissionTargetKind } from '@arweqah-platform/shared';
+import { Download } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { Can } from '@/core/permissions/can';
 import { usePermissionCatalog, PermissionMatrix } from '@/features/roles';
 import { errorMessage } from '@/shared/lib/error-message';
 import { saveWithToast } from '@/shared/lib/use-save-toast';
+import { downloadBlob } from '@/shared/data-exchange/export-file';
 import { Alert, Button, SectionCard } from '@/shared/ui';
 import { useSaveTarget, useTarget } from './api';
+import { grantsExport } from './export-grants';
 
 /** The key that lets a person save permissions on each kind of target. */
 const UPDATE_KEY: Record<PermissionTargetKind, string> = {
@@ -19,6 +23,12 @@ const UPDATE_KEY: Record<PermissionTargetKind, string> = {
 const sameFields = (a?: string[] | null, b?: string[] | null) => (a ?? []).length === (b ?? []).length && (a ?? []).every((f) => (b ?? []).includes(f));
 /** Two lists of grants are the same when each key has the same reach and the same list of fields. */
 const same = (a: PermissionGrant[], b: PermissionGrant[]) => a.length === b.length && a.every((x) => b.some((y) => y.key === x.key && y.scope === x.scope && sameFields(x.fields, y.fields)));
+
+const exportFile = (target: PermissionTargetDto, done: string) => {
+  const file = grantsExport(target);
+  downloadBlob(new Blob([file.json], { type: 'application/json' }), file.filename);
+  toast.success(done);
+};
 
 /** The permissions of one chosen target, with what reaches it from elsewhere shown beside them. */
 export function TargetEditor({ kind, id }: { kind: PermissionTargetKind; id: string }) {
@@ -39,6 +49,12 @@ export function TargetEditor({ kind, id }: { kind: PermissionTargetKind; id: str
         <PermissionMatrix catalog={catalog.data} grants={grants} inherited={target.data.inherited} onChange={setDraft} />
         <Can permission={UPDATE_KEY[kind]}>
           <div><Button type="submit" disabled={save.isPending || same(grants, target.data.permissions)}>{tc('actions.save')}</Button></div>
+        </Can>
+        <Can permission={CorePermission.PermissionsExport}>
+          <div className="flex flex-col gap-1">
+            <div><Button type="button" variant="secondary" onClick={() => exportFile(target.data, t('export.done'))}><Download className="size-4" aria-hidden />{t('export.button')}</Button></div>
+            <p className="text-xs text-muted">{t('export.hint')}</p>
+          </div>
         </Can>
       </form>
     </SectionCard>

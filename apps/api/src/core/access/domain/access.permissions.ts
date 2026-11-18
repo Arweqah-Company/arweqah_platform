@@ -29,6 +29,7 @@ export const ACCESS_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.PermissionsRoleGroupUpdate, 'تحديد صلاحيات مجموعة أدوار', 'Set the permissions of a group of roles'),
   def(CorePermission.PermissionsUserUpdate, 'تحديد صلاحيات شخص بعينه', 'Set the permissions of one person'),
   def(CorePermission.PermissionsUserGroupUpdate, 'تحديد صلاحيات مجموعة مستخدمين', 'Set the permissions of a group of people'),
+  def(CorePermission.PermissionsExport, 'تصدير صلاحيات الدور أو المجموعة أو الشخص المختار', 'Export the permissions of the chosen role, group or person'),
   def(CorePermission.ImpersonationStart, 'الدخول بحساب موظف آخر (دخول كـ)', 'Sign in as another employee'),
   def(CorePermission.AdminModeUse, 'استخدام وضع مدير المنصة', 'Use platform admin mode'),
   def(CorePermission.PagesView, 'عرض صفحة ظهور الصفحات', 'View the page visibility page'),

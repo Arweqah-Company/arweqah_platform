@@ -152,4 +152,24 @@ describe('Permissions page: groups of roles and fields (FR-46, FR-94)', () => {
     fireEvent.click(await screen.findAllByText('سارة مجدي').then((all) => all[all.length - 1] as HTMLElement));
     await waitFor(() => expect(screen.getByLabelText('الشخص')).toHaveTextContent('سارة مجدي'));
   });
+
+  it('shows «Export permissions» only to who holds permissions.export, and downloads the saved grants (FR-161)', async () => {
+    serve(['permissions.view', 'permissions.export']);
+    let blob: Blob | undefined;
+    URL.createObjectURL = (b: Blob | MediaSource) => { blob = b as Blob; return 'blob:x'; };
+    URL.revokeObjectURL = () => undefined;
+    renderPage(<PermissionsPage />);
+    await chooseOption(await screen.findByLabelText('الدور'), 'r1');
+    fireEvent.click(await screen.findByRole('button', { name: 'تصدير الصلاحيات' }));
+    await waitFor(() => expect(blob).toBeDefined());
+    expect(JSON.parse(await (blob as Blob).text())).toMatchObject({ kind: 'role', nameEn: 'Employee', permissions: [] });
+  });
+
+  it('hides «Export permissions» without the key (FR-161)', async () => {
+    serve(['permissions.view']);
+    renderPage(<PermissionsPage />);
+    await chooseOption(await screen.findByLabelText('الدور'), 'r1');
+    await screen.findByRole('checkbox', { name: 'عرض الموظفين' });
+    expect(screen.queryByRole('button', { name: 'تصدير الصلاحيات' })).not.toBeInTheDocument();
+  });
 });
