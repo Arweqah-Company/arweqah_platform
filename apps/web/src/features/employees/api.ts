@@ -1,4 +1,5 @@
 import type {
+  BasicRequestDto,
   BulkUpdateInput,
   BulkUpdateResultDto,
   CreateEmployeeInput,
@@ -58,6 +59,14 @@ function useEmployeeMutation<TIn, TOut>(fn: (input: TIn) => Promise<TOut>, chang
   const client = useQueryClient();
   return useMutation({ mutationFn: fn, onSuccess: () => Promise.all([client.invalidateQueries({ queryKey: ['employees'] }), client.invalidateQueries({ queryKey: ME_KEY }), changesAccess ? refreshAccess(client) : undefined]) });
 }
+
+/** The request to change basic data that waits for this employee (null when none); only asked by someone who may change the record. */
+export const useBasicRequest = (employeeId: string, enabled: boolean) =>
+  useQuery({ queryKey: ['employees', 'basic-request', employeeId], enabled, queryFn: async () => (await apiClient.get<BasicRequestDto | null>(`/employees/${employeeId}/basic-request`)) ?? null });
+
+export const useDecideBasicRequest = (employeeId: string) =>
+  useEmployeeMutation((input: { approve: true } | { approve: false; reason?: string }) =>
+    input.approve ? apiClient.post<BasicRequestDto>(`/employees/${employeeId}/basic-request/approve`, {}) : apiClient.post<BasicRequestDto>(`/employees/${employeeId}/basic-request/reject`, { reason: input.reason || undefined }));
 
 export const useCreateEmployee = () => useEmployeeMutation((input: CreateEmployeeInput) => apiClient.post<CreateEmployeeResultDto>('/employees', input));
 export const useUpdateEmployee = (id: string) => useEmployeeMutation((input: UpdateEmployeeInput) => apiClient.put<EmployeeDto>(`/employees/${id}`, input));

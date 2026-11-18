@@ -30,7 +30,8 @@
       "title": "My profile",
       "body": "Change your language and theme (light or dark), see your work details kept by HR, and edit your contact details.",
       "can": {
-        "update": "Edit your phone, personal e-mail and English name"
+        "update": "Edit your phone, personal e-mail and English name",
+        "update_basic": "Ask to change your basic data, with HR approval"
       }
     },
     "my-access": {

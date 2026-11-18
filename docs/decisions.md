@@ -2,6 +2,24 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-18 — The employee asks, HR approves a change of basic data
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 431 | **An employee changes the basic data of their record (Arabic name, gender, nationality, birth date, marital status) only through one pending request (`employee_basic_requests`, key `profile.update_basic`) that a holder of `employees.update` approves or rejects (optional reason); approving writes the values.** The decider must hold the grant for the employee **and every field asked for**, never decides their own request, and an Employee-role holder (own scope, contact fields only) cannot. The notice at sending goes to holders beyond their own record (`holdersOf(key, { beyondOwn: true })`). | The owner wants employees to correct their own basic data with HR control; no separate approve key (owner's choice). | HR wants a dedicated approve key or a second approver. |
+
+## 2026-11-18 — Export the permissions of the chosen target
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 430 | **`permissions.export` («Export permissions») downloads the saved grants of the chosen role, group or person as JSON `{ kind, nameAr, nameEn, permissions: [{ key, scope, fields? }] }`, built in the browser from the target already loaded (no new API).** Only the System Admin holds it (the seeder gives that role every catalog key); no migration, not in the head role (standing rule 17 covers modules' team keys, not an admin tool). | The owner needs to take a role's grants made in the UI and put them in the seeder. The shape is the one the seeders use. | A seeder reads such a file directly. |
+
+## 2026-11-18 — Deleting a ticket does not wait for a refetch
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 429 | **`useDeleteTicket` drops the deleted ticket's own query (`removeQueries`) and refreshes the lists in the background (no awaited `invalidateQueries`).** | The shared mutation refetched the open ticket after the delete; it answered 404 and TanStack Query retried it 3 times (about 7 s) while the delete button waited. | The query client gets `retry: false` for 404 answers globally. |
+
 ## 2026-11-17 — Import names the column of a server refusal
 
 | # | Decision | Why | Revisit when |

@@ -20,6 +20,8 @@ Your own page: here you set **the look and language of the platform**, edit your
 | Edit the personal phone | Your contact number is saved | `profile.update` |
 | Edit the personal e-mail | Your personal e-mail is saved | `profile.update` |
 | Edit the full name in English | Your English name is saved | `profile.update` |
+| «Request a change» on the basic data card (Arabic name, gender, nationality, birth date, marital status) | A request with only what you changed goes to HR; your data does not change until HR approves, and you get a notice of the decision | `profile.update_basic` (Request a change of my basic data) |
+| «Cancel the request» | Your request is cancelled while it waits, so you can send another | `profile.update_basic` |
 | «Save changes» | Saves the contact details and shows «Changes saved» | `profile.update` |
 | «Restart the tour» | The welcome tour starts again from the beginning | Not needed (every employee) |
 | The «Security and authenticator app» link | Takes you to the Security page | `security.view` (View the security page) |
@@ -83,7 +85,8 @@ There are no statuses: a change is saved at once or refused with a message under
 
 ### Business rules
 
-- You edit only three things yourself: the personal phone, the personal e-mail and the English name. **HR updates the rest of the employee record.**
+- **Basic data with approval:** one pending request at a time, carrying only the fields that changed. If HR rejects it you see its reason (when written) and may send a new one. The birth date must be in the past and the age between 18 and 70. The request and the decision are audited by field names, never values.
+- You edit directly only three things: the personal phone, the personal e-mail and the English name. **HR updates the rest of the employee record.**
 - The phone must be in international format (such as +966501234567) or «International format, e.g. +966501234567» is shown; the e-mail must be well formed; the English name is English letters and spaces only.
 - The theme and language are saved **in your account**, not in the browser, so they appear as you chose on any device.
 - If your account is not linked to an employee record, only the appearance settings are shown, with a note saying so.

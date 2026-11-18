@@ -4,7 +4,9 @@ import { PAGE_MAIN_TARGET, type FeatureModule } from '@/core/feature';
 import ar from './i18n/ar.json';
 import en from './i18n/en.json';
 
-export { useJobTitleOptions, useManagerSearch, useOrgNodeOptions } from './api';
+export { useJobTitleOptions, useLookups, useManagerSearch, useOrgNodeOptions } from './api';
+export { BasicRequestCard } from './basic-request-card';
+export { BasicRequestChanges } from './basic-request-changes';
 export { EmployeeAvatar, employeePhotoUrl } from './employee-avatar';
 
 export const employeesFeature: FeatureModule = {

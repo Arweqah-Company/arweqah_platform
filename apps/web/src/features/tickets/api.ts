@@ -42,7 +42,20 @@ export const useTicketAction = (id: string) => useTicketMutation((input: { actio
 /** Who the ticket may be handed to (inside the reach of the reassign key), by what was typed. */
 export const useTicketAssignees = (ticketId: string, search: string) =>
   useQuery({ queryKey: [KEY, 'reassign-candidates', ticketId, search], staleTime: 30_000, queryFn: () => apiClient.get<PersonRefDto[]>(`/tickets/${ticketId}/assignees`, { search }), placeholderData: keepPreviousData });
-export const useDeleteTicket = (id: string) => useTicketMutation(() => apiClient.request<void>(`/tickets/${id}`, { method: 'DELETE' }));
+/**
+ * The deleted ticket's own query is dropped, not refetched: the refetch would answer 404 and be retried for seconds while the button
+ * waits. The lists and figures refresh in the background; the page does not wait for them.
+ */
+export function useDeleteTicket(id: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiClient.request<void>(`/tickets/${id}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      client.removeQueries({ queryKey: [KEY, 'one', id] });
+      void client.invalidateQueries({ queryKey: [KEY] });
+    },
+  });
+}
 export const useTicketReassign = (id: string) => useTicketMutation((assigneeUserId: string) => apiClient.post<TicketDto>(`/tickets/${id}/reassign`, { assigneeUserId }));
 
 // ------------------------------------------------------------------ setup (by the key and its scope)

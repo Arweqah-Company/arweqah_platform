@@ -51,6 +51,10 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'employee.roles.changed': a('employees', 'غيّر أدوار موظف', 'Changed an employee’s roles'),
   'employee.groups.changed': a('employees', 'غيّر مجموعات موظف', 'Changed an employee’s groups'),
   'profile.updated': a('employees', 'عدّل ملفه الشخصي', 'Edited their own profile'),
+  'employee.basic_request.sent': a('employees', 'طلب تعديل بياناته الأساسية', 'Asked to change their basic data'),
+  'employee.basic_request.approved': a('employees', 'وافق على تعديل البيانات الأساسية لموظف', 'Approved a change of an employee’s basic data'),
+  'employee.basic_request.rejected': a('employees', 'رفض تعديل البيانات الأساسية لموظف', 'Rejected a change of an employee’s basic data'),
+  'employee.basic_request.cancelled': a('employees', 'ألغى طلب تعديل بياناته الأساسية', 'Cancelled their request to change basic data'),
 
   'company.created': a('organization', 'أضاف شركة', 'Added a company'),
   'company.updated': a('organization', 'عدّل شركة', 'Edited a company'),

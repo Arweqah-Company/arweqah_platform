@@ -33,6 +33,7 @@ export const CorePermission = {
   PermissionsRoleGroupUpdate: 'permissions.role_group_update',
   PermissionsUserUpdate: 'permissions.user_update',
   PermissionsUserGroupUpdate: 'permissions.user_group_update',
+  PermissionsExport: 'permissions.export',
   PagesView: 'pages.view',
   PagesManage: 'pages.manage',
   ListsView: 'lists.view',
@@ -143,6 +144,7 @@ export const CorePermission = {
   // My account
   ProfileView: 'profile.view',
   ProfileUpdate: 'profile.update',
+  ProfileUpdateBasic: 'profile.update_basic',
   SecurityView: 'security.view',
   MyAccessView: 'my_access.view',
   MyAccessExport: 'my_access.export',
@@ -263,6 +265,7 @@ export type CorePermissionKey = (typeof CorePermission)[keyof typeof CorePermiss
 const OWN_ACCOUNT_PERMISSIONS: { key: CorePermissionKey; scope: 'all' }[] = [
   { key: CorePermission.ProfileView, scope: 'all' },
   { key: CorePermission.ProfileUpdate, scope: 'all' },
+  { key: CorePermission.ProfileUpdateBasic, scope: 'all' },
   { key: CorePermission.SecurityView, scope: 'all' },
   { key: CorePermission.MyAccessView, scope: 'all' },
   { key: CorePermission.MyAccessExport, scope: 'all' },

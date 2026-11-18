@@ -22,7 +22,7 @@
   },
   "basic": {
     "title": "Basic data",
-    "description": "Kept in your employee record and updated by HR; shown to you read-only.",
+    "description": "Kept in your employee record. Ask to change them here and HR approves, or HR updates them.",
     "fullName": "Full name in Arabic",
     "gender": "Gender",
     "male": "Male",
@@ -50,5 +50,25 @@
   "tour": {
     "title": "Welcome tour",
     "description": "Watch the introduction to the platform again from the start."
+  },
+  "request": {
+    "button": "Request a change",
+    "title": "Request a change of my basic data",
+    "description": "Change what you need and send the request. Your data does not change until HR approves.",
+    "choose": "Choose",
+    "birthHint": "A date in the past; age between 18 and 70.",
+    "note": "The request goes to HR and you get a notice of its decision. You can cancel it while it waits.",
+    "send": "Send the request",
+    "sent": "Your request was sent to HR.",
+    "pendingTitle": "Your request is waiting for HR",
+    "pendingBody": "Your data does not change until HR approves the request.",
+    "cancel": "Cancel the request",
+    "cancelled": "The request was cancelled.",
+    "rejectedTitle": "HR rejected your request",
+    "rejectedReason": "Reason: {{reason}}",
+    "errors": {
+      "fullName": "Write the name in Arabic.",
+      "birthDate": "The birth date must be in the past and the age between 18 and 70."
+    }
   }
 }

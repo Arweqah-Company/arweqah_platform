@@ -7,6 +7,7 @@ import { CorePermission, type EmployeeDto } from '@arweqah-platform/shared';
 import { usePermissions } from '@/core/permissions/can';
 import { Alert, ConfirmDialog, PageHeader, Tabs } from '@/shared/ui';
 import { useEmployee, useResendInvite, useResetAuthenticator, useSetActive } from './api';
+import { BasicRequestCard } from './basic-request-card';
 import { DetailsSections } from './details-sections';
 import { HeaderActions, StatusRow, type EmployeeDialog } from './employee-actions';
 import { HistoryTab } from './history-tab';
@@ -40,7 +41,7 @@ function EmployeeTabs({ employee }: { employee: EmployeeDto }) {
   return (
     <>
       {showHistory && <Tabs label={t('tabs.label')} value={tab} tabs={[{ id: 'details', label: t('tabs.details') }, { id: 'history', label: t('tabs.history') }]} onChange={(id) => setParams(id === 'history' ? { tab: 'history' } : {}, { replace: true })} />}
-      {tab === 'history' ? <HistoryTab employeeId={employee.id} /> : <><PhotoSection employee={employee} /><DetailsSections employee={employee} /></>}
+      {tab === 'history' ? <HistoryTab employeeId={employee.id} /> : <><PhotoSection employee={employee} /><BasicRequestCard employee={employee} /><DetailsSections employee={employee} /></>}
     </>
   );
 }

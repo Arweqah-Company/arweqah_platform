@@ -39,6 +39,7 @@ export * from './employees/events';
 export * from './employees/assignments';
 export * from './employees/directory';
 export * from './employees/bulk';
+export * from './employees/basic-request';
 export * from './employees/field-rules';
 export * from './tickets/working-days';
 export * from './tickets/schemas';

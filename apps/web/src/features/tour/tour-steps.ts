@@ -5,7 +5,7 @@ import type { TourStepUi } from '@/core/feature';
 export const SHELL_STEPS: TourStepUi[] = [
   { key: 'welcome', target: 'body', placement: 'center' },
   { key: 'account-menu', target: '[data-tour="account-menu"]', placement: 'bottom' },
-  { key: 'profile', target: '[data-tour="account:/profile"]', placement: 'start', menu: 'account', can: [{ id: 'update', permission: CorePermission.ProfileUpdate }] },
+  { key: 'profile', target: '[data-tour="account:/profile"]', placement: 'start', menu: 'account', can: [{ id: 'update', permission: CorePermission.ProfileUpdate }, { id: 'update_basic', permission: CorePermission.ProfileUpdateBasic }] },
   { key: 'security', target: '[data-tour="account:/security"]', placement: 'start', menu: 'account' },
   { key: 'my-access', target: '[data-tour="account:/my-access"]', placement: 'start', menu: 'account', can: [{ id: 'export', permission: CorePermission.MyAccessExport }] },
   { key: 'docs', target: '[data-tour="account:/docs"]', placement: 'start', menu: 'account' },

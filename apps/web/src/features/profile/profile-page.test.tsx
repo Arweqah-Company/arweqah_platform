@@ -76,4 +76,54 @@ describe('Profile page (FR-33)', () => {
     fireEvent.click(dark);
     await waitFor(() => expect(body).toEqual({ theme: 'dark' }));
   });
+
+  describe('asking to change the basic data (FR-162)', () => {
+    const asker = [{ key: 'profile.update_basic', scope: 'all' as const }];
+    const serve = (request: unknown) => server.use(
+      http.get('*/api/me', () => HttpResponse.json(me(asker))),
+      http.get('*/api/me/access', () => HttpResponse.json(access(asker))),
+      http.get('*/api/me/profile', () => HttpResponse.json(profile())),
+      http.get('*/api/lookups', () => HttpResponse.json({ countries: [], maritalStatuses: [] })),
+      http.get('*/api/me/profile/basic-request', () => (request ? HttpResponse.json(request) : new HttpResponse(null, { status: 200 }))),
+    );
+
+    it('offers no button without the key', async () => {
+      server.use(http.get('*/api/me/access', () => HttpResponse.json(access([{ key: 'profile.view', scope: 'all' as const }]))));
+      open();
+      await screen.findByRole('heading', { level: 2, name: 'البيانات الأساسية' });
+      expect(screen.queryByRole('button', { name: 'طلب تعديل' })).not.toBeInTheDocument();
+    });
+
+    it('sends only the fields that changed', async () => {
+      let body: unknown;
+      serve(null);
+      server.use(http.put('*/api/me/profile/basic-request', async ({ request }) => { body = await request.json(); return HttpResponse.json({ id: 'r1', employeeId: 'e1', status: 'pending', values: body, names: { nationality: null, maritalStatus: null }, rejectionReason: null, submittedAt: '2026-11-18T10:00:00Z', decidedAt: null }); }));
+      renderPage(<ProfilePage />);
+      fireEvent.click(await screen.findByRole('button', { name: 'طلب تعديل' }));
+      const send = await screen.findByRole('button', { name: 'إرسال الطلب' });
+      expect(send).toBeDisabled();
+      fireEvent.change(screen.getByLabelText('الاسم بالعربية'), { target: { value: 'سارة مجدي' } });
+      fireEvent.click(send);
+      await waitFor(() => expect(body).toEqual({ fullName: 'سارة مجدي' }));
+    });
+
+    it('shows a waiting request with a cancel button instead of the request button, and a rejection with its reason', async () => {
+      const pending = { id: 'r1', employeeId: 'e1', status: 'pending', values: { fullName: 'اسم جديد' }, names: { nationality: null, maritalStatus: null }, rejectionReason: null, submittedAt: '2026-11-18T10:00:00Z', decidedAt: null };
+      let cancelled = false;
+      serve(pending);
+      server.use(http.delete('*/api/me/profile/basic-request', () => { cancelled = true; return new HttpResponse(null, { status: 204 }); }));
+      renderPage(<ProfilePage />);
+      expect(await screen.findByText('طلبك ينتظر الموارد البشرية')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'طلب تعديل' })).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'إلغاء الطلب' }));
+      await waitFor(() => expect(cancelled).toBe(true));
+    });
+
+    it('tells the employee when HR rejected, with the reason', async () => {
+      serve({ id: 'r1', employeeId: 'e1', status: 'rejected', values: { fullName: 'x' }, names: { nationality: null, maritalStatus: null }, rejectionReason: 'أرفق الهوية', submittedAt: '2026-11-18T10:00:00Z', decidedAt: '2026-11-18T11:00:00Z' });
+      renderPage(<ProfilePage />);
+      expect(await screen.findByText(/رفضت الموارد البشرية طلب تعديلك/)).toBeInTheDocument();
+      expect(screen.getByText(/أرفق الهوية/)).toBeInTheDocument();
+    });
+  });
 });
