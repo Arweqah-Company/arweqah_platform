@@ -57,6 +57,7 @@ export interface TaskRow {
   tagIsActive: boolean | null;
   urgentManual: boolean;
   needsReview: boolean;
+  isPersonal: boolean;
   recurrence: TaskRecurrence;
   recurrenceEnd: string | null;
   recurrenceParentId: string | null;
@@ -89,6 +90,7 @@ export interface NewTask {
   tagId: string | null;
   urgentManual: boolean;
   needsReview: boolean;
+  isPersonal: boolean;
   recurrence: TaskRecurrence;
   recurrenceEnd: string | null;
   recurrenceParentId: string | null;
@@ -189,6 +191,7 @@ export interface TaskListFilters {
   tagId?: string;
   stale?: boolean;
   overdue?: boolean;
+  personal?: boolean;
   archived?: boolean;
   search?: string;
   groupBy?: TaskGrouping;

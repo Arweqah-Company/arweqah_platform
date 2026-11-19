@@ -127,6 +127,10 @@ export class Task extends SoftDeletableEntity {
   @Column({ name: 'needs_review', type: 'boolean', default: false })
   needsReview: boolean;
 
+  /** A personal task: its owner alone sees it (no approval, no review, no followers, not in the team views). Never changes after creation. */
+  @Column({ name: 'is_personal', type: 'boolean', default: false })
+  isPersonal: boolean;
+
   /** `none` | `daily` | `weekly` | `monthly`. */
   @Column({ type: 'varchar', length: 10, default: 'none' })
   recurrence: string;

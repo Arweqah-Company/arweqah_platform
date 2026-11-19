@@ -23,7 +23,7 @@ export function useTaskColumns(): Column<TaskListItemDto>[] {
       cell: (x) => (
         <span className="flex flex-col gap-1">
           <Link to={`/tasks/${x.id}`} className="font-medium hover:underline">{x.title}</Link>
-          <span className="flex flex-wrap items-center gap-2 text-xs text-muted"><span dir="ltr">{x.number}</span><TaskFlags flags={x.flags} /></span>
+          <span className="flex flex-wrap items-center gap-2 text-xs text-muted"><span dir="ltr">{x.number}</span><TaskFlags flags={x.flags} personal={x.personal} /></span>
         </span>
       ),
     },

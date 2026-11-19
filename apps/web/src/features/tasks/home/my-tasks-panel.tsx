@@ -37,7 +37,7 @@ export function MyTasksPanel({ summary }: { summary: TaskSummaryDto | undefined 
               <li key={task.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                 <span className="flex min-w-0 flex-col gap-1">
                   <Link to={`/tasks/${task.id}`} className="break-words text-sm font-medium hover:underline">{task.title}</Link>
-                  <TaskFlags flags={task.flags} />
+                  <TaskFlags flags={task.flags} personal={task.personal} />
                 </span>
                 <span className="flex items-center gap-2 text-xs text-muted"><span dir="ltr">{task.dueDate}</span><TaskPriorityBadge priority={task.priority} /></span>
               </li>

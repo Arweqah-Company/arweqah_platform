@@ -22,7 +22,7 @@ const TASK_COLUMNS = `t.id, t.number::text AS number, t.company_id AS "companyId
   t.approver_user_id AS "approverUserId", COALESCE(pe.full_name, pu.name) AS "approverName",
   t.status, t.priority, to_char(t.due_date, 'YYYY-MM-DD') AS "dueDate", t.estimate_minutes AS "estimateMinutes",
   t.tag_id AS "tagId", tg.name_ar AS "tagNameAr", tg.name_en AS "tagNameEn", tg.org_node_id AS "tagOrgNodeId", tg.is_active AS "tagIsActive",
-  t.urgent_manual AS "urgentManual", t.needs_review AS "needsReview", t.recurrence, to_char(t.recurrence_end, 'YYYY-MM-DD') AS "recurrenceEnd",
+  t.urgent_manual AS "urgentManual", t.needs_review AS "needsReview", t.is_personal AS "isPersonal", t.recurrence, to_char(t.recurrence_end, 'YYYY-MM-DD') AS "recurrenceEnd",
   t.recurrence_parent_id AS "recurrenceParentId", t.source, t.project_id AS "projectId", t.ticket_id AS "ticketId",
   t.completed_at AS "completedAt", to_char(t.completed_on, 'YYYY-MM-DD') AS "completedOn", t.last_activity_at AS "lastActivityAt",
   t.archived_at AS "archivedAt", t.revision,

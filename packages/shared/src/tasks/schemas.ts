@@ -29,7 +29,7 @@ const policyNumber = (key: TaskPolicyKey) => z.number().int().min(TASK_POLICY_LI
 export const createTaskSchema = z.strictObject({
   title: text(200).min(1),
   description: text(MAX_TASK_TEXT).default(''),
-  /** The user who must do it; empty = the creator (the task then waits for approval). */
+  /** The user who must do it; empty = the creator (the task then waits for approval, unless it is personal). */
   assigneeUserId: z.uuid().optional(),
   /** ISO date; empty = today. */
   dueDate: z.iso.date().optional(),
@@ -38,6 +38,8 @@ export const createTaskSchema = z.strictObject({
   tagId: z.uuid().nullable().optional(),
   urgent: z.boolean().default(false),
   needsReview: z.boolean().default(false),
+  /** A personal task: only for the person, no approval, no review, no followers, and their manager does not see it. */
+  personal: z.boolean().default(false),
   recurrence: z.enum(TASK_RECURRENCES).default('none'),
   /** Last date a recurring task may repeat. */
   recurrenceEnd: z.iso.date().nullable().optional(),
@@ -98,6 +100,8 @@ export const tasksQuerySchema = paginationQuerySchema.extend({
   tagId: z.uuid().optional(),
   stale: optionalBoolean,
   overdue: optionalBoolean,
+  /** Only my personal tasks. */
+  personal: optionalBoolean,
   /** The archive instead of the live tasks. */
   archived: optionalBoolean,
   groupBy: z.enum(TASK_GROUPINGS).optional(),
@@ -167,6 +171,8 @@ export interface TaskListItemDto {
   tag: TaskTagDto | null;
   flags: TaskFlagsDto;
   needsReview: boolean;
+  /** Private to its owner: no approval, no review, nobody else sees it. */
+  personal: boolean;
   source: TaskSource;
   archivedAt: string | null;
   revision: number;

@@ -34,6 +34,14 @@ export class TaskAssignmentNotAllowedError extends BusinessRuleError {
   }
 }
 
+/** A personal task is only for oneself: giving it to somebody else is refused. */
+export class TaskPersonalForSelfError extends BusinessRuleError {
+  override readonly code = 'TASK_PERSONAL_FOR_SELF';
+  constructor() {
+    super('A personal task can only be given to yourself');
+  }
+}
+
 export class TaskFollowerInvalidError extends BusinessRuleError {
   override readonly code = 'TASK_FOLLOWER_INVALID';
   constructor() {

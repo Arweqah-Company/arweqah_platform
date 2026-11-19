@@ -27,7 +27,7 @@ export class TaskRecurrenceService {
         companyId: task.companyId, title: task.title, description: task.description, assigneeUserId: task.assigneeUserId, creatorUserId: task.creatorUserId,
         reviewerUserId: task.reviewerUserId, approverUserId: null, status: 'todo', priority: task.priority, dueDate, estimateMinutes: task.estimateMinutes,
         tagId: task.tagId, urgentManual: task.urgentManual, needsReview: task.needsReview, recurrence: task.recurrence, recurrenceEnd: task.recurrenceEnd,
-        recurrenceParentId: parentId, source: task.source, ticketId: task.ticketId, projectId: task.projectId,
+        recurrenceParentId: parentId, source: task.source, ticketId: task.ticketId, projectId: task.projectId, isPersonal: task.isPersonal,
       },
       tx,
     );

@@ -35,6 +35,7 @@ Every permission has a **scope** that says which records it covers. For example,
 
 - **Every page has a view key, and every button or action has its own key** (create, edit, delete, approve, reject, export, import…).
 - **The platform hides what you do not have:** a page whose key you lack is not in your menu, and a button whose key you lack is not on the page.
+- **A menu with one page shows as that page:** when your permissions leave only one page under a menu (for example «Tickets»), the sidebar shows that page directly instead of a menu you must open first.
 - **What is outside your scope looks as if it does not exist:** if you open a record outside your scope you get «not found» (404), not «forbidden», so you cannot even tell whether the record exists.
 - If you need a permission, ask your administrator and give its name as shown on «My access».
 

@@ -25,7 +25,7 @@ export function MatrixQuadrantPanel({ id, total, items }: { id: MatrixQuadrant; 
               <Avatar name={task.assignee.name} />
               <div className="min-w-0 flex-1">
                 <Link to={`/tasks/${task.id}`} className="block break-words text-sm font-medium hover:underline">{task.title}</Link>
-                <p className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted"><span dir="ltr">{task.dueDate}</span><TaskFlags flags={task.flags} /></p>
+                <p className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted"><span dir="ltr">{task.dueDate}</span><TaskFlags flags={task.flags} personal={task.personal} /></p>
               </div>
             </li>
           ))}

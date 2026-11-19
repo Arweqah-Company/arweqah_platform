@@ -33,7 +33,7 @@ export function CardBody({ task }: { task: TaskListItemDto }) {
         <TaskPriorityBadge priority={task.priority} />
         {task.tag && <span className="rounded-full bg-neutral-50 px-2 py-0.5 text-fg">{i18n.language === 'ar' ? task.tag.nameAr : task.tag.nameEn}</span>}
       </div>
-      <div className="mt-2"><TaskFlags flags={task.flags} /></div>
+      <div className="mt-2"><TaskFlags flags={task.flags} personal={task.personal} /></div>
     </>
   );
 }
