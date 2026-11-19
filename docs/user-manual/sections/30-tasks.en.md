@@ -80,6 +80,7 @@ The list has no import: tasks are created one by one, not from a file.
 | Repeats | Makes the system create the next task by itself when this one is closed (daily, weekly, monthly). | No | Does not repeat (default), Every day, Every week, Every month. |
 | Repeats until | The last date a repeating task may repeat. Shown only when «Repeats» is not «Does not repeat». | No | A date not before the due date; empty = no end. |
 | Urgent / «Mark as urgent» | Marks the task urgent by hand, whatever its due date. | No | On / Off (default Off). |
+| Personal task | A task for you alone: it starts «To do» at once with no approval, no review and no followers, and your manager does not see it anywhere (no team, matrix or digest). You edit, move, delete and log time on it like any task. When on, «Assign to» and the review option disappear. It shows a «Personal» badge and the list can be narrowed with «Personal only». | No | On / Off (default Off). |
 | Review / «Needs a review» | The assignee cannot finish the task alone: finishing sends it to «Awaiting review» and the reviewer closes it. The reviewer is the person who gave the task (for a task you gave yourself, your approving manager). | No | On / Off (default Off). |
 
 There is no attachment field on a task: files are added in the task conversation (see Task details and conversation).

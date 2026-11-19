@@ -47,7 +47,7 @@ export class TypeOrmTaskMaintenanceRepository extends TaskMaintenanceRepository 
        JOIN employees m ON m.id = ae.manager_id AND m.deleted_at IS NULL
        JOIN users mu ON mu.id = m.user_id AND mu.is_active
        LEFT JOIN task_policies p ON p.company_id = t.company_id
-       WHERE t.archived_at IS NULL AND t.deleted_at IS NULL AND ${WORKING} AND t.due_date < $1::date AND COALESCE(p.digest_weekday, 0) = $2
+       WHERE t.archived_at IS NULL AND t.deleted_at IS NULL AND NOT t.is_personal AND ${WORKING} AND t.due_date < $1::date AND COALESCE(p.digest_weekday, 0) = $2
        GROUP BY mu.id`,
       [today, weekday],
     );
@@ -78,7 +78,7 @@ export class TypeOrmTaskMaintenanceRepository extends TaskMaintenanceRepository 
   openWorkOf(userId: string): Promise<OpenWorkRow[]> {
     return this.ds.query(
       `SELECT ${TARGET}, t.reviewer_user_id AS "reviewerUserId", t.status, t.revision, t.project_id AS "projectId"
-       FROM tasks t WHERE t.archived_at IS NULL AND t.deleted_at IS NULL AND ${WORKING} AND (t.assignee_user_id = $1 OR t.reviewer_user_id = $1)`,
+       FROM tasks t WHERE t.archived_at IS NULL AND t.deleted_at IS NULL AND NOT t.is_personal AND ${WORKING} AND (t.assignee_user_id = $1 OR t.reviewer_user_id = $1)`,
       [userId],
     );
   }

@@ -31,6 +31,7 @@ export class TaskTransformer {
       tag: this.tag(r),
       flags: flagsOf(r, policy, today, now),
       needsReview: r.needsReview,
+      personal: r.isPersonal,
       source: r.source,
       archivedAt: iso(r.archivedAt),
       revision: r.revision,

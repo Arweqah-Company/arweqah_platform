@@ -10,6 +10,14 @@ Plan: `docs/plans/phase-1-auth-employees.md` (log 2026-11-19).
 |---|---|---|---|
 | 437 | **A sidebar menu whose visible pages are only one is drawn as that page's link** (`buildNavEntries` in `core/navigation.tsx`), under the page's own name and icon, not the menu's. The count is of the pages left after permissions and hidden pages, so it changes by person. The tour's `nav:` anchors are unchanged (they are per page). | Owner (2026-11-19): a person who may open only the tickets page should not click the menu and then the page. | A menu should keep its name even with one page. |
 
+## 2026-11-19 — Personal tasks
+
+Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-19).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 435 | **A personal task (`tasks.is_personal`, FR-165) is for its owner alone: no approval, no review, no followers, and nobody else sees it.** Created with `personal: true` on `POST /tasks` in the new-task dialog (no new permission key: it needs `tasks.create`); the assignee is the creator (anything else is 422 `TASK_PERSONAL_FOR_SELF`), the status is `to do` at once, `needsReview` is ignored (at creation and in edits), `@` mentions in its comments are refused and `tasks.followers_manage` does not apply. The flag never changes after creation and is copied to the next occurrence of a recurring task. It is left out of the `team` relation (so a manager, even at scope all, gets 404 on its detail, edit and delete), of the team tab, the matrix, the team numbers, the weekly overdue digest and the leaving-employee handover (it stays with its owner). The list has a «personal only» filter and a badge. | Owner (2026-11-19): an employee keeps personal tasks without the manager following them; chosen: a switch in the new-task dialog, invisible to the manager, owner-only actions. | A manager needs to see personal tasks (e.g. HR audit), or personal tasks need sharing. |
+
 ## 2026-11-18 — Sign-in code by e-mail and a trusted device on the e-mail sign-in
 
 | # | Decision | Why | Revisit when |

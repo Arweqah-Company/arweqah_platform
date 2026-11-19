@@ -14,6 +14,7 @@ export const taskItem = (over: Partial<TaskListItemDto> = {}): TaskListItemDto =
   tag: null,
   flags: { urgent: false, overdue: false, stale: false, objected: false },
   needsReview: false,
+  personal: false,
   source: 'standalone',
   archivedAt: null,
   revision: 1,

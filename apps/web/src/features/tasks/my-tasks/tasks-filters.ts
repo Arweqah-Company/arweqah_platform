@@ -19,6 +19,7 @@ export function useTaskFilterFields(options: TaskFormOptionsDto | undefined, wit
     { id: 'tagId', label: t('filters.tag'), type: 'select', options: (options?.tags ?? []).map((x) => ({ value: x.id, label: ar ? x.nameAr : x.nameEn })) },
     { id: 'stale', label: t('filters.stale'), type: 'toggle' },
     { id: 'overdue', label: t('filters.overdue'), type: 'toggle' },
+    { id: 'personal', label: t('filters.personal'), type: 'toggle' },
     { id: 'showClosed', label: t('filters.showClosed'), type: 'toggle' },
   ];
   return withArchive ? [...fields, { id: 'archived', label: t('filters.archived'), type: 'toggle' }] : fields;
@@ -36,6 +37,7 @@ export function toTasksQuery(values: FilterValues, board: boolean): Partial<Task
     tagId: text('tagId'),
     stale: flag(values, 'stale'),
     overdue: flag(values, 'overdue'),
+    personal: flag(values, 'personal'),
     archived: flag(values, 'archived'),
     openOnly: !board && !values.status && !values.showClosed ? true : undefined,
   };
