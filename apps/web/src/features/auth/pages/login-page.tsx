@@ -167,7 +167,7 @@ function CodeStep({ email, firstTime, emailCode, remember, error, code, busy, on
         <span className="text-sm font-medium text-fg" id="code-label">{emailCode.method === 'email' ? t('emailCode.label') : t('code')}</span>
         <CodeInput label={emailCode.method === 'email' ? t('emailCode.label') : t('code')} value={code} onChange={onCode} onComplete={(full) => onSubmit(undefined, full)} invalid={!!error} disabled={busy} />
         {emailCode.method === 'app' && <p className="text-xs text-muted">{t('codeHint')}</p>}
-        {!firstTime && <EmailCodeOption state={emailCode} disabled={busy} />}
+        <EmailCodeOption state={emailCode} disabled={busy} />
       </div>
       <Button type="submit" disabled={busy || code.length < 6}>{t('submit')}</Button>
       <Button type="button" variant="ghost" size="sm" onClick={onBack}>{t('changeEmail')}</Button>

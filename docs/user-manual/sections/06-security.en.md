@@ -74,7 +74,7 @@ This page has almost nothing to type: you read your protection and press buttons
 |---|---|---|---|
 | Session open | A sign-in in your name, with its last activity | You, with «End the session» or «End all other sessions» (`security.view`); the platform when 12 hours pass or the account is deactivated | Ended |
 | Session ended | The device must sign in again | Nobody | Nothing (a new sign-in is a new session) |
-| Trusted device | A browser that skips the code after a Microsoft sign-in | You, with «Remove trust» (`security.view`); it also ends by itself on its end date | Trust removed or expired |
+| Trusted device | A browser that skips the code after a Microsoft sign-in or an e-mail sign-in | You, with «Remove trust» (`security.view`); it also ends by itself on its end date | Trust removed or expired |
 | Authenticator app: linked / not linked | Whether a code can be produced for your account | HR resets it (`employees.reset_authenticator`) | Not linked, until you link it again from the new invitation |
 
 **Automatic things:** sessions end after 12 hours, and all at once when your account is deactivated; a trusted device stops being trusted on its end date; when a system administrator finishes a «sign in as» session in your name, you are notified.
@@ -83,9 +83,9 @@ This page has almost nothing to type: you read your protection and press buttons
 
 ### Business rules
 
-- The authenticator app is mandatory, and nothing works on the platform before it is linked. (FR-02)
+- Nothing works on the platform before the code is verified: with the authenticator app or with a code e-mailed to you (on a first sign-in the employee chooses between linking the app and the e-mailed code). (FR-02, FR-164)
 - You do not change the link from this page; a reset is done by asking HR.
-- A **trusted device** skips the code only after a Microsoft sign-in and one code entry, and for a time the platform administrator sets. Signing in with the e-mail always asks for the code. If the time is 0 the option is off (the default).
+- A **trusted device** skips the code, after a Microsoft sign-in and when signing in with the e-mail, after one code entry (from the app or by e-mail), and for a time the platform administrator sets. If the time is 0 the option is off (the default).
 - Ending a session or removing trust takes effect at once.
 - **The code of platform admin mode** (Settings, «Security» tab, `security_settings.edit`, in admin mode): «Switching on admin mode needs a code from the authenticator app» is ticked by default, so every activation asks for a fresh 6-digit code. Untick it only while testing: admin mode then turns on with one click and a warning shows under the box, because anyone holding an open session of an administrator could switch it on. Tick it again when you finish; the change is recorded in the audit log. (FR-34)
 - A system administrator who signs in as you (the «Sign in as another employee» feature) cannot change your security from inside the session, and you are notified when it ends.

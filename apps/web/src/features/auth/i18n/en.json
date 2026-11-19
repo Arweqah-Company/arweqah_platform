@@ -19,7 +19,9 @@
     "invalid": "The code is not valid.",
     "locked": "Too many attempts. Try again in a moment.",
     "signOut": "Sign out",
-    "remember": "Remember this device and do not ask for the code there"
+    "remember": "Remember this device and do not ask for the code there",
+    "firstTime": "This is your first sign-in. Link your authenticator app, or have a code e-mailed to you and sign in with it.",
+    "linkApp": "Link the authenticator app"
   },
   "enroll": {
     "title": "Link your authenticator app",
@@ -47,7 +49,7 @@
   "next": "Continue",
   "failed": "Could not continue. Try again.",
   "changeEmail": "Change e-mail",
-  "firstTimeSent": "This is your first sign-in. We e-mailed you a link with a QR code: open it, scan the code with your authenticator app, then enter the code shown in the app here.",
+  "firstTimeSent": "This is your first sign-in. We e-mailed you a link with a QR code to link your authenticator app: open it, scan the code, then enter the code shown in the app here. Or choose \"Send the code to my e-mail\" and enter the code you receive.",
   "botCheckFailed": "The protection check did not pass, try again.",
   "emailCode": {
     "use": "Send the code to my e-mail",
