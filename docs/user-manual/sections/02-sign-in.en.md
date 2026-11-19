@@ -1,6 +1,6 @@
 ## Signing in
 
-There is no password on the platform. You sign in **with the company Microsoft account** or **with your work e-mail and the authenticator-app code** (Microsoft Authenticator or Google Authenticator). The authenticator app is **mandatory for every employee**, and no page works before it is linked and the code is verified.
+There is no password on the platform. You sign in **with the company Microsoft account** or **with your work e-mail and the authenticator-app code** (Microsoft Authenticator or Google Authenticator). You prove who you are with one of two codes: **the code of the authenticator app** or **a code e-mailed to you**, and no page works before the code is verified.
 
 ![Sign in](../images/en/01-login.png)
 
@@ -34,7 +34,7 @@ There is no password on the platform. You sign in **with the company Microsoft a
 
 1. Type your work e-mail and press «Continue».
 2. Press «Send the code to my e-mail». Within a minute a 6-digit code reaches your mailbox.
-3. Enter it in the boxes. It is valid 10 minutes, works once, and stops after 5 wrong tries. To get a new one press «Send the code again» (allowed once a minute) or go back with «Use the app code». It is only for people who already linked the app.
+3. Enter it in the boxes. It is valid 10 minutes, works once, and stops after 5 wrong tries. To get a new one press «Send the code again» (allowed once a minute) or go back with «Use the app code». It is available to every employee, even on a first sign-in before the app is linked.
 
 **Signing in with the Microsoft account**
 
@@ -50,6 +50,12 @@ There is no password on the platform. You sign in **with the company Microsoft a
 3. In the app add an account and scan the QR code. If you cannot scan, enter the key shown by hand.
 4. Enter the code shown in the app and press «Confirm and link the app».
 5. **Backup codes** appear. They are shown only once and each works one time. Copy them or download them as a file and keep them safe, then «Continue».
+
+**First sign-in without linking the app (e-mailed code)**
+
+1. Type your e-mail and continue, then press «Send the code to my e-mail» and enter the code you receive. You get in without linking the app, and can link it later from «Security».
+2. After a Microsoft sign-in, someone who has not linked the app sees a page with two choices: «Link the authenticator app» and «Send the code to my e-mail».
+3. Note: turning on admin mode asks for the app code, so a system administrator needs the app linked.
 
 ### Fields (form inputs)
 
@@ -67,7 +73,7 @@ The sign-in has three small forms, one after the other. Nothing here is a permis
 | Field | What it means / what to type | Required | Allowed values / rules |
 |---|---|---|---|
 | Authenticator code | The 6-digit number your authenticator app shows for your account. It proves the phone is yours | Yes | 6 digits; it changes every 30 seconds and a code already used is never accepted |
-| Code e-mailed to you | The same 6-digit code, sent to your work e-mail when you press «Send the code to my e-mail» (not offered on a first sign-in) | Yes, if you use it instead of the app code | 6 digits; valid 10 minutes, works once, 5 wrong tries cancel it |
+| Code e-mailed to you | The same 6-digit code, sent to your work e-mail when you press «Send the code to my e-mail» | Yes, if you use it instead of the app code | 6 digits; valid 10 minutes, works once, 5 wrong tries cancel it |
 | Remember this device and do not ask for the code there | Asks the platform to trust this browser; next time, typing your e-mail signs you in there with no code | No | A tick box, shown only when the administrator allowed trusted devices (Settings → Security, days above 0); the time is the one the administrator set |
 
 **The «Verify your identity» page** (after «Sign in with Microsoft»)
@@ -109,7 +115,7 @@ The sign-in has three small forms, one after the other. Nothing here is a permis
 | Status | Meaning | Who can change it (permission key) | Moves to |
 |---|---|---|---|
 | App not linked yet | The account exists but the first-time link was not used | HR can resend the invitation (`employees.resend_invite`) | Linked, once you confirm the first code |
-| Linked | The app is linked; every sign-in asks for a code (a trusted device skips it only after a Microsoft sign-in) | HR can reset it (`employees.reset_authenticator`) | App not linked yet |
+| Linked | The app is linked; every sign-in asks for a code (a trusted device skips it after a Microsoft sign-in or an e-mail sign-in) | HR can reset it (`employees.reset_authenticator`) | App not linked yet |
 | Locked for a while | 5 wrong codes in a row | Nobody; it ends by itself after 15 minutes | Linked |
 | Signed in (session) | A session open for up to 12 hours | You, by signing out or ending it on the Security page; it also ends when your account is deactivated | Signed out |
 | Account deactivated | HR stopped the account; sign-in is refused | HR (`employees.deactivate`, «Deactivate and activate employees») | Active again if HR reactivates it |
@@ -132,7 +138,7 @@ The sign-in has three small forms, one after the other. Nothing here is a permis
 - Microsoft sign-in is for the company account only and for an employee whose account was created beforehand. If «Microsoft sign-in is not set up yet» appears, contact the system administrator. (FR-03)
 - No employee is added with an e-mail outside the domains the administrator set.
 - The session ends after **12 hours**, and at once if your account is deactivated.
-- Signing in with an e-mail always asks for the code. A «trusted device» skips the code only after a Microsoft sign-in, and for the time the platform administrator set.
+- A «trusted device» skips the code after a Microsoft sign-in and when signing in with an e-mail, for the time the platform administrator set.
 - The sign-in is recorded in the audit log. (FR-11)
 
 ### Tips and common problems

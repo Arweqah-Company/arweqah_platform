@@ -36,10 +36,10 @@ describe('The code step after Microsoft sign-in (FR-13)', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('الرمز غير صحيح.');
   });
 
-  it('sends someone without an app linked to enroll, and a signed-out visitor to sign in', async () => {
-    unverified({ authenticatorEnabled: false });
+  it('sends a signed-out visitor to sign in', async () => {
+    server.use(http.get('*/api/me', () => HttpResponse.json({ code: 'UNAUTHENTICATED', message: 'x' }, { status: 401 })));
     open();
-    expect(await screen.findByText('ربط التطبيق')).toBeInTheDocument();
+    expect(await screen.findByText('صفحة الدخول')).toBeInTheDocument();
   });
 
   it('offers to trust the browser only when the administrator allows it, and sends the choice with the code (FR-73)', async () => {
@@ -97,6 +97,25 @@ describe('The code step: the code e-mailed to the person (FR-164)', () => {
     expect(asked).toBe(1);
     '246810'.split('').forEach((d, i) => fireEvent.change(screen.getByLabelText(`الرمز المُرسل إلى بريدك ${i + 1}`), { target: { value: d } }));
     await waitFor(() => expect(sent).toEqual({ code: '246810', method: 'email' }));
+    expect(await screen.findByText('الرئيسية')).toBeInTheDocument();
+  });
+});
+
+describe('First sign-in, no app linked yet (FR-164)', () => {
+  it('first sign-in (no app linked): no automatic redirect; offers to link the app or to e-mail a code, and the code boxes come with the e-mailed code', async () => {
+    unverified({ authenticatorEnabled: false });
+    let sent: unknown;
+    server.use(
+      http.post('*/api/mfa/email-code/me', () => new HttpResponse(null, { status: 204 })),
+      http.post('*/api/mfa/verify', async ({ request }) => { sent = await request.json(); unverified({ authenticatorEnabled: false, mfaVerified: true }); return new HttpResponse(null, { status: 204 }); }),
+    );
+    open();
+    expect(await screen.findByRole('link', { name: 'ربط تطبيق المصادقة' })).toHaveAttribute('href', '/enroll');
+    expect(screen.queryByRole('group', { name: 'رمز تطبيق المصادقة' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'أرسل الرمز إلى بريدي' }));
+    await screen.findByLabelText('الرمز المُرسل إلى بريدك 1');
+    '123456'.split('').forEach((d, i) => fireEvent.change(screen.getByLabelText(`الرمز المُرسل إلى بريدك ${i + 1}`), { target: { value: d } }));
+    await waitFor(() => expect(sent).toEqual({ code: '123456', method: 'email' }));
     expect(await screen.findByText('الرئيسية')).toBeInTheDocument();
   });
 });

@@ -41,7 +41,7 @@ export function EmailCodeOption({ state, disabled }: { state: EmailCodeState; di
     return (
       <>
         {state.failed && <Alert>{t('emailCode.failed')}</Alert>}
-        <button type="button" disabled={disabled} className="text-start text-sm text-link underline underline-offset-4" onClick={() => void state.request()}>{t('emailCode.use')}</button>
+        <button type="button" disabled={disabled} className="cursor-pointer text-start text-sm text-link underline underline-offset-4 disabled:cursor-not-allowed disabled:opacity-60" onClick={() => void state.request()}>{t('emailCode.use')}</button>
       </>
     );
   }
@@ -51,7 +51,7 @@ export function EmailCodeOption({ state, disabled }: { state: EmailCodeState; di
       {state.failed && <Alert>{t('emailCode.failed')}</Alert>}
       <div className="flex items-center justify-between text-sm">
         <Button type="button" variant="ghost" size="sm" disabled={disabled || state.wait > 0} onClick={() => void state.request()}>{state.wait > 0 ? t('emailCode.resendIn', { count: state.wait }) : t('emailCode.resend')}</Button>
-        <button type="button" className="text-link underline underline-offset-4" onClick={state.useApp}>{t('emailCode.useApp')}</button>
+        <button type="button" className="cursor-pointer text-link underline underline-offset-4" onClick={state.useApp}>{t('emailCode.useApp')}</button>
       </div>
     </div>
   );

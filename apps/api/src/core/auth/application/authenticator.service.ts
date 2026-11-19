@@ -114,10 +114,10 @@ export class AuthenticatorService {
     return (await this.verify(user.id, code)) === 'ok' ? user.id : null;
   }
 
-  /** The id of the active person with this e-mail who has linked an app (the only people a trusted browser can belong to), else null. */
-  async enrolledUserIdByEmail(email: string): Promise<string | null> {
+  /** The id of the active person with this e-mail (a trusted browser belongs to anyone who signed in once, with the app or the e-mailed code), else null. */
+  async activeUserIdByEmail(email: string): Promise<string | null> {
     const user = await this.repo.userByEmail(email.trim().toLowerCase());
-    return user?.isActive && (await this.isEnabled(user.id)) ? user.id : null;
+    return user?.isActive ? user.id : null;
   }
 
   /** Development seed only (refused in production by the env schema): links an app with a known secret. */

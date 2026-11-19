@@ -33,15 +33,27 @@ describe('Sign-in code by e-mail, and a remembered device (FR-164)', () => {
     await signIn(user.email, code).expect(401);
   });
 
-  it('answers 204 and sends nothing for an unknown address, an inactive person and someone with no app linked yet', async () => {
+  it('answers 204 and sends nothing for an unknown address, and an inactive person', async () => {
     await sendTo('nobody@arweqah.sa').expect(204);
     const inactive = await t.factories.user();
     await t.db.query('UPDATE users SET is_active = false WHERE id = $1', [inactive.id]);
     await sendTo(inactive.email).expect(204);
-    const fresh = await t.factories.user({ enrolled: false });
-    await sendTo(fresh.email).expect(204);
     expect(t.mail.sent).toHaveLength(0);
     await request(server()).post('/api/mfa/email-code').send({ email: 'not-an-email' }).expect(400);
+  });
+
+  it('first sign-in: someone who has not linked an app yet gets the code too, signs in with it, and may trust the browser', async () => {
+    await setDays(30);
+    const fresh = await t.factories.user({ enrolled: false });
+    await sendTo(fresh.email).expect(204);
+    expect(t.mail.sent).toHaveLength(1);
+    const agent = request.agent(server());
+    const res = await agent.post('/api/auth/totp/sign-in').set('x-forwarded-for', nextIp()).send({ email: fresh.email, code: lastCode(), method: 'email', rememberDevice: true }).expect(200);
+    const me = (await agent.get('/api/me').expect(200)).body as { mfaVerified: boolean; authenticatorEnabled: boolean };
+    expect(me).toMatchObject({ mfaVerified: true, authenticatorEnabled: false });
+    const again = request.agent(server());
+    const cookie = /arweqah_device=[^;]+/.exec(String(res.headers['set-cookie']))?.[0] as string;
+    await again.post('/api/auth/totp/trusted-sign-in').set('x-forwarded-for', nextIp()).set('Cookie', cookie).send({ email: fresh.email }).expect(200);
   });
 
   it('asks one minute between two codes, and the new code replaces the old one', async () => {
