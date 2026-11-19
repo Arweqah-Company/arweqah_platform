@@ -71,7 +71,7 @@ import { AUTH_DB_POOL, BETTER_AUTH, TOTP_SIGN_IN_DEPS } from './infrastructure/t
       useFactory: (c: AppConfig, authenticator: AuthenticatorService, trusted: TrustedDevicesService, emailCodes: EmailLoginCodesService): TotpSignInDeps => ({
         verifySignIn: (email, code, method) => (method === 'email' ? emailCodes.verifySignIn(email, code) : authenticator.verifySignIn(email, code)),
         trustedSignIn: async (email, cookieHeader) => {
-          const userId = await authenticator.enrolledUserIdByEmail(email);
+          const userId = await authenticator.activeUserIdByEmail(email);
           return userId && (await trusted.accepts(userId, deviceSecretFromHeader(cookieHeader))) ? userId : null;
         },
         trustDevice: (userId, userAgent) => trusted.trust(userId, userAgent),

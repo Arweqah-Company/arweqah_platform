@@ -117,7 +117,7 @@ describe('Sign-in page: code by e-mail and a trusted browser (FR-164)', () => {
     expect(await screen.findByText('الرئيسية')).toBeInTheDocument();
   });
 
-  it('goes back to the app code, and never offers the e-mailed code on a first sign-in', async () => {
+  it('goes back to the app code, ', async () => {
     server.use(http.post('*/api/mfa/email-code', () => new HttpResponse(null, { status: 204 })));
     open();
     identify(false);
@@ -127,11 +127,11 @@ describe('Sign-in page: code by e-mail and a trusted browser (FR-164)', () => {
     expect(screen.getByRole('group', { name: 'رمز تطبيق المصادقة' })).toBeInTheDocument();
   });
 
-  it('does not offer the e-mailed code on a first sign-in', async () => {
+  it('offers the e-mailed code on a first sign-in too, beside the QR link', async () => {
     open();
     identify(true);
     await enterEmail();
-    expect(screen.queryByRole('button', { name: 'أرسل الرمز إلى بريدي' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'أرسل الرمز إلى بريدي' })).toBeInTheDocument();
   });
 
   it('signs in with the e-mail alone on a browser the person trusted: no code step', async () => {

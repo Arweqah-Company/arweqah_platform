@@ -14,7 +14,7 @@ const RESEND_AFTER_MS = 60 * 1000;
 const MAX_ATTEMPTS = 5;
 
 /**
- * The e-mailed sign-in code: an alternative to the code of the authenticator app for a person who already linked it.
+ * The e-mailed sign-in code: an alternative to the code of the authenticator app, for every active person (also on a first sign-in, before an app is linked).
  * Six digits, valid 10 minutes, spent on first use, dead after 5 wrong tries, one new code a minute. Only an HMAC is stored.
  */
 @Injectable()
@@ -28,7 +28,7 @@ export class EmailLoginCodesService {
     private readonly events: EventEmitter2,
   ) {}
 
-  /** E-mails a code to this address. Says nothing about whether the address exists, is active, has an app or asked too soon. */
+  /** E-mails a code to this address. Says nothing about whether the address exists, is active or asked too soon. */
   async sendTo(email: string): Promise<void> {
     const user = await this.users.userByEmail(email.trim().toLowerCase());
     if (user) await this.sendFor(user.id);
@@ -36,7 +36,7 @@ export class EmailLoginCodesService {
 
   async sendFor(userId: string): Promise<void> {
     const user = await this.users.userById(userId);
-    if (!user?.isActive || !(await this.users.find(userId))?.enabledAt) return;
+    if (!user?.isActive) return;
     const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
     const now = new Date();
     const stored = await this.codes.issue({ userId, codeHash: this.hash(userId, code), expiresAt: new Date(now.getTime() + CODE_TTL_MS), now, cooldownMs: RESEND_AFTER_MS });

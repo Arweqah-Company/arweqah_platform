@@ -69,8 +69,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   const location = useLocation();
   if (me.isPending) return <FullPageSpinner />;
   if (me.isError) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
-  // Every session ends at the code step; someone without an app linked yet enrolls first. A «sign in as» session needs neither: it is the administrator's.
-  if (!me.data.authenticatorEnabled && !me.data.impersonation) return <Navigate to="/enroll" replace />;
+  // Every session ends at the code step; someone without an app linked yet chooses there between linking it and an e-mailed code.
   if (!me.data.mfaVerified) return <Navigate to="/login/verify" replace state={{ from: location.pathname }} />;
   // The menu and the buttons are built from the permissions: wait for them once, so nothing flashes in or out.
   if (access.isPending) return <FullPageSpinner />;
