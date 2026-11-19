@@ -57,8 +57,9 @@ describe('Settings link in admin mode', () => {
 
   it('is left out while the person holds none of the settings tabs\' keys, and shown with one of them', async () => {
     openAdmin([CorePermission.RolesView]);
-    fireEvent.click(await screen.findByRole('button', { name: 'إدارة النظام' }));
+    // One page left under the menu: it is shown as the page itself, no menu to open first (FR-166).
     expect(await screen.findByRole('link', { name: 'الأدوار والصلاحيات' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'إدارة النظام' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'الإعدادات' })).not.toBeInTheDocument();
   });
 
