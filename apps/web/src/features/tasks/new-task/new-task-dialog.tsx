@@ -7,7 +7,7 @@ import { Alert, Button, Dialog, FormField, Input, Select } from '@/shared/ui';
 import { useCreateTask, useTaskOptions } from '../api';
 import { ApproverHint } from './approver-hint';
 import { emptyDraft, isDraftComplete, toCreateInput, type TaskDraft } from './task-draft';
-import { OptionFields, WhatFields, WhenFields } from './task-fields';
+import { OptionFields, Switch, WhatFields, WhenFields } from './task-fields';
 
 function TagSelect({ tags, value, onChange }: { tags: TaskTagDto[]; value: string; onChange: (value: string) => void }) {
   const { t, i18n } = useTranslation('tasks');
@@ -23,19 +23,33 @@ function TagSelect({ tags, value, onChange }: { tags: TaskTagDto[]; value: strin
   );
 }
 
+/** A personal task is for the person alone: no approval, no review, nobody else sees it. */
+function PersonalSwitch({ draft, onPatch }: { draft: TaskDraft; onPatch: (change: Partial<TaskDraft>) => void }) {
+  const { t } = useTranslation('tasks');
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-sm font-medium">{t('form.personal')}</span>
+      <Switch tone="info" on={draft.personal} label={t('form.personalLabel')} onChange={(personal) => onPatch(personal ? { personal, assigneeUserId: '', needsReview: false } : { personal })} />
+      {draft.personal && <Alert tone="info">{t('form.personalHint')}</Alert>}
+    </div>
+  );
+}
+
 /** Who gets the task and how it repeats. */
 function WhoFields({ draft, onPatch, options }: { draft: TaskDraft; onPatch: (change: Partial<TaskDraft>) => void; options: ReturnType<typeof useTaskOptions>['data'] }) {
   const { t } = useTranslation('tasks');
   const me = options?.assignees.find((a) => a.isSelf);
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <FormField label={t('form.assignee')} hint={t('form.assigneeHint')}>
-        {(p) => (
-          <Select {...p} value={draft.assigneeUserId || me?.id || ''} onChange={(e) => onPatch({ assigneeUserId: e.target.value === me?.id ? '' : e.target.value })}>
-            {(options?.assignees ?? []).map((a) => <option key={a.id} value={a.id}>{a.isSelf ? t('form.me', { name: a.name }) : a.name}</option>)}
-          </Select>
-        )}
-      </FormField>
+      {!draft.personal && (
+        <FormField label={t('form.assignee')} hint={t('form.assigneeHint')}>
+          {(p) => (
+            <Select {...p} value={draft.assigneeUserId || me?.id || ''} onChange={(e) => onPatch({ assigneeUserId: e.target.value === me?.id ? '' : e.target.value })}>
+              {(options?.assignees ?? []).map((a) => <option key={a.id} value={a.id}>{a.isSelf ? t('form.me', { name: a.name }) : a.name}</option>)}
+            </Select>
+          )}
+        </FormField>
+      )}
       <TagSelect tags={options?.tags ?? []} value={draft.tagId} onChange={(tagId) => onPatch({ tagId })} />
       <FormField label={t('form.recurrence')}>
         {(p) => (
@@ -77,10 +91,11 @@ function NewTaskForm({ onDone }: { onDone: () => void }) {
     <form className="flex flex-col gap-4" onSubmit={(e) => void submit(e)} noValidate>
       {create.isError && <Alert>{errorMessage(tc, create.error)}</Alert>}
       <WhatFields draft={draft} onPatch={patch} />
+      <PersonalSwitch draft={draft} onPatch={patch} />
       <WhoFields draft={draft} onPatch={patch} options={options} />
       <WhenFields draft={draft} onPatch={patch} today={today} creating />
       <OptionFields draft={draft} onPatch={patch} />
-      <ApproverHint forMyself={forMyself} approver={options?.approver ?? null} />
+      <ApproverHint forMyself={forMyself && !draft.personal} approver={options?.approver ?? null} />
       <div className="flex justify-end gap-2">
         <Button variant="secondary" onClick={onDone}>{tc('actions.cancel')}</Button>
         <Button type="submit" disabled={create.isPending || !isDraftComplete(draft, today, true)}>{t('form.create')}</Button>

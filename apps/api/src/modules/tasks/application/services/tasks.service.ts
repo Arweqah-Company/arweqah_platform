@@ -9,7 +9,7 @@ import { TaskDirectory } from '../../domain/contracts/task-directory.port';
 import { TaskTagRepository } from '../../domain/contracts/task-tag.repository';
 import { TaskTicketParticipants } from '../../domain/contracts/task-ticket-participants.port';
 import { TaskRepository } from '../../domain/contracts/task.repository';
-import { TaskAssigneeInvalidError, TaskAssignmentNotAllowedError, TaskDueDateInvalidError, TaskRevisionConflictError, TaskTagInvalidError } from '../../domain/errors/task.errors';
+import { TaskAssigneeInvalidError, TaskAssignmentNotAllowedError, TaskDueDateInvalidError, TaskPersonalForSelfError, TaskRevisionConflictError, TaskTagInvalidError } from '../../domain/errors/task.errors';
 import { decideAssignment } from '../../domain/rules/task-assignment.rules';
 import { inReach } from '../../domain/rules/task-reach.rules';
 import type { TaskPatch, TaskPerson, TaskRow, TaskViewer } from '../../domain/types/task.types';
@@ -48,21 +48,21 @@ export class TasksService {
 
   async create(viewer: TaskViewer, input: CreateTaskInput): Promise<TaskDto> {
     const today = riyadhToday(this.clock.now());
+    if (input.personal && input.assigneeUserId && input.assigneeUserId !== viewer.userId) throw new TaskPersonalForSelfError();
     const pair = await this.pair(viewer.userId, input.assigneeUserId ?? viewer.userId);
     await this.assertMayAssign(viewer, pair);
     const dueDate = input.dueDate ?? today;
     if (dueDate < today) throw new TaskDueDateInvalidError();
     await this.assertTagUsable(input.tagId ?? null, pair);
     const selfAssigned = pair.creator.userId === pair.assignee.userId;
-    const approverUserId = selfAssigned ? pair.creator.managerUserId : null;
-    const reviewerUserId = input.needsReview ? this.reviewerFor(pair, approverUserId) : null;
+    const { approverUserId, reviewerUserId } = this.checkersFor(pair, input);
     const id = await this.tx.run(async (tx) => {
       const taskId = await this.tasks.insert(
         {
           companyId: pair.creator.companyId as string, title: input.title, description: input.description, assigneeUserId: pair.assignee.userId, creatorUserId: pair.creator.userId,
           reviewerUserId, approverUserId, status: approverUserId ? 'pending_approval' : 'todo', priority: input.priority, dueDate, estimateMinutes: input.estimateMinutes ?? null,
           tagId: input.tagId ?? null, urgentManual: input.urgent, needsReview: reviewerUserId !== null, recurrence: input.recurrence, recurrenceEnd: input.recurrenceEnd ?? null,
-          recurrenceParentId: null, source: 'standalone', ticketId: null, projectId: null,
+          recurrenceParentId: null, source: 'standalone', ticketId: null, projectId: null, isPersonal: input.personal,
         },
         tx,
       );
@@ -73,7 +73,7 @@ export class TasksService {
       await this.notifier.send({ kind: 'approvalRequested', task: row, recipients: [approverUserId], actorUserId: viewer.userId, tx });
       return taskId;
     });
-    this.audit(viewer.userId, TASK_AUDIT.created, id, { assigneeUserId: pair.assignee.userId, priority: input.priority, selfAssigned });
+    this.audit(viewer.userId, TASK_AUDIT.created, id, { assigneeUserId: pair.assignee.userId, priority: input.priority, selfAssigned, personal: input.personal });
     return this.get(viewer, id);
   }
 
@@ -190,6 +190,13 @@ export class TasksService {
     return department ? [...above, department.nodeId] : above;
   }
 
+  /** Who approves and who reviews a new task; a personal task is nobody's to approve or review. */
+  private checkersFor(pair: Pair, input: CreateTaskInput): { approverUserId: string | null; reviewerUserId: string | null } {
+    if (input.personal) return { approverUserId: null, reviewerUserId: null };
+    const approverUserId = pair.creator.userId === pair.assignee.userId ? pair.creator.managerUserId : null;
+    return { approverUserId, reviewerUserId: input.needsReview ? this.reviewerFor(pair, approverUserId) : null };
+  }
+
   /** Who accepts a task that needs review: who gave it; for a task given to oneself, whoever approves it (nobody = no review). */
   private reviewerFor({ creator, assignee }: Pair, approverUserId: string | null): string | null {
     return creator.userId === assignee.userId ? approverUserId : creator.userId;
@@ -204,7 +211,7 @@ export class TasksService {
       await this.assertTagUsable(input.tagId, await this.pair(task.creatorUserId, task.assigneeUserId));
       patch.tagId = input.tagId;
     }
-    if (input.needsReview !== undefined) Object.assign(patch, this.reviewPatch(task, input.needsReview));
+    if (input.needsReview !== undefined && !task.isPersonal) Object.assign(patch, this.reviewPatch(task, input.needsReview));
     return patch;
   }
 

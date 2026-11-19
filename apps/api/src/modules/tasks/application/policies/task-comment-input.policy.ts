@@ -39,6 +39,7 @@ export class TaskCommentInputPolicy {
   async mentionIds(ctx: CommentContext, body: string, alreadyMentioned: string[]): Promise<string[]> {
     const ids = mentionedIn(body);
     if (!ids.length) return [];
+    if (ctx.task.isPersonal) throw new TaskCommentMentionInvalidError(); // nobody else may be pulled into a personal task
     if (ids.some((id) => !alreadyMentioned.includes(id))) this.assertMay(ctx, 'mention');
     const people = await this.directory.people(ids);
     if (ids.some((id) => people.get(id)?.companyId !== ctx.task.companyId)) throw new TaskCommentMentionInvalidError();

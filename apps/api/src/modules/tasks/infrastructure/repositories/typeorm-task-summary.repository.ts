@@ -53,7 +53,7 @@ export class TypeOrmTaskSummaryRepository extends TaskSummaryRepository {
               count(*) FILTER (WHERE ${OPEN} AND t.status <> 'pending_approval' AND t.last_activity_at < $3::timestamptz - ($4::int * interval '1 day'))::int AS stale,
               count(*) FILTER (WHERE t.status = 'done' AND t.completed_at >= $3::timestamptz - interval '7 days')::int AS "doneThisWeek"
        FROM tasks t JOIN employees ae ON ae.user_id = t.assignee_user_id AND ae.deleted_at IS NULL
-       WHERE t.archived_at IS NULL AND t.deleted_at IS NULL AND t.assignee_user_id <> $1 AND ${reach}`,
+       WHERE t.archived_at IS NULL AND t.deleted_at IS NULL AND NOT t.is_personal AND t.assignee_user_id <> $1 AND ${reach}`,
       values,
     );
     return rows[0] as TeamTaskCounts;

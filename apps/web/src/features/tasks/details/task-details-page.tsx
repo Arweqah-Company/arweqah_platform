@@ -36,7 +36,7 @@ export function TaskDetailsPage() {
     <>
       <PageHeader title={`${task.number} · ${task.title}`} description={t('details.pageHint')} />
       <div className="flex flex-col gap-5">
-        <div className="flex flex-wrap items-center gap-2"><TaskStatusBadge status={task.status} /><TaskPriorityBadge priority={task.priority} /><TaskFlags flags={task.flags} /></div>
+        <div className="flex flex-wrap items-center gap-2"><TaskStatusBadge status={task.status} /><TaskPriorityBadge priority={task.priority} /><TaskFlags flags={task.flags} personal={task.personal} /></div>
         <Notes task={task} />
         <TaskFacts task={task} />
         <TaskActions task={task} today={riyadhToday()} />

@@ -15,6 +15,8 @@ export interface TaskDraft {
   recurrenceEnd: string;
   urgent: boolean;
   needsReview: boolean;
+  /** Only for the person: no approval, no review, nobody else sees it. */
+  personal: boolean;
 }
 
 export const PRIORITIES = TASK_PRIORITIES;
@@ -31,6 +33,7 @@ export const emptyDraft = (today: string): TaskDraft => ({
   recurrenceEnd: '',
   urgent: false,
   needsReview: false,
+  personal: false,
 });
 
 export const draftOf = (task: TaskDto): TaskDraft => ({
@@ -45,6 +48,7 @@ export const draftOf = (task: TaskDto): TaskDraft => ({
   recurrenceEnd: task.recurrenceEnd ?? '',
   urgent: task.urgentMarked,
   needsReview: task.needsReview,
+  personal: task.personal,
 });
 
 export const estimateMinutes = (hours: string): number | null => {
@@ -61,7 +65,8 @@ export const toCreateInput = (d: TaskDraft): CreateTaskInput => ({
   estimateMinutes: estimateMinutes(d.estimateHours),
   tagId: d.tagId || null,
   urgent: d.urgent,
-  needsReview: d.needsReview,
+  needsReview: d.needsReview && !d.personal,
+  personal: d.personal,
   recurrence: d.recurrence,
   recurrenceEnd: d.recurrence === 'none' ? null : d.recurrenceEnd || null,
 });

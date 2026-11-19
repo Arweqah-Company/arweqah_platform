@@ -59,6 +59,22 @@ describe('New task popup (FR-48)', () => {
     await waitFor(() => expect(screen.queryByText(/فيعتمدها/)).not.toBeInTheDocument());
   });
 
+  it('a personal task (FR-165) hides the person and review fields, shows no approver, and is sent as personal without review', async () => {
+    const posted = serve();
+    page();
+    expect(await screen.findByText(/فيعتمدها منى خالد/)).toBeInTheDocument();
+    fireEvent.change(await screen.findByLabelText(/العنوان/), { target: { value: 'قراءة كتاب' } });
+    fireEvent.click(screen.getByRole('switch', { name: /خاصة بي فقط/ }));
+    expect(screen.getByText(/لا يراها مديرك/)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/المسند إليه/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/فيعتمدها/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('switch', { name: /تحتاج مراجعة/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'إنشاء المهمة' }));
+    await waitFor(() => expect(posted).toHaveLength(1));
+    expect(posted[0]).toMatchObject({ title: 'قراءة كتاب', personal: true, needsReview: false });
+    expect(posted[0]?.assigneeUserId).toBeUndefined();
+  });
+
   it('sends what was written, with the estimate in minutes, and closes the popup', async () => {
     const posted = serve();
     page();

@@ -32,7 +32,7 @@ export class TaskAccessPolicy {
     if (task.reviewerUserId === viewer.userId) relations.push('reviewer');
     if (task.approverUserId === viewer.userId) relations.push('approver');
     if (task.isFollowing) relations.push('follower');
-    if (task.assigneeUserId !== viewer.userId && inReach(viewer.scopes[P.TasksTeamView] ?? null, viewer, assigneeOf(task))) relations.push('team');
+    if (!task.isPersonal && task.assigneeUserId !== viewer.userId && inReach(viewer.scopes[P.TasksTeamView] ?? null, viewer, assigneeOf(task))) relations.push('team');
     return relations;
   }
 
@@ -73,7 +73,7 @@ export class TaskAccessPolicy {
 
   /** Adding and removing followers: the key, and the assignee, the giver of the task, or a person whose scope of the key reaches the assignee. */
   mayManageFollowers(viewer: TaskViewer, task: TaskRow): boolean {
-    if (!holds(viewer, P.TasksFollowersManage)) return false;
+    if (!holds(viewer, P.TasksFollowersManage) || task.isPersonal) return false;
     return task.creatorUserId === viewer.userId || task.assigneeUserId === viewer.userId || this.reaches(viewer, P.TasksFollowersManage, task);
   }
 
@@ -108,7 +108,7 @@ export class TaskAccessPolicy {
         update: this.mayUpdate(viewer, task),
         approve: holds(viewer, P.TasksApprove),
         object: holds(viewer, P.TasksObject),
-        follow: holds(viewer, P.TasksFollow),
+        follow: holds(viewer, P.TasksFollow) && !task.isPersonal,
         manageFollowers: this.mayManageFollowers(viewer, task),
         logTime: holds(viewer, P.TasksLogTime),
         resubmit: holds(viewer, P.TasksResubmit),
