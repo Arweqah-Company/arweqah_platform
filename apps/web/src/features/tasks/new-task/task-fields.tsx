@@ -69,7 +69,7 @@ export function OptionFields({ draft, onPatch }: Pick<FieldsProps, 'draft' | 'on
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div className="flex flex-col gap-1.5"><span className="text-sm font-medium">{t('form.urgent')}</span><Switch on={draft.urgent} label={t('form.urgentLabel')} onChange={(urgent) => onPatch({ urgent })} /></div>
-      <div className="flex flex-col gap-1.5"><span className="text-sm font-medium">{t('form.review')}</span><Switch tone="info" on={draft.needsReview} label={t('form.reviewLabel')} onChange={(needsReview) => onPatch({ needsReview })} /></div>
+      {!draft.personal && <div className="flex flex-col gap-1.5"><span className="text-sm font-medium">{t('form.review')}</span><Switch tone="info" on={draft.needsReview} label={t('form.reviewLabel')} onChange={(needsReview) => onPatch({ needsReview })} /></div>}
     </div>
   );
 }

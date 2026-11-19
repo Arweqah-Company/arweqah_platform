@@ -821,6 +821,7 @@ erDiagram
     uuid tag_id FK
     boolean urgent_manual
     boolean needs_review
+    boolean is_personal
     character_varying recurrence
     date recurrence_end
     uuid recurrence_parent_id FK
@@ -1460,7 +1461,7 @@ erDiagram
 
 | Table | What it does |
 |---|---|
-| `tasks` | The task: company, creator, assignee, reviewer, approver, status, priority, due date, estimate, tag, recurrence, source (manual / ticket / project), completion and archive dates, reminder markers, `deleted_at` (the delete button hides the task, never erases it). |
+| `tasks` | The task: company, creator, assignee, reviewer, approver, status, priority, due date, estimate, tag, recurrence, source (manual / ticket / project), `is_personal` (a personal task: only its owner sees it), completion and archive dates, reminder markers, `deleted_at` (the delete button hides the task, never erases it). |
 | `task_events` | Timeline of a task: type, actor, from / to status and note. |
 | `task_followers` | People who follow a task and are notified. |
 | `task_objections` | An objection raised on a task: reason code, note, expiry, status and who answered. |

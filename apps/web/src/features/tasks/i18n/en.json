@@ -39,6 +39,7 @@
     "high": "High"
   },
   "flags": {
+    "personal": "Personal",
     "urgent": "Urgent",
     "overdue": "Overdue",
     "stale": "Stale",
@@ -59,6 +60,7 @@
     "minutes": "{{count}} min"
   },
   "filters": {
+    "personal": "Personal only",
     "status": "Status",
     "priority": "Priority",
     "assignee": "Person",
@@ -160,6 +162,9 @@
     "urgentLabel": "Mark as urgent",
     "review": "Review",
     "reviewLabel": "Needs a review",
+    "personal": "Personal task",
+    "personalLabel": "Only for me",
+    "personalHint": "This is a personal task: only you see it, with no approval, no review and no followers, and your manager does not see it.",
     "on": "On",
     "off": "Off",
     "approvedBy": "This task is for yourself, so it will be approved by {{name}}.",

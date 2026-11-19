@@ -16,10 +16,11 @@ export function TaskPriorityBadge({ priority }: { priority: TaskPriority }) {
 }
 
 /** Urgent (red), overdue (red), stale (grey) and objected-to (yellow), each with words so colour never carries the meaning alone. */
-export function TaskFlags({ flags }: { flags: TaskFlagsDto }) {
+export function TaskFlags({ flags, personal = false }: { flags: TaskFlagsDto; personal?: boolean }) {
   const { t } = useTranslation('tasks');
   return (
     <span className="inline-flex flex-wrap items-center gap-1">
+      {personal && <Badge tone="info">{t('flags.personal')}</Badge>}
       {flags.urgent && <Badge tone="danger">{t('flags.urgent')}</Badge>}
       {flags.overdue && <Badge tone="danger">{t('flags.overdue')}</Badge>}
       {flags.stale && <Badge>{t('flags.stale')}</Badge>}

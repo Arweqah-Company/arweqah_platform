@@ -47,6 +47,9 @@ const PATCH_COLUMNS: Record<keyof TaskPatch, string> = {
 
 const OPEN = `t.status NOT IN ('done', 'rejected')`;
 
+/** The search box: the title or the task number. */
+const searchSql = (param: string): string => `(t.title ILIKE ${param} OR ('TSK-' || lpad(t.number::text, 6, '0')) ILIKE ${param})`;
+
 @Injectable()
 export class TypeOrmTaskRepository extends TaskRepository {
   constructor(private readonly ds: DataSource) {
@@ -60,10 +63,10 @@ export class TypeOrmTaskRepository extends TaskRepository {
   async insert(d: NewTask, tx: TransactionContext): Promise<string> {
     const rows: { id: string }[] = await this.m(tx).query(
       `INSERT INTO tasks (company_id, title, description, assignee_user_id, creator_user_id, reviewer_user_id, approver_user_id, status, priority, due_date,
-         estimate_minutes, tag_id, urgent_manual, needs_review, recurrence, recurrence_end, recurrence_parent_id, source, ticket_id, project_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20) RETURNING id`,
+         estimate_minutes, tag_id, urgent_manual, needs_review, recurrence, recurrence_end, recurrence_parent_id, source, ticket_id, project_id, is_personal)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21) RETURNING id`,
       [d.companyId, d.title, d.description, d.assigneeUserId, d.creatorUserId, d.reviewerUserId, d.approverUserId, d.status, d.priority, d.dueDate,
-        d.estimateMinutes, d.tagId, d.urgentManual, d.needsReview, d.recurrence, d.recurrenceEnd, d.recurrenceParentId, d.source, d.ticketId, d.projectId],
+        d.estimateMinutes, d.tagId, d.urgentManual, d.needsReview, d.recurrence, d.recurrenceEnd, d.recurrenceParentId, d.source, d.ticketId, d.projectId, d.isPersonal],
     );
     return rows[0]?.id as string;
   }
@@ -95,16 +98,21 @@ export class TypeOrmTaskRepository extends TaskRepository {
     const where: string[] = ['t.deleted_at IS NULL', this.tabSql(f, values), f.archived ? 't.archived_at IS NOT NULL' : 't.archived_at IS NULL'];
     if (f.status) where.push(`t.status = ${bind(f.status)}`);
     if (f.openOnly) where.push(OPEN);
+    if (f.personal) where.push('t.is_personal');
     if (f.priority) where.push(`t.priority = ${bind(f.priority)}`);
     if (f.assigneeId) where.push(`t.assignee_user_id = ${bind(f.assigneeId)}`);
     if (f.tagId) where.push(`t.tag_id = ${bind(f.tagId)}`);
-    if (f.overdue) where.push(`${OPEN} AND t.due_date < ${bind(f.today)}::date`);
-    if (f.stale) where.push(`${OPEN} AND t.status <> 'pending_approval' AND t.last_activity_at < ${bind(f.now)}::timestamptz - (${bind(f.staleDays)}::int * interval '1 day')`);
-    if (f.search) {
-      const p = bind(likeContains(f.search));
-      where.push(`(t.title ILIKE ${p} OR ('TSK-' || lpad(t.number::text, 6, '0')) ILIKE ${p})`);
-    }
+    where.push(...this.lateSql(f, bind));
+    if (f.search) where.push(searchSql(bind(likeContains(f.search))));
     return { clause: where.join(' AND '), values };
+  }
+
+  /** The «overdue» and «stale» filters. */
+  private lateSql(f: Omit<TaskListFilters, 'page' | 'pageSize'>, bind: (value: unknown) => string): string[] {
+    const late: string[] = [];
+    if (f.overdue) late.push(`${OPEN} AND t.due_date < ${bind(f.today)}::date`);
+    if (f.stale) late.push(`${OPEN} AND t.status <> 'pending_approval' AND t.last_activity_at < ${bind(f.now)}::timestamptz - (${bind(f.staleDays)}::int * interval '1 day')`);
+    return late;
   }
 
   private tabSql(f: Omit<TaskListFilters, 'page' | 'pageSize'>, values: unknown[]): string {
@@ -115,9 +123,9 @@ export class TypeOrmTaskRepository extends TaskRepository {
     if (f.reach === 'direct' && scope && scope !== 'own') {
       if (!f.viewer.employeeId) return 'FALSE';
       values.push(f.viewer.employeeId);
-      return `t.assignee_user_id <> $1 AND ae.manager_id = $${values.length}`;
+      return `t.assignee_user_id <> $1 AND NOT t.is_personal AND ae.manager_id = $${values.length}`;
     }
-    return `t.assignee_user_id <> $1 AND ${reachSql(scope, f.viewer, 'ae', values)}`;
+    return `t.assignee_user_id <> $1 AND NOT t.is_personal AND ${reachSql(scope, f.viewer, 'ae', values)}`;
   }
 
   async list(f: TaskListFilters): Promise<Paginated<TaskRow> & { groupBy: TaskGrouping | null }> {
