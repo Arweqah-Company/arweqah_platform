@@ -1,14 +1,14 @@
 import type { TourStepSettingDto } from '@arweqah-platform/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowDown, ArrowUp, Compass, Pencil, Undo2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Compass, Eye, EyeOff, Pencil, Undo2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Can } from '@/core/permissions/can';
 import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Badge, ConfirmDialog, DataTable, EmptyState, ListToolbar, RowAction } from '@/shared/ui';
 import { TOUR_KEYS } from './keys';
-import { useReorderSteps, useResetStep } from './settings.api';
+import { useEditStep, useReorderSteps, useResetStep } from './settings.api';
 import { StepDialog } from './step-dialog';
 import { useStepRows } from './use-step-rows';
 
@@ -24,6 +24,21 @@ function useMove(all: TourStepSettingDto[] | undefined) {
     [keys[from], keys[to]] = [keys[to]!, keys[from]!];
     try {
       await reorder.mutateAsync({ tour: step.tour, keys });
+    } catch (error) {
+      toast.error(errorMessage(tc, error));
+    }
+  };
+}
+
+/** Switches one step off (or back on) at once, keeping its wording as it is. */
+function useToggle() {
+  const { t } = useTranslation('tour');
+  const { t: tc } = useTranslation();
+  const edit = useEditStep();
+  return async (x: TourStepSettingDto) => {
+    try {
+      await edit.mutateAsync({ key: x.key, enabled: !x.enabled, titleAr: x.titleAr, titleEn: x.titleEn, bodyAr: x.bodyAr, bodyEn: x.bodyEn });
+      toast.success(t(x.enabled ? 'settings.disabledDone' : 'settings.enabledDone'));
     } catch (error) {
       toast.error(errorMessage(tc, error));
     }
@@ -52,6 +67,7 @@ export function TourStepsTab() {
   const { t: tc } = useTranslation();
   const { steps, list, fields, rows, exportColumns, title } = useStepRows();
   const move = useMove(steps.data?.steps);
+  const toggle = useToggle();
   const [open, setOpen] = useState<string | null>(null);
   const [resetting, setResetting] = useState<TourStepSettingDto | null>(null);
   const opened = steps.data?.steps.find((x) => x.key === open);
@@ -73,6 +89,9 @@ export function TourStepsTab() {
             <Can permission={TOUR_KEYS.reorder}>
               <RowAction label={t('settings.moveUp')} icon={ArrowUp} onClick={() => void move(x, -1)} />
               <RowAction label={t('settings.moveDown')} icon={ArrowDown} onClick={() => void move(x, 1)} />
+            </Can>
+            <Can permission={TOUR_KEYS.edit}>
+              <RowAction label={t(x.enabled ? 'settings.disable' : 'settings.enable')} icon={x.enabled ? EyeOff : Eye} onClick={() => void toggle(x)} />
             </Can>
             <RowAction label={tc('actions.edit')} icon={Pencil} onClick={() => setOpen(x.key)} />
             <Can permission={TOUR_KEYS.reset}>{x.customised && <RowAction label={t('settings.reset.confirm')} icon={Undo2} danger onClick={() => setResetting(x)} />}</Can>
