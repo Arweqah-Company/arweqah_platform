@@ -17,8 +17,17 @@ export const NAV_GROUPS: Record<NavGroupId, { labelKey: string; icon: LucideIcon
 
 export type NavEntry = { kind: 'link'; item: NavItem } | { kind: 'group'; id: NavGroupId; items: NavItem[] };
 
-/** Top-level links and menus in the order their first item appears. */
+/** Top-level links and menus in the order their first item appears. A menu holding only one page is that page's link (no second click). */
 export function buildNavEntries(items: NavItem[]): NavEntry[] {
+  return collapseSingles(groupEntries(items));
+}
+
+/** A menu with one visible page is shown as the page itself. */
+function collapseSingles(entries: NavEntry[]): NavEntry[] {
+  return entries.map((e): NavEntry => (e.kind === 'group' && e.items.length === 1 ? { kind: 'link', item: e.items[0] as NavItem } : e));
+}
+
+function groupEntries(items: NavItem[]): NavEntry[] {
   const entries: NavEntry[] = [];
   for (const item of items) {
     if (!item.group) {

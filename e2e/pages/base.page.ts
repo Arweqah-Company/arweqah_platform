@@ -31,7 +31,8 @@ export abstract class BasePage {
     await this.openDrawerIfPhone();
     if (menu) {
       const button = this.page.getByRole('button', { name: menu });
-      if ((await button.getAttribute('aria-expanded')) === 'false') await button.click();
+      // A menu with one visible page is drawn as that page's link, so there may be no menu button (FR-166).
+      if ((await button.count()) > 0 && (await button.getAttribute('aria-expanded')) === 'false') await button.click();
     }
     await this.page.getByRole('navigation', { name: 'منصة أروقة' }).getByRole('link', { name: link, exact: true }).click();
   }

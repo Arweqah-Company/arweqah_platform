@@ -2,6 +2,14 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-19 — Sidebar menus with one page
+
+Plan: `docs/plans/phase-1-auth-employees.md` (log 2026-11-19).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 437 | **A sidebar menu whose visible pages are only one is drawn as that page's link** (`buildNavEntries` in `core/navigation.tsx`), under the page's own name and icon, not the menu's. The count is of the pages left after permissions and hidden pages, so it changes by person. The tour's `nav:` anchors are unchanged (they are per page). | Owner (2026-11-19): a person who may open only the tickets page should not click the menu and then the page. | A menu should keep its name even with one page. |
+
 ## 2026-11-19 — Personal tasks
 
 Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-19).
