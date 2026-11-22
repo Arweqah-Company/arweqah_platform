@@ -2,6 +2,15 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-22 — Notices and policies (plan only)
+
+Plan: `docs/plans/phase-8-notices.md`. Design: https://claude.ai/artifact/FRbp3RN9rr3ZbeD2ergp2s. No code yet.
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 438 | **A published notice is changed by a new version that goes back to approval** (`notice_versions`); the old version is hidden at once, stays hidden if the new one is rejected, and the writer has «cancel the change and restore the old one» (`notices.revise_cancel`). Those who acknowledged the old version must acknowledge the new one; the new version is published as soon as it is approved (no publish date). | Owner's answers (2026-11-22): versioned change, old hidden on start, hidden after rejection, with a cancel button. | A hidden notice hurts readers (then keep the old one visible while the new one waits). |
+| 439 | **Channel writers are managed with ordinary permissions only, four keys** (`notices.hr_writer_add/remove`, `notices.comms_writer_add/remove`), held by platform admin (`all`) and, through the head role, by unit heads (`subtree`: their unit and below); a wider scope can be granted on the permissions page. Adding a writer gives them the channel's writer role in the same transaction (removing takes it back); the channel itself is limited by membership in `notice_channel_writers`. No channel-owner column, and the writers table keeps few columns (who added a writer is in the audit log). | Owner: «the page works with ordinary permissions; platform admin and unit heads for their unit; a key to write and remove per channel». | A third channel appears (two more keys) or a channel needs one owner unit. |
+
 ## 2026-11-19 — Sidebar menus with one page
 
 Plan: `docs/plans/phase-1-auth-employees.md` (log 2026-11-19).
