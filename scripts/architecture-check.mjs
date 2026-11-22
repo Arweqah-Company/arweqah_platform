@@ -59,6 +59,17 @@ for (const file of walk(join(WEB, 'features')).filter((f) => /\.tsx?$/.test(f)))
   }
 }
 
+// Documentation diagrams: in a Mermaid sequence diagram a semicolon ends the message (the rest of the text becomes a statement and the diagram does not render).
+const MARKDOWN = [...walk('docs').filter((f) => f.endsWith('.md')), 'README.md'];
+for (const file of MARKDOWN) {
+  let inSequence = false;
+  readFileSync(file, 'utf8').split('\n').forEach((line, i) => {
+    if (line.startsWith('```')) inSequence = line.trim() === '```mermaid' ? null : false;
+    else if (inSequence === null && line.trim() === 'sequenceDiagram') inSequence = true;
+    else if (inSequence && /-{1,2}>>?[+-]?[^:]*:.*;/.test(line)) problems.push(`${file}:${i + 1}: a ";" inside a sequence-diagram message ends it; use a comma`);
+  });
+}
+
 if (problems.length) {
   console.error(`architecture check found ${problems.length} problem(s):\n${problems.map((p) => `- ${p}`).join('\n')}`);
   process.exit(1);

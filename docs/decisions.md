@@ -2,6 +2,14 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-22 — CodeRabbit round on PR 148
+
+Plan: `docs/plans/welcome-tour.md` (log 2026-11-22).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 441 | **The tour step switch has its own route, `PUT /tour-steps/:key/enabled` with `{ enabled }` only** (same key `tour.settings_edit`, same audit entry), and `architecture:check` refuses a `;` inside a Mermaid sequence-diagram message in README and `docs/` | The full edit route writes all five columns, so a switch sent from a list loaded earlier put back old wording over a newer edit; a semicolon ends a Mermaid message, so the diagram did not render | A step gets a version column (then the full edit can check it too) |
+
 ## 2026-11-22 — Notices and policies (plan only)
 
 Plan: `docs/plans/phase-8-notices.md`. Design: https://claude.ai/artifact/FRbp3RN9rr3ZbeD2ergp2s. No code yet.

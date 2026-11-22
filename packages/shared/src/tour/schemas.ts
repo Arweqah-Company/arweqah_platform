@@ -22,6 +22,10 @@ export const tourStepEditSchema = z.strictObject({
 });
 export type TourStepEditInput = z.infer<typeof tourStepEditSchema>;
 
+/** The switch alone: it never carries the wording, so it cannot overwrite a newer edit of it. */
+export const tourStepEnabledSchema = z.strictObject({ enabled: z.boolean() });
+export type TourStepEnabledInput = z.infer<typeof tourStepEnabledSchema>;
+
 /** The steps of one tour in their new order: every step of that tour, once. */
 export const tourOrderSchema = z.strictObject({ tour: tourIdSchema, keys: z.array(tourStepKeySchema).min(1).max(TOUR_STEP_KEYS.length) });
 export type TourOrderInput = z.infer<typeof tourOrderSchema>;

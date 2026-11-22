@@ -8,7 +8,7 @@ import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Badge, ConfirmDialog, DataTable, EmptyState, ListToolbar, RowAction } from '@/shared/ui';
 import { TOUR_KEYS } from './keys';
-import { useEditStep, useReorderSteps, useResetStep } from './settings.api';
+import { useReorderSteps, useResetStep, useToggleStep } from './settings.api';
 import { StepDialog } from './step-dialog';
 import { useStepRows } from './use-step-rows';
 
@@ -30,14 +30,14 @@ function useMove(all: TourStepSettingDto[] | undefined) {
   };
 }
 
-/** Switches one step off (or back on) at once, keeping its wording as it is. */
+/** Switches one step off (or back on) at once; only the switch is sent, so its wording is never overwritten. */
 function useToggle() {
   const { t } = useTranslation('tour');
   const { t: tc } = useTranslation();
-  const edit = useEditStep();
+  const toggle = useToggleStep();
   return async (x: TourStepSettingDto) => {
     try {
-      await edit.mutateAsync({ key: x.key, enabled: !x.enabled, titleAr: x.titleAr, titleEn: x.titleEn, bodyAr: x.bodyAr, bodyEn: x.bodyEn });
+      await toggle.mutateAsync({ key: x.key, enabled: !x.enabled });
       toast.success(t(x.enabled ? 'settings.disabledDone' : 'settings.enabledDone'));
     } catch (error) {
       toast.error(errorMessage(tc, error));
