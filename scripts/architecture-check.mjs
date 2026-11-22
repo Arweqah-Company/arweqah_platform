@@ -1,6 +1,7 @@
 // Architecture check: the folder rules of the module-architecture skill and CLAUDE.md that ESLint cannot see.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { badMessageLines } from './mermaid-lint.mjs';
 
 const API = 'apps/api/src';
 const WEB = 'apps/web/src';
@@ -57,6 +58,11 @@ for (const file of walk(join(WEB, 'features')).filter((f) => /\.tsx?$/.test(f)))
   for (const [, other, rest] of readFileSync(file, 'utf8').matchAll(/from '@\/features\/([\w-]+)(\/[^']*)?'/g)) {
     if (other !== own && rest) problems.push(`${file}: imports ${other}${rest}; use @/features/${other} (its index.ts)`);
   }
+}
+
+// Documentation diagrams: a ";" inside a Mermaid sequence-diagram message ends it (rule in scripts/mermaid-lint.mjs).
+for (const file of [...walk('docs').filter((f) => f.endsWith('.md')), 'README.md']) {
+  for (const line of badMessageLines(readFileSync(file, 'utf8'))) problems.push(`${file}:${line}: a ";" inside a sequence-diagram message ends it; use a comma`);
 }
 
 if (problems.length) {

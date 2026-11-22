@@ -160,7 +160,8 @@ It lists the steps of the tour every employee sees on first sign-in, and of the 
 | Action | Permission |
 |---|---|
 | View the tab | `tour.settings_view` (View the welcome tour settings) |
-| Edit a step's text and switch it on or off | `tour.settings_edit` (Edit a welcome-tour step and switch it on or off) |
+| Edit a step's text | `tour.settings_edit` (Edit the wording of a welcome-tour step) |
+| Switch a step on or off | `tour.settings_toggle` (Switch a welcome-tour step on or off) |
 | Move a step up or down | `tour.settings_reorder` (Reorder the welcome-tour steps) |
 | Reset a step to the original | `tour.settings_reset` (Reset a welcome-tour step to its default wording) |
 | Export | `tour.settings_export` (Export the list of welcome-tour steps) |
@@ -264,7 +265,7 @@ Whatever is in the form is what is tried; nothing from the window is saved, and 
 |---|---|---|---|
 | Title (Arabic and English) | The step's heading in the tour | No | Up to 80 characters; empty = the original wording |
 | Text (Arabic and English) | The step's explanation | No | Up to 400 characters, plain text; empty = the original wording |
-| The step is shown in the tour | Switches the step on or off | No | Tick box |
+| Switch the step off / on (icon on the row) | Switches the step on or off at once | Not a field | Needs `tour.settings_toggle` |
 | Move the step up / down | Changes its order inside its tour (General tour, Administration tour) | Not a field | Needs `tour.settings_reorder` |
 
 **The Security tab** (edit key `security_settings.edit`)

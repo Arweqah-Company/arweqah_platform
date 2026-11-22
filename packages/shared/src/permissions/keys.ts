@@ -85,6 +85,7 @@ export const CorePermission = {
   // Welcome tour settings (the tour itself needs no key: every employee sees it)
   TourSettingsView: 'tour.settings_view',
   TourSettingsEdit: 'tour.settings_edit',
+  TourSettingsToggle: 'tour.settings_toggle',
   TourSettingsReorder: 'tour.settings_reorder',
   TourSettingsReset: 'tour.settings_reset',
   TourSettingsExport: 'tour.settings_export',

@@ -77,7 +77,8 @@
       "title": "Welcome tour settings",
       "body": "Control this tour itself: reword each step in Arabic and English, switch off the ones you do not want, and reorder the steps. The original wording is kept and you can go back to it.",
       "can": {
-        "edit": "Reword a step and switch it off",
+        "edit": "Reword a step",
+        "toggle": "Switch a step off or on",
         "reorder": "Reorder the steps",
         "reset": "Reset a step to its original wording",
         "export": "Export the list of steps"
@@ -138,10 +139,13 @@
     "customised": "Changed from the original",
     "yes": "Yes",
     "no": "No",
+    "disable": "Disable the step",
+    "enable": "Enable the step",
+    "disabledDone": "The step is switched off.",
+    "enabledDone": "The step is switched on.",
     "moveUp": "Move the step up",
     "moveDown": "Move the step down",
     "dialogHint": "Leave a field empty to show the original wording. Plain text, no formatting.",
-    "shown": "The step is shown in the tour",
     "languages": {
       "ar": "Arabic",
       "en": "English"

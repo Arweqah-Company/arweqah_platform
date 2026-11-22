@@ -27,7 +27,15 @@ export class TourSettingsService {
   async edit(key: string, input: TourStepEditInput, actorId: string): Promise<TourStepSettingDto> {
     this.known(key);
     await this.repo.saveSettings([{ stepKey: key, ...input, updatedBy: actorId }]);
-    this.audit(actorId, AUDIT.edited, key, { enabled: input.enabled });
+    this.audit(actorId, AUDIT.edited, key);
+    return this.one(key);
+  }
+
+  /** Switches a step on or off and leaves its wording as stored, so a newer edit of the text is never overwritten. */
+  async setEnabled(key: string, enabled: boolean, actorId: string): Promise<TourStepSettingDto> {
+    this.known(key);
+    await this.repo.saveSettings([{ stepKey: key, enabled, updatedBy: actorId }]);
+    this.audit(actorId, AUDIT.edited, key, { enabled });
     return this.one(key);
   }
 

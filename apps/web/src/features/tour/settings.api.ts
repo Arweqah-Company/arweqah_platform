@@ -17,5 +17,6 @@ function useStepMutation<TIn, TOut>(fn: (input: TIn) => Promise<TOut>) {
 }
 
 export const useEditStep = () => useStepMutation(({ key, ...body }: { key: string } & TourStepEditInput) => apiClient.put<TourStepSettingDto>(`/tour-steps/${key}`, body));
+export const useToggleStep = () => useStepMutation(({ key, enabled }: { key: string; enabled: boolean }) => apiClient.put<TourStepSettingDto>(`/tour-steps/${key}/enabled`, { enabled }));
 export const useResetStep = () => useStepMutation((key: string) => apiClient.post<TourStepSettingDto>(`/tour-steps/${key}/reset`));
 export const useReorderSteps = () => useStepMutation((input: TourOrderInput) => apiClient.put<TourStepsDto>('/tour-steps/order', input));

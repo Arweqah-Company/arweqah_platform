@@ -29,7 +29,8 @@ A guided tour that appears **once at your first sign-in**: it dims the screen an
 |---|---|---|
 | View the list | A table of steps: Step, Order, Tour (General / Administration), State (Shown / Switched off), Last change; with a table or cards view | `tour.settings_view` (View the welcome tour settings) |
 | Search and filters | Search in the title and text, and filters by tour, by state and by «Changed from the original» | `tour.settings_view` |
-| The «Edit» icon (or clicking the row) | Opens a dialog with the title and text in Arabic and English and a «The step is shown in the tour» switch | `tour.settings_edit` (Edit a welcome-tour step and switch it on or off) |
+| The «Edit» icon (or clicking the row) | Opens a dialog with the title and text in Arabic and English | `tour.settings_edit` (Edit the wording of a welcome-tour step) |
+| The «Switch the step off» / «Switch the step on» icon | Switches the step off or on at once, without touching its wording | `tour.settings_toggle` (Switch a welcome-tour step on or off) |
 | The «Move the step up» and «Move the step down» icons | Move the step in the order | `tour.settings_reorder` (Reorder the welcome-tour steps) |
 | The «Reset to original» icon (shown only for a changed step) | After confirmation the step's wording, order and visibility go back to what the system has | `tour.settings_reset` (Reset a welcome-tour step to its default wording) |
 | «Export» | Exports the list of steps to Excel or CSV | `tour.settings_export` (Export the list of welcome-tour steps) |

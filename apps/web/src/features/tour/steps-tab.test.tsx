@@ -10,7 +10,7 @@ const step = (over: Partial<TourStepSettingDto>): TourStepSettingDto => ({
   key: 'welcome', tour: 'general', order: 1, enabled: true, permission: null, page: null, customised: false, updatedAt: null,
   titleAr: 'أهلًا بك', titleEn: 'Welcome', bodyAr: null, bodyEn: null, ...over,
 });
-const ALL = [P.TourSettingsView, P.TourSettingsEdit, P.TourSettingsReorder, P.TourSettingsReset, P.TourSettingsExport];
+const ALL = [P.TourSettingsView, P.TourSettingsEdit, P.TourSettingsToggle, P.TourSettingsReorder, P.TourSettingsReset, P.TourSettingsExport];
 
 function serve(steps: TourStepSettingDto[], keys: string[] = ALL) {
   server.use(
@@ -51,13 +51,49 @@ describe('Welcome tour settings tab (FR-67)', () => {
     expect(screen.queryByRole('button', { name: 'تصدير' })).not.toBeInTheDocument();
   });
 
+  it('disables a step in one click and enables it back, sending only the switch so its wording is never overwritten', async () => {
+    const bodies: unknown[] = [];
+    serve([step({ titleEn: 'Welcome!', bodyAr: 'نص' }), step({ key: 'home', order: 2, titleAr: 'الصفحة الرئيسية', enabled: false })]);
+    server.use(http.put('*/api/tour-steps/:key/enabled', async ({ request, params }) => {
+      bodies.push({ key: params.key, ...(await request.json() as object) });
+      return HttpResponse.json(step({}));
+    }));
+    renderPage(<TourStepsTab />);
+    await screen.findByText('أهلًا بك');
+    fireEvent.click(within(rowOf(/أهلًا بك/)).getByRole('button', { name: 'تعطيل الخطوة' }));
+    fireEvent.click(within(rowOf(/الصفحة الرئيسية/)).getByRole('button', { name: 'تفعيل الخطوة' }));
+    await waitFor(() => expect(bodies).toHaveLength(2));
+    expect(bodies[0]).toEqual({ key: 'welcome', enabled: false });
+    expect(bodies[1]).toEqual({ key: 'home', enabled: true });
+  });
+
+  it('hides the disable button from who cannot switch a step, even when they can edit its wording', async () => {
+    serve([step({})], [P.TourSettingsView]);
+    const view = renderPage(<TourStepsTab />);
+    await screen.findByText('أهلًا بك');
+    expect(within(rowOf(/أهلًا بك/)).queryByRole('button', { name: 'تعطيل الخطوة' })).not.toBeInTheDocument();
+    view.unmount();
+
+    serve([step({})], [P.TourSettingsView, P.TourSettingsEdit]);
+    renderPage(<TourStepsTab />);
+    await screen.findByText('أهلًا بك');
+    expect(within(rowOf(/أهلًا بك/)).queryByRole('button', { name: 'تعطيل الخطوة' })).not.toBeInTheDocument();
+  });
+
+  it('shows the disable button to who holds the switch key alone', async () => {
+    serve([step({})], [P.TourSettingsView, P.TourSettingsToggle]);
+    renderPage(<TourStepsTab />);
+    await screen.findByText('أهلًا بك');
+    expect(within(rowOf(/أهلًا بك/)).getByRole('button', { name: 'تعطيل الخطوة' })).toBeInTheDocument();
+  });
+
   it('opens a step with its wording in both languages', async () => {
     serve([step({ titleEn: 'Welcome!' })]);
     renderPage(<TourStepsTab />);
     fireEvent.click(await screen.findByText('أهلًا بك'));
     const dialog = await screen.findByRole('dialog', { name: 'أهلًا بك' });
     expect(within(dialog).getAllByRole('textbox', { name: 'العنوان' })).toHaveLength(2);
-    expect(within(dialog).getByRole('checkbox', { name: 'الخطوة ظاهرة في الجولة' })).toBeChecked();
+    expect(within(dialog).queryByRole('checkbox')).not.toBeInTheDocument();
     expect(within(dialog).getByDisplayValue('Welcome!')).toBeInTheDocument();
     expect(TOUR_IDS).toContain('general');
   });
