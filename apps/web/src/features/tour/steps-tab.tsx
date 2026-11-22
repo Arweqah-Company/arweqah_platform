@@ -90,7 +90,7 @@ export function TourStepsTab() {
               <RowAction label={t('settings.moveUp')} icon={ArrowUp} onClick={() => void move(x, -1)} />
               <RowAction label={t('settings.moveDown')} icon={ArrowDown} onClick={() => void move(x, 1)} />
             </Can>
-            <Can permission={TOUR_KEYS.edit}>
+            <Can permission={TOUR_KEYS.toggle}>
               <RowAction label={t(x.enabled ? 'settings.disable' : 'settings.enable')} icon={x.enabled ? EyeOff : Eye} onClick={() => void toggle(x)} />
             </Can>
             <RowAction label={tc('actions.edit')} icon={Pencil} onClick={() => setOpen(x.key)} />

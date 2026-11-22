@@ -27,7 +27,7 @@ export class TourSettingsService {
   async edit(key: string, input: TourStepEditInput, actorId: string): Promise<TourStepSettingDto> {
     this.known(key);
     await this.repo.saveSettings([{ stepKey: key, ...input, updatedBy: actorId }]);
-    this.audit(actorId, AUDIT.edited, key, { enabled: input.enabled });
+    this.audit(actorId, AUDIT.edited, key);
     return this.one(key);
   }
 

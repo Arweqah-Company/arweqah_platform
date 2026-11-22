@@ -10,7 +10,7 @@ const step = (over: Partial<TourStepSettingDto>): TourStepSettingDto => ({
   key: 'welcome', tour: 'general', order: 1, enabled: true, permission: null, page: null, customised: false, updatedAt: null,
   titleAr: 'أهلًا بك', titleEn: 'Welcome', bodyAr: null, bodyEn: null, ...over,
 });
-const ALL = [P.TourSettingsView, P.TourSettingsEdit, P.TourSettingsReorder, P.TourSettingsReset, P.TourSettingsExport];
+const ALL = [P.TourSettingsView, P.TourSettingsEdit, P.TourSettingsToggle, P.TourSettingsReorder, P.TourSettingsReset, P.TourSettingsExport];
 
 function serve(steps: TourStepSettingDto[], keys: string[] = ALL) {
   server.use(
@@ -67,11 +67,24 @@ describe('Welcome tour settings tab (FR-67)', () => {
     expect(bodies[1]).toEqual({ key: 'home', enabled: true });
   });
 
-  it('hides the disable button from who cannot edit', async () => {
+  it('hides the disable button from who cannot switch a step, even when they can edit its wording', async () => {
     serve([step({})], [P.TourSettingsView]);
+    const view = renderPage(<TourStepsTab />);
+    await screen.findByText('أهلًا بك');
+    expect(within(rowOf(/أهلًا بك/)).queryByRole('button', { name: 'تعطيل الخطوة' })).not.toBeInTheDocument();
+    view.unmount();
+
+    serve([step({})], [P.TourSettingsView, P.TourSettingsEdit]);
     renderPage(<TourStepsTab />);
     await screen.findByText('أهلًا بك');
     expect(within(rowOf(/أهلًا بك/)).queryByRole('button', { name: 'تعطيل الخطوة' })).not.toBeInTheDocument();
+  });
+
+  it('shows the disable button to who holds the switch key alone', async () => {
+    serve([step({})], [P.TourSettingsView, P.TourSettingsToggle]);
+    renderPage(<TourStepsTab />);
+    await screen.findByText('أهلًا بك');
+    expect(within(rowOf(/أهلًا بك/)).getByRole('button', { name: 'تعطيل الخطوة' })).toBeInTheDocument();
   });
 
   it('opens a step with its wording in both languages', async () => {
@@ -80,7 +93,7 @@ describe('Welcome tour settings tab (FR-67)', () => {
     fireEvent.click(await screen.findByText('أهلًا بك'));
     const dialog = await screen.findByRole('dialog', { name: 'أهلًا بك' });
     expect(within(dialog).getAllByRole('textbox', { name: 'العنوان' })).toHaveLength(2);
-    expect(within(dialog).getByRole('checkbox', { name: 'الخطوة ظاهرة في الجولة' })).toBeChecked();
+    expect(within(dialog).queryByRole('checkbox')).not.toBeInTheDocument();
     expect(within(dialog).getByDisplayValue('Welcome!')).toBeInTheDocument();
     expect(TOUR_IDS).toContain('general');
   });

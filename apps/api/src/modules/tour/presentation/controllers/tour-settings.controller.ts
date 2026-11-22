@@ -34,7 +34,7 @@ export class TourSettingsController {
   }
 
   @Put(':key/enabled')
-  @RequirePermission(CorePermission.TourSettingsEdit)
+  @RequirePermission(CorePermission.TourSettingsToggle)
   setEnabled(@Param() { key }: TourStepParamDto, @Body() body: TourStepEnabledDto, @CurrentUser() user: SessionUser): Promise<TourStepSettingDto> {
     return this.settings.setEnabled(key, body.enabled, user.id);
   }

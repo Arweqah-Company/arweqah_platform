@@ -1,6 +1,7 @@
 // Architecture check: the folder rules of the module-architecture skill and CLAUDE.md that ESLint cannot see.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { badMessageLines } from './mermaid-lint.mjs';
 
 const API = 'apps/api/src';
 const WEB = 'apps/web/src';
@@ -59,15 +60,9 @@ for (const file of walk(join(WEB, 'features')).filter((f) => /\.tsx?$/.test(f)))
   }
 }
 
-// Documentation diagrams: in a Mermaid sequence diagram a semicolon ends the message (the rest of the text becomes a statement and the diagram does not render).
-const MARKDOWN = [...walk('docs').filter((f) => f.endsWith('.md')), 'README.md'];
-for (const file of MARKDOWN) {
-  let inSequence = false;
-  readFileSync(file, 'utf8').split('\n').forEach((line, i) => {
-    if (line.startsWith('```')) inSequence = line.trim() === '```mermaid' ? null : false;
-    else if (inSequence === null && line.trim() === 'sequenceDiagram') inSequence = true;
-    else if (inSequence && /-{1,2}>>?[+-]?[^:]*:.*;/.test(line)) problems.push(`${file}:${i + 1}: a ";" inside a sequence-diagram message ends it; use a comma`);
-  });
+// Documentation diagrams: a ";" inside a Mermaid sequence-diagram message ends it (rule in scripts/mermaid-lint.mjs).
+for (const file of [...walk('docs').filter((f) => f.endsWith('.md')), 'README.md']) {
+  for (const line of badMessageLines(readFileSync(file, 'utf8'))) problems.push(`${file}:${line}: a ";" inside a sequence-diagram message ends it; use a comma`);
 }
 
 if (problems.length) {

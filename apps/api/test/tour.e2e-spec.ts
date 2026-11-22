@@ -6,7 +6,7 @@ import { ADMIN_MODE_GRANT } from './factories/factories';
 import { useTestApp } from './setup/test-app';
 
 const grant = (key: string) => ({ key, scope: 'all' as const });
-const MANAGER = [ADMIN_MODE_GRANT, ...[CorePermission.TourSettingsView, CorePermission.TourSettingsEdit, CorePermission.TourSettingsReorder, CorePermission.TourSettingsReset].map(grant)];
+const MANAGER = [ADMIN_MODE_GRANT, ...[CorePermission.TourSettingsView, CorePermission.TourSettingsEdit, CorePermission.TourSettingsToggle, CorePermission.TourSettingsReorder, CorePermission.TourSettingsReset].map(grant)];
 const GENERAL = stepsOf('general').map((s) => s.key as string);
 
 describe('Welcome tour (FR-67)', () => {
@@ -112,12 +112,12 @@ describe('Welcome tour (FR-67)', () => {
       expect(keys(list)).toEqual(expect.arrayContaining(TOUR_STEPS.map((s) => s.key)));
       expect(list.steps.every((s: { customised: boolean }) => !s.customised)).toBe(true);
 
-      const edited = (await admin.put('/api/tour-steps/home').send({ enabled: true, titleAr: 'مرحبًا بالرئيسية', titleEn: 'Home', bodyAr: null, bodyEn: '  ' }).expect(200)).body;
+      const edited = (await admin.put('/api/tour-steps/home').send({ titleAr: 'مرحبًا بالرئيسية', titleEn: 'Home', bodyAr: null, bodyEn: '  ' }).expect(200)).body;
       expect(edited).toMatchObject({ key: 'home', titleAr: 'مرحبًا بالرئيسية', titleEn: 'Home', bodyAr: null, bodyEn: null, customised: true });
       const user = await t.factories.signIn(await t.factories.user());
       expect((await user.get('/api/me/tour/general').expect(200)).body.steps.find((s: { key: string }) => s.key === 'home')).toMatchObject({ titleAr: 'مرحبًا بالرئيسية', titleEn: 'Home' });
 
-      await admin.put('/api/tour-steps/home').send({ enabled: false, titleAr: null, titleEn: null, bodyAr: null, bodyEn: null }).expect(200);
+      await admin.put('/api/tour-steps/home/enabled').send({ enabled: false }).expect(200);
       expect(keys((await user.get('/api/me/tour/general').expect(200)).body)).not.toContain('home');
 
       const reversed = [...GENERAL].reverse();
@@ -134,16 +134,17 @@ describe('Welcome tour (FR-67)', () => {
       expect((await admin.put('/api/tour-steps/order').send({ tour: 'general', keys: GENERAL.slice(1) }).expect(422)).body.code).toBe('TOUR_ORDER_INVALID');
       await admin.put('/api/tour-steps/order').send({ tour: 'general', keys: [...GENERAL.slice(1), GENERAL[1]] }).expect(422);
       await admin.put('/api/tour-steps/order').send({ tour: 'general', keys: [...GENERAL.slice(1), 'admin-mode'] }).expect(422);
-      const body = { enabled: true, titleAr: null, titleEn: null, bodyAr: null, bodyEn: null };
+      const body = { titleAr: null, titleEn: null, bodyAr: null, bodyEn: null };
       await admin.put('/api/tour-steps/home').send({ ...body, titleEn: 'x'.repeat(81) }).expect(400);
       await admin.put('/api/tour-steps/home').send({ ...body, bodyEn: 'x'.repeat(401) }).expect(400);
       await admin.put('/api/tour-steps/home').send({ ...body, extra: 1 }).expect(400);
+      await admin.put('/api/tour-steps/home').send({ ...body, enabled: false }).expect(400);
       await admin.put('/api/tour-steps/nowhere').send(body).expect(400);
     });
 
     it('switches a step off and on sending only the switch, so a newer wording is never overwritten (FR-67)', async () => {
       const admin = await manager();
-      await admin.put('/api/tour-steps/home').send({ enabled: true, titleAr: 'عنوان جديد', titleEn: 'New title', bodyAr: 'نص', bodyEn: 'Body' }).expect(200);
+      await admin.put('/api/tour-steps/home').send({ titleAr: 'عنوان جديد', titleEn: 'New title', bodyAr: 'نص', bodyEn: 'Body' }).expect(200);
 
       const off = (await admin.put('/api/tour-steps/home/enabled').send({ enabled: false }).expect(200)).body;
       expect(off).toMatchObject({ key: 'home', enabled: false, titleAr: 'عنوان جديد', titleEn: 'New title', bodyAr: 'نص', bodyEn: 'Body' });
@@ -163,8 +164,21 @@ describe('Welcome tour (FR-67)', () => {
       await viewOnly.put('/api/tour-steps/home/enabled').send({ enabled: false }).expect(403);
     });
 
+    it('the switch has its own key: edit alone cannot switch a step, the switch alone cannot reword it (403) (FR-67)', async () => {
+      const as = async (key: string) => t.factories.signInAdminMode(await t.factories.user({ grants: [ADMIN_MODE_GRANT, grant(CorePermission.TourSettingsView), grant(key)] }));
+      const wording = { titleAr: null, titleEn: 'x', bodyAr: null, bodyEn: null };
+
+      const editor = await as(CorePermission.TourSettingsEdit);
+      await editor.put('/api/tour-steps/home/enabled').send({ enabled: false }).expect(403);
+      await editor.put('/api/tour-steps/home').send(wording).expect(200);
+
+      const switcher = await as(CorePermission.TourSettingsToggle);
+      await switcher.put('/api/tour-steps/home').send(wording).expect(403);
+      expect((await switcher.put('/api/tour-steps/home/enabled').send({ enabled: false }).expect(200)).body).toMatchObject({ key: 'home', enabled: false });
+    });
+
     it('needs the right key per action and admin mode (403)', async () => {
-      const body = { enabled: true, titleAr: null, titleEn: null, bodyAr: null, bodyEn: null };
+      const body = { titleAr: null, titleEn: null, bodyAr: null, bodyEn: null };
       const plain = await t.factories.signIn(await t.factories.user());
       await plain.get('/api/tour-steps').expect(403);
       await plain.put('/api/tour-steps/home').send(body).expect(403);
@@ -181,7 +195,7 @@ describe('Welcome tour (FR-67)', () => {
 
     it('audits every change by step name, never the wording', async () => {
       const admin = await manager();
-      await admin.put('/api/tour-steps/security').send({ enabled: true, titleAr: 'سري جدًا', titleEn: null, bodyAr: null, bodyEn: null }).expect(200);
+      await admin.put('/api/tour-steps/security').send({ titleAr: 'سري جدًا', titleEn: null, bodyAr: null, bodyEn: null }).expect(200);
       await admin.post('/api/tour-steps/security/reset').expect(200);
       await expect.poll(async () => (await t.db.query<{ action: string }[]>(`SELECT action FROM audit_logs WHERE entity_type = 'tour_step' AND entity_id = 'security' ORDER BY created_at`)).map((r) => r.action)).toEqual(['tour.step_edited', 'tour.step_reset']);
       const rows = await t.db.query<{ changes: unknown }[]>(`SELECT changes FROM audit_logs WHERE action = 'tour.step_edited' AND entity_id = 'security'`);
