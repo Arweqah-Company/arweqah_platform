@@ -659,12 +659,12 @@ sequenceDiagram
   API->>API: impersonation.start + admin mode, feature on, not nested, target active and not oneself
   API->>L: open session for the employee (code-verified, marked with the administrator)
   L->>DB: new auth_sessions row (impersonated_by_user_id, impersonator_session_id)
-  API-->>W: 204 + Set-Cookie of the employee's session; audit impersonation.started
+  API-->>W: 204 + Set-Cookie of the employee's session, audit impersonation.started
   W->>API: every request: forbidden routes refused, idle or switched off = 403 IMPERSONATION_ENDED, else last activity = now
   A->>W: «Back to my account» (or the 403 above)
   W->>API: POST /impersonation/stop
   API->>DB: delete the employee's session; read the administrator's own session token
-  API-->>W: 204 + Set-Cookie of the administrator's session; audit impersonation.ended; notice to the employee
+  API-->>W: 204 + Set-Cookie of the administrator's session, audit impersonation.ended, notice to the employee
 ```
 
 ## 9. Stack
