@@ -554,7 +554,7 @@ sequenceDiagram
   participant DB as PostgreSQL
   U->>W: drags the card (or chooses a status)
   W->>A: POST /tasks/:id/transition {to, revision, note?, completedOn?}
-  A->>DB: read the task; table of moves decides who may go from where to where
+  A->>DB: read the task, the table of moves decides who may go from where to where
   alt refused
     A-->>W: 422 TASK_TRANSITION_NOT_ALLOWED with the reason
     W-->>U: the card goes back and says why
@@ -627,7 +627,7 @@ sequenceDiagram
   participant DB as PostgreSQL
   actor E as Employee
   A->>W: reword a step, switch it off or move it
-  W->>API: PUT /tour-steps/:key or /tour-steps/order (key per action)
+  W->>API: PUT /tour-steps/:key, /tour-steps/:key/enabled (the switch alone) or /tour-steps/order (key per action)
   API->>DB: upsert tour_step_settings (null text = the code's wording)
   API-->>A: the row (customised) and an audit entry (step name, never the wording)
   E->>API: GET /me/tour/general (own permissions and hidden pages applied)
@@ -673,8 +673,12 @@ sequenceDiagram
   W->>API: every request: forbidden routes refused, idle or switched off = 403 IMPERSONATION_ENDED, else last activity = now
   A->>W: «Back to my account» (or the 403 above)
   W->>API: POST /impersonation/stop
-  API->>DB: delete the employee's session; read the administrator's own session token
-  API-->>W: 204 + Set-Cookie of the administrator's session, audit impersonation.ended, notice to the employee
+  API->>DB: delete the employee's session, read the administrator's own session token
+  alt the administrator's own session is still alive
+    API-->>W: 204 + Set-Cookie of the administrator's session, audit impersonation.ended, notice to the employee
+  else it expired meanwhile (it is not renewed during the impersonation)
+    API-->>W: 204 with no cookie, the browser is signed out and the administrator signs in again, audit and notice as above
+  end
 ```
 
 ## 9. Stack

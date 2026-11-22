@@ -51,10 +51,10 @@ describe('Welcome tour settings tab (FR-67)', () => {
     expect(screen.queryByRole('button', { name: 'تصدير' })).not.toBeInTheDocument();
   });
 
-  it('disables a step in one click and enables it back, keeping its wording', async () => {
+  it('disables a step in one click and enables it back, sending only the switch so its wording is never overwritten', async () => {
     const bodies: unknown[] = [];
     serve([step({ titleEn: 'Welcome!', bodyAr: 'نص' }), step({ key: 'home', order: 2, titleAr: 'الصفحة الرئيسية', enabled: false })]);
-    server.use(http.put('*/api/tour-steps/:key', async ({ request, params }) => {
+    server.use(http.put('*/api/tour-steps/:key/enabled', async ({ request, params }) => {
       bodies.push({ key: params.key, ...(await request.json() as object) });
       return HttpResponse.json(step({}));
     }));
@@ -63,8 +63,8 @@ describe('Welcome tour settings tab (FR-67)', () => {
     fireEvent.click(within(rowOf(/أهلًا بك/)).getByRole('button', { name: 'تعطيل الخطوة' }));
     fireEvent.click(within(rowOf(/الصفحة الرئيسية/)).getByRole('button', { name: 'تفعيل الخطوة' }));
     await waitFor(() => expect(bodies).toHaveLength(2));
-    expect(bodies[0]).toMatchObject({ key: 'welcome', enabled: false, titleEn: 'Welcome!', bodyAr: 'نص' });
-    expect(bodies[1]).toMatchObject({ key: 'home', enabled: true });
+    expect(bodies[0]).toEqual({ key: 'welcome', enabled: false });
+    expect(bodies[1]).toEqual({ key: 'home', enabled: true });
   });
 
   it('hides the disable button from who cannot edit', async () => {

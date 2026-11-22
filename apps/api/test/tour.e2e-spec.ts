@@ -141,6 +141,28 @@ describe('Welcome tour (FR-67)', () => {
       await admin.put('/api/tour-steps/nowhere').send(body).expect(400);
     });
 
+    it('switches a step off and on sending only the switch, so a newer wording is never overwritten (FR-67)', async () => {
+      const admin = await manager();
+      await admin.put('/api/tour-steps/home').send({ enabled: true, titleAr: 'عنوان جديد', titleEn: 'New title', bodyAr: 'نص', bodyEn: 'Body' }).expect(200);
+
+      const off = (await admin.put('/api/tour-steps/home/enabled').send({ enabled: false }).expect(200)).body;
+      expect(off).toMatchObject({ key: 'home', enabled: false, titleAr: 'عنوان جديد', titleEn: 'New title', bodyAr: 'نص', bodyEn: 'Body' });
+      const on = (await admin.put('/api/tour-steps/home/enabled').send({ enabled: true }).expect(200)).body;
+      expect(on).toMatchObject({ enabled: true, titleEn: 'New title' });
+
+      const fresh = (await admin.put('/api/tour-steps/welcome/enabled').send({ enabled: false }).expect(200)).body;
+      expect(fresh).toMatchObject({ key: 'welcome', enabled: false, titleAr: null, bodyEn: null });
+    });
+
+    it('refuses a switch with extra fields or an unknown step (400), and without the edit key (403)', async () => {
+      const admin = await manager();
+      await admin.put('/api/tour-steps/home/enabled').send({ enabled: true, titleEn: 'x' }).expect(400);
+      await admin.put('/api/tour-steps/home/enabled').send({}).expect(400);
+      await admin.put('/api/tour-steps/nowhere/enabled').send({ enabled: true }).expect(400);
+      const viewOnly = await t.factories.signInAdminMode(await t.factories.user({ grants: [ADMIN_MODE_GRANT, grant(CorePermission.TourSettingsView)] }));
+      await viewOnly.put('/api/tour-steps/home/enabled').send({ enabled: false }).expect(403);
+    });
+
     it('needs the right key per action and admin mode (403)', async () => {
       const body = { enabled: true, titleAr: null, titleEn: null, bodyAr: null, bodyEn: null };
       const plain = await t.factories.signIn(await t.factories.user());

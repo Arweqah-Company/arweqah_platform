@@ -31,6 +31,14 @@ export class TourSettingsService {
     return this.one(key);
   }
 
+  /** Switches a step on or off and leaves its wording as stored, so a newer edit of the text is never overwritten. */
+  async setEnabled(key: string, enabled: boolean, actorId: string): Promise<TourStepSettingDto> {
+    this.known(key);
+    await this.repo.saveSettings([{ stepKey: key, enabled, updatedBy: actorId }]);
+    this.audit(actorId, AUDIT.edited, key, { enabled });
+    return this.one(key);
+  }
+
   async reorder(input: TourOrderInput, actorId: string): Promise<TourStepsDto> {
     if (!isCompleteOrder(input.tour, input.keys)) throw new TourOrderInvalidError();
     await this.repo.saveSettings(input.keys.map((stepKey, i) => ({ stepKey, sortOrder: storedOrder(i), updatedBy: actorId })));

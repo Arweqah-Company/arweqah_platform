@@ -5,7 +5,7 @@ import { CurrentUser } from '../../../../common/presentation/current-user.decora
 import type { SessionUser } from '../../../../common/presentation/request-context';
 import { HiddenWithPage, RequireAdminMode, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
 import { TourSettingsService } from '../../application/services/tour-settings.service';
-import { TourOrderDto, TourStepEditDto, TourStepParamDto } from '../dtos/tour.dtos';
+import { TourOrderDto, TourStepEditDto, TourStepEnabledDto, TourStepParamDto } from '../dtos/tour.dtos';
 
 /** The welcome tour's settings: an administrator edits wording, switches steps on or off and reorders them (admin mode, like the other settings). */
 @ApiTags('tour')
@@ -31,6 +31,12 @@ export class TourSettingsController {
   @RequirePermission(CorePermission.TourSettingsEdit)
   edit(@Param() { key }: TourStepParamDto, @Body() body: TourStepEditDto, @CurrentUser() user: SessionUser): Promise<TourStepSettingDto> {
     return this.settings.edit(key, body, user.id);
+  }
+
+  @Put(':key/enabled')
+  @RequirePermission(CorePermission.TourSettingsEdit)
+  setEnabled(@Param() { key }: TourStepParamDto, @Body() body: TourStepEnabledDto, @CurrentUser() user: SessionUser): Promise<TourStepSettingDto> {
+    return this.settings.setEnabled(key, body.enabled, user.id);
   }
 
   @Post(':key/reset')
