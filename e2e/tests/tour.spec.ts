@@ -229,16 +229,13 @@ test.describe('Welcome tour settings (FR-67)', () => {
     await expect(page.getByText('عادت الخطوة إلى نصّها الأصلي.').first()).toBeVisible();
   });
 
-  test('a step is switched off with its switch and the tour no longer plays it', async ({ page }) => {
+  test('a step is switched off with the icon on its row and the tour no longer plays it', async ({ page }) => {
     test.setTimeout(120_000);
     await adminModeOnViaApi(page);
     await page.goto('/service-settings?tab=tour-settings');
     await new ListPage(page).switchView('جدول');
     await new ListPage(page).search('بحث في خطوات الجولة').fill('الإشعارات');
-    await page.getByRole('row', { name: /^الإشعارات/ }).first().click();
-    const dialog = page.getByRole('dialog', { name: 'الإشعارات' });
-    await dialog.getByRole('checkbox', { name: 'الخطوة ظاهرة في الجولة' }).uncheck();
-    await dialog.getByRole('button', { name: 'حفظ' }).click();
+    await page.getByRole('row', { name: /^الإشعارات/ }).getByRole('button', { name: 'تعطيل الخطوة' }).click();
     await expect(page.getByRole('row', { name: /^الإشعارات/ }).getByText('موقوفة')).toBeVisible();
     const res = await page.request.get('/api/me/tour/general');
     expect((await res.json()).steps.map((x: { key: string }) => x.key)).not.toContain('notifications');

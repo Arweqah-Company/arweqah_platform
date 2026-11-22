@@ -4,6 +4,7 @@ import { CorePermission } from '@arweqah-platform/shared';
 export const TOUR_KEYS = {
   view: CorePermission.TourSettingsView,
   edit: CorePermission.TourSettingsEdit,
+  toggle: CorePermission.TourSettingsToggle,
   reorder: CorePermission.TourSettingsReorder,
   reset: CorePermission.TourSettingsReset,
   exportKey: CorePermission.TourSettingsExport,

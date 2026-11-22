@@ -12,9 +12,8 @@ export const tourStepKeySchema = z.enum(TOUR_STEP_KEYS);
 /** Empty text means «use the wording in the code», the same as null. */
 const optionalText = (max: number) => z.string().trim().max(max).nullable().transform((v) => (v ? v : null));
 
-/** One step's wording (null = the default from the code) and whether it is shown. */
+/** One step's wording (null = the default from the code). Whether it is shown has its own input and key (`tourStepEnabledSchema`). */
 export const tourStepEditSchema = z.strictObject({
-  enabled: z.boolean(),
   titleAr: optionalText(TOUR_TITLE_MAX),
   titleEn: optionalText(TOUR_TITLE_MAX),
   bodyAr: optionalText(TOUR_BODY_MAX),
@@ -22,7 +21,7 @@ export const tourStepEditSchema = z.strictObject({
 });
 export type TourStepEditInput = z.infer<typeof tourStepEditSchema>;
 
-/** The switch alone: it never carries the wording, so it cannot overwrite a newer edit of it. */
+/** The switch alone (key `tour.settings_toggle`): it never carries the wording, so it cannot overwrite a newer edit of it. */
 export const tourStepEnabledSchema = z.strictObject({ enabled: z.boolean() });
 export type TourStepEnabledInput = z.infer<typeof tourStepEnabledSchema>;
 

@@ -14,7 +14,6 @@ const LANGS: Lang[] = ['ar', 'en'];
 const pick = (step: TourStepSettingDto, lang: Lang) => ({ title: (lang === 'ar' ? step.titleAr : step.titleEn) ?? '', body: (lang === 'ar' ? step.bodyAr : step.bodyEn) ?? '' });
 
 interface Draft {
-  enabled: boolean;
   text: Record<Lang, { title: string; body: string }>;
 }
 
@@ -34,7 +33,7 @@ function LanguageFields({ lang, value, fallback, onChange, readOnly }: { lang: L
   );
 }
 
-/** Edit a step: its wording in both languages, and whether it is shown. */
+/** Edit a step's wording in both languages (whether it is shown is the switch icon on its row). */
 export function StepDialog({ step, heading, onClose }: { step: TourStepSettingDto; heading: string; onClose: () => void }) {
   const { t } = useTranslation('tour');
   const { t: tc } = useTranslation();
@@ -42,11 +41,11 @@ export function StepDialog({ step, heading, onClose }: { step: TourStepSettingDt
   const { defaultText } = useTourControls();
   const edit = useEditStep();
   const mayEdit = can(TOUR_KEYS.edit);
-  const [draft, setDraft] = useState<Draft>({ enabled: step.enabled, text: { ar: pick(step, 'ar'), en: pick(step, 'en') } });
+  const [draft, setDraft] = useState<Draft>({ text: { ar: pick(step, 'ar'), en: pick(step, 'en') } });
   const save = async () => {
     const { ar, en } = draft.text;
     try {
-      await edit.mutateAsync({ key: step.key, enabled: draft.enabled, titleAr: ar.title, titleEn: en.title, bodyAr: ar.body, bodyEn: en.body });
+      await edit.mutateAsync({ key: step.key, titleAr: ar.title, titleEn: en.title, bodyAr: ar.body, bodyEn: en.body });
       toast.success(t('settings.saved'));
       onClose();
     } catch (error) {
@@ -56,10 +55,6 @@ export function StepDialog({ step, heading, onClose }: { step: TourStepSettingDt
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()} title={heading} description={t('settings.dialogHint')} wide>
       <div className="grid gap-4">
-        <label className="flex items-center gap-3 text-sm">
-          <input type="checkbox" className="size-4 accent-petrol-800" checked={draft.enabled} disabled={!mayEdit} onChange={(e) => setDraft({ ...draft, enabled: e.target.checked })} />
-          <span className="font-medium">{t('settings.shown')}</span>
-        </label>
         <div className="grid gap-4 md:grid-cols-2">
           {LANGS.map((lang) => (
             <LanguageFields key={lang} lang={lang} fallback={defaultText(step.key, lang)} readOnly={!mayEdit} value={draft.text[lang]} onChange={(next) => setDraft({ ...draft, text: { ...draft.text, [lang]: next } })} />
