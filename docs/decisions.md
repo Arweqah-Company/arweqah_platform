@@ -2,6 +2,14 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-23 — Employee role gets `tasks.log_time`
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 453 | **The Employee role (rule `everyone`) holds `tasks.log_time` (migration `EmployeeRoleLogTime`, `EMPLOYEE_DEFAULT_PERMISSIONS`).** The API still requires being the assignee on an open task. | Decision 155 left it out, so «Log time» never showed on a person's own task. | The owner wants time logging limited to some roles. |
+| 454 | **The task page always shows its status as a drop-down set to the current status; it is locked when no move is open** (was: hidden then). | A missing control read as a missing feature. | The owner wants it hidden again. |
+| 455 | **A ticket with several handlers and no assignee shows the handlers' names under «responsible»** (`TicketDto.handlers`, detail only; empty once someone has the ticket, and for personal tickets). | It showed «—» although two people were named. | Assignment on creation replaces first-reply claiming. |
+
 ## 2026-11-23 — Notices: the administrator writes in every channel; «sign in as» may approve
 
 | # | Decision | Why | Revisit when |

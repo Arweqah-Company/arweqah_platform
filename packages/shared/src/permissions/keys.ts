@@ -341,6 +341,7 @@ export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own
   { key: CorePermission.TasksUpdate, scope: 'own' },
   { key: CorePermission.TasksFollowersManage, scope: 'own' },
   { key: CorePermission.TasksChangeStatus, scope: 'own' },
+  { key: CorePermission.TasksLogTime, scope: 'all' },
   { key: CorePermission.TasksCommentView, scope: 'all' },
   { key: CorePermission.TasksCommentAdd, scope: 'all' },
   { key: CorePermission.TasksCommentReply, scope: 'all' },

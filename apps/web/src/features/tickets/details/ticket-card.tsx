@@ -12,7 +12,7 @@ export function TicketCard({ ticket }: { ticket: TicketDto }) {
     [t('columns.desk'), ar ? ticket.deskNameAr : ticket.deskNameEn],
     [t('columns.type'), ar ? ticket.typeNameAr : ticket.typeNameEn],
     [t('columns.sender'), ticket.sender.name],
-    [t('columns.assignee'), ticket.assignee?.name ?? '—'],
+    [t('columns.assignee'), ticket.assignee?.name ?? (ticket.handlers.length > 0 ? ticket.handlers.map((h) => h.name).join('، ') : '—')],
     [t('columns.neededBy'), ticket.neededBy],
     [t('details.sentOn'), new Date(ticket.createdAt).toLocaleDateString(i18n.language)],
   ];

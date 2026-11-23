@@ -18,19 +18,19 @@ import { TimeDialog } from './time-dialog';
 
 type Asking = 'approve' | 'reject' | 'resubmit' | 'object' | 'answer' | 'time' | 'edit';
 
-/** Where the viewer may move the task now (what the API's table of moves allows), as a menu. */
+/** The task's status as a drop-down: always shown, set to the current status; it offers where the viewer may move the task now (what the API's table of moves allows) and is locked when no move is open. */
 function MoveMenu({ task, today }: { task: TaskDto; today: string }) {
   const { t } = useTranslation('tasks');
   const board = useBoardMove();
   const options = TASK_STATUSES.filter((s) => task.abilities.moveTo.includes(s));
-  if (options.length === 0) return null;
+  const current = board.statusOf(task);
   return (
     <>
-      <FormField label={t('actions.moveTo')}>
+      <FormField label={t('actions.status')}>
         {(p) => (
-          <Select {...p} className="min-w-48" value="" onChange={(e) => e.target.value && board.move(task, e.target.value as TaskStatus)}>
-            <option value="">{t('actions.chooseStatus')}</option>
-            {options.map((s) => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
+          <Select {...p} className="min-w-48" value={current} disabled={options.length === 0} onChange={(e) => board.move(task, e.target.value as TaskStatus)}>
+            <option value={current}>{t(`status.${current}`)}</option>
+            {options.filter((s) => s !== current).map((s) => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
           </Select>
         )}
       </FormField>

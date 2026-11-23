@@ -68,6 +68,14 @@ describe('Tickets: the whole cycle (FR-36 … FR-41)', () => {
     expect((await hrAssignee.agent.get(`/api/tickets/${t5.id}`).expect(200)).body.isPersonal).toBe(true);
     await bob.agent.get(`/api/tickets/${t1.id}`).expect(404); // an outsider
 
+    // --- A type with two handlers: nobody is the assignee yet, and the card names both handlers (FR-128).
+    const shared = await addType(org.department, 'Shared kind', { handlerUserIds: [itAssignee.user.id, itManager.user.id] });
+    const t6 = await send(alice, shared, 'Two handlers');
+    const seen = (await itManager.agent.get(`/api/tickets/${t6.id}`).expect(200)).body as TicketDto;
+    expect(seen.assignee).toBeNull();
+    expect(seen.handlers.map((h) => h.id).sort()).toEqual([itAssignee.user.id, itManager.user.id].sort());
+    expect((await itAssignee.agent.get(`/api/tickets/${t1.id}`).expect(200)).body.handlers).toEqual([]); // a single handler takes the ticket at once
+
     // --- The units answer and end tickets in every way.
     await itAssignee.agent.post(`/api/tickets/${t1.id}/replies`).send({ body: 'looking' }).expect(201);
     await itAssignee.agent.post(`/api/tickets/${t1.id}/request-close`).send({ message: 'done' }).expect(200);
@@ -90,7 +98,7 @@ describe('Tickets: the whole cycle (FR-36 … FR-41)', () => {
     const [it, hr] = [await one(org.department), await one(org.otherDepartment)];
     expect(all.scope).toBe('all');
     expect(it.scope).toBe('desk');
-    expect(all.figures.incoming).toBe(5);
+    expect(all.figures.incoming).toBe(6);
     expect(all.figures.incoming).toBe(it.figures.incoming + hr.figures.incoming);
     expect(all.figures.openNow).toBe(it.figures.openNow + hr.figures.openNow);
     // The not-executed one was reopened, so it is open again and no longer counts as an ending.

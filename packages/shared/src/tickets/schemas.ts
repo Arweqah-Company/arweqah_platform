@@ -277,6 +277,8 @@ export interface TicketAbilitiesDto {
 
 export interface TicketDto extends TicketListItemDto {
   details: string;
+  /** Who answers it while nobody has taken it: the handlers of its type (empty once it has an assignee, and for a personal ticket). */
+  handlers: PersonRefDto[];
   relations: TicketRelation[];
   abilities: TicketAbilitiesDto;
   events: TicketEventDto[];
