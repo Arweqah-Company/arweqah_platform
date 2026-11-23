@@ -92,7 +92,15 @@ export class TicketsService {
     const events = await this.tickets.events(id);
     const ids = events.map((e) => e.id);
     const [attachments, mentions, names] = await Promise.all([this.tickets.attachments(ids), this.tickets.mentions(ids), this.deskNames([found.deskId])]);
-    return this.transformer.toDetail({ row: found, desk: names.get(found.deskId), relations, events, attachments, mentions, now: this.clock.now(), canReassign: this.policy.reassignReach(viewer, found) !== null, canDelete: this.policy.mayDelete(viewer, found) });
+    const handlers = await this.unclaimedHandlers(found);
+    return this.transformer.toDetail({ row: found, desk: names.get(found.deskId), relations, events, attachments, mentions, handlers, now: this.clock.now(), canReassign: this.policy.reassignReach(viewer, found) !== null, canDelete: this.policy.mayDelete(viewer, found) });
+  }
+
+  /** Nobody has taken the ticket yet: the people the type names (they all see it, the first to answer takes it). */
+  private async unclaimedHandlers(row: TicketRow): Promise<{ id: string; name: string }[]> {
+    if (row.assigneeUserId || row.isPersonal || row.typeHandlerUserIds.length === 0) return [];
+    const people = await this.directory.people(row.typeHandlerUserIds);
+    return row.typeHandlerUserIds.flatMap((id) => people.get(id) ?? []).map((p) => ({ id: p.id, name: p.name }));
   }
 
   async reply(viewer: TicketViewer, id: string, input: TicketReplyInput): Promise<TicketDto> {

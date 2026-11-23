@@ -193,6 +193,7 @@
   "actions": {
     "moveTo": "نقل إلى",
     "chooseStatus": "اختر حالة",
+    "status": "الحالة",
     "approve": "اعتماد",
     "reject": "رفض",
     "resubmit": "إعادة الإرسال",

@@ -9,7 +9,7 @@ import { TicketTimeline } from './ticket-timeline';
 
 const ticket = {
   id: 't1', number: 12, title: 'الطابعة', details: 'الطابعة لا تعمل منذ الصباح', status: 'open', closeReason: null, priority: 1, overdue: false, stale: false, isNew: true, isPersonal: false,
-  deskNameAr: 'تقنية المعلومات', deskNameEn: 'IT', typeNameAr: 'مشكلة', typeNameEn: 'Problem', sender: { id: 'u1', name: 'منى' }, assignee: null, neededBy: '2026-11-20', createdAt: '2026-11-10T08:00:00.000Z', abilities: { reply: true },
+  deskNameAr: 'تقنية المعلومات', deskNameEn: 'IT', typeNameAr: 'مشكلة', typeNameEn: 'Problem', sender: { id: 'u1', name: 'منى' }, assignee: null, handlers: [], neededBy: '2026-11-20', createdAt: '2026-11-10T08:00:00.000Z', abilities: { reply: true },
   events: [
     { id: 'e0', type: 'created', actor: { id: 'u1', name: 'منى' }, body: 'الطابعة لا تعمل منذ الصباح', parentId: null, replyTo: null, mentions: [], attachments: [{ fileId: 'f1', originalName: 'shot.png', contentType: 'image/png', size: 4 }], createdAt: '2026-11-10T08:00:00.000Z' },
     { id: 'e1', type: 'reply', actor: { id: 'u2', name: 'علي' }, body: 'جاري الفحص', parentId: null, replyTo: null, mentions: [], attachments: [], createdAt: '2026-11-10T09:00:00.000Z' },
@@ -28,5 +28,11 @@ describe('The ticket card stands apart from the conversation (FR-128)', () => {
     const conversation = screen.getByRole('region', { name: 'المحادثة والردود' });
     expect(within(conversation).getByText('جاري الفحص')).toBeInTheDocument();
     expect(within(conversation).queryByText('الطابعة لا تعمل منذ الصباح')).not.toBeInTheDocument();
+  });
+
+  it('names the handlers of the type under «responsible» while nobody has taken the ticket', () => {
+    server.use(http.get('*/api/me', () => HttpResponse.json(me())));
+    renderPage(<TicketCard ticket={{ ...ticket, handlers: [{ id: 'h1', name: 'سارة' }, { id: 'h2', name: 'خالد' }] }} />);
+    expect(screen.getByText('سارة، خالد')).toBeInTheDocument();
   });
 });
