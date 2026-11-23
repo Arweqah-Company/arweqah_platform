@@ -159,7 +159,7 @@ describe('Notices: delivery in batches, the nightly pass, reading and acknowledg
       expect(((await w.agents.employee.get(`/api/notices/mine/${policy2.id}`).expect(200)).body as NoticeMineDetailsDto).isArchived).toBe(true);
     });
 
-    it('does not let a «sign in as» session acknowledge (403 NOTICE_ACK_IMPERSONATION) or write', async () => {
+    it('does not let a «sign in as» session acknowledge (403 NOTICE_ACK_IMPERSONATION), while the everyday work of the person (approving as their head) stays open', async () => {
       const w = await noticeWorld(t);
       const policy = await published(w);
       await t.db.query(`INSERT INTO security_settings (key, value) VALUES ('impersonationEnabled', 1) ON CONFLICT (key) DO UPDATE SET value = 1`);
@@ -168,8 +168,14 @@ describe('Notices: delivery in batches, the nightly pass, reading and acknowledg
       const adminAgent = await t.factories.signInAdminMode(admin);
       await adminAgent.post(`/api/impersonation/${w.employee.id}`).expect((r) => expect(r.status).toBeLessThan(300));
       expect((await adminAgent.post(`/api/notices/mine/${policy.id}/acknowledge`).expect(403)).body.code).toBe('NOTICE_ACK_IMPERSONATION');
-      expect((await adminAgent.post('/api/notices').send({}).expect(403)).body.code).toBe('IMPERSONATION_FORBIDDEN');
       await adminAgent.get(`/api/notices/mine/${policy.id}`).expect(200); // reading stays open
+      await adminAgent.post('/api/impersonation/stop').expect((r) => expect(r.status).toBeLessThan(300));
+      const pending = await createNotice(w.agents.writer);
+      await w.agents.writer.post(`/api/notices/${pending.id}/submit`).send({ revision: pending.revision }).expect(200);
+      await adminAgent.post(`/api/impersonation/${w.head.id}`).expect((r) => expect(r.status).toBeLessThan(300));
+      const queue = (await adminAgent.get('/api/notices/approvals').expect(200)).body as { items: { id: string; revision: number }[] };
+      const waiting = queue.items.find((i) => i.id === pending.id) as { id: string; revision: number };
+      await adminAgent.post(`/api/notices/${pending.id}/approve`).send({ revision: waiting.revision }).expect(200); // the head's approval works inside «sign in as»
     });
 
     it('reports who acknowledged and who did not: the numbers add up, the writer sees everyone, a head only their unit', async () => {
