@@ -13,6 +13,12 @@ const ACTION_KEYS: string[] = [
   CorePermission.EmployeesAssignChange, CorePermission.EmployeesPhotoUpdate, CorePermission.EmployeesHistoryView, CorePermission.EmployeesResendInvite, CorePermission.EmployeesResetAuthenticator, CorePermission.EmployeesBulkUpdate,
 ];
 
+/** Who acts on the record (edits it, changes its roles, groups, placement, activity or contract) loads it whole: the form and the answer of each action show the stored values. */
+const LOADS_WHOLE: string[] = [
+  CorePermission.EmployeesUpdate, CorePermission.EmployeesAssignRoles, CorePermission.EmployeesAssignGroups,
+  CorePermission.EmployeesAssignChange, CorePermission.EmployeesDeactivate, CorePermission.EmployeesTerminate,
+];
+
 /** What the caller may do with one employee's page: open it, which details it shows, and the buttons on it that depend on the record (photo, history). */
 export interface EmployeeAbilities {
   /** The details the page shows; `null` = all of them (a person who may edit the record loads it whole, the form needs the stored values). */
@@ -23,7 +29,7 @@ export interface EmployeeAbilities {
 
 /**
  * «Open an employee» (`employees.open`) decides who gets the employee's page and, through the fields of each of its grants, which details they see.
- * Whoever may edit the record also opens it (the edit form reads it). The buttons that act on the record (photo, history) are judged here by the
+ * Whoever acts on the record (edit, roles, groups, placement, activity, contract) also opens it, whole. The buttons that act on the record (photo, history) are judged here by the
  * record's reach, so the screen shows them only where the API would accept them: a key held at «own» is for one's own record only.
  */
 @Injectable()
@@ -42,7 +48,7 @@ export class EmployeeVisibilityPolicy {
   }
 
   canOpen(ctx: AccessContext, employee: Employee): boolean {
-    return this.reach.can(ctx, CorePermission.EmployeesOpen, employee) || this.reach.can(ctx, CorePermission.EmployeesUpdate, employee);
+    return this.reach.can(ctx, CorePermission.EmployeesOpen, employee) || this.actsOnRecord(ctx, employee);
   }
 
   /**
@@ -63,8 +69,13 @@ export class EmployeeVisibilityPolicy {
     };
   }
 
+  /** Does a key that acts on the record reach it? Such a caller also opens it and loads it whole. */
+  private actsOnRecord(ctx: AccessContext, employee: Employee): boolean {
+    return LOADS_WHOLE.some((key) => this.reach.can(ctx, key, employee));
+  }
+
   private visibleFields(ctx: AccessContext, employee: Employee): string[] | null {
-    if (this.reach.can(ctx, CorePermission.EmployeesUpdate, employee)) return null;
+    if (this.actsOnRecord(ctx, employee)) return null;
     const resource = { ownerId: employee.userId, companyId: employee.companyId, orgNodeId: employee.orgNodeId };
     return [...new Set([...ALWAYS_VISIBLE_FIELDS, ...this.ability.fieldsFor(ctx, CorePermission.EmployeesOpen, resource)])];
   }

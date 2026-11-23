@@ -43,6 +43,8 @@ describe("Opening an employee's page: its own key, the details it shows, and the
     expect(all.roles.length).toBeGreaterThan(0);
     const editor = await t.factories.signIn(await t.factories.user({ grants: [grant(P.EmployeesView, 'all'), grant(P.EmployeesUpdate, 'all', ['workPhone']), grant(P.EmployeesOpen, 'own', ['workPhone'])] }));
     expect(((await editor.get(`/api/employees/${colleague.employeeId}`).expect(200)).body as EmployeeDto).visibleFields).toBeNull();
+    const roles = await t.factories.signIn(await t.factories.user({ grants: [grant(P.EmployeesView, 'all'), grant(P.EmployeesAssignRoles, 'all'), grant(P.EmployeesOpen, 'own', ['workPhone'])] }));
+    expect(((await roles.get(`/api/employees/${colleague.employeeId}`).expect(200)).body as EmployeeDto).visibleFields).toBeNull();
   });
 
   it("offers the photo buttons and the history tab only where the keys reach: a key held at «own» is for one's own record", async () => {
