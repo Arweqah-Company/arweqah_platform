@@ -1,8 +1,9 @@
 import type { HideablePage } from '@arweqah-platform/shared';
 import type { LucideIcon } from 'lucide-react';
+import type { ComponentType } from 'react';
 import type { RouteObject } from 'react-router';
 
-export type NavGroupId = 'people' | 'career' | 'tasks' | 'tickets' | 'administration' | 'account';
+export type NavGroupId = 'people' | 'career' | 'tasks' | 'tickets' | 'notices' | 'administration' | 'account';
 
 export interface NavItem {
   to: string;
@@ -25,6 +26,8 @@ export interface NavItem {
   hideFromMenu?: boolean;
   /** The page can be hidden from roles by an administrator (the API refuses it too, see HIDEABLE_PAGES). */
   pageKey?: HideablePage;
+  /** A small count drawn after the label (waiting acknowledgements, waiting approvals); the component asks for its own number and draws nothing at zero. */
+  badge?: ComponentType;
 }
 
 /** Where a welcome-tour step points; the wording is `tour.<key>.{title,body}` in the owning feature's i18n (the code's default, an administrator may change it). */

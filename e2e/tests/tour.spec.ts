@@ -8,7 +8,7 @@ import { ensureTeamSample } from '../support/org-data';
 class Screen extends BasePage {}
 test.use({ storageState: ADMIN_STATE });
 
-const GENERAL = ['أهلًا بك في منصة أروقة', 'حسابك', 'ملفي الشخصي', 'الأمان', 'صلاحياتي', 'دليل المستخدم', 'تسجيل الخروج', 'اللغة والمظهر', 'الإشعارات', 'القائمة الجانبية', 'مساعد المنصة', 'الصفحة الرئيسية', 'التذاكر', 'تذكرة جديدة', 'طرق عرض التذاكر', 'المهام', 'مهمة جديدة', 'جدول أم لوحة Kanban', 'افتح المهمة وعدّلها', 'الموظفون', 'سجل الموظف', 'الصورة الشخصية', 'فريقي', 'الهيكل التنظيمي', 'طرق عرض الهيكل', 'انتهت الجولة'];
+const GENERAL = ['أهلًا بك في منصة أروقة', 'حسابك', 'ملفي الشخصي', 'الأمان', 'صلاحياتي', 'دليل المستخدم', 'تسجيل الخروج', 'اللغة والمظهر', 'الإشعارات', 'القائمة الجانبية', 'مساعد المنصة', 'الصفحة الرئيسية', 'التذاكر', 'تذكرة جديدة', 'طرق عرض التذاكر', 'المهام', 'مهمة جديدة', 'جدول أم لوحة Kanban', 'افتح المهمة وعدّلها', 'التعاميم في الرئيسية', 'تعاميمي', 'إدارة التعاميم', 'بانتظار اعتمادي', 'قنوات النشر', 'الموظفون', 'سجل الموظف', 'الصورة الشخصية', 'فريقي', 'الهيكل التنظيمي', 'طرق عرض الهيكل', 'انتهت الجولة'];
 /** Each page has one step, on its feature (never a second one for its sidebar link, never on its title): the administration tour in order. */
 const ADMIN = ['وضع المدير', 'الشركات', 'تقسيمات الهيكل', 'إضافة وحدة', 'ميثاق الوحدة', 'الأدوار', 'الاستثناءات', 'صفحة الصلاحيات', 'سجل التدقيق', 'سجل البريد', 'الإعدادات', 'الحماية من الروبوتات', 'مواقع العناوين', 'خدمة الذكاء الاصطناعي', 'إعدادات جولة الترحيب'];
 const bubble = (page: Page) => page.getByRole('alertdialog');
@@ -40,7 +40,12 @@ test.describe('Welcome tour (FR-67)', () => {
     await settled(page);
     await new Screen(page).expectNoSeriousA11yIssues();
     // On a phone the theme and language buttons live in the account menu, so that step has no element on screen and the tour skips it.
-    const steps = test.info().project.name === 'mobile' ? GENERAL.filter((name) => name !== 'اللغة والمظهر') : GENERAL;
+    // The notices steps beyond the Employee's two belong to those who hold their keys (a writer, a head, the channels): ask the API which this person has.
+    const mine = ((await (await page.request.get('/api/me/tour/general')).json()) as { steps: { key: string }[] }).steps.map((s) => s.key);
+    const noticeSteps: Record<string, string> = { 'notices-manage': 'إدارة التعاميم', 'notices-approvals': 'بانتظار اعتمادي', 'notices-channels': 'قنوات النشر' };
+    const hidden = Object.entries(noticeSteps).filter(([key]) => !mine.includes(key)).map(([, name]) => name);
+    const all = GENERAL.filter((name) => !hidden.includes(name));
+    const steps = test.info().project.name === 'mobile' ? all.filter((name) => name !== 'اللغة والمظهر') : all;
     for (const [i, name] of steps.entries()) {
       await expect(title(page)).toHaveText(name);
       // the total shrinks as steps whose element is not on this screen are found out; the position is of the steps really shown

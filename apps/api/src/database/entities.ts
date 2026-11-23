@@ -46,6 +46,7 @@ import { PERFORMANCE_REMINDER_ENTITIES } from '../modules/performance/domain/ent
 import { PERFORMANCE_TEMPLATE_ENTITIES } from '../modules/performance/domain/entities/performance-templates.entities';
 import { CAREER_REQUEST_ENTITIES } from '../modules/career-profile/domain/entities/career-requests.entities';
 import { CAREER_CONTENT_ENTITIES } from '../modules/career-profile/domain/entities/career-profile.entities';
+import { NOTICE_ENTITIES } from '../modules/notices/domain/entities/notice.entities';
 import { TICKET_ENTITIES } from '../modules/tickets/domain/entities/ticket.entities';
 
 /**
@@ -91,6 +92,7 @@ export const ENTITIES = [
   ...LOOKUP_ENTITIES,
   ...ORG_ENTITIES,
   ...TICKET_ENTITIES,
+  ...NOTICE_ENTITIES,
   ...TASK_ENTITIES,
   ...TASK_COMMENT_ENTITIES,
   ...TOUR_ENTITIES,

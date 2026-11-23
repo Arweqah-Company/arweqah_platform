@@ -17,9 +17,10 @@ export type RoleAssignment = (typeof ROLE_ASSIGNMENTS)[number];
 
 /**
  * Roles the system keeps up to date by itself; nobody assigns them by hand.
- * `job_title`: one role per job title, held by whoever has that title; `node_head`: one role per organization level of a company, held by the managers of its units.
+ * `job_title`: one role per job title, held by whoever has that title; `node_head`: one role per organization level of a company, held by the managers of its units;
+ * `notice_writer`: one role per notice channel, given and taken back by adding and removing a writer on the publishing channels page (its permissions are fixed).
  */
-export const ROLE_AUTO_RULES = ['everyone', 'has_reports', 'job_title', 'node_head', 'limited_access'] as const;
+export const ROLE_AUTO_RULES = ['everyone', 'has_reports', 'job_title', 'node_head', 'limited_access', 'notice_writer'] as const;
 export type RoleAutoRule = (typeof ROLE_AUTO_RULES)[number];
 
 /** Auto roles that follow the organization (created and removed with their job title or level, never edited or assigned by hand). */

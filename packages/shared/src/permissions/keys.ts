@@ -256,6 +256,32 @@ export const CorePermission = {
   TasksCommentDeleteAny: 'tasks.comment_delete_any',
   TasksCommentRulesView: 'tasks.comment_rules_view',
   TasksCommentRulesEdit: 'tasks.comment_rules_edit',
+  // Notices (circulars and policies)
+  NoticesView: 'notices.view',
+  NoticesAcknowledge: 'notices.acknowledge',
+  NoticesExportMine: 'notices.export_mine',
+  NoticesManageView: 'notices.manage_view',
+  NoticesCreate: 'notices.create',
+  NoticesEdit: 'notices.edit',
+  NoticesDelete: 'notices.delete',
+  NoticesSubmit: 'notices.submit',
+  NoticesApproveView: 'notices.approve_view',
+  NoticesApprove: 'notices.approve',
+  NoticesReject: 'notices.reject',
+  NoticesPin: 'notices.pin',
+  NoticesArchive: 'notices.archive',
+  NoticesRevise: 'notices.revise',
+  NoticesReviseCancel: 'notices.revise_cancel',
+  NoticesAckReport: 'notices.ack_report',
+  NoticesAckExport: 'notices.ack_export',
+  NoticesExport: 'notices.export',
+  NoticesChannelsView: 'notices.channels_view',
+  NoticesWriterAdd: 'notices.writer_add',
+  NoticesWriterRemove: 'notices.writer_remove',
+  NoticesChannelAdd: 'notices.channel_add',
+  NoticesChannelRemove: 'notices.channel_remove',
+  NoticesSettingsEdit: 'notices.settings_edit',
+  NoticesChannelsExport: 'notices.channels_export',
   // The platform assistant (chat): opening it, talking to it, and the person's old conversations. What it does for a person always goes through the key of the action itself.
   AgentView: 'agent.view',
   AgentUse: 'agent.use',
@@ -321,6 +347,9 @@ export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own
   { key: CorePermission.TasksCommentMention, scope: 'all' },
   { key: CorePermission.TasksCommentEdit, scope: 'all' },
   { key: CorePermission.TasksCommentDelete, scope: 'all' },
+  { key: CorePermission.NoticesView, scope: 'own' },
+  { key: CorePermission.NoticesAcknowledge, scope: 'own' },
+  { key: CorePermission.NoticesExportMine, scope: 'own' },
   { key: CorePermission.AgentView, scope: 'all' },
   { key: CorePermission.AgentUse, scope: 'all' },
   { key: CorePermission.AgentHistoryView, scope: 'all' },
@@ -413,7 +442,41 @@ export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 's
   { key: CorePermission.TicketsTypeUpdate, scope: 'subtree' },
   { key: CorePermission.TicketsTypeDelete, scope: 'subtree' },
   { key: CorePermission.TicketsFiguresView, scope: 'subtree' },
+  // notices of the unit and below: the manage page, approving and rejecting what the unit writes, archiving, who acknowledged, exporting,
+  // the publishing channels page, making / disabling / deleting channels for the unit and below and adding / removing the writers of the unit's channels
+  { key: CorePermission.NoticesManageView, scope: 'subtree' },
+  { key: CorePermission.NoticesApproveView, scope: 'subtree' },
+  { key: CorePermission.NoticesApprove, scope: 'subtree' },
+  { key: CorePermission.NoticesReject, scope: 'subtree' },
+  { key: CorePermission.NoticesArchive, scope: 'subtree' },
+  { key: CorePermission.NoticesAckReport, scope: 'subtree' },
+  { key: CorePermission.NoticesAckExport, scope: 'subtree' },
+  { key: CorePermission.NoticesExport, scope: 'subtree' },
+  { key: CorePermission.NoticesChannelsView, scope: 'subtree' },
+  { key: CorePermission.NoticesWriterAdd, scope: 'subtree' },
+  { key: CorePermission.NoticesWriterRemove, scope: 'subtree' },
+  { key: CorePermission.NoticesChannelAdd, scope: 'subtree' },
+  { key: CorePermission.NoticesChannelRemove, scope: 'subtree' },
 ];
+
+/**
+ * What the system role of a channel's writers holds (`auto_rule = 'notice_writer'`, one role per channel; decision N7): writing, sending for approval,
+ * archiving and reading the report of their own notices. Never approving, pinning or managing the channels. The channel itself is limited by membership in
+ * `notice_channel_writers`, not by these keys.
+ */
+export const NOTICE_WRITER_ROLE_PERMISSIONS: { key: CorePermissionKey; scope: 'own' }[] = [
+  CorePermission.NoticesManageView,
+  CorePermission.NoticesCreate,
+  CorePermission.NoticesEdit,
+  CorePermission.NoticesDelete,
+  CorePermission.NoticesSubmit,
+  CorePermission.NoticesArchive,
+  CorePermission.NoticesRevise,
+  CorePermission.NoticesReviseCancel,
+  CorePermission.NoticesAckReport,
+  CorePermission.NoticesAckExport,
+  CorePermission.NoticesExport,
+].map((key) => ({ key, scope: 'own' as const }));
 
 /** Groups of keys that belong together (used by seeds and tests, and to give an administrator a whole area at once). */
 export const ORG_ADMIN_PERMISSIONS: CorePermissionKey[] = [

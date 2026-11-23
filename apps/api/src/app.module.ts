@@ -42,6 +42,7 @@ import { CareerProfileModule } from './modules/career-profile/career-profile.mod
 import { PerformanceModule } from './modules/performance/performance.module';
 import { TourModule } from './modules/tour/tour.module';
 import { TicketsModule } from './modules/tickets/tickets.module';
+import { NoticesModule } from './modules/notices/notices.module';
 
 const JSON_LIMIT = '1mb';
 
@@ -82,6 +83,7 @@ const JSON_LIMIT = '1mb';
     EmployeesModule,
     TicketsModule,
     TasksModule,
+    NoticesModule,
     TourModule,
     CareerProfileModule,
     PerformanceModule,

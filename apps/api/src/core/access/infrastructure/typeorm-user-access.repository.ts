@@ -239,6 +239,14 @@ export class TypeOrmUserAccessRepository extends UserAccessRepository {
     }
   }
 
+  async grantRole(userId: string, roleId: string, grantedBy: string | null, tx?: TransactionContext): Promise<void> {
+    await managerOf(tx, this.userRoles.manager).query('INSERT INTO user_roles (user_id, role_id, granted_by) VALUES ($1, $2, $3) ON CONFLICT (user_id, role_id) DO NOTHING', [userId, roleId, grantedBy]);
+  }
+
+  async revokeRole(userId: string, roleId: string, tx?: TransactionContext): Promise<void> {
+    await managerOf(tx, this.userRoles.manager).query('DELETE FROM user_roles WHERE user_id = $1 AND role_id = $2', [userId, roleId]);
+  }
+
   async roleExpiriesOf(userIds: string[]): Promise<Map<string, Map<string, string>>> {
     const result = new Map<string, Map<string, string>>();
     if (!userIds.length) return result;
