@@ -46,9 +46,10 @@ export class NoticeQueryService {
     const viewer = await this.policy.viewerFor(ctx, CorePermission.NoticesManageView);
     const [channels, authors] = await Promise.all([this.notices.channels(), this.queries.authors(viewer)]);
     const writes = new Set(viewer.writerChannelIds);
+    const everywhere = this.policy.writesEverywhere(ctx);
     return {
       channels: channels.map((c) => ({ code: c.code, nameAr: c.nameAr, nameEn: c.nameEn, isActive: c.isActive })),
-      writableChannelCodes: channels.filter((c) => c.isActive && writes.has(c.id)).map((c) => c.code),
+      writableChannelCodes: channels.filter((c) => c.isActive && (everywhere || writes.has(c.id))).map((c) => c.code),
       authors,
     };
   }

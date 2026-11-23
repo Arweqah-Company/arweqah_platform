@@ -48,9 +48,14 @@ export class NoticeAccessPolicy {
     return notice;
   }
 
-  /** Only a writer of the channel writes in it (the role gives the keys; the membership says which channel), and nobody writes in a disabled channel. */
-  async assertWriter(userId: string, channelId: string): Promise<void> {
-    if (!(await this.notices.isWriter(userId, channelId))) throw new NoticeNotChannelWriterError();
+  /** The platform administrator (the key to write at the reach «all») writes in every active channel without being added as a writer; everybody else only in the channels they were added to. */
+  writesEverywhere(ctx: AccessContext): boolean {
+    return ctx.scopeOf(CorePermission.NoticesCreate) === 'all';
+  }
+
+  /** Only a writer of the channel writes in it (the role gives the keys; the membership says which channel; the platform administrator needs no membership), and nobody writes in a disabled channel. */
+  async assertWriter(ctx: AccessContext, channelId: string): Promise<void> {
+    if (!this.writesEverywhere(ctx) && !(await this.notices.isWriter(ctx.userId, channelId))) throw new NoticeNotChannelWriterError();
     if (!(await this.notices.channelById(channelId))?.isActive) throw new NoticeChannelDisabledError();
   }
 

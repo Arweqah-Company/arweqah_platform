@@ -16,6 +16,16 @@ describe('Notices: writing, approval and rejection (FR-167)', () => {
       expect(created.abilities).toMatchObject({ edit: true, submit: true, delete: true, approve: false, revise: false });
     });
 
+    it('lets the platform administrator (create at «all») write in every active channel without being added as a writer, and lists them as writable (FR-167, FR-177)', async () => {
+      const w = await noticeWorld(t);
+      const admin = await t.factories.user({ unit: w.org.unitA, grants: [...NOTICE_HEAD_GRANTS, ...['notices.create', 'notices.edit', 'notices.submit', 'notices.delete'].map((key) => ({ key, scope: 'all' as const }))] });
+      const agent = await t.factories.signIn(admin);
+      expect((await agent.get('/api/notices/options').expect(200)).body.writableChannelCodes).toEqual(expect.arrayContaining(['hr', 'corporate_comms']));
+      expect(await createNotice(agent, { channelCode: 'corporate_comms' })).toMatchObject({ status: 'draft', channel: { code: 'corporate_comms' } });
+      // a head who holds the key only inside the unit is still not a writer of the channel
+      expect((await w.agents.head.get('/api/notices/options').expect(200)).body.writableChannelCodes).toEqual([]);
+    });
+
     it('refuses what the input rules refuse: an unknown field, no title, no text, a date in the past, a missing unit', async () => {
       const w = await noticeWorld(t);
       await w.agents.writer.post('/api/notices').send(noticeBody({ surprise: true })).expect(400);

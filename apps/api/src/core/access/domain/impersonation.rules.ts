@@ -17,7 +17,6 @@ const FORBIDDEN_ROUTES: readonly ForbiddenRoute[] = [
   { methods: ['POST'], pattern: /^\/mfa\/enroll(\/confirm)?$/ },
   { methods: WRITES, pattern: /^\/me\/(sessions|trusted-devices|profile)(\/|$)/ },
   { methods: ['POST', 'PUT'], pattern: /^\/employees\/[^/]+\/(deactivate|activate|terminate|reset-authenticator|resend-invite|roles|groups)$/ },
-  { methods: WRITES, pattern: /^\/notices(?:$|\/(?!audience\/count$|mine\/[^/]+\/acknowledge$))/ },
   { methods: WRITES, pattern: /^\/(roles|role-groups|user-groups|permission-targets|access\/exceptions|page-visibility|security-settings)(\/|$)/ },
 ];
 

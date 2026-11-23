@@ -2,6 +2,13 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-23 — Notices: the administrator writes in every channel; «sign in as» may approve
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 451 | **Who holds `notices.create` at «all» (the platform administrator) writes in every active channel without being added as a writer** (`NoticeAccessPolicy.writesEverywhere`, used by `assertWriter` and `GET /notices/options` → `writableChannelCodes`); everybody else still writes only in the channels they were added to | Owner: the administrator saw no channel in «New notice» because they were no writer of any | Another role should write everywhere |
+| 452 | **«Sign in as» sessions may write notices, send, approve and reject like tasks and tickets; only acknowledging stays refused** (`NOTICE_ACK_IMPERSONATION`, a personal attestation). The notices line is removed from `impersonation.rules.ts` | Owner: approving as a unit head in «sign in as» answered «you have no permission». Supersedes the refusal of decision 446 | An approval made on someone's behalf must be forbidden |
+
 ## 2026-11-23 — Notices: channels for any unit (FR-177)
 
 Plan: `docs/plans/phase-8-notices.md` §4ب (log 2026-11-23). Supersedes the per-channel keys of decision 439 and the fixed two channels of N1.
@@ -21,7 +28,7 @@ Plan: `docs/plans/phase-8-notices.md` (log 2026-11-22).
 |---|---|---|---|
 | 444 | **The audience picker reads one endpoint, `GET /notices/audience/options` (key `notices.manage_view`, optional `search`)**: every active unit, every job title (not capped) and every group of people with its member count, read by the notices module's own `NoticeDirectory` (read-only SQL, like tickets and tasks) | A plain writer holds neither the full org view nor the groups key, so the picker no longer depends on `/org/tree`, `/org/job-titles` (first 100) and the admin-gated `/user-groups`; a notice may be aimed at any unit, the writer's own reach does not narrow it (validation only checks the ids exist) | The number of job titles makes one answer too big: add paging or a server-side search-as-you-type |
 | 445 | **`DataTable` has an optional `renderCard`**, and `Tabs` an optional `count` drawn as a `Badge`; «My notices» uses both (`NoticeCard`, the waiting count) and the manage page the badge | One shared place for list-specific cards and tab counters; no «(3)» in a label | Another list needs a card: pass `renderCard`, do not copy the markup |
-| 446 | **The browser journey stops at the submission:** sign-in needs the person's authenticator code, so only the administrator has a session, and «sign in as» refuses every notices write (`impersonation.rules.ts`). Approval, delivery, acknowledgement and the report are exercised with real sessions in the API suite | No way to make a second signed-in actor in Playwright without changing the sign-in or the impersonation rules | A test-only way to create a signed-in user exists |
+| 446 | **The browser journey stops at the submission:** sign-in needs the person's authenticator code, so only the administrator has a session, and «sign in as» refused notices writes (lifted for everything but acknowledging by decision 452). Approval, delivery, acknowledgement and the report are exercised with real sessions in the API suite | No way to make a second signed-in actor in Playwright without changing the sign-in or the impersonation rules | A test-only way to create a signed-in user exists |
 
 ## 2026-11-22 — CodeRabbit round on PR 148
 
