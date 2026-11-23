@@ -56,6 +56,7 @@ export function useDeleteTicket(id: string) {
     },
   });
 }
+export const useChooseHandler = (id: string) => useTicketMutation((handlerUserId: string) => apiClient.post<TicketDto>(`/tickets/${id}/handler`, { handlerUserId }));
 export const useTicketReassign = (id: string) => useTicketMutation((assigneeUserId: string) => apiClient.post<TicketDto>(`/tickets/${id}/reassign`, { assigneeUserId }));
 
 // ------------------------------------------------------------------ setup (by the key and its scope)

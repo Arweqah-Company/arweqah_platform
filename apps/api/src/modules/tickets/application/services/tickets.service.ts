@@ -93,7 +93,7 @@ export class TicketsService {
     const ids = events.map((e) => e.id);
     const [attachments, mentions, names] = await Promise.all([this.tickets.attachments(ids), this.tickets.mentions(ids), this.deskNames([found.deskId])]);
     const handlers = await this.unclaimedHandlers(found);
-    return this.transformer.toDetail({ row: found, desk: names.get(found.deskId), relations, events, attachments, mentions, handlers, now: this.clock.now(), canReassign: this.policy.reassignReach(viewer, found) !== null, canDelete: this.policy.mayDelete(viewer, found) });
+    return this.transformer.toDetail({ row: found, desk: names.get(found.deskId), relations, events, attachments, mentions, handlers, now: this.clock.now(), canReassign: this.policy.reassignReach(viewer, found) !== null, canDelete: this.policy.mayDelete(viewer, found), canChooseHandler: this.policy.mayChooseHandler(viewer, found) });
   }
 
   /** Nobody has taken the ticket yet: the people the type names (they all see it, the first to answer takes it). */

@@ -26,6 +26,7 @@ A ticket is the official way to ask another department for something: you choose
 | Close without carrying out | The department closes it, explaining why | `tickets.close_without_execution` (Close a ticket without executing it) |
 | Reopen | The sender reopens a closed ticket within the allowed days | `tickets.reopen` (Reopen a closed ticket) |
 | Delete | Hides a ticket and its replies from everyone after a confirmation (any status); the record stays in the database and the audit log says who deleted it. Offered where your scope reaches the ticket's department | `tickets.delete` (Delete a ticket); not held by the «Employee» role, held by the head role of every unit for its unit and below |
+| Choose handler | On a ticket whose type has several handlers and that nobody has taken, the unit head picks one of that type's handlers; the ticket becomes theirs, they are notified, and it disappears from the other handlers | `tickets.choose_handler` (Choose who answers a ticket among the handlers of its type) |
 | Reassign | A unit head hands an open ticket of their unit to someone on their team | `tickets.reassign` (Reassign a ticket to another employee) |
 | Quick reply | On the board, a short reply from the card | `tickets.reply` |
 
@@ -51,6 +52,8 @@ The tickets list has no export or import button. Tickets are sent one by one fro
 1. Open the ticket. If the department asked to close, you see **Confirm it was done** and **Not done yet**.
 2. Click **Confirm it was done** to close it, or **Not done yet** to send it back open with your message.
 3. If the ticket is closed and you still need it, click **Reopen** (the page shows how many days are left).
+
+**Choosing the handler (unit heads):** when a ticket's type has several handlers and nobody has taken it (their names show under «Responsible») the **Choose handler** button appears for whoever holds the key and whose reach includes the ticket's unit. You can pick only one of the type's handlers: the ticket moves to them, they are notified, and it disappears from the other handlers' lists, who can no longer open or answer it. Likewise whoever answers first, before any choice, takes the ticket and it disappears from the rest. The head of every unit holds the key automatically for their unit and below.
 
 **Reassigning (unit heads):** on an open ticket of your unit click **Reassign**, search a name or number, and choose the person. Only people inside your own unit and the units below it appear. The ticket moves to them, they are notified, and the history shows who handed it to whom.
 

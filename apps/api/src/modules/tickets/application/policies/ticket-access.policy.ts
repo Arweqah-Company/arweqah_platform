@@ -10,8 +10,8 @@ function inScope(scope: ViewerScope, place: { orgNodeId: string | null; companyI
   return scope.kind === 'nodes' && !!place.orgNodeId && scope.ids.includes(place.orgNodeId);
 }
 
-/** The assignee, or (on a ticket that is not personal) a handler of the ticket's type: they answer it like its assignee. A personal ticket stays with its stored assignee even when the type's handlers change. */
-const isAssignee = (viewer: TicketViewer, ticket: TicketRow): boolean => ticket.assigneeUserId === viewer.userId || (!ticket.isPersonal && ticket.typeHandlerUserIds.includes(viewer.userId));
+/** The assignee, or (on a ticket that is not personal and that nobody has taken) a handler of the ticket's type: they answer it like its assignee. A personal ticket stays with its stored assignee even when the type's handlers change. */
+const isAssignee = (viewer: TicketViewer, ticket: TicketRow): boolean => ticket.assigneeUserId === viewer.userId || (ticket.assigneeUserId === null && !ticket.isPersonal && ticket.typeHandlerUserIds.includes(viewer.userId));
 
 /**
  * Who sees a ticket follows the person's relation to it: the sender, the assignee or a handler of its type, the manager of the desk, a person whose reply
@@ -50,6 +50,14 @@ export class TicketAccessPolicy {
     const desk = { orgNodeId: ticket.deskId, companyId: ticket.deskCompanyId };
     if (ticket.isPersonal || ticket.status === 'closed' || !inScope(viewer.reassign, desk)) return null;
     return { companyId: ticket.deskCompanyId, nodeIds: viewer.reassign.kind === 'nodes' ? viewer.reassign.ids : null };
+  }
+
+  /**
+   * May the viewer pick the handler of this ticket? Only an open ticket nobody has taken, of a type with several handlers, inside the reach of the choose key
+   * (the ticket then leaves the other handlers' inboxes).
+   */
+  mayChooseHandler(viewer: TicketViewer, ticket: TicketRow): boolean {
+    return !ticket.isPersonal && ticket.status !== 'closed' && ticket.assigneeUserId === null && ticket.typeHandlerUserIds.length > 1 && inScope(viewer.chooseHandler, { orgNodeId: ticket.deskId, companyId: ticket.deskCompanyId });
   }
 
   /** Does the viewer's delete key reach the ticket's department (any status, personal or not)? */

@@ -45,6 +45,7 @@ import { EMPLOYEE_AUDIT, FORM_CHANGE_REASON, FORM_LEADER_REASON } from '../messa
 import { ASSIGNMENT_COLUMN, type AssignmentColumn, type PlacementChange } from '../../domain/types/assignment.types';
 import { EmployeeReachPolicy } from '../policies/employee-reach.policy';
 import { EmployeeEditPolicy } from '../policies/employee-edit.policy';
+import { EmployeeVisibilityPolicy } from '../policies/employee-visibility.policy';
 import { EmployeeAuditService } from './employee-audit.service';
 
 const P = CorePermission;
@@ -75,6 +76,7 @@ export class EmployeesService {
     private readonly emailDomains: AllowedEmailDomainsService,
     private readonly assignments: EmployeeAssignmentsService,
     private readonly editing: EmployeeEditPolicy,
+    private readonly visibility: EmployeeVisibilityPolicy,
     private readonly reach: EmployeeReachPolicy,
     private readonly auditor: EmployeeAuditService,
     private readonly leaders: OrgLeadersService,
@@ -85,7 +87,7 @@ export class EmployeesService {
     if (!scope) throw new ForbiddenError();
     const { items, total } = await this.repo.list(query, scope);
     const states = await this.repo.activeStates(items.map((e) => e.userId));
-    return { items: await this.transformer.toListItems(items, states, ctx.userId), total, page: query.page, pageSize: query.pageSize };
+    return { items: await this.transformer.toListItems(items, states, { id: ctx.userId, canOpen: (e) => this.visibility.canOpen(ctx, e), openAs: (e) => this.visibility.openAs(ctx, e) }), total, page: query.page, pageSize: query.pageSize };
   }
 
   /** Dashboard counts for the employees the viewer may see. Documents and contracts count as "soon" within 30 days. */
@@ -98,7 +100,7 @@ export class EmployeesService {
   }
 
   async get(ctx: AccessContext, id: string): Promise<EmployeeDto> {
-    return this.dto(ctx, await this.reach.find(ctx, id, P.EmployeesView));
+    return this.dto(ctx, await this.visibility.findOpenable(ctx, id));
   }
 
   /** Creates the person's record and sign-in account, assigns roles, then e-mails the activation link only when the caller asked for it (`sendInvite`). */
@@ -346,7 +348,7 @@ export class EmployeesService {
   private async dto(ctx: AccessContext, employee: Employee): Promise<EmployeeDto> {
     const states = await this.repo.activeStates([employee.userId]);
     const sensitive = this.validation.canHandleSensitive(ctx, { ownerId: employee.userId, companyId: employee.companyId, orgNodeId: employee.orgNodeId });
-    return this.transformer.toDto(employee, { isActive: states.get(employee.userId) ?? false, sensitive, editableFields: this.editing.editableFields(ctx, employee) });
+    return this.transformer.toDto(employee, { isActive: states.get(employee.userId) ?? false, sensitive, editableFields: this.editing.editableFields(ctx, employee), ...this.visibility.abilities(ctx, employee) });
   }
 
   /** A mail failure must not undo the employee: the record exists and the link can be re-sent. */

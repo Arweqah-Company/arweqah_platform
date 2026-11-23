@@ -66,13 +66,34 @@ export const LEGACY_SELF_EDITABLE_FIELDS: string[] = ['workPhone', 'personalPhon
 /** Every field: what the platform administrator's grant holds. */
 export const ALL_EDITABLE_FIELDS: readonly string[] = EMPLOYEE_FIELD_KEYS;
 
-/** Permissions whose grants carry a list of fields. */
-export const FIELD_SCOPED_PERMISSIONS: readonly string[] = ['employees.update'];
+/**
+ * Permissions whose grants carry a list of fields: «edit employees» (the details its holder may change) and «open an employee» (the details
+ * its holder sees on the employee's page).
+ */
+export const FIELD_SCOPED_PERMISSIONS: readonly string[] = ['employees.update', 'employees.open'];
 export const carriesFields = (permissionKey: string): boolean => FIELD_SCOPED_PERMISSIONS.includes(permissionKey);
 
-/** The fields a grant gives: its own list, or the basic data when the grant has none (a new grant, or one saved by a caller that does not know the lists). */
+/** The three details every opened page shows whatever the list: the name and number in the header and the company. They are not offered in the choice. */
+export const ALWAYS_VISIBLE_FIELDS: readonly string[] = ['fullName', 'employeeNumber', 'companyId'];
+
+/** A detail only the page shows, never edited with the form: the roles of the person. */
+export const ROLES_FIELD = 'roles';
+
+/** The fields offered by «open an employee»: every one but those of the page header, and the roles. */
+export const VISIBLE_FIELD_CHOICES: readonly FieldDef[] = [...EMPLOYEE_FIELDS.filter((f) => !ALWAYS_VISIBLE_FIELDS.includes(f.key)), { key: ROLES_FIELD, group: 'structure' }];
+
+/** Every detail the page can show: what a new grant of «open an employee» starts with. */
+export const ALL_VISIBLE_FIELDS: readonly string[] = [...ALL_EDITABLE_FIELDS, ROLES_FIELD];
+
+/** What a new grant starts with: «edit» starts with the basic data, «open» with everything (a page that hides something by accident reads as a bug). */
+export const defaultFieldsFor = (permissionKey: string): readonly string[] => (permissionKey === 'employees.open' ? ALL_VISIBLE_FIELDS : DEFAULT_EDITABLE_FIELDS);
+
+/** The fields a grant gives: its own list, or the permission's default when the grant has none (a new grant, or one saved by a caller that does not know the lists). */
 export const fieldsOfGrant = (grant: { key: string; fields?: readonly string[] | null }): readonly string[] =>
-  carriesFields(grant.key) ? (grant.fields ?? DEFAULT_EDITABLE_FIELDS) : [];
+  carriesFields(grant.key) ? (grant.fields ?? defaultFieldsFor(grant.key)) : [];
 
 /** What a grant stores in its `fields` column: the list for a permission that carries one (the basic data when the grant gave none), nothing for the others. */
 export const storedFields = (grant: { key: string; fields?: readonly string[] | null }): string[] | null => (carriesFields(grant.key) ? [...fieldsOfGrant(grant)] : null);
+
+/** An employee whose page shows fewer details than this, with no photo button and no history tab, opens in a pop-up (like «My team») instead of a page. */
+export const POPUP_MAX_FIELDS = 10;

@@ -201,6 +201,15 @@
       "title": "Delete ticket {{number}}?",
       "description": "The ticket and its replies disappear for everyone: senders, handlers and the figures. Its record is kept in the database and the audit log shows who deleted it.",
       "done": "The ticket was deleted."
+    },
+    "chooseHandler": {
+      "button": "Choose handler",
+      "title": "Choose who answers the ticket",
+      "description": "This ticket's type has several handlers and nobody has taken it. Pick one of them: the ticket becomes theirs, they are notified, and it disappears from the other handlers.",
+      "person": "Handler",
+      "personHint": "Only the handlers named on this ticket's type.",
+      "confirm": "Choose handler",
+      "done": "The ticket's handler was chosen."
     }
   },
   "setup": {

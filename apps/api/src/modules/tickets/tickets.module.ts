@@ -9,6 +9,7 @@ import { TicketCatalogService } from './application/services/ticket-catalog.serv
 import { TicketFiguresService } from './application/services/ticket-figures.service';
 import { TicketDeleteService } from './application/services/ticket-delete.service';
 import { TicketReassignService } from './application/services/ticket-reassign.service';
+import { TicketHandlerChoiceService } from './application/services/ticket-handler-choice.service';
 import { TicketLifecycleService } from './application/services/ticket-lifecycle.service';
 import { TicketNotifier } from './application/services/ticket-notifier.service';
 import { TicketSummaryService } from './application/services/ticket-summary.service';
@@ -49,6 +50,7 @@ import { TicketsController } from './presentation/controllers/tickets.controller
     TicketsService,
     TicketLifecycleService,
     TicketReassignService,
+    TicketHandlerChoiceService,
     TicketDeleteService,
     TicketSetupService,
     TicketCatalogService,

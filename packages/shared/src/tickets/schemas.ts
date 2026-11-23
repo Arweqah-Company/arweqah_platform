@@ -104,6 +104,10 @@ export type TicketMentionablesQuery = z.infer<typeof ticketMentionablesQuerySche
 export const reassignTicketSchema = z.strictObject({ assigneeUserId: z.uuid() });
 export type ReassignTicketInput = z.infer<typeof reassignTicketSchema>;
 
+/** The head picks one of the handlers named on the ticket's type to answer a ticket nobody has taken. */
+export const chooseHandlerSchema = z.strictObject({ handlerUserId: z.uuid() });
+export type ChooseHandlerInput = z.infer<typeof chooseHandlerSchema>;
+
 export const ticketActionSchema = z.strictObject({ message: z.string().trim().max(MAX_TICKET_TEXT).optional() });
 export type TicketActionInput = z.infer<typeof ticketActionSchema>;
 
@@ -271,6 +275,8 @@ export interface TicketAbilitiesDto {
   reopen: boolean;
   /** The unit side may hand an open ticket to someone else inside the reach of its reassign key. */
   reassign: boolean;
+  /** A ticket of a type with several handlers that nobody has taken: the unit's head picks who answers it. */
+  chooseHandler: boolean;
   /** The viewer's `tickets.delete` reaches the ticket's department. */
   delete: boolean;
 }

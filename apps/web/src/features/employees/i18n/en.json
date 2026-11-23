@@ -82,7 +82,8 @@
     "iban": "IBAN",
     "notes": "Notes",
     "leadsUnit": "Leader of this unit",
-    "sendInvite": "Send the activation invitation by e-mail after saving"
+    "sendInvite": "Send the activation invitation by e-mail after saving",
+    "roles": "Roles"
   },
   "gender": {
     "male": "Male",

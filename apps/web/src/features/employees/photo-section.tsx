@@ -1,16 +1,15 @@
-import { CorePermission, type EmployeeDto } from '@arweqah-platform/shared';
+import type { EmployeeDto } from '@arweqah-platform/shared';
 import { Camera, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { Can } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Button, ConfirmDialog, SectionCard } from '@/shared/ui';
 import { useRemovePhoto } from './api';
 import { EmployeeAvatar } from './employee-avatar';
 import { PhotoDialog } from './photo-dialog';
 
-/** The employee's picture at the top of their page, with the buttons to change or remove it for who may (FR-91). */
+/** The employee's picture at the top of their page, with the buttons to change or remove it where the API says the record is in reach of the photo key (FR-91): a key held at «own» shows them on one's own page only. */
 export function PhotoSection({ employee }: { employee: EmployeeDto }) {
   const { t } = useTranslation('employees');
   const remove = useRemovePhoto(employee.id);
@@ -19,7 +18,7 @@ export function PhotoSection({ employee }: { employee: EmployeeDto }) {
     <SectionCard id="photo" title={t('photo.section')}>
       <div className="flex flex-wrap items-center gap-4 sm:col-span-2" data-tour="employee-photo">
         <EmployeeAvatar employee={employee} size="lg" />
-        <Can permission={CorePermission.EmployeesPhotoUpdate}>
+        {employee.canChangePhoto && (<>
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" onClick={() => setDialog('change')}><Camera className="size-4" aria-hidden />{t(employee.photoFileId ? 'photo.change' : 'photo.add')}</Button>
             {employee.photoFileId && <Button variant="ghost" onClick={() => setDialog('remove')}><Trash2 className="size-4" aria-hidden />{t('photo.remove')}</Button>}
@@ -44,7 +43,7 @@ export function PhotoSection({ employee }: { employee: EmployeeDto }) {
               }
             }}
           />
-        </Can>
+        </>)}
       </div>
     </SectionCard>
   );

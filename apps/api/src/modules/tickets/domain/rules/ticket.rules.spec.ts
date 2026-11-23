@@ -30,7 +30,7 @@ describe('Ticket lifecycle rules (FR-39)', () => {
   });
 
   it('gives each relation only what it may do', () => {
-    expect(abilitiesFor(['sender'], 'open', null)).toEqual({ reply: true, requestClose: false, closeWithoutExecution: false, confirmClose: false, declineClose: false, reopen: false, reassign: false, delete: false });
+    expect(abilitiesFor(['sender'], 'open', null)).toEqual({ reply: true, requestClose: false, closeWithoutExecution: false, confirmClose: false, declineClose: false, reopen: false, reassign: false, chooseHandler: false, delete: false });
     expect(abilitiesFor(['assignee'], 'open', null)).toMatchObject({ reply: true, requestClose: true, closeWithoutExecution: true, confirmClose: false });
     expect(abilitiesFor(['manager'], 'close_requested', null)).toMatchObject({ requestClose: false, closeWithoutExecution: true });
     expect(abilitiesFor(['sender'], 'close_requested', null)).toMatchObject({ confirmClose: true, declineClose: true, reply: true });
@@ -41,6 +41,8 @@ describe('Ticket lifecycle rules (FR-39)', () => {
     expect(abilitiesFor(['desk'], 'close_requested', null, { canReassign: true })).toMatchObject({ reassign: true });
     expect(abilitiesFor(['desk'], 'closed', 3, { canReassign: true })).toMatchObject({ reassign: false });
     expect(abilitiesFor(['desk'], 'open', null)).toMatchObject({ reassign: false });
+    expect(abilitiesFor(['desk'], 'open', null, { canChooseHandler: true })).toMatchObject({ chooseHandler: true }); // FR-179
+    expect(abilitiesFor(['desk'], 'closed', 3, { canChooseHandler: true })).toMatchObject({ chooseHandler: false });
   });
 });
 

@@ -172,6 +172,8 @@ export interface TicketViewer {
   handle: ViewerScope;
   /** The departments whose tickets the person may hand to someone else, and (the same scope) the people they may hand them to. */
   reassign: ViewerScope;
+  /** The departments whose tickets the person may give to one of the handlers of the ticket's type. */
+  chooseHandler: ViewerScope;
   /** The departments whose tickets the person may delete (hide). */
   delete: ViewerScope;
 }
