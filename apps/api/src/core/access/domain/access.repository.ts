@@ -57,6 +57,10 @@ export abstract class UserAccessRepository {
   abstract grantSourcesOf(userId: string): Promise<GrantSourceRow[]>;
   /** Replaces the roles of a person; a role already held keeps its end date unless `expiries` names a new one (null = no end date). */
   abstract replaceRoles(userId: string, roleIds: string[], options?: { expiries?: Record<string, string | null>; grantedBy?: string | null }, tx?: TransactionContext): Promise<void>;
+  /** Gives one role (the person keeps the others); nothing changes when they already hold it. */
+  abstract grantRole(userId: string, roleId: string, grantedBy: string | null, tx?: TransactionContext): Promise<void>;
+  /** Takes one role back (the person keeps the others). */
+  abstract revokeRole(userId: string, roleId: string, tx?: TransactionContext): Promise<void>;
   /** The end dates of the roles each person holds (only the roles that have one). */
   abstract roleExpiriesOf(userIds: string[]): Promise<Map<string, Map<string, string>>>;
   abstract placementsOf(userIds: string[]): Promise<Map<string, Placement>>;

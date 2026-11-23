@@ -58,6 +58,7 @@ export class RolesService {
     const role = await this.getOrThrow(id);
     role.assertAssignment(input.assignment);
     role.assertNameUnchanged(input);
+    role.assertPermissionsUnchanged(input.permissions);
     Object.assign(role, { nameAr: input.nameAr, nameEn: input.nameEn, description: input.description ?? null, assignment: input.assignment ?? role.assignment });
     role.replacePermissions(input.permissions);
     const saved = await this.roles.save(role);

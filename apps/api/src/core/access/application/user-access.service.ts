@@ -65,6 +65,18 @@ export class UserAccessService {
     this.events.emit(ACCESS_CHANGED, { userId });
   }
 
+  /** Gives one role to a person without touching the others (a writer added to a notice channel gets the channel's role). */
+  async grantRole(userId: string, roleId: string, grantedBy: string | null, tx?: TransactionContext): Promise<void> {
+    if (!(await this.roles.findById(roleId))) throw new NotFoundError('Role', roleId);
+    await this.access.grantRole(userId, roleId, grantedBy, tx);
+    this.events.emit(ACCESS_CHANGED, { userId });
+  }
+
+  async revokeRole(userId: string, roleId: string, tx?: TransactionContext): Promise<void> {
+    await this.access.revokeRole(userId, roleId, tx);
+    this.events.emit(ACCESS_CHANGED, { userId });
+  }
+
   /**
    * Nobody can hand out more than they hold: every permission of the roles must be one the actor has,
    * at the same or a wider scope, those of the groups the roles sit in included. Unknown roles are reported as not found.

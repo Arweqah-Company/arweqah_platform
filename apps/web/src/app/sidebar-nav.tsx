@@ -26,6 +26,7 @@ const linkClass = (isActive: boolean, extra?: string) =>
 function SidebarLink({ item, collapsed, onNavigate, nested, locked }: { item: NavItem; collapsed: boolean; onNavigate: () => void; nested?: boolean; locked: boolean }) {
   const { t } = useTranslation();
   const Icon = item.icon;
+  const Badge = item.badge;
   if (locked) {
     return (
       <button type="button" disabled data-tour={`nav:${item.to}`} title={t('nav.lockedHint')} className={cn(linkClass(false, cn('w-full cursor-not-allowed opacity-45 hover:bg-transparent hover:text-cream/85', collapsed && 'lg:justify-center lg:px-0', nested && 'py-2.5')))}>
@@ -37,7 +38,8 @@ function SidebarLink({ item, collapsed, onNavigate, nested, locked }: { item: Na
   return (
     <NavLink to={item.to} data-tour={`nav:${item.to}`} end={item.to === '/' || item.end} onClick={onNavigate} title={collapsed ? t(item.labelKey) : undefined} className={({ isActive }) => linkClass(isActive, cn(collapsed && 'lg:justify-center lg:px-0', nested && 'py-2.5'))}>
       <Icon className="size-5 shrink-0" aria-hidden />
-      <span className={cn(collapsed && 'lg:sr-only')}>{t(item.labelKey)}</span>
+      <span className={cn('flex-1', collapsed && 'lg:sr-only')}>{t(item.labelKey)}</span>
+      {Badge && <span className={cn(collapsed && 'lg:hidden')}><Badge /></span>}
     </NavLink>
   );
 }

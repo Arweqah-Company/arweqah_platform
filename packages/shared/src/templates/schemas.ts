@@ -8,7 +8,7 @@ import { z } from 'zod';
 export const TEMPLATE_KINDS = ['email', 'notification'] as const;
 export type TemplateKind = (typeof TEMPLATE_KINDS)[number];
 
-export const TEMPLATE_AREAS = ['sign_in', 'tickets', 'tasks', 'notifications'] as const;
+export const TEMPLATE_AREAS = ['sign_in', 'tickets', 'tasks', 'notices', 'notifications'] as const;
 export type TemplateArea = (typeof TEMPLATE_AREAS)[number];
 
 /** The seven brand colors, the only colors a template may use. */

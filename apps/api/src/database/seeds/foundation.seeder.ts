@@ -15,6 +15,7 @@ import { DEFAULT_COMPANY_CODE } from './data/lookups.data';
 import { LookupsSeeder } from './lookups.seeder';
 import { EMPLOYEE_ROLE_SEED } from './data/roles.data';
 import { RolesCatalogSeeder } from './roles-catalog.seeder';
+import { NoticeChannelService } from '../../modules/notices/application/services/notice-channel.service';
 import { OrgLevelsSeeder } from './org-levels.seeder';
 import { OrgStructureSeeder } from './org-structure.seeder';
 import { TicketsDemoSeeder } from './tickets-demo.seeder';
@@ -41,12 +42,14 @@ export class FoundationSeeder {
     private readonly ticketsDemo: TicketsDemoSeeder,
     private readonly rolesCatalog: RolesCatalogSeeder,
     private readonly autoRoles: AutoRolesService,
+    private readonly noticeChannels: NoticeChannelService,
   ) {}
 
   async run(): Promise<void> {
     const admin = await this.upsertRole(SYSTEM_ADMIN_ROLE, 'مدير النظام', true);
     await this.upsertRole(EMPLOYEE_ROLE, 'موظف', false);
     await this.rolesCatalog.run();
+    await this.noticeChannels.ensureSetup(); // the two notice channels and the system roles their writers hold
     await this.lookups.run();
     await this.orgLevels.run();
     await this.companies.run();

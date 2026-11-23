@@ -60,8 +60,9 @@ describe('Welcome tour settings tab (FR-67)', () => {
     }));
     renderPage(<TourStepsTab />);
     await screen.findByText('أهلًا بك');
-    fireEvent.click(within(rowOf(/أهلًا بك/)).getByRole('button', { name: 'تعطيل الخطوة' }));
-    fireEvent.click(within(rowOf(/الصفحة الرئيسية/)).getByRole('button', { name: 'تفعيل الخطوة' }));
+    // the buttons follow the person's permissions, which arrive after the rows: wait for them
+    fireEvent.click(await within(rowOf(/أهلًا بك/)).findByRole('button', { name: 'تعطيل الخطوة' }));
+    fireEvent.click(await within(rowOf(/الصفحة الرئيسية/)).findByRole('button', { name: 'تفعيل الخطوة' }));
     await waitFor(() => expect(bodies).toHaveLength(2));
     expect(bodies[0]).toEqual({ key: 'welcome', enabled: false });
     expect(bodies[1]).toEqual({ key: 'home', enabled: true });

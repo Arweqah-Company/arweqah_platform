@@ -46,6 +46,7 @@ const PAGES = [
   ['24-performance-calibration', '/performance-calibration'], ['25-performance-team', '/performance-team'],
   ['26-task-tags', '/tasks/tags'], ['27-task-policies', '/tasks/policies'], ['28-ticket-setup', '/tickets/setup'],
   ['29-ticket-figures', '/tickets/figures'], ['30-email-log', '/email-log'], ['31-settings', '/service-settings'],
+  ['32-my-notices', '/notices'], ['33-notices-manage', '/notices/manage'], ['34-notices-approvals', '/notices/approvals'], ['35-notices-channels', '/notices/channels'],
 ];
 
 async function waitUp(url) {
