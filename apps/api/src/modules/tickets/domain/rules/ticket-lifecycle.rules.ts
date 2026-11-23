@@ -42,9 +42,15 @@ function senderAbilities(sender: boolean, status: TicketStatus, reopenLeft: numb
   return { confirmClose: answering, declineClose: answering, reopen: sender && status === 'closed' && reopenLeft !== null };
 }
 
+/** The unit's own actions: they need the person's key to reach the ticket (decided by the access policy) and, but for delete, a ticket not yet closed. */
+const unitGrants = (grants: { canReassign?: boolean; canDelete?: boolean; canChooseHandler?: boolean }, live: boolean): Pick<TicketAbilitiesDto, 'reassign' | 'chooseHandler' | 'delete'> => ({
+  reassign: !!grants.canReassign && live,
+  chooseHandler: !!grants.canChooseHandler && live,
+  delete: !!grants.canDelete,
+});
+
 /** What each relation may do now. The sender replies to an open ticket; the unit (assignee or manager) closes it. */
-export function abilitiesFor(relations: readonly TicketRelation[], status: TicketStatus, reopenLeft: number | null, grants: { canReassign?: boolean; canDelete?: boolean } = {}): TicketAbilitiesDto {
-  const { canReassign = false, canDelete = false } = grants;
+export function abilitiesFor(relations: readonly TicketRelation[], status: TicketStatus, reopenLeft: number | null, grants: { canReassign?: boolean; canDelete?: boolean; canChooseHandler?: boolean } = {}): TicketAbilitiesDto {
   const has = (relation: TicketRelation): boolean => relations.includes(relation);
   const sender = has('sender');
   const unit = UNIT_SIDE.some(has);
@@ -53,8 +59,7 @@ export function abilitiesFor(relations: readonly TicketRelation[], status: Ticke
     reply: live && (sender || unit || has('mentioned')),
     requestClose: unit && status === 'open',
     closeWithoutExecution: unit && live,
-    reassign: canReassign && live,
-    delete: canDelete,
+    ...unitGrants(grants, live),
     ...senderAbilities(sender, status, reopenLeft),
   };
 }

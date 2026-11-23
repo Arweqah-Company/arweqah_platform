@@ -23,6 +23,7 @@ export const TICKET_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.TicketsReopen, 'إعادة فتح تذكرة مغلقة', 'Reopen a closed ticket'),
   def(CorePermission.TicketsDelete, 'حذف تذكرة (تُخفى عن الجميع ويبقى سجلها)', 'Delete a ticket (hidden from everyone, its record is kept)', ['unit', 'subtree', 'company', 'all']),
   def(CorePermission.TicketsReassign, 'إعادة إسناد التذكرة إلى موظف آخر', 'Reassign a ticket to another employee', ['unit', 'subtree', 'company', 'all']),
+  def(CorePermission.TicketsChooseHandler, 'تحديد مسؤول التذكرة من مسؤولي نوعها', 'Choose who answers a ticket among the handlers of its type', ['unit', 'subtree', 'company', 'all']),
   def(CorePermission.TicketsCommentReply, 'الرد على رد داخل التذكرة', 'Answer a reply inside a ticket'),
   def(CorePermission.TicketsCommentMention, 'ذكر موظف بـ @ في ردّ على تذكرة', 'Mention a colleague with @ in a ticket reply'),
   def(CorePermission.TicketsSetupView, 'عرض صفحة إعداد التذاكر', 'View the ticket setup page', WIDE),

@@ -41,8 +41,8 @@ function scopeSql(scope: ViewerScope, columns: { node: string[]; company: string
   return scope.kind === 'company' ? `(${columns.company.map((c) => `${c} = ${p}`).join(' OR ')})` : `(${columns.node.map((c) => `${c} = ANY(${p})`).join(' OR ')})`;
 }
 
-/** A ticket is in the viewer's inbox as its assignee, as a handler of its type, as the manager of its desk, or when its desk is one they may handle (never a personal one except for its assignee). */
-const inboxSql = (viewer: TicketViewer, values: unknown[]): string => `(t.assignee_user_id = $1 OR (NOT t.is_personal AND EXISTS (SELECT 1 FROM ticket_type_handlers h WHERE h.type_id = t.type_id AND h.user_id = $1)) OR (NOT t.is_personal AND (dm.user_id = $1 OR ${scopeSql(viewer.handle, DESK_COLUMNS, values)})))`;
+/** A ticket is in the viewer's inbox as its assignee, as a handler of its type while nobody has taken it, as the manager of its desk, or when its desk is one they may handle (never a personal one except for its assignee). */
+const inboxSql = (viewer: TicketViewer, values: unknown[]): string => `(t.assignee_user_id = $1 OR (t.assignee_user_id IS NULL AND NOT t.is_personal AND EXISTS (SELECT 1 FROM ticket_type_handlers h WHERE h.type_id = t.type_id AND h.user_id = $1)) OR (NOT t.is_personal AND (dm.user_id = $1 OR ${scopeSql(viewer.handle, DESK_COLUMNS, values)})))`;
 
 /** A ticket is in the viewer's team tab when its sender or assignee is inside the scope of their view permission (never a personal one). */
 const teamSql = (viewer: TicketViewer, values: unknown[]): string => `($1::uuid IS NOT NULL AND NOT t.is_personal AND ${scopeSql(viewer.view, PEOPLE_COLUMNS, values)})` // $1 (the viewer) is always bound, so it must always be used;

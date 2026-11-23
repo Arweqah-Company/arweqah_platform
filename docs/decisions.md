@@ -2,6 +2,15 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-23 — Tickets: the head chooses the handler; a taken ticket leaves the other handlers (FR-179)
+
+Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-23).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 461 | **`tickets.choose_handler` («Choose who answers a ticket among the handlers of its type», unit … all; the head role of every unit holds it at `subtree`, migration `TicketsChooseHandlerKey`) and `POST /tickets/:id/handler { handlerUserId }`.** Allowed only on an open, non-personal ticket nobody has taken, of a type with more than one handler, whose desk the key reaches; the target must be one of the type's handlers (422 `TICKET_CHOOSE_HANDLER` otherwise). It writes a `reassigned` event, notifies the handler and audits `ticket.reassigned` (`chosenAmong`). `TicketAbilitiesDto.chooseHandler` shows the «Choose handler» button | Owner: a ticket with several handlers needs the head to say who answers | The type's handlers are chosen per ticket by a rule |
+| 462 | **A handler of the type sees and answers a ticket only while it has no assignee** (`isAssignee` and the inbox SQL gain `assignee IS NULL`): once somebody has it, by the head's choice **or by being the first to reply**, it leaves the other handlers (their inbox, 404 on open and reply). The assignee, the sender, the desk manager and the scopes of view / handle keep their relations | Owner: «if one is chosen, the ticket disappears from the others»; the first-reply claim is the same «taken» state | The owner wants the first-reply claim to leave the others able to see the ticket |
+
 ## 2026-11-23 — «Open an employee» key, its visible fields, reach-aware photo and history buttons (FR-178)
 
 Plan: `docs/plans/phase-5-people-structure-profile.md` (log 2026-11-23).
