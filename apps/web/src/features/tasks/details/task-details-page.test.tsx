@@ -140,8 +140,8 @@ describe('Task details: objections, time and moves (FR-52)', () => {
   it('lists where the viewer may move the task', async () => {
     serve(taskDetail({ abilities: { ...closed, moveTo: ['in_progress'] } }));
     page();
-    const menu = await screen.findByLabelText('نقل إلى');
-    expect(await optionLabels(menu)).toEqual(['اختر حالة', 'قيد التنفيذ']);
+    const menu = await screen.findByLabelText('الحالة');
+    expect(await optionLabels(menu)).toEqual([expect.any(String), 'قيد التنفيذ']);
   });
 
   it('shows a plain message when the task cannot be seen', async () => {

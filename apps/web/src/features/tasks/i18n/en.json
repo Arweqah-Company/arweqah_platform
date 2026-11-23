@@ -193,6 +193,7 @@
   "actions": {
     "moveTo": "Move to",
     "chooseStatus": "Choose a status",
+    "status": "Status",
     "approve": "Approve",
     "reject": "Reject",
     "resubmit": "Send again",

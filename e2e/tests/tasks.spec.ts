@@ -43,7 +43,7 @@ test.describe('Tasks (FR-48, FR-49, FR-50, FR-51)', () => {
     await dialog.getByLabel('الدقائق *').fill('45');
     await dialog.getByRole('button', { name: 'تسجيل', exact: true }).click();
     await expect(page.getByText('0:45 / 2:00')).toBeVisible();
-    await choose(page.getByLabel('نقل إلى'), 'قيد التنفيذ');
+    await choose(page.getByLabel('الحالة', { exact: true }), 'قيد التنفيذ');
     await expect(page.getByText('قيد التنفيذ').first()).toBeVisible();
 
     await page.getByRole('button', { name: 'عرض السجل' }).click(); // FR-159: the history is a table in a window
