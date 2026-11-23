@@ -1365,6 +1365,110 @@ erDiagram
   employees ||--o{ career_acknowledgements : "employee_id"
 ```
 
+### 11. Notices (circulars and policies)
+
+```mermaid
+erDiagram
+  notice_channels {
+    uuid id PK
+    character_varying code UK
+    character_varying name_ar
+    character_varying name_en UK
+    uuid org_node_id FK
+    uuid writer_role_id FK
+    boolean is_active
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+  }
+  notice_channel_writers {
+    uuid id PK
+    uuid channel_id FK
+    uuid user_id FK
+    timestamp_with_time_zone added_at
+  }
+  notices {
+    uuid id PK
+    uuid channel_id FK
+    character_varying kind
+    character_varying status
+    uuid author_id FK
+    uuid author_unit_id FK
+    uuid approver_user_id FK
+    timestamp_with_time_zone submitted_at
+    timestamp_with_time_zone approved_at
+    text reject_reason
+    date publish_on
+    timestamp_with_time_zone published_at
+    boolean is_pinned UK
+    timestamp_with_time_zone pinned_at
+    timestamp_with_time_zone archived_at
+    integer revision
+    integer current_version
+    integer batches_done
+    timestamp_with_time_zone delivery_completed_at
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+  }
+  notice_versions {
+    uuid id PK
+    uuid notice_id FK
+    integer version UK
+    character_varying title_ar
+    character_varying title_en
+    text body
+    boolean is_draft
+    timestamp_with_time_zone created_at
+  }
+  notice_audiences {
+    uuid id PK
+    uuid notice_id FK
+    integer version
+    character_varying type
+    uuid ref_id
+    boolean include_below
+  }
+  notice_recipients {
+    uuid id PK
+    uuid notice_id FK
+    uuid user_id FK
+    timestamp_with_time_zone delivered_at
+    timestamp_with_time_zone read_at
+    timestamp_with_time_zone acknowledged_at
+    integer acknowledged_version
+    boolean joined_after_publish
+    integer notified_version
+  }
+  notice_attachments {
+    uuid id PK
+    uuid notice_id FK
+    integer version
+    uuid file_id FK
+    integer position
+  }
+  notice_settings {
+    smallint id PK
+    integer batch_size
+    integer batch_interval_minutes
+    uuid updated_by FK
+    timestamp_with_time_zone updated_at
+  }
+  roles ||--o{ notice_channels : "writer_role_id"
+  org_nodes ||--o{ notice_channels : "org_node_id"
+  notice_channels ||--o{ notice_channel_writers : "channel_id"
+  users ||--o{ notice_channel_writers : "user_id"
+  notice_channels ||--o{ notices : "channel_id"
+  users ||--o{ notices : "author_id"
+  org_nodes ||--o{ notices : "author_unit_id"
+  users ||--o{ notices : "approver_user_id"
+  notices ||--o{ notice_versions : "notice_id"
+  notices ||--o{ notice_audiences : "notice_id"
+  notices ||--o{ notice_recipients : "notice_id"
+  users ||--o{ notice_recipients : "user_id"
+  notices ||--o{ notice_attachments : "notice_id"
+  files ||--o{ notice_attachments : "file_id"
+  users ||--o{ notice_settings : "updated_by"
+```
+
 ## Part 2 — What each table does
 
 ### 1. Identity and sign-in
@@ -1522,3 +1626,16 @@ erDiagram
 | `performance_objections` | The one objection an employee may raise against an item of their result (`evaluation_id` unique): the item (`item_kind`: criterion, behaviour or extra; `item_ref`), the reason, and its status (`open`, `returned` to the manager, `reevaluated`, `finalized`, `rejected`) with who decided, the reason and when. |
 | `performance_milestones` | The minutes of one milestone of the year for one evaluation (`evaluation_id` + `milestone_key` unique): where we are, the obstacle, the agreed action, the short note of a pulse, who recorded it and when the employee acknowledged reading it (cleared when the minutes change). |
 | `career_ack_reopenings` | HR asked the holders of a title to acknowledge again, with the reason: whoever acknowledged before it is asked once more. |
+
+### 11. Notices (circulars and policies)
+
+| Table | What it does |
+|---|---|
+| `notice_channels` | The publishing channels of units (FR-177): a stable `code` slug (unique), the Arabic and English names (each unique), `org_node_id` (the unit that owns it and whose head manages its writers; never changes; empty = company-wide, managed by a platform administrator), `writer_role_id` (the system role, `roles.auto_rule = 'notice_writer'`, made with the channel and deleted with it) and `is_active` (a disabled channel keeps its notices, takes no new one and its writers lose the role). The first two rows (`hr`, `corporate_comms`) are seeded by the migration. |
+| `notice_channel_writers` | Who may write in a channel (`channel_id` + `user_id` unique). The membership limits the channel; the keys come from the channel's role, given and taken back in the same transaction. Who added a writer is in the audit log, not here. |
+| `notices` | A circular or a policy: `kind` (`announcement` or `policy`), `status` (draft, pending_approval, rejected, approved, published, revising, archived), the author and the unit they sat in, the approver and the times, the publish day, the pin (a partial unique index lets one row be pinned), `revision` for optimistic concurrency, `current_version` (the last published version) and the progress of the delivery in batches. |
+| `notice_versions` | The title (Arabic, English) and the sanitized text of each version (`notice_id` + `version` unique). A published version never changes; the draft of a new version is removed when the change is cancelled. |
+| `notice_audiences` | The audience rules of one version (`all`, a `unit` with or without the units below, a job `title`, a group of people): rules, not people. |
+| `notice_recipients` | A person the notice reached (`notice_id` + `user_id` unique): when, whether and when they read it, the version they acknowledged, whether they joined the audience after the publication, and the version they were notified about. |
+| `notice_attachments` | The files of one version (links to `files`). |
+| `notice_settings` | One row (id 1): how many people each delivery batch reaches and the minutes between batches. |

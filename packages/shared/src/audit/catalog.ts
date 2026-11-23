@@ -3,7 +3,7 @@
  * screens show the text below and the category it belongs to, never the name. One list drives the API (filter by category,
  * search by text) and the web (labels, filter options).
  */
-export const AUDIT_CATEGORIES = ['sign_in', 'employees', 'organization', 'access', 'tickets', 'tasks', 'settings', 'other'] as const;
+export const AUDIT_CATEGORIES = ['sign_in', 'employees', 'organization', 'access', 'tickets', 'tasks', 'notices', 'settings', 'other'] as const;
 export type AuditCategory = (typeof AUDIT_CATEGORIES)[number];
 
 export const AUDIT_CATEGORY_LABELS: Record<AuditCategory, { ar: string; en: string }> = {
@@ -13,6 +13,7 @@ export const AUDIT_CATEGORY_LABELS: Record<AuditCategory, { ar: string; en: stri
   access: { ar: 'الأدوار والصلاحيات', en: 'Roles and permissions' },
   tickets: { ar: 'التذاكر', en: 'Tickets' },
   tasks: { ar: 'المهام', en: 'Tasks' },
+  notices: { ar: 'التعاميم والسياسات', en: 'Notices and policies' },
   settings: { ar: 'إعدادات النظام', en: 'System settings' },
   other: { ar: 'أخرى', en: 'Other' },
 };
@@ -192,6 +193,29 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'template.approved': a('settings', 'اعتمد تعديل رسالة', 'Approved a message change'),
   'template.rejected': a('settings', 'رفض تعديل رسالة', 'Rejected a message change'),
   'template.reset': a('settings', 'أعاد رسالة إلى صياغتها الأصلية', 'Reset a message to its default wording'),
+  'notice.created': a('notices', 'كتب تعميمًا جديدًا', 'Wrote a new notice'),
+  'notice.updated': a('notices', 'عدّل مسودة تعميم', 'Edited a notice draft'),
+  'notice.deleted': a('notices', 'حذف مسودة تعميم', 'Deleted a notice draft'),
+  'notice.submitted': a('notices', 'أرسل تعميمًا للاعتماد', 'Sent a notice for approval'),
+  'notice.approved': a('notices', 'اعتمد تعميمًا', 'Approved a notice'),
+  'notice.rejected': a('notices', 'رفض تعميمًا', 'Rejected a notice'),
+  'notice.published': a('notices', 'اكتمل نشر تعميم لجمهوره', 'Finished delivering a notice to its audience'),
+  'notice.caught_up': a('notices', 'وصل تعميم إلى من انضمّ لجمهوره بعد النشر', 'A notice reached people who joined its audience after publication'),
+  'notice.acknowledged': a('notices', 'أقرّ بسياسة', 'Acknowledged a policy'),
+  'notice.pinned': a('notices', 'ثبّت تعميمًا في الرئيسية', 'Pinned a notice on the home page'),
+  'notice.unpinned': a('notices', 'فكّ تثبيت تعميم', 'Unpinned a notice'),
+  'notice.archived': a('notices', 'أرشف تعميمًا', 'Archived a notice'),
+  'notice.revision_started': a('notices', 'بدأ إصدارًا جديدًا من تعميم منشور', 'Started a new version of a published notice'),
+  'notice.revision_cancelled': a('notices', 'ألغى التعديل وأعاد الإصدار المنشور', 'Cancelled the change and brought back the published version'),
+  'notice.writer_added': a('notices', 'أضاف كاتبًا إلى قناة نشر', 'Added a writer to a publishing channel'),
+  'notice.writer_removed': a('notices', 'أزال كاتبًا من قناة نشر', 'Removed a writer from a publishing channel'),
+  'notice.channel_created': a('notices', 'أنشأ قناة نشر لوحدة', 'Created a publishing channel for a unit'),
+  'notice.channel_renamed': a('notices', 'غيّر اسم قناة نشر', 'Renamed a publishing channel'),
+  'notice.channel_disabled': a('notices', 'عطّل قناة نشر', 'Disabled a publishing channel'),
+  'notice.channel_enabled': a('notices', 'أعاد تفعيل قناة نشر', 'Re-enabled a publishing channel'),
+  'notice.channel_deleted': a('notices', 'حذف قناة نشر', 'Deleted a publishing channel'),
+  'notice.settings_updated': a('notices', 'عدّل إعدادات النشر على دفعات', 'Changed the batch publishing settings'),
+  'notice.batch_failed': a('notices', 'تعذر إكمال دفعة نشر تعميم', 'A notice delivery batch could not be completed'),
   'template.settings_changed': a('settings', 'غيّر إعداد اعتماد تعديلات الرسائل', 'Changed the approval setting for message changes'),
   'tour.step_edited': a('settings', 'عدّل خطوة في جولة الترحيب', 'Edited a welcome-tour step'),
   'tour.step_reset': a('settings', 'أعاد خطوة في جولة الترحيب إلى نصّها الأصلي', 'Reset a welcome-tour step to its default wording'),
@@ -199,7 +223,7 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
   'list.settings_updated': a('settings', 'عدّل أعمدة قائمة وفلاترها', 'Edited a list’s columns and filters'),
 };
 
-const PREFIX_CATEGORY: Record<string, AuditCategory> = { auth: 'sign_in', employee: 'employees', profile: 'employees', company: 'organization', org: 'organization', role: 'access', role_group: 'access', user_group: 'access', permissions: 'access', ticket: 'tickets', task: 'tasks', tasks: 'tasks', integration: 'settings', list: 'settings', template: 'settings', tour: 'settings' };
+const PREFIX_CATEGORY: Record<string, AuditCategory> = { auth: 'sign_in', employee: 'employees', profile: 'employees', company: 'organization', org: 'organization', role: 'access', role_group: 'access', user_group: 'access', permissions: 'access', ticket: 'tickets', task: 'tasks', tasks: 'tasks', notice: 'notices', integration: 'settings', list: 'settings', template: 'settings', tour: 'settings' };
 
 /** The category of an action; one the list does not know yet falls back to its first word, then to "other". */
 export function categoryOfAction(action: string): AuditCategory {

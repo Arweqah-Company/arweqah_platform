@@ -104,6 +104,7 @@ const ACCESS = {
   '66-performance-calibration': A('performance-calibration', 'PerformanceCalibrationView'), '67-performance-team': A('performance-team', 'PerformanceTeamView'),
   '30-tasks': A('tasks', 'TasksView'), '31-task-details-conversation': A('tasks', 'TasksView'), '32-task-tags': A('task-tags', 'TasksTagsView'), '33-task-policies': A('task-policies', 'TasksPoliciesView'),
   '34-tickets': A('tickets', 'TicketsView'), '35-ticket-setup': A('ticket-setup', 'TicketsSetupView'), '36-ticket-figures': A('ticket-figures', 'TicketsFiguresView'),
+  '70-notices-my': A('notices', 'NoticesView'), '71-notices-manage': A('notices-manage', 'NoticesManageView'), '72-notices-approvals': A('notices-approvals', 'NoticesApproveView'), '73-notices-channels': A('notices-channels', 'NoticesChannelsView'),
   '40-roles': A('roles', 'RolesView'), '41-permissions': A('permissions', 'PermissionsView'), '44-audit': A('audit', 'AuditView'), '45-email-log': A('email-log', 'EmailLogView'),
   '46-settings': A(null, 'IntegrationsTranslationView', 'IntegrationsEmailView', 'IntegrationsCaptchaView', 'IntegrationsAiView', 'TemplatesEmailView', 'TemplatesNotificationView', 'TourSettingsView', 'SecuritySettingsView'),
 };
@@ -116,6 +117,7 @@ const GROUPS = [
   { ar: 'الملف المهني', en: 'Career file', files: ['60-my-career', '62-career-team', '61-career-certificates', '63-career-requests', '64-career-content', '65-performance-cycle', '66-performance-calibration', '67-performance-team'] },
   { ar: 'المهام', en: 'Tasks', files: ['30-tasks', '31-task-details-conversation', '32-task-tags', '33-task-policies'] },
   { ar: 'التذاكر', en: 'Tickets', files: ['34-tickets', '35-ticket-setup', '36-ticket-figures'] },
+  { ar: 'التعاميم والسياسات', en: 'Notices and policies', files: ['70-notices-my', '71-notices-manage', '72-notices-approvals', '73-notices-channels'] },
   { ar: 'إدارة النظام', en: 'System administration', files: ['40-roles', '41-permissions', '44-audit', '45-email-log', '46-settings'] },
 ];
 const read = (name, lang) => nameKeys(readFileSync(join(SECTIONS, `${name}.${lang}.md`), 'utf8').trim(), lang);

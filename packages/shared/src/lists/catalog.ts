@@ -51,6 +51,19 @@ export const LIST_CATALOG = {
     filters: ['status', 'priority', 'assigneeId', 'tagId', 'stale', 'overdue'],
   },
   'task-tags': { columns: ['name', 'department', 'status'], filters: ['status'] },
+  notices: {
+    columns: ['title', 'channel', 'kind', 'publishedAt', 'myState'],
+    filters: ['channelCode', 'kind', 'myState', 'publishedFrom', 'publishedUntil', 'pinned'],
+  },
+  'notices-manage': {
+    columns: ['title', 'channel', 'kind', 'author', 'status', 'audience', 'publishOn', 'ack'],
+    filters: ['channelCode', 'kind', 'state', 'authorId', 'unitId', 'publishedFrom', 'publishedUntil', 'pinned', 'ackRate'],
+  },
+  'notices-approvals': {
+    columns: ['title', 'kind', 'author', 'submitted', 'publishOn', 'audience'],
+    filters: ['channelCode', 'kind', 'authorId', 'submittedFrom', 'submittedUntil'],
+  },
+  'notices-channels': { columns: ['name', 'unit', 'status', 'writers', 'updatedAt'], filters: ['unitId', 'active'] },
   notifications: { columns: [], filters: ['state', 'from', 'until'] },
 } as const satisfies Record<string, { columns: readonly string[]; filters: readonly string[] }>;
 

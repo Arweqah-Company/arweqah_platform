@@ -165,6 +165,80 @@
         "source": "Comes from"
       }
     },
+    "notices": {
+      "name": "My notices",
+      "columns": {
+        "title": "Title",
+        "channel": "Channel",
+        "kind": "Type",
+        "publishedAt": "Published",
+        "myState": "My status"
+      },
+      "filters": {
+        "channelCode": "Channel",
+        "kind": "Type",
+        "myState": "My status",
+        "publishedFrom": "Published from",
+        "publishedUntil": "Published until",
+        "pinned": "Pinned"
+      }
+    },
+    "notices-manage": {
+      "name": "Notices management",
+      "columns": {
+        "title": "Title",
+        "channel": "Channel",
+        "kind": "Type",
+        "author": "Writer",
+        "status": "Status",
+        "audience": "Audience",
+        "publishOn": "Publish date",
+        "ack": "Acknowledgement"
+      },
+      "filters": {
+        "channelCode": "Channel",
+        "kind": "Type",
+        "state": "Status",
+        "authorId": "Writer",
+        "unitId": "Writer’s unit",
+        "publishedFrom": "Published from",
+        "publishedUntil": "Published until",
+        "pinned": "Pinned",
+        "ackRate": "Acknowledgement rate"
+      }
+    },
+    "notices-approvals": {
+      "name": "Waiting for my approval",
+      "columns": {
+        "title": "Title",
+        "kind": "Type",
+        "author": "Writer",
+        "submitted": "Sent",
+        "publishOn": "Publishes",
+        "audience": "Audience"
+      },
+      "filters": {
+        "channelCode": "Channel",
+        "kind": "Type",
+        "authorId": "Writer",
+        "submittedFrom": "Sent from",
+        "submittedUntil": "Sent until"
+      }
+    },
+    "notices-channels": {
+      "name": "Publishing channels",
+      "columns": {
+        "name": "Channel",
+        "unit": "Unit",
+        "status": "Status",
+        "writers": "Writers",
+        "updatedAt": "Last change"
+      },
+      "filters": {
+        "unitId": "Unit",
+        "active": "Status"
+      }
+    },
     "notifications": {
       "name": "Notifications",
       "columns": {},

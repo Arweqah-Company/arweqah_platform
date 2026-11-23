@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { LifeBuoy, ListChecks, Route, Settings2, UserCog, UsersRound, type LucideIcon } from 'lucide-react';
+import { LifeBuoy, Megaphone, ListChecks, Route, Settings2, UserCog, UsersRound, type LucideIcon } from 'lucide-react';
 import type { NavGroupId, NavItem } from './feature';
 
 /** Navigation items the signed-in user may see; provided by the app layout. */
@@ -11,6 +11,7 @@ export const NAV_GROUPS: Record<NavGroupId, { labelKey: string; icon: LucideIcon
   career: { labelKey: 'nav.groups.career', icon: Route },
   tasks: { labelKey: 'nav.groups.tasks', icon: ListChecks },
   tickets: { labelKey: 'nav.groups.tickets', icon: LifeBuoy },
+  notices: { labelKey: 'nav.groups.notices', icon: Megaphone },
   administration: { labelKey: 'nav.groups.administration', icon: Settings2 },
   account: { labelKey: 'nav.groups.account', icon: UserCog },
 };

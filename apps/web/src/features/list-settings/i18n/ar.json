@@ -165,6 +165,80 @@
         "source": "مصدرها"
       }
     },
+    "notices": {
+      "name": "تعاميمي",
+      "columns": {
+        "title": "العنوان",
+        "channel": "القناة",
+        "kind": "النوع",
+        "publishedAt": "تاريخ النشر",
+        "myState": "حالتي"
+      },
+      "filters": {
+        "channelCode": "القناة",
+        "kind": "النوع",
+        "myState": "حالتي",
+        "publishedFrom": "نُشر من",
+        "publishedUntil": "نُشر حتى",
+        "pinned": "مثبّت"
+      }
+    },
+    "notices-manage": {
+      "name": "إدارة التعاميم",
+      "columns": {
+        "title": "العنوان",
+        "channel": "القناة",
+        "kind": "النوع",
+        "author": "الكاتب",
+        "status": "الحالة",
+        "audience": "الجمهور",
+        "publishOn": "تاريخ النشر",
+        "ack": "الإقرار"
+      },
+      "filters": {
+        "channelCode": "القناة",
+        "kind": "النوع",
+        "state": "الحالة",
+        "authorId": "الكاتب",
+        "unitId": "وحدة الكاتب",
+        "publishedFrom": "نُشر من",
+        "publishedUntil": "نُشر حتى",
+        "pinned": "مثبّت",
+        "ackRate": "نسبة الإقرار"
+      }
+    },
+    "notices-approvals": {
+      "name": "بانتظار اعتمادي",
+      "columns": {
+        "title": "العنوان",
+        "kind": "النوع",
+        "author": "الكاتب",
+        "submitted": "أُرسل",
+        "publishOn": "ينشر",
+        "audience": "الجمهور"
+      },
+      "filters": {
+        "channelCode": "القناة",
+        "kind": "النوع",
+        "authorId": "الكاتب",
+        "submittedFrom": "أُرسل من",
+        "submittedUntil": "أُرسل حتى"
+      }
+    },
+    "notices-channels": {
+      "name": "قنوات النشر",
+      "columns": {
+        "name": "القناة",
+        "unit": "الوحدة",
+        "status": "الحالة",
+        "writers": "الكتّاب",
+        "updatedAt": "آخر تعديل"
+      },
+      "filters": {
+        "unitId": "الوحدة",
+        "active": "الحالة"
+      }
+    },
     "notifications": {
       "name": "الإشعارات",
       "columns": {},

@@ -1,0 +1,471 @@
+{
+  "loading": "Loading…",
+  "pinned": "Pinned",
+  "noMatches": "No matching results.",
+  "kind": {
+    "announcement": "Announcement",
+    "policy": "Policy to acknowledge"
+  },
+  "status": {
+    "draft": "Draft",
+    "pending_approval": "Waiting for approval",
+    "approved": "Approved · scheduled",
+    "published": "Published",
+    "revising": "Being revised",
+    "rejected": "Rejected",
+    "archived": "Archived",
+    "hiddenForRevision": "Being revised · hidden from employees"
+  },
+  "state": {
+    "draft": "Draft",
+    "pending_approval": "Waiting for approval",
+    "scheduled": "Approved · scheduled",
+    "published": "Published",
+    "revising": "Being revised",
+    "rejected": "Rejected",
+    "archived": "Archived"
+  },
+  "myState": {
+    "await": "Waiting for my acknowledgement",
+    "done": "Acknowledged",
+    "info": "For information",
+    "awaitNew": "Waiting for your acknowledgement of the new version"
+  },
+  "ackRate": {
+    "below_50": "Under 50%",
+    "from_50": "50–99%",
+    "complete": "100%"
+  },
+  "tabs": {
+    "all": "All",
+    "await": "Waiting for me",
+    "done": "Acknowledged",
+    "info": "Announcements",
+    "text": "Text",
+    "flow": "Approval",
+    "audience": "Audience",
+    "acks": "Acknowledgements"
+  },
+  "manageTabs": {
+    "all": "All",
+    "mine": "My drafts",
+    "pending": "Waiting for approval",
+    "published": "Published",
+    "archived": "Archived"
+  },
+  "actions": {
+    "view": "View",
+    "edit": "Edit",
+    "submit": "Send for approval",
+    "delete": "Delete",
+    "pin": "Pin to home",
+    "unpin": "Unpin",
+    "revise": "Edit as a new version",
+    "reviseCancel": "Cancel the edit and bring back the old version",
+    "archive": "Archive",
+    "approve": "Approve",
+    "reject": "Reject"
+  },
+  "done": {
+    "submit": "The notice was sent for approval.",
+    "pin": "The notice is pinned to the home page.",
+    "unpin": "The notice is unpinned."
+  },
+  "filters": {
+    "channel": "Channel",
+    "kind": "Type",
+    "myState": "My status",
+    "state": "Status",
+    "author": "Author",
+    "unit": "Author's unit",
+    "publishedFrom": "Published from",
+    "publishedUntil": "Published until",
+    "pinned": "Pinned only",
+    "ackRate": "Acknowledgement rate",
+    "submittedFrom": "Sent from",
+    "submittedUntil": "Sent until"
+  },
+  "columns": {
+    "title": "Title",
+    "channel": "Channel",
+    "kind": "Type",
+    "publishedAt": "Published on",
+    "myState": "My status",
+    "author": "Author",
+    "authorUnit": "Author and unit",
+    "status": "Status",
+    "audience": "Audience",
+    "publishOn": "Publish date",
+    "publishesShort": "Publishes",
+    "submitted": "Sent",
+    "ack": "Acknowledgement",
+    "everyone": "All employees",
+    "rules": "{{count}} audience rules",
+    "version": "Version {{n}}",
+    "publishesOn": "Publishes {{date}}"
+  },
+  "mine": {
+    "title": "My notices",
+    "description": "The notices and policies that reached you from human resources and corporate communications.",
+    "tabsLabel": "My notices by status",
+    "searchLabel": "Search my notices",
+    "searchPlaceholder": "Search by title or text",
+    "empty": "No notices yet",
+    "emptyHint": "Notices and policies will appear here when they reach you."
+  },
+  "read": {
+    "title": "Read the notice",
+    "readAndAcknowledge": "Read and acknowledge",
+    "read": "Read",
+    "close": "Close",
+    "later": "Later",
+    "acknowledge": "Acknowledge",
+    "checkbox": "I have read the policy and acknowledge it and commit to it.",
+    "readFirst": "Read the notice first",
+    "acknowledged": "Your acknowledgement is recorded. Thank you.",
+    "archived": "This notice is no longer in force.",
+    "doneAt": "You acknowledged it on {{date}}"
+  },
+  "manage": {
+    "title": "Manage notices",
+    "description": "Write notices, follow their approval and publishing, and see who acknowledged.",
+    "new": "New notice",
+    "tabsLabel": "Notices by stage",
+    "searchLabel": "Search notices",
+    "searchPlaceholder": "Search by title or author",
+    "empty": "No notices"
+  },
+  "details": {
+    "title": "Notice details",
+    "tabsLabel": "Notice sections",
+    "close": "Close",
+    "byline": "Written by {{author}}",
+    "publishedOn": "published {{date}}",
+    "versionN": "Version {{n}}",
+    "compare": "Side by side",
+    "versions": "Notice versions",
+    "everyone": "All employees",
+    "andBelow": "and below",
+    "reached": "Reached {{count}} employees",
+    "joinedLater": "Reached after publishing: {{count}}",
+    "rule": {
+      "all": "Audience",
+      "unit": "Unit",
+      "title": "Job title",
+      "people_group": "Group of people"
+    }
+  },
+  "flow": {
+    "created": "Written",
+    "submitted": "Sent for approval",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "published": "Published",
+    "revision_started": "Edit started: version {{n}}",
+    "revision_cancelled": "The edit was cancelled and the old version came back",
+    "archived": "Archived",
+    "edited": "Edited",
+    "reason": "Reason: {{reason}}",
+    "waitingFor": "Waiting for {{name}} to approve",
+    "delivery": "Reached {{people}} employees in {{batches}} batches",
+    "ack": "{{done}} of {{total}} acknowledged · no extra reminders"
+  },
+  "acks": {
+    "employee": "Employee",
+    "unit": "Unit",
+    "deliveredAt": "Reached on",
+    "state": "Status",
+    "reached": "Reached",
+    "acknowledged": "Acknowledged",
+    "pending": "Not yet",
+    "search": "Search by name or unit",
+    "allStates": "All statuses",
+    "acknowledgedAt": "Acknowledged on",
+    "states": {
+      "acknowledged": "Acknowledged",
+      "acknowledgedAt": "Acknowledged · {{date}}",
+      "older_version": "Acknowledged an older version",
+      "pending": "Not yet",
+      "joined_later": "Joined after publishing"
+    }
+  },
+  "form": {
+    "titleNew": "New notice",
+    "titleEdit": "Edit the notice",
+    "titleRevise": "New version of {{title}}",
+    "channel": "Channel",
+    "channelHint": "Only the channels you write in are shown.",
+    "choose": "Choose",
+    "publishOn": "Publish date",
+    "datePast": "The publish date cannot be in the past",
+    "dateRequired": "The publish date is required",
+    "revisePublishes": "The new version is published as soon as it is approved.",
+    "kind": "Type",
+    "kindCards": {
+      "announcement": "Announcement",
+      "announcementHint": "Read only, no acknowledgement needed.",
+      "policy": "Policy to acknowledge",
+      "policyHint": "Stays in “Waiting for me” until the employee acknowledges it."
+    },
+    "titleAr": "Title in Arabic",
+    "titleArExample": "Example: Travel and assignment policy",
+    "titleEn": "Title in English",
+    "titleEnHint": "Filled in automatically as you type.",
+    "body": "Text",
+    "bodyHint": "Write the notice as the employee will see it. It does not change after publishing without a new version.",
+    "audience": "Audience",
+    "audienceMode": {
+      "all": "All employees",
+      "allHint": "Reaches every active employee.",
+      "custom": "Units, titles and groups",
+      "customHint": "Choose from the lists."
+    },
+    "units": "Units",
+    "includeBelow": "And the units below them",
+    "titles": "Job titles",
+    "groups": "Groups of people",
+    "groupMembers": "Members: {{count}}",
+    "picked": "Chosen: {{count}}",
+    "counting": "Counting the audience…",
+    "reach": "Reaches {{count}} employees",
+    "reachZero": "This audience reaches no employee now.",
+    "audienceEmpty": "Choose an audience.",
+    "catchUp": "Whoever joins this audience after publishing gets the notice the next night. It is sent in batches.",
+    "files": "Attachments",
+    "cancel": "Cancel",
+    "saveDraft": "Save as draft",
+    "submit": "Send for approval",
+    "savedDraft": "The draft is saved.",
+    "discard": {
+      "title": "Discard the changes?",
+      "body": "What you wrote is not saved and will be lost if you close the window.",
+      "button": "Discard"
+    },
+    "missing": {
+      "channel": "Choose the channel.",
+      "date": "Choose a publish date of today or later.",
+      "kind": "Choose the type.",
+      "title": "Write the Arabic title.",
+      "body": "Write the notice text.",
+      "audience": "Choose the audience."
+    }
+  },
+  "reject": {
+    "title": "Reject the notice",
+    "description": "It goes back to its writer as a draft, with the reason.",
+    "reason": "Reason for rejecting",
+    "placeholder": "At least five characters",
+    "tooShort": "Write a reason of at least five characters.",
+    "submit": "Reject",
+    "done": "The notice was rejected and went back to its writer."
+  },
+  "confirm": {
+    "delete": {
+      "title": "Delete the draft?",
+      "body": "“{{title}}” will be deleted and this cannot be undone.",
+      "button": "Delete",
+      "done": "The draft is deleted."
+    },
+    "archive": {
+      "title": "Archive the notice?",
+      "body": "“{{title}}” leaves “My notices” and “Waiting for me”; the report stays.",
+      "button": "Archive",
+      "done": "The notice is archived."
+    },
+    "revise": {
+      "title": "Edit as a new version?",
+      "body": "The notice will be hidden from employees until the leader approves the new version.",
+      "button": "Start editing",
+      "done": "The notice is hidden and the edit has started."
+    },
+    "revise-cancel": {
+      "title": "Cancel the edit?",
+      "body": "The published version comes back at once and your edit is deleted.",
+      "button": "Cancel the edit and bring back the old version",
+      "done": "The old version is visible again."
+    },
+    "approve": {
+      "title": "Approve the notice?",
+      "body": "Approve “{{title}}”? It will be published on {{date}} to {{count}} employees.",
+      "button": "Approve",
+      "done": "The notice is approved."
+    }
+  },
+  "approvals": {
+    "title": "Waiting for my approval",
+    "description": "Notices written by your unit's employees. They are not published before you approve.",
+    "info": "You approve the text, the audience and the publish date as they are. If you reject it, it goes back to its writer with the reason.",
+    "searchLabel": "Search what waits for my approval",
+    "empty": "Nothing is waiting for your approval",
+    "emptyHint": "When someone in your unit sends a notice, it will appear here.",
+    "version": "Version {{n}}",
+    "immediately": "On approval",
+    "note": "You do not approve a notice you wrote: its approval goes to the leader of the unit above."
+  },
+  "channels": {
+    "pageTitle": "Publishing channels",
+    "pageDescription": "The publishing channels of the company's units: each channel has its unit and its writers, and any unit can have one. Adding a writer gives them the writing permissions of their channel at once; removing takes them back.",
+    "addWriter": "Add a writer",
+    "writer": "Writer",
+    "jobTitle": "Job title",
+    "unit": "Unit",
+    "addedAt": "Added on",
+    "search": "Search by the writer's name",
+    "remove": "Remove",
+    "noWriters": "There are no writers in this channel yet.",
+    "removeTitle": "Remove {{name}} from the writers?",
+    "removeBody": "Their drafts ({{drafts}}) stay and another writer of the channel takes them over; what was sent for approval ({{pending}}) goes on.",
+    "removeButton": "Remove",
+    "removed": "{{name}} was removed from the writers.",
+    "add": "Add a channel",
+    "name": "Channel",
+    "status": "Status",
+    "writers": "Writers",
+    "updatedAt": "Last change",
+    "active": "Active",
+    "disabled": "Disabled",
+    "companyWide": "Company-wide",
+    "searchChannels": "Search by channel or unit name",
+    "empty": "No channels yet",
+    "emptyHint": "Add a channel for a unit so its writers can write notices and send them for their leader's approval.",
+    "writersAction": "Channel writers",
+    "rename": "Rename",
+    "disableAction": "Disable the channel",
+    "enableAction": "Enable the channel",
+    "deleteAction": "Delete the channel",
+    "deleteBlocked": "A channel with notices cannot be deleted; disable it instead",
+    "writersOf": "Writers of {{name}}",
+    "writersExplain": "Channel of the unit {{unit}}. A writer automatically gets permission to write in this channel only, and does not approve their own notice.",
+    "form": {
+      "titleNew": "Add a channel",
+      "descriptionNew": "A new publishing channel for a unit of the organization structure.",
+      "titleRename": "Rename the channel",
+      "descriptionRename": "The name and the writers' role change with it; the unit of the channel does not.",
+      "nameAr": "Arabic name",
+      "nameEn": "English name",
+      "nameEnHint": "Filled in automatically as you type the Arabic name; you can edit it.",
+      "required": "{{field}} is required.",
+      "tooLong": "{{field}} is longer than {{max}} characters.",
+      "unitHint": "Only the units whose channels you manage. The unit cannot be changed after the channel is made.",
+      "searchUnit": "Search for a unit",
+      "pickUnit": "Choose a unit from the list.",
+      "unitFixed": "The unit of a channel cannot be changed after it is made.",
+      "info": "The writers' permissions are set up automatically (one system role) and everyone you add as a writer gets them.",
+      "submit": "Add the channel",
+      "saveRename": "Save the name",
+      "created": "Channel added.",
+      "renamed": "Channel renamed."
+    },
+    "disable": {
+      "title": "Disable “{{name}}”?",
+      "body": "Nobody can write a new notice in it, and its writers ({{writers}}) lose their permissions at once, keeping their membership. Its published notices stay, and enabling it again gives the permissions back.",
+      "button": "Disable",
+      "done": "Channel {{name}} was disabled."
+    },
+    "enable": {
+      "title": "Enable “{{name}}”?",
+      "body": "Its writers ({{writers}}) get their writing permissions back at once.",
+      "button": "Enable",
+      "done": "Channel {{name}} was enabled."
+    },
+    "delete": {
+      "title": "Delete “{{name}}”?",
+      "body": "The channel and its writer role are deleted and its writers ({{writers}}) lose their permissions. This cannot be undone.",
+      "button": "Delete",
+      "done": "Channel {{name}} was deleted."
+    }
+  },
+  "addWriter": {
+    "title": "Add a writer",
+    "description": "Writes in the chosen channel and sends notices for the approval of their unit leader.",
+    "channel": "Channel",
+    "employee": "Employee",
+    "employeeHint": "Type the first letter of the name.",
+    "search": "Search for an employee",
+    "pickFromList": "Choose an employee from the list.",
+    "info": "The writer automatically gets writing permissions in this channel only, does not approve their own notice, and does not write in other channels.",
+    "noApprover": "This employee has no leader above, so a platform administrator approves their notices.",
+    "submit": "Add the writer",
+    "done": "{{name}} was added as a writer in the channel."
+  },
+  "settings": {
+    "title": "Publishing in batches",
+    "description": "A notice reaches a large audience in batches that do not flood e-mail and notifications.",
+    "size": "Batch size (employees)",
+    "gap": "Gap between batches (minutes)",
+    "sizeRange": "The batch size is {{min}} to {{max}}.",
+    "gapRange": "The gap is {{min}} to {{max}} minutes.",
+    "live": "An audience of {{people}} employees gets the notice in {{batches}} batches over {{minutes}} minutes.",
+    "save": "Save",
+    "saved": "The settings are saved."
+  },
+  "home": {
+    "title": "Notices",
+    "awaiting": "Waiting for my acknowledgement",
+    "awaitingHint": "Policies you have not acknowledged",
+    "newThisWeek": "New notices",
+    "thisWeek": "This week",
+    "pendingApproval": "Waiting for my approval",
+    "pendingApprovalHint": "Notices from my unit",
+    "drafts": "My drafts",
+    "draftsHint": "Not sent yet",
+    "pinnedLabel": "The pinned notice",
+    "policyNeedsAck": "Policy · needs acknowledgement",
+    "publishedOn": "Published on {{date}}",
+    "viewAll": "View all",
+    "noReminder": "A policy stays here until you acknowledge it. We send no extra reminder."
+  },
+  "banner": {
+    "title": "Reminder",
+    "body": "{{count}} notice(s) are waiting for your acknowledgement. Read and acknowledge them.",
+    "label": "Notices waiting for acknowledgement",
+    "go": "Open my notices"
+  },
+  "nav": {
+    "awaitingBadge": "{{count}} waiting for your acknowledgement",
+    "approvalsBadge": "{{count}} waiting for your approval"
+  },
+  "tour": {
+    "notices-home": {
+      "title": "Notices on the home page",
+      "body": "Here you see what needs your attention among the notices: policies you have not acknowledged, what reached you this week, and the pinned notice the company wants everyone to see."
+    },
+    "notices-my": {
+      "title": "My notices",
+      "body": "Every notice and policy that reached you in one place. Open a notice to read it; a policy stays in “Waiting for me” until you acknowledge it, and we send no extra reminder.",
+      "can": {
+        "acknowledge": "You acknowledge policies after reading them",
+        "export": "You export the list of your notices"
+      }
+    },
+    "notices-manage": {
+      "title": "Manage notices",
+      "body": "Here the publisher writes notices, follows their approval and publishing, and sees who acknowledged and who did not. No notice is published before the unit leader approves it.",
+      "can": {
+        "create": "You write a new notice in your channel",
+        "submit": "You send the notice for your unit leader's approval",
+        "pin": "You pin a published notice to the home page",
+        "revise": "You edit a published notice as a new version that goes back for approval",
+        "ack_report": "You see who acknowledged and who did not, and export the list"
+      }
+    },
+    "notices-approvals": {
+      "title": "Waiting for my approval",
+      "body": "The notices your unit's employees wrote that wait for your approval. You review the text, the audience and the publish date, then approve, or reject with a reason that goes back to the writer.",
+      "can": {
+        "approve": "You approve the notice and it is published on its day",
+        "reject": "You reject it with a required reason that goes back to the writer"
+      }
+    },
+    "notices-channels": {
+      "title": "Publishing channels",
+      "body": "Every unit can have publishing channels, and every channel its writers. Adding a writer gives them the writing permissions of their channel only, at once; removing takes them back. You add channels for units, disable them and set the batch size here.",
+      "can": {
+        "writers": "You add and remove writers in the channels of your unit",
+        "channels": "You add a channel for a unit and rename it",
+        "channel_remove": "You disable and enable a channel, and delete it when nothing was written in it",
+        "settings": "You set the batch size and the gap between batches"
+      }
+    }
+  }
+}

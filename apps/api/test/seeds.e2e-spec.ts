@@ -25,7 +25,7 @@ describe('Seeders (FR-14, FR-25)', () => {
     const names = await t.db.query(`SELECT te.name AS en FROM companies c JOIN company_translations te ON te.company_id = c.id AND te.lang = 'en' ORDER BY c.code`);
     expect(names.map((n: { en: string }) => n.en)).toContain('Arweqah Alreyadah');
     const roles = await t.db.query('SELECT name_en FROM roles WHERE is_system ORDER BY name_en');
-    expect(roles.map((r: { name_en: string }) => r.name_en)).toEqual(['Employee', 'System Admin']);
+    expect(roles.map((r: { name_en: string }) => r.name_en)).toEqual(['Employee', 'Notice writer — Corporate communications', 'Notice writer — Human resources', 'System Admin']); // the two notice-channel writer roles are system roles too
   });
 
   it('organization structure (every environment, the server included): gives Arweqah Alreyadah the official organization file once, with all its job titles (each with a code and a role), and never again', async () => {

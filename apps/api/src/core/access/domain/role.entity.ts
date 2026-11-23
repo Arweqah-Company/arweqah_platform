@@ -71,6 +71,19 @@ export class Role extends NamedEntity {
     return isDerivedRule(this.autoRule);
   }
 
+  /** The role of a notice channel's writers: its keys are fixed by the system and change only by a migration (decision N7). */
+  get hasFixedPermissions(): boolean {
+    return this.autoRule === 'notice_writer';
+  }
+
+  /** A role with fixed permissions refuses a different list (the same keys at the same scopes are fine, so saving its name or description works). */
+  assertPermissionsUnchanged(next: PermissionGrant[]): void {
+    if (!this.hasFixedPermissions) return;
+    const key = (g: { key: string; scope: string }) => `${g.key}@${g.scope}`;
+    const current = new Set((this.permissions ?? []).map(key));
+    if (next.length !== current.size || next.some((g) => !current.has(key(g)))) throw new DerivedRoleError('The permissions of this role are fixed by the system');
+  }
+
   /** Permissions and description may change; the name and the members follow the job title or level. */
   assertNameUnchanged(next: { nameAr: string; nameEn: string }): void {
     if (this.isDerived && (next.nameAr !== this.nameAr || next.nameEn !== this.nameEn)) {
@@ -79,6 +92,7 @@ export class Role extends NamedEntity {
   }
 
   assertDeletable(): void {
+    if (this.hasFixedPermissions) throw new DerivedRoleError('This role belongs to a notice channel and cannot be deleted');
     if (this.isSystem) throw new BusinessRuleError('System roles cannot be deleted');
     if (this.isDerived) throw new DerivedRoleError('This role is removed together with its job title or level');
   }

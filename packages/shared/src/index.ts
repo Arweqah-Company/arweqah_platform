@@ -81,3 +81,5 @@ export * from './performance/result';
 export * from './performance/milestones';
 export * from './performance/notices';
 export * from './performance/picks';
+export * from './notices/schemas';
+export * from './notices/dto';
