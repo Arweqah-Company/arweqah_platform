@@ -39,7 +39,7 @@ export class NoticeService {
   async create(ctx: AccessContext, input: CreateNoticeInput): Promise<string> {
     const channel = await this.notices.channelByCode(input.channelCode);
     if (!channel) throw new NoticeChannelNotFoundError();
-    await this.policy.assertWriter(ctx.userId, channel.id);
+    await this.policy.assertWriter(ctx, channel.id);
     const publishOn = this.content.assertPublishDate(input.publishOn);
     const rules = await this.audience.validate(input.audience);
     await this.content.assertFiles(ctx.userId, input.fileIds);
@@ -61,7 +61,7 @@ export class NoticeService {
     const to = nextStatus(notice.status, { type: 'EDIT', hasPublished });
     if (to === null || to === 'discarded') throw new NoticeStateError('NOTICE_NOT_EDITABLE', notice.status);
     this.content.assertRevision(notice, input.revision);
-    const channelId = await this.channelFor(ctx.userId, notice, input.channelCode);
+    const channelId = await this.channelFor(ctx, notice, input.channelCode);
     const publishOn = hasPublished ? null : this.content.assertPublishDate(input.publishOn ?? notice.publishOn);
     const rules = await this.audience.validate(input.audience);
     await this.content.assertFiles(ctx.userId, input.fileIds);
@@ -75,12 +75,12 @@ export class NoticeService {
   }
 
   /** A new version keeps the channel it was published in; a notice not published yet may move to another channel the person writes in. */
-  private async channelFor(userId: string, notice: NoticeRecord, code: UpdateNoticeInput['channelCode']): Promise<string> {
+  private async channelFor(ctx: AccessContext, notice: NoticeRecord, code: UpdateNoticeInput['channelCode']): Promise<string> {
     const channel = await this.notices.channelByCode(code);
     if (!channel) throw new NoticeChannelNotFoundError();
     if (channel.id === notice.channelId) return channel.id;
     if (notice.publishedAt !== null) throw new NoticeStateError('NOTICE_NOT_EDITABLE', notice.status);
-    await this.policy.assertWriter(userId, channel.id);
+    await this.policy.assertWriter(ctx, channel.id);
     return channel.id;
   }
 

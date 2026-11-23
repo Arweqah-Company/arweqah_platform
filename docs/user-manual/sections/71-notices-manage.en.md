@@ -46,3 +46,4 @@ There is no import: a notice is written and approved, not made from a file. A ro
 - A writer does not approve their own notice; it goes to the leader of the unit above, or to a platform administrator when there is none.
 - A rejected notice returns as a draft with a required reason; for a new version the published one stays hidden until it is edited and approved or the edit is cancelled.
 - No extra reminder: the only notification is at publishing, in batches for a large audience.
+- The platform administrator sees every active channel when writing a new notice and may write in all of them without being added as a writer; everybody else writes only in the channels they were added to.
