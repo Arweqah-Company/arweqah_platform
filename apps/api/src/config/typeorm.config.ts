@@ -16,6 +16,8 @@ export function typeOrmOptions(env: DbEnv): DataSourceOptions {
     ssl: env.DB_SSL ? { rejectUnauthorized: true } : false,
     entities: ENTITIES,
     uuidExtension: 'pgcrypto',
+    // A consumer holds one connection for its idempotency transaction and its work takes another, so the pool must be well above the consumers' prefetch.
+    poolSize: 20,
     synchronize: false,
     migrationsRun: false,
   };

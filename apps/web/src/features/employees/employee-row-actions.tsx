@@ -11,7 +11,7 @@ import { ImpersonateAction } from '@/core/impersonation/impersonate-action';
 import { useSetActive } from './api';
 
 /** Every action on an employee row: open, edit, and (de)activate; the rest (roles, groups, end of contract) are on the employee's page. */
-export function EmployeeRowActions({ employee: e }: { employee: EmployeeListItemDto }) {
+export function EmployeeRowActions({ employee: e, onQuickOpen }: { employee: EmployeeListItemDto; onQuickOpen: (id: string) => void }) {
   const { t } = useTranslation('employees');
   const { t: tc } = useTranslation();
   const canEdit = useCanEditEmployee();
@@ -29,7 +29,7 @@ export function EmployeeRowActions({ employee: e }: { employee: EmployeeListItem
   };
   return (
     <>
-      <RowAction label={tc('actions.view')} icon={Eye} to={`/employees/${e.id}`} />
+      {e.canOpen && (e.openAs === 'dialog' ? <RowAction label={tc('actions.view')} icon={Eye} onClick={() => onQuickOpen(e.id)} /> : <RowAction label={tc('actions.view')} icon={Eye} to={`/employees/${e.id}`} />)}
       {canEdit(e.isOwn) && <RowAction label={tc('actions.edit')} icon={Pencil} to={`/employees/${e.id}/edit`} />}
       <ImpersonateAction as="row" userId={e.userId} name={e.fullName} isActive={e.isActive} />
       <Can permission={P.EmployeesDeactivate}>

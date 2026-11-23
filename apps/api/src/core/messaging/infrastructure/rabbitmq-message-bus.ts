@@ -6,7 +6,8 @@ import { MessageBus, type BusMessage, type MessageHandler } from '../application
 
 const EXCHANGE = 'arweqah.events';
 const DEAD_LETTER_EXCHANGE = 'arweqah.dlx';
-const PREFETCH = 10;
+/** Messages a consumer works on at once. Each holds a transaction connection and takes another for its work: keep it at half the pool (`poolSize` in typeorm.config.ts) or less, or a backlog starves the pool and nothing answers. */
+const PREFETCH = 5;
 
 /** RabbitMQ adapter: durable topic exchange, one durable queue per consumer, DLQ on failure. */
 @Injectable()

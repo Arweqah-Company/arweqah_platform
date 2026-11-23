@@ -1,4 +1,4 @@
-import { ALL_EDITABLE_FIELDS, carriesFields, DEFAULT_EDITABLE_FIELDS, offeredScopes, type PermissionCatalogGroup, type PermissionGrant, type PermissionScope } from '@arweqah-platform/shared';
+import { ALL_EDITABLE_FIELDS, carriesFields, defaultFieldsFor, offeredScopes, type PermissionCatalogGroup, type PermissionGrant, type PermissionScope } from '@arweqah-platform/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useScopeLabel } from '@/shared/lib/use-scope-label';
@@ -22,7 +22,7 @@ export function PermissionMatrix({ catalog, grants, onChange, inherited = [], di
   const [search, setSearch] = useState('');
   const scopeOf = (key: string) => grants.find((p) => p.key === key)?.scope;
   const inheritedOf = (key: string) => inherited.find((p) => p.key === key)?.scope;
-  const fieldsOf = (key: string): string[] => grants.find((p) => p.key === key)?.fields ?? [...DEFAULT_EDITABLE_FIELDS];
+  const fieldsOf = (key: string): string[] => grants.find((p) => p.key === key)?.fields ?? [...defaultFieldsFor(key)];
   /** A new grant of a permission that carries fields starts with the basic data; a change of scope keeps the fields the grant already has. */
   const grantOf = (key: string, scope: PermissionScope, fields?: string[]): PermissionGrant => ({ key, scope, ...(carriesFields(key) && { fields: fields ?? fieldsOf(key) }) });
   const setGrant = (key: string, scope: PermissionScope | null) => onChange([...grants.filter((p) => p.key !== key), ...(scope ? [grantOf(key, scope)] : [])]);
@@ -58,7 +58,7 @@ export function PermissionMatrix({ catalog, grants, onChange, inherited = [], di
                     {label}
                     {from && !scope && <span className="rounded-full bg-petrol-50 px-2 py-0.5 text-xs text-fg">{t('inheritedBadge', { scope: scopeLabel(from) })}</span>}
                   </label>
-                  {scope && carriesFields(perm.key) && <FieldsButton fields={fieldsOf(perm.key)} disabled={disabled} onChange={(fields) => setFields(perm.key, fields)} />}
+                  {scope && carriesFields(perm.key) && <FieldsButton kind={perm.key === 'employees.open' ? 'open' : 'edit'} fields={fieldsOf(perm.key)} disabled={disabled} onChange={(fields) => setFields(perm.key, fields)} />}
                   {scope && offeredScopes(perm.scopes).length > 1 && (
                     <Select aria-label={`${t('scope')}: ${label}`} className="h-8 w-40" disabled={disabled} value={scope} onChange={(e) => setGrant(perm.key, e.target.value as PermissionScope)}>
                       {offeredScopes(perm.scopes).map((s) => <option key={s} value={s}>{scopeLabel(s)}</option>)}

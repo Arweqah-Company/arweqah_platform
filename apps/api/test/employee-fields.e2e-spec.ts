@@ -59,9 +59,9 @@ describe('The fields a holder of «edit employees» may change belong to each gr
   it('gives the union of the fields of every grant that reaches the record, and on their own record all of their grants', async () => {
     const { org, colleague } = await setup();
     const far = await t.factories.user({ unit: org.unitOther });
-    const me = await t.factories.user({ unit: org.unitA, grants: [grant(P.EmployeesView, 'all'), grant(P.EmployeesUpdate, 'own', ['workPhone'])] });
+    const me = await t.factories.user({ unit: org.unitA, grants: [grant(P.EmployeesView, 'all'), grant(P.EmployeesOpen, 'all', ['workPhone']), grant(P.EmployeesUpdate, 'own', ['workPhone'])] });
     // A second role: «edit employees» at the reach of their unit, for the profession only.
-    const unitRole = await t.factories.role([grant(P.EmployeesView, 'all'), grant(P.EmployeesUpdate, 'unit', ['profession'])]);
+    const unitRole = await t.factories.role([grant(P.EmployeesView, 'all'), grant(P.EmployeesOpen, 'all', ['workPhone']), grant(P.EmployeesUpdate, 'unit', ['profession'])]);
     const access = t.app.get(UserAccessService);
     const roleIds = ((await t.db.query('SELECT role_id FROM user_roles WHERE user_id = $1', [me.id])) as { role_id: string }[]).map((r) => r.role_id);
     await access.replaceRoles(me.id, [...roleIds, unitRole.id]);

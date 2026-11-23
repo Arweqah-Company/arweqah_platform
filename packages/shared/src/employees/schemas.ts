@@ -256,6 +256,11 @@ export interface EmployeeDto {
   id: string;
   /** The details of this record the caller may change (FR-94): the union of the fields of their grants of «edit employees» that reach it. */
   editableFields: string[];
+  /** The details the page shows (the fields of the caller's grants of «open an employee»); `null` = all (a person who may edit the record loads it whole). A hidden detail is empty in this answer. */
+  visibleFields: string[] | null;
+  /** The photo buttons and the history tab belong to a record only inside the reach of their keys (a key held at «own» is for one's own record). */
+  canChangePhoto: boolean;
+  canViewHistory: boolean;
   /** The stored photo (read with `GET /employees/:id/photo`); null when there is none. */
   photoFileId: string | null;
   userId: string;
@@ -333,6 +338,10 @@ export interface EmployeeListItemDto {
   contractEndsSoon: boolean;
   /** The signed-in person's own record (the only one a plain employee may open for editing). */
   isOwn: boolean;
+  /** Does the caller's «open an employee» (or «edit employees») reach this row? Only then the eye and the click on the row are offered. */
+  canOpen: boolean;
+  /** `dialog`: the page would be short (fewer than `POPUP_MAX_FIELDS` details, no photo button, no history tab), so it opens in a pop-up. */
+  openAs: 'page' | 'dialog';
 }
 
 export type EmployeesPage = Paginated<EmployeeListItemDto>;

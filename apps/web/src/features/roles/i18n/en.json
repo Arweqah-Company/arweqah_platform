@@ -115,6 +115,10 @@
       "salary": "Pay and account",
       "notes": "Notes",
       "structure": "Structure and relation"
-    }
+    },
+    "openButton": "Details shown ({{count}})",
+    "openTitle": "The details shown to a holder of «Open an employee»",
+    "openDescription": "Choose, for this permission alone, the details that appear on the employee's page. The default is every detail; what you leave out disappears from the page. The name, number and company in the page header always show, and the sensitive data (ID, IBAN, salary) also needs its own permission.",
+    "openSummary": "The holder of this permission sees {{count}} of {{total}} details on the employee's page."
   }
 }

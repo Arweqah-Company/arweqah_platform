@@ -2,6 +2,18 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-23 — «Open an employee» key, its visible fields, reach-aware photo and history buttons (FR-178)
+
+Plan: `docs/plans/phase-5-people-structure-profile.md` (log 2026-11-23).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 456 | **`employees.open` is the eye on a row, the click on the row and the employee's page; `employees.view` stays the list.** Every grant of `employees.view` got `employees.open` at the same reach by migration `EmployeesOpenKey`, with no list of its own (= every detail), and the Employee role and the head role of every unit hold it (standing rule 17). A person who may edit the record (`employees.update` reaches it) also opens it: the form reads it | Owner: the eye must have its own permission | A page other than the employee's needs the list rows without opening |
+| 457 | **Each grant of `employees.open` carries a list of fields, like `employees.update` (same `fields` column, `carriesFields`, `defaultFieldsFor`: «update» starts with the basic data, «open» with everything).** A detail outside the list leaves the API empty (`hideFields`: the value and the name it carries), `EmployeeDto.visibleFields` says which are listed (`null` = all). The roles of the person are a choice of the list too (`roles`, only on the page, never edited by the form); the name, number and company of the page header are never hidden; ID number, IBAN and salary still need `employees.view_sensitive`. A caller who may edit the record gets it whole (`visibleFields: null`): the edit form posts every field and would be refused for a field it cannot read | Owner: «choose exactly what to show», the same idea as editing | The edit form sends only the fields it may change (then editors can be limited too) |
+| 459 | **A short employee page opens as a pop-up, like «My team», with the Teams chat button:** when the caller's list has fewer than 10 details (`POPUP_MAX_FIELDS`, the header's three not counted) and holds no key that acts on the record at a reach including it (edit, deactivate, end of contract, roles, groups, placement, photo, history, invitation, authenticator, bulk edit) nor «sign in as». The API says so per row (`EmployeeListItemDto.openAs`); the eye and the click open `EmployeeQuickDialog` (the same `DetailsSections`, so hidden details stay hidden) instead of navigating. `/employees/:id` still works as a page | Owner: a read-only viewer of a few fields needs a quick card, not a page | The threshold needs to be a setting |
+| 460 | **Database pool 20 and consumer prefetch 5.** `IdempotencyGuard.once` holds one connection for its transaction and its work takes another; with the default pool (10) and a prefetch of 10, a backlog of 10 messages held all 10 connections, every work waited for an eleventh, the health check timed out (503) and the platform did not open locally | A restart (or a seed) that leaves 10+ queued notifications froze the API | The consumers stop nesting a second connection (work run on the same transaction) |
+| 458 | **The photo button, the history tab and the row's eye follow the reach of their keys, judged by the API per record:** `EmployeeDto.canChangePhoto`, `canViewHistory` and `EmployeeListItemDto.canOpen`. The API already refused other records (404); the screen only checked that the key was held, so a key at «own» showed its buttons on everybody's page | Owner: «the photo and history keys work but an employee still sees them on other people's pages» | — |
+
 ## 2026-11-23 — Employee role gets `tasks.log_time`
 
 | # | Decision | Why | Revisit when |

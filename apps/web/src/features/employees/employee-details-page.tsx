@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useParams, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
-import { CorePermission, type EmployeeDto } from '@arweqah-platform/shared';
-import { usePermissions } from '@/core/permissions/can';
+import type { EmployeeDto } from '@arweqah-platform/shared';
 import { Alert, ConfirmDialog, PageHeader, Tabs } from '@/shared/ui';
 import { useEmployee, useResendInvite, useResetAuthenticator, useSetActive } from './api';
 import { BasicRequestCard } from './basic-request-card';
@@ -36,7 +35,7 @@ function useAction(close: () => void) {
 function EmployeeTabs({ employee }: { employee: EmployeeDto }) {
   const { t } = useTranslation('employees');
   const [params, setParams] = useSearchParams();
-  const showHistory = usePermissions().can(CorePermission.EmployeesHistoryView);
+  const showHistory = employee.canViewHistory;
   const tab = showHistory && params.get('tab') === 'history' ? 'history' : 'details';
   return (
     <>

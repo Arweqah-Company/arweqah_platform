@@ -1,4 +1,4 @@
-import { ALL_EDITABLE_FIELDS, LEGACY_SELF_EDITABLE_FIELDS } from '../employees/field-rules';
+import { ALL_EDITABLE_FIELDS, ALL_VISIBLE_FIELDS, LEGACY_SELF_EDITABLE_FIELDS } from '../employees/field-rules';
 /**
  * Permission keys of the platform: one for every page (view) and one for every button or action (add, edit, delete, move,
  * approve, reject, export, import…). A page needs its view key; a button shows only for people who hold its key, and the
@@ -181,6 +181,7 @@ export const CorePermission = {
   JobTitlesImport: 'job_titles.import',
   // Employees
   EmployeesView: 'employees.view',
+  EmployeesOpen: 'employees.open',
   EmployeesCreate: 'employees.create',
   EmployeesUpdate: 'employees.update',
   EmployeesDeactivate: 'employees.deactivate',
@@ -319,6 +320,7 @@ const OWN_ACCOUNT_PERMISSIONS: { key: CorePermissionKey; scope: 'all' }[] = [
 export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own' | 'all'; fields?: string[] }[] = [
   ...OWN_ACCOUNT_PERMISSIONS,
   { key: CorePermission.EmployeesView, scope: 'own' },
+  { key: CorePermission.EmployeesOpen, scope: 'own', fields: ALL_VISIBLE_FIELDS as string[] },
   { key: CorePermission.EmployeesHistoryView, scope: 'own' },
   { key: CorePermission.EmployeesPhotoUpdate, scope: 'own' },
   { key: CorePermission.DirectoryView, scope: 'all' },
@@ -381,6 +383,7 @@ export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 's
   { key: CorePermission.AgentHistoryView, scope: 'all' },
   // people of the unit and below
   { key: CorePermission.EmployeesView, scope: 'subtree' },
+  { key: CorePermission.EmployeesOpen, scope: 'subtree', fields: ALL_VISIBLE_FIELDS as string[] },
   { key: CorePermission.EmployeesHistoryView, scope: 'subtree' },
   // adding people to the unit, editing every detail of the people of the unit and below, their photo, the dated change of unit / title / manager,
   // editing many at once, the activation link, the authenticator app, the roles (only those the leader holds), the files in and out, and «my team»
