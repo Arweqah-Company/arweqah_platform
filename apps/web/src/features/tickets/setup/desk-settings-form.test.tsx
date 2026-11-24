@@ -26,7 +26,11 @@ describe('A unit without a manager cannot be activated, and the way to give it o
     open([CorePermission.TicketsSetupEdit, CorePermission.OrgView], null);
     await chooseOption(await screen.findByRole('combobox'), 'active');
     expect(screen.getByText('لا تُفعَّل جهة بلا مدير.')).toBeInTheDocument();
-    expect((await screen.findByRole('link', { name: 'تعيين مدير الجهة من الهيكل التنظيمي' })).getAttribute('href')).toBe('/org?unit=d1&tab=leaders');
+    const link = await screen.findByRole('link', { name: /تعيين مدير الجهة من الهيكل التنظيمي/ });
+    // The unit itself with the assignment form open, in a new page so the form being edited here is kept.
+    expect(link.getAttribute('href')).toBe('/org?unit=d1&tab=leaders&assign=leader');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link.getAttribute('rel')).toContain('noopener');
     expect(await screen.findByRole('button', { name: 'حفظ' })).toBeDisabled();
   });
 

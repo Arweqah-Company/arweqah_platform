@@ -1,4 +1,5 @@
 import { CorePermission, DESK_LIMITS, RECEPTION_STATUSES, type ReceptionStatus, type TicketDeskDto, type TicketDeskSettingsInput } from '@arweqah-platform/shared';
+import { ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -35,11 +36,15 @@ function DaysField({ id, unit, value, onChange }: { id: Days; unit: 'working' | 
   );
 }
 
-/** A unit without a manager cannot be activated: the way out is the leaders tab of the unit in the structure, one click away (it opens on that unit). */
+/** A unit without a manager cannot be activated: the way out is the leaders tab of this very unit in the structure, with the assignment form open, in a new page so what was typed here is kept. */
 function AssignManagerLink({ orgNodeId }: { orgNodeId: string }) {
   const { t } = useTranslation('tickets');
   if (!usePermissions().can(CorePermission.OrgView)) return null;
-  return <Link className="self-start text-sm text-link hover:underline" to={`/org?unit=${orgNodeId}&tab=leaders`}>{t('setup.assignManager')}</Link>;
+  return (
+    <Link className="inline-flex items-center gap-1 self-start text-sm text-link hover:underline" to={`/org?unit=${orgNodeId}&tab=leaders&assign=leader`} target="_blank" rel="noopener noreferrer">
+      {t('setup.assignManager')}<ExternalLink className="size-3.5" aria-hidden /><span className="sr-only">{t('setup.opensInNewPage')}</span>
+    </Link>
+  );
 }
 
 function StatusField({ value, orgNodeId, hasManager, onChange }: { value: ReceptionStatus; orgNodeId: string; hasManager: boolean; onChange: (value: ReceptionStatus) => void }) {

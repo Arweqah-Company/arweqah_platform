@@ -1,6 +1,6 @@
 import { CorePermission, type OrgLeaderCompanyDto, type OrgNodeLeaderDto, type OrgNodeLeadersDto } from '@arweqah-platform/shared';
 import { UserPlus } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Can } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
@@ -10,6 +10,7 @@ import type { DetailsContext } from './details-tabs';
 import { LeaderActions } from './leader-actions';
 import { LeaderDialog } from './leader-dialog';
 import { PersonDialog } from './person-dialog';
+import { useAssignFromLink } from './use-assign-from-link';
 import { nodeName } from './org-model';
 
 const STATUS_TONE = { current: 'success', scheduled: 'info', past: 'neutral' } as const;
@@ -118,6 +119,7 @@ export function LeadersTab(ctx: DetailsContext) {
   const { t } = useTranslation('org');
   const { t: tc } = useTranslation();
   const [assigning, setAssigning] = useState(false);
+  useAssignFromLink(useCallback(() => setAssigning(true), []));
   const query = useNodeLeaders(ctx.node.id);
   if (query.isPending) return <p role="status" className="text-sm text-muted">{t('leaders.loading')}</p>;
   if (query.isError) return <Alert>{errorMessage(tc, query.error)}</Alert>;
