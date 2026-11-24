@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { SecuritySettingsService } from '../../../auth/application/security-settings.service';
 import { AgentRepository } from '../../domain/contracts/agent.repository';
 import type { AgentMessage } from '../../domain/entities/agent.entities';
+import { fileCapOf, withoutFileIds } from '../../domain/rules/agent-image.rules';
 import { fieldBrief, missingRequired } from '../../domain/rules/agent-catalog.rules';
 import { expiryOf, parseValues, splitByPlace, ungroundedIds, type AgentStep } from '../../domain/rules/agent-turn.rules';
 import type { AgentAction } from '../../domain/types/agent-catalog.types';
@@ -24,7 +25,9 @@ export class AgentProposalService {
   ) {}
 
   async propose(conversationId: string, action: AgentAction | undefined, turn: AgentStep, lookedUp: readonly string[]): Promise<ProposalOutcome> {
-    const values = parseValues(turn.valuesJson);
+    const written = parseValues(turn.valuesJson);
+    // The platform sets `fileIds` itself from the pictures the employee sent; what the model wrote there is dropped.
+    const values = written && withoutFileIds(written);
     const problem = this.problemWith(action, values, lookedUp);
     if (problem || !action || !values) return this.refusal(problem, action, values);
     const checked = this.catalog.validate(action.operationId, splitByPlace(action.fields, values));
@@ -41,12 +44,14 @@ export class AgentProposalService {
   /** Saves the draft that waits for the employee's confirmation, and cancels any older one in the conversation. */
   private async createDraft(conversationId: string, action: AgentAction, values: Record<string, unknown>, summary: string): Promise<AgentMessage> {
     const split = splitByPlace(action.fields, values);
+    const cap = fileCapOf(action.fields);
+    const files = cap ? await this.repo.conversationImages(conversationId, cap) : [];
     return this.repo.replacePendingDraft({
       conversationId,
       role: 'assistant',
       text: summary,
       draftExpiresAt: expiryOf(new Date(), await this.settings.get('agentDraftMinutes')),
-      draft: { operationId: action.operationId, labelAr: action.labelAr, labelEn: action.labelEn, summary, values, input: { path: split.path, query: split.query, body: split.body }, destructive: action.httpMethod === 'DELETE' },
+      draft: { operationId: action.operationId, labelAr: action.labelAr, labelEn: action.labelEn, summary, values, input: { path: split.path, query: split.query, body: split.body }, destructive: action.httpMethod === 'DELETE', files },
     });
   }
 

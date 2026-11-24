@@ -6,6 +6,18 @@ export interface AiModelsRequest {
   values: ProviderValues;
 }
 
+/** A picture the model reads together with the text (base64, no data-URL prefix). */
+export interface AiImage {
+  mediaType: 'image/png' | 'image/jpeg';
+  data: string;
+}
+
+/** Speech the model listens to (base64 of a 16-bit PCM WAV, no prefix). */
+export interface AiAudio {
+  format: 'wav';
+  data: string;
+}
+
 export interface AiJsonRequest {
   /** Which provider answers, and the data of its form (key, model, address…): each strategy reads the fields it needs. */
   providerKey: AiProviderKey;
@@ -13,6 +25,10 @@ export interface AiJsonRequest {
   system: string;
   /** What the model reads: untrusted text is passed here, never in `system`. */
   user: string;
+  /** Pictures that go with `user`; a service that cannot read them answers `imagesRejected`. */
+  images?: AiImage[];
+  /** Speech that goes with `user`; a service that cannot take it answers `audioUnsupported`. */
+  audio?: AiAudio;
   /** JSON Schema of the answer; the service constrains the output to it. */
   schema: Record<string, unknown>;
   maxTokens: number;
@@ -28,7 +44,16 @@ export type AiJsonOutcome =
   | { kind: 'ok'; text: string; inputTokens: number; outputTokens: number }
   | { kind: 'refused' }
   | { kind: 'truncated' }
-  | { kind: 'failed'; message: string; /** The service said it is busy or limited for now (a later try may work). */ busy?: boolean };
+  | {
+      kind: 'failed';
+      message: string;
+      /** The service said it is busy or limited for now (a later try may work). */
+      busy?: boolean;
+      /** The request carried pictures and the service refused it as malformed: this model does not read pictures (the same request without them may work). */
+      imagesRejected?: boolean;
+      /** The request carried sound and the service cannot take it: this provider (or model) has no sound input. */
+      audioUnsupported?: boolean;
+    };
 
 /** The models a provider offers to this key. A failure is an outcome, like for an answer. */
 export type AiModelsOutcome = { kind: 'ok'; models: string[] } | { kind: 'failed'; message: string };

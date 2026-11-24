@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThan, Repository } from 'typeorm';
+import { DataSource, In, LessThan, Repository, type EntityManager } from 'typeorm';
+import type { AgentFileDto } from '@arweqah-platform/shared';
 import { AgentRepository, type NewAgentMessage } from '../../domain/contracts/agent.repository';
-import { AgentConversation, AgentMessage, type StoredDraftResult } from '../../domain/entities/agent.entities';
+import { AgentConversation, AgentMessage, AgentMessageFile, type StoredDraftResult } from '../../domain/entities/agent.entities';
 
 @Injectable()
 export class TypeOrmAgentRepository extends AgentRepository {
   constructor(
     @InjectRepository(AgentConversation) private readonly conversations: Repository<AgentConversation>,
     @InjectRepository(AgentMessage) private readonly messages: Repository<AgentMessage>,
+    private readonly dataSource: DataSource,
   ) {
     super();
   }
@@ -26,23 +28,67 @@ export class TypeOrmAgentRepository extends AgentRepository {
   }
 
   addMessage(message: NewAgentMessage): Promise<AgentMessage> {
-    const { draft, draftExpiresAt, links, form, ...rest } = message;
-    return this.messages.save(
-      this.messages.create({ ...rest, draft: draft ?? null, draftStatus: draft ? 'pending' : null, draftExpiresAt: draftExpiresAt ?? null, links: links ?? null, form: form ?? null, formStatus: form ? 'open' : null }),
-    );
+    const { draft, draftExpiresAt, links, form, fileIds = [], ...rest } = message;
+    return this.dataSource.transaction(async (manager) => {
+      const saved = await manager.save(
+        manager.create(AgentMessage, { ...rest, draft: draft ?? null, draftStatus: draft ? 'pending' : null, draftExpiresAt: draftExpiresAt ?? null, links: links ?? null, form: form ?? null, formStatus: form ? 'open' : null }),
+      );
+      if (fileIds.length) await manager.insert(AgentMessageFile, fileIds.map((fileId, position) => ({ messageId: saved.id, fileId, position })));
+      return (await this.withFiles([saved], manager))[0]!;
+    });
   }
 
   async recentMessages(conversationId: string, limit: number, upTo?: Date): Promise<AgentMessage[]> {
     const rows = await this.messages.find({ where: { conversationId, ...(upTo && { createdAt: LessThan(new Date(upTo.getTime() + 1)) }) }, order: { createdAt: 'DESC', id: 'DESC' }, take: limit });
-    return rows.reverse();
+    return this.withFiles(rows.reverse());
   }
 
-  findDraftMessage(id: string, userId: string): Promise<AgentMessage | null> {
-    return this.messages.findOne({ where: { id, conversation: { userId } }, relations: { conversation: true } });
+  async findDraftMessage(id: string, userId: string): Promise<AgentMessage | null> {
+    return this.findMessage(id, userId);
   }
 
-  findMessage(id: string, userId: string): Promise<AgentMessage | null> {
-    return this.messages.findOne({ where: { id, conversation: { userId } }, relations: { conversation: true } });
+  async findMessage(id: string, userId: string): Promise<AgentMessage | null> {
+    const row = await this.messages.findOne({ where: { id, conversation: { userId } }, relations: { conversation: true } });
+    return row ? (await this.withFiles([row]))[0]! : null;
+  }
+
+  /** Fills `files` of each message from the links, in the order they were sent. */
+  private async withFiles(rows: AgentMessage[], manager: EntityManager = this.dataSource.manager): Promise<AgentMessage[]> {
+    if (!rows.length) return rows;
+    const found = await manager
+      .createQueryBuilder(AgentMessageFile, 'link')
+      .innerJoin('files', 'f', 'f.id = link.file_id')
+      .select(['link.message_id AS "messageId"', 'f.id AS "id"', 'f.original_name AS "name"', 'f.content_type AS "contentType"', 'f.size AS "size"'])
+      .where({ messageId: In(rows.map((r) => r.id)) })
+      .orderBy('link.position', 'ASC')
+      .getRawMany<AgentFileDto & { messageId: string }>();
+    for (const row of rows) row.files = found.filter((f) => f.messageId === row.id).map(({ id, name, contentType, size }) => ({ id, name, contentType, size }));
+    return rows;
+  }
+
+  async conversationImages(conversationId: string, limit: number): Promise<AgentFileDto[]> {
+    const rows = await this.dataSource
+      .createQueryBuilder()
+      .select(['f.id AS "id"', 'f.original_name AS "name"', 'f.content_type AS "contentType"', 'f.size AS "size"'])
+      .from(AgentMessageFile, 'link')
+      .innerJoin(AgentMessage, 'm', 'm.id = link.message_id')
+      .innerJoin('files', 'f', 'f.id = link.file_id')
+      .where('m.conversation_id = :conversationId', { conversationId })
+      .orderBy('m.created_at', 'DESC')
+      .addOrderBy('link.position', 'ASC')
+      .limit(limit)
+      .getRawMany<AgentFileDto>();
+    return rows;
+  }
+
+  async linkedFileIds(fileIds: string[]): Promise<string[]> {
+    if (!fileIds.length) return [];
+    const rows = await this.dataSource.getRepository(AgentMessageFile).find({ where: { fileId: In(fileIds) }, select: { fileId: true } });
+    return rows.map((r) => r.fileId);
+  }
+
+  async canReadFile(fileId: string, userId: string): Promise<boolean> {
+    return this.dataSource.getRepository(AgentMessageFile).exists({ where: { fileId, message: { conversation: { userId } } } });
   }
 
   async moveForm(id: string, from: 'open' | 'submitted', to: 'open' | 'submitted'): Promise<boolean> {

@@ -34,12 +34,14 @@
       "cancelled": "Cancelled",
       "expired": "Expired",
       "failed": "Not done"
-    }
+    },
+    "pictures": "Pictures that will go with the request",
+    "attachPicture": "Attach {{name}} to the request"
   },
   "tour": {
     "agent-chat": {
       "title": "The platform assistant",
-      "body": "Tell the assistant what you want to do instead of going through several pages. It asks for anything missing, shows you what it will do, and does it only after you confirm, with your own permissions."
+      "body": "Tell the assistant what you want to do instead of going through several pages, and attach a screenshot or speak when that explains it better. It asks for anything missing, shows you what it will do, and does it only after you confirm, with your own permissions."
     }
   },
   "links": {
@@ -58,5 +60,43 @@
       "tooLong": "At most {{length}} characters.",
       "server": "{{message}}"
     }
+  },
+  "images": {
+    "attach": "Attach a picture",
+    "pick": "Choose pictures to attach",
+    "remove": "Remove {{name}}",
+    "open": "Open the picture {{name}}"
+  },
+  "pick": {
+    "images": {
+      "label": "Choose pictures to attach",
+      "prompt": "Drop the picture here, or click to browse",
+      "hint": "PNG or JPG, up to {{max}} pictures. You can also paste a screenshot with Ctrl/Cmd+V.",
+      "notice": "Do not attach sensitive data (salaries, ID numbers). Only you can see your pictures; they are also sent to the AI service so the assistant can read them."
+    },
+    "voice": {
+      "label": "Choose a sound file",
+      "prompt": "Drop the sound file here, or click to browse",
+      "hint": "Any sound file your browser can play (mp3, m4a, wav, ogg…), up to 5 minutes.",
+      "notice": "Do not say sensitive data (salaries, ID numbers). Your recording is sent to the AI service to be written down and is not kept; you read the text before it is sent."
+    },
+    "both": {
+      "label": "Choose pictures or a sound file",
+      "prompt": "Drop a picture or a sound file here, or click to browse",
+      "hint": "Pictures: PNG or JPG, up to {{max}}. Sound: any file your browser can play, up to 5 minutes.",
+      "notice": "Do not attach or say sensitive data (salaries, ID numbers). Pictures and recordings are sent to the AI service; only you see your pictures, and a recording is not kept."
+    }
+  },
+  "voice": {
+    "record": "Speak to the assistant",
+    "stop": "Stop recording",
+    "recording": "Recording {{time}}",
+    "working": "Turning the sound into text…",
+    "cut": "The speech was longer than a message, so the text was cut at the limit.",
+    "nothing": "No speech was heard in the sound. Try again.",
+    "tooLong": "The sound is longer than 5 minutes. Record or choose a shorter one.",
+    "unreadable": "This browser cannot read that sound file. Try mp3, m4a or wav.",
+    "denied": "The microphone is blocked. Allow it for this site in the browser, then try again.",
+    "unsupported": "This browser cannot record. Choose a sound file instead."
   }
 }

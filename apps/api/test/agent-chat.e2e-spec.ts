@@ -339,6 +339,26 @@ describe('The platform assistant (FR-138 to FR-144)', () => {
       return { reply, form: reply.messages[0]!.form, desk };
     }
 
+    it('FR-152: a model that describes the action and then answers without proposing is sent back once, so the platform builds the form it promised', async () => {
+      const w = await world();
+      const desk = ((await w.agent.get('/api/tickets/setup/desks').expect(200)).body as { orgNodeId: string; nameAr: string }[]).find((d) => d.orgNodeId === w.desk)!;
+      answers(t, describeOf(CREATE_TYPE), find(DESKS), say('Give me the names; press the form button.'));
+      answers(t, propose({ ...TYPE, deskId: w.desk, nameAr: undefined, nameEn: undefined }));
+      answers(t, sayWith('I need the Arabic and English names.', { optionsJson: JSON.stringify({ deskId: [{ label: desk.nameAr, value: w.desk }] }) }));
+      const reply = await talk(w.agent, 'أضف نوع تذكرة');
+      expect(reply.messages[0]!.text).toBe('I need the Arabic and English names.');
+      expect(reply.messages[0]!.form).toMatchObject({ operationId: CREATE_TYPE, status: 'open' });
+      expect(t.ai.calls[1]!.user).toContain('have not tried a propose yet');
+    });
+
+    it('FR-152: an answer with no write action described (a question, a guide) is not sent back', async () => {
+      const w = await world();
+      answers(t, say('Hello, what do you need?'));
+      const reply = await talk(w.agent, 'hi');
+      expect(reply.messages[0]!.text).toBe('Hello, what do you need?');
+      expect(t.ai.calls).toHaveLength(1);
+    });
+
     it('when fields are missing the assistant asks AND offers the form: the fields of the action, the desk as a choice, optional lists left out', async () => {
       const w = await world();
       const { form, desk } = await offerForm(w);

@@ -38,6 +38,17 @@ describe('The Anthropic strategy of the AI service (FR-126)', () => {
     sdk.state.listeners.length = 0;
   });
 
+  it('FR-180: pictures go as base64 blocks before the text', async () => {
+    sdk.state.reply = () => Promise.resolve(message({}));
+    await client.json({ ...REQUEST, images: [{ mediaType: 'image/jpeg', data: 'QUJD' }] });
+    expect(sdk.state.streamed[0]).toMatchObject({ messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: 'QUJD' } }, { type: 'text', text: 'doc' }] }] });
+  });
+
+  it('FR-181: Claude takes no sound: asked to listen it says so and makes no call', async () => {
+    expect(await client.json({ ...REQUEST, audio: { format: 'wav', data: 'UklGRg==' } })).toMatchObject({ kind: 'failed', audioUnsupported: true });
+    expect(sdk.state.streamed).toHaveLength(0);
+  });
+
   it('FR-126: sends the key, the model, the schema as the answer format and the document in the user turn; reads only the text blocks', async () => {
     sdk.state.reply = () => Promise.resolve(message({}));
     expect(await client.json(REQUEST)).toEqual({ kind: 'ok', text: '{"ok":true}', inputTokens: 11, outputTokens: 7 });

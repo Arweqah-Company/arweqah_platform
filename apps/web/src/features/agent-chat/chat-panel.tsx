@@ -31,9 +31,9 @@ export function ChatPanel({ onClose, onNavigate }: { onClose: () => void; onNavi
           <Button variant="ghost" size="icon" aria-label={t('close')} onClick={onClose}><X className="size-4" aria-hidden /></Button>
         </div>
       </header>
-      {showHistory ? <HistoryList onOpen={(id) => void openOld(id)} /> : <MessageList messages={chat.messages} busy={chat.busy} live={chat.live} onConfirm={(id) => void chat.confirmDraft(id)} onCancel={(id) => void chat.cancelDraft(id)} onSendForm={(id, values) => void chat.sendForm(id, values)} formError={chat.formError} onNavigate={onNavigate} />}
+      {showHistory ? <HistoryList onOpen={(id) => void openOld(id)} /> : <MessageList messages={chat.messages} busy={chat.busy} live={chat.live} onConfirm={(id, fileIds) => void chat.confirmDraft(id, fileIds)} onCancel={(id) => void chat.cancelDraft(id)} onSendForm={(id, values) => void chat.sendForm(id, values)} formError={chat.formError} onNavigate={onNavigate} />}
       {chat.error && <div className="px-4 pb-2"><Alert>{errorMessage(tc, chat.error)}</Alert></div>}
-      {!showHistory && (canUse ? <Composer busy={chat.busy} onSend={(text) => void chat.ask(text)} /> : <p className="border-t border-neutral-200 p-3 text-sm text-muted">{t('readOnly')}</p>)}
+      {!showHistory && (canUse ? <Composer busy={chat.busy} canAttach={can(AGENT_KEYS.attach)} canSpeak={can(AGENT_KEYS.voice)} onSend={(text, files) => void chat.ask(text, files)} /> : <p className="border-t border-neutral-200 p-3 text-sm text-muted">{t('readOnly')}</p>)}
     </>
   );
 }

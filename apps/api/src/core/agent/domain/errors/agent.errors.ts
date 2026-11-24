@@ -49,3 +49,19 @@ export class AgentFormInvalidError extends BusinessRuleError {
     super('The form has mistakes', { fields });
   }
 }
+
+/** The sound sent for transcription is not a 16-bit WAV, or is longer or bigger than the limits. */
+export class AgentAudioInvalidError extends BusinessRuleError {
+  override readonly code = 'AGENT_AUDIO_INVALID';
+  constructor() {
+    super('The recording must be a WAV of at most 5 minutes and 10 MB');
+  }
+}
+
+/** A picture the employee ticked is not one the card offered, or one sent with a message is not theirs to send. */
+export class AgentDraftFileError extends BusinessRuleError {
+  override readonly code = 'AGENT_DRAFT_FILE';
+  constructor() {
+    super('Those pictures cannot go with this request');
+  }
+}

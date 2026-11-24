@@ -15,10 +15,21 @@ function unwrap(schema: Schema): Schema {
   return schema;
 }
 
+type Constant = string | number;
+
+/** The fixed values a field may take: an `enum`, or a union of `const`s (`z.union([z.literal(0), z.literal(1)])`), «or null» left out; null when the field is not such a set. */
+function constants(rawSchema: Schema): Constant[] | null {
+  const isConstant = (v: unknown): v is Constant => typeof v === 'string' || typeof v === 'number';
+  if (Array.isArray(rawSchema.enum)) return rawSchema.enum.every(isConstant) ? rawSchema.enum : null;
+  const alternatives = Array.isArray(rawSchema.anyOf) ? (rawSchema.anyOf as Schema[]).filter((a) => a.type !== 'null') : [];
+  if (alternatives.length === 0 || !alternatives.every((a) => isConstant(a.const))) return null;
+  return alternatives.map((a) => a.const as Constant);
+}
+
 /** How a field of the action is drawn in a form, or null when a form cannot draw it (a list, an object): the assistant then keeps to questions. */
 export function formFieldType(rawSchema: Schema): AgentFormFieldType | null {
+  if (constants(rawSchema)) return 'select';
   const schema = unwrap(rawSchema);
-  if (Array.isArray(schema.enum)) return 'select';
   if (schema.format === 'uuid') return 'select';
   if (schema.type === 'string') return schema.format === 'date' ? 'date' : typeof schema.maxLength === 'number' && schema.maxLength > LONG_TEXT_FROM ? 'longtext' : 'text';
   if (schema.type === 'number' || schema.type === 'integer' || schema.type === 'boolean') return schema.type;
@@ -100,12 +111,18 @@ export interface FormInput {
   /** The model's choices per field, already checked against the lookup data. */
   options: Record<string, ChoiceOption[]>;
   labels: Record<string, string>;
+  /** The language the labels of a fixed list (priority: normal / urgent) are written in. */
+  locale: 'ar' | 'en';
 }
 
-function enumOptions(schema: Schema): AgentFormOptionDto[] | null {
-  const list = unwrap(schema).enum;
-  return Array.isArray(list) ? list.filter((v): v is string => typeof v === 'string').map((v) => ({ label: v, value: v })) : null;
+/** The choices of a field that is a fixed set, each as text (a number stays a number in the answer, see `numeric`); the route may name them in both languages with `optionLabels`. */
+function fixedOptions(schema: Schema, locale: 'ar' | 'en'): AgentFormOptionDto[] | null {
+  const list = constants(schema);
+  const named = (schema.optionLabels ?? {}) as Record<string, { ar?: string; en?: string }>;
+  return list && list.map((v) => ({ label: named[String(v)]?.[locale] ?? String(v), value: String(v) }));
 }
+
+const isNumeric = (schema: Schema): boolean => constants(schema)?.every((v) => typeof v === 'number') === true;
 
 function limits(schema: Schema): Pick<AgentFormFieldDto, 'min' | 'max' | 'maxLength'> {
   const s = unwrap(schema);
@@ -121,8 +138,9 @@ function fieldOf(field: AgentField, input: FormInput): AgentFormFieldDto | 'hidd
   if (!type) return null;
   const base = { name: field.name, label: input.labels[field.name] ?? humanize(field.name), required: field.required, type, ...limits(field.schema) };
   if (type !== 'select') return base;
-  const options = enumOptions(field.schema) ?? input.options[field.name] ?? [];
-  if (options.length > 0) return { ...base, options };
+  const fixed = fixedOptions(field.schema, input.locale);
+  const options = fixed ?? input.options[field.name] ?? [];
+  if (options.length > 0) return { ...base, options, ...(fixed && isNumeric(field.schema) && { numeric: true }) };
   // An id the assistant already holds but cannot name: it stays in the values, out of the form.
   return input.values[field.name] === undefined ? null : 'hidden';
 }
@@ -146,7 +164,8 @@ export function cleanValues(fields: readonly AgentFormFieldDto[], fixed: Record<
     const value = typed[field.name];
     delete out[field.name];
     if (value === undefined || value === null || value === '') continue;
-    out[field.name] = (field.type === 'number' || field.type === 'integer') && typeof value === 'string' ? Number(value) : value;
+    const asNumber = field.type === 'number' || field.type === 'integer' || field.numeric;
+    out[field.name] = asNumber && typeof value === 'string' ? Number(value) : value;
   }
   return out;
 }
@@ -157,7 +176,7 @@ export function formErrors(fields: readonly AgentFormFieldDto[], values: Record<
   for (const field of fields) {
     const value = values[field.name];
     if (field.required && value === undefined) errors[field.name] = 'required';
-    else if (value !== undefined && field.options && !field.options.some((o) => o.value === value)) errors[field.name] = 'invalid_choice';
+    else if (value !== undefined && field.options && !field.options.some((o) => o.value === String(value))) errors[field.name] = 'invalid_choice';
   }
   return errors;
 }
@@ -166,6 +185,6 @@ export function formErrors(fields: readonly AgentFormFieldDto[], values: Record<
 export function formSummary(label: string, fields: readonly AgentFormFieldDto[], values: Record<string, unknown>): string {
   const lines = fields
     .filter((f) => values[f.name] !== undefined)
-    .map((f) => `${f.label}: ${f.options?.find((o) => o.value === values[f.name])?.label ?? (typeof values[f.name] === 'boolean' ? (values[f.name] ? '✓' : '✗') : String(values[f.name]))}`);
+    .map((f) => `${f.label}: ${f.options?.find((o) => o.value === String(values[f.name]))?.label ?? (typeof values[f.name] === 'boolean' ? (values[f.name] ? '✓' : '✗') : String(values[f.name]))}`);
   return [label, ...lines].join('\n');
 }

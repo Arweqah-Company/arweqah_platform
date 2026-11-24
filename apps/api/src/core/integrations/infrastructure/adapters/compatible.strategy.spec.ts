@@ -38,6 +38,30 @@ describe('The OpenAI-compatible strategy of the AI service (FR-126)', () => {
     expect(init.redirect).toBe('error');
   });
 
+  it('FR-180: pictures go as data addresses after the text; a malformed-request answer to a request with pictures says the model does not read them, a busy one does not', async () => {
+    const images = [{ mediaType: 'image/png' as const, data: 'QUJD' }];
+    await strategy.json({ ...REQUEST, images });
+    const body = JSON.parse((vi.mocked(fetch).mock.calls[0]![1] as RequestInit).body as string) as { messages: { content: unknown }[] };
+    expect(body.messages[1]!.content).toEqual([{ type: 'text', text: 'doc' }, { type: 'image_url', image_url: { url: 'data:image/png;base64,QUJD' } }]);
+    vi.stubGlobal('fetch', reply({ error: { message: 'image input is not supported' } }, { status: 400 }));
+    expect(await strategy.json({ ...REQUEST, images })).toMatchObject({ kind: 'failed', imagesRejected: true });
+    expect(await strategy.json(REQUEST)).not.toHaveProperty('imagesRejected');
+    vi.stubGlobal('fetch', reply({ error: { message: 'overloaded' } }, { status: 503 }));
+    expect(await strategy.json({ ...REQUEST, images })).toMatchObject({ kind: 'failed', busy: true });
+  });
+
+  it('FR-181: speech goes as an input_audio part; a malformed-request answer to a request with sound says the model takes none, a busy one does not', async () => {
+    const audio = { format: 'wav' as const, data: 'UklGRg==' };
+    await strategy.json({ ...REQUEST, audio });
+    const body = JSON.parse((vi.mocked(fetch).mock.calls[0]![1] as RequestInit).body as string) as { messages: { content: unknown }[] };
+    expect(body.messages[1]!.content).toEqual([{ type: 'text', text: 'doc' }, { type: 'input_audio', input_audio: { data: 'UklGRg==', format: 'wav' } }]);
+    vi.stubGlobal('fetch', reply({ error: { message: 'unknown content type input_audio' } }, { status: 400 }));
+    expect(await strategy.json({ ...REQUEST, audio })).toMatchObject({ kind: 'failed', audioUnsupported: true });
+    expect(await strategy.json(REQUEST)).not.toHaveProperty('audioUnsupported');
+    vi.stubGlobal('fetch', reply({ error: { message: 'overloaded' } }, { status: 503 }));
+    expect(await strategy.json({ ...REQUEST, audio })).toMatchObject({ kind: 'failed', busy: true });
+  });
+
   it('FR-126: an address with no trailing slash works the same', async () => {
     await strategy.json({ ...REQUEST, values: { ...REQUEST.values, baseUrl: 'https://api.groq.com/openai/v1' } });
     expect(vi.mocked(fetch).mock.calls[0]?.[0]).toBe('https://api.groq.com/openai/v1/chat/completions');

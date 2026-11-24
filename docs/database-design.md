@@ -134,6 +134,14 @@ erDiagram
     timestamp_with_time_zone created_at
     timestamp_with_time_zone updated_at
   }
+  agent_message_files {
+    uuid id PK
+    uuid message_id FK
+    uuid file_id FK,UK
+    smallint position
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+  }
   allowed_email_domains {
     character_varying domain PK
     uuid created_by
@@ -142,6 +150,8 @@ erDiagram
   users ||--o{ auth_sessions : "user_id"
   users ||--o{ agent_conversations : "user_id"
   agent_conversations ||--o{ agent_messages : "conversation_id"
+  agent_messages ||--o{ agent_message_files : "message_id"
+  files ||--o| agent_message_files : "file_id"
   users ||--o{ auth_sessions : "impersonated_by_user_id"
   auth_sessions ||--o{ auth_sessions : "impersonator_session_id"
   users ||--o{ auth_accounts : "user_id"
@@ -1487,6 +1497,7 @@ erDiagram
 | `security_settings` | Single-row platform security settings (session length, request limit per minute, device trust…). |
 | `agent_conversations` | One chat of an employee with the platform assistant; private to its owner. |
 | `agent_messages` | A line of a conversation: what the employee wrote, what the assistant answered (with its draft, status, expiry and result, the links to the manual and pages under it, and the form it offered with its `open` / `submitted` state), or data it looked up (`tool`, never shown). |
+| `agent_message_files` | A picture (screenshot) sent with a message of the assistant chat (FR-180): the message, the stored file (one message per file; the file itself is not deleted with the chat, so a ticket that attached it keeps it) and the order. Only the owner of the conversation reads it. |
 | `allowed_email_domains` | E-mail domains allowed to sign in with a work e-mail. |
 
 ### 2. Access

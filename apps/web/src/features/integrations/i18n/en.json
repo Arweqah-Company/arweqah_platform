@@ -367,7 +367,7 @@
           "apiKey": "The secret key from the console. It stays on the server and is never shown after saving.",
           "model": "The model that reads the files. The default is the most accurate; a cheaper one may miss details."
         },
-        "note": "The text of every title file analysed with AI is sent to Anthropic. It holds company data, not employees' data: do not paste personal data into it."
+        "note": "The text of every title file analysed with AI is sent to Anthropic. It holds company data, not employees' data: do not paste personal data into it. The platform assistant also sends it the text of the employees' messages and the pictures (screenshots) they attach to its chat; Claude reads pictures. Employees are warned not to attach salaries or ID numbers, but a picture cannot be masked. Speech recorded in the chat is also sent to be written down, and is not kept: Claude takes no sound, so with Claude the microphone answers that sound is not supported."
       },
       "compatible": {
         "summary": "Any service that speaks the OpenAI protocol, so you can use a free one (Google Gemini's free tier needs no card) and keep Claude as the other option. Only one AI service is switched on at a time.",
@@ -383,7 +383,7 @@
           "baseUrl": "Where the service answers: the platform adds «/chat/completions» to it. It must be a public https address.",
           "model": "The model that reads the files. Free models are less exact than Claude and have rate limits."
         },
-        "note": "Google's free tier may use what you send to improve its products, and other free services have their own terms. A title file holds company data, not employees' data: do not put personal data in it. The AI's reading is always reviewed by a person before it is saved."
+        "note": "Google's free tier may use what you send to improve its products, and other free services have their own terms. A title file holds company data, not employees' data: do not put personal data in it. The AI's reading is always reviewed by a person before it is saved. The platform assistant also sends this service the employees' messages and the pictures (screenshots) they attach to its chat; a model that cannot read pictures is asked again without them and the assistant tells the employee so. A picture cannot be masked, so employees are warned not to attach salaries or ID numbers. Speech recorded or chosen as a sound file in the chat is also sent to this service to be written down (it must take sound in `chat/completions`; Gemini and OpenAI do, Groq does not) and is not kept."
       },
       "maxmind": {
         "summary": "MaxMind's free database that tells the city of an IP address. It is downloaded to this server and refreshed every week.",

@@ -39,8 +39,8 @@ describe('The platform assistant panel (FR-145)', () => {
     fireEvent.change(screen.getByLabelText('اكتب رسالتك'), { target: { value: 'ثانيًا' } });
     fireEvent.click(screen.getByRole('button', { name: 'إرسال' }));
     await waitFor(() => expect(bodies).toHaveLength(2));
-    expect(bodies[0]).toEqual({ text: 'أولًا' });
-    expect(bodies[1]).toEqual({ conversationId: 'c1', text: 'ثانيًا' });
+    expect(bodies[0]).toEqual({ text: 'أولًا', fileIds: [] });
+    expect(bodies[1]).toEqual({ conversationId: 'c1', text: 'ثانيًا', fileIds: [] });
   });
 
   it('FR-148: tells the API the language of the screen, since the browser\'s own language may be another', async () => {
