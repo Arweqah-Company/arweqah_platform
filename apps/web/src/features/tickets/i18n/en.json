@@ -234,6 +234,7 @@
       "stopped": "The unit is not listed for anyone. Existing tickets are handled as usual."
     },
     "needsManager": "A unit without a manager cannot be activated.",
+    "assignManager": "Assign the unit manager in the structure",
     "acceptsPersonal": "Accepts personal requests (the unit manager does not see them)",
     "descriptionAr": "Unit description for the sender (Arabic)",
     "descriptionEn": "Unit description for the sender (English)",
