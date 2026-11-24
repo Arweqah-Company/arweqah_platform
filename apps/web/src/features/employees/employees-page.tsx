@@ -1,5 +1,6 @@
 import { CorePermission, type EmployeeListItemDto } from '@arweqah-platform/shared';
 import { Users } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { Can } from '@/core/permissions/can';
@@ -10,6 +11,7 @@ import { Button, DataTable, EmptyState, ListToolbar, PageHeader } from '@/shared
 import { useBulkEdit } from './bulk-edit';
 import { useEmployeeColumns } from './employees-columns';
 import { toEmployeesQuery, useEmployeeFilterFields } from './employees-filters';
+import { EmployeeQuickDialog } from './employee-quick-dialog';
 import { EmployeeRowActions } from './employee-row-actions';
 import { useEmployeesImport } from './employees-import';
 import { EmployeesTabs, useEmployeesTab } from './employees-tabs';
@@ -33,6 +35,7 @@ export function EmployeesPage() {
 function EmployeesList() {
   const { t } = useTranslation('employees');
   const navigate = useNavigate();
+  const [quickId, setQuickId] = useState<string | null>(null);
   const list = useListPage('employees');
   const fields = useEmployeeFilterFields(list.filters.values);
   const { columns, exportColumns } = useEmployeeColumns();
@@ -44,6 +47,7 @@ function EmployeesList() {
   return (
     <>
       {bulk.panel}
+      {quickId && <EmployeeQuickDialog id={quickId} onClose={() => setQuickId(null)} />}
       <DataTable<EmployeeListItemDto>
         listKey="employees"
         {...table}
@@ -52,8 +56,8 @@ function EmployeesList() {
         toolbar={<ListToolbar listKey="employees" {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields)} actions={exchange} />}
         rowKey={(e) => e.id}
         selection={bulk.selection}
-        onRowClick={(e) => navigate(`/employees/${e.id}`)}
-        actions={(e) => <EmployeeRowActions employee={e} />}
+        onRowClick={(e) => e.canOpen && (e.openAs === 'dialog' ? setQuickId(e.id) : navigate(`/employees/${e.id}`))}
+        actions={(e) => <EmployeeRowActions employee={e} onQuickOpen={setQuickId} />}
         empty={<EmptyState icon={Users} title={list.narrowed ? t('noMatches') : t('empty')} description={list.narrowed ? undefined : t('emptyHint')} />}
         columns={columns}
       />

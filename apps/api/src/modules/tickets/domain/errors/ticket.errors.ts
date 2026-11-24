@@ -140,6 +140,13 @@ export class TicketReplyTargetInvalidError extends BusinessRuleError {
   }
 }
 
+export class ChooseHandlerError extends BusinessRuleError {
+  override readonly code = 'TICKET_CHOOSE_HANDLER';
+  constructor() {
+    super('Pick one of the handlers named on the ticket\'s type, for a ticket nobody has taken');
+  }
+}
+
 export class ReassignTargetError extends BusinessRuleError {
   override readonly code = 'TICKET_REASSIGN_TARGET';
   constructor() {

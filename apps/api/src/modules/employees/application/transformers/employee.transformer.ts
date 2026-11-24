@@ -9,12 +9,20 @@ import { OrgDirectoryService, type NamedRef } from '../../../org/application/ser
 import { EmployeePlacementPort } from '../../../org/domain/contracts/employee-placement.port';
 import type { Employee } from '../../domain/entities/employee.entity';
 import { employeeNames } from './employee-names';
+import { hideFields } from './employee-hidden-fields';
 
 const SOON_DAYS = 30;
 const UNKNOWN: NamedRef = { id: '', nameAr: '', nameEn: '' };
 
 /** The entry of `map` for an optional id, or null. */
 const pick = <T>(map: Map<string, T>, id: string | null): T | null => (id ? (map.get(id) ?? null) : null);
+
+/** What the caller may do on the record; a caller that is not asked (the own profile page) sees every detail and gets no photo or history button. */
+const abilitiesOf = (view: { visibleFields?: string[] | null; canChangePhoto?: boolean; canViewHistory?: boolean }) => ({
+  visibleFields: view.visibleFields ?? null,
+  canChangePhoto: view.canChangePhoto ?? false,
+  canViewHistory: view.canViewHistory ?? false,
+});
 
 const maskTail = (value: string): string => `••••${value.slice(-4)}`;
 
@@ -47,7 +55,7 @@ export class EmployeeTransformer {
     private readonly lookups: LookupsService,
   ) {}
 
-  async toDto(e: Employee, view: { isActive: boolean; sensitive: boolean; editableFields?: string[] }): Promise<EmployeeDto> {
+  async toDto(e: Employee, view: { isActive: boolean; sensitive: boolean; editableFields?: string[]; visibleFields?: string[] | null; canChangePhoto?: boolean; canViewHistory?: boolean }): Promise<EmployeeDto> {
     const companyIds = [e.companyId, e.contractCompanyId, e.gosiCompanyId, e.healthInsuranceCompanyId].filter((id): id is string => !!id);
     const [companies, lookups, nodes, titles, managers, roles, groups, authenticatorEnabled, expiries] = await Promise.all([
       this.org.describeCompanies(companyIds),
@@ -60,9 +68,10 @@ export class EmployeeTransformer {
       this.authenticator.isEnabled(e.userId),
       this.access.roleExpiriesOf([e.userId]),
     ]);
-    return {
+    return hideFields({
       id: e.id,
       editableFields: view.editableFields ?? [],
+      ...abilitiesOf(view),
       userId: e.userId,
       isActive: view.isActive,
       isSystemAccount: e.isSystemAccount,
@@ -81,10 +90,10 @@ export class EmployeeTransformer {
       sensitiveHidden: !view.sensitive,
       createdAt: e.createdAt.toISOString(),
       updatedAt: e.updatedAt.toISOString(),
-    };
+    });
   }
 
-  async toListItems(items: Employee[], states: Map<string, boolean>, viewerId: string): Promise<EmployeeListItemDto[]> {
+  async toListItems(items: Employee[], states: Map<string, boolean>, viewer: { id: string; canOpen: (e: Employee) => boolean; openAs: (e: Employee) => 'page' | 'dialog' }): Promise<EmployeeListItemDto[]> {
     const [companies, nodes, titles] = await Promise.all([
       this.org.describeCompanies([...new Set(items.map((e) => e.companyId))]),
       this.org.describeNodes(items.flatMap((e) => (e.orgNodeId ? [e.orgNodeId] : []))),
@@ -105,7 +114,9 @@ export class EmployeeTransformer {
       photoFileId: e.photoFileId,
       idExpiresSoon: isWithin(e.idExpiryDate, today, { fromPast: true }),
       contractEndsSoon: isWithin(e.endDate, today, { fromPast: false }),
-      isOwn: e.userId === viewerId,
+      isOwn: e.userId === viewer.id,
+      canOpen: viewer.canOpen(e),
+      openAs: viewer.openAs(e),
     }));
   }
 

@@ -2,6 +2,7 @@
 // Runs on its OWN database (arweqah_platform_e2e: reset, seeded with the demo organization and a known administrator
 // authenticator secret) with the built API (:3100) and the built web app (:4173): the development data is never touched.
 // Needs `npm run build` first. Usage: npm run docs:screenshots
+// `DOCS_ONLY=32,33` (name prefixes) captures just those pages, so one new page does not redo the whole manual.
 import { execSync, spawn } from 'node:child_process';
 import { createHmac } from 'node:crypto';
 import { mkdirSync } from 'node:fs';
@@ -49,6 +50,9 @@ const PAGES = [
   ['32-my-notices', '/notices'], ['33-notices-manage', '/notices/manage'], ['34-notices-approvals', '/notices/approvals'], ['35-notices-channels', '/notices/channels'],
 ];
 
+const ONLY = (process.env.DOCS_ONLY ?? '').split(',').map((x) => x.trim()).filter(Boolean);
+const wanted = (name) => ONLY.length === 0 || ONLY.some((prefix) => name.startsWith(prefix));
+
 async function waitUp(url) {
   for (let i = 0; i < 60; i++) {
     try { if ((await fetch(url)).ok) return; } catch { /* not up yet */ }
@@ -82,11 +86,11 @@ async function captureLang(browser, lang, cookies) {
   const login = await context.newPage();
   await login.goto(`${WEB}/login`);
   await login.waitForLoadState('networkidle');
-  await login.screenshot({ path: join(dir, '01-login.png') });
+  if (wanted('01-login')) await login.screenshot({ path: join(dir, '01-login.png') });
   await login.close();
   await context.addCookies(cookies);
   const page = await context.newPage();
-  for (const [name, route] of PAGES) {
+  for (const [name, route] of PAGES.filter(([name]) => wanted(name))) {
     // A screenshot can time out on a heavy page: reload and try once more before failing.
     for (let attempt = 1; ; attempt++) {
       try {

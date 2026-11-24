@@ -3,6 +3,7 @@ import { z } from 'zod';
 import {
   createTicketSchema,
   reassignTicketSchema,
+  chooseHandlerSchema,
   ticketActionSchema,
   ticketDeskSettingsSchema,
   ticketFiguresQuerySchema,
@@ -27,3 +28,4 @@ export class AttachmentParam extends createZodDto(z.strictObject({ id: z.uuid(),
 export class AssigneeSearchDto extends createZodDto(z.strictObject({ q: z.string().trim().max(100).optional() })) {}
 
 export class ReassignTicketBody extends createZodDto(reassignTicketSchema) {}
+export class ChooseHandlerBody extends createZodDto(chooseHandlerSchema) {}

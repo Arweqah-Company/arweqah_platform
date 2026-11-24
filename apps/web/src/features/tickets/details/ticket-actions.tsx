@@ -7,6 +7,7 @@ import { usePermissions } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Alert, Button, DeleteRecordButton, Dialog, FormField, Textarea } from '@/shared/ui';
 import { useDeleteTicket, useTicketAction, type TicketAction } from '../api';
+import { ChooseHandlerDialog } from './choose-handler-dialog';
 import { ReassignDialog } from './reassign-dialog';
 
 const DANGER: TicketAction[] = ['close-without-execution'];
@@ -58,13 +59,30 @@ function DeleteTicket({ ticket }: { ticket: TicketDto }) {
 }
 
 /** Reassign and delete: the API allows them for the ticket and the person holds their keys. */
-const unitExtras = (a: TicketDto['abilities'], can: (key: string) => boolean) => ({ reassign: a.reassign && can(CorePermission.TicketsReassign), delete: a.delete && can(CorePermission.TicketsDelete) });
+const unitExtras = (a: TicketDto['abilities'], can: (key: string) => boolean) => ({ reassign: a.reassign && can(CorePermission.TicketsReassign), chooseHandler: a.chooseHandler && can(CorePermission.TicketsChooseHandler), delete: a.delete && can(CorePermission.TicketsDelete) });
+
+type UnitExtras = ReturnType<typeof unitExtras>;
+
+/** The unit's own buttons: pick the handler, reassign, delete, each with its dialog. */
+function UnitButtons({ ticket, extras }: { ticket: TicketDto; extras: UnitExtras }) {
+  const { t } = useTranslation('tickets');
+  const [dialog, setDialog] = useState<'choose' | 'reassign' | null>(null);
+  const close = () => setDialog(null);
+  return (
+    <>
+      {extras.chooseHandler && <Button variant="primary" onClick={() => setDialog('choose')}>{t('actions.chooseHandler.button')}</Button>}
+      {extras.reassign && <Button variant="secondary" onClick={() => setDialog('reassign')}>{t('actions.reassign.button')}</Button>}
+      {extras.delete && <DeleteTicket ticket={ticket} />}
+      {dialog === 'choose' && <ChooseHandlerDialog ticketId={ticket.id} handlers={ticket.handlers} onClose={close} />}
+      {dialog === 'reassign' && <ReassignDialog ticketId={ticket.id} onClose={close} />}
+    </>
+  );
+}
 
 /** The buttons this person may use now (the server decides which). */
 export function TicketActions({ ticket }: { ticket: TicketDto }) {
   const { t } = useTranslation('tickets');
   const [asking, setAsking] = useState<TicketAction | null>(null);
-  const [reassigning, setReassigning] = useState(false);
   const { can } = usePermissions();
   const a = ticket.abilities;
   const buttons: { action: TicketAction; allowed: boolean; variant: 'primary' | 'secondary' | 'danger' }[] = [
@@ -75,14 +93,12 @@ export function TicketActions({ ticket }: { ticket: TicketDto }) {
     { action: 'close-without-execution', allowed: a.closeWithoutExecution, variant: 'danger' },
   ];
   const shown = buttons.filter((b) => b.allowed && can(KEY[b.action]));
-  const { reassign: canReassign, delete: canDelete } = unitExtras(a, can);
-  if (shown.length === 0 && !canReassign && !canDelete) return null;
+  const extras = unitExtras(a, can);
+  if (shown.length === 0 && !Object.values(extras).some(Boolean)) return null;
   return (
     <div className="flex flex-wrap items-center gap-2">
       {shown.map((b) => <Button key={b.action} variant={b.variant} onClick={() => setAsking(b.action)}>{t(`actions.${b.action}.button`)}</Button>)}
-      {canReassign && <Button variant="secondary" onClick={() => setReassigning(true)}>{t('actions.reassign.button')}</Button>}
-      {canDelete && <DeleteTicket ticket={ticket} />}
-      {reassigning && <ReassignDialog ticketId={ticket.id} onClose={() => setReassigning(false)} />}
+      <UnitButtons ticket={ticket} extras={extras} />
       {a.reopen && ticket.reopenDaysLeft !== null && <span className="text-xs text-muted">{t('actions.reopenLeft', { count: ticket.reopenDaysLeft })}</span>}
       {asking && <ActionDialog ticketId={ticket.id} action={asking} onClose={() => setAsking(null)} />}
     </div>

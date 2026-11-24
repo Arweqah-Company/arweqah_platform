@@ -2,6 +2,27 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-23 — Tickets: the head chooses the handler; a taken ticket leaves the other handlers (FR-179)
+
+Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-23).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 461 | **`tickets.choose_handler` («Choose who answers a ticket among the handlers of its type», unit … all; the head role of every unit holds it at `subtree`, migration `TicketsChooseHandlerKey`) and `POST /tickets/:id/handler { handlerUserId }`.** Allowed only on an open, non-personal ticket nobody has taken, of a type with more than one handler, whose desk the key reaches; the target must be one of the type's handlers (422 `TICKET_CHOOSE_HANDLER` otherwise). It writes a `reassigned` event, notifies the handler and audits `ticket.reassigned` (`chosenAmong`). `TicketAbilitiesDto.chooseHandler` shows the «Choose handler» button | Owner: a ticket with several handlers needs the head to say who answers | The type's handlers are chosen per ticket by a rule |
+| 462 | **A handler of the type sees and answers a ticket only while it has no assignee** (`isAssignee` and the inbox SQL gain `assignee IS NULL`): once somebody has it, by the head's choice **or by being the first to reply**, it leaves the other handlers (their inbox, 404 on open and reply). The assignee, the sender, the desk manager and the scopes of view / handle keep their relations | Owner: «if one is chosen, the ticket disappears from the others»; the first-reply claim is the same «taken» state | The owner wants the first-reply claim to leave the others able to see the ticket |
+
+## 2026-11-23 — «Open an employee» key, its visible fields, reach-aware photo and history buttons (FR-178)
+
+Plan: `docs/plans/phase-5-people-structure-profile.md` (log 2026-11-23).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 456 | **`employees.open` is the eye on a row, the click on the row and the employee's page; `employees.view` stays the list.** Every grant of `employees.view` got `employees.open` at the same reach by migration `EmployeesOpenKey`, with no list of its own (= every detail), and the Employee role and the head role of every unit hold it (standing rule 17). A person on whom a key that acts on the record reaches (edit, roles, groups, placement, deactivate, end of contract) also opens it, and loads it whole (`visibleFields: null`): the form and the answers of those actions show stored values | Owner: the eye must have its own permission | A page other than the employee's needs the list rows without opening |
+| 457 | **Each grant of `employees.open` carries a list of fields, like `employees.update` (same `fields` column, `carriesFields`, `defaultFieldsFor`: «update» starts with the basic data, «open» with everything).** A detail outside the list leaves the API empty (`hideFields`: the value and the name it carries), `EmployeeDto.visibleFields` says which are listed (`null` = all). The roles of the person are a choice of the list too (`roles`, only on the page, never edited by the form); the name, number and company of the page header are never hidden; ID number, IBAN and salary still need `employees.view_sensitive`. A caller who acts on the record gets it whole (`visibleFields: null`): the edit form posts every field and would be refused for a field it cannot read, and the answer of an action carries the record | Owner: «choose exactly what to show», the same idea as editing | The edit form sends only the fields it may change (then editors can be limited too) |
+| 459 | **A short employee page opens as a pop-up, like «My team», with the Teams chat button:** when the caller's list has fewer than 10 details (`POPUP_MAX_FIELDS`, the header's three not counted) and holds no key that acts on the record at a reach including it (edit, deactivate, end of contract, roles, groups, placement, photo, history, invitation, authenticator, bulk edit) nor «sign in as». The API says so per row (`EmployeeListItemDto.openAs`); the eye and the click open `EmployeeQuickDialog` (the same `DetailsSections`, so hidden details stay hidden) instead of navigating. `/employees/:id` still works as a page | Owner: a read-only viewer of a few fields needs a quick card, not a page | The threshold needs to be a setting |
+| 460 | **Database pool 20 and consumer prefetch 5.** `IdempotencyGuard.once` holds one connection for its transaction and its work takes another; with the default pool (10) and a prefetch of 10, a backlog of 10 messages held all 10 connections, every work waited for an eleventh, the health check timed out (503) and the platform did not open locally | A restart (or a seed) that leaves 10+ queued notifications froze the API | The consumers stop nesting a second connection (work run on the same transaction) |
+| 458 | **The photo button, the history tab and the row's eye follow the reach of their keys, judged by the API per record:** `EmployeeDto.canChangePhoto`, `canViewHistory` and `EmployeeListItemDto.canOpen`. The API already refused other records (404); the screen only checked that the key was held, so a key at «own» showed its buttons on everybody's page | Owner: «the photo and history keys work but an employee still sees them on other people's pages» | — |
+
 ## 2026-11-23 — Employee role gets `tasks.log_time`
 
 | # | Decision | Why | Revisit when |

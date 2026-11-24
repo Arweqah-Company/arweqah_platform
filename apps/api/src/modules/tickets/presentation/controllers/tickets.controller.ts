@@ -11,9 +11,10 @@ import { TicketCatalogService } from '../../application/services/ticket-catalog.
 import { TicketLifecycleService, type PersonAction } from '../../application/services/ticket-lifecycle.service';
 import { TicketDeleteService } from '../../application/services/ticket-delete.service';
 import { TicketReassignService } from '../../application/services/ticket-reassign.service';
+import { TicketHandlerChoiceService } from '../../application/services/ticket-handler-choice.service';
 import { TicketsService } from '../../application/services/tickets.service';
 import { sendOpenedFile, sendPreviewStream } from '../../../../core/files/presentation/send-file';
-import { AttachmentParam, CreateTicketBody, ReassignTicketBody, TicketActionBody, MentionablesQueryDto, TicketReplyBody, TicketsQueryDto } from '../dtos/tickets.dtos';
+import { AttachmentParam, ChooseHandlerBody, CreateTicketBody, ReassignTicketBody, TicketActionBody, MentionablesQueryDto, TicketReplyBody, TicketsQueryDto } from '../dtos/tickets.dtos';
 
 /**
  * Every action has its own key (the Employee role holds them); on top of that, what else a person sees or does with a ticket
@@ -28,6 +29,7 @@ export class TicketsController {
     private readonly lifecycle: TicketLifecycleService,
     private readonly catalog: TicketCatalogService,
     private readonly reassigner: TicketReassignService,
+    private readonly chooser: TicketHandlerChoiceService,
     private readonly remover: TicketDeleteService,
   ) {}
 
@@ -119,6 +121,14 @@ export class TicketsController {
   @RequirePermission(CorePermission.TicketsReassign)
   async reassign(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: ReassignTicketBody): Promise<TicketDto> {
     await this.reassigner.reassign(viewerOf(ctx), id, body.assigneeUserId);
+    return this.tickets.get(viewerOf(ctx), id);
+  }
+
+  @Post(':id/handler')
+  @HttpCode(200)
+  @RequirePermission(CorePermission.TicketsChooseHandler)
+  async chooseHandler(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: ChooseHandlerBody): Promise<TicketDto> {
+    await this.chooser.choose(viewerOf(ctx), id, body.handlerUserId);
     return this.tickets.get(viewerOf(ctx), id);
   }
 

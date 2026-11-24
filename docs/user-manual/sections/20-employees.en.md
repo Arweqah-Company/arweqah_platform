@@ -6,7 +6,7 @@ The «Employees» page is the directory of employee records and their sign-in ac
 
 ### Who sees it
 
-- View key: `employees.view` («View employees»). Scope: own, unit, unit and below, company or all.
+- View key: `employees.view` («View employees») gives the list page; opening an employee's page is its own key, `employees.open` («Open an employee»). Scope: own, unit, unit and below, company or all.
 - The «Employee» role (everyone gets it automatically) holds it at scope «own»: an employee sees only their own record.
 - The head role of a unit (made automatically for every unit of the structure) holds it at «unit and below», together with the employee history (placement and changes).
 - HR roles and the System Admin role are set on the roles page; the HR roles start with no permissions until an administrator sets them.
@@ -18,7 +18,8 @@ The «Employees» page is the directory of employee records and their sign-in ac
 | Action | What happens | Key (label on the permissions page) |
 |---|---|---|
 | Add employee | Opens the two-step form; a sign-in account is created and an activation invitation is sent | `employees.create` (Add employees) |
-| View (eye icon or click the row) | Opens the employee page | `employees.view` (View employees) |
+| View (eye icon or click the row) | Opens the employee page, or a pop-up (like «My team», with the «Chat on Teams» button) for whoever sees fewer than 10 details and holds no other permission on the employee besides viewing. The eye and the click show only on the rows the key's scope reaches (with «own» you open your own page only) | `employees.open` (Open an employee) |
+| Choose what the employee page shows | On the roles page (and groups and exceptions) a «Details shown (N)» button sits beside «Open an employee» to choose the details the holder sees; the default is all of them, and what is not chosen is neither drawn on the page nor sent by the server. The name, number and company always show, while «Roles» shows only when chosen, and the ID, IBAN and salary also need `employees.view_sensitive`. Whoever may edit the record sees it whole | `employees.open`, set by whoever holds `roles.update` |
 | Edit (pencil) | Opens the form to change the fields you are allowed | `employees.update` (Edit employees) |
 | «Request to change basic data» (a card on the employee page, shown when the employee asks to change the name, gender, nationality, birth date or marital status) | Shows today's and the requested value of each field. «Approve» writes the values to the record and notifies the employee; «Reject» (optional reason) leaves the record as it is and notifies them | `employees.update` (Edit employees) with a scope that reaches the employee **and all five fields asked for** |
 | Deactivate / Activate (power icon) | Stops the employee signing in and ends their sessions at once, or gives sign-in back | `employees.deactivate` (Deactivate and activate employees) |
@@ -31,8 +32,8 @@ The «Employees» page is the directory of employee records and their sign-in ac
 | End contract | Records the end date and reason | `employees.terminate` (End an employee's contract) |
 | Resend invitation | Sends a new activation link by e-mail | `employees.resend_invite` (Resend the activation link) |
 | Reset authenticator app | Ends the employee's sessions and sends a link to link the app again | `employees.reset_authenticator` (Reset the authenticator app) |
-| Change photo | Adds, changes or removes the employee's photo | `employees.photo_update` (Change an employee's photo) |
-| «History» tab | Shows unit, job title and manager through time and the log of changes | `employees.history_view` (View an employee's history) |
+| Change photo | Adds, changes or removes the employee's photo; the button shows only on the page of someone the key's scope reaches (with «own», on your own page only) | `employees.photo_update` (Change an employee's photo) |
+| «History» tab | Shows unit, job title and manager through time and the log of changes; it shows only for someone the key's scope reaches (with «own», your own history only) | `employees.history_view` (View an employee's history) |
 | Cancel a waiting change (in History) | Cancels a change that waits for its day | `employees.assign_change` (Change an employee's unit, job title or manager from a date) |
 | See ID, IBAN and salary | The values show instead of being hidden | `employees.view_sensitive` (View sensitive data) |
 

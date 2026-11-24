@@ -729,8 +729,60 @@ describe('Tickets (FR-36 … FR-41)', () => {
       }
       const answered = (await w.secondAgent.post(`/api/tickets/${ticket.id}/replies`).send({ body: 'أنا أتولاها' }).expect(201)).body as TicketDto;
       expect(answered.assignee).toMatchObject({ id: w.second.id });
-      await w.agents.assignee.post(`/api/tickets/${ticket.id}/replies`).send({ body: 'ردّ ثانٍ' }).expect(201);
+      // Once somebody has the ticket it leaves the other handlers: they no longer see it nor answer it.
+      expect((await w.agents.assignee.get('/api/tickets?tab=inbox').expect(200)).body.total).toBe(0);
+      await w.agents.assignee.get(`/api/tickets/${ticket.id}`).expect(404);
+      await w.agents.assignee.post(`/api/tickets/${ticket.id}/replies`).send({ body: 'ردّ ثانٍ' }).expect(404);
       expect((await w.agents.manager.get(`/api/tickets/${ticket.id}`).expect(200)).body.assignee).toMatchObject({ id: w.second.id });
+    });
+
+    describe('Choosing the handler of a ticket nobody has taken (FR-179)', () => {
+      /** The shared world with a head who sits in the department (view, reply and the choose key at «unit and below»). */
+      async function headWorld() {
+        const w = await sharedWorld();
+        const head = await t.factories.user({ unit: w.org.unitA, grants: [{ key: CorePermission.TicketsView, scope: 'subtree' }, { key: CorePermission.TicketsReply, scope: 'subtree' }, { key: CorePermission.TicketsChooseHandler, scope: 'subtree' }] });
+        await t.db.query('UPDATE employees SET org_node_id = $1 WHERE id = $2', [w.desk, head.employeeId]); // the head sits in the department itself
+        return { ...w, head, headAgent: await t.factories.signIn(head) };
+      }
+
+      it('shows the button to the head only; picking a handler gives them the ticket and takes it from the other handlers', async () => {
+        const w = await headWorld();
+        const ticket = await sendOne(w, w.typeId);
+        const seen = (await w.headAgent.get(`/api/tickets/${ticket.id}`).expect(200)).body as TicketDto;
+        expect(seen.abilities.chooseHandler).toBe(true);
+        expect(seen.handlers.map((h) => h.id).sort()).toEqual([w.assignee.id, w.second.id].sort());
+        expect(((await w.agents.assignee.get(`/api/tickets/${ticket.id}`).expect(200)).body as TicketDto).abilities.chooseHandler).toBe(false);
+        const chosen = (await w.headAgent.post(`/api/tickets/${ticket.id}/handler`).send({ handlerUserId: w.second.id }).expect(200)).body as TicketDto;
+        expect(chosen.assignee).toMatchObject({ id: w.second.id });
+        expect(chosen.abilities.chooseHandler).toBe(false);
+        expect(chosen.handlers).toEqual([]);
+        expect((await w.secondAgent.get('/api/tickets?tab=inbox').expect(200)).body.total).toBe(1);
+        expect((await w.agents.assignee.get('/api/tickets?tab=inbox').expect(200)).body.total).toBe(0);
+        await w.agents.assignee.get(`/api/tickets/${ticket.id}`).expect(404);
+        await w.secondAgent.post(`/api/tickets/${ticket.id}/replies`).send({ body: 'أتولاها' }).expect(201);
+      });
+
+      it('refuses someone who is not a handler of the type, a second choice, a person without the key, and a ticket of a type with one handler', async () => {
+        const w = await headWorld();
+        const ticket = await sendOne(w, w.typeId);
+        expect((await w.headAgent.post(`/api/tickets/${ticket.id}/handler`).send({ handlerUserId: w.sender.id }).expect(422)).body.code).toBe('TICKET_CHOOSE_HANDLER');
+        await w.agents.assignee.post(`/api/tickets/${ticket.id}/handler`).send({ handlerUserId: w.second.id }).expect(403);
+        await w.headAgent.post(`/api/tickets/${ticket.id}/handler`).send({ handlerUserId: w.assignee.id }).expect(200);
+        expect((await w.headAgent.post(`/api/tickets/${ticket.id}/handler`).send({ handlerUserId: w.second.id }).expect(422)).body.code).toBe('TICKET_CHOOSE_HANDLER');
+        const single = await openDesk(w, { nameEn: 'Single', nameAr: 'واحد', handlerUserIds: [w.assignee.id] });
+        const one = await sendOne(w, single);
+        expect(one.assignee).toMatchObject({ id: w.assignee.id });
+        expect(((await w.headAgent.get(`/api/tickets/${one.id}`).expect(200)).body as TicketDto).abilities.chooseHandler).toBe(false);
+        await w.headAgent.post(`/api/tickets/${one.id}/handler`).send({ handlerUserId: w.assignee.id }).expect(422);
+      });
+
+      it('answers 404 for a ticket the person cannot see, and 400 for a malformed body', async () => {
+        const w = await headWorld();
+        const ticket = await sendOne(w, w.typeId);
+        const outsider = await t.factories.signIn(await t.factories.user({ unit: w.org.unitOther, grants: [{ key: CorePermission.TicketsChooseHandler, scope: 'all' }] }));
+        await outsider.post(`/api/tickets/${ticket.id}/handler`).send({ handlerUserId: w.second.id }).expect(404);
+        await w.headAgent.post(`/api/tickets/${ticket.id}/handler`).send({ handlerUserId: 'nobody' }).expect(400);
+      });
     });
 
     it('tells every handler about a new ticket, and gives a type with one handler its assignee at once', async () => {
