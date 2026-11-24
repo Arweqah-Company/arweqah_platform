@@ -2,6 +2,14 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-24 — Ticket setup: link to assign the unit manager (FR-180)
+
+Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-24).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 463 | **The refusal «a unit without a manager cannot be activated» stays; the page adds the way out**: a link under the reception status field to `/org?unit=<id>&tab=leaders` (the existing deep link of the structure page), shown to who holds `org.view`. No new key, no API, no data change; the manager is still set in the structure with `org.leaders_manage` | Owner report: the page refused with no path to fix it. The structure already owns manager assignment, so the page links to it instead of copying its dialog | The owner wants the assignment dialog inside the setup page itself |
+
 ## 2026-11-23 — Tickets: the head chooses the handler; a taken ticket leaves the other handlers (FR-179)
 
 Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-23).
