@@ -1,6 +1,7 @@
 import { CorePermission, DESK_LIMITS, RECEPTION_STATUSES, type ReceptionStatus, type TicketDeskDto, type TicketDeskSettingsInput } from '@arweqah-platform/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
 import { usePermissions } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { saveWithToast } from '@/shared/lib/use-save-toast';
@@ -34,16 +35,26 @@ function DaysField({ id, unit, value, onChange }: { id: Days; unit: 'working' | 
   );
 }
 
-function StatusField({ value, hasManager, onChange }: { value: ReceptionStatus; hasManager: boolean; onChange: (value: ReceptionStatus) => void }) {
+/** A unit without a manager cannot be activated: the way out is the leaders tab of the unit in the structure, one click away (it opens on that unit). */
+function AssignManagerLink({ orgNodeId }: { orgNodeId: string }) {
+  const { t } = useTranslation('tickets');
+  if (!usePermissions().can(CorePermission.OrgView)) return null;
+  return <Link className="self-start text-sm text-link hover:underline" to={`/org?unit=${orgNodeId}&tab=leaders`}>{t('setup.assignManager')}</Link>;
+}
+
+function StatusField({ value, orgNodeId, hasManager, onChange }: { value: ReceptionStatus; orgNodeId: string; hasManager: boolean; onChange: (value: ReceptionStatus) => void }) {
   const { t } = useTranslation('tickets');
   return (
-    <FormField label={t('setup.reception')} hint={t(`setup.receptionHint.${value}`)} error={value === 'active' && !hasManager ? t('setup.needsManager') : undefined}>
-      {(p) => (
-        <Select {...p} value={value} onChange={(e) => onChange(e.target.value as ReceptionStatus)}>
-          {RECEPTION_STATUSES.map((s) => <option key={s} value={s}>{t(`setup.status.${s}`)}</option>)}
-        </Select>
-      )}
-    </FormField>
+    <div className="flex flex-col gap-1">
+      <FormField label={t('setup.reception')} hint={t(`setup.receptionHint.${value}`)} error={value === 'active' && !hasManager ? t('setup.needsManager') : undefined}>
+        {(p) => (
+          <Select {...p} value={value} onChange={(e) => onChange(e.target.value as ReceptionStatus)}>
+            {RECEPTION_STATUSES.map((s) => <option key={s} value={s}>{t(`setup.status.${s}`)}</option>)}
+          </Select>
+        )}
+      </FormField>
+      {!hasManager && <AssignManagerLink orgNodeId={orgNodeId} />}
+    </div>
   );
 }
 
@@ -64,7 +75,7 @@ export function DeskSettingsForm({ desk }: { desk: TicketDeskDto }) {
     <form className="flex flex-col gap-6" aria-disabled={!canEdit} onSubmit={(e) => { e.preventDefault(); void submit(toInput(form)); }} noValidate>
       {save.isError && <Alert>{errorMessage(tc, save.error)}</Alert>}
       <SectionCard id="reception" title={t('setup.receptionTitle')} description={t('setup.receptionIntro')}>
-        <StatusField value={form.receptionStatus} hasManager={!!desk.manager} onChange={(receptionStatus) => set({ receptionStatus })} />
+        <StatusField value={form.receptionStatus} orgNodeId={desk.orgNodeId} hasManager={!!desk.manager} onChange={(receptionStatus) => set({ receptionStatus })} />
         <label className="flex items-center gap-2 self-end pb-3 text-sm"><input type="checkbox" className="size-4 accent-petrol-800" checked={form.acceptsPersonal} onChange={(e) => set({ acceptsPersonal: e.target.checked })} />{t('setup.acceptsPersonal')}</label>
         <FormField label={t('setup.descriptionAr')} hint={t('setup.descriptionHint')}>{(p) => <Textarea {...p} rows={2} maxLength={500} value={form.descriptionAr} onChange={(e) => set({ descriptionAr: e.target.value })} />}</FormField>
         <FormField label={t('setup.descriptionEn')}>{(p) => <Textarea {...p} dir="ltr" rows={2} maxLength={500} value={form.descriptionEn} onChange={(e) => set({ descriptionEn: e.target.value })} />}</FormField>
