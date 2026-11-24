@@ -9,6 +9,7 @@ Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-24).
 | # | Decision | Why | Revisit when |
 |---|---|---|---|
 | 463 | **The refusal «a unit without a manager cannot be activated» stays; the page adds the way out**: a link under the reception status field to `/org?unit=<id>&tab=leaders` (the existing deep link of the structure page), shown to who holds `org.view`. No new key, no API, no data change; the manager is still set in the structure with `org.leaders_manage` | Owner report: the page refused with no path to fix it. The structure already owns manager assignment, so the page links to it instead of copying its dialog | The owner wants the assignment dialog inside the setup page itself |
+| 464 | **The link opens in a new page, on the unit, with the assignment form open** (`/org?unit=<id>&tab=leaders&assign=leader`; the structure page opens `LeaderDialog` once and removes `assign` from the address; only for `org.leaders_manage` in admin mode, like the button) | Owner: it must go straight to the unit and open the form, and in another page so the settings being edited are kept | A way to assign without leaving the setup page |
 
 ## 2026-11-23 — Tickets: the head chooses the handler; a taken ticket leaves the other handlers (FR-179)
 
