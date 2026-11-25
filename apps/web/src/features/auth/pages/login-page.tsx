@@ -1,3 +1,4 @@
+import type { CodeMethod } from '@arweqah-platform/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +11,7 @@ import { identifyEmail, sendEmailCode, signInWithCode, trustedSignIn, useCaptcha
 import { EmailCodeOption, useEmailCode, type EmailCodeState } from './email-code-option';
 import { AuthShell } from './auth-shell';
 
-type Step = 'email' | 'code';
+type Step = 'email' | 'choice' | 'code';
 
 /** The bot check of the e-mail step: shown only while an administrator has one switched on; the button waits for its answer, and each request needs a fresh one. */
 function useBotCheck() {
@@ -45,6 +46,13 @@ function useTrustedEntry(target: string) {
   };
 }
 
+const isRateLimited = (failure: unknown) => failure instanceof ApiError && failure.status === 429;
+
+/** What the sign-in sends: the e-mail and the code, whether to remember the device, and the kind of code only when it is the e-mailed one. */
+function signInBody(email: string, code: string, remember: boolean, method: CodeMethod) {
+  return { email, code, ...(remember ? { rememberDevice: true } : {}), ...(method === 'email' ? { method } : {}) };
+}
+
 function identifyFailure(failure: unknown, t: (key: string) => string): string {
   if (!(failure instanceof ApiError)) return t('failed');
   if (failure.status === 429) return t('tooMany');
@@ -61,13 +69,12 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [identified, setIdentified] = useState({ firstTime: false, trustedDevicesEnabled: false });
-  const [remember, setRemember] = useState(false);
+  const [remember, setRemember] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const enterWithTrustedDevice = useTrustedEntry(target);
   const bot = useBotCheck();
   const emailCode = useEmailCode(() => sendEmailCode(email), () => setCode(''));
-  const emailLive = useLiveError(email, useRules().email);
 
   const microsoft = useMicrosoft(target, setError);
 
@@ -80,7 +87,9 @@ export function LoginPage() {
       const found = await identifyEmail(email, bot.token ?? undefined);
       setIdentified(found);
       if (!found.firstTime && found.trustedDevicesEnabled && (await enterWithTrustedDevice(email))) return;
+      if (found.firstTime) return setStep('choice');
       setStep('code');
+      void emailCode.request();
     } catch (failure) {
       setError(identifyFailure(failure, t));
       bot.refresh();
@@ -95,11 +104,11 @@ export function LoginPage() {
     setBusy(true);
     setError(null);
     try {
-      await signInWithCode({ email, code: finalCode, ...(remember ? { rememberDevice: true } : {}), ...(emailCode.method === 'email' ? { method: 'email' as const } : {}) });
+      await signInWithCode(signInBody(email, finalCode, remember && identified.trustedDevicesEnabled, emailCode.method));
       await client.invalidateQueries();
       navigate(target, { replace: true });
     } catch (failure) {
-      setError(failure instanceof ApiError && failure.status === 429 ? t('tooMany') : t('invalid'));
+      setError(isRateLimited(failure) ? t('tooMany') : t('invalid'));
       setCode('');
     } finally {
       setBusy(false);
@@ -115,23 +124,12 @@ export function LoginPage() {
 
   return (
     <AuthShell title={t('title')} subtitle={t('subtitle')}>
-      {step === 'email' && (
-        <>
-          <Button variant="secondary" className="w-full" onClick={() => void microsoft()}>{t('microsoft')}</Button>
-          <p className="my-5 text-center text-xs text-muted">{t('or')}</p>
-        </>
-      )}
       {step === 'email' ? (
-        <form className="flex flex-col gap-4" onSubmit={(e) => void next(e)} noValidate>
-          {error && <Alert>{error}</Alert>}
-          <FormField label={t('email')} error={emailLive.error}>
-            {(p) => <Input {...p} type="email" autoComplete="username" dir="ltr" placeholder="name@arweqah.sa" onBlur={emailLive.onBlur} value={email} onChange={(e) => setEmail(e.target.value)} required />}
-          </FormField>
-          {bot.siteKey && <Turnstile siteKey={bot.siteKey} onToken={bot.setToken} resetKey={bot.round} />}
-          <Button type="submit" disabled={busy || !email || !bot.ready}>{t('next')}</Button>
-        </form>
+        <EmailStep email={email} onEmail={setEmail} error={error} bot={bot} busy={busy} onMicrosoft={() => void microsoft()} onSubmit={(e) => void next(e)} />
+      ) : step === 'choice' ? (
+        <FirstTimeChoice email={email} emailCode={emailCode} onSend={() => { setStep('code'); void emailCode.request(); }} onBack={back} />
       ) : (
-        <CodeStep email={email} firstTime={identified.firstTime} emailCode={emailCode} remember={identified.trustedDevicesEnabled ? { checked: remember, onChange: setRemember } : null} error={error} code={code} busy={busy} onCode={setCode} onSubmit={(e, full) => void submit(e, full)} onBack={back} />
+        <CodeStep email={email} emailCode={emailCode} remember={identified.trustedDevicesEnabled ? { checked: remember, onChange: setRemember } : null} error={error} code={code} busy={busy} onCode={setCode} onSubmit={(e, full) => void submit(e, full)} onBack={back} />
       )}
     </AuthShell>
   );
@@ -139,7 +137,6 @@ export function LoginPage() {
 
 interface CodeStepProps {
   email: string;
-  firstTime: boolean;
   emailCode: EmailCodeState;
   remember: { checked: boolean; onChange: (value: boolean) => void } | null;
   error: string | null;
@@ -150,12 +147,11 @@ interface CodeStepProps {
   onBack: () => void;
 }
 
-function CodeStep({ email, firstTime, emailCode, remember, error, code, busy, onCode, onSubmit, onBack }: CodeStepProps) {
+function CodeStep({ email, emailCode, remember, error, code, busy, onCode, onSubmit, onBack }: CodeStepProps) {
   const { t } = useTranslation('auth');
   return (
     <form className="flex flex-col gap-4" onSubmit={(e) => onSubmit(e)} noValidate>
       <p dir="ltr" className="text-sm font-medium">{email}</p>
-      {firstTime && <Alert tone="info">{t('firstTimeSent')}</Alert>}
       {error && <Alert>{error}</Alert>}
       {remember && (
         <label className="flex items-center gap-2 text-sm">
@@ -164,13 +160,51 @@ function CodeStep({ email, firstTime, emailCode, remember, error, code, busy, on
         </label>
       )}
       <div className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-fg" id="code-label">{emailCode.method === 'email' ? t('emailCode.label') : t('code')}</span>
-        <CodeInput label={emailCode.method === 'email' ? t('emailCode.label') : t('code')} value={code} onChange={onCode} onComplete={(full) => onSubmit(undefined, full)} invalid={!!error} disabled={busy} />
-        {emailCode.method === 'app' && <p className="text-xs text-muted">{t('codeHint')}</p>}
+        {!(emailCode.sending && emailCode.method === 'app') && (
+          <>
+            <span className="text-sm font-medium text-fg" id="code-label">{emailCode.method === 'email' ? t('emailCode.label') : t('code')}</span>
+            <CodeInput label={emailCode.method === 'email' ? t('emailCode.label') : t('code')} value={code} onChange={onCode} onComplete={(full) => onSubmit(undefined, full)} invalid={!!error} disabled={busy} />
+            {emailCode.method === 'app' && <p className="text-xs text-muted">{t('codeHint')}</p>}
+          </>
+        )}
         <EmailCodeOption state={emailCode} disabled={busy} />
       </div>
       <Button type="submit" disabled={busy || code.length < 6}>{t('submit')}</Button>
       <Button type="button" variant="ghost" size="sm" onClick={onBack}>{t('changeEmail')}</Button>
     </form>
+  );
+}
+
+/** A first sign-in (no app linked yet): the person chooses to have a code e-mailed, or to link the authenticator app with the link already sent to the mailbox. */
+function FirstTimeChoice({ email, emailCode, onSend, onBack }: { email: string; emailCode: EmailCodeState; onSend: () => void; onBack: () => void }) {
+  const { t } = useTranslation('auth');
+  return (
+    <div className="flex flex-col gap-4">
+      <p dir="ltr" className="text-sm font-medium">{email}</p>
+      <Alert tone="info">{t('firstTimeChoice')}</Alert>
+      <Button type="button" disabled={emailCode.sending} onClick={onSend}>{t('emailCode.use')}</Button>
+      <p className="text-sm text-muted">{t('firstTimeLinkApp')}</p>
+      <Button type="button" variant="ghost" size="sm" onClick={onBack}>{t('changeEmail')}</Button>
+    </div>
+  );
+}
+
+/** The first step: Microsoft, or the work e-mail (with the bot check while an administrator has one on). */
+function EmailStep({ email, onEmail, error, bot, busy, onMicrosoft, onSubmit }: { email: string; onEmail: (value: string) => void; error: string | null; bot: ReturnType<typeof useBotCheck>; busy: boolean; onMicrosoft: () => void; onSubmit: (event: FormEvent) => void }) {
+  const { t } = useTranslation('auth');
+  const live = useLiveError(email, useRules().email);
+  return (
+    <>
+      <Button variant="secondary" className="w-full" onClick={onMicrosoft}>{t('microsoft')}</Button>
+      <p className="my-5 text-center text-xs text-muted">{t('or')}</p>
+      <form className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
+        {error && <Alert>{error}</Alert>}
+        <FormField label={t('email')} error={live.error}>
+          {(p) => <Input {...p} type="email" autoComplete="username" dir="ltr" placeholder="name@arweqah.sa" onBlur={live.onBlur} value={email} onChange={(e) => onEmail(e.target.value)} required />}
+        </FormField>
+        {bot.siteKey && <Turnstile siteKey={bot.siteKey} onToken={bot.setToken} resetKey={bot.round} />}
+        <Button type="submit" disabled={busy || !email || !bot.ready}>{t('next')}</Button>
+      </form>
+    </>
   );
 }

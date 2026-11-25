@@ -2,15 +2,23 @@ import { expect } from '@playwright/test';
 import { freshCode } from '../support/totp';
 import { BasePage } from './base.page';
 
-/** The two-step sign-in page: the work e-mail first, then the six code boxes. */
+/** The two-step sign-in page: the work e-mail first (the code is then e-mailed by itself), then the six code boxes; the authenticator app is the second choice. */
 export class LoginPage extends BasePage {
   async goto(): Promise<void> {
     await this.page.goto('/login');
   }
 
-  async enterEmail(email: string): Promise<void> {
+  /** Submits the e-mail; the page e-mails the code at once and shows its boxes. */
+  async submitEmail(email: string): Promise<void> {
     await this.page.getByLabel('بريد العمل').fill(email);
     await this.page.getByRole('button', { name: 'متابعة' }).click();
+    await expect(this.page.getByRole('group', { name: 'الرمز المُرسل إلى بريدك' })).toBeVisible();
+  }
+
+  /** The e-mail, then the second choice: the code of the authenticator app. */
+  async enterEmail(email: string): Promise<void> {
+    await this.submitEmail(email);
+    await this.page.getByRole('button', { name: 'استخدم رمز التطبيق' }).click();
     await expect(this.page.getByRole('group', { name: 'رمز تطبيق المصادقة' })).toBeVisible();
   }
 

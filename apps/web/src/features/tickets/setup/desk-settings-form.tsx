@@ -39,7 +39,7 @@ function DaysField({ id, unit, value, onChange }: { id: Days; unit: 'working' | 
 /** A unit without a manager cannot be activated: the way out is the leaders tab of this very unit in the structure, with the assignment form open, in a new page so what was typed here is kept. */
 function AssignManagerLink({ orgNodeId }: { orgNodeId: string }) {
   const { t } = useTranslation('tickets');
-  if (!usePermissions().can(CorePermission.OrgView)) return null;
+  if (!usePermissions().can(CorePermission.OrgLeadersManage)) return null;
   return (
     <Link className="inline-flex items-center gap-1 self-start text-sm text-link hover:underline" to={`/org?unit=${orgNodeId}&tab=leaders&assign=leader`} target="_blank" rel="noopener noreferrer">
       {t('setup.assignManager')}<ExternalLink className="size-3.5" aria-hidden /><span className="sr-only">{t('setup.opensInNewPage')}</span>
@@ -51,10 +51,10 @@ function StatusField({ value, orgNodeId, hasManager, onChange }: { value: Recept
   const { t } = useTranslation('tickets');
   return (
     <div className="flex flex-col gap-1">
-      <FormField label={t('setup.reception')} hint={t(`setup.receptionHint.${value}`)} error={value === 'active' && !hasManager ? t('setup.needsManager') : undefined}>
+      <FormField label={t('setup.reception')} hint={hasManager ? t(`setup.receptionHint.${value}`) : t('setup.activeNeedsManager')} error={value === 'active' && !hasManager ? t('setup.needsManager') : undefined}>
         {(p) => (
           <Select {...p} value={value} onChange={(e) => onChange(e.target.value as ReceptionStatus)}>
-            {RECEPTION_STATUSES.map((s) => <option key={s} value={s}>{t(`setup.status.${s}`)}</option>)}
+            {RECEPTION_STATUSES.map((s) => <option key={s} value={s} disabled={s === 'active' && !hasManager}>{t(`setup.status.${s}`)}</option>)}
           </Select>
         )}
       </FormField>

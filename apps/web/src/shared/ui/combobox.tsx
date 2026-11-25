@@ -11,6 +11,8 @@ export interface ComboboxOption {
   label: string;
   /** Secondary text shown (and searched) next to the label, e.g. an employee number. */
   hint?: string;
+  /** Shown but not pickable (a choice that is not available now; say why next to the field). */
+  disabled?: boolean;
 }
 
 interface ComboboxProps {
@@ -87,8 +89,9 @@ export function ComboItem({ option: o, selected, onPick }: { option: ComboboxOpt
   return (
     <Command.Item
       value={`${o.label} ${o.hint ?? ''} ${o.value}`}
+      disabled={o.disabled}
       onSelect={() => onPick(o.value)}
-      className="flex cursor-pointer items-center justify-between gap-2 rounded-md px-3 py-2 text-sm transition-colors data-[selected=true]:bg-petrol-50"
+      className="flex cursor-pointer items-center justify-between gap-2 rounded-md px-3 py-2 text-sm transition-colors data-[selected=true]:bg-petrol-50 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50"
     >
       <span className="min-w-0 break-words">{o.label}</span>
       <span className="flex shrink-0 items-center gap-2">

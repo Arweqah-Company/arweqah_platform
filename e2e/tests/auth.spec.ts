@@ -22,6 +22,17 @@ test.describe('Sign-in and language (FR-01, FR-12, FR-23)', () => {
     await login.expectNoSeriousA11yIssues();
   });
 
+  test('e-mails the code by itself after the e-mail, with the app as the second choice and a resend button (FR-183)', async ({ page }) => {
+    const login = new LoginPage(page);
+    await login.goto();
+    await login.submitEmail(ADMIN_EMAIL);
+    await expect(page.getByRole('group', { name: 'رمز تطبيق المصادقة' })).toBeHidden();
+    await expect(page.getByRole('button', { name: /إعادة الإرسال بعد|أعد إرسال الرمز/ })).toBeVisible();
+    await page.getByRole('button', { name: 'استخدم رمز التطبيق' }).click();
+    await expect(page.getByRole('group', { name: 'رمز تطبيق المصادقة' })).toBeVisible();
+    await login.expectNoSeriousA11yIssues();
+  });
+
   test('admin signs in with the e-mail and the authenticator code, then signs out', async ({ page }) => {
     test.setTimeout(90_000); // may wait for the next 30-second code
     const login = new LoginPage(page);

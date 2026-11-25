@@ -11,7 +11,7 @@
   "tooMany": "Too many attempts. Wait a minute and try again.",
   "verify": {
     "title": "Verify your identity",
-    "subtitle": "Enter the code from your authenticator app to finish signing in.",
+    "subtitle": "We e-mailed you a code. Enter it to finish signing in, or use the authenticator app.",
     "submit": "Continue",
     "useBackup": "Use a backup code",
     "useApp": "Use the app code",
@@ -49,7 +49,6 @@
   "next": "Continue",
   "failed": "Could not continue. Try again.",
   "changeEmail": "Change e-mail",
-  "firstTimeSent": "This is your first sign-in. We e-mailed you a link with a QR code to link your authenticator app: open it, scan the code, then enter the code shown in the app here. Or choose \"Send the code to my e-mail\" and enter the code you receive.",
   "botCheckFailed": "The protection check did not pass, try again.",
   "emailCode": {
     "use": "Send the code to my e-mail",
@@ -58,6 +57,9 @@
     "resendIn": "Send again in {{count}} s",
     "useApp": "Use the app code",
     "label": "The code e-mailed to you",
-    "failed": "Could not send the code. Try again."
-  }
+    "failed": "Could not send the code. Try again.",
+    "sending": "Sending the code to your e-mail…"
+  },
+  "firstTimeChoice": "This is your first sign-in. Choose how to verify: have a code e-mailed to you, or link the authenticator app.",
+  "firstTimeLinkApp": "To link the authenticator app: open the link we e-mailed you, scan the QR code, then sign in with the code shown in the app."
 }
