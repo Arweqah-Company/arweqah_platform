@@ -12,7 +12,7 @@ type SelectProps = Omit<SelectHTMLAttributes<HTMLSelectElement>, 'onChange' | 'v
 function optionsOf(children: ReactNode): ComboboxOption[] {
   return Children.toArray(children)
     .filter((c): c is ReactElement<OptionHTMLAttributes<HTMLOptionElement>> => isValidElement(c) && c.type === 'option')
-    .map((c) => ({ value: String(c.props.value ?? ''), label: Children.toArray(c.props.children).join('') }));
+    .map((c) => ({ value: String(c.props.value ?? ''), label: Children.toArray(c.props.children).join(''), disabled: c.props.disabled }));
 }
 
 /**

@@ -14,19 +14,23 @@ export type OrgDialog = { kind: 'add'; parentId: string | null } | { kind: 'leve
 
 /**
  * A link may open the page with a unit selected: `?unit=<id>` (or `first`, the first top unit) and `?tab=<tab>`. The welcome tour uses it to
- * point at a tab of the details panel; it applies once, so closing the panel is never undone.
+ * point at a tab of the details panel, and the ticket setup page to reach a unit's leaders; it applies once, so closing the panel is never undone.
+ * A unit that is not in the «my team» view is looked for in the full view when the person may open it (`needFull`).
  */
-function useOpenFromLink(tree: OrgTreeDto | undefined, open: (id: string, tab: string | null) => void) {
+function useOpenFromLink(tree: OrgTreeDto | undefined, open: (id: string, tab: string | null) => void, needFull: () => void) {
   const [params] = useSearchParams();
+  const perms = usePermissions();
+  const canFull = perms.can(CorePermission.OrgViewFull);
   const done = useRef(false);
   const wanted = params.get('unit');
   const tab = params.get('tab');
   useEffect(() => {
-    if (done.current || !wanted || !tree) return;
+    if (done.current || !wanted || !tree || !perms.ready) return;
     const target = wanted === 'first' ? tree.nodes.find((n) => !n.parentId) : tree.nodes.find((n) => n.id === wanted);
+    if (!target && tree.view === 'team' && canFull) return needFull();
     done.current = true;
     if (target) open(target.id, tab);
-  }, [wanted, tab, tree, open]);
+  }, [wanted, tab, tree, open, needFull, canFull, perms.ready]);
 }
 
 /** The page's own state: which part of the structure is shown, the selected unit and its tab, the open popup, the search and the filters. */
@@ -47,7 +51,7 @@ export function useOrgPage() {
   useOpenFromLink(treeQuery.data, (id, wantedTab) => {
     setSelectedId(id);
     if (wantedTab) setTab(wantedTab);
-  });
+  }, () => setScope('full'));
   const chooseScope = (next: OrgScope) => {
     setScope(next);
     if (next === 'team') setAsCompany('');

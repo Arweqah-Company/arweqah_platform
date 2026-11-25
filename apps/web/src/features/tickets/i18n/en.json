@@ -234,6 +234,7 @@
       "stopped": "The unit is not listed for anyone. Existing tickets are handled as usual."
     },
     "needsManager": "A unit without a manager cannot be activated.",
+    "activeNeedsManager": "«Active» is not available now: this unit has no manager. Assign its manager first, then switch reception on.",
     "assignManager": "Assign the unit manager in the structure",
     "opensInNewPage": "(opens in a new page)",
     "acceptsPersonal": "Accepts personal requests (the unit manager does not see them)",
