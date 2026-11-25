@@ -10,6 +10,7 @@ export function useEmailCode(send: () => Promise<unknown>, clearCode: () => void
   const [method, setMethod] = useState<CodeMethod>('app');
   const [wait, setWait] = useState(0);
   const [failed, setFailed] = useState(false);
+  const [sending, setSending] = useState(false);
   useEffect(() => {
     if (wait <= 0) return undefined;
     const timer = setTimeout(() => setWait(wait - 1), 1000);
@@ -17,6 +18,7 @@ export function useEmailCode(send: () => Promise<unknown>, clearCode: () => void
   }, [wait]);
   const request = async () => {
     setFailed(false);
+    setSending(true);
     try {
       await send();
       clearCode();
@@ -24,9 +26,11 @@ export function useEmailCode(send: () => Promise<unknown>, clearCode: () => void
       setWait(RESEND_SECONDS);
     } catch {
       setFailed(true);
+    } finally {
+      setSending(false);
     }
   };
-  return { method, wait, failed, request, useApp: () => {
+  return { method, wait, failed, sending, request, useApp: () => {
       clearCode();
       setMethod('app');
     } };
@@ -37,6 +41,7 @@ export type EmailCodeState = ReturnType<typeof useEmailCode>;
 /** The link under the code boxes: ask for the e-mailed code, or go back to the app; the e-mailed mode also shows the resend button. */
 export function EmailCodeOption({ state, disabled }: { state: EmailCodeState; disabled?: boolean }) {
   const { t } = useTranslation('auth');
+  if (state.sending && state.method === 'app') return <p role="status" className="text-sm text-muted">{t('emailCode.sending')}</p>;
   if (state.method === 'app') {
     return (
       <>
@@ -50,7 +55,7 @@ export function EmailCodeOption({ state, disabled }: { state: EmailCodeState; di
       <Alert tone="info">{t('emailCode.sent')}</Alert>
       {state.failed && <Alert>{t('emailCode.failed')}</Alert>}
       <div className="flex items-center justify-between text-sm">
-        <Button type="button" variant="ghost" size="sm" disabled={disabled || state.wait > 0} onClick={() => void state.request()}>{state.wait > 0 ? t('emailCode.resendIn', { count: state.wait }) : t('emailCode.resend')}</Button>
+        <Button type="button" variant="ghost" size="sm" disabled={disabled || state.sending || state.wait > 0} onClick={() => void state.request()}>{state.wait > 0 ? t('emailCode.resendIn', { count: state.wait }) : t('emailCode.resend')}</Button>
         <button type="button" className="cursor-pointer text-link underline underline-offset-4" onClick={state.useApp}>{t('emailCode.useApp')}</button>
       </div>
     </div>

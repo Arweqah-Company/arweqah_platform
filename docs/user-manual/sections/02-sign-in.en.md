@@ -1,6 +1,6 @@
 ## Signing in
 
-There is no password on the platform. You sign in **with the company Microsoft account** or **with your work e-mail and the authenticator-app code** (Microsoft Authenticator or Google Authenticator). You prove who you are with one of two codes: **the code of the authenticator app** or **a code e-mailed to you**, and no page works before the code is verified.
+There is no password on the platform. You sign in **with the company Microsoft account** or **with your work e-mail**, and in both cases **a 6-digit code is e-mailed to you at once** and you enter it to finish. **The authenticator app** (Microsoft Authenticator or Google Authenticator) is the second choice, for when the e-mail does not work. No page works before the code is verified.
 
 ![Sign in](../images/en/01-login.png)
 
@@ -13,49 +13,52 @@ There is no password on the platform. You sign in **with the company Microsoft a
 
 | Action | What happens | Permission |
 |---|---|---|
-| Sign in with Microsoft | You sign in with the company account at Microsoft, then the app code is asked | Not needed |
-| Type the work e-mail then «Continue» | Takes you to the code field | Not needed |
-| Enter the app code (6 digits) then «Sign in» | Opens the platform | Not needed |
+| Sign in with Microsoft | You sign in with the company account at Microsoft, then a code reaches your e-mail by itself | Not needed |
+| Type the work e-mail then «Continue» | A code is e-mailed to you by itself and its boxes show (on a first sign-in you choose the way first) | Not needed |
+| Enter the code e-mailed to you (6 digits) | Opens the platform (valid 10 minutes, used once) | Not needed |
+| «Send the code again» | E-mails a new code (once a minute) | Not needed |
 | «Change e-mail» | Takes you back to type another e-mail | Not needed |
+| «Use the app code» | Shows the authenticator-app code boxes, the second choice when the e-mail does not work | Not needed |
 | «Use a backup code» | You sign in with one of the codes you saved when linking | Not needed |
-| «Send the code to my e-mail» | Sends a 6-digit code to your work e-mail, to enter instead of the app code (valid 10 minutes, used once) | Not needed |
-| «Remember this device and do not ask for the code there» | Trusts the browser: for the time the platform administrator set, typing your e-mail is enough to sign in there, with no code (also after Microsoft) | Not needed |
+| «Send the code to my e-mail» | Takes you back from the app code to the e-mailed code, or (on a first sign-in) sends the first code | Not needed |
+| «Remember this device and do not ask for the code there» | **Ticked by default:** trusts the browser; for the time the platform administrator set, typing your e-mail is enough to sign in there, with no code (also after Microsoft) | Not needed |
 
 ### How to
 
 **The usual sign-in with the work e-mail**
 
+1. Type your **work e-mail** and click «Continue». If a bot check appears, complete it.
+2. A **6-digit code is e-mailed to you by itself** (press nothing). Open your mailbox and enter it in the boxes.
+3. The platform opens. «Remember this device and do not ask for the code there» is **ticked by default** (shown when the platform administrator allows trusted devices): keep it to sign in from this browser with no code next time, and untick it on a shared device.
+4. The code did not arrive? Click «Send the code again» (once a minute). The code is valid 10 minutes, works once and stops after 5 wrong tries.
 
-1. Type your **work e-mail** and press «Continue». If a bot-protection check appears, complete it.
-2. Open the authenticator app and enter the **6-digit code** shown for your account.
-3. The platform opens. The code changes every 30 seconds.
+**Signing in with the authenticator app code (when the e-mail does not work)**
 
-**Signing in with a code sent to your e-mail (no phone at hand)**
-
-1. Type your work e-mail and press «Continue».
-2. Press «Send the code to my e-mail». Within a minute a 6-digit code reaches your mailbox.
-3. Enter it in the boxes. It is valid 10 minutes, works once, and stops after 5 wrong tries. To get a new one press «Send the code again» (allowed once a minute) or go back with «Use the app code». It is available to every employee, even on a first sign-in before the app is linked.
+1. After «Continue» click «Use the app code». (If the e-mail could not be sent, a notice shows and the app code stays available.)
+2. Open the authenticator app and enter the **6-digit code** it shows for your account; it changes every 30 seconds. If the phone is lost, use «Use a backup code».
+3. To go back to the e-mailed code click «Send the code to my e-mail».
 
 **Signing in with the Microsoft account**
 
-
-1. Press «Sign in with Microsoft» and sign in with the company account.
-2. Enter the authenticator-app code on the «Verify your identity» page and press «Continue». Even with Microsoft, the code is asked.
+1. Click «Sign in with Microsoft» and sign in with the company account.
+2. On the «Verify your identity» page **the code reaches your mailbox by itself**; enter it and click «Continue». On a trusted device no code is asked and nothing is sent. For the app code click «Use the app code».
 
 **First sign-in: linking the authenticator app**
 
 
-1. Type your e-mail and continue. A message says: «This is your first sign-in. We e-mailed you a link with a QR code».
+1. Type your e-mail and continue. A message says: «This is your first sign-in. Choose how to verify»; choose linking the app and open the link with the QR code that we e-mailed you.
 2. Open the link in your e-mail. Install **Microsoft Authenticator** or **Google Authenticator** on your phone.
 3. In the app add an account and scan the QR code. If you cannot scan, enter the key shown by hand.
 4. Enter the code shown in the app and press «Confirm and link the app».
 5. **Backup codes** appear. They are shown only once and each works one time. Copy them or download them as a file and keep them safe, then «Continue».
 
-**First sign-in without linking the app (e-mailed code)**
+**First sign-in: you choose between the e-mailed code and linking the app**
 
-1. Type your e-mail and continue, then press «Send the code to my e-mail» and enter the code you receive. You get in without linking the app, and can link it later from «Security».
-2. After a Microsoft sign-in, someone who has not linked the app sees a page with two choices: «Link the authenticator app» and «Send the code to my e-mail».
-3. Note: turning on admin mode asks for the app code, so a system administrator needs the app linked.
+1. Type your e-mail and continue. A notice says «This is your first sign-in. Choose how to verify» and no code is sent until you choose.
+2. **E-mailed code:** click «Send the code to my e-mail» and enter the code that arrives. You enter the platform without linking the app and can link it later from «Security».
+3. **Linking the app:** open the link we e-mailed you and follow the «Link your authenticator app» steps above, then sign in with the code shown in the app.
+4. After signing in with Microsoft, someone who has not linked the app sees a page with the same two choices: «Link the authenticator app» and «Send the code to my e-mail».
+5. Note: switching on admin mode asks the app code, so the system administrator has to link the app.
 
 ### Fields (form inputs)
 
@@ -72,18 +75,18 @@ The sign-in has three small forms, one after the other. Nothing here is a permis
 
 | Field | What it means / what to type | Required | Allowed values / rules |
 |---|---|---|---|
-| Authenticator code | The 6-digit number your authenticator app shows for your account. It proves the phone is yours | Yes | 6 digits; it changes every 30 seconds and a code already used is never accepted |
-| Code e-mailed to you | The same 6-digit code, sent to your work e-mail when you press «Send the code to my e-mail» | Yes, if you use it instead of the app code | 6 digits; valid 10 minutes, works once, 5 wrong tries cancel it |
-| Remember this device and do not ask for the code there | Asks the platform to trust this browser; next time, typing your e-mail signs you in there with no code | No | A tick box, shown only when the administrator allowed trusted devices (Settings → Security, days above 0); the time is the one the administrator set |
+| Authenticator code | The 6-digit number your authenticator app shows for your account. It proves the phone is yours. The second choice, shown after «Use the app code» | Yes, if you use it instead of the e-mailed code | 6 digits; it changes every 30 seconds and a code already used is never accepted |
+| Code e-mailed to you | A 6-digit code e-mailed to your work e-mail by itself after «Continue» (on a first sign-in after you press «Send the code to my e-mail»); «Send the code again» for a new one | Yes, it is the first way | 6 digits; valid 10 minutes, works once, 5 wrong tries cancel it |
+| Remember this device and do not ask for the code there | Asks the platform to trust this browser; next time, typing your e-mail signs you in there with no code | No | A tick box, **ticked by default** and shown only when the administrator allowed trusted devices (Settings → Security, days above 0); the time is the one the administrator set |
 
 **The «Verify your identity» page** (after «Sign in with Microsoft»)
 
 | Field | What it means / what to type | Required | Allowed values / rules |
 |---|---|---|---|
-| Authenticator code | The same 6-digit code; Microsoft only proves who you are, the code is still asked | Yes | 6 digits |
-| Code e-mailed to you | The 6-digit code sent to your work e-mail after pressing «Send the code to my e-mail»; it replaces the app code | Yes, if you use it instead of the app code | 6 digits; valid 10 minutes, works once, 5 wrong tries cancel it |
+| Authenticator code | The same 6-digit code; Microsoft only proves who you are, the code is still asked. The second choice after «Use the app code» | Yes, if you use it instead of the e-mailed code | 6 digits |
+| Code e-mailed to you | The 6-digit code e-mailed to your work e-mail by itself when the page opens; it is the first way | Yes | 6 digits; valid 10 minutes, works once, 5 wrong tries cancel it |
 | Backup code | One of the codes you saved when you linked the app, for when the phone is lost (press «Use a backup code», and «Use the app code» to go back) | Yes, if you use it instead of the app code | 6 to 12 characters, such as `K7MQ2-X9PD4`; each works once |
-| Remember this device and do not ask for the code there | Trusts this browser | No | A tick box, shown only when trusted devices are allowed |
+| Remember this device and do not ask for the code there | Trusts this browser | No | A tick box, **ticked by default** and shown only when trusted devices are allowed |
 
 **The first-time page «Link your authenticator app»** (opened from the link in your e-mail)
 
@@ -99,13 +102,13 @@ The sign-in has three small forms, one after the other. Nothing here is a permis
 
 1. **You** open the platform and either press «Sign in with Microsoft» or type your work e-mail and press «Continue». If bot protection is on, you solve its check first.
 2. **The platform** looks for your account. It never says whether the e-mail exists: a wrong e-mail or a wrong code gives the same message.
-3. **You** enter the 6-digit code from your authenticator app (also after Microsoft, unless this is a trusted device) and press «Sign in» (or «Continue»).
+3. **The platform** e-mails a **6-digit code to you at once** (also after Microsoft, unless this is a trusted device). **You** enter it and press «Sign in» (or «Continue»), or press «Use the app code» and enter the authenticator-app code if the e-mail does not work.
 4. **The platform** checks the code, opens a session in a secure cookie that the page's scripts cannot read, and takes you to the page you asked for, or Home.
 5. **The sign-in is written to the audit log** (category «Sign-in and security»). Nobody else is notified.
 
 **First sign-in (linking the app)**
 
-1. **You** type your e-mail and press «Continue». The platform tells you: «This is your first sign-in. We e-mailed you a link with a QR code».
+1. **You** type your e-mail and press «Continue». The platform tells you: «This is your first sign-in. Choose how to verify», and e-mails you a link with a QR code to link the app; you choose «Send the code to my e-mail» or link the app from the link.
 2. **The platform** e-mails you a link, which is valid for 72 hours; if HR sends a new invitation, the old link stops working.
 3. **You** open the link, scan the QR in the app (or type the key), enter the code and press «Confirm and link the app».
 4. **The platform** links the app, shows 10 backup codes once (copy or download them), and you press «Continue to sign in». The linking is recorded in the audit log.
