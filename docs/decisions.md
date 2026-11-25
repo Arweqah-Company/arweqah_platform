@@ -20,6 +20,15 @@ Plan: `docs/plans/phase-7-agent-chat.md` §15ط (log 2026-11-24).
 | 473 | **The sound is never stored:** `POST /agent/transcribe` does not use `FilesService`, writes no row (no file, message, conversation) and nothing of it in the audit; the recording lives in the request's memory. The text goes into the writing box and the employee reads and edits it, so it reaches the assistant only as an ordinary message (where numbers are masked); speech itself cannot be masked, so the provider guide and the screen warn. It counts against the hour limit (`agentMessagesPerHour`) in its own window, and a turn is given back when the service fails or cannot take sound. A speech longer than a message is cut at 2000 characters and says so | Owner: the sound is not kept, and the text is reviewed before sending | The owner wants recordings kept or sent without review |
 | 468 | **One upload path on the web:** `useUploader` (`shared/lib`) holds the upload, the limit and the error of every file box; `FileAttachments` and the assistant's composer use it, and `checkFiles` (`FileDropzone`) is the one check for a click, a drop and a paste. The paperclip opens a compact `FileDropzone` (standing rule 14) | Standing rule: shared code, no copies | — |
 
+## 2026-11-24 — Ticket setup: link to assign the unit manager (FR-182)
+
+Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-24).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 474 | **The refusal «a unit without a manager cannot be activated» stays; the page adds the way out**: a link under the reception status field to `/org?unit=<id>&tab=leaders` (the existing deep link of the structure page), shown to who holds `org.view`. No new key, no API, no data change; the manager is still set in the structure with `org.leaders_manage` | Owner report: the page refused with no path to fix it. The structure already owns manager assignment, so the page links to it instead of copying its dialog | The owner wants the assignment dialog inside the setup page itself |
+| 475 | **The link opens in a new page, on the unit, with the assignment form open** (`/org?unit=<id>&tab=leaders&assign=leader`; the structure page opens `LeaderDialog` once and removes `assign` from the address; only for `org.leaders_manage` in admin mode, like the button) | Owner: it must go straight to the unit and open the form, and in another page so the settings being edited are kept | A way to assign without leaving the setup page |
+
 ## 2026-11-23 — Tickets: the head chooses the handler; a taken ticket leaves the other handlers (FR-179)
 
 Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-23).

@@ -28,7 +28,7 @@ The page has two tabs: **Settings** and **Types**.
 **Switch on a desk**
 
 1. Turn on platform admin mode and open **Ticket setup**.
-2. Choose the unit. Under the picker you see «Manager: …»; if there is none, set the manager in the organization structure first.
+2. Choose the unit. Under the picker you see «Manager: …»; if there is none, set it first: click the «Assign the unit manager in the structure» link under the reception status field (shown to who holds `org.view`); it opens in a **new page** on this very unit with the «Assign a leader or acting leader» form already open (needs `org.leaders_manage` and platform admin mode); choose the employee and save, then go back to the setup page, which stays as you left it.
 3. In **Settings**, set the reception status to «Active» and write the description the sender will read (Arabic and English).
 4. Set the durations and click **Save**.
 
@@ -140,5 +140,5 @@ The page has two tabs: **Settings** and **Types**.
 ### Tips / common problems
 
 - «This page works in platform admin mode»: turn the mode on from the top of the page.
-- «Active» is refused: the unit has no manager yet.
+- «Active» is refused: the unit has no manager yet. Click «Assign the unit manager in the structure» under the field, set the manager on the leaders tab, then come back and activate. (FR-182)
 - A sender says the unit is not offered: check that reception is Active, the start date has come, and the unit has at least one active type.
