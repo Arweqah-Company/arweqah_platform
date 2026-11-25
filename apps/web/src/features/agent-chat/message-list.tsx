@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { usePermissions } from '@/core/permissions/can';
 import { Button } from '@/shared/ui';
 import { cn } from '@/shared/lib/cn';
+import { ChatImage } from './chat-image';
 import { DraftCard } from './draft-card';
 import { FormCard, FormSent } from './form-card';
 import { AGENT_KEYS } from './keys';
@@ -14,7 +15,7 @@ interface Props {
   busy: boolean;
   /** While a message is being worked on: what the assistant is doing and the words it has written so far. */
   live?: { status: AgentStatusDto | null; text: string } | null;
-  onConfirm: (id: string) => void;
+  onConfirm: (id: string, fileIds: string[]) => void;
   onCancel: (id: string) => void;
   onSendForm: (id: string, values: Record<string, unknown>) => void;
   formError: unknown;
@@ -51,7 +52,8 @@ export function MessageList({ messages, live, ...rest }: Props) {
       {messages.length === 0 && <p className="text-sm text-muted">{t('empty')}</p>}
       {messages.map((message) => (
         <div key={message.id} className={cn('flex max-w-[92%] flex-col', message.role === 'user' ? 'self-end items-end' : 'self-start items-start')}>
-          <p className={cn('whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm', message.role === 'user' ? 'bg-petrol-50 text-fg' : 'bg-neutral-50 text-fg')}>{message.text}</p>
+          {message.files.length > 0 && <div className="mb-1 flex flex-wrap justify-end gap-1">{message.files.map((file) => <ChatImage key={file.id} file={file} />)}</div>}
+          {message.text && <p className={cn('whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm', message.role === 'user' ? 'bg-petrol-50 text-fg' : 'bg-neutral-50 text-fg')}>{message.text}</p>}
           <Attachments message={message} {...rest} />
         </div>
       ))}
@@ -76,7 +78,7 @@ function Attachments({ message, busy, onConfirm, onCancel, onSendForm, formError
       {form?.status === 'open' && canUse && (opened
         ? <FormCard form={form} busy={busy} error={formError} onSubmit={(values) => onSendForm(message.id, values)} />
         : <Button className="mt-2" size="sm" variant="secondary" onClick={() => setOpened(true)}>{t('form.open')}</Button>)}
-      {draft && <DraftCard draft={draft} busy={busy} onConfirm={() => onConfirm(draft.id)} onCancel={() => onCancel(draft.id)} />}
+      {draft && <DraftCard draft={draft} busy={busy} onConfirm={(fileIds) => onConfirm(draft.id, fileIds)} onCancel={() => onCancel(draft.id)} />}
     </>
   );
 }

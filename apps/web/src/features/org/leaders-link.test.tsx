@@ -11,7 +11,7 @@ const serve = http.get('*/api/org/nodes/:id/leaders', () => HttpResponse.json(le
 const link = `/?unit=${N.section}&tab=leaders&assign=leader`;
 const FORM = 'تعيين قائد أو قائم بالأعمال';
 
-describe('A link opens the leaders tab of a unit with the assignment form open (FR-180)', () => {
+describe('A link opens the leaders tab of a unit with the assignment form open (FR-182)', () => {
   it('opens the unit, its leaders tab and the form for who may assign, in admin mode', async () => {
     openOrgPage({ keys: [CorePermission.OrgLeadersManage], adminMode: true, path: link, handlers: [serve] });
     expect(await screen.findByRole('dialog', { name: FORM })).toBeInTheDocument();

@@ -26,14 +26,28 @@ describe('The form of an action (FR-152)', () => {
 
   it('builds the form: choices from the schema or from the model, optional lists left out, a mandatory one that cannot be drawn means no form', () => {
     const fields = [field('deskId', { type: 'string', format: 'uuid' }, true), field('nameAr', { type: 'string' }, true), field('kind', { type: 'string', enum: ['a', 'b'] }), field('handlers', { type: 'array' })];
-    const built = buildForm({ action: action(fields), values: { nameAr: 'س' }, options: { deskId: [{ label: 'التقنية', value: ID }] }, labels: { nameAr: 'الاسم' } });
+    const built = buildForm({ action: action(fields), values: { nameAr: 'س' }, options: { deskId: [{ label: 'التقنية', value: ID }] }, labels: { nameAr: 'الاسم' }, locale: 'ar' });
     expect(built?.fields.map((f) => [f.name, f.type, f.label, f.options?.length])).toEqual([['deskId', 'select', 'Desk id', 1], ['nameAr', 'text', 'الاسم', undefined], ['kind', 'select', 'Kind', 2]]);
-    expect(buildForm({ action: action(fields), values: {}, options: {}, labels: {} })).toBeNull();
-    expect(buildForm({ action: action([field('items', { type: 'array' }, true)]), values: {}, options: {}, labels: {} })).toBeNull();
+    expect(buildForm({ action: action(fields), values: {}, options: {}, labels: {}, locale: 'ar' })).toBeNull();
+    expect(buildForm({ action: action([field('items', { type: 'array' }, true)]), values: {}, options: {}, labels: {}, locale: 'ar' })).toBeNull();
+  });
+
+  it('a field that is a union of constants (a 0 / 1 priority) is a list named in the person\'s language, not a number box; its choice goes back as a number', () => {
+    const priority = { anyOf: [{ type: 'number', const: 0 }, { type: 'number', const: 1 }], optionLabels: { 0: { ar: 'عادية', en: 'Normal' }, 1: { ar: 'عاجلة', en: 'Urgent' } } };
+    expect(formFieldType(priority)).toBe('select');
+    const built = (locale: 'ar' | 'en') => buildForm({ action: action([field('priority', priority)]), values: {}, options: {}, labels: {}, locale });
+    expect(built('ar')?.fields[0]).toMatchObject({ type: 'select', numeric: true, options: [{ label: 'عادية', value: '0' }, { label: 'عاجلة', value: '1' }] });
+    expect(built('en')?.fields[0]?.options?.map((o) => o.label)).toEqual(['Normal', 'Urgent']);
+    const fields = built('ar')!.fields;
+    expect(cleanValues(fields, {}, { priority: '1' })).toEqual({ priority: 1 });
+    expect(cleanValues(fields, {}, { priority: '0' })).toEqual({ priority: 0 });
+    expect(formErrors(fields, { priority: 1 })).toEqual({});
+    expect(formErrors(fields, { priority: 5 })).toEqual({ priority: 'invalid_choice' });
+    expect(formSummary('x', fields, { priority: 1 })).toContain('عاجلة');
   });
 
   it('keeps an id the assistant already holds out of the form but in the values', () => {
-    const built = buildForm({ action: action([field('deskId', { type: 'string', format: 'uuid' }, true), field('name', { type: 'string' }, true)]), values: { deskId: ID }, options: {}, labels: {} });
+    const built = buildForm({ action: action([field('deskId', { type: 'string', format: 'uuid' }, true), field('name', { type: 'string' }, true)]), values: { deskId: ID }, options: {}, labels: {}, locale: 'ar' });
     expect(built?.fields.map((f) => f.name)).toEqual(['name']);
     expect(built?.values).toEqual({ deskId: ID });
   });

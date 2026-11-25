@@ -14,7 +14,7 @@ import { AuditLog } from '../core/audit/domain/audit-log.entity';
 import { Authenticator, AuthenticatorBackupCode, EnrollmentInvite } from '../core/auth/domain/authenticator.entities';
 import { AllowedEmailDomain } from '../core/auth/domain/allowed-email-domain.entity';
 import { SecuritySetting } from '../core/auth/domain/security-setting.entity';
-import { AgentConversation, AgentMessage } from '../core/agent/domain/entities/agent.entities';
+import { AgentConversation, AgentMessage, AgentMessageFile } from '../core/agent/domain/entities/agent.entities';
 import { TrustedDevice } from '../core/auth/domain/trusted-device.entity';
 import { EmailLoginCode } from '../core/auth/domain/email-login-code.entity';
 import { User } from '../core/auth/domain/user.entity';
@@ -61,6 +61,7 @@ export const ENTITIES = [
   SecuritySetting,
   AgentConversation,
   AgentMessage,
+  AgentMessageFile,
   Authenticator,
   AuthenticatorBackupCode,
   EnrollmentInvite,

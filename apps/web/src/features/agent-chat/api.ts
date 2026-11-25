@@ -1,4 +1,4 @@
-import type { AgentConversationDetailDto, AgentConversationDto, AgentMessageDto, AgentMessageInput, AgentReplyDto, AgentStatusDto } from '@arweqah-platform/shared';
+import type { AgentTranscriptDto, AgentConversationDetailDto, AgentConversationDto, AgentMessageDto, AgentMessageInput, AgentReplyDto, AgentStatusDto } from '@arweqah-platform/shared';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { ApiError, apiClient } from '@/core/api/api-client';
 import i18n from '@/core/i18n';
@@ -28,7 +28,7 @@ export async function sendLive(input: AgentMessageInput, handlers: LiveHandlers)
 /** The language of the screen, so the assistant answers its fixed texts in it (the browser's own language can be another). */
 const screenLanguage = (): Record<string, string> => ({ 'X-UI-Language': i18n.language === 'en' ? 'en' : 'ar' });
 
-export const useConfirmDraft = () => useMutation({ mutationFn: (id: string) => apiClient.request<AgentReplyDto>(`/agent/drafts/${id}/confirm`, { method: 'POST', headers: screenLanguage() }) });
+export const useConfirmDraft = () => useMutation({ mutationFn: ({ id, fileIds }: { id: string; fileIds: string[] }) => apiClient.request<AgentReplyDto>(`/agent/drafts/${id}/confirm`, { method: 'POST', body: { fileIds }, headers: screenLanguage() }) });
 export const useSubmitForm = () => useMutation({ mutationFn: ({ id, values }: { id: string; values: Record<string, unknown> }) => apiClient.request<AgentReplyDto>(`/agent/forms/${id}/submit`, { method: 'POST', body: { values }, headers: screenLanguage() }) });
 export const useCancelDraft = () => useMutation({ mutationFn: (id: string) => apiClient.post<AgentMessageDto>(`/agent/drafts/${id}/cancel`) });
 
@@ -36,3 +36,10 @@ export const useCancelDraft = () => useMutation({ mutationFn: (id: string) => ap
 export const useConversations = (enabled: boolean) => useQuery({ queryKey: ['agent-conversations'], queryFn: () => apiClient.get<AgentConversationDto[]>('/agent/conversations'), enabled });
 
 export const fetchConversation = (id: string) => apiClient.get<AgentConversationDetailDto>(`/agent/conversations/${id}`);
+
+/** Sends a recording (a 16 kHz mono WAV) to be written down; the server keeps nothing of it. */
+export function transcribe(wav: Blob): Promise<AgentTranscriptDto> {
+  const form = new FormData();
+  form.append('file', wav, 'speech.wav');
+  return apiClient.post<AgentTranscriptDto>('/agent/transcribe', form);
+}

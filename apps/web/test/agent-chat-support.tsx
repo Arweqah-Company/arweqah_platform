@@ -9,14 +9,16 @@ import { usePermissions } from '../src/core/permissions/can';
 import { AgentChat } from '../src/features/agent-chat/agent-chat';
 
 export const KEYS = ['agent.view', 'agent.use', 'agent.history_view'];
+export const ATTACH_KEYS = [...KEYS, 'agent.attach_image'];
+export const VOICE_KEYS = [...KEYS, 'agent.use_voice'];
 export const grants = (keys: string[]) => keys.map((key) => ({ key, scope: 'all' as const }));
 export const soon = () => new Date(Date.now() + 30 * 60_000).toISOString();
 
 export const draft = (over: Partial<AgentDraftDto> = {}): AgentDraftDto => ({
   id: 'd1', operationId: 'TicketSetupController.createType', labelAr: 'إضافة نوع تذكرة', labelEn: 'Add a ticket type', summary: 'إضافة النوع «مشكلة تقنية» إلى قسم التقنية',
-  values: {}, destructive: false, status: 'pending', expiresAt: soon(), result: null, ...over,
+  values: {}, destructive: false, status: 'pending', expiresAt: soon(), result: null, files: [], ...over,
 });
-export const reply = (text: string, d: AgentDraftDto | null = null): AgentMessageDto => ({ id: 'm1', role: 'assistant', text, draft: d, links: null, form: null, createdAt: new Date().toISOString() });
+export const reply = (text: string, d: AgentDraftDto | null = null): AgentMessageDto => ({ id: 'm1', role: 'assistant', text, draft: d, links: null, form: null, files: [], createdAt: new Date().toISOString() });
 
 /** The assistant's live answer: events written as the API writes them, delivered in two pieces cut in the middle of an event. */
 export const live = (events: [string, unknown][], status = 200) => {

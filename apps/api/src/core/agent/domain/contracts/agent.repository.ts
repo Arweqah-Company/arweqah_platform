@@ -1,4 +1,4 @@
-import type { AgentLinkDto } from '@arweqah-platform/shared';
+import type { AgentFileDto, AgentLinkDto } from '@arweqah-platform/shared';
 import type { AgentConversation, AgentMessage, StoredDraft, StoredDraftResult, StoredForm } from '../entities/agent.entities';
 
 export interface NewAgentMessage {
@@ -9,6 +9,8 @@ export interface NewAgentMessage {
   draftExpiresAt?: Date;
   links?: AgentLinkDto[];
   form?: StoredForm;
+  /** Pictures (ids of the person's own files) saved with the message in the same transaction. */
+  fileIds?: string[];
 }
 
 /** Port: the conversations of the assistant and their drafts. */
@@ -34,4 +36,10 @@ export abstract class AgentRepository {
   abstract finishDraft(id: string, status: 'confirmed' | 'failed', result: StoredDraftResult): Promise<void>;
   abstract setDraftStatus(id: string, status: 'cancelled' | 'expired'): Promise<void>;
   abstract touchConversation(id: string): Promise<void>;
+  /** The pictures of a conversation, newest first (the message each came with is the order). */
+  abstract conversationImages(conversationId: string, limit: number): Promise<AgentFileDto[]>;
+  /** Which of these files are already sent with a message (a picture goes with one message only). */
+  abstract linkedFileIds(fileIds: string[]): Promise<string[]>;
+  /** True when the file came with a message of a conversation that belongs to the user. */
+  abstract canReadFile(fileId: string, userId: string): Promise<boolean>;
 }

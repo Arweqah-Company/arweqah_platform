@@ -85,7 +85,7 @@ export const createTicketSchema = z.strictObject({
   title: z.string().trim().min(1).max(200),
   details: z.string().trim().max(MAX_TICKET_TEXT).default(''),
   /** 1 = urgent. */
-  priority: z.union([z.literal(0), z.literal(1)]).default(0),
+  priority: z.union([z.literal(0), z.literal(1)]).meta({ optionLabels: { 0: { ar: 'عادية', en: 'Normal' }, 1: { ar: 'عاجلة', en: 'Urgent' } } }).default(0),
   /** ISO date; empty = today + the type's duration in working days. */
   neededBy: z.iso.date().optional(),
   fileIds,

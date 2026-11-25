@@ -14,6 +14,7 @@ function draftOf(message: AgentMessage): AgentDraftDto | null {
     status: message.draftStatus as AgentDraftStatus,
     expiresAt: message.draftExpiresAt.toISOString(),
     result: message.result,
+    files: message.draft.files ?? [],
   };
 }
 
@@ -23,7 +24,7 @@ function formOf(message: AgentMessage): AgentFormDto | null {
 
 /** The employee never sees the `tool` lines (data the assistant looked up), so they have no DTO. */
 export function toMessageDto(message: AgentMessage): AgentMessageDto {
-  return { id: message.id, role: message.role === 'user' ? 'user' : 'assistant', text: message.text, draft: draftOf(message), links: message.links, form: formOf(message), createdAt: message.createdAt.toISOString() };
+  return { id: message.id, role: message.role === 'user' ? 'user' : 'assistant', text: message.text, draft: draftOf(message), links: message.links, form: formOf(message), files: message.files, createdAt: message.createdAt.toISOString() };
 }
 
 export function toConversationDto(conversation: AgentConversation): AgentConversationDto {

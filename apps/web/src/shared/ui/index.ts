@@ -29,7 +29,7 @@ export { MentionTextarea } from './mention-textarea';
 export { MentionedText } from './mentioned-text';
 export { FileChip } from './file-chip';
 export { FilePreviewDialog, type PreviewableFile } from './file-preview-dialog';
-export { FileDropzone } from './file-dropzone';
+export { FileDropzone, checkFiles } from './file-dropzone';
 export { ProgressSplit, type SplitPart } from './progress-split';
 export { DonutChart, BarsChart, type ChartPart } from './charts';
 export { GroupSelect } from './group-select';

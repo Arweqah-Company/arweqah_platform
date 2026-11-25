@@ -68,6 +68,13 @@ export class FilesService {
     return this.storage.read(file.storageKey);
   }
 
+  /** The whole content of a stored file in memory (a picture handed to the AI service). */
+  async readBytes(file: StoredFile): Promise<Buffer> {
+    const chunks: Buffer[] = [];
+    for await (const chunk of await this.storage.read(file.storageKey)) chunks.push(Buffer.from(chunk as Buffer));
+    return Buffer.concat(chunks);
+  }
+
   async open(file: StoredFile): Promise<{ url: string } | { stream: Readable }> {
     const url = await this.storage.signedUrl(file.storageKey, file.originalName);
     return url ? { url } : { stream: await this.storage.read(file.storageKey) };

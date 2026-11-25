@@ -98,6 +98,8 @@
     "PAST_END_DATE": "The end date cannot be in the past.",
     "AI_NOT_CONFIGURED": "No AI service is switched on in the settings. Ask the administrator.",
     "AI_UNAVAILABLE": "The AI service could not answer just now. Try again in a moment; if it keeps happening, tell the administrator.",
+    "AI_AUDIO_UNSUPPORTED": "The AI service that is switched on does not take sound. Ask the administrator, or type your message.",
+    "AGENT_AUDIO_INVALID": "The recording must be a sound of at most 5 minutes.",
     "AGENT_RATE_LIMITED": "You sent too many messages to the assistant this hour. Try again later.",
     "AGENT_DRAFT_EXPIRED": "This request expired. Ask the assistant again.",
     "AGENT_DRAFT_NOT_PENDING": "This request was already handled.",
