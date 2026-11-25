@@ -21,7 +21,7 @@ function open(keys: string[], manager: TicketDeskDto['manager']) {
   renderPage(<DeskSettingsForm desk={desk(manager)} />);
 }
 
-describe('A unit without a manager cannot be activated, and the way to give it one is on the page (FR-180)', () => {
+describe('A unit without a manager cannot be activated, and the way to give it one is on the page (FR-182)', () => {
   it('links the unit to the leaders tab of the structure, beside the refusal, for who may open the structure', async () => {
     open([CorePermission.TicketsSetupEdit, CorePermission.OrgView], null);
     await chooseOption(await screen.findByRole('combobox'), 'active');

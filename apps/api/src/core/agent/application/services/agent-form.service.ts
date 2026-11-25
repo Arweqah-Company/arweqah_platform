@@ -20,6 +20,7 @@ export interface FormOffer {
   options: Record<string, ChoiceOption[]>;
   labels: Record<string, string>;
   lookedUp: readonly string[];
+  locale: 'ar' | 'en';
 }
 
 /** Sending a form: who, which message, what they typed, and their language (the card is worded in it). */
@@ -47,7 +48,7 @@ export class AgentFormService {
   /** The form to attach to the assistant's message, or null when the action cannot be drawn as one. A choice the lookups do not show is dropped. */
   offer(input: FormOffer): StoredForm | null {
     const options = Object.fromEntries(Object.entries(input.options).map(([field, list]) => [field, list.filter((o) => pairedInData(o, input.lookedUp))]));
-    const built = buildForm({ action: input.action, values: groundedValues(input.values, input.lookedUp), options, labels: input.labels });
+    const built = buildForm({ action: input.action, values: groundedValues(input.values, input.lookedUp), options, labels: input.labels, locale: input.locale });
     return built && { operationId: input.action.operationId, labelAr: input.action.labelAr, labelEn: input.action.labelEn, ...built };
   }
 

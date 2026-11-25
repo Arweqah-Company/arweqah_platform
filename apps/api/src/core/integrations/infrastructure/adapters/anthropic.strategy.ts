@@ -10,13 +10,15 @@ export class AnthropicStrategy extends AiStrategy {
   readonly providerKey = 'anthropic' as const;
 
   async json(request: AiJsonRequest): Promise<AiJsonOutcome> {
+    // Claude takes no sound: asked to listen, it says so without a call.
+    if (request.audio) return { kind: 'failed', message: 'Claude does not take sound', audioUnsupported: true };
     const client = new Anthropic({ apiKey: String(request.values.apiKey), timeout: AI_TIMEOUT_MS, maxRetries: 0 });
     try {
       const stream = client.messages.stream({
         model: String(request.values.model),
         max_tokens: request.maxTokens,
         system: request.system,
-        messages: [{ role: 'user', content: request.user }],
+        messages: [{ role: 'user', content: contentOf(request) }],
         output_config: { format: { type: 'json_schema', schema: request.schema } },
       });
       if (request.onText) stream.on('text', request.onText);
@@ -33,6 +35,15 @@ export class AnthropicStrategy extends AiStrategy {
   models(request: AiModelsRequest): Promise<AiModelsOutcome> {
     return listModels(request);
   }
+}
+
+/** The text alone, or the pictures (as base64 blocks) followed by the text. */
+function contentOf(request: AiJsonRequest): string | Anthropic.ContentBlockParam[] {
+  if (!request.images?.length) return request.user;
+  return [
+    ...request.images.map((image): Anthropic.ContentBlockParam => ({ type: 'image', source: { type: 'base64', media_type: image.mediaType, data: image.data } })),
+    { type: 'text', text: request.user },
+  ];
 }
 
 /** Claude's models for this key, through the SDK's paged list. */

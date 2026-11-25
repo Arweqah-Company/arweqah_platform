@@ -288,6 +288,8 @@ export const CorePermission = {
   AgentView: 'agent.view',
   AgentUse: 'agent.use',
   AgentHistoryView: 'agent.history_view',
+  AgentAttachImage: 'agent.attach_image',
+  AgentUseVoice: 'agent.use_voice',
 } as const;
 export type CorePermissionKey = (typeof CorePermission)[keyof typeof CorePermission];
 
@@ -357,6 +359,8 @@ export const EMPLOYEE_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 'own
   { key: CorePermission.AgentView, scope: 'all' },
   { key: CorePermission.AgentUse, scope: 'all' },
   { key: CorePermission.AgentHistoryView, scope: 'all' },
+  { key: CorePermission.AgentAttachImage, scope: 'all' },
+  { key: CorePermission.AgentUseVoice, scope: 'all' },
 ];
 
 /**
@@ -382,6 +386,8 @@ export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 's
   { key: CorePermission.AgentView, scope: 'all' },
   { key: CorePermission.AgentUse, scope: 'all' },
   { key: CorePermission.AgentHistoryView, scope: 'all' },
+  { key: CorePermission.AgentAttachImage, scope: 'all' },
+  { key: CorePermission.AgentUseVoice, scope: 'all' },
   // people of the unit and below
   { key: CorePermission.EmployeesView, scope: 'subtree' },
   { key: CorePermission.EmployeesOpen, scope: 'subtree', fields: ALL_VISIBLE_FIELDS as string[] },

@@ -1,5 +1,5 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
-import type { AgentFormDto, AgentLinkDto } from '@arweqah-platform/shared';
+import { Column, Entity, Index, JoinColumn, ManyToOne, Unique } from 'typeorm';
+import type { AgentFileDto, AgentFormDto, AgentLinkDto } from '@arweqah-platform/shared';
 import { BaseEntity } from '../../../../common/domain/base.entity';
 
 /** One chat of an employee with the platform assistant. Private to its owner. */
@@ -26,6 +26,8 @@ export interface StoredDraft {
   values: Record<string, unknown>;
   input: { path: Record<string, unknown>; query: Record<string, unknown>; body: Record<string, unknown> };
   destructive: boolean;
+  /** The conversation's pictures that may go with the request (an action that takes files); the employee ticks which on the card. Absent in drafts made before pictures existed. */
+  files?: AgentFileDto[];
 }
 
 export interface StoredDraftResult {
@@ -81,4 +83,30 @@ export class AgentMessage extends BaseEntity {
 
   @Column({ name: 'form_status', type: 'varchar', length: 10, nullable: true })
   formStatus: string | null;
+
+  /** The pictures sent with this message: filled by the repository, not a column (see `AgentMessageFile`). */
+  files: AgentFileDto[] = [];
+}
+
+/** A picture sent with a message of a conversation. A stored file belongs to one message only, so it is read through the conversation's owner. */
+@Entity('agent_message_files')
+@Unique('UQ_agent_message_files_file', ['fileId'])
+@Index('IDX_agent_message_files_message', ['messageId'])
+export class AgentMessageFile extends BaseEntity {
+  @Column({ name: 'message_id', type: 'uuid' })
+  messageId: string;
+
+  @ManyToOne(() => AgentMessage, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'message_id' })
+  message?: AgentMessage;
+
+  @Column({ name: 'file_id', type: 'uuid' })
+  fileId: string;
+
+  @ManyToOne('StoredFile', { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'file_id' })
+  file?: unknown;
+
+  @Column({ type: 'smallint', default: 0 })
+  position: number;
 }

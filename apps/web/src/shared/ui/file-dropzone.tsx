@@ -23,7 +23,7 @@ interface Props {
   label: string;
 }
 
-type Verdict = { ok: File[]; problem: 'badType' | 'tooBig' | null };
+export type Verdict = { ok: File[]; problem: 'badType' | 'tooBig' | null };
 
 /** Dropping ignores the input's `accept`, so the type is checked here for both ways of choosing. */
 export function acceptsFile(file: File, accept?: string): boolean {
@@ -36,7 +36,8 @@ export function acceptsFile(file: File, accept?: string): boolean {
   });
 }
 
-function check(files: File[], accept?: string, maxBytes?: number): Verdict {
+/** Which of the files are the right type and size, and what was wrong with the others: the same check for a click, a drop and a paste. */
+export function checkFiles(files: File[], accept?: string, maxBytes?: number): Verdict {
   const typed = files.filter((file) => acceptsFile(file, accept));
   const ok = typed.filter((file) => !maxBytes || file.size <= maxBytes);
   if (ok.length === files.length) return { ok, problem: null };
@@ -48,7 +49,7 @@ function useDropzone({ onFiles, accept, multiple, maxBytes, off }: Pick<Props, '
   const [problem, setProblem] = useState<Verdict['problem']>(null);
 
   const take = (picked: File[]) => {
-    const verdict = check(multiple ? picked : picked.slice(0, 1), accept, maxBytes);
+    const verdict = checkFiles(multiple ? picked : picked.slice(0, 1), accept, maxBytes);
     setProblem(verdict.problem);
     if (verdict.ok.length) onFiles(verdict.ok);
   };

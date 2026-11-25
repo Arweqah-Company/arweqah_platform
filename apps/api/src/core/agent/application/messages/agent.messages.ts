@@ -14,6 +14,7 @@ export function localeOf(language: string | string[] | undefined): AgentLocale {
 }
 
 const TEXTS = {
+  pictureTitle: { ar: 'صورة', en: 'Picture' },
   gaveUp: { ar: 'لم أستطع إكمال الطلب. حاول صياغته بشكل أبسط.', en: 'I could not finish that. Try putting it more simply.' },
 } as const;
 

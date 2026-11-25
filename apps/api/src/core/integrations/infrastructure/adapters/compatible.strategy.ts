@@ -66,7 +66,7 @@ export class CompatibleStrategy extends AiStrategy {
       });
       if (response.ok && request.onText) return await readChatStream(response, request.onText);
       const answer = answerOf(await response.json().catch(() => null));
-      if (!response.ok) return { kind: 'failed', message: `${response.status}: ${answer.error?.message ?? response.statusText}`.slice(0, 500), ...(BUSY_STATUSES.includes(response.status) && { busy: true }) };
+      if (!response.ok) return failedOutcome(response, answer, request);
       return outcomeOf(answer);
     } catch (error) {
       return { kind: 'failed', message: error instanceof Error ? error.message.slice(0, 500) : 'Unknown error' };
@@ -79,6 +79,16 @@ const BUSY_STATUSES: readonly number[] = [429, 500, 502, 503, 504];
 const RETRY_WAITS_MS: readonly number[] = [2_000, 5_000];
 const isBusy = (outcome: AiJsonOutcome): boolean => outcome.kind === 'failed' && 'busy' in outcome && outcome.busy === true;
 
+function failedOutcome(response: Response, answer: ChatAnswer, request: AiJsonRequest): AiJsonOutcome {
+  const message = `${response.status}: ${answer.error?.message ?? response.statusText}`.slice(0, 500);
+  if (BUSY_STATUSES.includes(response.status)) return { kind: 'failed', message, busy: true };
+  const refused = IMAGE_REFUSALS.includes(response.status);
+  return { kind: 'failed', message, ...(request.images?.length && refused && { imagesRejected: true }), ...(request.audio && refused && { audioUnsupported: true }) };
+}
+
+/** A model that does not read pictures answers a request that carries them as malformed. */
+const IMAGE_REFUSALS: readonly number[] = [400, 404, 415, 422];
+
 /** Google answers an error with a list holding one object (`[{"error": …}]`), the others with the object itself. */
 function answerOf(body: unknown): ChatAnswer {
   const first = Array.isArray(body) ? body[0] : body;
@@ -90,11 +100,19 @@ function bodyOf(request: AiJsonRequest): Record<string, unknown> {
     model: String(request.values.model),
     messages: [
       { role: 'system', content: request.system },
-      { role: 'user', content: request.user },
+      { role: 'user', content: userContent(request) },
     ],
     response_format: { type: 'json_schema', json_schema: { name: 'answer', strict: true, schema: request.schema } },
     ...(request.onText && { stream: true, stream_options: { include_usage: true } }),
   };
+}
+
+/** The text alone, or the text with the pictures as data addresses (the OpenAI `image_url` part) and the speech (`input_audio`). */
+function userContent(request: AiJsonRequest): string | Record<string, unknown>[] {
+  if (!request.images?.length && !request.audio) return request.user;
+  const pictures = (request.images ?? []).map((image) => ({ type: 'image_url', image_url: { url: `data:${image.mediaType};base64,${image.data}` } }));
+  const speech = request.audio ? [{ type: 'input_audio', input_audio: { data: request.audio.data, format: request.audio.format } }] : [];
+  return [{ type: 'text', text: request.user }, ...pictures, ...speech];
 }
 
 type Choice = NonNullable<ChatAnswer['choices']>[number];

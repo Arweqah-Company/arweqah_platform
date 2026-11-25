@@ -43,6 +43,14 @@ export class AiNotConfiguredError extends BusinessRuleError {
   }
 }
 
+/** The AI service that is switched on does not take sound (Claude, or a service that reads sound only through its own transcription address). */
+export class AiAudioUnsupportedError extends BusinessRuleError {
+  override readonly code = 'AI_AUDIO_UNSUPPORTED';
+  constructor() {
+    super('The AI service that is switched on does not take sound');
+  }
+}
+
 /** `cause` is what the service said (the key already removed); the caller may show it to someone who may see the settings. */
 export class AiUnavailableError extends ExternalServiceError {
   override readonly code = 'AI_UNAVAILABLE';

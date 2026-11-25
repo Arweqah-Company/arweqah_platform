@@ -14,7 +14,7 @@ import type { AgentRequestContext } from '../../application/services/agent-execu
 import { localeOf } from '../../application/messages/agent.messages';
 import { AgentHidden } from '../agent-hidden.decorator';
 import { errorEvent, openEventStream, writeEvent } from '../event-stream';
-import { AgentFormSubmitBody, AgentIdParam, AgentMessageBody } from '../dtos/agent.dtos';
+import { AgentConfirmBody, AgentFormSubmitBody, AgentIdParam, AgentMessageBody } from '../dtos/agent.dtos';
 
 /** The request the guard has already given a session and the person's access to. */
 type StreamRequest = Request & AuthenticatedRequest & RequestWithAccess;
@@ -84,8 +84,8 @@ export class AgentController {
 
   @Post('drafts/:id/confirm')
   @RequirePermission(CorePermission.AgentUse)
-  confirm(@Access() ctx: AccessContext, @CurrentUser() user: SessionUser, @Param() { id }: AgentIdParam, @Req() request: Request): Promise<AgentReplyDto> {
-    return this.drafts.confirm(ctx, user.id, id, requestContextOf(request));
+  confirm(@Param() { id }: AgentIdParam, @Body() body: AgentConfirmBody, @Req() request: StreamRequest): Promise<AgentReplyDto> {
+    return this.drafts.confirm({ ctx: request.access!, userId: request.user!.id, draftId: id, request: requestContextOf(request), input: body });
   }
 
   @Post('drafts/:id/cancel')

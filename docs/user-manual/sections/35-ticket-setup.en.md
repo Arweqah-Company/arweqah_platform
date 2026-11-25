@@ -140,5 +140,5 @@ The page has two tabs: **Settings** and **Types**.
 ### Tips / common problems
 
 - «This page works in platform admin mode»: turn the mode on from the top of the page.
-- «Active» is refused: the unit has no manager yet. Click «Assign the unit manager in the structure» under the field, set the manager on the leaders tab, then come back and activate. (FR-180)
+- «Active» is refused: the unit has no manager yet. Click «Assign the unit manager in the structure» under the field, set the manager on the leaders tab, then come back and activate. (FR-182)
 - A sender says the unit is not offered: check that reception is Active, the start date has come, and the unit has at least one active type.

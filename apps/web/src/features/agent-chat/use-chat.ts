@@ -1,6 +1,7 @@
 import type { AgentMessageDto, AgentStatusDto } from '@arweqah-platform/shared';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRef, useState, type Dispatch, type SetStateAction } from 'react';
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+import type { ChatFile } from './chat-file';
 import { fetchConversation, sendLive, useCancelDraft, useConfirmDraft, useSubmitForm } from './api';
 
 /** A step whose failure is shown under the messages (from the mutation's error), not thrown. */
@@ -37,7 +38,7 @@ function useDraftActions(generation: { current: number }, setMessages: SetMessag
     if (started === generation.current) apply(value);
   };
 
-  const confirmDraft = quietly((id: string) => whileHere(confirm.mutateAsync(id), ({ messages }) => {
+  const confirmDraft = quietly((id: string, fileIds: string[]) => whileHere(confirm.mutateAsync({ id, fileIds }), ({ messages }) => {
     const [draft, outcome] = messages;
     if (draft) replace(draft);
     if (outcome) setMessages((all) => [...all, outcome]);
@@ -66,15 +67,24 @@ export function useChat() {
   /** Counts the requests to open an earlier conversation: only the latest one may change the screen. */
   const opening = useRef(0);
 
-  const ask = async (text: string): Promise<void> => {
+  /** The local previews of the pictures sent in this conversation; released when it is left. */
+  const previews = useRef<string[]>([]);
+  const releasePreviews = () => {
+    previews.current.forEach((url) => URL.revokeObjectURL(url));
+    previews.current = [];
+  };
+  useEffect(() => releasePreviews, []);
+
+  const ask = async (text: string, files: ChatFile[] = []): Promise<void> => {
     const started = generation.current;
     const here = () => started === generation.current;
     const id = `local-${(localId.current += 1)}`;
     setSendError(null);
-    setMessages((all) => [...all, { id, role: 'user', text, draft: null, links: null, form: null, createdAt: new Date().toISOString() }]);
+    previews.current.push(...files.flatMap((f) => f.localUrl ?? []));
+    setMessages((all) => [...all, { id, role: 'user', text, draft: null, links: null, form: null, files, createdAt: new Date().toISOString() }]);
     setLive({ status: { code: 'thinking' }, text: '' });
     try {
-      const reply = await sendLive({ conversationId, text }, { onStatus: (status) => here() && setLive((l) => ({ text: l?.text ?? '', status })), onText: (delta) => here() && setLive((l) => ({ status: l?.status ?? null, text: (l?.text ?? '') + delta })) });
+      const reply = await sendLive({ conversationId, text, fileIds: files.map((f) => f.id) }, { onStatus: (status) => here() && setLive((l) => ({ text: l?.text ?? '', status })), onText: (delta) => here() && setLive((l) => ({ status: l?.status ?? null, text: (l?.text ?? '') + delta })) });
       if (!here()) return;
       setConversationId(reply.conversationId);
       setMessages((all) => [...all, ...reply.messages]);
@@ -94,6 +104,7 @@ export function useChat() {
       const detail = await fetchConversation(id);
       if (token !== opening.current) return false;
       generation.current += 1;
+      releasePreviews();
       setConversationId(detail.id);
       setMessages(detail.messages);
       setLive(null);
@@ -108,6 +119,7 @@ export function useChat() {
 
   const reset = (): void => {
     generation.current += 1;
+    releasePreviews();
     opening.current += 1;
     setConversationId(undefined);
     setMessages([]);

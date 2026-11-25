@@ -4,6 +4,7 @@ import { RateWindow } from '../../../../common/application/rate-window';
 import { PageVisibilityService } from '../../../access/application/page-visibility.service';
 import type { AccessContext } from '../../../access/domain/access-context';
 import { SecuritySettingsService } from '../../../auth/application/security-settings.service';
+import type { AiImage } from '../../../integrations/domain/contracts/ai-client';
 import { AiService } from '../../../integrations/application/services/ai.service';
 import { AiNotConfiguredError, AiUnavailableError } from '../../../integrations/domain/errors/integrations.errors';
 import { AgentRepository } from '../../domain/contracts/agent.repository';
@@ -14,12 +15,14 @@ import type { AgentTurnEvents } from '../../domain/types/agent-stream.types';
 import { AGENT_HISTORY_MESSAGES, AGENT_MAX_CALLS, AGENT_MAX_STEPS, AGENT_MAX_STEPS_PER_CALL, SayTextExtractor, agentTurnSchema, normalizeTurn, parseLabels, parseLinkIds, parseOptions, titleOf, type AgentStep, type AgentTurn } from '../../domain/rules/agent-turn.rules';
 import type { AgentAction } from '../../domain/types/agent-catalog.types';
 import { agentText } from '../messages/agent.messages';
-import { AGENT_SYSTEM, describeAction, promptUser, type TranscriptLine } from '../messages/agent.prompt';
+import { AGENT_SYSTEM, PICTURES_NOT_SEEN_NOTE, PROPOSE_FIRST_NOTE, describeAction, promptUser, type TranscriptLine } from '../messages/agent.prompt';
 import { toMessageDto } from '../transformers/agent.transformer';
 import { AgentAvailability } from './agent-availability';
 import { AgentCatalogService } from './agent-catalog.service';
 import type { AgentRequestContext } from './agent-executor';
+import { messageText, latestImages } from '../../domain/rules/agent-image.rules';
 import { AgentCheckService } from './agent-check.service';
+import { AgentFilesService } from './agent-files.service';
 import { AgentFormService } from './agent-form.service';
 import { AgentGuideService } from './agent-guide.service';
 import { AgentLookupService } from './agent-lookup.service';
@@ -51,10 +54,15 @@ interface TurnState {
   guided: Map<string, AgentLinkDto>;
   /** Set when a proposal failed only for mandatory fields still empty: the form the next «say» may carry. */
   formOffer?: { action: AgentAction; values: Record<string, unknown> };
+  /** A propose was tried this message (whatever came of it), and the model was already sent back once to try one before answering. */
+  proposed?: boolean;
+  sentBack?: boolean;
   ctx: AccessContext;
   request: AgentRequestContext;
   /** Where a live screen is told what is happening; absent for the plain request. */
   events?: AgentTurnEvents;
+  /** The pictures the model is shown with every call of this message (empty once the service answered that it cannot read them). */
+  images: AiImage[];
 }
 
 /** What a step did: the message that ends the turn, `next` (go on with the next step), or `failed` (a note for the model; the steps after it are dropped). */
@@ -80,6 +88,7 @@ export class AgentChatService {
     private readonly availability: AgentAvailability,
     private readonly checks: AgentCheckService,
     private readonly forms: AgentFormService,
+    private readonly pictures: AgentFilesService,
   ) {}
 
   async send(call: AgentSend): Promise<AgentReplyDto> {
@@ -95,18 +104,27 @@ export class AgentChatService {
   }
 
   private async converse({ ctx, userId, input, request, events }: AgentSend): Promise<AgentReplyDto> {
-    const conversation = await this.conversationFor(userId, input);
-    const saved = await this.repo.addMessage({ conversationId: conversation.id, role: 'user', text: input.text });
+    const fileIds = await this.attachedTo(ctx, userId, input);
+    const conversation = await this.conversationFor(userId, input, request.locale);
+    const saved = await this.repo.addMessage({ conversationId: conversation.id, role: 'user', text: input.text, fileIds });
     // Up to this very message: one sent at the same moment on the same conversation must not appear in this answer's context.
     const history = await this.repo.recentMessages(conversation.id, AGENT_HISTORY_MESSAGES, saved.createdAt);
-    const state: TurnState = { conversation, actions: await this.visibleTo(ctx), lines: history.map(toLine), notes: [], stepsRun: 0, described: new Set(), guided: new Map(), ctx, request, events };
+    const images = await this.pictures.imagesOf(latestImages(history));
+    const state: TurnState = { conversation, actions: await this.visibleTo(ctx), lines: history.map(toLine), notes: [], stepsRun: 0, described: new Set(), guided: new Map(), ctx, request, events, images };
     const reply = await this.runSteps(state);
     await this.repo.touchConversation(conversation.id);
     return { conversationId: conversation.id, messages: [toMessageDto(reply)] };
   }
 
-  private async conversationFor(userId: string, input: AgentMessageInput): Promise<AgentConversation> {
-    if (!input.conversationId) return this.repo.createConversation(userId, titleOf(input.text));
+  /** The pictures sent with the message, checked (the key, each one the person's own and still free); none when there are none. */
+  private async attachedTo(ctx: AccessContext, userId: string, input: AgentMessageInput): Promise<string[]> {
+    if (!input.fileIds.length) return [];
+    this.pictures.assertMayAttach(ctx);
+    return this.pictures.attachable(userId, input.fileIds);
+  }
+
+  private async conversationFor(userId: string, input: AgentMessageInput, locale: 'ar' | 'en'): Promise<AgentConversation> {
+    if (!input.conversationId) return this.repo.createConversation(userId, titleOf(input.text) || agentText('pictureTitle', locale));
     const found = await this.repo.findConversation(input.conversationId, userId);
     if (!found) throw new AgentConversationNotFoundError();
     return found;
@@ -131,8 +149,16 @@ export class AgentChatService {
     const { events } = state;
     const extractor = new SayTextExtractor();
     const onText = events ? (delta: string) => { const fresh = extractor.push(delta); if (fresh) events.text(fresh); } : undefined;
-    const { value } = await this.ai.jsonOf({ system: AGENT_SYSTEM, user: promptUser(state.actions, state.lines, state.notes), schema: agentTurnSchema, maxTokens: MAX_TOKENS, normalize: normalizeTurn, onText });
-    return value;
+    const user = promptUser(state.actions, state.lines, state.notes);
+    const asked = { system: AGENT_SYSTEM, user, schema: agentTurnSchema, maxTokens: MAX_TOKENS, normalize: normalizeTurn, onText };
+    if (!state.images.length) return (await this.ai.jsonOf(asked)).value;
+    const answer = await this.ai.jsonOf({ ...asked, images: state.images, userWithoutImages: promptUser(state.actions, state.lines, [...state.notes, PICTURES_NOT_SEEN_NOTE]) });
+    if (!answer.imagesSeen) {
+      // The service reads no pictures: the next calls of this message do not send them again, and the model keeps being told so.
+      state.images = [];
+      state.notes.push(PICTURES_NOT_SEEN_NOTE);
+    }
+    return answer.value;
   }
 
   /** The steps of one model answer, in order, until one ends the turn or fails. */
@@ -151,7 +177,7 @@ export class AgentChatService {
     const action = state.actions.find((a) => a.operationId === step.operationId);
     switch (step.kind) {
       case 'say':
-        return this.sayStep(state, step);
+        return this.mustProposeFirst(state) ? this.fail(state, PROPOSE_FIRST_NOTE) : this.sayStep(state, step);
       case 'check':
         return this.check(state, step.text);
       case 'describe':
@@ -211,7 +237,16 @@ export class AgentChatService {
     return 'next';
   }
 
+  /** The model described a «write» action and wants to answer without proposing it: it is sent back once, because only a proposal makes the platform list the missing fields and build the form (a button the model promised would not exist). */
+  private mustProposeFirst(state: TurnState): boolean {
+    if (state.proposed || state.sentBack) return false;
+    const wrote = [...state.described].some((id) => state.actions.find((a) => a.operationId === id)?.kind === 'write');
+    state.sentBack = wrote;
+    return wrote;
+  }
+
   private async propose(state: TurnState, action: AgentAction | undefined, step: AgentStep): Promise<StepResult> {
+    state.proposed = true;
     this.learn(state, action);
     this.working(state, 'preparing', action);
     const proposed = await this.proposals.propose(state.conversation.id, action, step, state.lines.filter((l) => l.role === 'tool').map((l) => l.text));
@@ -230,7 +265,7 @@ export class AgentChatService {
   private formOf(state: TurnState, step: AgentStep): StoredForm | null {
     const { formOffer } = state;
     if (!formOffer) return null;
-    return this.forms.offer({ ...formOffer, options: parseOptions(step.optionsJson), labels: parseLabels(step.labelsJson), lookedUp: state.lines.filter((l) => l.role === 'tool').map((l) => l.text) });
+    return this.forms.offer({ ...formOffer, options: parseOptions(step.optionsJson), labels: parseLabels(step.labelsJson), lookedUp: state.lines.filter((l) => l.role === 'tool').map((l) => l.text), locale: state.request.locale });
   }
 
   private say(state: TurnState, text: string): Promise<AgentMessage> {
@@ -239,5 +274,6 @@ export class AgentChatService {
 }
 
 function toLine(message: AgentMessage): TranscriptLine {
-  return { role: message.role === 'user' || message.role === 'tool' ? message.role : 'assistant', text: message.text };
+  const text = message.role === 'user' ? messageText(message.text, message.files.length) : message.text;
+  return { role: message.role === 'user' || message.role === 'tool' ? message.role : 'assistant', text };
 }

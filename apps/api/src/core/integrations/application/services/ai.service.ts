@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { AiProviderKey } from '@arweqah-platform/shared';
+import type { AiProviderKey, ProviderValues } from '@arweqah-platform/shared';
 import { z } from 'zod';
 import { redactSecrets } from '../../domain/rules/provider-config.rules';
-import { AiClient } from '../../domain/contracts/ai-client';
-import { AiNotConfiguredError, AiUnavailableError } from '../../domain/errors/integrations.errors';
+import { AiClient, type AiAudio, type AiImage, type AiJsonOutcome } from '../../domain/contracts/ai-client';
+import { AiAudioUnsupportedError, AiNotConfiguredError, AiUnavailableError } from '../../domain/errors/integrations.errors';
 import { ActiveProviders } from './active-providers.service';
 
 export interface AiJsonQuestion<T> {
@@ -16,6 +16,11 @@ export interface AiJsonQuestion<T> {
   normalize?: (raw: unknown) => unknown;
   /** Each piece of the answer's text as it is written, for a live screen. */
   onText?: (delta: string) => void;
+  /** Pictures the model reads with `user`. When the service cannot read pictures the question is asked again without them, with `userWithoutImages` (it tells the model they were not seen). */
+  images?: AiImage[];
+  userWithoutImages?: string;
+  /** Speech the model listens to; a service that cannot take it makes `AiAudioUnsupportedError` (there is nothing to fall back to). */
+  audio?: AiAudio;
 }
 
 export interface AiJsonAnswer<T> {
@@ -23,6 +28,8 @@ export interface AiJsonAnswer<T> {
   model: string;
   inputTokens: number;
   outputTokens: number;
+  /** False when pictures were sent but the service could not read them (the answer is to the question without them). */
+  imagesSeen: boolean;
 }
 
 /** What the rest of the platform asks of the AI service: is one switched on, and an answer in a shape it can trust. */
@@ -44,11 +51,20 @@ export class AiService {
     const provider = await this.active.of('ai');
     if (!provider) throw new AiNotConfiguredError();
     const model = String(provider.values.model);
-    const outcome = await this.client.json({ providerKey: provider.providerKey as AiProviderKey, values: provider.values, system: question.system, user: question.user, schema: jsonSchemaOf(question.schema), maxTokens: question.maxTokens, onText: question.onText });
+    const { outcome, imagesSeen } = await this.asked(provider, question);
+    if (outcome.kind === 'failed' && outcome.audioUnsupported) throw new AiAudioUnsupportedError();
     if (outcome.kind === 'refused') throw this.unavailable('The model declined to answer');
     if (outcome.kind === 'truncated') throw this.unavailable('The answer was longer than the limit');
     if (outcome.kind === 'failed') throw this.unavailable(redactSecrets(provider.providerKey, provider.values, outcome.message));
-    return { value: this.parsed(question, outcome.text), model, inputTokens: outcome.inputTokens, outputTokens: outcome.outputTokens };
+    return { value: this.parsed(question, outcome.text), model, inputTokens: outcome.inputTokens, outputTokens: outcome.outputTokens, imagesSeen };
+  }
+
+  /** The request, and once more without the pictures when the service cannot read them (`imagesSeen` says which one answered). */
+  private async asked<T>(provider: { providerKey: string; values: ProviderValues }, question: AiJsonQuestion<T>): Promise<{ outcome: AiJsonOutcome; imagesSeen: boolean }> {
+    const base = { providerKey: provider.providerKey as AiProviderKey, values: provider.values, system: question.system, schema: jsonSchemaOf(question.schema), maxTokens: question.maxTokens, onText: question.onText };
+    const outcome = await this.client.json({ ...base, user: question.user, images: question.images, audio: question.audio });
+    if (outcome.kind === 'failed' && outcome.imagesRejected) return { outcome: await this.client.json({ ...base, user: question.userWithoutImages ?? question.user }), imagesSeen: false };
+    return { outcome, imagesSeen: Boolean(question.images?.length) };
   }
 
   private unavailable(cause: string): AiUnavailableError {
