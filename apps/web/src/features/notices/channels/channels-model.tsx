@@ -1,3 +1,4 @@
+import { formatDate } from '@/shared/lib/format-date';
 import type { NoticeChannelDto } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import type { ExportColumn } from '@/shared/data-exchange/types';
@@ -32,7 +33,7 @@ export function useChannelExportColumns(): ExportColumn<NoticeChannelDto>[] {
     { id: 'unit', header: t('channels.unit'), value: (c) => (c.unit ? words.unit(c.unit) : t('channels.companyWide')) },
     { id: 'status', header: t('channels.status'), value: (c) => t(c.isActive ? 'channels.active' : 'channels.disabled') },
     { id: 'writers', header: t('channels.writers'), value: (c) => c.writersCount },
-    { id: 'updatedAt', header: t('channels.updatedAt'), value: (c) => c.updatedAt.slice(0, 10) },
+    { id: 'updatedAt', header: t('channels.updatedAt'), value: (c) => formatDate(c.updatedAt) },
   ];
 }
 

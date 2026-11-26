@@ -81,10 +81,11 @@ export class TicketsService {
   }
 
   async list(viewer: TicketViewer, query: TicketsQuery): Promise<TicketsPageDto> {
+    if (query.withDetails && !viewer.canExport) throw new ForbiddenError(); // the text of many tickets at once is the export's: its key opens it
     const page = await this.tickets.list({ viewer, tab: query.tab, deskId: query.deskId, typeId: query.typeId, assigneeId: query.assigneeId, status: query.status, search: query.search, groupBy: query.groupBy, page: query.page, pageSize: query.pageSize });
     const names = await this.deskNames(page.items.map((r) => r.deskId));
     const now = this.clock.now();
-    const result: Paginated<ReturnType<TicketTransformer['toListItem']>> = { ...page, items: page.items.map((r) => this.transformer.toListItem(r, names.get(r.deskId), now, query.withDetails)) };
+    const result: Paginated<ReturnType<TicketTransformer['toListItem']>> = { ...page, items: page.items.map((r) => ({ ...this.transformer.toListItem(r, names.get(r.deskId), now, query.withDetails), canDelete: this.policy.mayDelete(viewer, r) })) };
     return { ...result, groupBy: page.groupBy };
   }
 
@@ -117,24 +118,27 @@ export class TicketsService {
     const resolved = await this.replyPolicy.resolve(viewer, found, input);
     const fromUnit = relations.includes('assignee') || relations.includes('manager') || relations.includes('desk');
     const senderAnswersClosing = relations.includes('sender') && !fromUnit && found.status === 'close_requested';
-    const confirming = this.confirmsClosing(viewer, input, senderAnswersClosing, found);
+    const confirming = this.confirmsClosing(viewer, input, relations, found);
     const audience = this.replyAudience(found, relations, fromUnit);
+    let confirmed: (() => void) | null = null;
     await this.tx.run(async (tx) => {
       const claims = found.assigneeUserId === null && found.typeHandlerUserIds.includes(userId);
       const patch = { lastActivityAt: now, ...(claims ? { assigneeUserId: userId } : {}), ...(fromUnit && !found.firstResponseAt ? { firstResponseAt: now } : {}), ...(senderAnswersClosing && !confirming ? { ...nextState('sender_reply', found.status), closeRequestedAt: null } : {}) };
-      await this.patchOrFail(found, patch, tx);
+      // With the confirmation the closing writes the state itself (one change, one revision check), after the reply is in the history.
+      if (!confirming) await this.patchOrFail(found, patch, tx);
       await this.tickets.appendEvent({ ticketId: id, type: 'reply', actorUserId: userId, body: input.body, fileIds: input.fileIds, ...resolved }, tx);
+      if (confirming) confirmed = await this.lifecycle.confirmWithin(found, userId, tx);
       await this.replyNotices.send({ ...resolved, ticket: found, actorUserId: userId, audience }, tx);
     });
     this.audit(userId, TICKET_AUDIT.replied, id, { files: input.fileIds.length, mentions: resolved.mentionIds.length, answer: resolved.parentEventId !== null });
-    if (confirming) await this.lifecycle.act(viewer, id, 'confirm_close');
+    (confirmed as (() => void) | null)?.();
     return this.get(viewer, id);
   }
 
-  /** «Send the reply and confirm the closing»: only the sender of a ticket waiting for their confirmation, and only with the key to confirm. */
-  private confirmsClosing(viewer: TicketViewer, input: TicketReplyInput, senderAnswersClosing: boolean, ticket: TicketRow): boolean {
+  /** «Send the reply and confirm the closing»: the sender of a ticket waiting for their confirmation (even when they also sit on the unit's side), and only with the key to confirm. */
+  private confirmsClosing(viewer: TicketViewer, input: TicketReplyInput, relations: TicketRelation[], ticket: TicketRow): boolean {
     if (!input.confirmClose) return false;
-    if (!senderAnswersClosing) throw new TicketStateInvalidError('confirm_close', ticket.status);
+    if (!relations.includes('sender') || ticket.status !== 'close_requested') throw new TicketStateInvalidError('confirm_close', ticket.status);
     if (!viewer.canConfirmClose) throw new ForbiddenError();
     return true;
   }

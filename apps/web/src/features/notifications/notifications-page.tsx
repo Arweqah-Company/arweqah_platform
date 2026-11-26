@@ -33,7 +33,7 @@ export function NotificationsPage() {
   const exportColumns: ExportColumn<NotificationDto>[] = [
     { id: 'title', header: t('titleColumn'), value: (n) => (ar ? n.titleAr : n.titleEn) },
     { id: 'text', header: t('textColumn'), value: (n) => (ar ? n.bodyAr : n.bodyEn) },
-    { id: 'when', header: t('whenColumn'), value: (n) => formatDateTime(n.createdAt) },
+    { id: 'when', header: t('whenColumn'), value: (n) => formatDateTime(n.createdAt, true) },
     { id: 'state', header: t('filters.state'), value: (n) => (n.readAt ? t('filters.read') : t('filters.unread')) },
   ];
   return (

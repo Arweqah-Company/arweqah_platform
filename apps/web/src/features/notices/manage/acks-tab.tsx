@@ -1,3 +1,4 @@
+import { formatDate } from '@/shared/lib/format-date';
 import { CorePermission, NOTICE_ACK_STATES, type NoticeAckState, type NoticeAcknowledgementRowDto } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
@@ -30,9 +31,9 @@ function useExportColumns(): ExportColumn<NoticeAcknowledgementRowDto>[] {
   return [
     { id: 'name', header: t('acks.employee'), value: (x) => x.name },
     { id: 'unit', header: t('acks.unit'), value: (x) => words.unit(x.unit) },
-    { id: 'deliveredAt', header: t('acks.deliveredAt'), value: (x) => x.deliveredAt.slice(0, 10) },
+    { id: 'deliveredAt', header: t('acks.deliveredAt'), value: (x) => formatDate(x.deliveredAt) },
     { id: 'state', header: t('acks.state'), value: (x) => t(`acks.states.${x.state === 'acknowledged' ? 'acknowledged' : x.state}`) },
-    { id: 'acknowledgedAt', header: t('acks.acknowledgedAt'), value: (x) => x.acknowledgedAt?.slice(0, 10) ?? '' },
+    { id: 'acknowledgedAt', header: t('acks.acknowledgedAt'), value: (x) => formatDate(x.acknowledgedAt) },
   ];
 }
 

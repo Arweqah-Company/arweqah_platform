@@ -1,8 +1,8 @@
-import { formatDate } from '@/shared/lib/format-date';
 import { formatTicketNumber, type TicketListItemDto, type TicketTab } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import type { ExportColumn } from '@/shared/data-exchange/types';
+import { formatDate } from '@/shared/lib/format-date';
 import type { Column } from '@/shared/ui';
 import { TicketFlags, TicketStatusBadge } from './ticket-badges';
 
@@ -40,7 +40,7 @@ export function useTicketExportColumns(): ExportColumn<TicketListItemDto>[] {
     { id: 'status', header: t('columns.status'), value: status },
     { id: 'priority', header: t('columns.priority'), value: (x) => t(x.priority === 1 ? 'priorityValue.urgent' : 'priorityValue.normal') },
     { id: 'neededBy', header: t('columns.neededBy'), value: (x) => x.neededBy },
-    { id: 'createdAt', header: t('columns.createdAt'), value: (x) => x.createdAt.slice(0, 10) },
-    { id: 'activity', header: t('columns.activity'), value: (x) => x.lastActivityAt.slice(0, 10) },
+    { id: 'createdAt', header: t('columns.createdAt'), value: (x) => formatDate(x.createdAt) },
+    { id: 'activity', header: t('columns.activity'), value: (x) => formatDate(x.lastActivityAt) },
   ];
 }

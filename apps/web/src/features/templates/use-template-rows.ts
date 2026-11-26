@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/shared/lib/format-date';
 import { TEMPLATE_AREAS, type TemplateDto, type TemplateKind } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import type { ExportColumn } from '@/shared/data-exchange/types';
@@ -25,7 +26,7 @@ export function useTemplateRows(kind: TemplateKind) {
     { id: 'template', header: t('columns.template'), value: name },
     { id: 'area', header: t('columns.area'), value: (x) => t(`areas.${x.area}`) },
     { id: 'status', header: t('columns.status'), value: (x) => t(`status.${x.status}`) },
-    { id: 'updated', header: t('columns.updated'), value: (x) => x.updatedAt ?? '' },
+    { id: 'updated', header: t('columns.updated'), value: (x) => formatDateTime(x.updatedAt, true) },
   ];
   return { catalog, list, fields, rows: catalog.data?.templates.filter(fits), exportColumns, name };
 }

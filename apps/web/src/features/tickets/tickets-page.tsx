@@ -15,6 +15,7 @@ import { useTicketOptions } from './api';
 import { TicketBoard } from './board/ticket-board';
 import { NewTicketDialog } from './new-ticket/new-ticket-dialog';
 import { GROUPINGS, groupLabel, toTicketsQuery, useTicketFilterFields } from './tickets-filters';
+import { TicketRowDelete } from './ticket-row-delete';
 import { useTicketColumns } from './tickets-columns';
 import { useTicketsList } from './use-tickets-list';
 
@@ -84,7 +85,7 @@ function TicketsTable({ mode, tab, groupBy, table, toolbar, empty }: { mode: Tic
       toolbar={toolbar}
       rowKey={(x) => x.id}
       onRowClick={(x) => navigate(`/tickets/${x.id}`)}
-      actions={(x) => <RowAction label={tc('actions.view')} icon={Eye} to={`/tickets/${x.id}`} />}
+      actions={(x) => <><RowAction label={tc('actions.view')} icon={Eye} to={`/tickets/${x.id}`} />{x.canDelete && <Can permission={CorePermission.TicketsDelete}><TicketRowDelete ticket={x} /></Can>}</>}
       groupOf={groupBy ? (x) => groupLabel(x, groupBy, t, i18n.language === 'ar') : undefined}
       empty={empty}
       columns={columns}

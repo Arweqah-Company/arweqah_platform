@@ -1,3 +1,4 @@
+import { formatDate } from '@/shared/lib/format-date';
 import { CorePermission, type NoticeChannelDto, type NoticeWriterDto } from '@arweqah-platform/shared';
 import { Plus, Trash2, Users } from 'lucide-react';
 import { useState } from 'react';
@@ -31,7 +32,7 @@ function useExportColumns(): ExportColumn<NoticeWriterDto>[] {
     { id: 'writer', header: t('channels.writer'), value: (w) => w.name },
     { id: 'job', header: t('channels.jobTitle'), value: (w) => (w.jobTitle ? (words.ar ? w.jobTitle.nameAr : w.jobTitle.nameEn) : '') },
     { id: 'unit', header: t('channels.unit'), value: (w) => words.unit(w.unit) },
-    { id: 'addedAt', header: t('channels.addedAt'), value: (w) => w.addedAt.slice(0, 10) },
+    { id: 'addedAt', header: t('channels.addedAt'), value: (w) => formatDate(w.addedAt) },
   ];
 }
 

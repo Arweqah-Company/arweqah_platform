@@ -9,7 +9,7 @@ export function useNoticeWords() {
   const ar = i18n.language === 'ar';
   return {
     ar,
-    day: (iso: string | null) => (iso ? formatDate(iso.slice(0, 10)) : '—'),
+    day: (iso: string | null) => (iso ? formatDate(iso) : '—'),
     title: (n: { titleAr: string; titleEn: string | null }) => (ar ? n.titleAr : n.titleEn || n.titleAr),
     channel: (c: Pick<NoticeChannelRefDto, 'nameAr' | 'nameEn'>) => (ar ? c.nameAr : c.nameEn),
     unit: (u: { nameAr: string; nameEn: string } | null) => (u ? (ar ? u.nameAr : u.nameEn) : '—'),

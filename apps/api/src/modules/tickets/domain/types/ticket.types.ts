@@ -170,6 +170,8 @@ export interface TicketViewer {
   canMention: boolean;
   /** Whether the person's role has the key to confirm a closing (it lets the sender's reply confirm it too). */
   canConfirmClose: boolean;
+  /** Whether the person's role has the key to export the ticket list (it lets the list carry each ticket's text). */
+  canExport: boolean;
   view: ViewerScope;
   handle: ViewerScope;
   /** The departments whose tickets the person may hand to someone else, and (the same scope) the people they may hand them to. */

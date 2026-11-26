@@ -21,8 +21,11 @@ export function formatDate(value: Moment): string {
   return p ? `${p.year}-${p.month}-${p.day}` : '';
 }
 
-/** `2026-12-01 14:30` for a moment (Riyadh time); an empty text for nothing. */
-export function formatDateTime(value: Moment): string {
+/**
+ * `2026-12-01 14:30` for a moment (Riyadh time); an empty text for nothing. On a screen the gap between the day and the time is a no-break space: it keeps
+ * the whole value one left-to-right run inside Arabic text, so the time never jumps in front of the day. A file (`plain`) gets an ordinary space.
+ */
+export function formatDateTime(value: Moment, plain = false): string {
   const p = partsOf(value);
-  return p ? `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}` : '';
+  return p ? `${p.year}-${p.month}-${p.day}${plain ? ' ' : '\u00a0'}${p.hour}:${p.minute}` : '';
 }

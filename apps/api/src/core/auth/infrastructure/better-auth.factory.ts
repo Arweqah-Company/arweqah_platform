@@ -6,7 +6,7 @@ import { createMicrosoftCertificateAssertion } from './microsoft-certificate-ass
 import { impersonationSessions } from './impersonation.plugin';
 import { totpSignIn, type TotpSignInDeps } from './totp-sign-in.plugin';
 
-/** A session lasts two days from the last use: it is renewed (at most once an hour) while the person works. */
+/** A session lasts two days from sign-in. The cookie carries that age and a later use cannot renew it in the browser, so the stored session is not renewed either (`disableSessionRefresh`): both end together. */
 const SESSION_SECONDS = 60 * 60 * 24 * 2;
 
 /** Snake_case table/column mapping so auth tables match the rest of the schema. */
@@ -64,7 +64,7 @@ export function createBetterAuth(config: AppConfig, pool: Pool, lifecycle: AuthL
     session: {
       modelName: 'auth_sessions',
       expiresIn: SESSION_SECONDS,
-      updateAge: 60 * 60,
+      disableSessionRefresh: true,
       fields: { ...timestamps, expiresAt: 'expires_at', ipAddress: 'ip_address', userAgent: 'user_agent', userId: 'user_id' },
       // Set when the code of the authenticator app was entered. Every route is blocked until it is set.
       additionalFields: {
