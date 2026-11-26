@@ -6,7 +6,8 @@ import { createMicrosoftCertificateAssertion } from './microsoft-certificate-ass
 import { impersonationSessions } from './impersonation.plugin';
 import { totpSignIn, type TotpSignInDeps } from './totp-sign-in.plugin';
 
-const TWELVE_HOURS = 60 * 60 * 12;
+/** A session lasts two days from the last use: it is renewed (at most once an hour) while the person works. */
+const SESSION_SECONDS = 60 * 60 * 24 * 2;
 
 /** Snake_case table/column mapping so auth tables match the rest of the schema. */
 const timestamps = { createdAt: 'created_at', updatedAt: 'updated_at' } as const;
@@ -62,7 +63,7 @@ export function createBetterAuth(config: AppConfig, pool: Pool, lifecycle: AuthL
     },
     session: {
       modelName: 'auth_sessions',
-      expiresIn: TWELVE_HOURS,
+      expiresIn: SESSION_SECONDS,
       updateAge: 60 * 60,
       fields: { ...timestamps, expiresAt: 'expires_at', ipAddress: 'ip_address', userAgent: 'user_agent', userId: 'user_id' },
       // Set when the code of the authenticator app was entered. Every route is blocked until it is set.

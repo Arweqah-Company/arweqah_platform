@@ -29,6 +29,15 @@ describe('Sign-in with e-mail and authenticator code (FR-01, FR-23)', () => {
     expect(cookie).toMatch(/SameSite=Lax/);
   });
 
+  it('keeps a session for two days (FR-01): the cookie and the stored session both last 48 hours', async () => {
+    const user = await t.factories.user();
+    const res = await signIn(user.email, codeFor(user.secret)).expect(200);
+    expect(String(res.headers['set-cookie'])).toMatch(/Max-Age=172800/);
+    const [row] = await t.db.query(`SELECT EXTRACT(EPOCH FROM (expires_at - now()))::int AS seconds FROM auth_sessions WHERE user_id = $1`, [user.id]);
+    expect(row.seconds).toBeGreaterThan(172_800 - 120);
+    expect(row.seconds).toBeLessThanOrEqual(172_800);
+  });
+
   it('answers every failure in the same way: unknown e-mail, no app linked, wrong code, deactivated account', async () => {
     const enrolled = await t.factories.user();
     const notEnrolled = await t.factories.user({ enrolled: false });
