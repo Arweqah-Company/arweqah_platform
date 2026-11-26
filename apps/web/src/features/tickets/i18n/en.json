@@ -41,7 +41,10 @@
     "assignee": "Assignee",
     "status": "Status",
     "neededBy": "Needed by",
-    "activity": "Last activity"
+    "activity": "Last activity",
+    "details": "Ticket text",
+    "createdAt": "Sent on",
+    "priority": "Priority"
   },
   "status": {
     "open": "Open",
@@ -374,5 +377,9 @@
     "open": "View history",
     "count_one": "1 step",
     "count_other": "{{count}} steps"
+  },
+  "priorityValue": {
+    "urgent": "Urgent",
+    "normal": "Normal"
   }
 }

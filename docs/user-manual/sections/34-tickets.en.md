@@ -7,7 +7,7 @@ A ticket is the official way to ask another department for something: you choose
 ### Who sees it
 
 - **View permission:** `tickets.view` («View the tickets page and ticket details»). Default scope: own, meaning the tickets you sent or that are handled by you.
-- **Default roles:** the Employee role holds view (own), send a ticket, reply (own), ask to close, confirm or reject closing, close without execution, reopen, and the reply and mention keys. The head role of each unit holds view, reply and reassign at «unit and below».
+- **Default roles:** the Employee role holds view (own), send a ticket, reply (own), ask to close, confirm or reject closing, close without execution, reopen, and the reply and mention keys. The head role of each unit holds view, reply and reassign at «unit and below», and export.
 - No platform admin mode is needed.
 - A ticket outside your relation or scope is shown as «not found». Attachments can be downloaded only by people who may see the ticket.
 
@@ -29,8 +29,9 @@ A ticket is the official way to ask another department for something: you choose
 | Choose handler | On a ticket whose type has several handlers and that nobody has taken, the unit head picks one of that type's handlers; the ticket becomes theirs, they are notified, and it disappears from the other handlers | `tickets.choose_handler` (Choose who answers a ticket among the handlers of its type) |
 | Reassign | A unit head hands an open ticket of their unit to someone on their team | `tickets.reassign` (Reassign a ticket to another employee) |
 | Quick reply | On the board, a short reply from the card | `tickets.reply` |
+| Export | The «Export» button of the list's toolbar: choose the scope (the tickets on this page, or all the results of the tab, search and filters you have on), the columns and the file type (Excel, CSV). The file holds the number, title, **the ticket's text**, department, type, sender, handler, status, priority, needed-by date, send date and last activity. You export only the tickets you can see, never more | `tickets.export` (Export the ticket list); not held by the «Employee» role, held by the head role of every unit |
 
-The tickets list has no export or import button. Tickets are sent one by one from the popup, not from a file.
+The tickets list has no import button. Tickets are sent one by one from the popup, not from a file.
 
 ### How to
 

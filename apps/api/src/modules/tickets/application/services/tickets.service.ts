@@ -81,7 +81,7 @@ export class TicketsService {
     const page = await this.tickets.list({ viewer, tab: query.tab, deskId: query.deskId, typeId: query.typeId, assigneeId: query.assigneeId, status: query.status, search: query.search, groupBy: query.groupBy, page: query.page, pageSize: query.pageSize });
     const names = await this.deskNames(page.items.map((r) => r.deskId));
     const now = this.clock.now();
-    const result: Paginated<ReturnType<TicketTransformer['toListItem']>> = { ...page, items: page.items.map((r) => this.transformer.toListItem(r, names.get(r.deskId), now)) };
+    const result: Paginated<ReturnType<TicketTransformer['toListItem']>> = { ...page, items: page.items.map((r) => this.transformer.toListItem(r, names.get(r.deskId), now, query.withDetails)) };
     return { ...result, groupBy: page.groupBy };
   }
 

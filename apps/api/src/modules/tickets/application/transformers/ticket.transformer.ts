@@ -25,7 +25,7 @@ const NO_NAMES: DeskNames = { nameAr: '', nameEn: '', pathAr: '', pathEn: '' };
 
 @Injectable()
 export class TicketTransformer {
-  toListItem(row: TicketRow, desk: DeskNames | undefined, now: Date): TicketListItemDto {
+  toListItem(row: TicketRow, desk: DeskNames | undefined, now: Date, withDetails = false): TicketListItemDto {
     return {
       id: row.id,
       number: row.number,
@@ -48,6 +48,7 @@ export class TicketTransformer {
       overdue: isOverdue(row.neededBy, row.status, riyadhToday(now)),
       stale: isStale(row.status, row.lastActivityAt, row.deskStaleAfterDays, now),
       isNew: isNewTicket(row.firstResponseAt, row.status),
+      ...(withDetails && { details: row.details }),
     };
   }
 

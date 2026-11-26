@@ -41,7 +41,10 @@
     "assignee": "المسؤول",
     "status": "الحالة",
     "neededBy": "مطلوبة في",
-    "activity": "آخر نشاط"
+    "activity": "آخر نشاط",
+    "details": "نص التذكرة",
+    "createdAt": "تاريخ الإرسال",
+    "priority": "الأولوية"
   },
   "status": {
     "open": "مفتوحة",
@@ -397,5 +400,9 @@
     "detail": "التفاصيل",
     "open": "عرض السجل",
     "count": "عدد الخطوات: {{count}}"
+  },
+  "priorityValue": {
+    "urgent": "عاجلة",
+    "normal": "عادية"
   }
 }
