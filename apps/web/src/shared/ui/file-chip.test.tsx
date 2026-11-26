@@ -79,9 +79,8 @@ describe('Zooming an attached picture (FR-188)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'عرض screen.png' }));
     const dialog = await screen.findByRole('dialog');
     const img = await waitFor(() => { const found = dialog.querySelector('img'); if (!found) throw new Error('no picture yet'); return found; });
-    Object.defineProperty(img, 'clientWidth', { value: 400 });
-    Object.defineProperty(img, 'clientHeight', { value: 200 });
-    fireEvent.load(img);
+    Object.defineProperty(img, 'clientWidth', { value: 400, configurable: true });
+    Object.defineProperty(img, 'clientHeight', { value: 200, configurable: true });
     return img;
   }
 
@@ -96,7 +95,7 @@ describe('Zooming an attached picture (FR-188)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'تصغير' }));
     await waitFor(() => expect(img.style.width).toBe('320px'));
     fireEvent.click(screen.getByRole('button', { name: 'ملاءمة النافذة' }));
-    await waitFor(() => expect(img.style.width).toBe('400px'));
+    await waitFor(() => expect(img.style.width).toBe('')); // back to the fit of the frame
     expect(screen.getByRole('button', { name: 'ملاءمة النافذة' })).toBeDisabled();
   });
 
@@ -106,7 +105,7 @@ describe('Zooming an attached picture (FR-188)', () => {
     fireEvent.keyDown(frame, { key: '+' });
     await waitFor(() => expect(img.style.width).toBe('500px'));
     fireEvent.keyDown(frame, { key: '0' });
-    await waitFor(() => expect(img.style.width).toBe('400px'));
+    await waitFor(() => expect(img.style.width).toBe(''));
     fireEvent.wheel(frame, { ctrlKey: true, deltaY: -100 });
     await waitFor(() => expect(img.style.width).toBe('500px'));
     fireEvent.wheel(frame, { deltaY: -100 }); // a plain wheel only scrolls the frame
@@ -114,5 +113,14 @@ describe('Zooming an attached picture (FR-188)', () => {
     for (let i = 0; i < 30; i += 1) fireEvent.keyDown(frame, { key: '+' });
     await waitFor(() => expect(screen.getByText('600%')).toBeInTheDocument());
     expect(screen.getByRole('button', { name: 'تكبير' })).toBeDisabled();
+  });
+
+  it('takes the fit from the window as it is when zooming starts: a smaller window gives a smaller base (CodeRabbit on the release)', async () => {
+    const img = await openImage();
+    Object.defineProperty(img, 'clientWidth', { value: 300, configurable: true }); // the window shrank while the picture was fitted
+    Object.defineProperty(img, 'clientHeight', { value: 150, configurable: true });
+    fireEvent.click(screen.getByRole('button', { name: 'تكبير' }));
+    await waitFor(() => expect(img.style.width).toBe('375px'));
+    expect(img.style.height).toBe('187.5px');
   });
 });

@@ -23,7 +23,7 @@ A page that shows how your sign-in is protected, and lets you watch **the device
 ### What is on the page
 
 - **The status notice:** «The authenticator app is linked to your account» (green) or «The authenticator app is not linked yet» (yellow).
-- **How sign-in works:** no password; you sign in with the work e-mail and the app code or with the Microsoft button; even with Microsoft the code is asked every time; the session ends after 2 days without use (it is renewed while you work), and at once if your account is deactivated.
+- **How sign-in works:** no password; you sign in with the work e-mail and the app code or with the Microsoft button; even with Microsoft the code is asked every time; the session ends 2 days after you sign in, and at once if your account is deactivated.
 - **Devices you are signed in on:** every open session in your name, with the device name and last activity, and a «This device» mark on your current session.
 - **Trusted devices:** the browsers you trusted and the date the trust ends.
 - **Lost your phone?** A note on what to do.
@@ -72,12 +72,12 @@ This page has almost nothing to type: you read your protection and press buttons
 
 | Status | Meaning | Who can change it (permission key) | Moves to |
 |---|---|---|---|
-| Session open | A sign-in in your name, with its last activity | You, with «End the session» or «End all other sessions» (`security.view`); the platform after 2 days without use, or the account is deactivated | Ended |
+| Session open | A sign-in in your name, with its last activity | You, with «End the session» or «End all other sessions» (`security.view`); the platform 2 days after the sign-in, or the account is deactivated | Ended |
 | Session ended | The device must sign in again | Nobody | Nothing (a new sign-in is a new session) |
 | Trusted device | A browser that skips the code after a Microsoft sign-in or an e-mail sign-in | You, with «Remove trust» (`security.view`); it also ends by itself on its end date | Trust removed or expired |
 | Authenticator app: linked / not linked | Whether a code can be produced for your account | HR resets it (`employees.reset_authenticator`) | Not linked, until you link it again from the new invitation |
 
-**Automatic things:** sessions end after 2 days without use, and all at once when your account is deactivated; a trusted device stops being trusted on its end date; when a system administrator finishes a «sign in as» session in your name, you are notified.
+**Automatic things:** sessions end 2 days after the sign-in, and all at once when your account is deactivated; a trusted device stops being trusted on its end date; when a system administrator finishes a «sign in as» session in your name, you are notified.
 
 **What each person sees:** only your own sessions and devices. The company-wide security settings are another page for the system administrator.
 

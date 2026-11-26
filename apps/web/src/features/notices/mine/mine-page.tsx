@@ -1,3 +1,4 @@
+import { formatDate } from '@/shared/lib/format-date';
 import { CorePermission, NOTICE_MINE_TABS, NOTICE_MY_STATES, NOTICE_TYPES, type NoticeMineItemDto, type NoticeMinePageDto, type NoticeMineTab } from '@arweqah-platform/shared';
 import { Eye, Megaphone } from 'lucide-react';
 import { useState } from 'react';
@@ -51,7 +52,7 @@ function useExportColumns(): ExportColumn<NoticeMineItemDto>[] {
     { id: 'title', header: t('columns.title'), value: (x) => words.title(x) },
     { id: 'channel', header: t('columns.channel'), value: (x) => words.channel(x.channel) },
     { id: 'kind', header: t('columns.kind'), value: (x) => t(`kind.${x.kind}`) },
-    { id: 'publishedAt', header: t('columns.publishedAt'), value: (x) => x.publishedAt.slice(0, 10) },
+    { id: 'publishedAt', header: t('columns.publishedAt'), value: (x) => formatDate(x.publishedAt) },
     { id: 'myState', header: t('columns.myState'), value: (x) => t(`myState.${x.myState}`) },
   ];
 }

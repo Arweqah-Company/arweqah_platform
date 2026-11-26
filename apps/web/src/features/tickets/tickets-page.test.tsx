@@ -68,3 +68,39 @@ describe('Exporting the ticket list (FR-184)', () => {
     expect(asked.every((q) => !q.has('withDetails'))).toBe(true);
   });
 });
+
+describe('Deleting a ticket from its row (FR-158, FR-185)', () => {
+  const serveRows = (keys: string[], canDelete: boolean) => {
+    let deleted = false;
+    server.use(
+      http.get('*/api/me', () => HttpResponse.json(me())),
+      http.get('*/api/me/access', () => HttpResponse.json(access(keys.map((key) => ({ key, scope: 'own' as const }))))),
+      http.get('*/api/tickets/options', () => HttpResponse.json(options({}))),
+      http.get('*/api/tickets', () => HttpResponse.json({ items: deleted ? [] : [{ ...TICKET, canDelete }], total: deleted ? 0 : 1, page: 1, pageSize: 20, groupBy: null })),
+      http.delete('*/api/tickets/t1', () => { deleted = true; return new HttpResponse(null, { status: 204 }); }),
+    );
+    return () => deleted;
+  };
+
+  it('shows a trash icon on the row of a ticket the API says may be deleted, asks to confirm, deletes and refreshes the list', async () => {
+    const deleted = serveRows(['tickets.view', 'tickets.delete'], true);
+    renderPage(<TicketsPage />);
+    fireEvent.click(await screen.findByRole('button', { name: 'حذف' }));
+    expect(deleted()).toBe(false);
+    fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'حذف' }));
+    await waitFor(() => expect(deleted()).toBe(true));
+    await waitFor(() => expect(screen.queryByText('الطابعة')).not.toBeInTheDocument());
+  });
+
+  it('offers no trash icon when the API does not allow it for the row, or the person lacks the key', async () => {
+    serveRows(['tickets.view', 'tickets.delete'], false);
+    const first = renderPage(<TicketsPage />);
+    expect(await screen.findByText('الطابعة')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'حذف' })).not.toBeInTheDocument();
+    first.unmount();
+    serveRows(['tickets.view'], true);
+    renderPage(<TicketsPage />);
+    expect(await screen.findByText('الطابعة')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'حذف' })).not.toBeInTheDocument();
+  });
+});

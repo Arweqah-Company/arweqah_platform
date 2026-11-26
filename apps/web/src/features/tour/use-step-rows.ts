@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/shared/lib/format-date';
 import { TOUR_IDS, type TourStepSettingDto } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import type { ExportColumn } from '@/shared/data-exchange/types';
@@ -33,7 +34,7 @@ export function useStepRows() {
     { id: 'title', header: t('settings.columns.title'), value: (x) => title(x) },
     { id: 'tour', header: t('settings.columns.tour'), value: (x) => t(`settings.tours.${x.tour}`) },
     { id: 'status', header: t('settings.columns.status'), value: (x) => t(`settings.status.${x.enabled ? 'on' : 'off'}`) },
-    { id: 'updated', header: t('settings.columns.updated'), value: (x) => x.updatedAt ?? '' },
+    { id: 'updated', header: t('settings.columns.updated'), value: (x) => formatDateTime(x.updatedAt, true) },
   ];
   return { steps, list, fields, rows: steps.data?.steps.filter(fits), exportColumns, title, body };
 }

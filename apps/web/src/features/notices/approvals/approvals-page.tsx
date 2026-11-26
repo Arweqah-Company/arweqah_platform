@@ -1,3 +1,4 @@
+import { formatDate } from '@/shared/lib/format-date';
 import { CorePermission, NOTICE_TYPES, type NoticeFilterOptionsDto, type NoticeListItemDto } from '@arweqah-platform/shared';
 import { Check, CircleCheck, Eye, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -50,7 +51,7 @@ function useExportColumns(): ExportColumn<NoticeListItemDto>[] {
     { id: 'title', header: t('columns.title'), value: (x) => words.title(x) },
     { id: 'kind', header: t('columns.kind'), value: (x) => t(`kind.${x.kind}`) },
     { id: 'author', header: t('columns.author'), value: (x) => x.author.name },
-    { id: 'submitted', header: t('columns.submitted'), value: (x) => (x.submittedAt ?? '').slice(0, 10) },
+    { id: 'submitted', header: t('columns.submitted'), value: (x) => formatDate(x.submittedAt) },
     { id: 'publishOn', header: t('columns.publishesShort'), value: (x) => (x.publishOn ?? '').slice(0, 10) },
     { id: 'audience', header: t('columns.audience'), value: audience },
   ];

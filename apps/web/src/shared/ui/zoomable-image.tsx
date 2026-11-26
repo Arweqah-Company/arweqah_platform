@@ -1,6 +1,7 @@
 import { Maximize, ZoomIn, ZoomOut } from 'lucide-react';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { cn } from '../lib/cn';
 import { Button } from './button';
 
 const MIN = 0.25;
@@ -35,14 +36,20 @@ export function ZoomableImage({ src, name }: { src: string; name: string }) {
   const [zoom, setZoom] = useState(1);
   const [fit, setFit] = useState<Fit | null>(null);
   const box = useRef<HTMLDivElement>(null);
-  const change = (factor: number) => setZoom((z) => clamp(z * factor));
-  useWheelZoom(box, (factor) => setZoom((z) => clamp(z * factor)));
+  const image = useRef<HTMLImageElement>(null);
+  // At 100% the picture fits its frame by CSS, whatever the window does; its size is read at the moment zoom leaves 100%, so it is the size of the window as it is then.
+  const change = (factor: number) => {
+    const next = clamp(zoom * factor);
+    if (zoom === 1 && next !== 1 && image.current) setFit({ width: image.current.clientWidth, height: image.current.clientHeight });
+    setZoom(next);
+  };
+  useWheelZoom(box, change);
   const onKey = (e: KeyboardEvent) => {
     if (e.key === '+' || e.key === '=') change(STEP);
     else if (e.key === '-') change(1 / STEP);
     else if (e.key === '0') setZoom(1);
   };
-  const size = fit ? { width: fit.width * zoom, height: fit.height * zoom, maxWidth: 'none', maxHeight: 'none' } : undefined;
+  const size = zoom !== 1 && fit ? { width: fit.width * zoom, height: fit.height * zoom, maxWidth: 'none', maxHeight: 'none' } : undefined;
   return (
     <div className="flex flex-col gap-2">
       <div role="group" aria-label={t('files.zoom.label')} className="flex items-center justify-center gap-2">
@@ -53,14 +60,7 @@ export function ZoomableImage({ src, name }: { src: string; name: string }) {
       </div>
       {/* a scrolling frame is reached by keyboard, so its picture can be scrolled and zoomed without a mouse */}
       <div ref={box} tabIndex={0} role="region" aria-label={name} onKeyDown={onKey} className="max-h-[60vh] overflow-auto rounded-xl border border-neutral-200 bg-neutral-50 p-1">
-        <img
-          src={src}
-          alt={name}
-          draggable={false}
-          style={size}
-          onLoad={(e) => !fit && setFit({ width: e.currentTarget.clientWidth, height: e.currentTarget.clientHeight })}
-          className={fit ? 'mx-auto block' : 'mx-auto block max-h-[56vh] max-w-full object-contain'}
-        />
+        <img ref={image} src={src} alt={name} draggable={false} style={size} className={cn('mx-auto block', zoom === 1 && 'max-h-[56vh] max-w-full object-contain')} />
       </div>
     </div>
   );

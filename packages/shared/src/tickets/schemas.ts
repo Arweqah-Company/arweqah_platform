@@ -244,6 +244,8 @@ export interface TicketListItemDto {
   isNew: boolean;
   /** The ticket's text; only when the list was asked `withDetails`. */
   details?: string;
+  /** On the rows of the list: the viewer may delete this ticket (their key reaches its department, or they sent it and hold the key). */
+  canDelete?: boolean;
 }
 
 export interface TicketAttachmentDto {

@@ -1,3 +1,4 @@
+import { formatDate } from '@/shared/lib/format-date';
 import {
   NOTICE_ACK_RATE_BANDS,
   NOTICE_MANAGE_STATES,
@@ -92,7 +93,7 @@ export function useManageExportColumns(): ExportColumn<NoticeListItemDto>[] {
     { id: 'author', header: t('columns.author'), value: (x) => x.author.name },
     { id: 'status', header: t('columns.status'), value: (x) => (x.hiddenForRevision ? t('status.hiddenForRevision') : t(`status.${x.status}`)) },
     { id: 'audience', header: t('columns.audience'), value: audience },
-    { id: 'publishOn', header: t('columns.publishOn'), value: (x) => (x.publishedAt ?? x.publishOn ?? '').slice(0, 10) },
+    { id: 'publishOn', header: t('columns.publishOn'), value: (x) => formatDate(x.publishedAt ?? x.publishOn) },
     { id: 'ack', header: t('columns.ack'), value: (x) => (x.ack ? `${x.ack.percent}%` : '') },
   ];
 }

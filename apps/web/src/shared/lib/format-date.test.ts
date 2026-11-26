@@ -13,8 +13,13 @@ describe('One way to write a date everywhere', () => {
   });
 
   it('writes the time in 24 hours with Latin digits, in Riyadh time', () => {
-    expect(formatDateTime('2026-12-01T11:30:00.000Z')).toBe('2026-12-01 14:30');
-    expect(formatDateTime('2026-12-01T21:05:00.000Z')).toBe('2026-12-02 00:05'); // midnight is 00, never 24
+    expect(formatDateTime('2026-12-01T11:30:00.000Z')).toBe('2026-12-01\u00a014:30');
+    expect(formatDateTime('2026-12-01T21:05:00.000Z')).toBe('2026-12-02\u00a000:05'); // midnight is 00, never 24
+  });
+
+  it('keeps the day and the time together inside Arabic text (a no-break space) and gives a file an ordinary space', () => {
+    expect(formatDateTime('2026-12-01T11:30:00.000Z')).not.toContain(' ');
+    expect(formatDateTime('2026-12-01T11:30:00.000Z', true)).toBe('2026-12-01 14:30');
   });
 
   it('is empty for nothing or for what is not a date', () => {

@@ -38,6 +38,16 @@ describe('Sign-in with e-mail and authenticator code (FR-01, FR-23)', () => {
     expect(row.seconds).toBeLessThanOrEqual(172_800);
   });
 
+  it('keeps the session at two days from sign-in: using it later does not stretch the stored expiry past what the cookie says (CodeRabbit on the release)', async () => {
+    const user = await t.factories.user();
+    const agent = await t.factories.signIn(user);
+    await t.db.query(`UPDATE auth_sessions SET updated_at = now() - interval '2 hours', expires_at = now() + interval '46 hours' WHERE user_id = $1`, [user.id]);
+    const res = await agent.get('/api/me').expect(200);
+    expect(res.headers['set-cookie']).toBeUndefined(); // the browser's cookie is not renewed by a use
+    const [row] = await t.db.query(`SELECT EXTRACT(EPOCH FROM (expires_at - now()))::int AS seconds FROM auth_sessions WHERE user_id = $1`, [user.id]);
+    expect(row.seconds).toBeLessThanOrEqual(46 * 3600); // so the database must not renew it either: both end together
+  });
+
   it('answers every failure in the same way: unknown e-mail, no app linked, wrong code, deactivated account', async () => {
     const enrolled = await t.factories.user();
     const notEnrolled = await t.factories.user({ enrolled: false });
