@@ -1,3 +1,4 @@
+import { formatDate } from '@/shared/lib/format-date';
 import { Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -8,14 +9,14 @@ import { useRemoveTrustedDevice, useTrustedDevices } from './api';
 
 /** Browsers the person trusts after the code step that follows a Microsoft sign-in; shown only while the administrator allows it (or while some exist). */
 export function TrustedDevicesSection() {
-  const { t, i18n } = useTranslation('security');
+  const { t } = useTranslation('security');
   const { t: tc } = useTranslation();
   const enabled = useMe().data?.trustedDevicesEnabled;
   const devices = useTrustedDevices();
   const remove = useRemoveTrustedDevice();
   const list = devices.data ?? [];
   if (!enabled && list.length === 0) return null;
-  const day = (iso: string) => new Date(iso).toLocaleDateString(i18n.language);
+  const day = (iso: string) => formatDate(iso);
   const take = async (id: string) => {
     try {
       await remove.mutateAsync(id);

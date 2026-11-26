@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/shared/lib/format-date';
 import { CorePermission, type TicketDto, type TicketEventDto } from '@arweqah-platform/shared';
 import { MessageSquareReply } from 'lucide-react';
 import { useState } from 'react';
@@ -29,13 +30,13 @@ interface EntryProps {
 }
 
 function Entry({ ticketId, event, canAnswer, onAnswer, nested }: EntryProps) {
-  const { t, i18n } = useTranslation('tickets');
+  const { t } = useTranslation('tickets');
   return (
     <div id={`event-${event.id}`} className={cn('rounded-2xl border p-4', 'border-neutral-200 bg-white', nested && 'bg-neutral-50')}>
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
         <span className="font-medium text-fg">{event.actor?.name ?? t('timeline.system')} <span className="font-normal text-muted">· {t('events.reply')}{event.replyTo && ` · ${t('reply.inReplyTo', { name: event.replyTo.name })}`}</span></span>
         <span className="flex items-center gap-1">
-          <time dateTime={event.createdAt}>{new Date(event.createdAt).toLocaleString(i18n.language)}</time>
+          <time dateTime={event.createdAt}>{formatDateTime(event.createdAt)}</time>
           {canAnswer && onAnswer && <RowAction label={t('reply.answer')} icon={MessageSquareReply} onClick={onAnswer} />}
         </span>
       </div>

@@ -1,6 +1,6 @@
+import { formatDate } from '@/shared/lib/format-date';
 import { conflictDate, dateProblems, type CycleDate, type CycleDateProblem } from '@arweqah-platform/shared';
 import type { TFunction } from 'i18next';
-import { formatLongDate } from '@/shared/lib/format-date';
 
 const ORDER: CycleDateProblem[] = ['end_before_start', 'before_previous', 'after_next'];
 
@@ -14,5 +14,5 @@ export function dateMessage(t: TFunction<'performance'>, language: string, dates
   const first = ORDER.find((p) => problems.includes(p));
   if (!first) return undefined;
   const at = conflictDate(dates, next, first);
-  return t(`dates.problems.${first}`, { date: at ? formatLongDate(at, language) : '' });
+  return t(`dates.problems.${first}`, { date: at ? formatDate(at) : '' });
 }

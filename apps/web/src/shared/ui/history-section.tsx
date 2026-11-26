@@ -1,6 +1,6 @@
+import { formatDateTime } from '@/shared/lib/format-date';
 import { History } from 'lucide-react';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Avatar } from './avatar';
 import { Button } from './button';
 import { DataTable, type Column } from './data-table';
@@ -11,10 +11,9 @@ export function HistoryActor({ name, systemLabel }: { name: string | null; syste
   return name ? <span className="inline-flex items-center gap-2"><Avatar name={name} size="sm" />{name}</span> : <span className="text-muted">{systemLabel}</span>;
 }
 
-/** The date and time of one step, written for the reader's language. */
+/** The date and time of one step: `2026-12-01 14:30`, Riyadh time. */
 export function HistoryWhen({ at }: { at: string }) {
-  const { i18n } = useTranslation();
-  return <time dateTime={at} className="whitespace-nowrap">{new Date(at).toLocaleString(i18n.language, { dateStyle: 'medium', timeStyle: 'short' })}</time>;
+  return <time dateTime={at} className="whitespace-nowrap">{formatDateTime(at)}</time>;
 }
 
 interface Props<T> {

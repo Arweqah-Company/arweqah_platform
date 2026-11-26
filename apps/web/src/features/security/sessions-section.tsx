@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/shared/lib/format-date';
 import type { SessionDto } from '@arweqah-platform/shared';
 import { LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -8,12 +9,12 @@ import { useEndOtherSessions, useEndSession, useSessions } from './api';
 
 /** The devices the person is signed in on: end one, or all the others. */
 export function SessionsSection() {
-  const { t, i18n } = useTranslation('security');
+  const { t } = useTranslation('security');
   const { t: tc } = useTranslation();
   const sessions = useSessions();
   const end = useEndSession();
   const endOthers = useEndOtherSessions();
-  const when = (iso: string) => new Date(iso).toLocaleString(i18n.language);
+  const when = (iso: string) => formatDateTime(iso);
   const run = async (action: () => Promise<unknown>, done: string) => {
     try {
       await action();

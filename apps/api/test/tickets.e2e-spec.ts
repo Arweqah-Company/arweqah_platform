@@ -870,4 +870,82 @@ describe('Tickets (FR-36 … FR-41)', () => {
       await w.agents.sender.get('/api/tickets?withDetails=maybe').expect(400);
     });
   });
+  describe('Deleting only the tickets I sent (FR-185)', () => {
+    const OWN = [{ key: CorePermission.TicketsView, scope: 'own' as const }, { key: CorePermission.TicketsCreate, scope: 'all' as const }, { key: CorePermission.TicketsReply, scope: 'own' as const }, { key: CorePermission.TicketsDelete, scope: 'own' as const }];
+
+    it('lets the holder of «delete» at «own» hide a ticket they sent, and the page offers it', async () => {
+      const w = await world();
+      const typeId = await openDesk(w);
+      const me = await t.factories.user({ unit: w.org.unitB, grants: OWN });
+      const mine = await t.factories.signIn(me);
+      const ticket = (await send(mine, typeId).expect(201)).body as TicketDto;
+      expect((await mine.get(`/api/tickets/${ticket.id}`).expect(200)).body.abilities.delete).toBe(true);
+      await mine.delete(`/api/tickets/${ticket.id}`).expect(204);
+      await mine.get(`/api/tickets/${ticket.id}`).expect(404);
+      const rows = (await t.db.query('SELECT deleted_at FROM tickets WHERE id = $1', [ticket.id])) as { deleted_at: Date | null }[];
+      expect(rows[0]?.deleted_at).not.toBeNull();
+    });
+
+    it('does not let them delete a ticket someone else sent, even one they handle (403) or cannot see (404)', async () => {
+      const w = await world();
+      await setupDesk(w.agents.manager, w.desk).expect(200);
+      const handler = await t.factories.user({ unit: w.org.unitA, grants: OWN });
+      await t.db.query('UPDATE employees SET org_node_id = $1 WHERE id = $2', [w.org.department, handler.employeeId]);
+      const typeId = (await addType(w.agents.manager, w.desk, { handlerUserIds: [handler.id] }).expect(201)).body.id as string;
+      const ticket = await sendOne(w, typeId);
+      const handlerAgent = await t.factories.signIn(handler);
+      expect((await handlerAgent.get(`/api/tickets/${ticket.id}`).expect(200)).body.abilities.delete).toBe(false);
+      await handlerAgent.delete(`/api/tickets/${ticket.id}`).expect(403);
+      const stranger = await t.factories.signIn(await t.factories.user({ unit: w.org.unitC, grants: OWN }));
+      await stranger.delete(`/api/tickets/${ticket.id}`).expect(404);
+      await w.agents.sender.get(`/api/tickets/${ticket.id}`).expect(200); // still there
+    });
+
+    it('does not offer «delete» on their own ticket without the key', async () => {
+      const w = await world();
+      const typeId = await openDesk(w);
+      const ticket = await sendOne(w, typeId);
+      expect((await w.agents.sender.get(`/api/tickets/${ticket.id}`).expect(200)).body.abilities.delete).toBe(false);
+      await w.agents.sender.delete(`/api/tickets/${ticket.id}`).expect(403);
+    });
+  });
+  describe('Replying and confirming the closing in one step (FR-186)', () => {
+    async function waiting(w: Awaited<ReturnType<typeof world>>) {
+      const ticket = await sendOne(w, await openDesk(w));
+      await w.agents.assignee.post(`/api/tickets/${ticket.id}/request-close`).send({}).expect(200);
+      return ticket;
+    }
+    const reply = (agent: TestAgent, id: string, extra: Record<string, unknown> = {}) => agent.post(`/api/tickets/${id}/replies`).send({ body: 'أؤكد الإغلاق مع شكري', fileIds: [], ...extra });
+
+    it('closes the ticket with the sender\'s reply: the reply is in the history, the status is closed «confirmed», the auto-closing job is cancelled', async () => {
+      const w = await world();
+      const ticket = await waiting(w);
+      const res = (await reply(w.agents.sender, ticket.id, { confirmClose: true }).expect(201)).body as TicketDto;
+      expect(res).toMatchObject({ status: 'closed', closeReason: 'confirmed' });
+      expect(res.events.map((e) => e.type)).toEqual(expect.arrayContaining(['reply', 'confirmed']));
+      expect(res.events.find((e) => e.type === 'reply')?.body).toBe('أؤكد الإغلاق مع شكري');
+    });
+
+    it('keeps today\'s behaviour without the flag: the sender\'s reply returns the ticket to «open»', async () => {
+      const w = await world();
+      const ticket = await waiting(w);
+      expect((await reply(w.agents.sender, ticket.id).expect(201)).body).toMatchObject({ status: 'open', closeReason: null });
+    });
+
+    it('refuses the flag when the ticket does not wait for the sender (open ticket; the unit side) and to someone without the confirm key (403)', async () => {
+      const w = await world();
+      const open = await sendOne(w, await openDesk(w));
+      await reply(w.agents.sender, open.id, { confirmClose: true }).expect((res) => expect(res.status).toBeGreaterThanOrEqual(400));
+      expect((await w.agents.sender.get(`/api/tickets/${open.id}`).expect(200)).body.status).toBe('open');
+      await w.agents.assignee.post(`/api/tickets/${open.id}/request-close`).send({}).expect(200);
+      await reply(w.agents.assignee, open.id, { confirmClose: true }).expect((res) => expect(res.status).toBeGreaterThanOrEqual(400));
+      expect((await w.agents.sender.get(`/api/tickets/${open.id}`).expect(200)).body.status).toBe('close_requested');
+      const noKey = await t.factories.user({ unit: w.org.unitB, without: [CorePermission.TicketsConfirmClose] });
+      const mine = await t.factories.signIn(noKey);
+      const ticket = (await send(mine, await openDesk(w)).expect(201)).body as TicketDto;
+      await w.agents.assignee.post(`/api/tickets/${ticket.id}/request-close`).send({}).expect(200);
+      await reply(mine, ticket.id, { confirmClose: true }).expect(403);
+      expect((await mine.get(`/api/tickets/${ticket.id}`).expect(200)).body.status).toBe('close_requested');
+    });
+  });
 });

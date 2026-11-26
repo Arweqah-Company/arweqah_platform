@@ -87,6 +87,7 @@ Choose «Light», «Dark» or «Follow the device» with the button in the top b
 
 - **Export:** an «Export» button on every list. You choose the **scope** (the rows shown on the page, or all results of the current search and filters), the **columns** and the file type (Excel or CSV). It needs the export key of that page.
 - **Import:** on lists whose records can be created from a file (such as employees and companies). You download the template (it has drop-downs with the system's options), fill it in and upload it. The system checks the file, tells you how many rows are valid and what is wrong in each row, and imports only the valid ones.
+- **Dates are written one way everywhere:** `2026-12-01`, and with the time `2026-12-01 14:30` (24 hours, Riyadh time), in Arabic and in English, in tables, notices, e-mails and exported files. The date picker of the browser itself shows your device's format.
 - Anywhere that asks for a file or a picture uses the **file drop box**: drag the file onto it or click to browse; it checks the file type and the largest size.
 
 ### Row actions are icons

@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/shared/lib/format-date';
 import { auditActionText, CorePermission, type AssignmentField, type EmployeeAssignmentDto, type EmployeeChangeDto } from '@arweqah-platform/shared';
 import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -95,7 +96,7 @@ function ChangeLog({ employeeId }: { employeeId: string }) {
           onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
           empty={<p className="p-6 text-center text-sm text-muted">{t('history.changes.empty')}</p>}
           columns={[
-            { header: t('history.when'), cell: (r) => <span dir="ltr">{new Date(r.createdAt).toLocaleString(lang === 'en' ? 'en-GB' : 'ar-SA-u-nu-latn')}</span> },
+            { header: t('history.when'), cell: (r) => <span dir="ltr">{formatDateTime(r.createdAt)}</span> },
             { header: t('history.what'), cell: (r) => auditActionText(r.action, lang) },
             { header: t('history.fields'), cell: (r) => (r.fields.length ? r.fields.map(fieldName).join(' · ') : '—') },
             { header: t('history.by'), cell: (r) => r.actorName ?? t('history.system') },

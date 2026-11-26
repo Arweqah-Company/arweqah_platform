@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/shared/lib/format-date';
 import { type IntegrationKind, type ProviderDto } from '@arweqah-platform/shared';
 import { CircleHelp, FlaskConical, Pencil, Plug, Power, PowerOff } from 'lucide-react';
 import { useState } from 'react';
@@ -81,7 +82,7 @@ export function ProvidersPage({ kind }: { kind: IntegrationKind }) {
         columns={[
           { id: 'provider', header: t('columns.provider'), cell: (p) => <div><p className="font-medium">{name(p)}</p><p className="text-sm text-muted">{t(`help.providers.${p.providerKey}.summary`)}</p></div> },
           { id: 'status', header: t('columns.status'), cell: (p) => <Badge tone={STATUS_TONE[p.status]}>{status(p)}</Badge> },
-          { id: 'tested', header: t('columns.tested'), cell: (p) => (p.testedAt ? new Date(p.testedAt).toLocaleString() : '—') },
+          { id: 'tested', header: t('columns.tested'), cell: (p) => (p.testedAt ? formatDateTime(p.testedAt) : '—') },
           { id: 'active', header: t('columns.active'), cell: (p) => <Badge tone={p.isActive ? 'success' : 'neutral'}>{p.isActive ? t('active') : t('inactive')}</Badge> },
         ]}
       />

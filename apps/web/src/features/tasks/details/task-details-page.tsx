@@ -1,3 +1,4 @@
+import { formatDate } from '@/shared/lib/format-date';
 import { CorePermission, riyadhToday, type TaskDto } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
@@ -12,11 +13,11 @@ import { TaskFacts } from './task-facts';
 import { TaskHistory } from './task-history';
 
 function Notes({ task }: { task: TaskDto }) {
-  const { t, i18n } = useTranslation('tasks');
+  const { t } = useTranslation('tasks');
   return (
     <>
-      {task.archivedAt && <Alert tone="info">{t('details.archivedNote', { date: new Date(task.archivedAt).toLocaleDateString(i18n.language) })}</Alert>}
-      {task.objection && <Alert tone="warning">{t('details.objectionNote', { name: task.objection.raisedBy.name, reason: t(`objection.reason.${task.objection.reason}`), date: new Date(task.objection.expiresAt).toLocaleDateString(i18n.language) })}</Alert>}
+      {task.archivedAt && <Alert tone="info">{t('details.archivedNote', { date: formatDate(task.archivedAt) })}</Alert>}
+      {task.objection && <Alert tone="warning">{t('details.objectionNote', { name: task.objection.raisedBy.name, reason: t(`objection.reason.${task.objection.reason}`), date: formatDate(task.objection.expiresAt) })}</Alert>}
       {task.status === 'pending_approval' && <Alert tone="info">{t('details.pendingNote', { name: task.approver?.name ?? '' })}</Alert>}
       {task.description && <p className="whitespace-pre-wrap rounded-2xl border border-neutral-200 bg-white p-4 text-sm">{task.description}</p>}
     </>

@@ -19,7 +19,7 @@ const COMPLETE = {
   transitionRule: 'شرط انتقال الاختبار',
   pathUnit: 'وحدة', pathTitle: 'مسمى', steps: [{ n: 1, label: 'الأساس', title: 'دورة', meta: 'دورة · جهة' }], output: '', certificates: '',
   competencyColumns: ['L7'], competencies: [{ name: 'جدارة', values: ['أساسي'] }],
-  required: [{ when: '15 أكتوبر 2026', lines: ['بند'], deadline: '2026-10-15' }], ackText: 'اطلعت على مساري',
+  required: [{ when: '2026-10-15', lines: ['بند'], deadline: '2026-10-15' }], ackText: 'اطلعت على مساري',
   learning: { badges: [{ name: 'وسام', condition: 'شرط', hours: 35 }], rule: '', periods: [{ name: 'السنة 1', units: [{ priority: 'إلزامي', title: 'وحدة تعلم', provider: 'جهة', duration: 'ساعتان', minutes: 120, language: 'عربي', link: '' }] }] },
 };
 

@@ -2,6 +2,16 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-26 — Delete my own tickets, reply and confirm, one date format (FR-185, FR-186, FR-187)
+
+Plans: `docs/plans/phase-2-tickets.md` and `docs/plans/phase-1-auth-employees.md` (log 2026-11-26).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 482 | **`tickets.delete` takes the scope `own`: the person may hide the tickets they sent themselves** (`TicketViewer.deleteOwn` = holds the key at any scope; `mayDelete` = the ticket's sender is the viewer, or the key reaches the ticket's department). A wider scope includes «own», as everywhere on the platform. The Employee role does not get the key. | The owner wants to let an employee delete only their own tickets. Reading the scope as «the tickets I sent» matches how `tickets.view` reads `own`, and nothing else in the delete flow changes (any status, hidden not erased, audited). | Someone asks that a wider scope must not include the tickets the person sent elsewhere |
+| 483 | **The sender can send a reply and confirm the closing in one step** (`confirmClose` on the reply request, the button «Send the reply and confirm the closing» next to «Send the reply»). The plain reply still returns the ticket to «open» (the old rule is kept, with a note under the box). The flag is refused when the ticket is not waiting for the sender (422) or the person lacks `tickets.confirm_close` (403). The reply is saved first and the confirmation runs through `TicketLifecycleService.act` (so the auto-closing job is cancelled and the audit and events are the same as a confirmation). | Ticket TKT-000026: the sender wrote «I confirm the closing» and the ticket went back to «open» with no buttons left. The owner chose the extra button over silently keeping the status or only a warning. | The two steps (reply, then confirm) fail apart often enough to need one transaction |
+| 484 | **One date format on the whole platform: `2026-12-01`, and `2026-12-01 14:30` with the time** (24 hours, Latin digits, Gregorian, Riyadh time), in Arabic and in English, on every screen, in notices and in files. The web has `formatDate` / `formatDateTime` (`shared/lib/format-date`, replacing `formatLongDate` and every `toLocaleDateString` / `toLocaleString` / `Intl.DateTimeFormat` used for display), the API `formatRiyadhMoment`. A day without a time is never moved by a time zone. The browser's date picker is not ours to format. Standing rule 21 and the design-system skill carry it. | The owner asked that dates look the same everywhere. Month names and locale formats made the same date read differently on each page (`15 أبريل 2027`, `4/15/2027`, `2027-04-15`). | Someone needs a per-user format, or a native date input with our format |
+
 ## 2026-11-26 — Export of the ticket list (FR-184)
 
 Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-26).

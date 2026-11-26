@@ -1,3 +1,4 @@
+import { formatDate } from '@/shared/lib/format-date';
 import { CorePermission, type AccessExceptionDto } from '@arweqah-platform/shared';
 import { CalendarClock, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -62,7 +63,7 @@ export function ExceptionsTab() {
           { id: 'target', header: t('target'), cell: name },
           { id: 'scope', header: t('scope'), cell: (x) => (x.scope ? scopeLabel(x.scope) : '—') },
           { id: 'grantedBy', header: t('grantedBy'), cell: (x) => x.grantedByName ?? '—' },
-          { id: 'grantedAt', header: t('grantedAt'), className: 'whitespace-nowrap text-muted', cell: (x) => new Date(x.grantedAt).toLocaleDateString(i18n.language) },
+          { id: 'grantedAt', header: t('grantedAt'), className: 'whitespace-nowrap text-muted', cell: (x) => formatDate(x.grantedAt) },
           { id: 'expires', header: t('expires'), className: 'whitespace-nowrap', cell: (x) => (x.expiresAt ? <Badge tone={(left(x) ?? 99) <= 7 ? 'warning' : 'info'}>{t('endsOn', { date: x.expiresAt, days: left(x) })}</Badge> : <span className="text-muted">{t('noEnd')}</span>) },
         ]}
       />
