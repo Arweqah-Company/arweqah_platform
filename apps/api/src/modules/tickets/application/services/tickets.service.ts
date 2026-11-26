@@ -116,18 +116,21 @@ export class TicketsService {
     if (!abilitiesFor(relations, found.status, reopenDaysLeft(found.status, found.closedAt, found.deskReopenWindowDays, now)).reply) throw new TicketStateInvalidError('reply', found.status);
     await this.assertFiles(userId, input.fileIds);
     const resolved = await this.replyPolicy.resolve(viewer, found, input);
-    const fromUnit = relations.includes('assignee') || relations.includes('manager') || relations.includes('desk');
-    const senderAnswersClosing = relations.includes('sender') && !fromUnit && found.status === 'close_requested';
-    const confirming = this.confirmsClosing(viewer, input, relations, found);
+    // Whoever sent the ticket answers as its sender, even when they also sit on the unit's side (the manager of the desk that got it).
+    const asSender = relations.includes('sender');
+    const fromUnit = !asSender && (relations.includes('assignee') || relations.includes('manager') || relations.includes('desk'));
+    const senderAnswersClosing = asSender && found.status === 'close_requested';
+    const confirming = this.confirmsClosing(viewer, input, senderAnswersClosing, found);
     const audience = this.replyAudience(found, relations, fromUnit);
     let confirmed: (() => void) | null = null;
     await this.tx.run(async (tx) => {
       const claims = found.assigneeUserId === null && found.typeHandlerUserIds.includes(userId);
-      const patch = { lastActivityAt: now, ...(claims ? { assigneeUserId: userId } : {}), ...(fromUnit && !found.firstResponseAt ? { firstResponseAt: now } : {}), ...(senderAnswersClosing && !confirming ? { ...nextState('sender_reply', found.status), closeRequestedAt: null } : {}) };
+      const own = { ...(claims ? { assigneeUserId: userId } : {}), ...(fromUnit && !found.firstResponseAt ? { firstResponseAt: now } : {}) };
+      const patch = { lastActivityAt: now, ...own, ...(senderAnswersClosing && !confirming ? { ...nextState('sender_reply', found.status), closeRequestedAt: null } : {}) };
       // With the confirmation the closing writes the state itself (one change, one revision check), after the reply is in the history.
       if (!confirming) await this.patchOrFail(found, patch, tx);
       await this.tickets.appendEvent({ ticketId: id, type: 'reply', actorUserId: userId, body: input.body, fileIds: input.fileIds, ...resolved }, tx);
-      if (confirming) confirmed = await this.lifecycle.confirmWithin(found, userId, tx);
+      if (confirming) confirmed = await this.lifecycle.confirmWithin(found, userId, tx, own);
       await this.replyNotices.send({ ...resolved, ticket: found, actorUserId: userId, audience }, tx);
     });
     this.audit(userId, TICKET_AUDIT.replied, id, { files: input.fileIds.length, mentions: resolved.mentionIds.length, answer: resolved.parentEventId !== null });
@@ -136,9 +139,9 @@ export class TicketsService {
   }
 
   /** «Send the reply and confirm the closing»: the sender of a ticket waiting for their confirmation (even when they also sit on the unit's side), and only with the key to confirm. */
-  private confirmsClosing(viewer: TicketViewer, input: TicketReplyInput, relations: TicketRelation[], ticket: TicketRow): boolean {
+  private confirmsClosing(viewer: TicketViewer, input: TicketReplyInput, senderAnswersClosing: boolean, ticket: TicketRow): boolean {
     if (!input.confirmClose) return false;
-    if (!relations.includes('sender') || ticket.status !== 'close_requested') throw new TicketStateInvalidError('confirm_close', ticket.status);
+    if (!senderAnswersClosing) throw new TicketStateInvalidError('confirm_close', ticket.status);
     if (!viewer.canConfirmClose) throw new ForbiddenError();
     return true;
   }

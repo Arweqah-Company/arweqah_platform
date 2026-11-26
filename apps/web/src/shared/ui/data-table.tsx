@@ -94,7 +94,9 @@ interface RowsProps<T> {
 /** A click on the row itself opens it; a click on a button, link or field inside it does its own thing. */
 const INTERACTIVE = 'a,button,input,select,textarea,label,[role=button],[role=checkbox],[role=switch]';
 const rowClick = <T,>(row: T, onRowClick?: (row: T) => void) => (event: MouseEvent) => {
-  if (!onRowClick || (event.target as HTMLElement).closest(INTERACTIVE)) return;
+  const target = event.target as HTMLElement;
+  // A dialog opened from the row renders in a portal outside it, but React still sends its clicks up through the row: only a click inside the row's own DOM opens it.
+  if (!onRowClick || !event.currentTarget.contains(target) || target.closest(INTERACTIVE)) return;
   onRowClick(row);
 };
 

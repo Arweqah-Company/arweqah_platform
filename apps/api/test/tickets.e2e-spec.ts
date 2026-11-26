@@ -981,6 +981,32 @@ describe('Tickets (FR-36 … FR-41)', () => {
       expect(retry.status).toBe('closed');
     });
 
+    it('treats the reply of a sender who also manages the desk as the sender\'s: the ticket returns to «open», the unit side is told, and the closing is not left to run out', async () => {
+      const w = await world();
+      const typeId = await openDesk(w);
+      const ticket = (await send(w.agents.manager, typeId).expect(201)).body as TicketDto;
+      await w.agents.assignee.post(`/api/tickets/${ticket.id}/request-close`).send({}).expect(200);
+      const res = (await reply(w.agents.manager, ticket.id).expect(201)).body as TicketDto;
+      expect(res).toMatchObject({ status: 'open', closeReason: null });
+      const told = await t.db.query(`SELECT 1 FROM notifications WHERE user_id = $1 AND link = $2`, [w.assignee.id, `/tickets/${ticket.id}`]);
+      expect(told.length).toBeGreaterThan(0); // the handler hears of the reply
+    });
+
+    it('keeps what the reply writes when it also confirms: a handler of the type who sends the ticket and answers takes it as theirs', async () => {
+      const w = await world();
+      await setupDesk(w.agents.manager, w.desk).expect(200);
+      const second = await t.factories.user({ unit: w.org.unitA });
+      await t.db.query('UPDATE employees SET org_node_id = $1 WHERE id = $2', [w.org.department, second.employeeId]);
+      const typeId = (await addType(w.agents.manager, w.desk, { handlerUserIds: [w.assignee.id, second.id] }).expect(201)).body.id as string;
+      const secondAgent = await t.factories.signIn(second);
+      const ticket = (await send(secondAgent, typeId).expect(201)).body as TicketDto;
+      await t.db.query('UPDATE tickets SET status = $1, close_requested_at = now(), assignee_user_id = NULL WHERE id = $2', ['close_requested', ticket.id]);
+      const res = (await reply(secondAgent, ticket.id, { confirmClose: true }).expect(201)).body as TicketDto;
+      expect(res.status).toBe('closed');
+      const [row] = await t.db.query('SELECT assignee_user_id FROM tickets WHERE id = $1', [ticket.id]);
+      expect(row.assignee_user_id).toBe(second.id);
+    });
+
     it('refuses the flag when the ticket does not wait for the sender (open ticket; the unit side) and to someone without the confirm key (403)', async () => {
       const w = await world();
       const open = await sendOne(w, await openDesk(w));
