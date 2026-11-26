@@ -2,6 +2,16 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-27 — Attachment size setting, PowerPoint, thumbnails, audit tabs (FR-191, FR-192, FR-193)
+
+Plan: `docs/plans/phase-1-auth-employees.md` (log 2026-11-27).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 488 | **The largest attachment is a setting, `maxUploadMb` (Settings → Security → Attachments, 1–100 MB, default 10), read by `POST /files` on every upload** (the transport takes up to the 100 MB ceiling and the service checks the set size, so it changes without a restart); `GET /me` carries it (`maxUploadMb`) and `useMaxUploadBytes` feeds every file box (`FileAttachments`, the career proof and agreement boxes). The reverse proxies accept 101 MB. Photos (cropped), the assistant's pictures and voice, imports and title-file text keep their own limits: they are not attachments and a bigger one would only cost memory. | The owner's work is mostly PowerPoint and Excel files over 10 MB; he asked that the administrator set the limit for everything with files. Multer holds a file in memory, so the setting has a ceiling (100 MB) instead of no limit. | Concurrent big uploads hurt the API: move to streaming storage (S3 multipart) before raising the ceiling |
+| 489 | **`.pptx` is allowed for every attachment and opens in the platform as slides of text and pictures** (`pptxToSlides`, `jszip` 3.10.2 pinned in the web, dev-pinned in the API tests; the zip is read as data, text is drawn as text, only png/jpeg/gif/webp pictures are shown, never SVG; up to 100 slides, 4 pictures a slide, 8 MB a picture). It is an approximation like Word and Excel (no layout, shapes, charts or animation) and says so; the original downloads. The macro-enabled `.pptm` and the old `.ppt` stay refused (their types are not in the list). | The owner asked for PowerPoint in tickets and tasks and a view inside the platform. A full renderer (`pptx-preview`, LibreOffice) would be a heavy dependency or a server that opens untrusted files; reading the XML ourselves keeps the page safe and small. | A faithful render is wanted (then convert on the server in a sandbox) |
+| 490 | **Audit log: one tab per module over one table** (`Tabs` above the table: «All» and the nine categories); a tab sets the existing `category` filter, which is then removed from the toolbar (one control, not two); the action filter lists the tab's actions. Nothing changes in storage. | The owner asked for tabs per module for easier review, all in one table in the database and different only in the display. | A module needs its own columns (then its tab gets its own table view) |
+
 ## 2026-11-26 — Zoom, header photo, breadcrumb (FR-188, FR-189, FR-190)
 
 Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-26).

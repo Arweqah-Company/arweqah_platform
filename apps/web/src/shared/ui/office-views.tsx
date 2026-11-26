@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { csvToSheets, docxToFragment, xlsxToSheets, type PreviewSheet } from '../lib/office-preview';
+import { csvToSheets, docxToFragment, pptxToSlides, xlsxToSheets, type PreviewSheet, type PreviewSlide } from '../lib/office-preview';
 import { Alert } from './alert';
 import { Tabs } from './tabs';
 
@@ -84,4 +84,44 @@ export function CsvView({ blob }: { blob: Blob }) {
   if (failed) return <Alert>{t('files.unreadable')}</Alert>;
   if (value === null) return <p role="status" className="text-sm text-muted">{t('files.loading')}</p>;
   return <SheetTable sheet={value[0] as PreviewSheet} />;
+}
+
+/** The picture addresses of a slide, released when the slide leaves the screen. */
+function useObjectUrls(blobs: Blob[]): string[] {
+  const urls = useMemo(() => blobs.map((b) => URL.createObjectURL(b)), [blobs]);
+  useEffect(() => () => urls.forEach((u) => URL.revokeObjectURL(u)), [urls]);
+  return urls;
+}
+
+function SlideCard({ slide, name }: { slide: PreviewSlide; name: string }) {
+  const { t } = useTranslation();
+  const urls = useObjectUrls(slide.images);
+  const [title, ...rest] = slide.lines;
+  return (
+    <li className="rounded-xl border border-neutral-200 bg-white p-4">
+      <p className="mb-2 text-xs font-medium text-muted">{t('files.slideNumber', { number: slide.number })}</p>
+      {title && <h3 className="text-base font-bold">{title}</h3>}
+      {rest.length > 0 && <div className="mt-2 flex flex-col gap-1 text-sm leading-6">{rest.map((line, i) => <p key={i}>{line}</p>)}</div>}
+      {urls.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{urls.map((u) => <img key={u} src={u} alt={t('files.slideImage', { number: slide.number, name })} className="max-h-48 max-w-full rounded-lg border border-neutral-200 object-contain" />)}</div>}
+      {slide.moreImages && <p className="mt-2 text-xs text-muted">{t('files.moreImages')}</p>}
+      {!title && urls.length === 0 && <p className="text-sm text-muted">{t('files.emptySlide')}</p>}
+    </li>
+  );
+}
+
+/** PowerPoint, drawn from the file in the browser: every slide as a card with its text and pictures (an approximation). */
+export function DeckView({ blob, name }: { blob: Blob; name: string }) {
+  const { t } = useTranslation();
+  const { value, failed } = useRead(blob, pptxToSlides);
+  if (failed) return <Alert>{t('files.unreadable')}</Alert>;
+  if (value === null) return <p role="status" className="text-sm text-muted">{t('files.loading')}</p>;
+  if (value.slides.length === 0) return <p className="text-sm text-muted">{t('files.emptyDeck')}</p>;
+  return (
+    <div className="flex flex-col gap-3">
+      {value.truncated && <Alert tone="warning">{t('files.deckTruncated', { count: value.slides.length })}</Alert>}
+      <ol aria-label={name} className="flex max-h-[60vh] flex-col gap-3 overflow-auto">
+        {value.slides.map((slide) => <SlideCard key={slide.number} slide={slide} name={name} />)}
+      </ol>
+    </div>
+  );
 }

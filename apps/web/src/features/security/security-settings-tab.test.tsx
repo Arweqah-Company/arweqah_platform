@@ -8,7 +8,7 @@ import { SecuritySettingsTab } from './security-settings-tab';
 const open = (keys = ['security_settings.view', 'security_settings.edit']) => {
   server.use(
     http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'all' as const }))))),
-    http.get('*/api/security-settings', () => HttpResponse.json({ trustedDeviceDays: 0, requestsPerMinute: 600, impersonationEnabled: 0, impersonationIdleMinutes: 30, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30, adminModeRequiresCode: 1 })),
+    http.get('*/api/security-settings', () => HttpResponse.json({ trustedDeviceDays: 0, requestsPerMinute: 600, impersonationEnabled: 0, impersonationIdleMinutes: 30, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30, adminModeRequiresCode: 1, maxUploadMb: 10 })),
   );
   renderPage(<SecuritySettingsTab />);
 };
@@ -37,7 +37,7 @@ describe('Security settings tab (FR-73, FR-76)', () => {
     expect(await screen.findByRole('button', { name: 'حفظ' })).toBeDisabled();
     fireEvent.change(days, { target: { value: '30' } });
     fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
-    await waitFor(() => expect(saved).toEqual({ trustedDeviceDays: 30, requestsPerMinute: 600, impersonationEnabled: 0, impersonationIdleMinutes: 30, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30, adminModeRequiresCode: 1 }));
+    await waitFor(() => expect(saved).toEqual({ trustedDeviceDays: 30, requestsPerMinute: 600, impersonationEnabled: 0, impersonationIdleMinutes: 30, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30, adminModeRequiresCode: 1, maxUploadMb: 10 }));
   });
 
   it('switches «sign in as» on, checks its idle minutes, and saves both (FR-85)', async () => {
@@ -54,7 +54,7 @@ describe('Security settings tab (FR-73, FR-76)', () => {
     expect(await screen.findByRole('button', { name: 'حفظ' })).toBeDisabled();
     fireEvent.change(minutes, { target: { value: '45' } });
     fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
-    await waitFor(() => expect(saved).toEqual({ trustedDeviceDays: 0, requestsPerMinute: 600, impersonationEnabled: 1, impersonationIdleMinutes: 45, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30, adminModeRequiresCode: 1 }));
+    await waitFor(() => expect(saved).toEqual({ trustedDeviceDays: 0, requestsPerMinute: 600, impersonationEnabled: 1, impersonationIdleMinutes: 45, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30, adminModeRequiresCode: 1, maxUploadMb: 10 }));
   });
 
   it('shows the assistant numbers, checks their range and saves them (FR-147)', async () => {
@@ -80,7 +80,7 @@ describe('Security settings tab (FR-73, FR-76)', () => {
     expect(box).toBeChecked();
     fireEvent.click(box);
     fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
-    await waitFor(() => expect(saved).toMatchObject({ agentEnabled: 0, agentMessagesPerHour: 30, agentDraftMinutes: 30, adminModeRequiresCode: 1 }));
+    await waitFor(() => expect(saved).toMatchObject({ agentEnabled: 0, agentMessagesPerHour: 30, agentDraftMinutes: 30, adminModeRequiresCode: 1, maxUploadMb: 10 }));
   });
 
   it('is read-only without the edit key', async () => {
@@ -108,5 +108,24 @@ describe('Allowed e-mail domains (FR-77)', () => {
     const buttons = screen.getAllByRole('button', { name: 'حفظ' });
     fireEvent.click(buttons[buttons.length - 1] as HTMLElement);
     await waitFor(() => expect(saved).toEqual({ domains: ['arweqah.sa', 'partner.org'] }));
+  });
+
+  it('sets the largest attachment, checks it stays between 1 and 100 MB, and saves it for every file box (FR-191)', async () => {
+    let saved: Record<string, number> | undefined;
+    server.use(http.put('*/api/security-settings', async ({ request }) => { saved = (await request.json()) as Record<string, number>; return HttpResponse.json(saved); }));
+    open();
+    const size = await screen.findByLabelText('أكبر حجم لمرفق (ميغابايت)');
+    expect(size).toHaveValue(10);
+    fireEvent.change(size, { target: { value: '101' } });
+    expect(await screen.findByText('أدخل رقمًا صحيحًا بين 1 و100.')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'حفظ' })).toBeDisabled();
+    fireEvent.change(size, { target: { value: '50' } });
+    fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
+    await waitFor(() => expect(saved?.maxUploadMb).toBe(50));
+  });
+
+  it('shows the size to someone who may only look, without a way to change it', async () => {
+    open(['security_settings.view']);
+    expect(await screen.findByLabelText('أكبر حجم لمرفق (ميغابايت)')).toBeDisabled();
   });
 });

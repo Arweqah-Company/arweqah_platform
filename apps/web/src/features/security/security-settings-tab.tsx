@@ -34,6 +34,7 @@ const asText = (values: SecuritySettingsInput): Typed => ({
   agentMessagesPerHour: String(values.agentMessagesPerHour ?? SECURITY_SETTINGS.agentMessagesPerHour.default),
   agentDraftMinutes: String(values.agentDraftMinutes ?? SECURITY_SETTINGS.agentDraftMinutes.default),
   adminModeRequiresCode: String(values.adminModeRequiresCode ?? SECURITY_SETTINGS.adminModeRequiresCode.default),
+  maxUploadMb: String(values.maxUploadMb ?? SECURITY_SETTINGS.maxUploadMb.default),
 });
 const asNumbers = (form: Typed): SecuritySettingsInput => ({
   trustedDeviceDays: Number(form.trustedDeviceDays),
@@ -44,6 +45,7 @@ const asNumbers = (form: Typed): SecuritySettingsInput => ({
   agentMessagesPerHour: Number(form.agentMessagesPerHour),
   agentDraftMinutes: Number(form.agentDraftMinutes),
   adminModeRequiresCode: Number(form.adminModeRequiresCode),
+  maxUploadMb: Number(form.maxUploadMb),
 });
 
 function SettingsForm({ initial }: { initial: SecuritySettingsInput }) {
@@ -56,7 +58,7 @@ function SettingsForm({ initial }: { initial: SecuritySettingsInput }) {
     const value = Number(form[key]);
     return form[key] !== '' && Number.isInteger(value) && value >= SECURITY_SETTINGS[key].min && value <= SECURITY_SETTINGS[key].max;
   };
-  const valid = (['trustedDeviceDays', 'requestsPerMinute', 'impersonationEnabled', 'impersonationIdleMinutes', 'agentEnabled', 'agentMessagesPerHour', 'agentDraftMinutes', 'adminModeRequiresCode'] as const).every(inRange);
+  const valid = (['trustedDeviceDays', 'requestsPerMinute', 'impersonationEnabled', 'impersonationIdleMinutes', 'agentEnabled', 'agentMessagesPerHour', 'agentDraftMinutes', 'adminModeRequiresCode', 'maxUploadMb'] as const).every(inRange);
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     try {
@@ -78,6 +80,7 @@ function SettingsForm({ initial }: { initial: SecuritySettingsInput }) {
       <AdminModeFields form={form} setForm={setForm} disabled={!canEdit} />
       <ImpersonationFields form={form} setForm={setForm} disabled={!canEdit} inRange={inRange} />
       <AgentFields form={form} setForm={setForm} disabled={!canEdit} inRange={inRange} />
+      <FileFields form={form} setForm={setForm} disabled={!canEdit} inRange={inRange} />
       {canEdit && <div className="flex justify-end"><Button type="submit" disabled={!valid || save.isPending}>{tc('actions.save')}</Button></div>}
     </form>
   );
@@ -155,6 +158,19 @@ function AgentFields({ form, setForm, disabled, inRange }: FieldsProps) {
       </label>
       {field('agentMessagesPerHour')}
       {field('agentDraftMinutes')}
+    </fieldset>
+  );
+}
+
+/** The largest attachment, in MB: one number for every file box of the platform (tickets, tasks, notices, proofs), checked by the server and shown by every box (FR-191). */
+function FileFields({ form, setForm, disabled, inRange }: FieldsProps) {
+  const { t } = useTranslation('security');
+  return (
+    <fieldset className="flex flex-col gap-4 border-t border-neutral-200 pt-4">
+      <legend className="sr-only">{t('settings.filesGroup')}</legend>
+      <FormField label={t('settings.maxUploadMb')} hint={t('settings.maxUploadMbHint', { default: SECURITY_SETTINGS.maxUploadMb.default })} error={inRange('maxUploadMb') ? undefined : t('settings.range', SECURITY_SETTINGS.maxUploadMb)}>
+        {(p) => <Input {...p} type="number" dir="ltr" inputMode="numeric" disabled={disabled} value={form.maxUploadMb} onChange={(e) => setForm((f) => ({ ...f, maxUploadMb: e.target.value }))} />}
+      </FormField>
     </fieldset>
   );
 }

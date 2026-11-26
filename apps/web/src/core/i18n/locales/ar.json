@@ -442,13 +442,20 @@
       "in": "تكبير",
       "out": "تصغير",
       "fit": "ملاءمة النافذة"
-    }
+    },
+    "slideNumber": "الشريحة {{number}}",
+    "slideImage": "صورة من الشريحة {{number}} في {{name}}",
+    "moreImages": "في الشريحة صور أخرى لا تظهر هنا. نزّل الملف لرؤيتها.",
+    "emptySlide": "لا نص ولا صور في هذه الشريحة.",
+    "emptyDeck": "لا شرائح في هذا الملف.",
+    "deckTruncated": "تظهر أول {{count}} شريحة فقط. نزّل الملف لرؤية الباقي."
   },
   "attachments": {
     "remove": "إزالة {{name}}",
     "tooMany": "الحد الأقصى {{max}} ملفات.",
     "failed": "تعذّر رفع الملف.",
-    "hint": "اختياري. صور أو ملفات PDF أو Word (docx) أو Excel (xlsx) أو CSV."
+    "hint": "اختياري. صور أو ملفات PDF أو Word (docx) أو Excel (xlsx) أو PowerPoint (pptx) أو CSV.",
+    "preview": "معاينة {{name}}"
   },
   "groups": {
     "nameAr": "الاسم بالعربية",

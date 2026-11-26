@@ -37,7 +37,7 @@ Table columns: when, by (or «System» for automatic events), category, action. 
 
 **Find who changed a particular thing**
 
-1. Choose the «Category» (for example «Roles and permissions»); the «Action» filter then narrows its list to that category's actions.
+1. Click the tab of the module (for example «Roles and permissions»; «All» shows everything): the tabs sit above the table and are one table of the same records, only narrowed; the «Action» filter then lists that module's actions.
 2. Choose the «Action», or type part of the sentence, or the id of the record, in the search box.
 
 **Export the log**

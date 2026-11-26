@@ -1,3 +1,4 @@
+import JSZip from 'jszip';
 import writeXlsxFile from 'write-excel-file/universal';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
@@ -122,5 +123,37 @@ describe('Zooming an attached picture (FR-188)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'تكبير' }));
     await waitFor(() => expect(img.style.width).toBe('375px'));
     expect(img.style.height).toBe('187.5px');
+  });
+});
+
+describe('A PowerPoint file opens inside the system (FR-191)', () => {
+  const PPTX = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+  const SLIDE = (lines: string[]) => `<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><p:cSld><p:spTree>${lines.map((l) => `<p:sp><p:txBody><a:p><a:r><a:t>${l}</a:t></a:r></a:p></p:txBody></p:sp>`).join('')}</p:spTree></p:cSld></p:sld>`;
+
+  async function bytes() {
+    const zip = new JSZip();
+    zip.file('ppt/slides/slide1.xml', SLIDE(['خطة الربع الأول', 'تخفيض زمن الاستجابة']));
+    zip.file('ppt/slides/slide2.xml', SLIDE(['الميزانية']));
+    return zip.generateAsync({ type: 'arraybuffer' });
+  }
+
+  it('draws each slide with its number, title and text, with the note that the view is approximate', async () => {
+    const data = await bytes();
+    server.use(http.get('*/api/tickets/t1/attachments/f1/preview', () => HttpResponse.arrayBuffer(data, { headers: { 'Content-Type': PPTX } })));
+    render(<FileChip file={file({ name: 'plan.pptx', contentType: PPTX })} />);
+    fireEvent.click(screen.getByRole('button', { name: 'عرض plan.pptx' }));
+    expect(await screen.findByText('الشريحة 1')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'خطة الربع الأول' })).toBeInTheDocument();
+    expect(screen.getByText('تخفيض زمن الاستجابة')).toBeInTheDocument();
+    expect(screen.getByText('الشريحة 2')).toBeInTheDocument();
+    expect(screen.getByText(/عرض تقريبي داخل النظام/)).toBeInTheDocument();
+  });
+
+  it('says so when the file cannot be read, and offers the download', async () => {
+    server.use(http.get('*/api/tickets/t1/attachments/f1/preview', () => HttpResponse.arrayBuffer(new ArrayBuffer(8), { headers: { 'Content-Type': PPTX } })));
+    render(<FileChip file={file({ name: 'broken.pptx', contentType: PPTX })} />);
+    fireEvent.click(screen.getByRole('button', { name: 'عرض broken.pptx' }));
+    expect(await screen.findByText(/تعذّرت قراءة الملف للعرض/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /تنزيل/ })).toBeInTheDocument();
   });
 });

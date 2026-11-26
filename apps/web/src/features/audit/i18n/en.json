@@ -28,5 +28,7 @@
   },
   "record": "Record",
   "technical": "Technical details",
-  "city": "City"
+  "city": "City",
+  "tabsLabel": "Platform modules",
+  "allTab": "All"
 }
