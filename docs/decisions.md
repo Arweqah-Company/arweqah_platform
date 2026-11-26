@@ -2,6 +2,14 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-26 — A session lasts two days
+
+Plan: `docs/plans/phase-1-auth-employees.md` (log 2026-11-26).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 479 | **The session lasts two days** (`expiresIn` 172 800 s in `better-auth.factory.ts`, was 12 hours), **counted from the last use**: Better Auth renews it at most once an hour (`updateAge`), so someone who works never meets the sign-in page and an unused session ends after 48 hours. The cookie `Max-Age` follows it; deactivation still ends every session at once; the trusted-device days (a separate setting) and the 10-minute e-mailed code are unchanged. | The owner asked for it: a half-day session sent people back to sign in at the start of each day, and every e-mailed link then opened the sign-in page. A longer session widens the window of a stolen cookie, so the cookie stays `HttpOnly; Secure; SameSite=Lax`, the code is still required before any route works, and a person can end any session from the Security page. | A security review asks for an absolute cap from the moment of sign-in |
+
 ## 2026-11-24 — Pictures in the assistant chat (FR-180)
 
 Plan: `docs/plans/phase-7-agent-chat.md` §15ط (log 2026-11-24).

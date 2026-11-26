@@ -120,12 +120,12 @@ The sign-in has three small forms, one after the other. Nothing here is a permis
 | App not linked yet | The account exists but the first-time link was not used | HR can resend the invitation (`employees.resend_invite`) | Linked, once you confirm the first code |
 | Linked | The app is linked; every sign-in asks for a code (a trusted device skips it after a Microsoft sign-in or an e-mail sign-in) | HR can reset it (`employees.reset_authenticator`) | App not linked yet |
 | Locked for a while | 5 wrong codes in a row | Nobody; it ends by itself after 15 minutes | Linked |
-| Signed in (session) | A session open for up to 12 hours | You, by signing out or ending it on the Security page; it also ends when your account is deactivated | Signed out |
+| Signed in (session) | A session that stays open while you work and ends after 2 days without use | You, by signing out or ending it on the Security page; it also ends when your account is deactivated | Signed out |
 | Account deactivated | HR stopped the account; sign-in is refused | HR (`employees.deactivate`, «Deactivate and activate employees») | Active again if HR reactivates it |
 
 **What happens by itself**
 
-- The session ends after 12 hours of its start, and at once if the account is deactivated.
+- The session ends after 2 days without use (it is renewed while you work), and at once if the account is deactivated.
 - A used code is remembered, so the same code is refused the second time.
 - The lock after 5 wrong codes lifts after 15 minutes.
 - Every sign-in, wrong code and app linking is recorded in the audit log (FR-11).
@@ -140,7 +140,7 @@ The sign-in has three small forms, one after the other. Nothing here is a permis
 - More than 5 sign-in attempts in a minute show «Too many attempts. Wait a minute and try again».
 - Microsoft sign-in is for the company account only and for an employee whose account was created beforehand. If «Microsoft sign-in is not set up yet» appears, contact the system administrator. (FR-03)
 - No employee is added with an e-mail outside the domains the administrator set.
-- The session ends after **12 hours**, and at once if your account is deactivated.
+- The session ends after **2 days without use** (it is renewed while you work), and at once if your account is deactivated.
 - A «trusted device» skips the code after a Microsoft sign-in and when signing in with an e-mail, for the time the platform administrator set.
 - The sign-in is recorded in the audit log. (FR-11)
 
