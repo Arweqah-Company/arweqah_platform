@@ -2,6 +2,16 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-26 — Zoom, header photo, breadcrumb (FR-188, FR-189, FR-190)
+
+Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-26).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 485 | **A picture in the preview window is shown by `ZoomableImage` (`shared/ui`)**: zoom in / out / fit buttons, the percentage, + / − / 0 on the keyboard (the frame takes focus), Ctrl or Cmd + wheel (non-passive listener, so the page does not zoom too), 25 %–600 %, scrolling inside the frame. The size at «fit» is measured once on load and zoom scales from it. PDF is left to the browser's viewer. | The owner could not enlarge an attached picture to see details; the one window is used by tickets and tasks, so one component fixes both. | A pinch-to-zoom on touch screens or drag-to-pan is asked for |
+| 486 | **`GET /me` carries `employeeId` and `photoFileId`** (read from the person's own employee record by `ProfileRepository.findEmployeePhoto`), and the header draws the same URL the employee lists use (`employeePhotoUrl`). The route of the photo is unchanged (every employee holds `employees.view` for their own record). Other avatars that take only a name (task cards, comments, org tabs) still show a letter: their DTOs carry no photo yet. | The header showed a letter while the Employees list showed the photo: two sources. One source (the employee record's photo) now feeds both. | A photo is wanted in task cards, comments and the org tabs (their DTOs need `photoFileId`) |
+| 487 | **The breadcrumb says a name once**: a group crumb (no link) followed by a crumb with the same label is dropped, so «Tickets › Tickets» becomes home › Tickets; for a page inside a list the list link stays and the group is dropped. Done in `PageHeader`, so every module gets it. | The owner reported the repeated «Tickets › Tickets». Renaming the page («My tickets») would be wrong: the page also shows the unit inbox and the team's tickets. | A module needs its group name kept above a page of the same name |
+
 ## 2026-11-26 — Delete my own tickets, reply and confirm, one date format (FR-185, FR-186, FR-187)
 
 Plans: `docs/plans/phase-2-tickets.md` and `docs/plans/phase-1-auth-employees.md` (log 2026-11-26).

@@ -7,6 +7,7 @@ import { errorMessage } from '../lib/error-message';
 import { Alert } from './alert';
 import { Button } from './button';
 import { Dialog } from './dialog';
+import { ZoomableImage } from './zoomable-image';
 
 // Word, Excel and CSV are drawn by code that loads only when such a file is opened.
 const DocxView = lazy(() => import('./office-views').then((m) => ({ default: m.DocxView })));
@@ -51,7 +52,7 @@ function MediaView({ file, blob, kind }: { file: PreviewableFile; blob: Blob; ki
   const url = useObjectUrl(blob);
   if (!url) return null;
   if (kind === 'pdf') return <iframe src={url} title={file.name} className="h-[60vh] w-full rounded-xl border border-neutral-200" />;
-  return <img src={url} alt={file.name} className="mx-auto max-h-[60vh] max-w-full rounded-xl object-contain" />;
+  return <ZoomableImage src={url} name={file.name} />;
 }
 
 /** Word, Excel (with a note that they are approximate) or a CSV (a table of the text as it is), drawn by the page. */

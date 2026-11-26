@@ -1,7 +1,7 @@
 import { CorePermission } from '@arweqah-platform/shared';
 import { fireEvent, screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { myCareer } from '../../test/career-fixtures';
 import { me, server } from '../../test/msw';
 import { renderRoute } from '../../test/render';
@@ -34,6 +34,21 @@ describe('AppLayout navigation', () => {
     expect(within(header).queryByRole('button', { name: 'تسجيل الخروج' })).not.toBeInTheDocument();
     const buttons = within(header).getAllByRole('button');
     expect(buttons[buttons.length - 1]).toHaveAccessibleName('حسابي');
+  });
+
+  it('shows the person\'s own photo in the header, the one the employee list serves, and their letter when there is none (FR-91)', async () => {
+    server.use(http.get('*/api/me', () => HttpResponse.json({ ...me(), employeeId: 'e7', photoFileId: 'f9' })));
+    renderRoute([{ path: '/', element: <AppLayout />, children: [{ index: true, element: <p>home</p> }] }]);
+    const trigger = await screen.findByRole('button', { name: 'حسابي' });
+    const img = await vi.waitFor(() => { const found = trigger.querySelector('img'); if (!found) throw new Error('no photo yet'); return found; });
+    expect(img).toHaveAttribute('src', '/api/employees/e7/photo?v=f9');
+  });
+
+  it('keeps the letter in the header for someone with no photo', async () => {
+    open();
+    const trigger = await screen.findByRole('button', { name: 'حسابي' });
+    await vi.waitFor(() => expect(trigger).toHaveTextContent('سارة أحمد')); // the profile has arrived
+    expect(trigger.querySelector('img')).toBeNull();
   });
 
   it('leaves a page out of the menu while it is hidden from the person', async () => {

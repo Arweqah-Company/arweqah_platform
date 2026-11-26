@@ -88,6 +88,9 @@ Choose «Light», «Dark» or «Follow the device» with the button in the top b
 - **Export:** an «Export» button on every list. You choose the **scope** (the rows shown on the page, or all results of the current search and filters), the **columns** and the file type (Excel or CSV). It needs the export key of that page.
 - **Import:** on lists whose records can be created from a file (such as employees and companies). You download the template (it has drop-downs with the system's options), fill it in and upload it. The system checks the file, tells you how many rows are valid and what is wrong in each row, and imports only the valid ones.
 - **Dates are written one way everywhere:** `2026-12-01`, and with the time `2026-12-01 14:30` (24 hours, Riyadh time), in Arabic and in English, in tables, notices, e-mails and exported files. The date picker of the browser itself shows your device's format.
+- **Viewing an attached picture:** the picture opens in a window inside the platform, with zoom in, zoom out and «Fit to the window» buttons, the percentage, the keys + / − / 0 (when the picture frame is focused) and Ctrl + wheel (or a trackpad pinch); a picture bigger than the window scrolls inside its frame. PDF files use the zoom of the PDF viewer itself.
+- **Your picture in the header:** the photo shown beside your name in the header is the same photo of your employee record that the employee lists show; with no photo, your first letter is shown.
+- **The trail above a page** (home › group › page) says a name once: when a menu group and its main page are called the same («Tickets»), only the page appears.
 - Anywhere that asks for a file or a picture uses the **file drop box**: drag the file onto it or click to browse; it checks the file type and the largest size.
 
 ### Row actions are icons

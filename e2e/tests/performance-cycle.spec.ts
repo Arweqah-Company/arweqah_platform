@@ -58,13 +58,13 @@ test.describe('The evaluation cycle page, as the concept draws it (FR-118)', () 
     const from = dialog.getByLabel('من (أو يوم واحد) *');
     const year = (await from.inputValue()).slice(0, 4);
     await from.fill(`${year}-04-10`);
-    await expect(dialog.getByRole('alert')).toHaveText(/الموعد يسبق نهاية المرحلة قبله \(24 أبريل \d{4}\)\./);
+    await expect(dialog.getByRole('alert')).toHaveText(/الموعد يسبق نهاية المرحلة قبله \(\d{4}-04-24\)\./);
     await new ListPage(page).expectNoSeriousA11yIssues();
     await from.fill(`${year}-04-28`);
     await expect(dialog.getByRole('alert')).toHaveCount(0);
     await dialog.getByRole('button', { name: 'حفظ الموعد' }).click();
     await expect(page.getByText('حُفظ الموعد.')).toBeVisible();
-    await expect(page.getByRole('table', { name: 'مواعيد المراحل' }).getByText(`28 أبريل ${year}`)).toBeVisible();
+    await expect(page.getByRole('table', { name: 'مواعيد المراحل' }).getByText(`${year}-04-28`)).toBeVisible();
   });
 
   test('a reminder with its own words is added, changed, switched off and deleted', async ({ page }, info) => {

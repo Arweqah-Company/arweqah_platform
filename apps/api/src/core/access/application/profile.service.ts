@@ -30,6 +30,7 @@ export class ProfileService {
     if (!user) throw new NotFoundError('User', ctx.userId);
     const [roles, placements] = await Promise.all([this.access.rolesOf([user.id]), this.access.placementsOf([user.id])]);
     const impersonation = session.facts ? await this.impersonation.describe(session.facts) : null;
+    const employee = await this.profiles.findEmployeePhoto(user.id);
     return {
       id: user.id,
       name: user.name,
@@ -37,6 +38,8 @@ export class ProfileService {
       locale: user.locale,
       theme: user.theme,
       isActive: user.isActive,
+      employeeId: employee?.employeeId ?? null,
+      photoFileId: employee?.photoFileId ?? null,
       authenticatorEnabled: await this.authenticator.isEnabled(user.id),
       mfaVerified: session.mfaVerified,
       // Before the code is verified, and while working as someone else, nothing administrative is on offer.

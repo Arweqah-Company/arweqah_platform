@@ -19,7 +19,8 @@ function useCrumbs(current: string): Crumb[] {
   if (!item) return [{ label: current }];
   const trail: Crumb[] = item.group ? [{ label: t(NAV_GROUPS[item.group].labelKey) }] : [];
   if (pathname !== item.to) trail.push({ label: t(item.labelKey), to: item.to });
-  return [...trail, { label: current }];
+  // A menu group and its main page often carry one name («Tickets › Tickets»): the trail says it once.
+  return [...trail, { label: current }].filter((c, i, all) => c.to || c.label !== all[i + 1]?.label);
 }
 
 /** Home icon › menu group › list › current page, so every screen shows where it sits. */

@@ -25,6 +25,8 @@ export const me = (permissions: PermissionGrant[] = [], options: { adminMode?: b
   granted = [...EMPLOYEE_KEYS.filter((p) => !options.without?.some((prefix) => p.key.startsWith(prefix))), ...permissions];
   return {
   id: 'u1',
+  employeeId: null,
+  photoFileId: null,
   name: 'سارة أحمد',
   email: 'sara@arweqah.sa',
   locale: 'ar',

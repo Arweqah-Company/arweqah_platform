@@ -436,7 +436,13 @@
     "loading": "Loading the file…",
     "notPreviewable": "This type of file cannot be shown here. Download it to open it.",
     "download": "Download",
-    "viewNamed": "View {{name}}"
+    "viewNamed": "View {{name}}",
+    "zoom": {
+      "label": "Zoom the picture",
+      "in": "Zoom in",
+      "out": "Zoom out",
+      "fit": "Fit to the window"
+    }
   },
   "attachments": {
     "remove": "Remove {{name}}",
