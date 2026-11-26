@@ -85,7 +85,8 @@ describe('Welcome tour settings tab (FR-67)', () => {
     serve([step({})], [P.TourSettingsView, P.TourSettingsToggle]);
     renderPage(<TourStepsTab />);
     await screen.findByText('أهلًا بك');
-    expect(within(rowOf(/أهلًا بك/)).getByRole('button', { name: 'تعطيل الخطوة' })).toBeInTheDocument();
+    // The permissions arrive after the row: wait for the button, not for the row alone.
+    expect(await within(rowOf(/أهلًا بك/)).findByRole('button', { name: 'تعطيل الخطوة' })).toBeInTheDocument();
   });
 
   it('opens a step with its wording in both languages', async () => {
