@@ -16,6 +16,7 @@ import { TicketBoard } from './board/ticket-board';
 import { NewTicketDialog } from './new-ticket/new-ticket-dialog';
 import { GROUPINGS, groupLabel, toTicketsQuery, useTicketFilterFields } from './tickets-filters';
 import { useTicketColumns } from './tickets-columns';
+import { useTicketsList } from './use-tickets-list';
 
 const TABS: TicketTab[] = ['mine', 'inbox', 'team'];
 
@@ -49,7 +50,7 @@ function GroupSelect({ value, onChange }: { value: TicketGrouping | ''; onChange
 
 type TicketsMode = 'table' | 'cards' | 'board';
 const BOARD_SIZE = 100;
-type TicketParams = Record<string, string | number | undefined>;
+type TicketParams = Record<string, string | number | boolean | undefined>;
 
 /** The board shows one page of the same search and filters (no paging between columns); a note says when there are more. */
 function BoardContent({ params, empty }: { params: TicketParams; empty: ReactNode }) {
@@ -67,12 +68,13 @@ function BoardContent({ params, empty }: { params: TicketParams; empty: ReactNod
   );
 }
 
-function TicketsTable({ mode, tab, groupBy, params, list, toolbar, empty }: { mode: TicketsMode; tab: TicketTab; groupBy: TicketGrouping | ''; params: TicketParams; list: ReturnType<typeof useListPage>; toolbar: ReactNode; empty: ReactNode }) {
+type TicketsTableState = ReturnType<typeof useServerList<TicketListItemDto>>['table'];
+
+function TicketsTable({ mode, tab, groupBy, table, toolbar, empty }: { mode: TicketsMode; tab: TicketTab; groupBy: TicketGrouping | ''; table: TicketsTableState; toolbar: ReactNode; empty: ReactNode }) {
   const { t, i18n } = useTranslation('tickets');
   const { t: tc } = useTranslation();
   const navigate = useNavigate();
   const columns = useTicketColumns(tab);
-  const { table } = useServerList<TicketListItemDto>('tickets', '/tickets', list, params);
   return (
     <DataTable<TicketListItemDto>
       listKey="tickets"
@@ -90,10 +92,10 @@ function TicketsTable({ mode, tab, groupBy, params, list, toolbar, empty }: { mo
   );
 }
 
-function TicketsBody({ tab, mode, groupBy, params, list, toolbar }: { tab: TicketTab; mode: TicketsMode; groupBy: TicketGrouping | ''; params: TicketParams; list: ReturnType<typeof useListPage>; toolbar: ReactNode }) {
+function TicketsBody({ tab, mode, groupBy, params, list, table, toolbar }: { tab: TicketTab; mode: TicketsMode; groupBy: TicketGrouping | ''; params: TicketParams; list: ReturnType<typeof useListPage>; table: TicketsTableState; toolbar: ReactNode }) {
   const { t } = useTranslation('tickets');
   const empty = <EmptyState icon={LifeBuoy} title={list.narrowed ? t('noMatches') : t(`empty.${tab}`)} description={list.narrowed ? undefined : t(`emptyHint.${tab}`)} />;
-  if (mode !== 'board') return <TicketsTable mode={mode} tab={tab} groupBy={groupBy} params={params} list={list} toolbar={toolbar} empty={empty} />;
+  if (mode !== 'board') return <TicketsTable mode={mode} tab={tab} groupBy={groupBy} table={table} toolbar={toolbar} empty={empty} />;
   return (
     <div data-tour="main-list" className="rounded-3xl border border-neutral-200 bg-white p-3 shadow-sm shadow-ink/5 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-end gap-3">{toolbar}</div>
@@ -113,6 +115,7 @@ export function TicketsPage() {
   const list = useListPage('tickets');
   const fields = useTicketFilterFields(options.data, list.filters.values);
   const params = { tab, search: list.term || undefined, groupBy: mode !== 'board' ? groupBy || undefined : undefined, ...toTicketsQuery(list.filters.values) };
+  const { table, exchange } = useTicketsList(list, params);
   const switchTab = (next: TicketTab) => {
     setTab(next);
     list.setPage(1);
@@ -122,14 +125,14 @@ export function TicketsPage() {
     <ListToolbar
       listKey="tickets"
       {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields, false)}
-      actions={<>{mode !== 'board' && <GroupSelect value={groupBy} onChange={setGroupBy} />}<ViewSwitch value={mode} onChange={setMode} choices={views} /></>}
+      actions={<>{mode !== 'board' && <GroupSelect value={groupBy} onChange={setGroupBy} />}{exchange}<ViewSwitch value={mode} onChange={setMode} choices={views} /></>}
     />
   );
   return (
     <>
       <PageHeader title={t('title')} description={t('description')} actions={<Can permission={CorePermission.TicketsCreate}><Button data-tour="ticket-new" onClick={() => setCreating(true)}><Plus className="size-4" aria-hidden />{t('newTicket')}</Button></Can>} />
       <TabBar tab={tab} offered={{ mine: true, inbox: options.data?.hasInbox ?? false, team: options.data?.hasTeam ?? false }} onChange={switchTab} />
-      <TicketsBody tab={tab} mode={mode} groupBy={groupBy} params={params} list={list} toolbar={toolbar} />
+      <TicketsBody tab={tab} mode={mode} groupBy={groupBy} params={params} list={list} table={table} toolbar={toolbar} />
       <NewTicketDialog open={creating} onOpenChange={setCreating} />
     </>
   );

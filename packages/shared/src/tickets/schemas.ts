@@ -118,6 +118,8 @@ export const ticketsQuerySchema = paginationQuerySchema.extend({
   assigneeId: z.uuid().optional(),
   status: z.enum(TICKET_STATUSES).optional(),
   groupBy: z.enum(TICKET_GROUPINGS).optional(),
+  /** Adds each ticket's text to the rows (the export asks for it; the table and the board do not). */
+  withDetails: z.stringbool().optional(),
 });
 export type TicketsQuery = z.infer<typeof ticketsQuerySchema>;
 
@@ -239,6 +241,8 @@ export interface TicketListItemDto {
   stale: boolean;
   /** Nobody from the unit has answered yet. */
   isNew: boolean;
+  /** The ticket's text; only when the list was asked `withDetails`. */
+  details?: string;
 }
 
 export interface TicketAttachmentDto {

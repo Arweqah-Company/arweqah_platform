@@ -2,6 +2,15 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-26 — Export of the ticket list (FR-184)
+
+Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-26).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 480 | **The tickets list has an export, like the other lists (standing rule 4): `tickets.export`, scope `all` (the list already narrows to what the person sees), held by the head role of every unit** (migration `TicketsExportKey`), not by the Employee role. The file is built in the browser from the list's own rows (`ExchangeButtons`, as the task lists do): there is no export endpoint. | The tickets list was the one list without it, so a leader could not hand a batch of tickets to anyone (nor to the assistant that reviews platform problems). A client-side file adds no route to protect and cannot show a ticket the list does not return. | The ticket count of a desk passes the export limit (`MAX_EXPORT_ROWS`) and a server-side file is needed |
+| 481 | **The ticket's text rides with the rows only when asked: `GET /tickets?withDetails=true`** (`z.stringbool`, `details` is absent otherwise). The page sends it only for a person who holds `tickets.export`, for the table and for «all results» alike, so both scopes of the file hold the text; the board and a person without the key never receive it. | The text is what makes a ticket file useful, but it is up to `MAX_TICKET_TEXT` per row, so it is not sent to every list view. The SQL already reads it (search matches it), so asking costs only the payload. The flag does not widen who sees what: scope filtering is unchanged and a person may open each of those tickets anyway. | A list view needs the text without the export key |
+
 ## 2026-11-26 — A session lasts two days
 
 Plan: `docs/plans/phase-1-auth-employees.md` (log 2026-11-26).

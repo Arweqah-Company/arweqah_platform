@@ -849,4 +849,25 @@ describe('Tickets (FR-36 … FR-41)', () => {
       expect(entry).toMatchObject({ available: false, handlers: [] });
     });
   });
+  describe('Exporting the ticket list: each ticket\'s text rides with the rows only when asked (FR-184)', () => {
+    it('sends no text with the rows by default, and the text of each ticket when `withDetails` is true', async () => {
+      const w = await world();
+      const ticket = await sendOne(w, await openDesk(w), { details: 'الطابعة في الطابق الثاني تطبع صفحات فارغة' });
+      const plain = (await w.agents.sender.get('/api/tickets').expect(200)).body.items;
+      expect(plain).toHaveLength(1);
+      expect(plain[0]).not.toHaveProperty('details');
+      const detailed = (await w.agents.sender.get('/api/tickets?withDetails=true').expect(200)).body.items;
+      expect(detailed[0]).toMatchObject({ id: ticket.id, details: 'الطابعة في الطابق الثاني تطبع صفحات فارغة' });
+      const off = (await w.agents.sender.get('/api/tickets?withDetails=false').expect(200)).body.items;
+      expect(off[0]).not.toHaveProperty('details');
+    });
+
+    it('does not widen who sees what: a stranger gets nothing with the text, and a value that is not true or false is refused (400)', async () => {
+      const w = await world();
+      await sendOne(w, await openDesk(w));
+      expect((await w.agents.stranger.get('/api/tickets?withDetails=true').expect(200)).body.items).toHaveLength(0);
+      expect((await w.agents.manager.get('/api/tickets?tab=inbox&withDetails=true').expect(200)).body.items[0]).toHaveProperty('details');
+      await w.agents.sender.get('/api/tickets?withDetails=maybe').expect(400);
+    });
+  });
 });
