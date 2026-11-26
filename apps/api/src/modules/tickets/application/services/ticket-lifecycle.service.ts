@@ -89,10 +89,10 @@ export class TicketLifecycleService {
 
   /**
    * The sender's reply that also confirms the closing: runs inside the transaction of the reply, so the reply and the closing are saved together or not at all.
-   * The caller has checked the sender, the state and the key; the returned function writes the audit entry once the transaction has committed.
+   * `alongside` is what the reply itself writes (taking the ticket as its handler, the first answer); the closing keeps its own state fields. The caller has checked the sender, the state and the key; the returned function writes the audit entry once the transaction has committed.
    */
-  confirmWithin(row: TicketRow, actorUserId: string, tx: TransactionContext): Promise<() => void> {
-    return this.applyIn(row, 'confirm_close', { actorUserId, message: null }, tx);
+  confirmWithin(row: TicketRow, actorUserId: string, tx: TransactionContext, alongside: TicketPatch = {}): Promise<() => void> {
+    return this.applyIn(row, 'confirm_close', { actorUserId, message: null, alongside }, tx);
   }
 
   private async apply(row: TicketRow, action: TicketAction, actorUserId: string | null, message: string | null): Promise<void> {
@@ -101,13 +101,13 @@ export class TicketLifecycleService {
   }
 
   /** The change of state, its event, the auto-closing job and the notice, in the given transaction; returns the audit writer to call after it commits. */
-  private async applyIn(row: TicketRow, action: TicketAction, by: { actorUserId: string | null; message: string | null }, tx: TransactionContext): Promise<() => void> {
+  private async applyIn(row: TicketRow, action: TicketAction, by: { actorUserId: string | null; message: string | null; alongside?: TicketPatch }, tx: TransactionContext): Promise<() => void> {
     const { actorUserId, message } = by;
     const next = nextState(action, row.status);
     if (!next) throw new TicketStateInvalidError(action, row.status);
     const outcome = OUTCOMES[action];
     const now = this.clock.now();
-    const changed = await this.tickets.patch(row.id, row.revision, this.patchFor(action, next, now), tx);
+    const changed = await this.tickets.patch(row.id, row.revision, { ...by.alongside, ...this.patchFor(action, next, now) }, tx);
     if (!changed) throw new TicketRevisionConflictError();
     await this.tickets.appendEvent({ ticketId: row.id, type: outcome.event, actorUserId, body: message, fileIds: [] }, tx);
     await this.schedule(row, action, now, tx);

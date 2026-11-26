@@ -81,6 +81,7 @@ describe('Zooming an attached picture (FR-188)', () => {
     const img = await waitFor(() => { const found = dialog.querySelector('img'); if (!found) throw new Error('no picture yet'); return found; });
     Object.defineProperty(img, 'clientWidth', { value: 400, configurable: true });
     Object.defineProperty(img, 'clientHeight', { value: 200, configurable: true });
+    fireEvent.load(img); // the picture is decoded: its size is known and zooming is on
     return img;
   }
 
@@ -122,5 +123,16 @@ describe('Zooming an attached picture (FR-188)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'تكبير' }));
     await waitFor(() => expect(img.style.width).toBe('375px'));
     expect(img.style.height).toBe('187.5px');
+  });
+
+  it('keeps zooming off until the picture has loaded, so a size of zero is never taken for the fit (CodeRabbit on the release)', async () => {
+    server.use(http.get('*/api/tickets/t1/attachments/f1/preview', () => HttpResponse.arrayBuffer(new ArrayBuffer(4), { headers: { 'Content-Type': 'image/png' } })));
+    render(<FileChip file={file()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'عرض screen.png' }));
+    const dialog = await screen.findByRole('dialog');
+    const img = await waitFor(() => { const found = dialog.querySelector('img'); if (!found) throw new Error('no picture yet'); return found; });
+    expect(screen.getByRole('button', { name: 'تكبير' })).toBeDisabled();
+    fireEvent.load(img);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'تكبير' })).toBeEnabled());
   });
 });
