@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/shared/lib/format-date';
 import { actionsOfCategory, AUDIT_ACTIONS, AUDIT_CATEGORIES, AUDIT_CATEGORY_LABELS, auditActionText, CorePermission, type AuditCategory, type AuditDetailDto, type AuditLogDto } from '@arweqah-platform/shared';
 import { Eye } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
@@ -30,7 +31,7 @@ export function AuditPage() {
     { id: 'to', label: t('filters.to'), type: 'date' },
   ];
   const { query, loadAll, table } = useServerList<AuditLogDto>('audit', '/audit-logs', list, { search: list.term || undefined, ...list.filters.values });
-  const when = (l: AuditLogDto) => new Date(l.createdAt).toLocaleString(i18n.language);
+  const when = (l: AuditLogDto) => formatDateTime(l.createdAt);
   const what = (l: AuditLogDto) => auditActionText(l.action, lang);
   const kind = (l: AuditLogDto) => AUDIT_CATEGORY_LABELS[l.category][lang];
   const exportColumns: ExportColumn<AuditLogDto>[] = [
@@ -75,7 +76,7 @@ function AuditDetails({ entry: l, onClose }: { entry: AuditLogDto; onClose: () =
   const { t, i18n } = useTranslation('audit');
   const lang: Lang = i18n.language === 'ar' ? 'ar' : 'en';
   const rows: [string, ReactNode][] = [
-    [t('when'), new Date(l.createdAt).toLocaleString(i18n.language)],
+    [t('when'), formatDateTime(l.createdAt)],
     [t('actor'), l.actorName ?? t('system')],
     [t('category'), AUDIT_CATEGORY_LABELS[l.category][lang]],
     [t('action'), auditActionText(l.action, lang)],

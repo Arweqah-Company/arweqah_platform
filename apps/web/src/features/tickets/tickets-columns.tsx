@@ -1,3 +1,4 @@
+import { formatDate } from '@/shared/lib/format-date';
 import { formatTicketNumber, type TicketListItemDto, type TicketTab } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -9,7 +10,7 @@ import { TicketFlags, TicketStatusBadge } from './ticket-badges';
 export function useTicketColumns(tab: TicketTab) {
   const { t, i18n } = useTranslation('tickets');
   const ar = i18n.language === 'ar';
-  const day = (iso: string) => new Date(iso).toLocaleDateString(i18n.language);
+  const day = (iso: string) => formatDate(iso);
   const columns: Column<TicketListItemDto>[] = [
     { id: 'number', header: t('columns.number'), className: 'whitespace-nowrap', cell: (x) => <Link to={`/tickets/${x.id}`} className="text-link underline-offset-2 hover:underline" dir="ltr">{formatTicketNumber(x.number)}</Link> },
     { id: 'title', header: t('columns.title'), className: 'min-w-56', cell: (x) => <span className="flex flex-col gap-1"><Link to={`/tickets/${x.id}`} className="font-medium hover:underline">{x.title}</Link><TicketFlags ticket={x} /></span> },

@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/shared/lib/format-date';
 import type { TourStepSettingDto } from '@arweqah-platform/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -63,7 +64,7 @@ function ResetConfirm({ step, onClose }: { step: TourStepSettingDto | null; onCl
 
 /** The welcome tour's steps of both tours: reword a step, switch it off, move it, or go back to the code's wording. */
 export function TourStepsTab() {
-  const { t, i18n } = useTranslation('tour');
+  const { t } = useTranslation('tour');
   const { t: tc } = useTranslation();
   const { steps, list, fields, rows, exportColumns, title } = useStepRows();
   const move = useMove(steps.data?.steps);
@@ -103,7 +104,7 @@ export function TourStepsTab() {
           { id: 'order', header: t('settings.columns.order'), cell: (x) => x.order },
           { id: 'tour', header: t('settings.columns.tour'), cell: (x) => <Badge tone="neutral">{t(`settings.tours.${x.tour}`)}</Badge> },
           { id: 'status', header: t('settings.columns.status'), cell: (x) => <Badge tone={x.enabled ? 'success' : 'neutral'}>{t(`settings.status.${x.enabled ? 'on' : 'off'}`)}</Badge> },
-          { id: 'updated', header: t('settings.columns.updated'), cell: (x) => (x.updatedAt ? new Date(x.updatedAt).toLocaleString(i18n.language) : '—') },
+          { id: 'updated', header: t('settings.columns.updated'), cell: (x) => (x.updatedAt ? formatDateTime(x.updatedAt) : '—') },
         ]}
       />
       {opened && <StepDialog key={opened.key} step={opened} heading={title(opened)} onClose={() => setOpen(null)} />}

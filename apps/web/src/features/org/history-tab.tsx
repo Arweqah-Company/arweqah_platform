@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/shared/lib/format-date';
 import type { OrgChangeLogLineDto, OrgNodeVersionDto, OrgVersionStatus } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
@@ -34,7 +35,6 @@ const actionKey = (action: string): string => `history.actions.${action.replace(
 
 function LogTable({ lines }: { lines: OrgChangeLogLineDto[] }) {
   const { t } = useTranslation('org');
-  const date = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Riyadh' });
   return (
     <div className="overflow-x-auto rounded-2xl border border-neutral-200">
       <table className="w-full text-sm">
@@ -42,7 +42,7 @@ function LogTable({ lines }: { lines: OrgChangeLogLineDto[] }) {
         <tbody>
           {lines.map((l) => (
             <tr key={l.id} className="border-t border-neutral-200 align-top first:border-t-0">
-              <td className="whitespace-nowrap p-2 text-xs text-muted"><bdi dir="ltr">{date.format(new Date(l.createdAt))}</bdi></td>
+              <td className="whitespace-nowrap p-2 text-xs text-muted"><bdi dir="ltr">{formatDateTime(l.createdAt)}</bdi></td>
               <td className="p-2">{t(actionKey(l.action), { defaultValue: l.action })}{l.actorName && <span className="text-muted"> · {l.actorName}</span>}{l.reason && <p className="text-xs text-muted">{t('history.reason', { reason: l.reason })}</p>}</td>
             </tr>
           ))}

@@ -1,15 +1,14 @@
+import { formatDate } from '@/shared/lib/format-date';
 import type { MilestoneRowDto, MilestoneState } from '@arweqah-platform/shared';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { formatLongDate } from '@/shared/lib/format-date';
 import { Badge } from '@/shared/ui';
 
 const TONE: Record<MilestoneState, 'neutral' | 'warning' | 'info' | 'success'> = { none: 'warning', recorded: 'info', acknowledged: 'success', skipped: 'neutral' };
 
 /** The date HR set for a milestone, written out in the language of the screen; a dash when it has none. */
 export function useMilestoneDate(): (m: Pick<MilestoneRowDto, 'date'>) => string {
-  const { i18n } = useTranslation('performance');
-  return (m) => (m.date ? formatLongDate(m.date, i18n.language) : '—');
+  return (m) => (m.date ? formatDate(m.date) : '—');
 }
 
 /** The milestones of the year: the name, the date, where it stands, and (a slot) what the viewer can do with it. */

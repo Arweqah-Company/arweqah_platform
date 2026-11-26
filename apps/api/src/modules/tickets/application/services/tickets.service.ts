@@ -3,6 +3,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { riyadhToday, type CreateTicketInput, type Paginated, type TicketDto, type TicketFilterOptionsDto, type PersonRefDto, type TicketRelation, type TicketReplyInput, type TicketsPageDto, type TicketsQuery } from '@arweqah-platform/shared';
 import { Clock } from '../../../../common/application/clock';
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
+import { ForbiddenError } from '../../../../common/domain/domain-error';
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
 import { FilesService } from '../../../../core/files/application/files.service';
 import { OrgDirectoryService } from '../../../org/application/services/org-directory.service';
@@ -33,6 +34,7 @@ import { TICKET_AUDIT } from '../messages/ticket.messages';
 import { TicketAccessPolicy } from '../policies/ticket-access.policy';
 import { TicketReplyPolicy } from '../policies/ticket-reply.policy';
 import { TicketTransformer, type DeskNames } from '../transformers/ticket.transformer';
+import { TicketLifecycleService } from './ticket-lifecycle.service';
 import { TicketNotifier } from './ticket-notifier.service';
 import { TicketReplyNotices } from './ticket-reply-notices.service';
 
@@ -52,6 +54,7 @@ export class TicketsService {
     private readonly notifier: TicketNotifier,
     private readonly replyPolicy: TicketReplyPolicy,
     private readonly replyNotices: TicketReplyNotices,
+    private readonly lifecycle: TicketLifecycleService,
     private readonly tx: TransactionRunner,
     private readonly clock: Clock,
     private readonly events: EventEmitter2,
@@ -114,16 +117,26 @@ export class TicketsService {
     const resolved = await this.replyPolicy.resolve(viewer, found, input);
     const fromUnit = relations.includes('assignee') || relations.includes('manager') || relations.includes('desk');
     const senderAnswersClosing = relations.includes('sender') && !fromUnit && found.status === 'close_requested';
+    const confirming = this.confirmsClosing(viewer, input, senderAnswersClosing, found);
     const audience = this.replyAudience(found, relations, fromUnit);
     await this.tx.run(async (tx) => {
       const claims = found.assigneeUserId === null && found.typeHandlerUserIds.includes(userId);
-      const patch = { lastActivityAt: now, ...(claims ? { assigneeUserId: userId } : {}), ...(fromUnit && !found.firstResponseAt ? { firstResponseAt: now } : {}), ...(senderAnswersClosing ? { ...nextState('sender_reply', found.status), closeRequestedAt: null } : {}) };
+      const patch = { lastActivityAt: now, ...(claims ? { assigneeUserId: userId } : {}), ...(fromUnit && !found.firstResponseAt ? { firstResponseAt: now } : {}), ...(senderAnswersClosing && !confirming ? { ...nextState('sender_reply', found.status), closeRequestedAt: null } : {}) };
       await this.patchOrFail(found, patch, tx);
       await this.tickets.appendEvent({ ticketId: id, type: 'reply', actorUserId: userId, body: input.body, fileIds: input.fileIds, ...resolved }, tx);
       await this.replyNotices.send({ ...resolved, ticket: found, actorUserId: userId, audience }, tx);
     });
     this.audit(userId, TICKET_AUDIT.replied, id, { files: input.fileIds.length, mentions: resolved.mentionIds.length, answer: resolved.parentEventId !== null });
+    if (confirming) await this.lifecycle.act(viewer, id, 'confirm_close');
     return this.get(viewer, id);
+  }
+
+  /** «Send the reply and confirm the closing»: only the sender of a ticket waiting for their confirmation, and only with the key to confirm. */
+  private confirmsClosing(viewer: TicketViewer, input: TicketReplyInput, senderAnswersClosing: boolean, ticket: TicketRow): boolean {
+    if (!input.confirmClose) return false;
+    if (!senderAnswersClosing) throw new TicketStateInvalidError('confirm_close', ticket.status);
+    if (!viewer.canConfirmClose) throw new ForbiddenError();
+    return true;
   }
 
   /** Who gets the plain "new reply" notice: the sender for the unit's reply, the unit for the sender's, and both for somebody who was only mentioned. */

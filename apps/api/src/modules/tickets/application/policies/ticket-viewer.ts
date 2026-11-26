@@ -7,5 +7,5 @@ import type { TicketViewer } from '../../domain/types/ticket.types';
  * and which departments they may handle through the reply permission (their tickets: reply, ask to close, close without execution).
  */
 export function viewerOf(ctx: AccessContext): TicketViewer {
-  return { userId: ctx.userId, canAnswerReply: ctx.has(CorePermission.TicketsCommentReply), canMention: ctx.has(CorePermission.TicketsCommentMention), view: ctx.nodeScopeOf(CorePermission.TicketsView), handle: ctx.nodeScopeOf(CorePermission.TicketsReply), reassign: ctx.nodeScopeOf(CorePermission.TicketsReassign), chooseHandler: ctx.nodeScopeOf(CorePermission.TicketsChooseHandler), delete: ctx.nodeScopeOf(CorePermission.TicketsDelete) };
+  return { userId: ctx.userId, canAnswerReply: ctx.has(CorePermission.TicketsCommentReply), canMention: ctx.has(CorePermission.TicketsCommentMention), canConfirmClose: ctx.has(CorePermission.TicketsConfirmClose), view: ctx.nodeScopeOf(CorePermission.TicketsView), handle: ctx.nodeScopeOf(CorePermission.TicketsReply), reassign: ctx.nodeScopeOf(CorePermission.TicketsReassign), chooseHandler: ctx.nodeScopeOf(CorePermission.TicketsChooseHandler), delete: ctx.nodeScopeOf(CorePermission.TicketsDelete), deleteOwn: ctx.scopeOf(CorePermission.TicketsDelete) !== null };
 }

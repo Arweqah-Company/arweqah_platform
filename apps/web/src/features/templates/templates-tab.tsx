@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/shared/lib/format-date';
 import type { TemplateDto, TemplateKind } from '@arweqah-platform/shared';
 import { FileText, Pencil, Undo2 } from 'lucide-react';
 import { useState } from 'react';
@@ -66,7 +67,7 @@ export function TemplatesTab({ kind }: { kind: TemplateKind }) {
           { id: 'template', header: t('columns.template'), cell: (x) => <div><p className="font-medium">{name(x)}</p><p className="text-sm text-muted">{i18n.language === 'ar' ? x.descriptionAr : x.descriptionEn}</p></div> },
           { id: 'area', header: t('columns.area'), cell: (x) => <Badge tone="neutral">{t(`areas.${x.area}`)}</Badge> },
           { id: 'status', header: t('columns.status'), cell: (x) => <Badge tone={STATUS_TONE[x.status]}>{t(`status.${x.status}`)}</Badge> },
-          { id: 'updated', header: t('columns.updated'), cell: (x) => (x.updatedAt ? new Date(x.updatedAt).toLocaleString(i18n.language) : '—') },
+          { id: 'updated', header: t('columns.updated'), cell: (x) => (x.updatedAt ? formatDateTime(x.updatedAt) : '—') },
         ]}
       />
       {opened && <TemplateDialog key={opened.key} kind={kind} template={opened} requireApproval={catalog.data?.requireApproval ?? false} onClose={() => setOpen(null)} />}

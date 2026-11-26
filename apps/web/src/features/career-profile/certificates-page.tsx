@@ -1,3 +1,4 @@
+import { formatDate } from '@/shared/lib/format-date';
 import { CorePermission, PROOF_KINDS, RECORD_STATUSES, type CertificateReviewItemDto } from '@arweqah-platform/shared';
 import { Award, Check, Eye, Forward, X } from 'lucide-react';
 import { useState } from 'react';
@@ -15,7 +16,7 @@ import { STATE_TONE } from './proof-status';
 function useCertificateColumns(): { columns: Column<CertificateReviewItemDto>[]; exportColumns: ExportColumn<CertificateReviewItemDto>[] } {
   const { t, i18n } = useTranslation('career-profile');
   const unit = (x: CertificateReviewItemDto) => (i18n.language === 'ar' ? x.unitNameAr : x.unitNameEn) || x.unitNameAr || '';
-  const date = (iso: string) => new Date(iso).toLocaleDateString();
+  const date = (iso: string) => formatDate(iso);
   const columns: Column<CertificateReviewItemDto>[] = [
     { id: 'employee', header: t('certs.columns.employee'), cell: (x) => <span className="font-medium">{x.employeeName}</span> },
     { id: 'unit', header: t('certs.columns.unit'), cell: unit },

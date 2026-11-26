@@ -15,7 +15,7 @@ describe('Sign-in with e-mail and authenticator code (FR-01, FR-23)', () => {
     const user = await t.factories.user({ grants: [{ key: DEMO_PERMISSION, scope: 'company' }] });
     const agent = await t.factories.signIn(user);
     const me = await agent.get('/api/me').expect(200);
-    expect(me.body).toMatchObject({ email: user.email, authenticatorEnabled: true, mfaVerified: true });
+    expect(me.body).toMatchObject({ email: user.email, authenticatorEnabled: true, mfaVerified: true, employeeId: user.employeeId, photoFileId: null }); // the header shows the same photo the employee list serves (FR-91)
     expect(me.body.permissions).toBeUndefined();
     const access = await agent.get('/api/me/access').expect(200);
     expect(access.body.grants).toEqual(expect.arrayContaining([expect.objectContaining({ key: DEMO_PERMISSION, scope: 'company' })]));

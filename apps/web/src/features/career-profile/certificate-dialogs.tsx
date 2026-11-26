@@ -1,3 +1,4 @@
+import { formatDate } from '@/shared/lib/format-date';
 import { CorePermission, PROOF_REASON_MAX, PROOF_REASON_MIN, type CertificateReviewItemDto } from '@arweqah-platform/shared';
 import { Check, Download, Forward, X } from 'lucide-react';
 import { useState } from 'react';
@@ -40,7 +41,7 @@ function ReviewDialog({ item, onClose, onReject }: { item: CertificateReviewItem
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()} title={item.unitTitle || t('certs.unitGone')} description={item.employeeName} wide>
       <dl className="grid gap-3 text-sm sm:grid-cols-2">
-        {([[t('certs.columns.unit'), nameOf(item, i18n.language === 'ar')], [t('proof.kind'), t(`proof.kinds.${item.kind}.title`)], [t('certs.columns.minutes'), `${item.minutes / 60}`], [t('proof.submittedAt'), new Date(item.submittedAt).toLocaleDateString()], [t('certs.columns.status'), t(`proof.state.${item.status}`)], [t('proof.note'), item.note]] as [string, string | null][]).map(([label, value]) => (
+        {([[t('certs.columns.unit'), nameOf(item, i18n.language === 'ar')], [t('proof.kind'), t(`proof.kinds.${item.kind}.title`)], [t('certs.columns.minutes'), `${item.minutes / 60}`], [t('proof.submittedAt'), formatDate(item.submittedAt)], [t('certs.columns.status'), t(`proof.state.${item.status}`)], [t('proof.note'), item.note]] as [string, string | null][]).map(([label, value]) => (
           <div key={label} className="min-w-0"><dt className="text-xs text-muted">{label}</dt><dd className="break-words font-medium">{value ?? '—'}</dd></div>
         ))}
       </dl>

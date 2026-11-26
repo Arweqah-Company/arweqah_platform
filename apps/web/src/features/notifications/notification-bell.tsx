@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/shared/lib/format-date';
 import * as Popover from '@radix-ui/react-popover';
 import { CorePermission } from '@arweqah-platform/shared';
 import { Bell } from 'lucide-react';
@@ -40,7 +41,7 @@ export function NotificationBell() {
               const inner = (
                 <span className={n.readAt ? 'text-muted' : 'font-medium'}>
                   <span className="block">{ar ? n.titleAr : n.titleEn}</span>
-                  <span className="block text-xs font-normal text-muted">{new Date(n.createdAt).toLocaleString(i18n.language)}</span>
+                  <span className="block text-xs font-normal text-muted">{formatDateTime(n.createdAt)}</span>
                 </span>
               );
               return n.link?.startsWith('/') ? (

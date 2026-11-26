@@ -27,7 +27,7 @@ export function TicketDetailsPage() {
         <TicketActions ticket={ticket} />
         <TicketTimeline ticket={ticket} />
         <TicketHistory ticket={ticket} />
-        {ticket.abilities.reply ? <Can permission={CorePermission.TicketsReply}><ReplyBox ticketId={ticket.id} /></Can> : <Alert tone="info">{t('reply.closedNote')}</Alert>}
+        {ticket.abilities.reply ? <Can permission={CorePermission.TicketsReply}><ReplyBox ticketId={ticket.id} confirming={ticket.abilities.confirmClose} /></Can> : <Alert tone="info">{t('reply.closedNote')}</Alert>}
       </div>
     </>
   );

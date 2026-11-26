@@ -168,6 +168,8 @@ export interface TicketViewer {
   /** Whether the person's role has the two comment keys (the reply button on a reply, and @). */
   canAnswerReply: boolean;
   canMention: boolean;
+  /** Whether the person's role has the key to confirm a closing (it lets the sender's reply confirm it too). */
+  canConfirmClose: boolean;
   view: ViewerScope;
   handle: ViewerScope;
   /** The departments whose tickets the person may hand to someone else, and (the same scope) the people they may hand them to. */
@@ -176,6 +178,8 @@ export interface TicketViewer {
   chooseHandler: ViewerScope;
   /** The departments whose tickets the person may delete (hide). */
   delete: ViewerScope;
+  /** Holds the delete key at any scope (`own` is the narrowest): the person may delete the tickets they sent themselves, whichever department got them. */
+  deleteOwn: boolean;
 }
 
 export interface TicketListFilters {

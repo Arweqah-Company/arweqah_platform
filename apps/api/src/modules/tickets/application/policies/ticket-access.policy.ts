@@ -60,8 +60,9 @@ export class TicketAccessPolicy {
     return !ticket.isPersonal && ticket.status !== 'closed' && ticket.assigneeUserId === null && ticket.typeHandlerUserIds.length > 1 && inScope(viewer.chooseHandler, { orgNodeId: ticket.deskId, companyId: ticket.deskCompanyId });
   }
 
-  /** Does the viewer's delete key reach the ticket's department (any status, personal or not)? */
+  /** Does the viewer's delete key reach the ticket's department, or is it a ticket they sent themselves (any status, personal or not)? */
   mayDelete(viewer: TicketViewer, ticket: TicketRow): boolean {
+    if (viewer.deleteOwn && ticket.senderUserId === viewer.userId) return true;
     return inScope(viewer.delete, { orgNodeId: ticket.deskId, companyId: ticket.deskCompanyId });
   }
 

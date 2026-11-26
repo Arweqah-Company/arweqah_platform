@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/shared/lib/format-date';
 import { CorePermission, EMAIL_PURPOSES, EMAIL_STATUSES, type EmailLogDto } from '@arweqah-platform/shared';
 import { Eye } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
@@ -11,7 +12,7 @@ import { Badge, DataTable, DetailsDialog, ListToolbar, PageHeader, RowAction, ty
 const statusTone = { sent: 'success', failed: 'danger', pending: 'neutral' } as const;
 
 export function EmailLogPage() {
-  const { t, i18n } = useTranslation('emailLog');
+  const { t } = useTranslation('emailLog');
   const { t: tc } = useTranslation();
   const [viewing, setViewing] = useState<EmailLogDto | null>(null);
   const list = useListPage('email-log');
@@ -23,7 +24,7 @@ export function EmailLogPage() {
     { id: 'until', label: t('filters.until'), type: 'date' },
   ];
   const { query, loadAll, table } = useServerList<EmailLogDto>('email-logs', '/email-logs', list, { search: list.term || undefined, ...list.filters.values });
-  const when = (l: EmailLogDto) => new Date(l.createdAt).toLocaleString(i18n.language);
+  const when = (l: EmailLogDto) => formatDateTime(l.createdAt);
   const exportColumns: ExportColumn<EmailLogDto>[] = [
     { id: 'when', header: t('when'), value: when },
     { id: 'to', header: t('to'), value: (l) => l.to },
@@ -60,8 +61,8 @@ export function EmailLogPage() {
 
 /** One sent e-mail in full: to whom, why, how it went and what the mail server answered (never the body: it holds one-time links). */
 function EmailDetails({ entry: l, onClose }: { entry: EmailLogDto; onClose: () => void }) {
-  const { t, i18n } = useTranslation('emailLog');
-  const day = (iso: string | null) => (iso ? new Date(iso).toLocaleString(i18n.language) : '—');
+  const { t } = useTranslation('emailLog');
+  const day = (iso: string | null) => (iso ? formatDateTime(iso) : '—');
   const rows: [string, ReactNode][] = [
     [t('when'), day(l.createdAt)],
     [t('sentAt'), day(l.sentAt)],

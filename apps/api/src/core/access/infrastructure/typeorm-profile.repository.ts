@@ -13,4 +13,15 @@ export class TypeOrmProfileRepository extends ProfileRepository {
   findUser(id: string): Promise<User | null> {
     return this.users.findOne({ where: { id } });
   }
+
+  async findEmployeePhoto(userId: string): Promise<{ employeeId: string | null; photoFileId: string | null }> {
+    const row = await this.users.manager
+      .createQueryBuilder()
+      .select('e.id', 'employeeId')
+      .addSelect('e.photo_file_id', 'photoFileId')
+      .from('employees', 'e')
+      .where('e.user_id = :userId AND e.deleted_at IS NULL', { userId })
+      .getRawOne<{ employeeId: string; photoFileId: string | null }>();
+    return row ?? { employeeId: null, photoFileId: null };
+  }
 }

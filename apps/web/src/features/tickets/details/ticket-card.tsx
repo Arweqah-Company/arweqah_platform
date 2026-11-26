@@ -1,3 +1,4 @@
+import { formatDate } from '@/shared/lib/format-date';
 import { formatTicketNumber, type TicketDto } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { TicketFlags, TicketStatusBadge } from '../ticket-badges';
@@ -14,7 +15,7 @@ export function TicketCard({ ticket }: { ticket: TicketDto }) {
     [t('columns.sender'), ticket.sender.name],
     [t('columns.assignee'), ticket.assignee?.name ?? (ticket.handlers.length > 0 ? ticket.handlers.map((h) => h.name).join(ar ? '\u060C ' : ', ') : '—')],
     [t('columns.neededBy'), ticket.neededBy],
-    [t('details.sentOn'), new Date(ticket.createdAt).toLocaleDateString(i18n.language)],
+    [t('details.sentOn'), formatDate(ticket.createdAt)],
   ];
   return (
     <section aria-label={t('card.label')} className="flex flex-col gap-5 rounded-[var(--radius-panel)] border-2 border-link/30 bg-white p-6 shadow-md shadow-ink/10 sm:p-8">

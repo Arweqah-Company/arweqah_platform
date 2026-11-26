@@ -129,7 +129,9 @@
     "label": "Your reply",
     "send": "Send reply",
     "sent": "The reply was sent.",
-    "closedNote": "The ticket is closed and takes no new replies."
+    "closedNote": "The ticket is closed and takes no new replies.",
+    "sendAndConfirm": "Send the reply and confirm the closing",
+    "confirmNote": "This ticket waits for your confirmation. «Send the reply» alone returns it to «open» and cancels the closing request; «Send the reply and confirm the closing» sends your reply and closes it."
   },
   "card": {
     "label": "The ticket"

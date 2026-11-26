@@ -93,7 +93,8 @@ export const createTicketSchema = z.strictObject({
 export type CreateTicketInput = z.infer<typeof createTicketSchema>;
 
 /** A reply, or (with `parentEventId`) an answer to one. People are named in the text as `{{mention:<user id>}}` (see `mentionedIn`). */
-export const ticketReplySchema = z.strictObject({ body: z.string().trim().min(1).max(MAX_TICKET_TEXT), fileIds, parentEventId: z.uuid().optional() });
+/** `confirmClose`: the sender of a ticket that waits for their confirmation sends this reply and confirms the closing in the same step (without it, the sender's reply returns the ticket to «open»). */
+export const ticketReplySchema = z.strictObject({ body: z.string().trim().min(1).max(MAX_TICKET_TEXT), fileIds, parentEventId: z.uuid().optional(), confirmClose: z.boolean().optional() });
 export type TicketReplyInput = z.infer<typeof ticketReplySchema>;
 
 /** The unit asks to close, or the sender declines the closing, optionally with a message. */
