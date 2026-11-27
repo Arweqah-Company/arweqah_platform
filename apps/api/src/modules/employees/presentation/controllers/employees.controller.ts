@@ -15,7 +15,7 @@ import type { AuthenticatedRequest, SessionUser } from '../../../../common/prese
 import { IdParam } from '../../../../common/presentation/zod-query';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
 import { AdminModeService } from '../../../../core/access/application/admin-mode.service';
-import { Access, HiddenWithPage, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
+import { Access, HiddenWithPage, OwnData, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
 import { EmployeesService } from '../../application/services/employees.service';
 import { AssignGroupsDto, AssignRolesDto, CreateEmployeeDto, EmployeesQueryDto, ManagerSearchDto, TerminateEmployeeDto, UpdateEmployeeDto } from '../dtos/employee.dtos';
 
@@ -44,8 +44,9 @@ export class EmployeesController {
     return this.employees.managers(ctx, query);
   }
 
+  /** Its keys are the three `employees.figures_*` (the service asks for them and answers 403 to a person with none), so the route needs no single key. */
   @Get('summary')
-  @RequirePermission(P.EmployeesView)
+  @OwnData()
   summary(@Access() ctx: AccessContext): Promise<EmployeesSummaryDto> {
     return this.employees.summary(ctx);
   }

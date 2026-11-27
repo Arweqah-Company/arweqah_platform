@@ -50,13 +50,15 @@ function TicketChart({ tickets }: { tickets: TicketSummaryDto }) {
   return <DonutChart title={t('charts.ticketsByStatus')} label={t('charts.ticketsByStatusLabel')} parts={parts} empty={t('charts.empty')} />;
 }
 
+/** Only the bars the person holds the key of (a number the API did not send is not drawn). */
 function EmployeeChart({ employees }: { employees: EmployeesSummaryDto }) {
   const { t } = useTranslation('home');
-  const parts: ChartPart[] = [
-    { key: 'active', label: t('tiles.active'), value: employees.active, fill: 'fill-green-400' },
-    { key: 'id', label: t('tiles.idExpiring'), value: employees.idExpiring, fill: 'fill-orange-500' },
-    { key: 'contract', label: t('tiles.contractEnding'), value: employees.contractEnding, fill: 'fill-petrol-800' },
+  const candidates: [string, string, number | null, ChartPart['fill']][] = [
+    ['active', t('tiles.active'), employees.active, 'fill-green-400'],
+    ['id', t('tiles.idExpiring'), employees.idExpiring, 'fill-orange-500'],
+    ['contract', t('tiles.contractEnding'), employees.contractEnding, 'fill-petrol-800'],
   ];
+  const parts: ChartPart[] = candidates.flatMap(([key, label, value, fill]) => (value === null ? [] : [{ key, label, value, fill }]));
   return <BarsChart title={t('charts.employees')} label={t('charts.employeesLabel')} parts={parts} empty={t('charts.empty')} />;
 }
 
