@@ -62,4 +62,12 @@ describe('Time dialog: hours and minutes (FR-200)', () => {
     expect(await screen.findByText(/اكتب الوقت الذي عملته/)).toBeInTheDocument();
     expect(save).toBeDisabled();
   });
+
+  it('does not take half-typed numbers for an empty box: «1e» in the minutes is refused, not saved as 60 minutes', () => {
+    const { save, hours, minutes } = open();
+    fireEvent.change(hours, { target: { value: '1' } });
+    fireEvent.change(minutes, { target: { value: '1e' } });
+    expect(save).toBeDisabled();
+    expect(screen.getByText(/الدقائق عدد صحيح من 0 إلى 59/)).toBeInTheDocument();
+  });
 });

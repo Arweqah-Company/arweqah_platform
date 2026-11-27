@@ -87,4 +87,15 @@ describe('PowerPoint preview in the browser (FR-191)', () => {
     expect((await pptxToSlides(await deck([]))).slides).toEqual([]);
     await expect(pptxToSlides(new Blob(['not a zip']))).rejects.toThrow();
   });
+
+  it('puts the slides in the order of the presentation, not of the file names (PowerPoint keeps the names when slides are moved)', async () => {
+    const zip = new JSZip();
+    zip.file('ppt/slides/slide1.xml', SLIDE(['first file, shown second']));
+    zip.file('ppt/slides/slide2.xml', SLIDE(['second file, shown first']));
+    zip.file('ppt/presentation.xml', '<p:presentation xmlns:p="p" xmlns:r="r"><p:sldIdLst><p:sldId id="257" r:id="rId9"/><p:sldId id="256" r:id="rId8"/></p:sldIdLst></p:presentation>');
+    zip.file('ppt/_rels/presentation.xml.rels', '<Relationships><Relationship Id="rId8" Type="x/slide" Target="slides/slide1.xml"/><Relationship Id="rId9" Type="x/slide" Target="slides/slide2.xml"/></Relationships>');
+    const { slides } = await pptxToSlides(await zip.generateAsync({ type: 'blob' }));
+    expect(slides.map((s) => s.lines[0])).toEqual(['second file, shown first', 'first file, shown second']);
+    expect(slides.map((s) => s.number)).toEqual([1, 2]);
+  });
 });
