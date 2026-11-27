@@ -132,6 +132,7 @@ Here you edit the wording of every e-mail the platform sends (the account activa
 |---|---|---|
 | Days a device stays trusted | How long the authenticator code is skipped on a trusted browser after a Microsoft sign-in; 0 switches the choice off | 0 to 365 (default 0) |
 | Requests per minute | How many requests one address may send a minute before it is told to wait. One page load sends dozens of requests, so a low value stops the platform; sign-in has its own stricter limit | 120 to 100000 (default 600) |
+| Largest attachment (MB) | The largest single file an employee may upload anywhere that takes attachments (tickets, tasks, notices, proofs); every attachment box shows it and the server checks it | 1 to 100 (default 10) |
 | Let platform administrators sign in as another employee | Switches the «Sign in as» feature on | Off by default |
 | Minutes without activity before it ends | How long a «sign in as» session may sit idle before it ends | 5 to 240 (default 30) |
 | Switch the platform assistant on | Switches the assistant (the chat button) on or off for everyone | On by default |
@@ -295,6 +296,7 @@ Whatever is in the form is what is tried; nothing from the window is saved, and 
 |---|---|---|---|
 | Days a device stays trusted | How long the code is skipped on a trusted browser after a Microsoft sign-in | Yes | A whole number from 0 to 365; 0 switches the choice off (default 0) |
 | Requests per minute | How many requests one address may make a minute before it is told to wait | Yes | A whole number from 120 to 100000 (default 600); a low value stops the whole platform |
+| Largest attachment (MB) | The largest single file an employee may upload where attachments are taken: tickets, tasks, notices and proofs. Every attachment box shows the number and the server checks it on upload | Yes | A whole number from 1 to 100 (default 10). Profile photos, the assistant's pictures and voice and import files keep their own limits. Big files use server memory while they upload, so raise it only as far as needed |
 | Let platform administrators sign in as another employee | Switches the «Sign in as» feature on | Yes | Off or on (off by default) |
 | Minutes without activity before it ends | How long a «sign in as» session may sit idle | Yes | A whole number from 5 to 240 (default 30) |
 | Allowed e-mail domains | The domains a work e-mail may use when an employee is added | No | One domain per line, such as `partner.org` (lower case, no `@`), up to 50; wrong lines are named; empty = only `arweqah.sa` |

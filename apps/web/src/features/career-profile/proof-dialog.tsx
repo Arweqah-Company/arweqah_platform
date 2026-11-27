@@ -1,4 +1,5 @@
-import { PROOF_KINDS, PROOF_NOTE_MAX, MAX_UPLOAD_BYTES, type LearningRecordDto, type ProofKind } from '@arweqah-platform/shared';
+import { PROOF_KINDS, PROOF_NOTE_MAX, type LearningRecordDto, type ProofKind } from '@arweqah-platform/shared';
+import { useMaxUploadBytes } from '@/shared/lib/use-max-upload';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -23,6 +24,7 @@ function KindCards({ value, onChange }: { value: ProofKind; onChange: (kind: Pro
 /** «Send a proof»: its kind, the file (a certificate needs one), a note for the reviewer; a rejected proof shows why it was rejected. */
 export function ProofDialog({ unitId, unitTitle, record, onClose }: { unitId: string; unitTitle: string; record?: LearningRecordDto; onClose: () => void }) {
   const { t } = useTranslation('career-profile');
+  const maxBytes = useMaxUploadBytes();
   const send = useSubmitProof();
   const [kind, setKind] = useState<ProofKind>('certificate');
   const [file, setFile] = useState<File>();
@@ -33,7 +35,7 @@ export function ProofDialog({ unitId, unitTitle, record, onClose }: { unitId: st
     <Dialog open onOpenChange={(o) => !o && onClose()} title={t('proof.title')} description={unitTitle}>
       {record?.status === 'rej' && <Alert tone="danger">{t('proof.rejectedBecause', { reason: record.rejectionReason })}</Alert>}
       <KindCards value={kind} onChange={setKind} />
-      <FileDropzone label={t('proof.pick')} hint={t('proof.fileHint')} accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" maxBytes={MAX_UPLOAD_BYTES} busy={send.isPending} onFiles={(files) => setFile(files[0])} />
+      <FileDropzone label={t('proof.pick')} hint={t('proof.fileHint')} accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" maxBytes={maxBytes} busy={send.isPending} onFiles={(files) => setFile(files[0])} />
       {file && <p className="text-sm text-muted">{t('proof.chosenFile', { name: file.name })}</p>}
       {missingFile && <p className="text-sm text-danger">{t('proof.fileRequired')}</p>}
       <FormField label={t('proof.note')}>{(p) => <Textarea {...p} rows={3} maxLength={PROOF_NOTE_MAX} value={note} onChange={(e) => setNote(e.target.value)} />}</FormField>

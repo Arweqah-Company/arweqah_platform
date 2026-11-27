@@ -81,6 +81,8 @@ export interface MeDto extends UserDto {
   /** The person's own employee record and its photo (the same picture every list shows); null when the account has no employee record or no photo. */
   employeeId: string | null;
   photoFileId: string | null;
+  /** The largest attachment, in MB, as the administrator set it (every file box shows and checks it). */
+  maxUploadMb: number;
   /** The code of the authenticator app was entered for this session; every other route is blocked until then. */
   mfaVerified: boolean;
   adminMode: AdminModeDto;

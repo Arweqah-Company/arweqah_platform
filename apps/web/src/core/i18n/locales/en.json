@@ -442,13 +442,20 @@
       "in": "Zoom in",
       "out": "Zoom out",
       "fit": "Fit to the window"
-    }
+    },
+    "slideNumber": "Slide {{number}}",
+    "slideImage": "A picture from slide {{number}} of {{name}}",
+    "moreImages": "This slide has more pictures than are shown here. Download the file to see them.",
+    "emptySlide": "This slide has no text and no pictures.",
+    "emptyDeck": "This file has no slides.",
+    "deckTruncated": "Only the first {{count}} slides are shown. Download the file to see the rest."
   },
   "attachments": {
     "remove": "Remove {{name}}",
     "tooMany": "At most {{max}} files.",
     "failed": "The file could not be uploaded.",
-    "hint": "Optional. Images, PDF, Word (.docx), Excel (.xlsx) or CSV files."
+    "hint": "Optional. Pictures, PDF, Word (docx), Excel (xlsx), PowerPoint (pptx) or CSV files.",
+    "preview": "Preview {{name}}"
   },
   "groups": {
     "nameAr": "Name in Arabic",

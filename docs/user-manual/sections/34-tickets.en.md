@@ -86,7 +86,7 @@ The tickets list has no import button. Tickets are sent one by one from the popu
 | Details | The full request: what you need, and everything the handler needs to act without asking again. | No | Up to 5000 characters. |
 | When do you need it | The needed-by date. It drives the «Overdue» mark once it passes. | Yes | A date not earlier than today plus the department's minimum lead in working days; otherwise «The earliest date this unit accepts is …». It is pre-filled with today plus the type's usual time (or the department's) in working days. |
 | Priority | Marks the ticket as «Urgent»; the mark shows in lists and on the board so the handler sees it first. | No | Switch: Normal (default) or On. |
-| Ticket attachments | Files that support the request (drag them in or click to browse). | No | Up to 5 files; Word, Excel, images and PDF. The files must be your own uploads. |
+| Ticket attachments | Files that support the request (drag them in or click to browse). | No | Up to 5 files, each up to the size the administrator set (10 MB until changed); Word, Excel, PowerPoint, images, PDF and CSV. Each chosen file shows as a thumbnail (a picture) or a file icon: click it to open it full size and check it before sending. The files must be your own uploads. |
 
 Pressing **Change** at the top of step 2 returns to step 1 without losing what you typed. The sender and the department are never typed: they come from you and from the chosen type.
 

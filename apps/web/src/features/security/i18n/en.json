@@ -53,7 +53,10 @@
     "agentDraftMinutesHint": "The assistant prepares a request and the employee confirms it. After this many minutes an unconfirmed request expires and must be asked again.",
     "range": "Enter a whole number between {{min}} and {{max}}.",
     "saved": "The security settings were saved.",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "filesGroup": "Attachments",
+    "maxUploadMb": "Largest attachment (MB)",
+    "maxUploadMbHint": "The largest single file an employee may upload anywhere that takes attachments: tickets, tasks, notices and proofs. Every attachment box shows this number and the server checks it on upload. The default is {{default}}. Profile photos, the assistant's pictures and voice, and import files keep their own limits. Big files use server memory while they upload, so raise the number only as far as needed."
   },
   "domains": {
     "label": "Allowed e-mail domains",
