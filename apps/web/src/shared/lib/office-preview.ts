@@ -98,6 +98,7 @@ function slideLines(xml: string): string[] {
 
 /** `ppt/slides/../media/a.png` → `ppt/media/a.png`. */
 function resolveTarget(base: string, target: string): string {
+  if (target.startsWith('/')) return target.slice(1); // from the root of the package
   const parts = base.split('/').slice(0, -1);
   for (const part of target.split('/')) {
     if (part === '..') parts.pop();
@@ -125,6 +126,10 @@ async function slideImages(zip: Zip, slidePath: string): Promise<{ images: Blob[
   return { images, more: targets.length > PREVIEW_MAX_SLIDE_IMAGES };
 }
 
+/** The namespaces of a presentation: a file may bind any prefix to them, so the names are read by namespace, never by prefix. */
+const PRESENTATION_NS = 'http://schemas.openxmlformats.org/presentationml/2006/main';
+const RELATIONSHIPS_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+
 /** The slide files in the order the presentation shows them (`p:sldIdLst` and its relationships), or by file number when the presentation does not say. */
 async function slideOrder(zip: Zip): Promise<string[]> {
   const byNumber = Object.keys(zip.files)
@@ -136,9 +141,9 @@ async function slideOrder(zip: Zip): Promise<string[]> {
   const rels = await zip.file('ppt/_rels/presentation.xml.rels')?.async('string');
   if (!presentation || !rels) return byNumber;
   const parse = (xml: string) => new DOMParser().parseFromString(xml, 'application/xml');
-  const target = new Map(Array.from(parse(rels).getElementsByTagName('Relationship')).map((r) => [r.getAttribute('Id') ?? '', resolveTarget('ppt/presentation.xml', r.getAttribute('Target') ?? '')]));
-  const listed = Array.from(parse(presentation).getElementsByTagName('p:sldId'))
-    .map((el) => target.get(el.getAttribute('r:id') ?? ''))
+  const target = new Map(Array.from(parse(rels).getElementsByTagNameNS('*', 'Relationship')).map((r) => [r.getAttribute('Id') ?? '', resolveTarget('ppt/presentation.xml', r.getAttribute('Target') ?? '')]));
+  const listed = Array.from(parse(presentation).getElementsByTagNameNS(PRESENTATION_NS, 'sldId'))
+    .map((el) => target.get(el.getAttributeNS(RELATIONSHIPS_NS, 'id') ?? ''))
     .filter((path): path is string => !!path && zip.file(path) !== null);
   return listed.length ? listed : byNumber;
 }
