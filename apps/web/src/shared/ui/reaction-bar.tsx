@@ -48,7 +48,8 @@ function ReactionPicker({ mine, onChoose }: { mine: ReactionKey | null; onChoose
 }
 
 interface Props {
-  reactions: ReactionSummaryDto[];
+  /** Missing (an API that is not updated yet, an old cached answer) counts as none. */
+  reactions?: ReactionSummaryDto[];
   /** The key that lets a person react: without it the chips are shown (who reacted) but nothing can be clicked and the picker is hidden. */
   permission: string;
   onReact: (key: ReactionKey) => void;
@@ -56,7 +57,7 @@ interface Props {
 }
 
 /** The reactions under a reply or a comment: a chip per reaction used (count, mine marked, names on hover) and a button that opens the six to choose from. Clicking one's own reaction removes it; choosing another replaces it. */
-export function ReactionBar({ reactions, permission, onReact, onRemove }: Props) {
+export function ReactionBar({ reactions = [], permission, onReact, onRemove }: Props) {
   const { t } = useTranslation();
   const interactive = usePermissions().can(permission);
   const mine = reactions.find((r) => r.mine)?.reaction ?? null;

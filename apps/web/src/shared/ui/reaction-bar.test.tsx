@@ -84,4 +84,9 @@ describe('ReactionBar: reactions under a reply (FR-206)', () => {
     bar([], []);
     await waitFor(() => expect(screen.queryByRole('list')).not.toBeInTheDocument());
   });
+
+  it('does not break when the answer carries no reactions at all (an API that is not updated yet, or an old cached answer)', async () => {
+    bar(undefined as unknown as ReactionSummaryDto[]);
+    expect(await screen.findByRole('button', { name: 'تفاعل' })).toBeInTheDocument();
+  });
 });
