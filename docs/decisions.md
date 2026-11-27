@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-27 — The edge nginx takes a changed edge.conf (owner report: a PowerPoint upload failed on live)
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 505 | **`scripts/server/deploy.sh` recreates the `nginx` service when `docker/nginx/edge.conf` is not the file it started with** (sha256 kept in `.edge-conf.sha` on the server; the first deploy after this recreates it once). Before, `docker compose up -d` left the container alone when only the mounted file changed, and the template is rendered only when the container starts, so the new `client_max_body_size 101m` (FR-191) never reached the server: live still refused a file over 11 MB with nginx's own 413 page, shown as «Request failed». The web image's own nginx (`web.conf`) was rebuilt with the new limit; the edge was the one left behind. | The upload limit set from Settings could not be used above 11 MB in production and staging. | The edge moves to a managed load balancer |
+
 ## 2026-11-27 — «Report a problem»: a screenshot, an AI reading, a ticket (FR-195…FR-199)
 
 Plan: `docs/plans/phase-2-tickets.md` (section «زر بلّغ عن مشكلة»).
