@@ -18,7 +18,7 @@ COPY --from=pruner /repo/out/full/ .
 RUN turbo run build --filter=@arweqah-platform/web
 
 # Static files only; nginx (non-root) serves the SPA and proxies /api inside the Docker network.
-FROM nginxinc/nginx-unprivileged:1.29-alpine AS runner
+FROM nginxinc/nginx-unprivileged:1.31-alpine AS runner
 # Pick up Alpine security fixes published after the base image was built (Trivy gates the deploy on them).
 USER root
 # A new value per build (the commit) keeps this layer out of the build cache, so the upgrade really runs.
