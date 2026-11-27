@@ -15,7 +15,7 @@ interface Opened {
 }
 
 /** The header button: takes a picture of the screen and the details of the page, then opens the report. Shown only while reports are on and the person holds the key. */
-export function ProblemReportButton() {
+export function ProblemReportButton({ inDialog = false }: { inDialog?: boolean }) {
   const { t, i18n } = useTranslation('tickets');
   const allowed = usePermissions().can(CorePermission.TicketsReportProblem);
   const availability = useProblemReportAvailability(allowed);
@@ -30,7 +30,7 @@ export function ProblemReportButton() {
   };
   return (
     <>
-      <Button variant="ghost" size="icon" data-tour="problem-report" aria-label={t('problemReport.button')} title={t('problemReport.button')} disabled={busy} onClick={() => void open()}>
+      <Button variant={inDialog ? 'secondary' : 'ghost'} size="icon" className={inDialog ? 'size-9' : undefined} data-tour={inDialog ? undefined : 'problem-report'} aria-label={t('problemReport.button')} title={t('problemReport.button')} disabled={busy} onClick={() => void open()}>
         <Flag className="size-5" aria-hidden />
       </Button>
       {opened && <ProblemReportDialog screenshot={opened.screenshot} context={opened.context} imageToAi={availability.data.imageToAi} onClose={() => setOpened(null)} />}

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
-import { Alert, Button, Dialog, FormField, Textarea, ZoomableImage } from '@/shared/ui';
+import { Alert, Button, Dialog, DialogToolsProvider, FormField, Textarea, ZoomableImage } from '@/shared/ui';
 import { useSendProblemReport } from './api';
 
 /** An object URL for a picture the browser holds, released when the picture goes. */
@@ -75,6 +75,7 @@ export function ProblemReportDialog({ screenshot, context, imageToAi, onClose }:
     }
   };
   return (
+    <DialogToolsProvider value={null}>
     <Dialog open onOpenChange={(open) => !open && onClose()} title={t('problemReport.title')} description={t('problemReport.description')} wide>
       <div className="flex flex-col gap-4">
         {send.isError && <Alert>{errorMessage(tc, send.error)}</Alert>}
@@ -89,5 +90,6 @@ export function ProblemReportDialog({ screenshot, context, imageToAi, onClose }:
         </div>
       </div>
     </Dialog>
+    </DialogToolsProvider>
   );
 }

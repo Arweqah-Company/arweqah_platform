@@ -713,6 +713,7 @@ README: §4 صفوف FR جديدة (FR-34 فصاعدًا)، §6 ERD (الجدا�
   - **الواجهة (`features/tickets/problem-report`):** `ProblemReportButton` في `app-header`، `ProblemReportDialog` (معاينة بـ`ZoomableImage`، إرفاق اختياري، تنبيه الذكاء الاصطناعي)، `capture-screenshot` (`html-to-image` 1.11.13، يستبعد كلمات المرور و`data-private`)، `problem-context` و`core/api/problem-diagnostics` (آخر 5 طلبات فاشلة و5 أخطاء)، `ProblemReportSettingsTab` كتبويب في الإعدادات. جولة الترحيب: خطوتا `problem-report` و`problem-report-settings`.
   - **الاختبارات:** API e2e `problem-reports.e2e-spec.ts` (14: FR-195…198) وقواعد `problem-report.rules.spec.ts`؛ مكوّنات (15: الزر، الحوار، التبويب، التشخيص والالتقاط)؛ Playwright `problem-reports.spec.ts` (رحلة كاملة + axe)؛ تحديث `tour.e2e-spec.ts` و`tour.spec.ts`.
   - **التوثيق:** README FR-195…199، القرارات 493–498، `docs/database-design.md`، الدليل (التذاكر والإعدادات، عربي وإنجليزي)، ملف التصميم.
+  - **بلاغ المالك (2026-11-27):** الزر لا يظهر والنافذة المنبثقة مفتوحة (تحجب الشريط العلوي) فلا تُلتقط مشكلتها. الإصلاح: `Dialog` يعرض أدوات `DialogToolsProvider` بجانب «إغلاق» والتطبيق يضع فيها الزر (القرار 499)؛ نافذة البلاغ نفسها بلا زر. اختبار مكوّن وPlaywright.
   - **قيود معروفة:** اللقطة تقريبية (حاويات تمرير داخلية وصور من مصادر أخرى قد تختلف)؛ لا تظليل لمناطق منها (v2).
 - **مخطّط (لم يُطلب بعد):** تظليل مناطق من اللقطة، زر «بلّغ» داخل رسالة الخطأ، ربط البلاغات بنسخة الكود.
 

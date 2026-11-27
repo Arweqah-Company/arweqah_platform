@@ -66,4 +66,22 @@ test.describe('Report a problem (FR-195 … FR-199)', () => {
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.getByRole('button', { name: 'بلّغ عن مشكلة' })).toHaveCount(0);
   });
+
+  test('is reachable from inside a pop-up window, which covers the top bar, and its screenshot shows that window', async ({ page }) => {
+    test.setTimeout(120_000);
+    await ensureReportType(page);
+    const types = (await (await page.request.get('/api/problem-report-settings/types')).json()) as { typeId: string }[];
+    const saved = await page.request.put('/api/problem-report-settings', { data: { enabled: true, ticketTypeId: types[0]!.typeId, analyzeWithAi: false, sendImageToAi: false, maxPerHour: 10 }, headers: ORIGIN });
+    expect(saved.ok()).toBe(true);
+    await page.goto('/tickets');
+    await page.getByRole('button', { name: 'تذكرة جديدة' }).click();
+    const popup = page.getByRole('dialog', { name: 'تذكرة جديدة' });
+    await expect(popup).toBeVisible();
+    await popup.getByRole('button', { name: 'بلّغ عن مشكلة' }).click();
+    const report = page.getByRole('dialog', { name: 'بلّغ عن مشكلة' });
+    await expect(report.getByRole('button', { name: 'عرض اللقطة بالحجم الكامل' })).toBeVisible();
+    await expect(report.getByRole('button', { name: 'بلّغ عن مشكلة' })).toHaveCount(0);
+    await settled(page);
+    await new Screen(page).expectNoSeriousA11yIssues();
+  });
 });

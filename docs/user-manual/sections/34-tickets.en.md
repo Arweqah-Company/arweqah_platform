@@ -107,7 +107,7 @@ Pressing **Change** at the top of step 2 returns to step 1 without losing what y
 
 ### Reporting a problem in the platform
 
-Something does not work? Press the **flag** button in the top bar (it appears only while the administrator has «Report a problem» switched on in Settings → Problem reports).
+Something does not work? Press the **flag** button in the top bar, or the same button beside the «Close» button of any pop-up window that is open (a pop-up covers the top bar), so a problem inside a pop-up can be reported with the pop-up in the screenshot (it appears only while the administrator has «Report a problem» switched on in Settings → Problem reports).
 
 1. A **screenshot of what the window shows** is taken from the page itself (no permission to give). Password fields are left out.
 2. A window shows the screenshot (click it to see it full size), a box **What is the problem?** (optional, up to 1000 characters) and a line saying what goes with the report: the page name, the browser, the window size, the language, the theme and the last errors; the content of the page is not sent, only the screenshot.

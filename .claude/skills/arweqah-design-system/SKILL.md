@@ -227,6 +227,7 @@ Report what was checked and any deviation; fix deviations before calling the ste
 
 ## Report a problem (FR-195…FR-199)
 - **The button:** a ghost icon button (`Flag`, `data-tour="problem-report"`, tooltip and name «Report a problem») in the header bar before the notification bell, shown only while the administrator has reports on and the person holds `tickets.report_problem` (`ProblemReportButton`, `features/tickets`). It takes the screenshot first, then opens the dialog.
+- **Inside pop-ups:** a modal covers the top bar, so every `Dialog` shows the same button (a `secondary` `size-9` icon) beside «Close» through `DialogToolsProvider` (`shared/ui`); the report window itself has none. Any new tool for every pop-up goes in the same slot.
 - **The dialog (`ProblemReportDialog`, wide):** the screenshot as a thumbnail button (opens `ZoomableImage` in an `xl` `Dialog`), a check box «Attach the screenshot» with its hint, a warning `Alert` while the picture will go to the AI, a `Textarea` «What is the problem?», a muted line of what is sent, «Cancel» and the one primary «Send the report». No screenshot = an info `Alert` and the text still goes.
 - **The settings tab (`ProblemReportSettingsTab`):** the same panel as the security tab: check boxes (`size-5 accent-petrol-800`), a `Combobox` for the ticket type, a number field with its range error, one primary «Save»; read-only without the edit key.
 
