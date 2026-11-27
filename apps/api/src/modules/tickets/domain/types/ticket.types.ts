@@ -129,6 +129,21 @@ export interface TicketEventRow {
   replyToUserId: string | null;
   replyToName: string | null;
   createdAt: Date;
+  editedAt: Date | null;
+}
+
+/** A reply as the edit needs it: who wrote it, when, and what it says. */
+export interface ReplyRecord {
+  id: string;
+  actorUserId: string | null;
+  createdAt: Date;
+}
+
+/** The new text of a reply with the people it names now. */
+export interface ReplyEdit {
+  body: string;
+  editedAt: Date;
+  mentionIds: string[];
 }
 
 export interface MentionRow {
@@ -168,6 +183,8 @@ export interface TicketViewer {
   /** Whether the person's role has the two comment keys (the reply button on a reply, and @). */
   canAnswerReply: boolean;
   canMention: boolean;
+  /** Whether the person's role has the key to edit their own reply. */
+  canEditReply: boolean;
   /** Whether the person's role has the key to confirm a closing (it lets the sender's reply confirm it too). */
   canConfirmClose: boolean;
   /** Whether the person's role has the key to export the ticket list (it lets the list carry each ticket's text). */

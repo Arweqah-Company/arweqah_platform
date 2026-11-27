@@ -7,6 +7,7 @@ import {
   commentRulesInputSchema,
   createCommentSchema,
   editCommentSchema,
+  reactionInputSchema,
   mentionablesQuerySchema,
   createTaskSchema,
   decideTaskSchema,
@@ -40,6 +41,7 @@ export class TagsQueryDto extends createZodDto(z.strictObject({ companyId: z.uui
 
 export class CreateCommentBody extends createZodDto(createCommentSchema) {}
 export class EditCommentBody extends createZodDto(editCommentSchema) {}
+export class ReactionBody extends createZodDto(reactionInputSchema) {}
 export class MentionablesQueryDto extends createZodDto(mentionablesQuerySchema) {}
 export class CommentRulesBody extends createZodDto(commentRulesInputSchema) {}
 export class CommentParam extends createZodDto(z.strictObject({ id: z.uuid(), commentId: z.uuid() })) {}

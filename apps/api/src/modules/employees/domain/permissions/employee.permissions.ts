@@ -23,6 +23,9 @@ export const EMPLOYEE_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.EmployeesResetAuthenticator, 'إعادة ضبط تطبيق المصادقة', 'Reset the authenticator app', RECORD),
   def(CorePermission.EmployeesExport, 'تصدير الموظفين', 'Export employees', WIDE),
   def(CorePermission.EmployeesImport, 'استيراد الموظفين من ملف', 'Import employees from a file', WIDE),
+  def(CorePermission.EmployeesFiguresHeadcount, 'أرقام الرئيسية: عدد الموظفين وعلى رأس العمل وبحاجة لتعيين', 'Home numbers: employees, on duty and needing placement', WIDE),
+  def(CorePermission.EmployeesFiguresIdExpiring, 'أرقام الرئيسية: هويات تنتهي أو منتهية', 'Home numbers: identities expiring or expired', WIDE),
+  def(CorePermission.EmployeesFiguresContractEnding, 'أرقام الرئيسية: عقود تنتهي قريبًا', 'Home numbers: contracts ending soon', WIDE),
 ];
 
 const directory = (key: string, labelAr: string, labelEn: string): PermissionDefinition => ({ key, module: 'directory', labelAr, labelEn, scopes: ['all'] });

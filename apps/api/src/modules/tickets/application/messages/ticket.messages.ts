@@ -2,6 +2,7 @@
 export const TICKET_AUDIT = {
   created: 'ticket.created',
   replied: 'ticket.replied',
+  replyEdited: 'ticket.reply_edited',
   closeRequested: 'ticket.close_requested',
   closeDeclined: 'ticket.close_declined',
   confirmed: 'ticket.confirmed',
@@ -21,4 +22,4 @@ export const TICKET_AUDIT = {
 
 export const TICKET_TOPICS = { autoClose: 'tickets.auto-close' } as const;
 
-export type NoticeKind = 'created' | 'reply' | 'closeRequested' | 'closedNotExecuted' | 'autoClosed' | 'reopened' | 'stale' | 'personalMoved' | 'reassigned' | 'mentioned' | 'replyAnswered';
+export type NoticeKind = 'created' | 'reply' | 'closeRequested' | 'closedNotExecuted' | 'autoClosed' | 'reopened' | 'stale' | 'personalMoved' | 'reassigned' | 'mentioned' | 'replyAnswered' | 'replyReacted';

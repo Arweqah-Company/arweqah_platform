@@ -19,11 +19,12 @@ export const TICKET_TEMPLATE_KEYS: Record<NoticeKind, string> = {
   reassigned: 'ticket.reassigned',
   mentioned: 'ticket.mentioned',
   replyAnswered: 'ticket.reply_answered',
+  replyReacted: 'ticket.reply_reacted',
 };
 
 const NUMBER = variable('ticketNumber', ['رقم التذكرة', 'The ticket number'], formatTicketNumber(123));
 const DESK = localizedVariable('deskName', ['اسم الإدارة المستقبلة', 'The receiving department'], ['إدارة الخدمات المشتركة', 'Shared services']);
-const COMMENTER = variable('commenter', ['اسم من كتب الردّ', 'Who wrote the reply'], 'Sara');
+const COMMENTER = variable('commenter', ['اسم صاحب الفعل (من كتب الردّ أو تفاعل عليه)', 'Who acted (wrote the reply or reacted to it)'], 'Sara');
 const COUNT = variable('count', ['عدد التذاكر', 'The number of tickets'], '4');
 
 type Spec = [NoticeKind, [string, string], [string, string], [string, string], [string, string]];
@@ -40,9 +41,10 @@ const SPECS: Spec[] = [
   ['reassigned', ['إسناد تذكرة إليك', 'A ticket assigned to you'], ['عندما تُسند إليك تذكرة', 'When a ticket is assigned to you'], ['أُسندت إليك {{ticketNumber}}', '{{ticketNumber}} assigned to you'], ['أُسندت إليك التذكرة {{ticketNumber}} في {{deskName}}.', 'Ticket {{ticketNumber}} of {{deskName}} was assigned to you.']],
   ['mentioned', ['ذكرك أحد في تذكرة', 'Mentioned in a ticket'], ['عندما يذكرك زميل بـ @ في ردّ على تذكرة (البريد بلا نص الردّ)', 'When a colleague mentions you with @ in a ticket reply (the e-mail never carries the reply)'], ['ذكرك {{commenter}} في {{ticketNumber}}', '{{commenter}} mentioned you in {{ticketNumber}}'], ['ذكرك {{commenter}} في ردّ على التذكرة {{ticketNumber}}.', '{{commenter}} mentioned you in a reply on ticket {{ticketNumber}}.']],
   ['replyAnswered', ['ردّ على ردّك', 'Answer to your reply'], ['عندما يردّ أحد على ردّك في تذكرة', 'When someone answers your reply on a ticket'], ['ردّ {{commenter}} على ردّك في {{ticketNumber}}', '{{commenter}} answered your reply in {{ticketNumber}}'], ['ردّ {{commenter}} على ردّك في التذكرة {{ticketNumber}}.', '{{commenter}} answered your reply on ticket {{ticketNumber}}.']],
+  ['replyReacted', ['تفاعل على ردّك', 'Reaction to your reply'], ['عندما يتفاعل أحد على ردّك في تذكرة (مرة واحدة لكل تفاعل جديد، ولا شيء عند تبديله أو إلغائه)', 'When someone reacts to your reply on a ticket (once per new reaction, nothing when it is changed or removed)'], ['تفاعل {{commenter}} على ردّك في {{ticketNumber}}', '{{commenter}} reacted to your reply in {{ticketNumber}}'], ['تفاعل {{commenter}} على ردّك في التذكرة {{ticketNumber}}.', '{{commenter}} reacted to your reply on ticket {{ticketNumber}}.']],
 ];
 
-const variablesOf = (kind: NoticeKind) => (kind === 'personalMoved' ? [DESK, COUNT] : kind === 'mentioned' || kind === 'replyAnswered' ? [NUMBER, COMMENTER] : [NUMBER, DESK]);
+const variablesOf = (kind: NoticeKind) => (kind === 'personalMoved' ? [DESK, COUNT] : kind === 'mentioned' || kind === 'replyAnswered' || kind === 'replyReacted' ? [NUMBER, COMMENTER] : [NUMBER, DESK]);
 
 export const TICKET_TEMPLATES: TemplateDefinition[] = SPECS.map(([kind, name, when, title, body]) =>
   noticeTemplate({ key: TICKET_TEMPLATE_KEYS[kind], area: 'tickets', name, when, variables: variablesOf(kind), title, body }),

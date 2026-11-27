@@ -51,6 +51,13 @@ export class TaskCommentNotices {
     await this.notifier.send({ kind: 'commentMentioned', task: ctx.task, recipients: userIds, actorUserId: ctx.viewer.userId, commenter, link: `/tasks/${ctx.task.id}/conversation`, tx });
   }
 
+  /** The author of a comment hears once about each new reaction on it (never about their own). */
+  async sendReacted(ctx: CommentContext, authorUserId: string, tx: TransactionContext): Promise<void> {
+    const commenter = (await this.directory.person(ctx.viewer.userId))?.name ?? '';
+    const recipients = this.mayRead(ctx, authorUserId, false) ? [authorUserId] : [];
+    await this.notifier.send({ kind: 'commentReacted', task: ctx.task, recipients, actorUserId: ctx.viewer.userId, commenter, link: `/tasks/${ctx.task.id}/conversation`, tx });
+  }
+
   /** Whom the company's matrix lets read the conversation by their relation to the task (their keys are not known here); a notice that would open a 404 is not sent. */
   private mayRead(ctx: CommentContext, userId: string, mentioned: boolean): boolean {
     const t = ctx.task;

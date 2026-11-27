@@ -58,6 +58,7 @@ export type TaskNoticeKind =
   | 'commentMentioned'
   | 'commentReplied'
   | 'commentAdded'
+  | 'commentReacted'
   | 'followerAdded';
 
 /** Notices that also go out by e-mail: their text never carries the title (e-mail is not the place for it). */

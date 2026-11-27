@@ -7,7 +7,7 @@ import { managerOf } from '../../../../common/infrastructure/typeorm-transaction
 import type { ScopeFilter } from '../../../../core/access/domain/access-context';
 import { applyScope } from '../../../../core/access/infrastructure/scope-query';
 import { Employee } from '../../domain/entities/employee.entity';
-import { EmployeeRepository } from '../../domain/contracts/employee.repository';
+import { EmployeeRepository, type FigureGroup } from '../../domain/contracts/employee.repository';
 import type { EmployeeValues } from '../../domain/types/employee.types';
 import { EmployeeEmailTakenError, EmployeeNumberTakenError, IdDocumentTakenError, InvalidReferenceError } from '../../domain/errors/employee.errors';
 import { escapeLike } from '../../../../common/infrastructure/sql-like';
@@ -157,19 +157,20 @@ export class TypeOrmEmployeeRepository extends EmployeeRepository {
     return rows.length > 0;
   }
 
-  async summary(scope: ScopeFilter, window: { today: string; soonUntil: string }): Promise<EmployeesSummaryDto> {
-    const qb = this.repo
-      .createQueryBuilder('e')
-      .innerJoin('users', 'u', 'u.id = e.user_id')
-      .select('count(*)::int', 'total')
-      .addSelect('count(*) FILTER (WHERE u.is_active)::int', 'active')
-      .addSelect('count(*) FILTER (WHERE NOT u.is_active)::int', 'inactive')
-      .addSelect('count(*) FILTER (WHERE e.is_system_account = false AND (e.org_node_id IS NULL OR e.job_title_id IS NULL))::int', 'needsPlacement')
-      .addSelect('count(*) FILTER (WHERE e.id_expiry_date IS NOT NULL AND e.id_expiry_date <= :soonUntil)::int', 'idExpiring')
-      .addSelect('count(*) FILTER (WHERE e.end_date IS NOT NULL AND e.end_date >= :today AND e.end_date <= :soonUntil)::int', 'contractEnding')
-      .setParameters(window);
+  async figures(group: FigureGroup, scope: ScopeFilter, window: { today: string; soonUntil: string }): Promise<Partial<EmployeesSummaryDto>> {
+    const qb = this.repo.createQueryBuilder('e').innerJoin('users', 'u', 'u.id = e.user_id').setParameters(window);
+    if (group === 'headcount') {
+      qb.select('count(*)::int', 'total')
+        .addSelect('count(*) FILTER (WHERE u.is_active)::int', 'active')
+        .addSelect('count(*) FILTER (WHERE NOT u.is_active)::int', 'inactive')
+        .addSelect('count(*) FILTER (WHERE e.is_system_account = false AND (e.org_node_id IS NULL OR e.job_title_id IS NULL))::int', 'needsPlacement');
+    } else if (group === 'idExpiring') {
+      qb.select('count(*) FILTER (WHERE e.id_expiry_date IS NOT NULL AND e.id_expiry_date <= :soonUntil)::int', 'idExpiring');
+    } else {
+      qb.select('count(*) FILTER (WHERE e.end_date IS NOT NULL AND e.end_date >= :today AND e.end_date <= :soonUntil)::int', 'contractEnding');
+    }
     applyScope(qb, scope, { owner: 'e.user_id', company: 'e.company_id', orgNode: 'e.org_node_id' });
-    return qb.getRawOne<EmployeesSummaryDto>() as Promise<EmployeesSummaryDto>;
+    return (await qb.getRawOne<Partial<EmployeesSummaryDto>>()) ?? {};
   }
 
   async exists(id: string): Promise<boolean> {

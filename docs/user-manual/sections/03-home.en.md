@@ -16,7 +16,9 @@ The first page after signing in: your day at a glance. The numbers of your tasks
 | Ticket numbers and «My tickets» | `tickets.view` (View the tickets page and ticket details) | Employee, unit head |
 | Task matrix | `tasks.matrix_view` (View the task matrix) | Unit head (their unit and below); the Employee if it is given to them |
 | Team numbers | A tasks scope wider than «Own record only» | Unit head |
-| Employee statistics | `employees.view` (View employees) at a scope wider than «Own record only» | Unit head, HR, system administrator |
+| «Employees», «Active» and «Need a unit» tiles | `employees.figures_headcount` (Home numbers: employees, on duty and needing placement) | Unit head, HR, system administrator |
+| «IDs expired or expiring» tile | `employees.figures_id_expiring` | Unit head, HR, system administrator |
+| «Contracts ending soon» tile | `employees.figures_contract_ending` | Unit head, HR, system administrator |
 
 ### What you can do
 
@@ -38,7 +40,7 @@ The first page after signing in: your day at a glance. The numbers of your tasks
 - **My tickets:** what you sent and is still open, what waits for your reply, and what waits for your confirmation.
 - **Charts:** open tasks by status, tasks finished on time and late, my tickets by status, and the employees (active, IDs and contracts).
 - **The task matrix:** your open tasks in four squares by importance and urgency: «Important and urgent» (start with these), «Important, not urgent» (plan them before they become urgent), «Urgent, not important» (finish them fast or hand them to someone), «Neither» (do them when there is time).
-- **Employee statistics:** Employees, Active, IDs expired or expiring (within 30 days), Contracts ending soon (within 30 days), and a «Need a unit» tile when an employee has no unit.
+- **Employee statistics:** each tile has its own key, so you see only the tiles whose key you hold, and the system never sends you a number you do not hold the key of: «Employees», «Active» and «Need a unit» (when an employee has no unit) come with the headcount key, «IDs expired or expiring» (within 30 days) with its key, and «Contracts ending soon» (within 30 days) with its key.
 
 ### How to
 
@@ -69,7 +71,7 @@ Home has no form to fill. It has one choice, and the tiles themselves are links.
 - A task is «important» when its priority is high, and «urgent» when its date is near or past or it was marked urgent. (FR-49)
 - The numbers and sections are counted from your scope only; nothing outside it enters any number.
 - The «Awaiting my review» and «Awaiting my approval» tiles show only when something waits for you.
-- The employee statistics are about other people, so an ordinary employee (scope «Own record only») does not see them.
+- The employee statistics are about other people, so a person without their keys (like the Employee role) does not see them; the administrator gives them from the permissions page.
 - A greeting with your first name appears at the top of the page.
 
 ### Tips

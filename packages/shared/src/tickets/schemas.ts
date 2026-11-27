@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { localizedNameSchema } from '../common/localized';
 import { paginationQuerySchema, type Paginated } from '../common/pagination';
+import type { ReactionSummaryDto } from '../reactions';
 
 export const TICKET_STATUSES = ['open', 'close_requested', 'closed'] as const;
 export type TicketStatus = (typeof TICKET_STATUSES)[number];
@@ -96,6 +97,10 @@ export type CreateTicketInput = z.infer<typeof createTicketSchema>;
 /** `confirmClose`: the sender of a ticket that waits for their confirmation sends this reply and confirms the closing in the same step (without it, the sender's reply returns the ticket to «open»). */
 export const ticketReplySchema = z.strictObject({ body: z.string().trim().min(1).max(MAX_TICKET_TEXT), fileIds, parentEventId: z.uuid().optional(), confirmClose: z.boolean().optional() });
 export type TicketReplyInput = z.infer<typeof ticketReplySchema>;
+
+/** The new text of one's own reply (its files stay as they are). Mentions follow the same `{{mention:<user id>}}` rule. */
+export const editTicketReplySchema = z.strictObject({ body: z.string().trim().min(1).max(MAX_TICKET_TEXT) });
+export type EditTicketReplyInput = z.infer<typeof editTicketReplySchema>;
 
 /** The unit asks to close, or the sender declines the closing, optionally with a message. */
 export const ticketMentionablesQuerySchema = z.strictObject({ search: z.string().trim().max(100).optional() });
@@ -274,6 +279,12 @@ export interface TicketEventDto {
   mentions: PersonRefDto[];
   attachments: TicketAttachmentDto[];
   createdAt: string;
+  /** The author changed the text after sending it (the screen shows «edited» next to the time). */
+  isEdited: boolean;
+  /** This person may change this reply now: their own, within the edit window, the ticket takes replies, and they hold the key. */
+  mayEdit: boolean;
+  /** The reactions on this reply (only replies carry any). */
+  reactions: ReactionSummaryDto[];
 }
 
 /** How a person is related to a ticket: sender, assignee, manager of its desk, handler through the reply scope (`desk`), in sight through the view scope (`team`), or named with @ in a reply (`mentioned`: reads and answers, nothing more). */

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   riyadhToday,
+  type ReactionSummaryDto,
   type TicketAttachmentDto,
   type TicketDeskDto,
   type TicketDeskSettingsDto,
@@ -11,8 +12,16 @@ import {
   type TicketTypeDto,
 } from '@arweqah-platform/shared';
 import { abilitiesFor, reopenDaysLeft } from '../../domain/rules/ticket-lifecycle.rules';
+import { withinReplyEditWindow } from '../../domain/rules/ticket-reply.rules';
 import { isNewTicket, isOverdue, isStale } from '../../domain/rules/ticket-flags.rules';
 import type { AttachmentRow, MentionRow, DeskRecord, DepartmentFacts, TicketEventRow, TicketRow, TypeRecord } from '../../domain/types/ticket.types';
+
+/** Who is looking at the conversation: what decides the edit button and the chips of reactions (mine). */
+export interface ConversationViewer {
+  userId: string;
+  canEditReply: boolean;
+  reactions: Map<string, ReactionSummaryDto[]>;
+}
 
 export interface DeskNames {
   nameAr: string;
@@ -52,23 +61,24 @@ export class TicketTransformer {
     };
   }
 
-  toDetail(input: { row: TicketRow; desk: DeskNames | undefined; relations: TicketRelation[]; events: TicketEventRow[]; attachments: AttachmentRow[]; mentions: MentionRow[]; now: Date; handlers?: { id: string; name: string }[]; canReassign?: boolean; canDelete?: boolean; canChooseHandler?: boolean }): TicketDto {
+  toDetail(input: { row: TicketRow; desk: DeskNames | undefined; relations: TicketRelation[]; events: TicketEventRow[]; attachments: AttachmentRow[]; mentions: MentionRow[]; conversation: ConversationViewer; now: Date; handlers?: { id: string; name: string }[]; canReassign?: boolean; canDelete?: boolean; canChooseHandler?: boolean }): TicketDto {
     const { row, relations, now } = input;
     const left = reopenDaysLeft(row.status, row.closedAt, row.deskReopenWindowDays, now);
+    const abilities = abilitiesFor(relations, row.status, left, { canReassign: input.canReassign, canDelete: input.canDelete, canChooseHandler: input.canChooseHandler });
     return {
       ...this.toListItem(row, input.desk, now),
       details: row.details,
       handlers: input.handlers ?? [],
       relations,
-      abilities: abilitiesFor(relations, row.status, left, { canReassign: input.canReassign, canDelete: input.canDelete, canChooseHandler: input.canChooseHandler }),
-      events: input.events.map((e) => this.toEvent(e, input.attachments, input.mentions)),
+      abilities,
+      events: input.events.map((e) => this.toEvent(e, input.attachments, input.mentions, { ...input.conversation, mayReply: abilities.reply, now })),
       reopenDaysLeft: left,
       closeRequestedAt: row.closeRequestedAt?.toISOString() ?? null,
       closedAt: row.closedAt?.toISOString() ?? null,
     };
   }
 
-  private toEvent(e: TicketEventRow, attachments: AttachmentRow[], mentions: MentionRow[]): TicketEventDto {
+  private toEvent(e: TicketEventRow, attachments: AttachmentRow[], mentions: MentionRow[], viewer: ConversationViewer & { mayReply: boolean; now: Date }): TicketEventDto {
     const files: TicketAttachmentDto[] = attachments.filter((a) => a.eventId === e.id).map(({ fileId, originalName, contentType, size }) => ({ fileId, originalName, contentType, size }));
     return {
       id: e.id,
@@ -80,6 +90,9 @@ export class TicketTransformer {
       mentions: mentions.filter((m) => m.eventId === e.id).map((m) => ({ id: m.userId, name: m.name })),
       attachments: files,
       createdAt: e.createdAt.toISOString(),
+      isEdited: e.editedAt !== null,
+      mayEdit: e.type === 'reply' && e.actorUserId === viewer.userId && viewer.canEditReply && viewer.mayReply && withinReplyEditWindow(e.createdAt, viewer.now),
+      reactions: viewer.reactions.get(e.id) ?? [],
     };
   }
 

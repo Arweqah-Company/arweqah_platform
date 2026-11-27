@@ -1,7 +1,7 @@
 import { formatTicketNumber, type TicketDto, type TicketEventDto, type TicketEventType } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { Badge, HistoryActor, HistorySection, HistoryWhen, MentionedText, type Column } from '@/shared/ui';
-import { TicketFiles } from './ticket-timeline';
+import { TicketFiles } from './ticket-files';
 
 type EventTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
 

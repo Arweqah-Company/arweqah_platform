@@ -6,6 +6,8 @@ import type {
   FilterOptionsRows,
   NewEvent,
   NewTicket,
+  ReplyEdit,
+  ReplyRecord,
   TicketEventRow,
   TicketListFilters,
   TicketPatch,
@@ -26,6 +28,10 @@ export abstract class TicketRepository {
   abstract mentions(eventIds: string[]): Promise<MentionRow[]>;
   /** A reply or the opening entry of the ticket (what a reply may answer), or null. */
   abstract answerableEvent(ticketId: string, eventId: string): Promise<{ id: string; parentEventId: string | null; actorUserId: string | null } | null>;
+  /** A reply (type `reply`) of this ticket as the edit needs it, or null. */
+  abstract reply(ticketId: string, eventId: string): Promise<ReplyRecord | null>;
+  /** Replaces the text of a reply, marks it edited, and sets the people it names to exactly `mentionIds`. */
+  abstract editReply(eventId: string, edit: ReplyEdit, tx: TransactionContext): Promise<void>;
   /** A file attached to this ticket (to authorize its download), or null. */
   abstract attachedFile(ticketId: string, fileId: string): Promise<boolean>;
   abstract filterOptions(viewer: TicketViewer): Promise<FilterOptionsRows>;
