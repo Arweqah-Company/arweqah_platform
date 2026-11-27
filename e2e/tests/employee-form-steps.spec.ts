@@ -35,4 +35,18 @@ test.describe('The two steps of the employee form', () => {
     expect(saves).toEqual([]);
     await expect(page).toHaveURL(new RegExp(`/employees/${id}/edit$`));
   });
+
+  test('FR-201: the date boxes are left-to-right text in the platform form, take Arabic digits and show them as Latin ones', async ({ page }) => {
+    test.setTimeout(120_000);
+    const id = await colleagueId(page);
+    await adminModeOnViaApi(page);
+    await page.goto(`/employees/${id}/edit`);
+    const expiry = page.getByLabel('تاريخ انتهاء الهوية');
+    await expect(expiry).toHaveAttribute('type', 'text');
+    await expect(expiry).toHaveAttribute('dir', 'ltr');
+    await expect(expiry).toHaveAttribute('placeholder', 'YYYY-MM-DD');
+    await expiry.fill('٢٠٣٠١٢٠١');
+    await expect(expiry).toHaveValue('2030-12-01');
+    await expect(page.locator('input[type="date"]:visible')).toHaveCount(0);
+  });
 });

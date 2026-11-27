@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { errorMessage } from '@/shared/lib/error-message';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { useAutoEnglish } from '@/shared/lib/use-auto-english';
-import { Alert, Button, Combobox, Dialog, DialogFooter, FormField, Input, Select } from '@/shared/ui';
+import { Alert, Button, Combobox, DateInput, Dialog, DialogFooter, FormField, Input, Select } from '@/shared/ui';
 import { UnitCode } from './unit-badges';
 import { ManagementModeCards } from './management-mode-cards';
 import { nodeName } from './org-model';
@@ -50,7 +50,7 @@ function NameFields({ f }: { f: AddUnitState }) {
     <>
       <FormField label={`${t('node.nameAr')} *`} error={nameAr.error}>{(p) => <Input {...p} onBlur={nameAr.onBlur} value={f.names.nameAr} onChange={(e) => f.setNames({ ...f.names, nameAr: e.target.value })} />}</FormField>
       <FormField label={t('node.nameEn')} hint={t('add.nameEnHint')}>{(p) => <Input {...p} dir="ltr" value={f.names.nameEn} onChange={(e) => f.setNames({ ...f.names, nameEn: e.target.value })} />}</FormField>
-      <FormField label={`${t('node.startDate')} *`} hint={t('node.startHint')} error={start.error}>{(p) => <Input {...p} type="date" dir="ltr" onBlur={start.onBlur} value={f.startDate} onChange={(e) => f.setStartDate(e.target.value)} />}</FormField>
+      <FormField label={`${t('node.startDate')} *`} hint={t('node.startHint')} error={start.error}>{(p) => <DateInput {...p} onBlur={start.onBlur} value={f.startDate} onChange={(e) => f.setStartDate(e.target.value)} />}</FormField>
     </>
   );
 }

@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useMyProgress } from './api';
 import { formatMinutes } from './format-minutes';
+import { formatNumber } from '@/shared/lib/format-number';
 
 const TONE_CLASS = { success: 'h-2.5 w-full accent-green-800', link: 'h-2.5 w-full accent-petrol-800', warning: 'h-2.5 w-full accent-orange-700' } as const;
 
@@ -20,7 +21,7 @@ function BudgetTile({ budget }: { budget: NonNullable<ReturnType<typeof useMyPro
   const { t } = useTranslation('career-profile');
   const { cap, spent } = budget;
   const ratio = cap ? spent / cap : 0; // the text shows the real share (an overspend is a warning, not a cap); the bar is clamped by its own max
-  const amount = (n: number) => n.toLocaleString('en');
+  const amount = (n: number) => formatNumber(n);
   return <Tile label={cap ? t('tiles.budget', { spent: amount(spent), cap: amount(cap) }) : t('tiles.budgetNoCap', { spent: amount(spent) })} value={cap ? t('tiles.budgetValue', { percent: Math.round(ratio * 100) }) : amount(spent)} ratio={Math.min(1, ratio)} tone="warning" />;
 }
 

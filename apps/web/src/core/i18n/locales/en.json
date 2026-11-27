@@ -466,6 +466,9 @@
     "tooMany": "Use at most {{max}} lines.",
     "tooLong": "A line can have at most {{max}} characters."
   },
+  "dateInput": {
+    "open": "Open the calendar"
+  },
   "treeSelect": {
     "back": "Back from {{name}}",
     "open": "Open what is inside {{name}}"

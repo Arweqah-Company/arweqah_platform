@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
-import { Alert, Button, Dialog, FormField, Input, Select } from '@/shared/ui';
+import { Alert, Button, DateInput, Dialog, FormField, Select } from '@/shared/ui';
 import { useCreateTask, useTaskOptions } from '../api';
 import { ApproverHint } from './approver-hint';
 import { emptyDraft, isDraftComplete, toCreateInput, type TaskDraft } from './task-draft';
@@ -60,7 +60,7 @@ function WhoFields({ draft, onPatch, options }: { draft: TaskDraft; onPatch: (ch
       </FormField>
       {draft.recurrence !== 'none' && (
         <FormField label={t('form.recurrenceEnd')} hint={t('form.recurrenceEndHint')}>
-          {(p) => <Input {...p} type="date" dir="ltr" min={draft.dueDate} value={draft.recurrenceEnd} onChange={(e) => onPatch({ recurrenceEnd: e.target.value })} />}
+          {(p) => <DateInput {...p} min={draft.dueDate} value={draft.recurrenceEnd} onChange={(e) => onPatch({ recurrenceEnd: e.target.value })} />}
         </FormField>
       )}
     </div>

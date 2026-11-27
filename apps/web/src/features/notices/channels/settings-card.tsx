@@ -8,6 +8,7 @@ import { errorMessage } from '@/shared/lib/error-message';
 import { useLiveError } from '@/shared/lib/live-validation';
 import { Alert, Button, FormField, Input, SectionCard } from '@/shared/ui';
 import { useAudienceCount, useSaveSettings } from '../api';
+import { formatNumber } from '@/shared/lib/format-number';
 
 const inRange = (value: string, min: number, max: number) => /^\d+$/.test(value) && Number(value) >= min && Number(value) <= max;
 
@@ -38,7 +39,7 @@ export function SettingsCard({ settings }: { settings: NoticeSettingsDto }) {
       <FormField label={t('settings.size')} error={sizeLive.error}>{(p) => <Input {...p} type="number" dir="ltr" inputMode="numeric" onBlur={sizeLive.onBlur} value={size} onChange={(e) => setSize(e.target.value)} />}</FormField>
       <FormField label={t('settings.gap')} error={gapLive.error}>{(p) => <Input {...p} type="number" dir="ltr" inputMode="numeric" onBlur={gapLive.onBlur} value={gap} onChange={(e) => setGap(e.target.value)} />}</FormField>
       <div className="flex flex-col gap-3 sm:col-span-2">
-        {batches !== null && everyone !== undefined && <Alert tone="info">{t('settings.live', { people: everyone.toLocaleString('en'), batches, minutes: (batches - 1) * Number(gap) })}</Alert>}
+        {batches !== null && everyone !== undefined && <Alert tone="info">{t('settings.live', { people: formatNumber(everyone), batches, minutes: (batches - 1) * Number(gap) })}</Alert>}
         <div><Button disabled={!valid || save.isPending} onClick={() => void submit()}>{t('settings.save')}</Button></div>
       </div>
     </SectionCard>

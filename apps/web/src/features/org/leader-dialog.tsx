@@ -5,7 +5,7 @@ import { errorMessage } from '@/shared/lib/error-message';
 import { todayInRiyadh } from '@/shared/lib/lines';
 import { useDebounced } from '@/shared/lib/use-debounced';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
-import { Alert, Button, Combobox, Dialog, DialogFooter, FormField, Input, Select, Textarea } from '@/shared/ui';
+import { Alert, Button, Combobox, DateInput, Dialog, DialogFooter, FormField, Select, Textarea } from '@/shared/ui';
 import { LEADER_KINDS, type LeaderKind, type OrgNodeLeadersDto } from '@arweqah-platform/shared';
 import { useCompanyEmployees, useCompanyOptions, useSetLeader } from './api';
 import { leaderCompanies, leaderFormValid, REASON_MIN, toSetLeaderInput, windowProblem, type LeaderForm } from './leader-rules';
@@ -56,8 +56,8 @@ function WindowFields({ form, setForm, today }: { form: LeaderForm; setForm: (ne
   const to = useLiveError(form.validTo, () => (problem === 'toNeeded' ? t('leaders.errors.toNeeded') : problem === 'toBeforeFrom' ? t('leaders.errors.toBeforeFrom') : undefined));
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <FormField label={`${t('leaders.validFrom')} *`} error={from.error}>{(p) => <Input {...p} type="date" dir="ltr" min={today} onBlur={from.onBlur} value={form.validFrom} onChange={(e) => setForm({ ...form, validFrom: e.target.value })} />}</FormField>
-      <FormField label={form.kind === 'acting' ? `${t('leaders.validTo')} *` : t('leaders.validTo')} hint={form.kind === 'leader' ? t('leaders.validToHint') : undefined} error={to.error}>{(p) => <Input {...p} type="date" dir="ltr" min={form.validFrom || today} onBlur={to.onBlur} value={form.validTo} onChange={(e) => setForm({ ...form, validTo: e.target.value })} />}</FormField>
+      <FormField label={`${t('leaders.validFrom')} *`} error={from.error}>{(p) => <DateInput {...p} min={today} onBlur={from.onBlur} value={form.validFrom} onChange={(e) => setForm({ ...form, validFrom: e.target.value })} />}</FormField>
+      <FormField label={form.kind === 'acting' ? `${t('leaders.validTo')} *` : t('leaders.validTo')} hint={form.kind === 'leader' ? t('leaders.validToHint') : undefined} error={to.error}>{(p) => <DateInput {...p} min={form.validFrom || today} onBlur={to.onBlur} value={form.validTo} onChange={(e) => setForm({ ...form, validTo: e.target.value })} />}</FormField>
     </div>
   );
 }

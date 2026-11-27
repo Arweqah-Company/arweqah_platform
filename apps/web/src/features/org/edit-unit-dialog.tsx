@@ -6,7 +6,7 @@ import { useManagerSearch } from '@/features/employees';
 import { errorMessage } from '@/shared/lib/error-message';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { useAutoEnglish } from '@/shared/lib/use-auto-english';
-import { Alert, Button, Combobox, Dialog, DialogFooter, FormField, Input, Textarea } from '@/shared/ui';
+import { Alert, Button, Combobox, DateInput, Dialog, DialogFooter, FormField, Input, Textarea } from '@/shared/ui';
 import { todayInRiyadh } from '@/shared/lib/lines';
 import { useUpdateNode } from './api';
 import { REASON_MIN } from './leader-rules';
@@ -60,11 +60,11 @@ export function EditUnitDialog({ node, onClose }: { node: OrgNode; onClose: () =
           <FormField label={`${t('node.nameAr')} *`} error={nameAr.error}>{(p) => <Input {...p} onBlur={nameAr.onBlur} value={names.nameAr} onChange={(e) => setNames({ ...names, nameAr: e.target.value })} />}</FormField>
           <FormField label={`${t('node.nameEn')} *`} error={nameEn.error}>{(p) => <Input {...p} dir="ltr" onBlur={nameEn.onBlur} value={names.nameEn} onChange={(e) => setNames({ ...names, nameEn: e.target.value })} />}</FormField>
         </div>
-        <FormField label={`${t('node.startDate')} *`} hint={t('node.startHint')} error={start.error}>{(p) => <Input {...p} type="date" dir="ltr" onBlur={start.onBlur} value={startDate} onChange={(e) => setStartDate(e.target.value)} />}</FormField>
+        <FormField label={`${t('node.startDate')} *`} hint={t('node.startHint')} error={start.error}>{(p) => <DateInput {...p} onBlur={start.onBlur} value={startDate} onChange={(e) => setStartDate(e.target.value)} />}</FormField>
         <FormField label={t('node.manager')} hint={t('node.managerHint')}>{(p) => <Combobox id={p.id} label={t('node.manager')} value={managerId} options={options} onSearch={setSearch} onChange={setManagerId} clearable />}</FormField>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="size-5 accent-petrol-800" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />{t('node.active')}</label>
         <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label={t('node.effectiveFrom')} hint={t('node.effectiveHint')} error={dateError.error}>{(p) => <Input {...p} type="date" dir="ltr" min={today} onBlur={dateError.onBlur} value={effectiveFrom} onChange={(e) => setEffectiveFrom(e.target.value)} />}</FormField>
+          <FormField label={t('node.effectiveFrom')} hint={t('node.effectiveHint')} error={dateError.error}>{(p) => <DateInput {...p} min={today} onBlur={dateError.onBlur} value={effectiveFrom} onChange={(e) => setEffectiveFrom(e.target.value)} />}</FormField>
           <FormField label={dated ? `${t('node.reason')} *` : t('node.reason')} error={reasonError.error}>{(p) => <Textarea {...p} rows={2} onBlur={reasonError.onBlur} value={reason} onChange={(e) => setReason(e.target.value)} />}</FormField>
         </div>
         <DialogFooter>

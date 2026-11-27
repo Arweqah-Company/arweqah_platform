@@ -2,7 +2,7 @@ import type { CycleDate } from '@arweqah-platform/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { Alert, Button, Dialog, DialogFooter, FormField, Input } from '@/shared/ui';
+import { Alert, Button, DateInput, Dialog, DialogFooter, FormField } from '@/shared/ui';
 import { useSetDate } from './api';
 import { dateMessage } from './date-message';
 
@@ -22,8 +22,8 @@ export function DateDialog({ date, dates, onClose }: { date: CycleDate; dates: r
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()} title={t('dates.edit')} description={t(`dates.keys.${date.key}`)}>
       <div className="flex flex-col gap-4">
-        <FormField label={t('dates.from')}>{(p) => <Input {...p} type="date" dir="ltr" value={from} onChange={(e) => setFrom(e.target.value)} />}</FormField>
-        <FormField label={t('dates.to')}>{(p) => <Input {...p} type="date" dir="ltr" value={to} onChange={(e) => setTo(e.target.value)} />}</FormField>
+        <FormField label={t('dates.from')}>{(p) => <DateInput {...p} value={from} onChange={(e) => setFrom(e.target.value)} />}</FormField>
+        <FormField label={t('dates.to')}>{(p) => <DateInput {...p} value={to} onChange={(e) => setTo(e.target.value)} />}</FormField>
         <p role="alert" className="text-sm text-danger-text empty:hidden">{shown}</p>
         {save.isError && <Alert tone="danger">{t('dates.failed')}</Alert>}
         <p className="text-sm text-muted">{t('dates.note')}</p>

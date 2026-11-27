@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Alert, Button, Dialog, DialogFooter, FileDropzone, FormField, Input } from '@/shared/ui';
 import { useCreateRequest, useRequestPreview } from './api';
+import { formatNumber } from '@/shared/lib/format-number';
 
 /** Inside or outside the plan, as two cards to choose. */
 function PlanCards({ value, onChange }: { value: RequestPlanKind; onChange: (plan: RequestPlanKind) => void }) {
@@ -31,7 +32,7 @@ function Chain({ cost, plan }: { cost: number; plan: RequestPlanKind }) {
     <>
       <Alert tone={preview.approverName ? 'info' : 'warning'}>
         <b>{t('requests.decides', { who: t(`requests.whoLevel.${preview.level}`) })}</b>
-        <span className="block text-sm">{t(`requests.whyLevel.${preview.level}`)}. {left === null ? t('requests.noCap') : t('requests.left', { left: left.toLocaleString('en') })}</span>
+        <span className="block text-sm">{t(`requests.whyLevel.${preview.level}`)}. {left === null ? t('requests.noCap') : t('requests.left', { left: formatNumber(left) })}</span>
         {preview.level === 'direct' && <span className="block text-sm">{t('requests.directDeadline')}</span>}
         <span className="block text-sm">{preview.approverName ? t('requests.approver', { name: preview.approverName }) : t('requests.nobody')}</span>
       </Alert>

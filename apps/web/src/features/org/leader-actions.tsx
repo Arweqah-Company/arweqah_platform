@@ -7,7 +7,7 @@ import { Can } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { todayInRiyadh } from '@/shared/lib/lines';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
-import { Alert, Button, ConfirmDialog, Dialog, DialogFooter, FormField, Input, RowAction, Textarea } from '@/shared/ui';
+import { Alert, Button, ConfirmDialog, DateInput, Dialog, DialogFooter, FormField, RowAction, Textarea } from '@/shared/ui';
 import { useEndLeader, useRemoveLeader } from './api';
 import { REASON_MIN } from './leader-rules';
 
@@ -36,7 +36,7 @@ function EndLeaderDialog({ nodeId, leader, onClose }: { nodeId: string; leader: 
     <Dialog open onOpenChange={(open) => !open && onClose()} title={t('leaders.endTitle')} description={leader.employeeName}>
       <div className="flex flex-col gap-4">
         {end.isError && <Alert>{errorMessage(tc, end.error)}</Alert>}
-        <FormField label={`${t('leaders.endDate')} *`} hint={t('leaders.endHint')} error={dateError.error}>{(p) => <Input {...p} type="date" dir="ltr" min={today} onBlur={dateError.onBlur} value={endDate} onChange={(e) => setEndDate(e.target.value)} />}</FormField>
+        <FormField label={`${t('leaders.endDate')} *`} hint={t('leaders.endHint')} error={dateError.error}>{(p) => <DateInput {...p} min={today} onBlur={dateError.onBlur} value={endDate} onChange={(e) => setEndDate(e.target.value)} />}</FormField>
         <FormField label={`${t('leaders.reason')} *`} error={reasonError.error}>{(p) => <Textarea {...p} rows={2} onBlur={reasonError.onBlur} value={reason} onChange={(e) => setReason(e.target.value)} />}</FormField>
         <DialogFooter>
           <Button variant="secondary" onClick={onClose}>{tc('actions.cancel')}</Button>

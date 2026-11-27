@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useLookups } from '@/features/employees';
 import { errorMessage } from '@/shared/lib/error-message';
-import { Alert, Combobox, Dialog, DialogFooter, FormField, Input, Button, Select } from '@/shared/ui';
+import { Alert, Button, Combobox, DateInput, Dialog, DialogFooter, FormField, Input, Select } from '@/shared/ui';
 import { useSendBasicRequest } from './api';
 
 interface Draft { fullName: string; gender: string; nationalityId: string; birthDate: string; maritalStatusId: string }
@@ -58,7 +58,7 @@ export function BasicRequestDialog({ employee, open, onOpenChange }: { employee:
           {(p) => <Select {...p} value={draft.gender} onChange={(e) => set('gender')(e.target.value)}><option value="" disabled>{t('request.choose')}</option><option value="0">{t('basic.male')}</option><option value="1">{t('basic.female')}</option></Select>}
         </FormField>
         <FormField label={t('basic.nationality')}>{(p) => <Combobox {...p} label={t('basic.nationality')} value={draft.nationalityId} onChange={(v) => set('nationalityId')(v ?? '')} options={(lookups?.countries ?? []).map((c) => ({ value: c.id, label: label(c) }))} />}</FormField>
-        <FormField label={t('basic.birthDate')} hint={t('request.birthHint')} error={birthProblem}>{(p) => <Input {...p} type="date" dir="ltr" value={draft.birthDate} onChange={(e) => set('birthDate')(e.target.value)} />}</FormField>
+        <FormField label={t('basic.birthDate')} hint={t('request.birthHint')} error={birthProblem}>{(p) => <DateInput {...p} value={draft.birthDate} onChange={(e) => set('birthDate')(e.target.value)} />}</FormField>
         <FormField label={t('basic.maritalStatus')}>
           {(p) => <Select {...p} value={draft.maritalStatusId} onChange={(e) => set('maritalStatusId')(e.target.value)}><option value="" disabled>{t('request.choose')}</option>{(lookups?.maritalStatuses ?? []).map((m) => <option key={m.id} value={m.id}>{label(m)}</option>)}</Select>}
         </FormField>

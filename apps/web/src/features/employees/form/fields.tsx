@@ -2,7 +2,7 @@ import { EMPLOYEE_FIELD_KEYS } from '@arweqah-platform/shared';
 import { createContext, useContext, type ReactNode } from 'react';
 import { Controller, useFormContext, type ControllerRenderProps } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Combobox, FormField, Input, Select, Textarea, type ComboboxOption } from '@/shared/ui';
+import { Combobox, DateInput, FormField, Input, Select, Textarea, type ComboboxOption } from '@/shared/ui';
 import type { FormState } from './form-state';
 
 /** The details of the record the person may change (the grants of «edit employees» they hold decide, FR-94): everything else is locked. Null on the form of a new employee, where nothing is locked. */
@@ -46,7 +46,9 @@ export function TextField({ name, label, required, hint, type = 'text', ltr, rea
   const lock = useLock(name);
   return (
     <FormField label={withStar(label, required)} hint={lock.hint ?? hint} error={error}>
-      {(p) => <Input {...p} type={type} readOnly={readOnly || lock.locked} aria-required={required} dir={ltr || type !== 'text' ? 'ltr' : undefined} step={type === 'number' ? '0.01' : undefined} min={type === 'number' ? 0 : undefined} {...register(name)} />}
+      {(p) => type === 'date'
+        ? <DateInput {...p} readOnly={readOnly || lock.locked} aria-required={required} {...register(name)} />
+        : <Input {...p} type={type} readOnly={readOnly || lock.locked} aria-required={required} dir={ltr || type !== 'text' ? 'ltr' : undefined} step={type === 'number' ? '0.01' : undefined} min={type === 'number' ? 0 : undefined} {...register(name)} />}
     </FormField>
   );
 }
