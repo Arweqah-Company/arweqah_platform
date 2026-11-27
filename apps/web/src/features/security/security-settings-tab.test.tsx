@@ -124,6 +124,21 @@ describe('Allowed e-mail domains (FR-77)', () => {
     await waitFor(() => expect(saved?.maxUploadMb).toBe(50));
   });
 
+  it('refreshes the signed-in person after a save, so every file box uses the new largest attachment at once (FR-191)', async () => {
+    let meCalls = 0;
+    let saved = false;
+    server.use(
+      http.get('*/api/me', () => { meCalls += 1; return HttpResponse.json({ ...me([{ key: 'security_settings.view', scope: 'all' as const }, { key: 'security_settings.edit', scope: 'all' as const }]), maxUploadMb: saved ? 50 : 10 }); }),
+      http.get('*/api/security-settings', () => HttpResponse.json({ trustedDeviceDays: 0, requestsPerMinute: 600, impersonationEnabled: 0, impersonationIdleMinutes: 30, agentEnabled: 1, agentMessagesPerHour: 30, agentDraftMinutes: 30, adminModeRequiresCode: 1, maxUploadMb: 10 })),
+      http.put('*/api/security-settings', () => { saved = true; return HttpResponse.json({}); }),
+    );
+    renderPage(<SecuritySettingsTab />);
+    fireEvent.change(await screen.findByLabelText('أكبر حجم لمرفق (ميغابايت)'), { target: { value: '50' } });
+    const before = meCalls;
+    fireEvent.click(await screen.findByRole('button', { name: 'حفظ' }));
+    await waitFor(() => expect(meCalls).toBeGreaterThan(before));
+  });
+
   it('shows the size to someone who may only look, without a way to change it', async () => {
     open(['security_settings.view']);
     expect(await screen.findByLabelText('أكبر حجم لمرفق (ميغابايت)')).toBeDisabled();
