@@ -29,6 +29,7 @@ Click any task in the list to open its page. The page shows what the task is, wh
 | Attach files | Adds files to a comment | `tasks.comment_upload` (Attach files to a comment) |
 | Mention with @ | Names a colleague | `tasks.comment_mention` (Mention a colleague with @ in a comment) |
 | Edit my comment | Changes your own comment | `tasks.comment_edit` (Edit my comment) |
+| React to a comment | The **smiley** under a comment opens six reactions (like, love, care, haha, wow, sad); click one to react, click your own again to remove it | `tasks.comment_react` (React to the comments of a task) |
 | Delete my comment | Removes your own comment | `tasks.comment_delete` (Delete my comment) |
 | Delete anyone's comment | Removes someone else's comment | `tasks.comment_delete_any` (Delete anybody's comment) |
 
@@ -151,6 +152,7 @@ The task keeps the life described in the «My tasks» page (statuses and moves).
 - Only active employees of the company can be mentioned. A mentioned person joins the conversation as «mentioned»; this does not make them a follower and does not open the task to them.
 - You may edit or delete **your own** comment for 15 minutes after writing it (the number is in the task policies). An edited comment shows «Edited». Deleting someone else's comment needs its own key.
 - A comment needs text or at least one file. Text is limited to 5000 characters.
+- **Reactions:** whoever may read the conversation (their role holds `tasks.comment_react` **and** the «read» cell of one of their relations is on in the company's table) reacts to a comment with one of six reactions, **one per person per comment**: choosing another replaces it, choosing yours again removes it. Each reaction shows as a chip with its count, yours is highlighted and **the names appear when you hover** (up to 20; the count is complete). A deleted comment takes none. A locked conversation still takes reactions. A person without the key sees the chips but not the smiley. The author of the comment gets **one notice per new reaction**; changing or removing a reaction, or reacting to your own comment, tells nobody. (FR-206, FR-207)
 - The conversation stays open after the task is done. When the task is archived it is read-only, and the company may close it some days after the task is closed (0 = never). The page then says «The conversation of this task is closed: you can only read».
 - **Notices:** the mentioned person (also by e-mail), the person you reply to, the assignee and the person who gave the task, and followers (once, while an earlier notice is unread). Nobody is notified of their own comment. E-mail never carries the text of a comment.
 - Images, PDF, Word, Excel and CSV open in a window (a CSV as a table); other files download. Word, Excel and CSV files are accepted; the system checks the real file type, not just the name.

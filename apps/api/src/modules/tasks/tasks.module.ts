@@ -9,6 +9,7 @@ import { TaskCommentAccessPolicy } from './application/policies/task-comment-acc
 import { TaskCommentInputPolicy } from './application/policies/task-comment-input.policy';
 import { TaskViewerFactory } from './application/policies/task-viewer';
 import { TaskCommentNotices } from './application/services/task-comment-notices.service';
+import { TaskCommentReactionsService } from './application/services/task-comment-reactions.service';
 import { TaskCommentRulesService } from './application/services/task-comment-rules.service';
 import { TaskCommentService } from './application/services/task-comment.service';
 import { TaskCommentTransformer } from './application/transformers/task-comment.transformer';
@@ -84,6 +85,7 @@ import { TasksController } from './presentation/controllers/tasks.controller';
     TaskHandoverConsumer,
     TaskPolicyService,
     TaskCommentService,
+    TaskCommentReactionsService,
     TaskCommentRulesService,
     TaskCommentNotices,
     TaskCommentAccessPolicy,

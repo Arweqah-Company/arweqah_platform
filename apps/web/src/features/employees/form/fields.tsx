@@ -2,7 +2,8 @@ import { EMPLOYEE_FIELD_KEYS } from '@arweqah-platform/shared';
 import { createContext, useContext, type ReactNode } from 'react';
 import { Controller, useFormContext, type ControllerRenderProps } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Combobox, FormField, Input, Select, Textarea, type ComboboxOption } from '@/shared/ui';
+import { cn } from '@/shared/lib/cn';
+import { Combobox, DateInput, FormField, Input, LockMark, Select, Textarea, type ComboboxOption } from '@/shared/ui';
 import type { FormState } from './form-state';
 
 /** The details of the record the person may change (the grants of «edit employees» they hold decide, FR-94): everything else is locked. Null on the form of a new employee, where nothing is locked. */
@@ -45,18 +46,24 @@ export function TextField({ name, label, required, hint, type = 'text', ltr, rea
   const error = useFieldError(name);
   const lock = useLock(name);
   return (
-    <FormField label={withStar(label, required)} hint={lock.hint ?? hint} error={error}>
-      {(p) => <Input {...p} type={type} readOnly={readOnly || lock.locked} aria-required={required} dir={ltr || type !== 'text' ? 'ltr' : undefined} step={type === 'number' ? '0.01' : undefined} min={type === 'number' ? 0 : undefined} {...register(name)} />}
+    <FormField label={withStar(label, required)} hint={hint} error={error} locked={lock.hint}>
+      {(p) => type === 'date'
+        ? <DateInput {...p} readOnly={readOnly || lock.locked} aria-required={required} {...register(name)} />
+        : <Input {...p} type={type} readOnly={readOnly || lock.locked} aria-required={required} dir={ltr || type !== 'text' ? 'ltr' : undefined} step={type === 'number' ? '0.01' : undefined} min={type === 'number' ? 0 : undefined} {...register(name)} />}
     </FormField>
   );
 }
 
 export function TextAreaField({ name, label }: { name: TextName; label: string }) {
   const { register } = useFormContext<FormState>();
-  const { locked } = useLock(name);
+  const lock = useLock(name);
+  const locked = lock.locked;
   return (
     <div className="flex flex-col gap-1.5 sm:col-span-2">
-      <label htmlFor={name} className="text-sm font-medium">{label}</label>
+      <div className="flex items-center gap-1.5">
+        <label htmlFor={name} className="text-sm font-medium">{label}</label>
+        {lock.hint && <LockMark reason={lock.hint} />}
+      </div>
       <Textarea id={name} rows={3} maxLength={2000} readOnly={locked} {...register(name)} />
     </div>
   );
@@ -65,11 +72,11 @@ export function TextAreaField({ name, label }: { name: TextName; label: string }
 type FieldRender = (props: { id: string; 'aria-invalid': boolean }, field: ControllerRenderProps<FormState, TextName>) => ReactNode;
 
 /** A form-context field under a label with its live error: the one place where a controlled input meets react-hook-form. */
-function ControlledField({ name, label, required, hint, children }: BaseProps & { children: FieldRender }) {
+function ControlledField({ name, label, required, hint, locked, children }: BaseProps & { locked?: string; children: FieldRender }) {
   const { control } = useFormContext<FormState>();
   const error = useFieldError(name);
   return (
-    <FormField label={withStar(label, required)} hint={hint} error={error}>
+    <FormField label={withStar(label, required)} hint={hint} error={error} locked={locked}>
       {(p) => <Controller control={control} name={name} render={({ field }) => <>{children(p, field)}</>} />}
     </FormField>
   );
@@ -77,9 +84,9 @@ function ControlledField({ name, label, required, hint, children }: BaseProps & 
 
 export function SelectField({ name, label, options, required, hint }: BaseProps & { options: { value: string; label: string }[] }) {
   const { t } = useTranslation('employees');
-  const { locked } = useLock(name);
+  const { locked, hint: reason } = useLock(name);
   return (
-    <ControlledField name={name} label={label} required={required} hint={hint}>
+    <ControlledField name={name} label={label} required={required} hint={hint} locked={reason}>
       {(p, field) => (
         <Select {...p} disabled={locked} aria-required={required} value={String(field.value ?? '')} onBlur={field.onBlur} onChange={(e) => field.onChange(e.target.value)}>
           <option value="">{t('choose')}</option>
@@ -95,7 +102,7 @@ export function SelectField({ name, label, options, required, hint }: BaseProps 
 export function ComboField({ name, label, options, required, hint, disabled, onSearch, onPick, clearable }: BaseProps & { options: ComboboxOption[]; disabled?: boolean; onSearch?: (q: string) => void; onPick?: (value: string | null) => void; clearable?: boolean }) {
   const lock = useLock(name);
   return (
-    <ControlledField name={name} label={label} required={required} hint={lock.hint ?? hint}>
+    <ControlledField name={name} label={label} required={required} hint={hint} locked={lock.hint}>
       {(p, field) => (
         <Combobox id={p.id} label={label} value={field.value as string} options={options} disabled={disabled || lock.locked} invalid={p['aria-invalid']} clearable={clearable} onSearch={onSearch} onChange={(v) => { field.onChange(v ?? ''); onPick?.(v); }} />
       )}
@@ -105,11 +112,14 @@ export function ComboField({ name, label, options, required, hint, disabled, onS
 
 export function CheckField({ name, label }: { name: BooleanName; label: string }) {
   const { register } = useFormContext<FormState>();
-  const { locked } = useLock(name);
+  const { locked, hint } = useLock(name);
   return (
-    <label className="flex items-center gap-2 self-end pb-2 text-sm">
-      <input type="checkbox" className="size-4 accent-petrol-800" disabled={locked} {...register(name)} />
-      {label}
-    </label>
+    <span className="flex items-center gap-2 self-end pb-2">
+      <label className={cn('flex items-center gap-2 text-sm', locked && 'text-muted')}>
+        <input type="checkbox" className="size-4 accent-petrol-800 disabled:cursor-not-allowed" disabled={locked} {...register(name)} />
+        {label}
+      </label>
+      {hint && <LockMark reason={hint} />}
+    </span>
   );
 }

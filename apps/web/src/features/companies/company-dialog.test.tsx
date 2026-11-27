@@ -10,9 +10,9 @@ describe('Company form validation (while typing and when leaving a field)', () =
     open();
     await screen.findByRole('dialog');
     expect(screen.queryByText('هذا الحقل مطلوب.')).not.toBeInTheDocument();
-    fireEvent.blur(screen.getByLabelText('الاسم بالعربي *'));
+    fireEvent.blur(screen.getByLabelText('الاسم بالعربية *'));
     expect(await screen.findByText('هذا الحقل مطلوب.')).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('الاسم بالإنجليزي *'), { target: { value: 'A' } });
+    fireEvent.change(screen.getByLabelText('الاسم بالإنجليزية *'), { target: { value: 'A' } });
     expect(await screen.findByText('يجب ألا يقل عن 2 أحرف.')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('الرمز *'), { target: { value: 'a b' } });
     expect(await screen.findByText(/رمز الشركة غير صالح/)).toBeInTheDocument();

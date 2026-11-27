@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Can } from '@/core/permissions/can';
 import { Alert, Button, Dialog, DialogFooter, FormField, Textarea } from '@/shared/ui';
 import { useDecideRequest } from './api';
+import { formatNumber } from '@/shared/lib/format-number';
 
 export type RequestDialogState = { kind: 'open' | 'reject'; item: DevelopmentRequestDto } | null;
 
@@ -29,7 +30,7 @@ function RejectDialog({ item, onClose }: { item: DevelopmentRequestDto; onClose:
 }
 
 const facts = (item: DevelopmentRequestDto, t: (key: string, options?: Record<string, unknown>) => string): [string, string | null][] => [
-  [t('requests.columns.course'), item.courseName], [t('requests.columns.cost'), t('requests.riyals', { amount: item.cost.toLocaleString('en') })], [t('requests.columns.plan'), t(`requests.planKind.${item.plan}`)],
+  [t('requests.columns.course'), item.courseName], [t('requests.columns.cost'), t('requests.riyals', { amount: formatNumber(item.cost) })], [t('requests.columns.plan'), t(`requests.planKind.${item.plan}`)],
   [t('requests.columns.level'), t(`requests.whoLevel.${item.level}`)], [t('requests.columns.status'), t(`requests.status.${item.status}`)], [t('requests.columns.submitted'), formatDate(item.submittedAt)],
 ];
 

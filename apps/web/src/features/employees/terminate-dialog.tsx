@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
-import { Alert, Button, Dialog, FormField, Input, Select } from '@/shared/ui';
+import { Alert, Button, DateInput, Dialog, FormField, Input, Select } from '@/shared/ui';
 import { useTerminate } from './api';
 import { useEmployeeOptions } from './form/use-options';
 
@@ -41,7 +41,7 @@ function TerminateForm({ employeeId, close }: { employeeId: string; close: () =>
   return (
     <form className="flex flex-col gap-4" onSubmit={(e) => void submit(e)} noValidate>
       {terminate.isError && <Alert>{errorMessage(tc, terminate.error)}</Alert>}
-      <FormField label={`${t('fields.endDate')} *`} error={endDateLive.error}>{(p) => <Input {...p} type="date" dir="ltr" onBlur={endDateLive.onBlur} value={endDate} onChange={(e) => setEndDate(e.target.value)} />}</FormField>
+      <FormField label={`${t('fields.endDate')} *`} error={endDateLive.error}>{(p) => <DateInput {...p} onBlur={endDateLive.onBlur} value={endDate} onChange={(e) => setEndDate(e.target.value)} />}</FormField>
       <FormField label={`${t('fields.terminationReasonId')} *`} error={reasonLive.error}>
         {(p) => (
           <Select {...p} onBlur={reasonLive.onBlur} value={reasonId} onChange={(e) => setReasonId(e.target.value)}>

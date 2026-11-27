@@ -5,7 +5,7 @@ import { renderPage } from '../../../../test/render';
 import { TicketHistory } from './ticket-history';
 import { TicketTimeline } from './ticket-timeline';
 
-const event = (over: Partial<TicketEventDto>): TicketEventDto => ({ id: 'e', type: 'created', actor: { id: 'u1', name: 'ساره مجدى' }, body: null, parentId: null, replyTo: null, mentions: [], attachments: [], createdAt: '2026-11-17T19:00:00.000Z', ...over });
+const event = (over: Partial<TicketEventDto>): TicketEventDto => ({ id: 'e', type: 'created', actor: { id: 'u1', name: 'ساره مجدى' }, body: null, parentId: null, replyTo: null, mentions: [], attachments: [], createdAt: '2026-11-17T19:00:00.000Z', isEdited: false, mayEdit: false, reactions: [], ...over });
 const ticket = (events: TicketEventDto[]): TicketDto => ({ id: 't1', number: 12, title: 'طلب جهاز', abilities: { reply: true }, events } as unknown as TicketDto);
 
 const steps = [

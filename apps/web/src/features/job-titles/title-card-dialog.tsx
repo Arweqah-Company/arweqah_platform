@@ -1,4 +1,5 @@
 import { CorePermission, type JobTitleCardDto } from '@arweqah-platform/shared';
+import { formatNumber } from '@/shared/lib/format-number';
 import { Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,10 +15,10 @@ const heading = 'mb-2 text-sm font-bold';
 
 /** The development stage with its hours and budget, or why there is none (no rule yet: «HR decides»). */
 function StageText({ card }: { card: JobTitleCardDto }) {
-  const { t, i18n } = useTranslation('job-titles');
+  const { t } = useTranslation('job-titles');
   const stage = card.developmentStage;
   if (!stage) return <span className="text-muted">{t(card.developmentStageReason === 'no_grade' ? 'card.stageNoGrade' : 'card.stageNoRule')}</span>;
-  const money = new Intl.NumberFormat(i18n.language === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US').format(stage.budgetCap);
+  const money = formatNumber(stage.budgetCap);
   return <>{t('card.stageText', { stage: t(`card.stage.${stage.code}`), hours: stage.hoursPerYear, budget: money })}</>;
 }
 

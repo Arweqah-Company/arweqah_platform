@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CorePermission, formatTaskNumber, type TaskCommentDto, type TaskConversationDto } from '@arweqah-platform/shared';
+import { CorePermission, formatTaskNumber, type ReactionSummaryDto, type TaskCommentDto, type TaskConversationDto } from '@arweqah-platform/shared';
 import type { CommentFileRow, CommentMentionRow, CommentRow } from '../../domain/types/task-comment.types';
 import { withinEditWindow } from '../../domain/rules/task-comment-access.rules';
 import type { CommentContext } from '../policies/task-comment-access.policy';
@@ -8,6 +8,7 @@ interface Parts {
   rows: CommentRow[];
   mentions: CommentMentionRow[];
   files: CommentFileRow[];
+  reactions: Map<string, ReactionSummaryDto[]>;
 }
 
 @Injectable()
@@ -35,8 +36,17 @@ export class TaskCommentTransformer {
       createdAt: row.createdAt.toISOString(),
       isEdited: row.editedAt !== null && !deleted,
       isDeleted: deleted,
-      mayEdit: !deleted && !ctx.closed && this.isOwnWithinWindow(ctx, row, 'edit_own'),
-      mayDelete: !deleted && !ctx.closed && (this.isOwnWithinWindow(ctx, row, 'delete_own') || ctx.holds(CorePermission.TasksCommentDeleteAny)),
+      ...this.state(ctx, row, parts),
+    };
+  }
+
+  /** What a person may do with a comment now, and its reactions (a deleted or locked comment offers nothing to change). */
+  private state(ctx: CommentContext, row: CommentRow, parts: Parts): Pick<TaskCommentDto, 'mayEdit' | 'mayDelete' | 'reactions'> {
+    if (row.deletedAt !== null) return { mayEdit: false, mayDelete: false, reactions: [] };
+    return {
+      mayEdit: !ctx.closed && this.isOwnWithinWindow(ctx, row, 'edit_own'),
+      mayDelete: !ctx.closed && (this.isOwnWithinWindow(ctx, row, 'delete_own') || ctx.holds(CorePermission.TasksCommentDeleteAny)),
+      reactions: parts.reactions.get(row.id) ?? [],
     };
   }
 

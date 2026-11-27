@@ -10,7 +10,7 @@ import request from 'supertest';
 
 const P = CorePermission;
 const grant = (key: string, scope: PermissionGrant['scope']): PermissionGrant => ({ key, scope });
-const hr = [P.EmployeesView, P.EmployeesCreate, P.EmployeesUpdate, P.EmployeesDeactivate, P.EmployeesViewSensitive, P.EmployeesAssignRoles, P.EmployeesTerminate, P.EmployeesResendInvite, P.EmployeesResetAuthenticator, P.LookupsView].map((k) => grant(k, 'all'));
+const hr = [P.EmployeesView, P.EmployeesCreate, P.EmployeesUpdate, P.EmployeesDeactivate, P.EmployeesViewSensitive, P.EmployeesAssignRoles, P.EmployeesTerminate, P.EmployeesResendInvite, P.EmployeesResetAuthenticator, P.LookupsView, P.EmployeesFiguresHeadcount, P.EmployeesFiguresIdExpiring, P.EmployeesFiguresContractEnding].map((k) => grant(k, 'all'));
 
 let counter = 0;
 const unique = () => String(++counter).padStart(5, '0');
@@ -538,10 +538,25 @@ describe('Employees (FR-17, FR-18, FR-20, FR-21)', () => {
     await agent.post('/api/employees').send(payload(org.unitOther)).expect(201);
     const summary = (await agent.get('/api/employees/summary').expect(200)).body;
     expect(summary).toMatchObject({ total: 4, active: 4, inactive: 0, contractEnding: 1, idExpiring: 0, needsPlacement: 1 });
-    const unitViewer = await t.factories.signIn(await t.factories.user({ unit: org.unitA, grants: [grant(P.EmployeesView, 'unit')] }));
+    const unitViewer = await t.factories.signIn(await t.factories.user({ unit: org.unitA, grants: [grant(P.EmployeesView, 'unit'), grant(P.EmployeesFiguresHeadcount, 'subtree')] }));
     expect((await unitViewer.get('/api/employees/summary').expect(200)).body.total).toBe(2);
     const plain = await t.factories.signIn(await t.factories.user({ bare: true }));
     await plain.get('/api/employees/summary').expect(403);
+  });
+
+  it('FR-208: each group of the home numbers answers to its own key, and a person without any gets 403 even with the view key', async () => {
+    const { org, agent, payload } = await setup();
+    const future = new Date(Date.now() + 86_400_000 * 10).toISOString().slice(0, 10);
+    await agent.post('/api/employees').send(payload(org.unitA, { endDate: future })).expect(201);
+    const none = { total: null, active: null, inactive: null, needsPlacement: null, idExpiring: null, contractEnding: null };
+    const only = async (key: string) => (await (await t.factories.signIn(await t.factories.user({ unit: org.unitA, grants: [grant(P.EmployeesView, 'subtree'), grant(key, 'subtree')] }))).get('/api/employees/summary').expect(200)).body;
+    expect(await only(P.EmployeesFiguresContractEnding)).toEqual({ ...none, contractEnding: 1 });
+    expect(await only(P.EmployeesFiguresIdExpiring)).toEqual({ ...none, idExpiring: 0 });
+    const headcount = await only(P.EmployeesFiguresHeadcount);
+    expect(headcount).toMatchObject({ idExpiring: null, contractEnding: null });
+    expect(headcount.total).toBeGreaterThan(0);
+    const viewOnly = await t.factories.signIn(await t.factories.user({ unit: org.unitA, grants: [grant(P.EmployeesView, 'company')] }));
+    await viewOnly.get('/api/employees/summary').expect(403);
   });
 
   it('offers the direct-manager picker with names and numbers only', async () => {

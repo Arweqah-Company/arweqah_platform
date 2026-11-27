@@ -1,5 +1,5 @@
 import { CorePermission } from '@arweqah-platform/shared';
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import type { MentionableDto, TaskConversationDto } from '@arweqah-platform/shared';
@@ -8,8 +8,9 @@ import type { AccessContext } from '../../../../core/access/domain/access-contex
 import { Access, RequirePermission } from '../../../../core/access/presentation/require-permission.decorator';
 import { sendOpenedFile, sendPreviewStream } from '../../../../core/files/presentation/send-file';
 import { TaskViewerFactory } from '../../application/policies/task-viewer';
+import { TaskCommentReactionsService } from '../../application/services/task-comment-reactions.service';
 import { TaskCommentService } from '../../application/services/task-comment.service';
-import { CommentFileParam, CommentParam, CreateCommentBody, EditCommentBody, MentionablesQueryDto } from '../dtos/tasks.dtos';
+import { CommentFileParam, CommentParam, CreateCommentBody, EditCommentBody, MentionablesQueryDto, ReactionBody } from '../dtos/tasks.dtos';
 
 /**
  * The conversation of a task. A route asks for the key of its action; the service then asks the company's matrix for the person's relations to
@@ -20,6 +21,7 @@ import { CommentFileParam, CommentParam, CreateCommentBody, EditCommentBody, Men
 export class TaskCommentsController {
   constructor(
     private readonly comments: TaskCommentService,
+    private readonly reactions: TaskCommentReactionsService,
     private readonly viewers: TaskViewerFactory,
   ) {}
 
@@ -51,6 +53,22 @@ export class TaskCommentsController {
   @RequirePermission(CorePermission.TasksCommentEdit)
   async edit(@Access() ctx: AccessContext, @Param() { id, commentId }: CommentParam, @Body() body: EditCommentBody): Promise<TaskConversationDto> {
     return this.comments.edit(await this.viewers.of(ctx), id, commentId, body);
+  }
+
+  @Put(':commentId/reaction')
+  @RequirePermission(CorePermission.TasksCommentReact)
+  async react(@Access() ctx: AccessContext, @Param() { id, commentId }: CommentParam, @Body() body: ReactionBody): Promise<TaskConversationDto> {
+    const viewer = await this.viewers.of(ctx);
+    await this.reactions.react(viewer, id, commentId, body);
+    return this.comments.conversation(viewer, id);
+  }
+
+  @Delete(':commentId/reaction')
+  @RequirePermission(CorePermission.TasksCommentReact)
+  async unreact(@Access() ctx: AccessContext, @Param() { id, commentId }: CommentParam): Promise<TaskConversationDto> {
+    const viewer = await this.viewers.of(ctx);
+    await this.reactions.unreact(viewer, id, commentId);
+    return this.comments.conversation(viewer, id);
   }
 
   /** Deleting one's own comment and deleting anybody's have different keys; the route asks for the page key and the service the rest. */

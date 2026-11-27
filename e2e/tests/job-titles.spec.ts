@@ -160,8 +160,8 @@ test.describe('Job titles page: the card, its content and its manager chain (FR-
     await choose(pick.getByRole('combobox', { name: 'الوحدة' }), UNIT);
     await pick.getByRole('button', { name: 'التالي' }).click();
     const form = page.getByRole('dialog', { name: 'إضافة مسميات وظيفية' });
-    await form.getByLabel('الاسم بالعربي').fill(name);
-    await form.getByLabel('الاسم بالإنجليزي').fill(`New title ${name}`);
+    await form.getByLabel('الاسم بالعربية').fill(name);
+    await form.getByLabel('الاسم بالإنجليزية').fill(`New title ${name}`);
     await choose(form.getByLabel('الدرجة *'), 'L6');
     await choose(form.getByLabel('المسار *'), 'مشاريع');
     // The list shows the first 20 titles by code, so the head is searched for by name, like a person would.
@@ -188,7 +188,7 @@ test.describe('Job titles page: import and export (FR-107)', () => {
     await sample(page, info.project.name);
     const unit = await unitNamed(page, UNIT);
     const name = `مسمى مستورد ${uniqueTag(info.project.name)}`;
-    const csv = ['رمز الوحدة,الاسم بالعربي,الاسم بالإنجليزي,الدرجة,المسار', `${unit.code},${name},Imported title,L6,مهني`, 'ZZZ.00.00.00,مسمى مرفوض,Refused title,L6,مهني'].join('\r\n');
+    const csv = ['رمز الوحدة,الاسم بالعربية,الاسم بالإنجليزية,الدرجة,المسار', `${unit.code},${name},Imported title,L6,مهني`, 'ZZZ.00.00.00,مسمى مرفوض,Refused title,L6,مهني'].join('\r\n');
     const list = new ListPage(page);
     await page.goto('/job-titles');
     await list.switchView('جدول');

@@ -122,6 +122,11 @@
   },
   "reply": {
     "answer": "Answer this reply",
+    "edit": "Edit my reply",
+    "editing": "Edit your reply",
+    "saveEdit": "Save the change",
+    "saved": "The reply was changed.",
+    "edited": "edited",
     "answerTo": "Your answer to {{name}}",
     "inReplyTo": "in reply to {{name}}",
     "mentionList": "Colleagues you can mention",
@@ -426,5 +431,12 @@
     "perHour": "Most reports one employee may send in an hour",
     "perHourHint": "Stops flooding; after it the employee is asked to wait.",
     "range": "Enter a whole number between {{min}} and {{max}}."
+  },
+  "sort": {
+    "label": "Order",
+    "activityDesc": "Last activity (latest first)",
+    "createdDesc": "Newest first",
+    "createdAsc": "Oldest first",
+    "activityAsc": "Oldest activity first"
   }
 }

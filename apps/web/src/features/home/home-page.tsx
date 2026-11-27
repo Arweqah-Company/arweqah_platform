@@ -1,9 +1,8 @@
 import { CorePermission, type EmployeesSummaryDto } from '@arweqah-platform/shared';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMe } from '@/core/auth/session';
 import { usePermissions } from '@/core/permissions/can';
-import { useReach } from '@/core/permissions/use-access';
 import { StatTile } from '@/shared/ui';
 import { NoticesHomeSection } from '@/features/notices';
 import { MatrixSection, MyTasksPanel, useTaskSummary } from '@/features/tasks';
@@ -14,17 +13,30 @@ import { TicketsPanel } from './tickets-panel';
 
 const ChartsSection = lazy(() => import('./charts-section'));
 
-const attention = (count: number | undefined) => (count ? 'attention' : 'neutral');
+interface Figures {
+  headcount: boolean;
+  idExpiring: boolean;
+  contractEnding: boolean;
+}
 
-function StatsSection({ summary }: { summary: EmployeesSummaryDto | undefined }) {
+const attention = (count: number | undefined): 'attention' | 'neutral' => (count ? 'attention' : 'neutral');
+
+const orUndefined = (value: number | null | undefined): number | undefined => value ?? undefined;
+
+/** The employee numbers: each tile only for the person who holds its key (`employees.figures_*`, FR-208). */
+function StatsSection({ summary, figures }: { summary: EmployeesSummaryDto | undefined; figures: Figures }) {
   const { t } = useTranslation('home');
+  const soon = (value: number | null | undefined) => ({ value: orUndefined(value), hint: t('tiles.soonHint'), tone: attention(orUndefined(value)) });
+  const tiles: [boolean, string, Omit<ComponentProps<typeof StatTile>, 'label'>][] = [
+    [figures.headcount, t('tiles.total'), { value: orUndefined(summary?.total) }],
+    [figures.headcount, t('tiles.active'), { value: orUndefined(summary?.active) }],
+    [figures.idExpiring, t('tiles.idExpiring'), soon(summary?.idExpiring)],
+    [figures.contractEnding, t('tiles.contractEnding'), soon(summary?.contractEnding)],
+    [figures.headcount && !!summary?.needsPlacement, t('tiles.needsPlacement'), { value: orUndefined(summary?.needsPlacement), tone: 'attention' }],
+  ];
   return (
     <section aria-label={t('stats')} className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <StatTile label={t('tiles.total')} value={summary?.total} />
-      <StatTile label={t('tiles.active')} value={summary?.active} />
-      <StatTile label={t('tiles.idExpiring')} value={summary?.idExpiring} hint={t('tiles.soonHint')} tone={attention(summary?.idExpiring)} />
-      <StatTile label={t('tiles.contractEnding')} value={summary?.contractEnding} hint={t('tiles.soonHint')} tone={attention(summary?.contractEnding)} />
-      {!!summary?.needsPlacement && <StatTile label={t('tiles.needsPlacement')} value={summary.needsPlacement} tone="attention" />}
+      {tiles.filter(([shown]) => shown).map(([, label, props]) => <StatTile key={label} label={label} {...props} />)}
     </section>
   );
 }
@@ -46,9 +58,9 @@ function useHomeData() {
   const hidden = me?.hiddenPages ?? [];
   const showTasks = can(CorePermission.TasksView) && !hidden.includes('tasks');
   const showTickets = can(CorePermission.TicketsView) && !hidden.includes('tickets');
-  // The employee counts are about other people: a plain employee (view reaches only their own record) has none.
-  const employeesReach = useReach(CorePermission.EmployeesView);
-  const canSeeEmployees = !!employeesReach && employeesReach !== 'own';
+  // The employee numbers are about other people: each card answers to its own key (a plain employee holds none).
+  const figures: Figures = { headcount: can(CorePermission.EmployeesFiguresHeadcount), idExpiring: can(CorePermission.EmployeesFiguresIdExpiring), contractEnding: can(CorePermission.EmployeesFiguresContractEnding) };
+  const canSeeEmployees = figures.headcount || figures.idExpiring || figures.contractEnding;
   const showMatrix = can(CorePermission.TasksMatrixView) && !hidden.includes('tasks-matrix');
   return {
     me,
@@ -57,6 +69,7 @@ function useHomeData() {
     showTickets,
     showMatrix,
     canSeeEmployees,
+    figures,
     employees: useEmployeesSummary(canSeeEmployees).data,
     tasks: useTaskSummary(showTasks).data,
     tickets: useTicketSummary(showTickets).data,
@@ -81,7 +94,7 @@ export function HomePage() {
       )}
       <HomeCharts h={h} />
       {h.showMatrix && <MatrixSection />}
-      {h.canSeeEmployees && <StatsSection summary={h.employees} />}
+      {h.canSeeEmployees && <StatsSection summary={h.employees} figures={h.figures} />}
     </div>
   );
 }

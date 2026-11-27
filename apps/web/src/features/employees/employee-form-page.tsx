@@ -1,4 +1,4 @@
-import { CorePermission } from '@arweqah-platform/shared';
+import { CorePermission, EMPLOYEE_FIELD_KEYS } from '@arweqah-platform/shared';
 import { useState } from 'react';
 import { FormProvider } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -106,8 +106,22 @@ function showsSensitive(editing: boolean, employee: { sensitiveHidden: boolean }
   return !editing || employee?.sensitiveHidden === false;
 }
 
-function FormBody({ id, options, state }: { id?: string; options: ReturnType<typeof useEmployeeOptions>; state: ReturnType<typeof useEmployeeForm> }) {
+/** One line above an employee form in which some fields are locked: how many may be changed and how to tell the rest (dashed, with a lock) — instead of a sentence repeated under every field. */
+function LockedNotice({ editable }: { editable: readonly string[] | null }) {
   const { t } = useTranslation('employees');
+  if (!editable) return null;
+  const open = EMPLOYEE_FIELD_KEYS.filter((k) => editable.includes(k)).length;
+  if (open >= EMPLOYEE_FIELD_KEYS.length) return null;
+  return <Alert tone="info">{t('lockedNotice', { open, total: EMPLOYEE_FIELD_KEYS.length })}</Alert>;
+}
+
+/** The title and the line under it: adding says an account is made; editing says it is not (the owner's report: the creation text scared people from saving). */
+function FormTitle({ editing }: { editing: boolean }) {
+  const { t } = useTranslation('employees');
+  return <PageHeader title={editing ? t('editTitle') : t('newTitle')} description={editing ? t('formIntroEdit') : t('formIntro')} />;
+}
+
+function FormBody({ id, options, state }: { id?: string; options: ReturnType<typeof useEmployeeOptions>; state: ReturnType<typeof useEmployeeForm> }) {
   const { can } = usePermissions();
   const { form, employee, editing } = state;
   const sensitive = showsSensitive(editing, employee.data);
@@ -118,7 +132,8 @@ function FormBody({ id, options, state }: { id?: string; options: ReturnType<typ
   return (
     <FormProvider {...form}>
       <EditableFieldsProvider value={editable}>
-      <PageHeader title={editing ? t('editTitle') : t('newTitle')} description={t('formIntro')} />
+      <FormTitle editing={editing} />
+      <LockedNotice editable={editable} />
       {twoSteps && <StepsHeader step={flow.step} steps={['details', 'roles']} />}
       <form onSubmit={flow.onSubmit} noValidate className="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)]">
         {flow.step === 'details' ? <DetailsStep id={id} options={options} state={state} sensitive={sensitive} /> : <div className="lg:col-span-2"><RolesStep /></div>}

@@ -16,8 +16,6 @@
     "personalPhone": "الجوال الشخصي",
     "phoneHint": "بالصيغة الدولية، مثل +966501234567.",
     "personalEmail": "البريد الشخصي",
-    "fullNameEn": "الاسم بالإنجليزية",
-    "nameHint": "حروف إنجليزية ومسافات فقط.",
     "save": "حفظ التغييرات"
   },
   "basic": {
@@ -29,7 +27,10 @@
     "female": "أنثى",
     "nationality": "الجنسية",
     "birthDate": "تاريخ الميلاد",
-    "maritalStatus": "الحالة الاجتماعية"
+    "maritalStatus": "الحالة الاجتماعية",
+    "fullNameEn": "الاسم بالإنجليزية",
+    "nameHint": "حروف إنجليزية ومسافات فقط.",
+    "saveNameEn": "حفظ الاسم"
   },
   "work": {
     "title_section": "بيانات العمل",

@@ -2,16 +2,61 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-27 — Edit my reply in tickets, reactions on replies and comments (FR-205…FR-207)
+
+Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-27).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 512 | **A ticket reply is editable by its author for 15 minutes** (`TICKET_REPLY_EDIT_MINUTES` in `domain/rules/ticket-reply.rules.ts`; key `tickets.reply_edit`; `ticket_events.edited_at` + an «edited» mark; the files and the history do not change). Mentions are recomputed with the reply's own rules (`TicketReplyPolicy.mentions`, the mention key is needed only for a name not already in the reply) and only new names are told. The window is a constant, not a company setting (task comments keep their per-company minutes, FR-66). The key is held at scope `all` like the other comment keys (`tickets.comment_*`), not `own`: the rule «own reply only» is in the service. | Owner: a typo in a reply could not be fixed; 15 minutes with a visible mark keeps the history honest. | The owner asks for a per-department window |
+| 513 | **One reaction per person per reply, in one shared table and one component.** `conversation_reactions (target_type, target_id, user_id)` is the key; `core/reactions` (`ReactionsService.set / clear / summaries`, a global module) is used by the tickets and tasks modules through their own services (`TicketReactionsService`, `TaskCommentReactionsService`), which decide who may react (sees the conversation and holds the key; a closed or locked conversation still takes reactions because a reaction changes nothing); `target_id` has no foreign key because it points at two tables. The upsert is one `INSERT … ON CONFLICT … RETURNING (xmax = 0)` so concurrent clicks keep one row and the caller learns whether it was a new reaction. The six keys are fixed in `REACTION_KEYS` (`packages/shared/src/reactions.ts`); the screen draws the emoji (`ReactionBar`, `shared/ui`), shows the names (up to 20, the count is complete) in the chip's tooltip, and without the key shows the chips but not the picker. No audit row: reactions are many and carry no decision. | Owner: «react like on Facebook» on the replies of tickets and tasks. | A reaction needs to be audited, or a seventh reaction is wanted |
+| 514 | **The author is told once per new reaction:** the insert says whether it was new (`xmax = 0`); a change or a removal sends nothing and reacting to one's own reply sends nothing. The wording is a template per module (`ticket.reply_reacted`, `task.comment_reacted`), in the app only. | Owner: the author learns of a reaction without being flooded by changes. | Reactions should be batched into a digest |
+
+## 2026-11-27 — Employee numbers on the home page have their own keys (FR-208)
+
+Plan: `docs/plans/phase-1-auth-employees.md` (log 2026-11-27).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 515 | **The home page's employee cards answer to three keys, not to «view employees beyond my own record»:** `employees.figures_headcount`, `employees.figures_id_expiring`, `employees.figures_contract_ending` (scopes subtree / company / all). `GET /employees/summary` is no longer behind `employees.view`: the service asks each key, counts that group inside that key's scope, sends `null` for a group the person lacks and answers 403 with none (the route is `@OwnData()`, as there is no single key). The web draws a card (and a chart bar) only for a key held. Migration `EmployeeFiguresKeys` gives them to every `node_head` role (rule 17, `subtree`) and to custom roles that view employees at company/all scope (same scope); roles with a narrower reach, and the Employee role, do not get them. | Owner: the Employee role saw «on duty 20», «IDs expiring», «contracts ending» because its view key reached more than the own record; the cards must show only to who holds a key for those numbers, and the numbers must not leave the API for who does not. | A card needs a different scope than the headcount |
+
+## 2026-11-27 — One date field (FR-201)
+
+Plan: `docs/plans/phase-1-auth-employees.md` (log 2026-11-27).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 506 | **Every date box is `DateInput` (text `YYYY-MM-DD`, `dir="ltr"`, Latin digits, mask, calendar button), never `<input type="date">`; shown numbers use `formatNumber`.** The mask converts Arabic-Indic / Persian digits, adds the dashes and stops at 8 digits; the value handed to forms and the API is still `YYYY-MM-DD`. The calendar is a hidden native date input that only writes its day into the text box. `design-check` refuses a raw `<input type="date">` and `toLocaleString()` without a locale. Decision 484 left the browser picker out; this replaces that exception. | The owner saw «ةنس/رهش/موي» and «٢٤/١١/١٩٩٦» in an Arabic page while the same birth date read `1996-11-24` in the profile: the native control follows the device language, which no CSS or `dir` can change (`dir="ltr"` alone fixes only the order of the empty text, not the digits). | A calendar popup in the platform's language is needed (a custom calendar) |
+
+## 2026-11-27 — Profile and employee form polish, page top, placeholder (FR-202…FR-204)
+
+Plan: `docs/plans/phase-1-auth-employees.md` (log 2026-11-27).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 507 | **Locked fields are shown, not explained under each one:** `FormField locked={reason}` + `LockMark` (lock icon beside the label, reason as tooltip and accessible name); `controlBase` styles `read-only:` and `disabled:` as dashed, dim; one `LockedNotice` above the employee form says how many fields may be changed. The per-field sentence (`hints.notEditable`) is now only the tooltip. | Owner: 30 fields, 5 open, locked ones looked like open ones and the same sentence under most of them crowded the form (dark theme). | A role needs a per-field reason |
+| 508 | **The profile's English name lives in «Basic data» and saves on its own** (`EnglishNameField`, `profile.update`, `PUT /me/profile` with `fullNameEn` only: the schema is partial). Labels «الاسم بالإنجليزية» / «الاسم بالعربية» everywhere. | Owner: same data in two sections with two spellings of the label. | Basic data moves to HR approval for the English name too |
+| 509 | **Each mode of the employee form has its own intro** (`formIntro` for adding, `formIntroEdit` for editing) and neither counts sections (five or six depending on the salary section). | Owner: the creation text on the edit page made people afraid to save. | |
+| 510 | **`useScrollToTop` in the app layout scrolls to the top on a change of path** (not for search/filters in the address, not for a `#hash`). | Owner: a page opened at the bottom after a scrolled page. | A page needs to restore its place on «back» |
+| 511 | **Placeholder colour is `neutral-500` + italic in `controlBase`** (all text boxes, textareas and the date box); an example number is a pattern (`+9665XXXXXXXX`). | Owner: the empty phone box looked filled. | |
+
 ## 2026-11-27 — The edge nginx takes a changed edge.conf (owner report: a PowerPoint upload failed on live)
 
 | # | Decision | Why | Revisit when |
 |---|---|---|---|
 | 505 | **`scripts/server/deploy.sh` recreates the `nginx` service when `docker/nginx/edge.conf` is not the file it started with** (sha256 kept in `.edge-conf.sha` on the server; the first deploy after this recreates it once). Before, `docker compose up -d` left the container alone when only the mounted file changed, and the template is rendered only when the container starts, so the new `client_max_body_size 101m` (FR-191) never reached the server: live still refused a file over 11 MB with nginx's own 413 page, shown as «Request failed». The web image's own nginx (`web.conf`) was rebuilt with the new limit; the edge was the one left behind. | The upload limit set from Settings could not be used above 11 MB in production and staging. | The edge moves to a managed load balancer |
 
+## 2026-11-27 — Order by date, both ways, in tickets and tasks (FR-210, FR-211)
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 510 | **An «Order» list (`SortSelect`, `shared/ui`) beside «Group by» in the tickets and the tasks lists.** Tickets: `sort` = `activity` (default) or `created`, `dir` = `desc` (default) or `asc`, ticket order inside a group, ties by `t.id`. Tasks: the existing `sort`/`dir` gain the key `createdAt`; the list and the column headers are one state. Not remembered between visits (like the grouping). No new permission, table or migration. | The owner asked for oldest-to-newest and back; the lists were fixed to last activity (tickets) or the due date. | The owner wants the choice remembered |
+
 ## 2026-11-27 — CodeRabbit review of the release #180 (rule 16)
 
 | # | Decision | Why | Revisit when |
 |---|---|---|---|
+| 507 | **«Strict Open XML» decks are ordered too:** the presentation and relationship namespaces are matched in both their usual (Transitional) and Strict forms (third CodeRabbit round on the release #185, reproduced by a test that failed before). | PowerPoint can save Strict files; their order was ignored. | |
 | 506 | **The deck order is read by namespace and accepts package-root paths:** `p:sldId` / `r:id` are found by their namespaces (a file may bind any prefix) and a relationship target starting with «/» is read from the root of the package (second CodeRabbit round on the release #185; both reproduced by a test that failed before). | A deck made by another tool lost its order or slides. | |
 | 504 | **Handled (each with a test that failed before):** a file stream that fails now ends the answer with 500 instead of leaving it open or raising an unhandled error (`send-file.ts`); sign-out clears the failed calls and errors kept for problem reports; the screenshot is drawn from the scrolled position; a failed ticket-types request shows its error in Settings; a screenshot unticked while it uploads is not named in the analysis or the report; the AI answer no longer overwrites what the person typed (the fields are locked while it works); the slides of a deck follow the presentation's own order (`p:sldIdLst`), not the file names; minutes typed as «1e» are refused instead of counting as empty (text boxes); the audit tabs are tied to the results area with `aria-controls`/`tabpanel` (`Tabs` takes `panelId`). **Valid by reading, not reproducible in a test:** an object address made after a closed attachment box. **Not applied, with reasons:** granting the settings keys to custom admin roles in the migration (they are platform-settings keys held by the System Admin role only, like the other settings keys; the manual says so); creating the screenshot address inside an effect (it breaks the picture in development and the lint rule forbids it; the deferred, skippable release already covers the double effect); the two comments on `docs/plans/phase-9-projects.md` (the owner's planning text: the contradictions are the owner's to settle). | Rule 16: a comment is applied only when real. | |
 

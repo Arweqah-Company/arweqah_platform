@@ -1,41 +1,16 @@
 import { CorePermission, type TicketDto, type PersonRefDto } from '@arweqah-platform/shared';
 import { describe, expect, it } from 'vitest';
-import { TICKET_DESK_ADMIN_GRANTS, type TestAgent, type TestUser } from './factories/factories';
-import { codeFor } from './helpers/totp';
+import type { TestAgent, TestUser } from './factories/factories';
 import { DOCX, XLSX } from './helpers/office-files';
+import { ticketWorld } from './helpers/ticket-world';
 import { useTestApp } from './setup/test-app';
 
-const SETTINGS = { receptionStatus: 'active', descriptionAr: null, descriptionEn: null, acceptsPersonal: true, defaultDueDays: 3, minLeadDays: 0, autoCloseDays: 4, reopenWindowDays: 7, staleAfterDays: 14 };
-const TYPE = { nameAr: 'مشكلة', nameEn: 'Problem', descriptionAr: null, descriptionEn: null, dueDays: null, isPersonal: false, isActive: true };
 const mention = (user: TestUser) => `{{mention:${user.id}}}`;
 
 describe('Ticket replies to replies and mentions (FR-128)', () => {
   const t = useTestApp();
 
-  async function world(options: { personal?: boolean; senderWithout?: string[] } = {}) {
-    const org = await t.factories.org();
-    const manager = await t.factories.user({ unit: org.unitA, grants: TICKET_DESK_ADMIN_GRANTS });
-    const assignee = await t.factories.user({ unit: org.unitA });
-    await t.db.query('UPDATE employees SET org_node_id = $1 WHERE id = $2', [org.department, assignee.employeeId]); // handlers sit directly in the desk
-    const sender = await t.factories.user({ unit: org.unitB, without: options.senderWithout });
-    const colleague = await t.factories.user({ unit: org.unitC });
-    const otherCompany = await t.factories.user({ unit: org.unitOther });
-    const noKeys = await t.factories.user({ unit: org.unitA, without: ['tickets.comment'] });
-
-    await t.db.query('UPDATE org_nodes SET manager_id = $1 WHERE id = $2', [manager.employeeId, org.department]);
-    const managerAgent = await t.factories.signIn(manager);
-    await managerAgent.post('/api/admin-mode/activate').send({ code: codeFor(manager.secret, Date.now() + 30_000) }).expect(200);
-    await managerAgent.put(`/api/tickets/setup/desks/${org.department}`).send(SETTINGS).expect(200);
-    const typeId = (await managerAgent.post(`/api/tickets/setup/desks/${org.department}/types`).send({ ...TYPE, isPersonal: options.personal ?? false, handlerUserIds: [assignee.id] }).expect(201)).body.id as string;
-    const agents: Record<string, TestAgent> = {
-      assignee: await t.factories.signIn(assignee),
-      sender: await t.factories.signIn(sender),
-      colleague: await t.factories.signIn(colleague),
-      noKeys: await t.factories.signIn(noKeys),
-    };
-    const ticket = (await agents.sender!.post('/api/tickets').send({ typeId, title: 'الطابعة', details: 'تفاصيل' }).expect(201)).body as TicketDto;
-    return { assignee, sender, colleague, otherCompany, noKeys, agents: agents as Record<'assignee' | 'sender' | 'colleague' | 'noKeys', TestAgent>, ticket };
-  }
+  const world = (options: { personal?: boolean; senderWithout?: string[] } = {}) => ticketWorld(t, options);
 
   const reply = (agent: TestAgent, ticketId: string, body: Record<string, unknown>) => agent.post(`/api/tickets/${ticketId}/replies`).send(body);
   const lastReply = (ticket: TicketDto) => [...ticket.events].reverse().find((e) => e.type === 'reply');

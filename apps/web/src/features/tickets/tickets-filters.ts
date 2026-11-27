@@ -18,6 +18,16 @@ export function useTicketFilterFields(options: TicketFilterOptionsDto | undefine
 
 export const GROUPINGS = TICKET_GROUPINGS;
 
+/** The ways to order the ticket lists, as `key:direction` (the first is the default): last activity, or when the ticket was sent. */
+export const TICKET_ORDERS = ['activity:desc', 'created:desc', 'created:asc', 'activity:asc'] as const;
+export const DEFAULT_TICKET_ORDER = TICKET_ORDERS[0];
+
+/** `created:asc` → the `sort` and `dir` of the query. */
+export function orderParams(order: string): { sort: string; dir: string } {
+  const [sort = 'activity', dir = 'desc'] = order.split(':');
+  return { sort, dir };
+}
+
 /** The heading a ticket belongs to when the list is grouped. */
 export function groupLabel(ticket: TicketListItemDto, groupBy: TicketGrouping, t: (key: string) => string, ar: boolean): string {
   switch (groupBy) {

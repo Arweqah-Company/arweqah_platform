@@ -7,7 +7,7 @@ import { renderPage } from '../../../../test/render';
 import { TicketTimeline } from './ticket-timeline';
 
 const SARA = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
-const event = (over: Partial<TicketEventDto>): TicketEventDto => ({ id: 'e', type: 'reply', actor: { id: 'u2', name: 'منى خالد' }, body: 'نص', parentId: null, replyTo: null, mentions: [], attachments: [], createdAt: '2026-10-28T10:00:00.000Z', ...over });
+const event = (over: Partial<TicketEventDto>): TicketEventDto => ({ id: 'e', type: 'reply', actor: { id: 'u2', name: 'منى خالد' }, body: 'نص', parentId: null, replyTo: null, mentions: [], attachments: [], createdAt: '2026-10-28T10:00:00.000Z', isEdited: false, mayEdit: false, reactions: [], ...over });
 const ticket = (events: TicketEventDto[], reply = true): TicketDto => ({ id: 't1', abilities: { reply }, events } as unknown as TicketDto);
 
 function serve(keys: string[], calls: unknown[] = []) {
@@ -83,5 +83,103 @@ describe('Ticket timeline: the message that comes with a step (FR-194)', () => {
     expect(await screen.findByText('ردّ عادي')).toBeInTheDocument();
     expect(screen.queryByText('تفاصيل التذكرة')).not.toBeInTheDocument();
     expect(document.querySelectorAll('div[id^="event-"]')).toHaveLength(1);
+  });
+});
+
+describe('Ticket timeline: editing one\'s own reply (FR-205)', () => {
+  const patched = () => {
+    const calls: { path: string; body: unknown }[] = [];
+    server.use(http.patch('*/api/tickets/t1/events/:eventId', async ({ request, params }) => {
+      calls.push({ path: String(params.eventId), body: await request.json() });
+      return HttpResponse.json(ticket([event({ id: 'e1', body: 'نص معدّل', isEdited: true, mayEdit: true })]));
+    }));
+    return calls;
+  };
+
+  it('offers the pencil only on a reply the API says may be edited, and shows the «edited» mark', async () => {
+    serve([CorePermission.TicketsCommentReply]);
+    renderPage(<TicketTimeline ticket={ticket([event({ id: 'e1', mayEdit: true, isEdited: true }), event({ id: 'e2', body: 'ردّ غيري' })])} />);
+    await screen.findByText('ردّ غيري');
+    expect(screen.getAllByRole('button', { name: 'تعديل ردّي' })).toHaveLength(1);
+    expect(screen.getByText('معدّل')).toBeInTheDocument();
+  });
+
+  it('edits in place: the text is in the box, the change is sent with Ctrl+Enter, and the box closes', async () => {
+    serve([CorePermission.TicketsCommentReply]);
+    const calls = patched();
+    renderPage(<TicketTimeline ticket={ticket([event({ id: 'e1', body: 'النص الأول', mayEdit: true })])} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'تعديل ردّي' }));
+    const box = await screen.findByRole('textbox', { name: 'تعديل ردّك' });
+    expect(box).toHaveValue('النص الأول');
+    fireEvent.change(box, { target: { value: 'نص معدّل' } });
+    fireEvent.keyDown(box, { key: 'Enter', ctrlKey: true });
+    await waitFor(() => expect(calls).toEqual([{ path: 'e1', body: { body: 'نص معدّل' } }]));
+    await waitFor(() => expect(screen.queryByRole('textbox', { name: 'تعديل ردّك' })).not.toBeInTheDocument());
+  });
+
+  it('keeps the mention of a person who stays named, and cancels without sending', async () => {
+    serve([CorePermission.TicketsCommentReply, CorePermission.TicketsCommentMention]);
+    const calls = patched();
+    const named = event({ id: 'e1', body: `شكرًا {{mention:${SARA}}}`, mentions: [{ id: SARA, name: 'سارة أحمد' }], mayEdit: true });
+    renderPage(<TicketTimeline ticket={ticket([named])} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'تعديل ردّي' }));
+    const box = await screen.findByRole('textbox', { name: 'تعديل ردّك' });
+    expect(box).toHaveValue('شكرًا @سارة أحمد');
+    fireEvent.change(box, { target: { value: 'شكرًا جزيلًا @سارة أحمد' } });
+    fireEvent.click(screen.getByRole('button', { name: 'حفظ التعديل' }));
+    await waitFor(() => expect(calls[0]?.body).toEqual({ body: `شكرًا جزيلًا {{mention:${SARA}}}` }));
+    fireEvent.click(await screen.findByRole('button', { name: 'تعديل ردّي' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'إلغاء' }));
+    expect(calls).toHaveLength(1);
+  });
+
+  it('shows the API\'s refusal in words (the time passed) and keeps the box', async () => {
+    serve([CorePermission.TicketsCommentReply]);
+    server.use(http.patch('*/api/tickets/t1/events/:eventId', () => HttpResponse.json({ code: 'TICKET_REPLY_EDIT_EXPIRED', message: 'x' }, { status: 422 })));
+    renderPage(<TicketTimeline ticket={ticket([event({ id: 'e1', mayEdit: true })])} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'تعديل ردّي' }));
+    fireEvent.change(await screen.findByRole('textbox', { name: 'تعديل ردّك' }), { target: { value: 'متأخر' } });
+    fireEvent.click(screen.getByRole('button', { name: 'حفظ التعديل' }));
+    expect(await screen.findByText(/انتهت مهلة تعديل الردّ/)).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'تعديل ردّك' })).toBeInTheDocument();
+  });
+});
+
+describe('Ticket timeline: reactions on replies (FR-206)', () => {
+  it('shows the chips of a reply with the names, and no reactions on a step that is not a reply', async () => {
+    serve([]);
+    const chips = [{ reaction: 'love' as const, count: 1, mine: false, people: [{ id: 'u9', name: 'علي حسن' }] }];
+    const asked = event({ id: 'e9', type: 'close_requested', body: 'هل تؤكد؟' });
+    renderPage(<TicketTimeline ticket={ticket([event({ id: 'e1', reactions: chips }), asked])} />);
+    expect(await screen.findByRole('button', { name: /حب من علي حسن/ })).toBeInTheDocument();
+    expect(document.querySelectorAll('ul[aria-label="التفاعلات"]')).toHaveLength(1);
+  });
+
+  it('puts a reaction from the picker, and removes mine with a click on its chip', async () => {
+    serve([]);
+    const calls: { method: string; path: string; body: unknown }[] = [];
+    server.use(
+      http.put('*/api/tickets/t1/events/:eventId/reaction', async ({ request, params }) => {
+        calls.push({ method: 'PUT', path: String(params.eventId), body: await request.json() });
+        return HttpResponse.json(ticket([event({ id: 'e1', reactions: [{ reaction: 'wow', count: 1, mine: true, people: [{ id: 'u1', name: 'سارة أحمد' }] }] })]));
+      }),
+      http.delete('*/api/tickets/t1/events/:eventId/reaction', ({ params }) => {
+        calls.push({ method: 'DELETE', path: String(params.eventId), body: null });
+        return HttpResponse.json(ticket([event({ id: 'e1' })]));
+      }),
+    );
+    renderPage(<TicketTimeline ticket={ticket([event({ id: 'e1', reactions: [{ reaction: 'like', count: 1, mine: true, people: [{ id: 'u1', name: 'سارة أحمد' }] }] })])} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'تفاعل' }));
+    fireEvent.click(within(await screen.findByRole('group', { name: 'اختر تفاعلًا' })).getByRole('button', { name: 'واو' }));
+    await waitFor(() => expect(calls).toEqual([{ method: 'PUT', path: 'e1', body: { reaction: 'wow' } }]));
+    fireEvent.click(screen.getByRole('button', { name: /إعجاب من سارة أحمد/ }));
+    await waitFor(() => expect(calls.at(-1)).toEqual({ method: 'DELETE', path: 'e1', body: null }));
+  });
+
+  it('hides the picker from a person without the key', async () => {
+    server.use(http.get('*/api/me', () => HttpResponse.json(me([], { without: ['tickets.'] }))));
+    renderPage(<TicketTimeline ticket={ticket([event({ id: 'e1' })])} />);
+    await screen.findByText('نص');
+    expect(screen.queryByRole('button', { name: 'تفاعل' })).not.toBeInTheDocument();
   });
 });

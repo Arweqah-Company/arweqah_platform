@@ -6,6 +6,7 @@ import { TransactionRunner } from '../../../../common/application/transaction-ru
 import { ForbiddenError } from '../../../../common/domain/domain-error';
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
 import { FilesService } from '../../../../core/files/application/files.service';
+import { ReactionsService } from '../../../../core/reactions/application/services/reactions.service';
 import { OrgDirectoryService } from '../../../org/application/services/org-directory.service';
 import { TicketDeskRepository } from '../../domain/contracts/ticket-desk.repository';
 import { TicketDirectory } from '../../domain/contracts/ticket-directory.port';
@@ -55,6 +56,7 @@ export class TicketsService {
     private readonly replyPolicy: TicketReplyPolicy,
     private readonly replyNotices: TicketReplyNotices,
     private readonly lifecycle: TicketLifecycleService,
+    private readonly reactions: ReactionsService,
     private readonly tx: TransactionRunner,
     private readonly clock: Clock,
     private readonly events: EventEmitter2,
@@ -82,7 +84,7 @@ export class TicketsService {
 
   async list(viewer: TicketViewer, query: TicketsQuery): Promise<TicketsPageDto> {
     if (query.withDetails && !viewer.canExport) throw new ForbiddenError(); // the text of many tickets at once is the export's: its key opens it
-    const page = await this.tickets.list({ viewer, tab: query.tab, deskId: query.deskId, typeId: query.typeId, assigneeId: query.assigneeId, status: query.status, search: query.search, groupBy: query.groupBy, page: query.page, pageSize: query.pageSize });
+    const page = await this.tickets.list({ viewer, tab: query.tab, deskId: query.deskId, typeId: query.typeId, assigneeId: query.assigneeId, status: query.status, search: query.search, groupBy: query.groupBy, sort: query.sort, dir: query.dir, page: query.page, pageSize: query.pageSize });
     const names = await this.deskNames(page.items.map((r) => r.deskId));
     const now = this.clock.now();
     const result: Paginated<ReturnType<TicketTransformer['toListItem']>> = { ...page, items: page.items.map((r) => ({ ...this.transformer.toListItem(r, names.get(r.deskId), now, query.withDetails), canDelete: this.policy.mayDelete(viewer, r) })) };
@@ -95,9 +97,9 @@ export class TicketsService {
     const found = row as TicketRow;
     const events = await this.tickets.events(id);
     const ids = events.map((e) => e.id);
-    const [attachments, mentions, names] = await Promise.all([this.tickets.attachments(ids), this.tickets.mentions(ids), this.deskNames([found.deskId])]);
+    const [attachments, mentions, names, reactions] = await Promise.all([this.tickets.attachments(ids), this.tickets.mentions(ids), this.deskNames([found.deskId]), this.reactions.summaries('ticket_event', ids, viewer.userId)]);
     const handlers = await this.unclaimedHandlers(found);
-    return this.transformer.toDetail({ row: found, desk: names.get(found.deskId), relations, events, attachments, mentions, handlers, now: this.clock.now(), canReassign: this.policy.reassignReach(viewer, found) !== null, canDelete: this.policy.mayDelete(viewer, found), canChooseHandler: this.policy.mayChooseHandler(viewer, found) });
+    return this.transformer.toDetail({ row: found, desk: names.get(found.deskId), relations, events, attachments, mentions, conversation: { userId: viewer.userId, canEditReply: viewer.canEditReply, reactions }, handlers, now: this.clock.now(), canReassign: this.policy.reassignReach(viewer, found) !== null, canDelete: this.policy.mayDelete(viewer, found), canChooseHandler: this.policy.mayChooseHandler(viewer, found) });
   }
 
   /** Nobody has taken the ticket yet: the people the type names (they all see it, the first to answer takes it). */

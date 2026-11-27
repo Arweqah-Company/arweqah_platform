@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { cn } from '@/shared/lib/cn';
 import { listNames } from '@/shared/lib/list-names';
-import { Alert, Button, FileAttachments, FormField, Input, RichText, Textarea } from '@/shared/ui';
+import { Alert, Button, DateInput, FileAttachments, FormField, Input, RichText, Textarea } from '@/shared/ui';
 import { datesFor, type Choice, type Draft } from './use-new-ticket';
 
 interface Props {
@@ -83,7 +83,7 @@ export function DetailsStep({ choice, draft, today, busy, error, onPatch, onBack
       <FormField label={t('details.text')}>{(p) => <Textarea {...p} rows={5} maxLength={MAX_TICKET_TEXT} value={draft.details} onChange={(e) => onPatch({ details: e.target.value })} />}</FormField>
       <div className="grid gap-4 sm:grid-cols-2">
         <FormField label={`${t('details.neededBy')} *`} hint={t('details.neededByHint', { count: choice.type.dueDays })} error={needed.error}>
-          {(p) => <Input {...p} type="date" dir="ltr" min={earliest} onBlur={needed.onBlur} value={draft.neededBy} onChange={(e) => onPatch({ neededBy: e.target.value })} />}
+          {(p) => <DateInput {...p} min={earliest} onBlur={needed.onBlur} value={draft.neededBy} onChange={(e) => onPatch({ neededBy: e.target.value })} />}
         </FormField>
         <div className="flex flex-col gap-1.5">
           <span className="text-sm font-medium">{t('details.priority')}</span>

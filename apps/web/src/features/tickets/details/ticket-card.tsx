@@ -2,7 +2,7 @@ import { formatDate } from '@/shared/lib/format-date';
 import { formatTicketNumber, type TicketDto } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
 import { TicketFlags, TicketStatusBadge } from '../ticket-badges';
-import { TicketFiles } from './ticket-timeline';
+import { TicketFiles } from './ticket-files';
 
 /** The ticket itself: bigger and bolder than the replies below it, with its number, state, text, files and facts. */
 export function TicketCard({ ticket }: { ticket: TicketDto }) {

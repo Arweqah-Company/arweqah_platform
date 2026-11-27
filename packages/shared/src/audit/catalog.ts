@@ -145,6 +145,7 @@ export const AUDIT_ACTIONS: Record<string, AuditAction> = {
 
   'ticket.created': a('tickets', 'أنشأ تذكرة', 'Created a ticket'),
   'ticket.replied': a('tickets', 'ردّ على تذكرة', 'Replied to a ticket'),
+  'ticket.reply_edited': a('tickets', 'عدّل ردًّا على تذكرة', 'Edited a reply on a ticket'),
   'ticket.close_requested': a('tickets', 'طلب إغلاق تذكرة', 'Asked to close a ticket'),
   'ticket.close_declined': a('tickets', 'رفض إغلاق تذكرة', 'Declined to close a ticket'),
   'ticket.confirmed': a('tickets', 'أكّد إغلاق تذكرة', 'Confirmed the closing of a ticket'),

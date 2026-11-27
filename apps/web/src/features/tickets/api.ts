@@ -1,5 +1,7 @@
 import type {
   CreateTicketInput,
+  EditTicketReplyInput,
+  ReactionInput,
   PersonRefDto,
   TicketCatalogDto,
   TicketDeskDto,
@@ -35,6 +37,22 @@ function useTicketMutation<TIn, TOut>(fn: (input: TIn) => Promise<TOut>) {
 
 export const useCreateTicket = () => useTicketMutation((input: CreateTicketInput) => apiClient.post<TicketDto>('/tickets', input));
 export const useTicketReply = (id: string) => useTicketMutation((input: TicketReplyInput) => apiClient.post<TicketDto>(`/tickets/${id}/replies`, input));
+
+/** A change inside the conversation answers with the whole ticket, which replaces what is cached (the lists and figures do not change). */
+function useConversationMutation<TIn>(ticketId: string, send: (input: TIn) => Promise<TicketDto>) {
+  const client = useQueryClient();
+  return useMutation({ mutationFn: send, onSuccess: (data) => client.setQueryData([KEY, 'one', ticketId], data) });
+}
+
+/** The new text of one's own reply. */
+export const useEditTicketReply = (id: string) =>
+  useConversationMutation(id, ({ eventId, ...body }: EditTicketReplyInput & { eventId: string }) => apiClient.request<TicketDto>(`/tickets/${id}/events/${eventId}`, { method: 'PATCH', body }));
+
+export const useReactToReply = (id: string) =>
+  useConversationMutation(id, ({ eventId, ...body }: ReactionInput & { eventId: string }) => apiClient.request<TicketDto>(`/tickets/${id}/events/${eventId}/reaction`, { method: 'PUT', body }));
+
+export const useUnreactToReply = (id: string) =>
+  useConversationMutation(id, (eventId: string) => apiClient.request<TicketDto>(`/tickets/${id}/events/${eventId}/reaction`, { method: 'DELETE' }));
 
 export type TicketAction = 'request-close' | 'confirm-close' | 'decline-close' | 'close-without-execution' | 'reopen';
 export const useTicketAction = (id: string) => useTicketMutation((input: { action: TicketAction; message?: string }) => apiClient.post<TicketDto>(`/tickets/${id}/${input.action}`, { message: input.message || undefined }));

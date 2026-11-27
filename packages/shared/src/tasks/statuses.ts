@@ -44,7 +44,7 @@ export type TaskTab = (typeof TASK_TABS)[number];
 export const TASK_GROUPINGS = ['due', 'status', 'person'] as const;
 export type TaskGrouping = (typeof TASK_GROUPINGS)[number];
 
-export const TASK_SORT_KEYS = ['title', 'assignee', 'dueDate', 'priority', 'status', 'tag', 'estimate'] as const;
+export const TASK_SORT_KEYS = ['title', 'assignee', 'dueDate', 'priority', 'status', 'tag', 'estimate', 'createdAt'] as const;
 export type TaskSortKey = (typeof TASK_SORT_KEYS)[number];
 
 /** TSK-000123 */

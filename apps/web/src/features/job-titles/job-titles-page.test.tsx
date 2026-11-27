@@ -138,6 +138,6 @@ describe('The job-titles page: every button needs its key (FR-24)', () => {
     openPage({ keys: [CorePermission.JobTitlesExport] });
     fireEvent.click(await screen.findByRole('button', { name: 'تصدير' }));
     const dialog = await screen.findByRole('dialog');
-    for (const column of ['الرمز', 'الاسم بالعربي', 'الاسم بالإنجليزي', 'رمز الوحدة', 'الدرجة', 'المسار', 'الشاغلون']) expect(within(dialog).getByLabelText(column)).toBeChecked();
+    for (const column of ['الرمز', 'الاسم بالعربية', 'الاسم بالإنجليزية', 'رمز الوحدة', 'الدرجة', 'المسار', 'الشاغلون']) expect(within(dialog).getByLabelText(column)).toBeChecked();
   });
 });

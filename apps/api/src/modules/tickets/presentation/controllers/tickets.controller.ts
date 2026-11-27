@@ -1,5 +1,5 @@
 import { CorePermission } from '@arweqah-platform/shared';
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Put, Query, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import type { PersonRefDto, TicketCatalogDto, TicketDto, TicketFilterOptionsDto, TicketsPageDto } from '@arweqah-platform/shared';
@@ -12,9 +12,11 @@ import { TicketLifecycleService, type PersonAction } from '../../application/ser
 import { TicketDeleteService } from '../../application/services/ticket-delete.service';
 import { TicketReassignService } from '../../application/services/ticket-reassign.service';
 import { TicketHandlerChoiceService } from '../../application/services/ticket-handler-choice.service';
+import { TicketReactionsService } from '../../application/services/ticket-reactions.service';
+import { TicketReplyEditService } from '../../application/services/ticket-reply-edit.service';
 import { TicketsService } from '../../application/services/tickets.service';
 import { sendOpenedFile, sendPreviewStream } from '../../../../core/files/presentation/send-file';
-import { AttachmentParam, ChooseHandlerBody, CreateTicketBody, ReassignTicketBody, TicketActionBody, MentionablesQueryDto, TicketReplyBody, TicketsQueryDto } from '../dtos/tickets.dtos';
+import { AttachmentParam, ChooseHandlerBody, CreateTicketBody, EditTicketReplyBody, EventParam, ReactionBody, ReassignTicketBody, TicketActionBody, MentionablesQueryDto, TicketReplyBody, TicketsQueryDto } from '../dtos/tickets.dtos';
 
 /**
  * Every action has its own key (the Employee role holds them); on top of that, what else a person sees or does with a ticket
@@ -31,6 +33,8 @@ export class TicketsController {
     private readonly reassigner: TicketReassignService,
     private readonly chooser: TicketHandlerChoiceService,
     private readonly remover: TicketDeleteService,
+    private readonly replyEditor: TicketReplyEditService,
+    private readonly reactions: TicketReactionsService,
   ) {}
 
   @Get()
@@ -73,6 +77,28 @@ export class TicketsController {
   @RequirePermission(CorePermission.TicketsReply)
   reply(@Access() ctx: AccessContext, @Param() { id }: IdParam, @Body() body: TicketReplyBody): Promise<TicketDto> {
     return this.tickets.reply(viewerOf(ctx), id, body);
+  }
+
+  /** Changes the text of one's own reply (the service checks the author and the 15 minutes). */
+  @Patch(':id/events/:eventId')
+  @RequirePermission(CorePermission.TicketsReplyEdit)
+  async editReply(@Access() ctx: AccessContext, @Param() { id, eventId }: EventParam, @Body() body: EditTicketReplyBody): Promise<TicketDto> {
+    await this.replyEditor.edit(viewerOf(ctx), id, eventId, body);
+    return this.tickets.get(viewerOf(ctx), id);
+  }
+
+  @Put(':id/events/:eventId/reaction')
+  @RequirePermission(CorePermission.TicketsReplyReact)
+  async react(@Access() ctx: AccessContext, @Param() { id, eventId }: EventParam, @Body() body: ReactionBody): Promise<TicketDto> {
+    await this.reactions.react(viewerOf(ctx), id, eventId, body);
+    return this.tickets.get(viewerOf(ctx), id);
+  }
+
+  @Delete(':id/events/:eventId/reaction')
+  @RequirePermission(CorePermission.TicketsReplyReact)
+  async unreact(@Access() ctx: AccessContext, @Param() { id, eventId }: EventParam): Promise<TicketDto> {
+    await this.reactions.unreact(viewerOf(ctx), id, eventId);
+    return this.tickets.get(viewerOf(ctx), id);
   }
 
   @Post(':id/request-close')

@@ -35,10 +35,11 @@ export class TicketReplyPolicy {
     return target;
   }
 
-  private async mentions(viewer: TicketViewer, ticket: TicketRow, body: string): Promise<string[]> {
+  /** The people a text names; naming somebody not yet named (`alreadyMentioned`, for an edit) needs the mention key. */
+  async mentions(viewer: TicketViewer, ticket: TicketRow, body: string, alreadyMentioned: string[] = []): Promise<string[]> {
     const ids = mentionedIn(body);
     if (!ids.length) return [];
-    if (!viewer.canMention) throw new TicketCommentNotAllowedError('mention people');
+    if (!viewer.canMention && ids.some((id) => !alreadyMentioned.includes(id))) throw new TicketCommentNotAllowedError('mention people');
     const companies = await this.directory.companiesOf(ids);
     const sides = new Set([ticket.senderUserId, ticket.assigneeUserId]);
     if (ids.some((id) => companies.get(id) !== ticket.deskCompanyId || (ticket.isPersonal && !sides.has(id)))) throw new TicketMentionInvalidError();

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Dialog, FormField, Input, Textarea } from '@/shared/ui';
+import { Button, DateInput, Dialog, FormField, Textarea } from '@/shared/ui';
 import type { PendingMove } from './use-board-move';
 
 interface Props {
@@ -39,7 +39,7 @@ function DateForm({ busy, today, onAnswer, onCancel }: Pick<Props, 'busy' | 'tod
   const [date, setDate] = useState(today);
   return (
     <div className="flex flex-col gap-4">
-      <FormField label={`${t('transition.completedOn')} *`} hint={t('transition.completedOnHint')}>{(p) => <Input {...p} type="date" dir="ltr" max={today} aria-required value={date} onChange={(e) => setDate(e.target.value)} />}</FormField>
+      <FormField label={`${t('transition.completedOn')} *`} hint={t('transition.completedOnHint')}>{(p) => <DateInput {...p} max={today} aria-required value={date} onChange={(e) => setDate(e.target.value)} />}</FormField>
       <Actions ready={!!date && date <= today} busy={busy} onCancel={onCancel} onSubmit={() => void onAnswer({ completedOn: date })} />
     </div>
   );

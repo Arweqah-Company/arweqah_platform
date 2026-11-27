@@ -228,6 +228,10 @@ export class TicketEvent {
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 
+  /** When the author last changed the text of a reply (null = never). */
+  @Column({ name: 'edited_at', type: 'timestamptz', nullable: true })
+  editedAt: Date | null;
+
   @ManyToOne('Ticket', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'ticket_id', foreignKeyConstraintName: 'FK_ticket_events_ticket' })
   private readonly ticketFk?: unknown;

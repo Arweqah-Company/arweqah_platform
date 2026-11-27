@@ -16,8 +16,6 @@
     "personalPhone": "Personal phone",
     "phoneHint": "International format, e.g. +966501234567.",
     "personalEmail": "Personal e-mail",
-    "fullNameEn": "Full name in English",
-    "nameHint": "English letters and spaces only.",
     "save": "Save changes"
   },
   "basic": {
@@ -29,7 +27,10 @@
     "female": "Female",
     "nationality": "Nationality",
     "birthDate": "Date of birth",
-    "maritalStatus": "Marital status"
+    "maritalStatus": "Marital status",
+    "fullNameEn": "Full name in English",
+    "nameHint": "English letters and spaces only.",
+    "saveNameEn": "Save the name"
   },
   "work": {
     "title_section": "Work details",

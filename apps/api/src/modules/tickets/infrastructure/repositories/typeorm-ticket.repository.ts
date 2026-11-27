@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, type EntityManager } from 'typeorm';
-import type { Paginated, TicketGrouping } from '@arweqah-platform/shared';
+import type { Paginated, TicketGrouping, TicketSortKey } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../../common/domain/transaction-context';
 import { likeContains } from '../../../../common/infrastructure/sql-like';
 import { returnedRows } from '../../../../common/infrastructure/query-result';
@@ -12,6 +12,8 @@ import type {
   FilterOptionsRows,
   NewEvent,
   NewTicket,
+  ReplyEdit,
+  ReplyRecord,
   TicketEventRow,
   TicketListFilters,
   TicketPatch,
@@ -20,6 +22,9 @@ import type {
   ViewerScope,
 } from '../../domain/types/ticket.types';
 import { ticketQuery, toTicketRow } from './ticket-sql';
+
+/** The column each way of ordering reads (fixed names only reach the SQL text). */
+const SORT_COLUMN: Record<TicketSortKey, string> = { activity: 't.last_activity_at', created: 't.created_at' };
 
 const ORDER_BY_GROUP: Record<TicketGrouping, string> = {
   assignee: `COALESCE(ae.full_name, au.name) NULLS LAST, `,
@@ -134,7 +139,7 @@ export class TypeOrmTicketRepository extends TicketRepository {
 
   async list(f: TicketListFilters): Promise<Paginated<TicketRow> & { groupBy: TicketGrouping | null }> {
     const { clause, values } = this.listWhere(f);
-    const order = `${f.groupBy ? ORDER_BY_GROUP[f.groupBy] : ''}t.last_activity_at DESC, t.id`;
+    const order = `${f.groupBy ? ORDER_BY_GROUP[f.groupBy] : ''}${SORT_COLUMN[f.sort]} ${f.dir === 'asc' ? 'ASC' : 'DESC'}, t.id`;
     const page = [...values, f.pageSize, (f.page - 1) * f.pageSize];
     const listSql = ticketQuery(clause, `ORDER BY ${order} LIMIT $${page.length - 1} OFFSET $${page.length}`);
     const countSql = `SELECT count(*)::int AS n FROM tickets t JOIN ticket_types ty ON ty.id = t.type_id JOIN org_nodes n ON n.id = t.desk_id LEFT JOIN employees dm ON dm.id = n.manager_id AND dm.deleted_at IS NULL ${PEOPLE_JOINS} WHERE ${clause}`;
@@ -144,7 +149,7 @@ export class TypeOrmTicketRepository extends TicketRepository {
 
   async events(ticketId: string): Promise<TicketEventRow[]> {
     return this.ds.query(
-      `SELECT ev.id, ev.type, ev.actor_user_id AS "actorUserId", COALESCE(e.full_name, u.name) AS "actorName", ev.body, ev.created_at AS "createdAt",
+      `SELECT ev.id, ev.type, ev.actor_user_id AS "actorUserId", COALESCE(e.full_name, u.name) AS "actorName", ev.body, ev.created_at AS "createdAt", ev.edited_at AS "editedAt",
               ev.parent_event_id AS "parentEventId", ev.reply_to_user_id AS "replyToUserId", COALESCE(re.full_name, ru.name) AS "replyToName"
        FROM ticket_events ev LEFT JOIN users u ON u.id = ev.actor_user_id LEFT JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL
        LEFT JOIN users ru ON ru.id = ev.reply_to_user_id LEFT JOIN employees re ON re.user_id = ru.id AND re.deleted_at IS NULL
@@ -174,6 +179,18 @@ export class TypeOrmTicketRepository extends TicketRepository {
   async answerableEvent(ticketId: string, eventId: string): Promise<{ id: string; parentEventId: string | null; actorUserId: string | null } | null> {
     const rows = await this.ds.query(`SELECT id, parent_event_id AS "parentEventId", actor_user_id AS "actorUserId" FROM ticket_events WHERE ticket_id = $1 AND id = $2 AND type = 'reply'`, [ticketId, eventId]);
     return rows[0] ?? null;
+  }
+
+  async reply(ticketId: string, eventId: string): Promise<ReplyRecord | null> {
+    const rows = await this.ds.query(`SELECT id, actor_user_id AS "actorUserId", created_at AS "createdAt" FROM ticket_events WHERE ticket_id = $1 AND id = $2 AND type = 'reply'`, [ticketId, eventId]);
+    return rows[0] ?? null;
+  }
+
+  async editReply(eventId: string, edit: ReplyEdit, tx: TransactionContext): Promise<void> {
+    const m = this.m(tx);
+    await m.query('UPDATE ticket_events SET body = $2, edited_at = $3 WHERE id = $1', [eventId, edit.body, edit.editedAt]);
+    await m.query('DELETE FROM ticket_event_mentions WHERE event_id = $1 AND NOT (user_id = ANY($2))', [eventId, edit.mentionIds]);
+    for (const userId of edit.mentionIds) await m.query('INSERT INTO ticket_event_mentions (event_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [eventId, userId]);
   }
 
   async attachedFile(ticketId: string, fileId: string): Promise<boolean> {

@@ -19,7 +19,7 @@ Your own page: here you set **the look and language of the platform**, edit your
 | Choose the language: العربية, English | The language and the page direction change at once and your choice is saved | `profile.update` |
 | Edit the personal phone | Your contact number is saved | `profile.update` |
 | Edit the personal e-mail | Your personal e-mail is saved | `profile.update` |
-| Edit the full name in English | Your English name is saved | `profile.update` |
+| Edit the name in English (in «Basic data», beside the Arabic name, with its own «Save the name» button) | Your English name is saved | `profile.update` |
 | «Request a change» on the basic data card (Arabic name, gender, nationality, birth date, marital status) | A request with only what you changed goes to HR; your data does not change until HR approves, and you get a notice of the decision | `profile.update_basic` (Request a change of my basic data) |
 | «Cancel the request» | Your request is cancelled while it waits, so you can send another | `profile.update_basic` |
 | «Save changes» | Saves the contact details and shows «Changes saved» | `profile.update` |
@@ -39,7 +39,8 @@ Your own page: here you set **the look and language of the platform**, edit your
 
 
 1. In the «Contact details» section type the **personal phone** in international format, such as `+966501234567`.
-2. Type the **personal e-mail** and the **full name in English** (English letters and spaces only).
+2. Type the **personal e-mail**, then press «Save changes». (An empty box shows `+9665XXXXXXXX` in a faded colour: the shape of an example, not a saved number.)
+3. To change the **name in English** type it in the «Basic data» section beside the Arabic name (English letters and spaces only), then press «Save the name», which appears once it changes.
 3. Press «Save changes».
 
 **See your work details**
@@ -72,7 +73,7 @@ The page has two forms. The appearance choices save the moment you pick them; th
 
 1. **You** open «Profile» from your account menu.
 2. **You** pick the theme and the language. The platform applies them at once and saves them to your account; no button is needed.
-3. **You** edit the personal phone, the personal e-mail or the English name. The form checks each field as you type or leave it, and «Save changes» stays disabled while a field is wrong.
+3. **You** edit the personal phone or the personal e-mail (and the English name from «Basic data»). The form checks each field as you type or leave it, and «Save changes» stays disabled while a field is wrong.
 4. **You** press «Save changes». The platform checks the same rules again, saves them on your employee record and shows «Changes saved».
 5. **The audit log** records «Edited their own profile» (category «Employees»). Nobody else is notified.
 6. **HR** sees the new contact details on your employee record; HR alone changes the Arabic name and the work details.
