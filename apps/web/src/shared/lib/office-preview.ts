@@ -127,8 +127,9 @@ async function slideImages(zip: Zip, slidePath: string): Promise<{ images: Blob[
 }
 
 /** The namespaces of a presentation: a file may bind any prefix to them, so the names are read by namespace, never by prefix. */
-const PRESENTATION_NS = 'http://schemas.openxmlformats.org/presentationml/2006/main';
-const RELATIONSHIPS_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+/** The usual (Transitional) names and those of «Strict Open XML», which PowerPoint can also save. */
+const PRESENTATION_NS = ['http://schemas.openxmlformats.org/presentationml/2006/main', 'http://purl.oclc.org/ooxml/presentationml/main'];
+const RELATIONSHIPS_NS = ['http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'http://purl.oclc.org/ooxml/officeDocument/relationships'];
 
 /** The slide files in the order the presentation shows them (`p:sldIdLst` and its relationships), or by file number when the presentation does not say. */
 async function slideOrder(zip: Zip): Promise<string[]> {
@@ -142,8 +143,9 @@ async function slideOrder(zip: Zip): Promise<string[]> {
   if (!presentation || !rels) return byNumber;
   const parse = (xml: string) => new DOMParser().parseFromString(xml, 'application/xml');
   const target = new Map(Array.from(parse(rels).getElementsByTagNameNS('*', 'Relationship')).map((r) => [r.getAttribute('Id') ?? '', resolveTarget('ppt/presentation.xml', r.getAttribute('Target') ?? '')]));
-  const listed = Array.from(parse(presentation).getElementsByTagNameNS(PRESENTATION_NS, 'sldId'))
-    .map((el) => target.get(el.getAttributeNS(RELATIONSHIPS_NS, 'id') ?? ''))
+  const doc = parse(presentation);
+  const listed = PRESENTATION_NS.flatMap((ns) => Array.from(doc.getElementsByTagNameNS(ns, 'sldId')))
+    .map((el) => target.get(RELATIONSHIPS_NS.map((ns) => el.getAttributeNS(ns, 'id')).find(Boolean) ?? ''))
     .filter((path): path is string => !!path && zip.file(path) !== null);
   return listed.length ? listed : byNumber;
 }
