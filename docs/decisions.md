@@ -2,6 +2,16 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-27 — Edit my reply in tickets, reactions on replies and comments (FR-205…FR-207)
+
+Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-27).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 512 | **A ticket reply is editable by its author for 15 minutes** (`TICKET_REPLY_EDIT_MINUTES` in `domain/rules/ticket-reply.rules.ts`; key `tickets.reply_edit`; `ticket_events.edited_at` + an «edited» mark; the files and the history do not change). Mentions are recomputed with the reply's own rules (`TicketReplyPolicy.mentions`, the mention key is needed only for a name not already in the reply) and only new names are told. The window is a constant, not a company setting (task comments keep their per-company minutes, FR-66). The key is held at scope `all` like the other comment keys (`tickets.comment_*`), not `own`: the rule «own reply only» is in the service. | Owner: a typo in a reply could not be fixed; 15 minutes with a visible mark keeps the history honest. | The owner asks for a per-department window |
+| 513 | **One reaction per person per reply, in one shared table and one component.** `conversation_reactions (target_type, target_id, user_id)` is the key; `core/reactions` (`ReactionsService.set / clear / summaries`, a global module) is used by the tickets and tasks modules through their own services (`TicketReactionsService`, `TaskCommentReactionsService`), which decide who may react (sees the conversation and holds the key; a closed or locked conversation still takes reactions because a reaction changes nothing); `target_id` has no foreign key because it points at two tables. The upsert is one `INSERT … ON CONFLICT … RETURNING (xmax = 0)` so concurrent clicks keep one row and the caller learns whether it was a new reaction. The six keys are fixed in `REACTION_KEYS` (`packages/shared/src/reactions.ts`); the screen draws the emoji (`ReactionBar`, `shared/ui`), shows the names (up to 20, the count is complete) in the chip's tooltip, and without the key shows the chips but not the picker. No audit row: reactions are many and carry no decision. | Owner: «react like on Facebook» on the replies of tickets and tasks. | A reaction needs to be audited, or a seventh reaction is wanted |
+| 514 | **The author is told once per new reaction:** the insert says whether it was new (`xmax = 0`); a change or a removal sends nothing and reacting to one's own reply sends nothing. The wording is a template per module (`ticket.reply_reacted`, `task.comment_reacted`), in the app only. | Owner: the author learns of a reaction without being flooded by changes. | Reactions should be batched into a digest |
+
 ## 2026-11-27 — One date field (FR-201)
 
 Plan: `docs/plans/phase-1-auth-employees.md` (log 2026-11-27).
