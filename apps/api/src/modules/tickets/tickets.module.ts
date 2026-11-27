@@ -21,6 +21,8 @@ import { TicketLifecycleService } from './application/services/ticket-lifecycle.
 import { TicketNotifier } from './application/services/ticket-notifier.service';
 import { TicketSummaryService } from './application/services/ticket-summary.service';
 import { TicketSetupService } from './application/services/ticket-setup.service';
+import { TicketReactionsService } from './application/services/ticket-reactions.service';
+import { TicketReplyEditService } from './application/services/ticket-reply-edit.service';
 import { TicketsService } from './application/services/tickets.service';
 import { TicketAccessPolicy } from './application/policies/ticket-access.policy';
 import { TicketReplyPolicy } from './application/policies/ticket-reply.policy';
@@ -71,6 +73,8 @@ import { TicketsController } from './presentation/controllers/tickets.controller
     TicketAccessPolicy,
     TicketReplyPolicy,
     TicketReplyNotices,
+    TicketReplyEditService,
+    TicketReactionsService,
     TicketTransformer,
     TicketJobs,
     { provide: TicketRepository, useClass: TypeOrmTicketRepository },

@@ -30,6 +30,8 @@ export const TICKET_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.TicketsChooseHandler, 'تحديد مسؤول التذكرة من مسؤولي نوعها', 'Choose who answers a ticket among the handlers of its type', ['unit', 'subtree', 'company', 'all']),
   def(CorePermission.TicketsCommentReply, 'الرد على رد داخل التذكرة', 'Answer a reply inside a ticket'),
   def(CorePermission.TicketsCommentMention, 'ذكر موظف بـ @ في ردّ على تذكرة', 'Mention a colleague with @ in a ticket reply'),
+  def(CorePermission.TicketsReplyEdit, 'تعديل ردّي في التذكرة (خلال 15 دقيقة من إرساله)', 'Edit my own reply in a ticket (within 15 minutes of sending it)'),
+  def(CorePermission.TicketsReplyReact, 'التفاعل على الردود في التذكرة', 'React to the replies of a ticket'),
   def(CorePermission.TicketsSetupView, 'عرض صفحة إعداد التذاكر', 'View the ticket setup page', WIDE),
   def(CorePermission.TicketsSetupEdit, 'تعديل استقبال الجهة ومُهَلها', 'Edit a unit\'s reception and durations', WIDE),
   def(CorePermission.TicketsTypeCreate, 'إضافة نوع تذكرة', 'Add a ticket type', WIDE),

@@ -45,6 +45,7 @@ export const TASK_PERMISSIONS: PermissionDefinition[] = [
   def(CorePermission.TasksCommentEdit, 'تعديل تعليقي', 'Edit my comment'),
   def(CorePermission.TasksCommentDelete, 'حذف تعليقي', 'Delete my comment'),
   def(CorePermission.TasksCommentDeleteAny, 'حذف تعليق أي شخص', 'Delete anybody’s comment'),
+  def(CorePermission.TasksCommentReact, 'التفاعل على تعليقات المهمة', 'React to the comments of a task'),
   def(CorePermission.TasksCommentRulesView, 'عرض مصفوفة صلاحيات التعليقات', 'View the comment rules matrix'),
   def(CorePermission.TasksCommentRulesEdit, 'تعديل مصفوفة صلاحيات التعليقات', 'Edit the comment rules matrix'),
 ];

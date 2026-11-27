@@ -4,6 +4,7 @@ import type { CreateCommentInput, EditCommentInput, MentionableDto, TaskConversa
 import { TransactionRunner } from '../../../../common/application/transaction-runner';
 import { AUDIT_EVENT, type AuditEvent } from '../../../../core/audit/application/audit.events';
 import { FilesService } from '../../../../core/files/application/files.service';
+import { ReactionsService } from '../../../../core/reactions/application/services/reactions.service';
 import { TaskCommentRepository } from '../../domain/contracts/task-comment.repository';
 import { TaskDirectory } from '../../domain/contracts/task-directory.port';
 import {
@@ -34,6 +35,7 @@ export class TaskCommentService {
     private readonly notices: TaskCommentNotices,
     private readonly directory: TaskDirectory,
     private readonly files: FilesService,
+    private readonly reactions: ReactionsService,
     private readonly tx: TransactionRunner,
     private readonly events: EventEmitter2,
   ) {}
@@ -143,8 +145,8 @@ export class TaskCommentService {
   private async render(ctx: CommentContext): Promise<TaskConversationDto> {
     const rows = await this.comments.list(ctx.task.id);
     const ids = rows.map((r) => r.id);
-    const [mentions, files] = await Promise.all([this.comments.mentionsOf(ids), this.comments.filesOf(ids)]);
-    return this.transformer.toConversation(ctx, { rows, mentions, files });
+    const [mentions, files, reactions] = await Promise.all([this.comments.mentionsOf(ids), this.comments.filesOf(ids), this.reactions.summaries('task_comment', ids, ctx.viewer.userId)]);
+    return this.transformer.toConversation(ctx, { rows, mentions, files, reactions });
   }
 
   private audit(actorId: string, action: string, taskId: string, changes: Record<string, unknown>): void {

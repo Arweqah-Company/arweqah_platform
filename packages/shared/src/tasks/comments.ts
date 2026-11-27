@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { CorePermission } from '../permissions/keys';
+import type { ReactionSummaryDto } from '../reactions';
 
 /** How a person stands to a task. A colleague of the category and a mentioned person are not parties: they reach the conversation only. */
 export const COMMENT_RELATIONS = ['assignee', 'creator', 'approver', 'reviewer', 'follower', 'manager', 'category_peer', 'mentioned'] as const;
@@ -91,6 +92,8 @@ export interface TaskCommentDto {
   isDeleted: boolean;
   mayEdit: boolean;
   mayDelete: boolean;
+  /** The reactions on this comment (none on a deleted one). */
+  reactions: ReactionSummaryDto[];
 }
 
 /** What the conversation of one task shows: for a person outside the task only its number and title come with it. */

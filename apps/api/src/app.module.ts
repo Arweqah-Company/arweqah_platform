@@ -22,6 +22,7 @@ import { AuthCoreModule } from './core/auth/auth-core.module';
 import type { BetterAuthInstance } from './core/auth/infrastructure/better-auth.factory';
 import { BETTER_AUTH } from './core/auth/infrastructure/tokens';
 import { FilesModule } from './core/files/files.module';
+import { ReactionsModule } from './core/reactions/reactions.module';
 import { TranslationModule } from './core/translation/translation.module';
 import { MessagingModule } from './core/messaging/messaging.module';
 import { NotificationsModule } from './core/notifications/notifications.module';
@@ -75,6 +76,7 @@ const JSON_LIMIT = '1mb';
     WorkflowModule,
     NotificationsModule,
     FilesModule,
+    ReactionsModule,
     TranslationModule,
     AgentModule,
     // Feature modules

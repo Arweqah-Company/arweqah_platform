@@ -12,6 +12,8 @@ import type {
   FilterOptionsRows,
   NewEvent,
   NewTicket,
+  ReplyEdit,
+  ReplyRecord,
   TicketEventRow,
   TicketListFilters,
   TicketPatch,
@@ -144,7 +146,7 @@ export class TypeOrmTicketRepository extends TicketRepository {
 
   async events(ticketId: string): Promise<TicketEventRow[]> {
     return this.ds.query(
-      `SELECT ev.id, ev.type, ev.actor_user_id AS "actorUserId", COALESCE(e.full_name, u.name) AS "actorName", ev.body, ev.created_at AS "createdAt",
+      `SELECT ev.id, ev.type, ev.actor_user_id AS "actorUserId", COALESCE(e.full_name, u.name) AS "actorName", ev.body, ev.created_at AS "createdAt", ev.edited_at AS "editedAt",
               ev.parent_event_id AS "parentEventId", ev.reply_to_user_id AS "replyToUserId", COALESCE(re.full_name, ru.name) AS "replyToName"
        FROM ticket_events ev LEFT JOIN users u ON u.id = ev.actor_user_id LEFT JOIN employees e ON e.user_id = u.id AND e.deleted_at IS NULL
        LEFT JOIN users ru ON ru.id = ev.reply_to_user_id LEFT JOIN employees re ON re.user_id = ru.id AND re.deleted_at IS NULL
@@ -174,6 +176,18 @@ export class TypeOrmTicketRepository extends TicketRepository {
   async answerableEvent(ticketId: string, eventId: string): Promise<{ id: string; parentEventId: string | null; actorUserId: string | null } | null> {
     const rows = await this.ds.query(`SELECT id, parent_event_id AS "parentEventId", actor_user_id AS "actorUserId" FROM ticket_events WHERE ticket_id = $1 AND id = $2 AND type = 'reply'`, [ticketId, eventId]);
     return rows[0] ?? null;
+  }
+
+  async reply(ticketId: string, eventId: string): Promise<ReplyRecord | null> {
+    const rows = await this.ds.query(`SELECT id, actor_user_id AS "actorUserId", created_at AS "createdAt" FROM ticket_events WHERE ticket_id = $1 AND id = $2 AND type = 'reply'`, [ticketId, eventId]);
+    return rows[0] ?? null;
+  }
+
+  async editReply(eventId: string, edit: ReplyEdit, tx: TransactionContext): Promise<void> {
+    const m = this.m(tx);
+    await m.query('UPDATE ticket_events SET body = $2, edited_at = $3 WHERE id = $1', [eventId, edit.body, edit.editedAt]);
+    await m.query('DELETE FROM ticket_event_mentions WHERE event_id = $1 AND NOT (user_id = ANY($2))', [eventId, edit.mentionIds]);
+    for (const userId of edit.mentionIds) await m.query('INSERT INTO ticket_event_mentions (event_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [eventId, userId]);
   }
 
   async attachedFile(ticketId: string, fileId: string): Promise<boolean> {

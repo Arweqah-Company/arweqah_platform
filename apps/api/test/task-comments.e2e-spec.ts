@@ -445,6 +445,70 @@ describe('Task comments, replies, files and mentions (FR-66)', () => {
     });
   });
 
+  describe('Reactions (FR-206, FR-207)', () => {
+    const reactUrl = (w: World, commentId: string) => url(w, `/${commentId}/reaction`);
+    const react = (agent: TestAgent, w: World, commentId: string, reaction: string) => agent.put(reactUrl(w, commentId)).send({ reaction });
+    const chips = (conversation: TaskConversationDto, commentId: string) => conversation.comments.find((c) => c.id === commentId)!.reactions;
+    const reacted = async (agent: TestAgent) => ((await agent.get('/api/notifications').expect(200)).body.items as { titleEn: string; link: string }[]).filter((n) => n.titleEn.includes('reacted to your comment'));
+
+    it('puts, replaces and removes one reaction per person, with the count, the mark and the names', async () => {
+      const w = await world();
+      const [c] = (await post(w.agents.assignee, w, { body: 'تم' })).comments;
+      const first = (await react(w.agents.manager, w, c!.id, 'like').expect(200)).body as TaskConversationDto;
+      expect(chips(first, c!.id)).toEqual([{ reaction: 'like', count: 1, mine: true, people: [{ id: w.manager.id, name: expect.any(String) }] }]);
+      const swapped = (await react(w.agents.manager, w, c!.id, 'care').expect(200)).body as TaskConversationDto;
+      expect(chips(swapped, c!.id)).toMatchObject([{ reaction: 'care', count: 1, mine: true }]);
+      await react(w.agents.follower, w, c!.id, 'care').expect(200);
+      expect(await t.db.query('SELECT 1 FROM conversation_reactions WHERE target_id = $1', [c!.id])).toHaveLength(2);
+      expect(chips(await read(w.agents.assignee, w), c!.id)).toMatchObject([{ reaction: 'care', count: 2, mine: false }]);
+      const removed = (await w.agents.manager.delete(reactUrl(w, c!.id)).expect(200)).body as TaskConversationDto;
+      expect(chips(removed, c!.id)).toMatchObject([{ reaction: 'care', count: 1, mine: false }]);
+      await react(w.agents.manager, w, c!.id, 'angry').expect(400);
+    });
+
+    it('tells the author once per new reaction, never for a change, a removal or one’s own comment', async () => {
+      const w = await world();
+      const [c] = (await post(w.agents.assignee, w, { body: 'تم' })).comments;
+      await react(w.agents.manager, w, c!.id, 'like').expect(200);
+      const first = await reacted(w.agents.assignee);
+      expect(first).toHaveLength(1);
+      expect(first[0]!.link).toBe(`/tasks/${w.task.id}/conversation`);
+      await react(w.agents.manager, w, c!.id, 'wow').expect(200);
+      await w.agents.manager.delete(reactUrl(w, c!.id)).expect(200);
+      await react(w.agents.assignee, w, c!.id, 'haha').expect(200);
+      expect(await reacted(w.agents.assignee)).toHaveLength(1);
+    });
+
+    it('needs the key (403), a conversation the person may read (404) and a live comment (404)', async () => {
+      const w = await world();
+      const [c] = (await post(w.agents.assignee, w, { body: 'تم' })).comments;
+      const keyless = await t.factories.user({ unit: w.org.unitA, grants: TASK_COMMENTER_GRANTS, without: ['tasks.comment_react'] });
+      await react(await t.factories.signIn(keyless), w, c!.id, 'like').expect(403);
+      await react(w.agents.stranger, w, c!.id, 'like').expect(404);
+      await react(w.agents.foreign, w, c!.id, 'like').expect(404);
+      await react(w.agents.manager, w, '00000000-0000-4000-8000-000000000000', 'like').expect(404);
+      await w.agents.assignee.delete(url(w, `/${c!.id}`)).expect(200);
+      await react(w.agents.manager, w, c!.id, 'like').expect(404); // a deleted comment takes none
+    });
+
+    it('follows the company’s matrix: a relation whose «read» cell is off may not react', async () => {
+      const w = await world();
+      const [c] = (await post(w.agents.assignee, w, { body: 'تم' })).comments;
+      await saveRules(w, (m) => { m.follower.read = false; });
+      await react(w.agents.follower, w, c!.id, 'like').expect(404);
+      await react(w.agents.manager, w, c!.id, 'like').expect(200);
+    });
+
+    it('still takes reactions once the conversation is locked', async () => {
+      const w = await world();
+      const [c] = (await post(w.agents.assignee, w, { body: 'تم' })).comments;
+      await t.db.query(`UPDATE tasks SET status = 'done', completed_at = now() - interval '10 days' WHERE id = $1`, [w.task.id]);
+      await w.agents.admin.put(`/api/task-policies?companyId=${w.org.companyId}`).send({ objectionWorkingDays: 3, staleDays: 30, backdateDays: 7, urgentDays: 2, reminderDaysBefore: 1, digestWeekday: 0, standaloneRetentionDays: 30, commentMaxFiles: 5, commentEditMinutes: 15, commentLockDays: 7 }).expect(200);
+      expect((await read(w.agents.assignee, w)).locked).toBe(true);
+      expect(chips((await react(w.agents.manager, w, c!.id, 'sad').expect(200)).body, c!.id)).toMatchObject([{ reaction: 'sad', count: 1 }]);
+    });
+  });
+
   describe('Audit and privacy', () => {
     it('audits comments with ids and counts, never the text', async () => {
       const w = await world();

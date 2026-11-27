@@ -140,6 +140,20 @@ export class TicketReplyTargetInvalidError extends BusinessRuleError {
   }
 }
 
+/** A reply that does not exist in this ticket (or is not a reply): "not found", whoever asks. */
+export class TicketReplyNotFoundError extends NotFoundError {
+  constructor() {
+    super('Reply');
+  }
+}
+
+export class TicketReplyEditExpiredError extends BusinessRuleError {
+  override readonly code = 'TICKET_REPLY_EDIT_EXPIRED';
+  constructor(readonly minutes: number) {
+    super(`A reply can be changed by its author within ${minutes} minutes only`, { minutes });
+  }
+}
+
 export class ChooseHandlerError extends BusinessRuleError {
   override readonly code = 'TICKET_CHOOSE_HANDLER';
   constructor() {
