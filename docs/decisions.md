@@ -10,6 +10,18 @@ Plan: `docs/plans/phase-1-auth-employees.md` (log 2026-11-27).
 |---|---|---|---|
 | 506 | **Every date box is `DateInput` (text `YYYY-MM-DD`, `dir="ltr"`, Latin digits, mask, calendar button), never `<input type="date">`; shown numbers use `formatNumber`.** The mask converts Arabic-Indic / Persian digits, adds the dashes and stops at 8 digits; the value handed to forms and the API is still `YYYY-MM-DD`. The calendar is a hidden native date input that only writes its day into the text box. `design-check` refuses a raw `<input type="date">` and `toLocaleString()` without a locale. Decision 484 left the browser picker out; this replaces that exception. | The owner saw «ةنس/رهش/موي» and «٢٤/١١/١٩٩٦» in an Arabic page while the same birth date read `1996-11-24` in the profile: the native control follows the device language, which no CSS or `dir` can change (`dir="ltr"` alone fixes only the order of the empty text, not the digits). | A calendar popup in the platform's language is needed (a custom calendar) |
 
+## 2026-11-27 — Profile and employee form polish, page top, placeholder (FR-202…FR-204)
+
+Plan: `docs/plans/phase-1-auth-employees.md` (log 2026-11-27).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 507 | **Locked fields are shown, not explained under each one:** `FormField locked={reason}` + `LockMark` (lock icon beside the label, reason as tooltip and accessible name); `controlBase` styles `read-only:` and `disabled:` as dashed, dim; one `LockedNotice` above the employee form says how many fields may be changed. The per-field sentence (`hints.notEditable`) is now only the tooltip. | Owner: 30 fields, 5 open, locked ones looked like open ones and the same sentence under most of them crowded the form (dark theme). | A role needs a per-field reason |
+| 508 | **The profile's English name lives in «Basic data» and saves on its own** (`EnglishNameField`, `profile.update`, `PUT /me/profile` with `fullNameEn` only: the schema is partial). Labels «الاسم بالإنجليزية» / «الاسم بالعربية» everywhere. | Owner: same data in two sections with two spellings of the label. | Basic data moves to HR approval for the English name too |
+| 509 | **Each mode of the employee form has its own intro** (`formIntro` for adding, `formIntroEdit` for editing) and neither counts sections (five or six depending on the salary section). | Owner: the creation text on the edit page made people afraid to save. | |
+| 510 | **`useScrollToTop` in the app layout scrolls to the top on a change of path** (not for search/filters in the address, not for a `#hash`). | Owner: a page opened at the bottom after a scrolled page. | A page needs to restore its place on «back» |
+| 511 | **Placeholder colour is `neutral-500` + italic in `controlBase`** (all text boxes, textareas and the date box); an example number is a pattern (`+9665XXXXXXXX`). | Owner: the empty phone box looked filled. | |
+
 ## 2026-11-27 — The edge nginx takes a changed edge.conf (owner report: a PowerPoint upload failed on live)
 
 | # | Decision | Why | Revisit when |

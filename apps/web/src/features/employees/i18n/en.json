@@ -8,7 +8,7 @@
   "add": "Add employee",
   "newTitle": "Add employee",
   "editTitle": "Edit employee",
-  "formIntro": "Fill in the six sections. On save, a sign-in account is created and the employee receives an invitation to link the authenticator app.",
+  "formIntro": "Fill in the sections below. On save, a sign-in account is created and the employee receives an invitation to link the authenticator app.",
   "searchLabel": "Search employees",
   "searchPlaceholder": "Search by name, number or email",
   "allCompanies": "All companies",
@@ -95,7 +95,7 @@
     "remote": "Remote"
   },
   "hints": {
-    "notEditable": "You may not change this field. The administrator chooses the fields each role may change.",
+    "notEditable": "Locked: you may not change this field.",
     "pickCompanyFirst": "Choose the company first.",
     "pickUnitFirst": "Choose the unit first.",
     "managerDefault": "The unit's manager is proposed for a new employee; you can change it or clear it. A direct manager is not required.",
@@ -400,5 +400,7 @@
     "reason": "Reason for rejection (optional)",
     "reasonHint": "The employee receives it with the notice.",
     "noFields": "You may not change every field asked for, so you cannot decide this request."
-  }
+  },
+  "lockedNotice": "You can change {{open}} of {{total}} fields. Locked fields have a dashed border and a lock icon; the administrator chooses the fields each role may change.",
+  "formIntroEdit": "Change the fields available to you, then save. The sign-in account does not change."
 }

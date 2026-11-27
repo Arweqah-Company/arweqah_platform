@@ -13,7 +13,7 @@ function Harness() {
   return <ImportDialog open onOpenChange={() => undefined} {...importing} />;
 }
 
-const HEADER = 'رمز الوحدة,الاسم بالعربي,الاسم بالإنجليزي,الدرجة,المسار,رمز جهة الرفع,المسؤوليات (العربية)';
+const HEADER = 'رمز الوحدة,الاسم بالعربية,الاسم بالإنجليزية,الدرجة,المسار,رمز جهة الرفع,المسؤوليات (العربية)';
 const upload = (lines: string[]) => fireEvent.change(document.querySelector('input[type=file]') as HTMLInputElement, { target: { files: [new File([[HEADER, ...lines].join('\r\n')], 'titles.csv')] } });
 
 /** The server's answer to the file: the first sent row is made, the second is refused for its unit. */
@@ -47,7 +47,7 @@ describe('Import of job titles from a file (FR-107)', () => {
     expect(await screen.findByText(/1 صف سليم، 3 صف فيه أخطاء من أصل 4/)).toBeInTheDocument();
     expect(screen.getByText(/مسميات جديدة: 1 · مُعدَّلة: 0 · بلا تغيير: 0/)).toBeInTheDocument();
     expect(screen.getByText(/الصف 3/).closest('li')).toHaveTextContent('لا توجد وحدة بهذا الرمز.'); // the server's reason, at the row of the sheet
-    expect(screen.getByText(/الصف 4/).closest('li')).toHaveTextContent('الاسم بالعربي'); // the client's own check: a name is missing
+    expect(screen.getByText(/الصف 4/).closest('li')).toHaveTextContent('الاسم بالعربية'); // the client's own check: a name is missing
     expect(screen.getByText(/الصف 5/)).toBeInTheDocument(); // grade 12 is not a grade
     // Only the rows that passed the client's check were sent, and as a dry run.
     expect(posted).toHaveLength(1);

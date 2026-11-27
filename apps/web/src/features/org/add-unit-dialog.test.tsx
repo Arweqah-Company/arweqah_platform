@@ -87,7 +87,7 @@ describe('Add unit: the suggested code and who will see the unit (FR-96, FR-97)'
 describe('Add unit: live validation and saving (FR-96)', () => {
   it('explains a missing Arabic name as the person leaves the field, and keeps save off until the form is complete', async () => {
     open(N.section);
-    const name = await screen.findByLabelText('الاسم بالعربي *');
+    const name = await screen.findByLabelText('الاسم بالعربية *');
     expect(screen.queryByText('هذا الحقل مطلوب.')).not.toBeInTheDocument();
     fireEvent.blur(name);
     expect(await screen.findByText('هذا الحقل مطلوب.')).toBeInTheDocument();
@@ -104,7 +104,7 @@ describe('Add unit: live validation and saving (FR-96)', () => {
 
   it('sends the unit under a parent with «inherit» as no mode, and English falling back to the Arabic name', async () => {
     const { posted, onClose } = open(N.section);
-    type('الاسم بالعربي *', 'وحدة الاستقطاب');
+    type('الاسم بالعربية *', 'وحدة الاستقطاب');
     await waitFor(() => expect(save()).toBeEnabled());
     fireEvent.click(save());
     await waitFor(() => expect(onClose).toHaveBeenCalled());
@@ -115,7 +115,7 @@ describe('Add unit: live validation and saving (FR-96)', () => {
   it('sends a unit under the group with its code letters and the chosen mode', async () => {
     const { posted, onClose } = open();
     await chooseOption(await screen.findByLabelText('النوع *'), 'lv-department');
-    type('الاسم بالعربي *', 'إدارة الاتصال');
+    type('الاسم بالعربية *', 'إدارة الاتصال');
     type('رمز الوحدة (ثلاثة أحرف) *', 'COM');
     expect(save()).toBeDisabled(); // how it is managed must be chosen
     fireEvent.click(screen.getByRole('radio', { name: /^مشتركة/ }));
@@ -128,7 +128,7 @@ describe('Add unit: live validation and saving (FR-96)', () => {
   it('shows the API refusal inside the dialog', async () => {
     open(N.section);
     server.use(http.post('*/api/org/nodes', () => HttpResponse.json({ statusCode: 422, code: 'NO_CODE_SLOT', message: 'No free code slot' }, { status: 422 })));
-    type('الاسم بالعربي *', 'وحدة الاستقطاب');
+    type('الاسم بالعربية *', 'وحدة الاستقطاب');
     await waitFor(() => expect(save()).toBeEnabled());
     fireEvent.click(save());
     expect(await screen.findByRole('alert')).toBeInTheDocument();

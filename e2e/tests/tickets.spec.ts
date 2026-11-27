@@ -108,8 +108,8 @@ test.describe('Tickets (FR-36 … FR-41)', () => {
     await page.getByRole('tab', { name: 'الأنواع' }).click();
     await page.getByRole('button', { name: 'إضافة نوع' }).click();
     const dialog = page.getByRole('dialog', { name: 'إضافة نوع' });
-    await dialog.getByLabel('الاسم بالعربي *').fill('طلب برنامج');
-    await dialog.getByLabel('الاسم بالإنجليزي *').fill('Software request');
+    await dialog.getByLabel('الاسم بالعربية *').fill('طلب برنامج');
+    await dialog.getByLabel('الاسم بالإنجليزية *').fill('Software request');
     await dialog.getByRole('button', { name: 'حفظ' }).click();
     await expect(page.getByText('حُفظ النوع.')).toBeVisible();
     await expect(page.getByText('طلب برنامج').first()).toBeVisible();

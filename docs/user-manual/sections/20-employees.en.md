@@ -54,7 +54,7 @@ Above the list there is a search by name, number or e-mail, and filters: company
 #### Edit an employee or change their unit
 
 1. Open the employee's row and press «Edit».
-2. Fields you may not change are locked, with a note.
+2. Fields you may not change are locked: a dashed border, a dimmer colour and a lock icon beside the name (hover it for the reason), and one line above the form says how many fields you can change. The line under the title says, when editing, «Change the fields available to you, then save. The sign-in account does not change»; only when adding does it mention the sign-in account and the invitation.
 3. When you change the unit, job title or manager the form asks for «Effective from» (today or a later day) and «Reason for the change». A later change waits for its day and then takes effect by itself; it shows in the «History» tab.
 4. Press «Save».
 
