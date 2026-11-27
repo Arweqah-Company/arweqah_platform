@@ -122,6 +122,11 @@
   },
   "reply": {
     "answer": "Answer this reply",
+    "edit": "Edit my reply",
+    "editing": "Edit your reply",
+    "saveEdit": "Save the change",
+    "saved": "The reply was changed.",
+    "edited": "edited",
     "answerTo": "Your answer to {{name}}",
     "inReplyTo": "in reply to {{name}}",
     "mentionList": "Colleagues you can mention",

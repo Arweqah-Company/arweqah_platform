@@ -1,50 +1,9 @@
-import { formatDateTime } from '@/shared/lib/format-date';
 import { CorePermission, type TicketDto, type TicketEventDto } from '@arweqah-platform/shared';
-import { MessageSquareReply } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePermissions } from '@/core/permissions/can';
-import { cn } from '@/shared/lib/cn';
-import { FileChip, MentionedText, RowAction } from '@/shared/ui';
 import { ReplyBox } from './reply-box';
-
-/** The files of one entry, each with its «View» button. */
-export function TicketFiles({ ticketId, event }: { ticketId: string; event: TicketEventDto }) {
-  if (event.attachments.length === 0) return null;
-  return (
-    <ul className="mt-2 flex flex-wrap gap-2">
-      {event.attachments.map((a) => (
-        <li key={a.fileId}><FileChip file={{ name: a.originalName, contentType: a.contentType, previewPath: `/tickets/${ticketId}/attachments/${a.fileId}/preview`, downloadUrl: `/api/tickets/${ticketId}/attachments/${a.fileId}` }} /></li>
-      ))}
-    </ul>
-  );
-}
-
-interface EntryProps {
-  ticketId: string;
-  event: TicketEventDto;
-  /** Show «Reply» on this entry (it is a reply, the ticket takes replies and the person holds the key). */
-  canAnswer: boolean;
-  onAnswer?: () => void;
-  nested?: boolean;
-}
-
-function Entry({ ticketId, event, canAnswer, onAnswer, nested }: EntryProps) {
-  const { t } = useTranslation('tickets');
-  return (
-    <div id={`event-${event.id}`} className={cn('rounded-2xl border p-4', 'border-neutral-200 bg-white', nested && 'bg-neutral-50')}>
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-        <span className="font-medium text-fg">{event.actor?.name ?? t('timeline.system')} <span className="font-normal text-muted">· {t(`events.${event.type}`)}{event.replyTo && ` · ${t('reply.inReplyTo', { name: event.replyTo.name })}`}</span></span>
-        <span className="flex items-center gap-1">
-          <time dateTime={event.createdAt}>{formatDateTime(event.createdAt)}</time>
-          {canAnswer && onAnswer && <RowAction label={t('reply.answer')} icon={MessageSquareReply} onClick={onAnswer} />}
-        </span>
-      </div>
-      {event.body && <div className="mt-2"><MentionedText body={event.body} people={event.mentions} /></div>}
-      <TicketFiles ticketId={ticketId} event={event} />
-    </div>
-  );
-}
+import { Entry } from './ticket-entry';
 
 /** What belongs to the conversation: the replies, and the message that came with a step (closing requested, declined, closed, reopened). The ticket's own text (`created`) is shown above, the steps without a message only in the history. */
 const inConversation = (e: TicketEventDto) => e.type === 'reply' || (e.type !== 'created' && Boolean(e.body));

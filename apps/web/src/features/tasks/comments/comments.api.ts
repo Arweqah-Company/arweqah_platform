@@ -1,4 +1,4 @@
-import type { CommentRulesDto, CommentRulesInput, CreateCommentInput, EditCommentInput, MentionableDto, TaskConversationDto } from '@arweqah-platform/shared';
+import type { CommentRulesDto, CommentRulesInput, CreateCommentInput, EditCommentInput, MentionableDto, ReactionInput, TaskConversationDto } from '@arweqah-platform/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/core/api/api-client';
 
@@ -23,6 +23,12 @@ export const useEditComment = (taskId: string) =>
 
 export const useDeleteComment = (taskId: string) =>
   useConversationMutation(taskId, (id: string) => apiClient.request<TaskConversationDto>(`/tasks/${taskId}/comments/${id}`, { method: 'DELETE' }));
+
+export const useReactToComment = (taskId: string) =>
+  useConversationMutation(taskId, ({ id, ...body }: ReactionInput & { id: string }) => apiClient.request<TaskConversationDto>(`/tasks/${taskId}/comments/${id}/reaction`, { method: 'PUT', body }));
+
+export const useUnreactToComment = (taskId: string) =>
+  useConversationMutation(taskId, (id: string) => apiClient.request<TaskConversationDto>(`/tasks/${taskId}/comments/${id}/reaction`, { method: 'DELETE' }));
 
 /** The @ list: people matching what was typed after the @ (only while the picker is open). */
 export const useMentionables = (taskId: string, search: string, enabled: boolean) =>
