@@ -74,7 +74,7 @@ test.describe('Lists: search, filters, table or cards, export and import (FR-27,
     await page.getByRole('button', { name: 'استيراد' }).click();
     // Both browser projects share one database, so each run imports its own company code.
     const code = `IMP${Date.now().toString(36).toUpperCase()}`;
-    const csv = `\uFEFFالرمز *,الاسم بالعربي *,الاسم بالإنجليزي *,الحالة\r\n${code},شركة مستوردة,Imported Company,نعم\r\nbad code!,شركة,Broken,\r\n`;
+    const csv = `\uFEFFالرمز *,الاسم بالعربية *,الاسم بالإنجليزية *,الحالة\r\n${code},شركة مستوردة,Imported Company,نعم\r\nbad code!,شركة,Broken,\r\n`;
     await page.locator('input[type=file]').setInputFiles({ name: 'companies.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) });
     await expect(page.getByText(/1 صف سليم، 1 صف فيه أخطاء من أصل 2/)).toBeVisible();
     await page.getByRole('button', { name: 'استيراد 1 صف' }).click();

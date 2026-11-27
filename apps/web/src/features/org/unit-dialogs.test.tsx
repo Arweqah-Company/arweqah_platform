@@ -70,7 +70,7 @@ describe('Edit a unit (FR-31)', () => {
     server.use(http.get('*/api/employees/managers', () => HttpResponse.json([])));
     const onClose = vi.fn();
     renderPage(<EditUnitDialog node={node(N.section)} onClose={onClose} />);
-    const name = await screen.findByLabelText('الاسم بالعربي *');
+    const name = await screen.findByLabelText('الاسم بالعربية *');
     expect(name).toHaveValue('قسم الموارد البشرية');
     fireEvent.change(name, { target: { value: 'ق' } });
     expect(await screen.findByText('يجب ألا يقل عن 2 أحرف.')).toBeInTheDocument();
@@ -90,7 +90,7 @@ describe('Edit a unit (FR-31)', () => {
     const sent = capture('put', '*/api/org/nodes/:id');
     server.use(http.get('*/api/employees/managers', () => HttpResponse.json([])));
     renderPage(<EditUnitDialog node={node(N.section)} onClose={() => undefined} />);
-    const name = await screen.findByLabelText('الاسم بالعربي *');
+    const name = await screen.findByLabelText('الاسم بالعربية *');
     fireEvent.change(name, { target: { value: 'قسم الموارد والكفاءات' } });
     fireEvent.change(screen.getByLabelText('سبب التغيير *'), { target: { value: 'توسعة الاختصاص' } });
     fireEvent.change(screen.getByLabelText('يسري من'), { target: { value: '2020-01-01' } });

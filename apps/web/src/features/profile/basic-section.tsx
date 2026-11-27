@@ -1,5 +1,5 @@
 import { CorePermission, type EmployeeDto } from '@arweqah-platform/shared';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { usePermissions } from '@/core/permissions/can';
@@ -8,6 +8,7 @@ import { errorMessage } from '@/shared/lib/error-message';
 import { Alert, Button, SectionCard } from '@/shared/ui';
 import { useBasicRequest, useCancelBasicRequest } from './api';
 import { BasicRequestDialog } from './basic-request-dialog';
+import { EnglishNameField } from './english-name-field';
 
 /** My request to change the basic data: waiting (with a cancel button) or just rejected (with HR's reason). */
 function RequestStatus({ employee }: { employee: EmployeeDto }) {
@@ -52,14 +53,17 @@ export function BasicSection({ employee }: { employee: EmployeeDto }) {
   const action = canAsk && !waiting ? <Button variant="secondary" size="sm" onClick={() => setAsking(true)}>{t('request.button')}</Button> : undefined;
   return (
     <SectionCard id="basic" title={t('basic.title')} description={t('basic.description')} action={action}>
-      <dl className="grid gap-4 text-sm sm:col-span-2 sm:grid-cols-2">
-        {facts.map(([label, value]) => (
-          <div key={label}>
-            <dt className="text-xs text-muted">{label}</dt>
-            <dd className="mt-0.5">{value || '—'}</dd>
-          </div>
+      <div className="grid gap-4 text-sm sm:col-span-2 sm:grid-cols-2">
+        {facts.map(([label, value], i) => (
+          <Fragment key={label}>
+            <dl>
+              <dt className="text-xs text-muted">{label}</dt>
+              <dd className="mt-0.5">{value || '—'}</dd>
+            </dl>
+            {i === 0 && <EnglishNameField employee={employee} />}
+          </Fragment>
         ))}
-      </dl>
+      </div>
       {canAsk && <RequestStatus employee={employee} />}
       {asking && <BasicRequestDialog key="request" employee={employee} open={asking} onOpenChange={setAsking} />}
     </SectionCard>

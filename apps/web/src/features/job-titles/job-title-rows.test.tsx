@@ -29,7 +29,7 @@ describe('JobTitleRows: the role the title starts with (FR-68)', () => {
 
   it('hides the choice from a person who cannot see roles', async () => {
     renderPage(<Harness onChange={() => undefined} />);
-    await screen.findByLabelText('الاسم بالعربي');
+    await screen.findByLabelText('الاسم بالعربية');
     expect(screen.queryByLabelText('نسخ الصلاحيات من دور')).not.toBeInTheDocument();
   });
 });

@@ -6,7 +6,7 @@ export { CodeInput } from './code-input';
 export { DataTable, type Column, type TableSelection, type TableSort } from './data-table';
 export { Dialog, DialogFooter } from './dialog';
 export { DateInput } from './date-input';
-export { FormField, Input, Select, Textarea } from './form-field';
+export { FormField, Input, LockMark, Select, Textarea } from './form-field';
 export { PageHeader } from './page-header';
 export { SearchInput } from './search-input';
 export { ThemeToggle } from './theme-toggle';

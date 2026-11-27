@@ -15,11 +15,13 @@ import { AppHeader } from './app-header';
 import { AppSidebar } from './app-sidebar';
 import { FEATURES } from './features';
 import { RouteOutlet } from './route-outlet';
+import { useScrollToTop } from './use-scroll-to-top';
 
 /** The place of a sidebar link that does not say (see `NavItem.rank`). */
 const DEFAULT_RANK = 50;
 
 export function AppLayout() {
+  useScrollToTop();
   const me = useMe().data;
   const signOut = useSignOut();
   const { can } = usePermissions();

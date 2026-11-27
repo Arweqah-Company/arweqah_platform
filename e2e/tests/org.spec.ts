@@ -129,7 +129,7 @@ test.describe('Organization: building the structure (FR-96, FR-97, FR-24)', () =
     await page.getByRole('button', { name: 'إضافة وحدة', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'إضافة وحدة' });
     await choose(dialog.getByLabel('النوع *', { exact: true }), 'إدارة');
-    await dialog.getByLabel('الاسم بالعربي *').fill(name);
+    await dialog.getByLabel('الاسم بالعربية *').fill(name);
     await dialog.getByLabel('رمز الوحدة (ثلاثة أحرف) *').fill(prefix);
     await expect(dialog.getByText(`${prefix}.00.00.00`)).toBeVisible();
     await expect(dialog.getByRole('button', { name: 'حفظ الوحدة' })).toBeDisabled(); // the management type is still to choose
@@ -159,12 +159,12 @@ test.describe('Organization: building the structure (FR-96, FR-97, FR-24)', () =
     await page.goto('/org');
     await page.getByRole('button', { name: 'تقسيمات الهيكل', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'تقسيمات الهيكل' });
-    await expect(dialog.getByLabel('الاسم بالعربي').first()).toHaveValue('قطاع');
+    await expect(dialog.getByLabel('الاسم بالعربية').first()).toHaveValue('قطاع');
     await expect(dialog.getByLabel('الأب إدارة، الابن قطاع')).toBeDisabled();
     await expect(dialog.getByLabel('الأب مكتب، الابن مكتب')).toBeDisabled();
     await dialog.getByRole('button', { name: 'إضافة تقسيم' }).click();
     await expect(dialog.getByRole('button', { name: 'حفظ التقسيمات' })).toBeDisabled();
-    await dialog.getByLabel('الاسم بالعربي').last().fill('قطاع');
+    await dialog.getByLabel('الاسم بالعربية').last().fill('قطاع');
     await expect(dialog.getByText('الاسم مكرر.')).toBeVisible();
     await list.expectNoSeriousA11yIssues();
     await dialog.getByRole('button', { name: 'إلغاء' }).click();
@@ -176,14 +176,14 @@ test.describe('Organization: building the structure (FR-96, FR-97, FR-24)', () =
     await page.getByRole('button', { name: 'تقسيمات الهيكل', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'تقسيمات الهيكل' });
     await dialog.getByRole('button', { name: 'إضافة تقسيم' }).click();
-    await dialog.getByLabel('الاسم بالعربي').last().fill('فرع اختباري');
-    await dialog.getByLabel('الاسم بالإنجليزي').last().fill('Test branch');
+    await dialog.getByLabel('الاسم بالعربية').last().fill('فرع اختباري');
+    await dialog.getByLabel('الاسم بالإنجليزية').last().fill('Test branch');
     await dialog.getByLabel('الأب قسم، الابن فرع اختباري').check();
     await dialog.getByRole('button', { name: 'حفظ التقسيمات' }).click();
     await expect(dialog).toBeHidden();
 
     await page.getByRole('button', { name: 'تقسيمات الهيكل', exact: true }).click();
-    await expect(dialog.getByLabel('الاسم بالعربي').nth(5)).toHaveValue('فرع اختباري'); // after the five built-in types
+    await expect(dialog.getByLabel('الاسم بالعربية').nth(5)).toHaveValue('فرع اختباري'); // after the five built-in types
     await expect(dialog.getByLabel('الأب قسم، الابن فرع اختباري')).toBeChecked();
     await dialog.getByRole('button', { name: 'حذف التقسيم: فرع اختباري' }).click();
     await dialog.getByRole('button', { name: 'حفظ التقسيمات' }).click();
@@ -201,8 +201,8 @@ test.describe('Organization: building the structure (FR-96, FR-97, FR-24)', () =
     await details.getByRole('tab', { name: 'المسميات' }).click();
     await details.getByRole('button', { name: 'إضافة مسمى' }).click();
     const add = page.getByRole('dialog', { name: 'إضافة مسميات وظيفية' });
-    await add.getByLabel('الاسم بالعربي').fill(title);
-    await add.getByLabel('الاسم بالإنجليزي').fill(`Title ${title}`);
+    await add.getByLabel('الاسم بالعربية').fill(title);
+    await add.getByLabel('الاسم بالإنجليزية').fill(`Title ${title}`);
     await choose(add.getByLabel('الدرجة *'), 'L7');
     await choose(add.getByLabel('المسار *'), 'مهني');
     await add.getByRole('button', { name: 'حفظ' }).click();
@@ -285,7 +285,7 @@ test.describe('Organization: the leaders, the charter and the history of a unit 
     const details = await openUnit(page, TOP);
     await details.getByRole('button', { name: 'تعديل', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'تعديل الوحدة' });
-    await dialog.getByLabel('الاسم بالعربي *').fill(`${TOP} المحدّثة`);
+    await dialog.getByLabel('الاسم بالعربية *').fill(`${TOP} المحدّثة`);
     await expect(dialog.getByRole('button', { name: 'حفظ' })).toBeDisabled(); // a dated change needs its reason
     await dialog.getByLabel('سبب التغيير *').fill('تغيير مسمى الإدارة');
     await dialog.getByLabel('يسري من').fill('2020-01-01');

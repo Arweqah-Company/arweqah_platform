@@ -14,8 +14,8 @@ describe('Add job titles to a unit (FR-104)', () => {
     server.use(http.post('*/api/org/nodes/:id/job-titles', async ({ request }) => { sent.push(await request.json()); return HttpResponse.json([], { status: 201 }); }));
     renderPage(<AddTitlesDialog unitId="u1" open onOpenChange={onOpenChange} />);
     const save = await screen.findByRole('button', { name: 'حفظ' });
-    fireEvent.change(screen.getByLabelText('الاسم بالعربي'), { target: { value: 'محلل أعمال' } });
-    fireEvent.change(screen.getByLabelText('الاسم بالإنجليزي'), { target: { value: 'Business analyst' } });
+    fireEvent.change(screen.getByLabelText('الاسم بالعربية'), { target: { value: 'محلل أعمال' } });
+    fireEvent.change(screen.getByLabelText('الاسم بالإنجليزية'), { target: { value: 'Business analyst' } });
     expect(save).toBeDisabled(); // no grade and track yet
     await chooseOption(screen.getByLabelText('الدرجة *'), '7');
     expect(save).toBeDisabled();
@@ -36,8 +36,8 @@ describe('The reporting line of a new title (FR-104)', () => {
       http.post('*/api/org/nodes/:id/job-titles', async ({ request }) => { sent.push(await request.json()); return HttpResponse.json([], { status: 201 }); }),
     );
     renderPage(<AddTitlesDialog unitId="u1" open onOpenChange={() => undefined} />);
-    fireEvent.change(await screen.findByLabelText('الاسم بالعربي'), { target: { value: 'محلل أعمال' } });
-    fireEvent.change(screen.getByLabelText('الاسم بالإنجليزي'), { target: { value: 'Business analyst' } });
+    fireEvent.change(await screen.findByLabelText('الاسم بالعربية'), { target: { value: 'محلل أعمال' } });
+    fireEvent.change(screen.getByLabelText('الاسم بالإنجليزية'), { target: { value: 'Business analyst' } });
     await chooseOption(screen.getByLabelText('الدرجة *'), '7');
     await chooseOption(screen.getByLabelText('المسار *'), 'P');
     await chooseOption(await screen.findByLabelText('يرفع إلى'), 't9');
@@ -85,7 +85,7 @@ describe('Edit a job title (FR-104)', () => {
 
   it('does not offer them for a title that already has its code', async () => {
     renderPage(<EditTitleDialog title={{ ...title, code: 'OPS.03.03.01-L7P-01', grade: 7, track: 'P' }} open onOpenChange={() => undefined} />);
-    await screen.findByLabelText('الاسم بالعربي *');
+    await screen.findByLabelText('الاسم بالعربية *');
     expect(screen.queryByLabelText('الدرجة *')).not.toBeInTheDocument();
   });
 });
