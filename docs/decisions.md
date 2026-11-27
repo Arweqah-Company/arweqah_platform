@@ -12,6 +12,15 @@ Plan: `docs/plans/phase-1-auth-employees.md` (log 2026-11-27).
 | 489 | **`.pptx` is allowed for every attachment and opens in the platform as slides of text and pictures** (`pptxToSlides`, `jszip` 3.10.2 pinned in the web, dev-pinned in the API tests; the zip is read as data, text is drawn as text, only png/jpeg/gif/webp pictures are shown, never SVG; up to 100 slides, 4 pictures a slide, 8 MB a picture). It is an approximation like Word and Excel (no layout, shapes, charts or animation) and says so; the original downloads. The macro-enabled `.pptm` and the old `.ppt` stay refused (their types are not in the list). | The owner asked for PowerPoint in tickets and tasks and a view inside the platform. A full renderer (`pptx-preview`, LibreOffice) would be a heavy dependency or a server that opens untrusted files; reading the XML ourselves keeps the page safe and small. | A faithful render is wanted (then convert on the server in a sandbox) |
 | 490 | **Audit log: one tab per module over one table** (`Tabs` above the table: «All» and the nine categories); a tab sets the existing `category` filter, which is then removed from the toolbar (one control, not two); the action filter lists the tab's actions. Nothing changes in storage. | The owner asked for tabs per module for easier review, all in one table in the database and different only in the display. | A module needs its own columns (then its tab gets its own table view) |
 
+## 2026-11-27 — The message of a step is in the conversation (FR-194)
+
+Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-27).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 491 | **«Conversation and replies» shows a step's message** (`close_requested`, `close_declined`, `closed_not_executed`, `reopened`, anything but `created`) as an entry headed with the step, next to the replies; steps without a message stay only in the history. No API change: the message was already stored in `ticket_events.body`. | The receiver of a closing request never saw the message: it was only inside the history window, a button away. Notices and e-mails keep carrying the number and the department only (decision on personal matters), so the page is where the message is read. | The owner wants the text in the notice too |
+| 492 | **A deleted ticket is hidden, not erased** (FR-158, unchanged): `tickets.deleted_at`; replies, files and events stay in the database, the audit log keeps who deleted it (number, title, status). There is no screen to restore it. | Answer to the owner's question «where do deleted tickets go». | A restore or «deleted tickets» screen is asked for |
+
 ## 2026-11-26 — Zoom, header photo, breadcrumb (FR-188, FR-189, FR-190)
 
 Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-26).
