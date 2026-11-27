@@ -1024,7 +1024,7 @@ describe('Tickets (FR-36 … FR-41)', () => {
     });
   });
 
-  describe('Order by date (FR-208)', () => {
+  describe('Order by date (FR-210)', () => {
     it('orders by when the ticket was sent, oldest or newest first, and keeps the last activity as the default', async () => {
       const w = await world();
       const typeId = await openDesk(w);

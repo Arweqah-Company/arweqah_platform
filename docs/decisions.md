@@ -46,7 +46,7 @@ Plan: `docs/plans/phase-1-auth-employees.md` (log 2026-11-27).
 |---|---|---|---|
 | 505 | **`scripts/server/deploy.sh` recreates the `nginx` service when `docker/nginx/edge.conf` is not the file it started with** (sha256 kept in `.edge-conf.sha` on the server; the first deploy after this recreates it once). Before, `docker compose up -d` left the container alone when only the mounted file changed, and the template is rendered only when the container starts, so the new `client_max_body_size 101m` (FR-191) never reached the server: live still refused a file over 11 MB with nginx's own 413 page, shown as «Request failed». The web image's own nginx (`web.conf`) was rebuilt with the new limit; the edge was the one left behind. | The upload limit set from Settings could not be used above 11 MB in production and staging. | The edge moves to a managed load balancer |
 
-## 2026-11-27 — Order by date, both ways, in tickets and tasks (FR-208, FR-209)
+## 2026-11-27 — Order by date, both ways, in tickets and tasks (FR-210, FR-211)
 
 | # | Decision | Why | Revisit when |
 |---|---|---|---|

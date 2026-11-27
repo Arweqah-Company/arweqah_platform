@@ -105,7 +105,7 @@ describe('Deleting a ticket from its row (FR-158, FR-185)', () => {
     expect(screen.queryByRole('button', { name: 'حذف' })).not.toBeInTheDocument();
   });
 
-  it('orders by last activity at first, and the order list sends oldest or newest first (FR-208)', async () => {
+  it('orders by last activity at first, and the order list sends oldest or newest first (FR-210)', async () => {
     const asked = serveList([]);
     renderPage(<TicketsPage />);
     const order = await screen.findByLabelText('الترتيب');

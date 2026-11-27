@@ -157,7 +157,7 @@ describe('My team is a tab of my tasks (FR-49)', () => {
     expect(screen.queryByRole('tab', { name: 'فريقي' })).not.toBeInTheDocument();
   });
 
-  it('orders by due date at first, and the order list sends newest or oldest first; a column header says «by column» (FR-209)', async () => {
+  it('orders by due date at first, and the order list sends newest or oldest first; a column header says «by column» (FR-211)', async () => {
     localStorage.clear(); // an earlier test may have left the list on the board, which has no column headers
     const queries = serve();
     renderPage(<MyTasksPage />);
