@@ -5,12 +5,27 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import { errorMessage } from '@/shared/lib/error-message';
-import { Alert, DataTable, EmptyState, GroupSelect, ListToolbar, RowAction, ViewSwitch } from '@/shared/ui';
+import { Alert, DataTable, EmptyState, GroupSelect, ListToolbar, RowAction, SortSelect, ViewSwitch } from '@/shared/ui';
 import type { TaskGrouping, TaskListItemDto } from '@arweqah-platform/shared';
 import { TaskBoard, type BoardLane } from '../board/task-board';
 import { GROUPINGS, groupLabel } from './tasks-filters';
 import { useTaskColumns, useTaskExportColumns } from './tasks-columns';
 import type { TaskListState } from './use-task-list';
+
+/** «Order»: the nearest due date (the default), or the newest / oldest task; the same state as the column headers, so a header's choice shows as «by column». */
+function TaskOrderSelect({ state }: { state: TaskListState }) {
+  const { t } = useTranslation('tasks');
+  const orders = [{ value: 'dueDate:asc', label: t('sort.dueAsc') }, { value: 'createdAt:desc', label: t('sort.createdDesc') }, { value: 'createdAt:asc', label: t('sort.createdAsc') }];
+  return (
+    <SortSelect
+      label={t('sort.label')}
+      options={orders}
+      value={`${state.sort.key}:${state.sort.dir}`}
+      otherLabel={t('sort.byColumn')}
+      onChange={(value) => state.setSort({ key: value.split(':')[0] ?? 'dueDate', dir: value.endsWith(':desc') ? 'desc' : 'asc' })}
+    />
+  );
+}
 
 /** The one list of tasks of my tasks and my team: the same filters, search and order feed a table and a Kanban board. */
 export function TaskListView({ state, caption, empty, lanesBy }: { state: TaskListState; caption: string; empty: ReactNode; lanesBy?: 'person' }) {
@@ -28,6 +43,7 @@ export function TaskListView({ state, caption, empty, lanesBy }: { state: TaskLi
       actions={
         <>
           {!state.board && <GroupSelect label={t('groupBy.label')} noneLabel={t('groupBy.none')} options={GROUPINGS.map((g) => ({ value: g, label: t(`groupBy.${g}`) }))} value={state.groupBy} onChange={state.setGroupBy} />}
+          <TaskOrderSelect state={state} />
           <ViewSwitch value={state.mode} onChange={state.setMode} choices={state.views} />
           <ExchangeButtons permissions={{ export: CorePermission.TasksExport }} exporting={{ columns: exportColumns, filename: 'tasks', pageRows: rows, total: state.table.page?.total ?? rows.length, loadAll: state.loadAll }} />
         </>

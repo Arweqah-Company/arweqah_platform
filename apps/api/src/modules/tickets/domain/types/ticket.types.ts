@@ -1,4 +1,4 @@
-import type { ReceptionStatus, TicketCloseReason, TicketFiguresBlockDto, TicketEventType, TicketGrouping, TicketStatus, TicketTab } from '@arweqah-platform/shared';
+import type { ReceptionStatus, TicketCloseReason, TicketFiguresBlockDto, TicketEventType, TicketGrouping, TicketSortKey, TicketStatus, TicketTab } from '@arweqah-platform/shared';
 
 /** The settings of one desk as stored. */
 export interface DeskRecord {
@@ -210,6 +210,8 @@ export interface TicketListFilters {
   status?: TicketStatus;
   search?: string;
   groupBy?: TicketGrouping;
+  sort: TicketSortKey;
+  dir: 'asc' | 'desc';
   page: number;
   pageSize: number;
 }

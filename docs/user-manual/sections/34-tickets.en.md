@@ -66,6 +66,7 @@ The tickets list has no import button. Tickets are sent one by one from the popu
 
 1. Use the search box (title, details or number) and the filters: unit, type, assignee, status.
 2. Group by assignee, status, unit or type, and switch between table, board and cards.
+3. **Order** the tickets with the «Order» list: **Last activity** (the default, latest first), **Newest first** or **Oldest first** (by the day the ticket was sent), or **Oldest activity first** to find the ones nobody touched. The order applies to the table, the board and the cards, inside every group, together with the search and the filters, and an export keeps it. It is not remembered: every visit opens on the last activity.
 
 ### Fields (form inputs)
 

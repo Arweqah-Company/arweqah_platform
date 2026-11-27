@@ -62,7 +62,8 @@ The list has no import: tasks are created one by one, not from a file.
 
 1. Type in the search box: title or task number (TSK-000123).
 2. Use the filters: status, priority, person, tag, stale only, overdue only, include finished and rejected, archived.
-3. Group the table by due date, status or person, and switch between table, cards and board. The page remembers your choice.
+3. **Order** the tasks with the «Order» list: **Nearest due date** (the default), **Newest first** or **Oldest first** (by the day the task was made). The same choice is made by pressing a column header (title, assignee, due date, priority, status, tag, estimate); the list then says «By column». The order applies to the table, the cards and the board.
+4. Group the table by due date, status or person, and switch between table, cards and board. The page remembers your choice.
 
 ### Fields (form inputs)
 

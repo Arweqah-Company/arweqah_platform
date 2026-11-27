@@ -10,11 +10,11 @@ import { errorMessage } from '@/shared/lib/error-message';
 import { useViewMode } from '@/shared/lib/use-view-mode';
 import { useListPage } from '@/shared/lib/use-list-page';
 import { useServerList } from '@/shared/lib/use-server-list';
-import { Alert, Button, DataTable, EmptyState, FormField, ListToolbar, PageHeader, RowAction, Select, ViewSwitch } from '@/shared/ui';
+import { Alert, Button, DataTable, EmptyState, FormField, ListToolbar, PageHeader, RowAction, Select, SortSelect, ViewSwitch } from '@/shared/ui';
 import { useTicketOptions } from './api';
 import { TicketBoard } from './board/ticket-board';
 import { NewTicketDialog } from './new-ticket/new-ticket-dialog';
-import { GROUPINGS, groupLabel, toTicketsQuery, useTicketFilterFields } from './tickets-filters';
+import { DEFAULT_TICKET_ORDER, GROUPINGS, groupLabel, orderParams, TICKET_ORDERS, toTicketsQuery, useTicketFilterFields } from './tickets-filters';
 import { TicketRowDelete } from './ticket-row-delete';
 import { useTicketColumns } from './tickets-columns';
 import { useTicketsList } from './use-tickets-list';
@@ -47,6 +47,12 @@ function GroupSelect({ value, onChange }: { value: TicketGrouping | ''; onChange
       )}
     </FormField>
   );
+}
+
+function OrderSelect({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const { t } = useTranslation('tickets');
+  const names: Record<(typeof TICKET_ORDERS)[number], string> = { 'activity:desc': t('sort.activityDesc'), 'created:desc': t('sort.createdDesc'), 'created:asc': t('sort.createdAsc'), 'activity:asc': t('sort.activityAsc') };
+  return <SortSelect label={t('sort.label')} value={value} onChange={onChange} options={TICKET_ORDERS.map((o) => ({ value: o, label: names[o] }))} />;
 }
 
 type TicketsMode = 'table' | 'cards' | 'board';
@@ -110,12 +116,13 @@ export function TicketsPage() {
   const { t: tc } = useTranslation();
   const [tab, setTab] = useState<TicketTab>('mine');
   const [groupBy, setGroupBy] = useState<TicketGrouping | ''>('');
+  const [order, setOrder] = useState<string>(DEFAULT_TICKET_ORDER);
   const [creating, setCreating] = useState(false);
   const [mode, setMode] = useViewMode<TicketsMode>('tickets-mode', { modes: ['table', 'board', 'cards'], phoneDefault: 'cards' });
   const options = useTicketOptions();
   const list = useListPage('tickets');
   const fields = useTicketFilterFields(options.data, list.filters.values);
-  const params = { tab, search: list.term || undefined, groupBy: mode !== 'board' ? groupBy || undefined : undefined, ...toTicketsQuery(list.filters.values) };
+  const params = { tab, search: list.term || undefined, groupBy: mode !== 'board' ? groupBy || undefined : undefined, ...orderParams(order), ...toTicketsQuery(list.filters.values) };
   const { table, exchange } = useTicketsList(list, params);
   const switchTab = (next: TicketTab) => {
     setTab(next);
@@ -126,7 +133,7 @@ export function TicketsPage() {
     <ListToolbar
       listKey="tickets"
       {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields, false)}
-      actions={<>{mode !== 'board' && <GroupSelect value={groupBy} onChange={setGroupBy} />}{exchange}<ViewSwitch value={mode} onChange={setMode} choices={views} /></>}
+      actions={<>{mode !== 'board' && <GroupSelect value={groupBy} onChange={setGroupBy} />}<OrderSelect value={order} onChange={setOrder} />{exchange}<ViewSwitch value={mode} onChange={setMode} choices={views} /></>}
     />
   );
   return (

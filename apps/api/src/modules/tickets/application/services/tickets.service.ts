@@ -84,7 +84,7 @@ export class TicketsService {
 
   async list(viewer: TicketViewer, query: TicketsQuery): Promise<TicketsPageDto> {
     if (query.withDetails && !viewer.canExport) throw new ForbiddenError(); // the text of many tickets at once is the export's: its key opens it
-    const page = await this.tickets.list({ viewer, tab: query.tab, deskId: query.deskId, typeId: query.typeId, assigneeId: query.assigneeId, status: query.status, search: query.search, groupBy: query.groupBy, page: query.page, pageSize: query.pageSize });
+    const page = await this.tickets.list({ viewer, tab: query.tab, deskId: query.deskId, typeId: query.typeId, assigneeId: query.assigneeId, status: query.status, search: query.search, groupBy: query.groupBy, sort: query.sort, dir: query.dir, page: query.page, pageSize: query.pageSize });
     const names = await this.deskNames(page.items.map((r) => r.deskId));
     const now = this.clock.now();
     const result: Paginated<ReturnType<TicketTransformer['toListItem']>> = { ...page, items: page.items.map((r) => ({ ...this.transformer.toListItem(r, names.get(r.deskId), now, query.withDetails), canDelete: this.policy.mayDelete(viewer, r) })) };

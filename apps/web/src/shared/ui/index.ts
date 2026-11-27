@@ -36,6 +36,7 @@ export { FileDropzone, checkFiles } from './file-dropzone';
 export { ProgressSplit, type SplitPart } from './progress-split';
 export { DonutChart, BarsChart, type ChartPart } from './charts';
 export { GroupSelect } from './group-select';
+export { SortSelect } from './sort-select';
 export { DetailsDialog } from './details-dialog';
 export { HistoryActor, HistorySection, HistoryWhen } from './history-section';
 export { RowAction } from './row-action';

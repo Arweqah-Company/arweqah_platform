@@ -42,7 +42,7 @@ export function useTaskList({ id, path, extra, withArchive, initialFilters }: Ta
   const { query, table, loadAll } = useServerList<TaskListItemDto>(id, path, board ? boardList : list, params);
   const onSort = (key: string) => setSort((s) => ({ key, dir: s.key === key && s.dir === 'asc' ? 'desc' : 'asc' }));
   const views = [{ id: 'table' as const, label: t('views.table'), icon: Table2 }, { id: 'board' as const, label: t('views.board'), icon: Kanban }];
-  return { list, fields, table, query, loadAll, mode, setMode, views, groupBy, setGroupBy, sort, onSort, board, today: riyadhToday(), options: options.data };
+  return { list, fields, table, query, loadAll, mode, setMode, views, groupBy, setGroupBy, sort, setSort, onSort, board, today: riyadhToday(), options: options.data };
 }
 
 export type TaskListState = ReturnType<typeof useTaskList>;
