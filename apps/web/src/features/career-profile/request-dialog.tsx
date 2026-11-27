@@ -1,4 +1,5 @@
-import { REQUEST_COST_MAX, REQUEST_PLAN_KINDS, MAX_UPLOAD_BYTES, type RequestPlanKind } from '@arweqah-platform/shared';
+import { REQUEST_COST_MAX, REQUEST_PLAN_KINDS, type RequestPlanKind } from '@arweqah-platform/shared';
+import { useMaxUploadBytes } from '@/shared/lib/use-max-upload';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -44,6 +45,7 @@ const isCost = (text: string): boolean => /^\d+$/.test(text) && Number(text) <= 
 /** «Learning outside the plan»: the course, its cost, in or outside the plan, the retention agreement; the chain of approval is shown at once. */
 export function RequestDialog({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation('career-profile');
+  const maxBytes = useMaxUploadBytes();
   const create = useCreateRequest();
   const [form, setForm] = useState({ courseName: '', cost: '', plan: 'out' as RequestPlanKind });
   const [file, setFile] = useState<File>();
@@ -61,7 +63,7 @@ export function RequestDialog({ onClose }: { onClose: () => void }) {
       <FormField label={t('requests.cost')} error={tried && !costOk ? t('requests.costRequired') : undefined}>{(p) => <Input {...p} inputMode="numeric" dir="ltr" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value.trim() })} />}</FormField>
       <PlanCards value={form.plan} onChange={(plan) => setForm({ ...form, plan })} />
       {costOk && <Chain cost={Number(form.cost)} plan={form.plan} />}
-      <FileDropzone label={t('requests.agreement')} hint={t('requests.agreementHint')} accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" maxBytes={MAX_UPLOAD_BYTES} busy={create.isPending} onFiles={(files) => setFile(files[0])} />
+      <FileDropzone label={t('requests.agreement')} hint={t('requests.agreementHint')} accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" maxBytes={maxBytes} busy={create.isPending} onFiles={(files) => setFile(files[0])} />
       {file && <p className="text-sm text-muted">{t('requests.chosenFile', { name: file.name })}</p>}
       {create.isError && <Alert tone="danger">{t('requests.failed')}</Alert>}
       <DialogFooter>

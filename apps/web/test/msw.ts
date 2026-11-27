@@ -27,6 +27,7 @@ export const me = (permissions: PermissionGrant[] = [], options: { adminMode?: b
   id: 'u1',
   employeeId: null,
   photoFileId: null,
+  maxUploadMb: 10,
   name: 'سارة أحمد',
   email: 'sara@arweqah.sa',
   locale: 'ar',

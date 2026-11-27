@@ -1,3 +1,4 @@
+import JSZip from 'jszip';
 import writeXlsxFile from 'write-excel-file/universal';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -8,7 +9,7 @@ vi.mock('mammoth/mammoth.browser', () => ({
   }),
 }));
 
-import { csvToSheets, decodeCsv, docxToFragment, PREVIEW_MAX_ROWS, xlsxToSheets } from './office-preview';
+import { csvToSheets, decodeCsv, docxToFragment, PREVIEW_MAX_ROWS, PREVIEW_MAX_SLIDES, pptxToSlides, xlsxToSheets } from './office-preview';
 
 const html = (fragment: DocumentFragment) => Array.from(fragment.childNodes).map((n) => (n as Element).outerHTML ?? n.textContent).join('');
 
@@ -47,5 +48,43 @@ describe('Word and Excel preview in the browser (FR-128)', () => {
     const [big] = await csvToSheets(new Blob([many]));
     expect(big!.rows).toHaveLength(PREVIEW_MAX_ROWS);
     expect(big!.truncated).toBe(true);
+  });
+});
+
+const SLIDE = (lines: string[]) => `<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><p:cSld><p:spTree>${lines.map((l) => `<p:sp><p:txBody><a:p><a:r><a:t>${l}</a:t></a:r></a:p></p:txBody></p:sp>`).join('')}</p:spTree></p:cSld></p:sld>`;
+const RELS = (targets: string[]) => `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${targets.map((t, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="${t}"/>`).join('')}</Relationships>`;
+
+async function deck(slides: { lines: string[]; images?: string[] }[]): Promise<Blob> {
+  const zip = new JSZip();
+  slides.forEach((slide, i) => {
+    zip.file(`ppt/slides/slide${i + 1}.xml`, SLIDE(slide.lines));
+    if (slide.images) zip.file(`ppt/slides/_rels/slide${i + 1}.xml.rels`, RELS(slide.images.map((n) => `../media/${n}`)));
+  });
+  zip.file('ppt/media/logo.png', new Uint8Array([137, 80, 78, 71]));
+  zip.file('ppt/media/drawing.svg', '<svg onload="steal()"/>');
+  return zip.generateAsync({ type: 'blob' });
+}
+
+describe('PowerPoint preview in the browser (FR-191)', () => {
+  it('reads the slides in order with their text, the title first, and only the pictures a browser may show (never SVG)', async () => {
+    const { slides, truncated } = await pptxToSlides(await deck([{ lines: ['العرض الأول', 'نقطة أولى'] }, { lines: ['Second'], images: ['logo.png', 'drawing.svg'] }]));
+    expect(truncated).toBe(false);
+    expect(slides.map((s) => s.number)).toEqual([1, 2]);
+    expect(slides[0]?.lines).toEqual(['العرض الأول', 'نقطة أولى']);
+    expect(slides[1]?.images).toHaveLength(1);
+    expect(slides[1]?.images[0]?.type).toBe('image/png');
+  });
+
+  it('shows markup in a slide as text, never as a page, and says when slides are left out', async () => {
+    const many = Array.from({ length: PREVIEW_MAX_SLIDES + 3 }, (_, i) => ({ lines: [i === 0 ? '&lt;img src=x onerror=steal()&gt;' : `شريحة ${i}`] }));
+    const { slides, truncated } = await pptxToSlides(await deck(many));
+    expect(slides[0]?.lines[0]).toBe('<img src=x onerror=steal()>'); // the text of the slide, kept as text
+    expect(slides).toHaveLength(PREVIEW_MAX_SLIDES);
+    expect(truncated).toBe(true);
+  });
+
+  it('gives no slides for a file without any, and refuses what is not a zip', async () => {
+    expect((await pptxToSlides(await deck([]))).slides).toEqual([]);
+    await expect(pptxToSlides(new Blob(['not a zip']))).rejects.toThrow();
   });
 });

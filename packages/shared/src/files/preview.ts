@@ -1,8 +1,9 @@
+import { PPTX } from './schemas';
 const DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 const XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
-/** How the screen shows a file in its own window: an image, a PDF (the browser's viewer), a Word / Excel file drawn by the page itself (approximately), or a CSV drawn as a table. */
-export type PreviewKind = 'image' | 'pdf' | 'docx' | 'xlsx' | 'csv';
+/** How the screen shows a file in its own window: an image, a PDF (the browser's viewer), a Word / Excel / PowerPoint file drawn by the page itself (approximately), or a CSV drawn as a table. */
+export type PreviewKind = 'image' | 'pdf' | 'docx' | 'xlsx' | 'pptx' | 'csv';
 
 const KINDS: Record<string, PreviewKind> = {
   'image/png': 'image',
@@ -12,6 +13,7 @@ const KINDS: Record<string, PreviewKind> = {
   'application/pdf': 'pdf',
   [DOCX]: 'docx',
   [XLSX]: 'xlsx',
+  [PPTX]: 'pptx',
   'text/csv': 'csv',
 };
 
