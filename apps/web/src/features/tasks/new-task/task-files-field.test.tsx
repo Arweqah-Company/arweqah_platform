@@ -4,7 +4,7 @@ import { http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { me, server } from '../../../../test/msw';
 import { renderPage } from '../../../../test/render';
-import { taskDetail } from '../../../../test/task-fixtures';
+import { createTaskHandler } from '../../../../test/task-fixtures';
 import { NewTaskDialog } from './new-task-dialog';
 
 const PPTX = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
@@ -17,10 +17,7 @@ function serve(grants: { key: string; scope: 'all' }[]) {
     http.get('*/api/me', () => HttpResponse.json(me(grants))),
     http.get('*/api/tasks/options', () => HttpResponse.json(options)),
     http.post('*/api/files', () => HttpResponse.json(stored, { status: 201 })),
-    http.post('*/api/tasks', async ({ request }) => {
-      posted.push((await request.json()) as Record<string, unknown>);
-      return HttpResponse.json(taskDetail({ id: 'new-task' }), { status: 201 });
-    }),
+    createTaskHandler(posted),
   );
   return posted;
 }

@@ -5,10 +5,9 @@ import { TaskDigestService } from '../src/modules/tasks/application/services/tas
 import { TaskReminderService } from '../src/modules/tasks/application/services/task-reminder.service';
 import type { TestAgent } from './factories/factories';
 import { TASK_EMPLOYEE_GRANTS, taskManagerGrants } from './factories/task-grants';
+import { daysFromNow } from './helpers/task-days';
 import { useTestApp } from './setup/test-app';
 
-const DAY = 86_400_000;
-const daysFromNow = (n: number) => riyadhToday(new Date(Date.now() + n * DAY));
 const SETTINGS = { channel: 'in_app', digestEnabled: true, digestHour: 8, remindersEnabled: true } as const;
 const NOTICE_KEY = { key: CorePermission.TasksNoticeSettings, scope: 'all' } as const;
 /** Today at 09:00 in Riyadh (06:00 UTC), and at 06:00 (03:00 UTC): after and before the default summary hour. */

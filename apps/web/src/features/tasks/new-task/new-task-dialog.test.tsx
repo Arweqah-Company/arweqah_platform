@@ -4,7 +4,7 @@ import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { me, server } from '../../../../test/msw';
 import { renderPage } from '../../../../test/render';
-import { taskDetail } from '../../../../test/task-fixtures';
+import { createTaskHandler } from '../../../../test/task-fixtures';
 import { NewTaskDialog } from './new-task-dialog';
 import { chooseOption } from '../../../../test/select';
 
@@ -19,10 +19,7 @@ function serve(approver: { id: string; name: string } | null = { id: 'm1', name:
   server.use(
     http.get('*/api/me', () => HttpResponse.json(me([{ key: P.TasksCreate, scope: 'all' }]))),
     http.get('*/api/tasks/options', () => HttpResponse.json(options(approver))),
-    http.post('*/api/tasks', async ({ request }) => {
-      posted.push((await request.json()) as Record<string, unknown>);
-      return HttpResponse.json(taskDetail({ id: 'new-task' }), { status: 201 });
-    }),
+    createTaskHandler(posted),
   );
   return posted;
 }

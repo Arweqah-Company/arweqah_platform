@@ -24,7 +24,10 @@ test.describe('Tasks (FR-48, FR-49, FR-50, FR-51)', () => {
     await page.getByRole('button', { name: 'مهمة جديدة' }).click();
     const popup = page.getByRole('dialog', { name: 'مهمة جديدة' });
     await expect(popup.getByLabel('الأولوية')).toHaveText('متوسطة');
-    await expect(popup.getByRole('button', { name: 'إنشاء المهمة' })).toBeDisabled();
+    // FR-224: nothing is flagged while the person only looks; pressing the button with no title flags it and sends nothing.
+    await expect(popup.getByLabel('العنوان *')).not.toHaveAttribute('aria-invalid', 'true');
+    await popup.getByRole('button', { name: 'إنشاء المهمة' }).click();
+    await expect(popup.getByLabel('العنوان *')).toHaveAttribute('aria-invalid', 'true');
     await popup.getByLabel('العنوان *').fill(title);
     await popup.getByLabel('الوقت المتوقع (ساعات)').fill('2');
     await settled(page);
