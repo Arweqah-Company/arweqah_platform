@@ -264,7 +264,14 @@
     "minutes": "Minutes",
     "day": "Day worked",
     "confirm": "Log",
-    "done": "The time was logged."
+    "done": "The time was logged.",
+    "hours": "Hours",
+    "errors": {
+      "hours": "Hours must be a whole number, 0 or more.",
+      "minutes": "Minutes must be a whole number from 0 to 59. For longer than an hour, write the hours in their own box.",
+      "empty": "Write the time you worked: at least one hour or one minute.",
+      "tooLong": "A day has only 24 hours, and you wrote {{hours}} h {{minutes}} min. Log up to 24 hours in one entry; if the work was longer, split it across the days you did it."
+    }
   },
   "edit": {
     "title": "Edit the task",

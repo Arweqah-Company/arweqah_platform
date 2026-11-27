@@ -19,7 +19,7 @@ Click any task in the list to open its page. The page shows what the task is, wh
 | Resubmit | Sends a rejected task back for approval | `tasks.resubmit` |
 | Object | Objects to a task given to you | `tasks.object` |
 | Answer the objection | Rejects it or gives the task to someone else | the person who gave the task |
-| Log time | Records minutes worked on a day | `tasks.log_time` |
+| Log time | Records hours and minutes worked on a day | `tasks.log_time` |
 | Follow / Unfollow | Starts or stops notices about the task | `tasks.follow` |
 | Add followers | Opens a window to add followers to the task and remove them | `tasks.followers_manage` |
 | Restore | Brings an archived task back | `tasks.restore` |
@@ -55,7 +55,7 @@ Only the buttons you may use are shown.
 
 **Log time or object**
 
-1. Click **Log time**, enter the minutes and the working day, then confirm.
+1. Click **Log time**, enter the hours, the minutes and the working day, then confirm.
 2. Or click **Object**, choose the reason, add an optional note and send.
 
 ### Fields (form inputs)
@@ -99,8 +99,11 @@ The assignee, the tag and the repetition are not in this window. If two people s
 
 | Field | What it means / what to type | Required | Allowed values / rules |
 |---|---|---|---|
-| Minutes | The time you worked on the task that day. | Yes | A whole number from 1 to 1440. |
+| Hours | The hours you worked on the task that day. | Yes (at least hours or minutes) | A whole number, 0 or more; with the minutes the total may not pass 24 hours. |
+| Minutes | The rest of the time, in minutes. | No | A whole number from 0 to 59. For longer than an hour, write the hours in their own box. |
 | Day worked | The day the work was done. | Yes | Today or earlier, not further back than the «Back-dating allowed» days of the task policies (7 by default). |
+
+If you write more than 24 hours in one entry, a message under the two boxes says a day has only 24 hours and shows what you wrote, and **Log** stays off; split longer work across the days it was done. If both boxes are empty or zero, a message asks for a time.
 
 **Comment box** (section «Comments»)
 
