@@ -33,7 +33,7 @@ export function ProblemReportButton({ inDialog = false }: { inDialog?: boolean }
       <Button variant={inDialog ? 'secondary' : 'ghost'} size="icon" className={inDialog ? 'size-9' : undefined} data-tour={inDialog ? undefined : 'problem-report'} aria-label={t('problemReport.button')} title={t('problemReport.button')} disabled={busy} onClick={() => void open()}>
         <Flag className="size-5" aria-hidden />
       </Button>
-      {opened && <ProblemReportDialog screenshot={opened.screenshot} context={opened.context} imageToAi={availability.data.imageToAi} onClose={() => setOpened(null)} />}
+      {opened && <ProblemReportDialog screenshot={opened.screenshot} context={opened.context} imageToAi={availability.data.imageToAi} canAnalyze={availability.data.canAnalyze} onClose={() => setOpened(null)} />}
     </>
   );
 }

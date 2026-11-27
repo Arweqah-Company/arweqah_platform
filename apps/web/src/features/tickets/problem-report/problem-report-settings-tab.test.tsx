@@ -37,7 +37,7 @@ describe('Problem report settings (FR-195)', () => {
     const image = await screen.findByRole('checkbox', { name: /السماح للذكاء الاصطناعي برؤية/ });
     fireEvent.click(image);
     expect(screen.getByText(/ستغادر المنصة إلى مزوّد الذكاء الاصطناعي/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('checkbox', { name: /تحليل البلاغ بالذكاء الاصطناعي/ }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /إظهار زر «حلّل بالذكاء الاصطناعي»/ }));
     expect(image).toBeDisabled();
     expect(image).not.toBeChecked();
   });

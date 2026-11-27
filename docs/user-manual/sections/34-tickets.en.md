@@ -111,9 +111,10 @@ Something does not work? Press the **flag** button in the top bar, or the same b
 
 1. A **screenshot of what the window shows** is taken from the page itself (no permission to give). Password fields are left out.
 2. A window shows the screenshot (click it to see it full size), a box **What is the problem?** (optional, up to 1000 characters) and a line saying what goes with the report: the page name, the browser, the window size, the language, the theme and the last errors; the content of the page is not sent, only the screenshot.
-3. Untick **Attach the screenshot** to send the report as text alone. If the administrator allowed the AI service to see screenshots, a warning says so while the box is ticked.
-4. **Send the report.** A ticket of the chosen type is made **in your name**: you follow its replies in «My tickets» like any ticket, and the department's handlers receive it in their unit inbox. A notice gives its number with a button to open it.
-5. When the AI service is on, it writes the ticket's title and description from your note and the page details; if it is off or fails, the ticket is made anyway with the page as its title and the details as text.
+3. **Report title** (optional; empty = the page's name) and **What is the problem?** are yours to write. Press **Analyse with the AI** (it appears when the administrator switched the analysis on and an AI service is on) and the AI writes the title and the description for you from your note, the page details and, only if the administrator allowed it, the screenshot; **read them and change what you want** before sending. Nothing is analysed unless you press the button.
+4. Untick **Attach the screenshot** to send the report as text alone. If the administrator allowed the AI service to see screenshots, a warning says so while the box is ticked.
+5. **Send the report.** A ticket of the chosen type is made **in your name**: you follow its replies in «My tickets» like any ticket, and the department's handlers receive it in their unit inbox. A notice gives its number with a button to open it.
+6. If the AI is off or fails when you press its button, a message says so and you write the description yourself; sending never depends on it.
 
 | Rule | Value |
 |---|---|

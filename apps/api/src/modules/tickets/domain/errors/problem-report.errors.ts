@@ -14,6 +14,13 @@ export class ProblemReportTypeInvalidError extends BusinessRuleError {
   }
 }
 
+export class ProblemReportAnalysisFailedError extends BusinessRuleError {
+  override readonly code = 'PROBLEM_REPORT_ANALYSIS_FAILED';
+  constructor() {
+    super('The AI could not analyse the report now; write the description by hand');
+  }
+}
+
 export class ProblemReportRateLimitedError extends BusinessRuleError {
   override readonly code = 'PROBLEM_REPORT_RATE_LIMITED';
   constructor() {

@@ -18,7 +18,7 @@ export function dataUrlToBlob(dataUrl: string): Blob {
 /** The first background colour that is not transparent (a JPEG has no transparency: a see-through page would come out black). */
 function pageBackground(): string {
   const candidates = [document.body, document.documentElement].map((el) => getComputedStyle(el).backgroundColor);
-  return candidates.find((c) => c !== '' && c !== 'transparent' && !c.endsWith(', 0)')) ?? '#ffffff';
+  return candidates.find((c) => c !== '' && c !== 'transparent' && !c.endsWith(', 0)')) ?? 'white';
 }
 
 /** A 1×1 transparent picture put where an image cannot be fetched (so one broken avatar never spoils the whole screenshot). */

@@ -26,7 +26,13 @@ export interface AnalysisInput {
   imageFileId: string | null;
 }
 
-/** Asks the AI service to read a problem report. Never throws: a report with no reading is still a report. */
+/** What the AI made of a report, and whether it looked at the screenshot. */
+export interface AnalysisResult {
+  analysis: ProblemAnalysis;
+  imageSeen: boolean;
+}
+
+/** Asks the AI service to read a problem report. Never throws: no reading is `null` and the person writes the description by hand. */
 @Injectable()
 export class ProblemReportAnalyzer {
   private readonly logger = new Logger(ProblemReportAnalyzer.name);
@@ -36,13 +42,17 @@ export class ProblemReportAnalyzer {
     private readonly files: FilesService,
   ) {}
 
-  async analyze(input: AnalysisInput): Promise<ProblemAnalysis | null> {
+  isActive(): Promise<boolean> {
+    return this.ai.isActive();
+  }
+
+  async analyze(input: AnalysisInput): Promise<AnalysisResult | null> {
     try {
       if (!(await this.ai.isActive())) return null;
       const image = await this.image(input);
       const question = { system: ANALYSIS_SYSTEM, user: analysisUser(input.note, input.context, image !== null), userWithoutImages: analysisUser(input.note, input.context, false), schema: answerSchema, maxTokens: 900, images: image ? [image] : undefined };
       const answer = await this.within(this.ai.jsonOf(question));
-      return this.clean(answer.value);
+      return { analysis: this.clean(answer.value), imageSeen: answer.imagesSeen };
     } catch (error) {
       this.logger.warn(`Problem report not analysed: ${error instanceof Error ? error.message : 'unknown'}`);
       return null;

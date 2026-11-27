@@ -18,13 +18,31 @@ export type ProblemContext = z.infer<typeof problemContextSchema>;
 
 export const MAX_PROBLEM_NOTE = 1000;
 
-/** The screenshot is uploaded first (`POST /files`) and named here; without `fileId` the report goes with the text alone. */
+/** The screenshot is uploaded first (`POST /files`) and named here; without `fileId` the report goes with the text alone. `title` empty = the page's name. */
 export const createProblemReportSchema = z.strictObject({
+  title: z.string().trim().max(200).default(''),
+  note: z.string().trim().max(MAX_PROBLEM_NOTE).default(''),
+  fileId: z.uuid().optional(),
+  context: problemContextSchema,
+  /** The person used the AI button (the audit line says so). */
+  analyzed: z.boolean().default(false),
+});
+export type CreateProblemReportInput = z.infer<typeof createProblemReportSchema>;
+
+/** «Analyse with the AI»: the screen's details, the note so far and (when kept) the screenshot already uploaded. */
+export const analyzeProblemReportSchema = z.strictObject({
   note: z.string().trim().max(MAX_PROBLEM_NOTE).default(''),
   fileId: z.uuid().optional(),
   context: problemContextSchema,
 });
-export type CreateProblemReportInput = z.infer<typeof createProblemReportSchema>;
+export type AnalyzeProblemReportInput = z.infer<typeof analyzeProblemReportSchema>;
+
+/** What the AI wrote: a title and the description, for the person to read and change; `imageSeen` = it looked at the screenshot. */
+export interface ProblemReportAnalysisDto {
+  title: string;
+  description: string;
+  imageSeen: boolean;
+}
 
 export const PROBLEM_REPORTS_PER_HOUR = { default: 10, min: 1, max: 60 } as const;
 
@@ -33,7 +51,7 @@ export const problemReportSettingsSchema = z.strictObject({
   enabled: z.boolean(),
   /** The ticket type every report becomes; null = none chosen yet (the button stays hidden). */
   ticketTypeId: z.uuid().nullable(),
-  /** Let the AI service write the title and the description from the report. */
+  /** Show the «Analyse with the AI» button in the report window (the AI writes the title and the description for the person to change). */
   analyzeWithAi: z.boolean(),
   /** Let the AI service also see the screenshot (it leaves the platform); off = it reads the text and the context only. */
   sendImageToAi: z.boolean(),
@@ -45,6 +63,8 @@ export type ProblemReportSettingsDto = ProblemReportSettingsInput;
 /** The button is shown only while this says yes. */
 export interface ProblemReportAvailabilityDto {
   available: boolean;
+  /** The «Analyse with the AI» button shows: the analysis is on and an AI service is on. */
+  canAnalyze: boolean;
   /** Whether the screenshot may go to the AI service (the dialog says it before sending). */
   imageToAi: boolean;
 }
@@ -52,8 +72,6 @@ export interface ProblemReportAvailabilityDto {
 export interface ProblemReportResultDto {
   ticketId: string;
   ticketNumber: number;
-  /** The AI service wrote the title and the description. */
-  analyzed: boolean;
 }
 
 /** One ticket type the administrator may choose for the reports, with its department. */

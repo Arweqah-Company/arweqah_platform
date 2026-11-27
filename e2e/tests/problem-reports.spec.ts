@@ -40,7 +40,7 @@ test.describe('Report a problem (FR-195 … FR-199)', () => {
     await expect(page.getByText('اختر نوعًا قبل التشغيل.')).toBeVisible();
     await page.getByRole('combobox', { name: 'نوع التذكرة', exact: true }).click();
     await page.getByRole('option').first().click(); // any type the shared database offers
-    await page.getByRole('checkbox', { name: /تحليل البلاغ بالذكاء الاصطناعي/ }).uncheck(); // no AI service in the browser tests
+    await page.getByRole('checkbox', { name: /إظهار زر «حلّل بالذكاء الاصطناعي»/ }).uncheck(); // no AI service in the browser tests
     await settled(page);
     await new Screen(page).expectNoSeriousA11yIssues();
     await page.getByRole('button', { name: 'حفظ', exact: true }).click();

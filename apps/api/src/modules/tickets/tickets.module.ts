@@ -8,6 +8,7 @@ import { OrgModule } from '../org/org.module';
 import { ProblemReportAnalyzer } from './application/services/problem-report-analyzer.service';
 import { ProblemReportSettingsService } from './application/services/problem-report-settings.service';
 import { ProblemReportService } from './application/services/problem-report.service';
+import { ProblemReportThrottle } from './application/services/problem-report-throttle';
 import { ProblemReportRepository } from './domain/contracts/problem-report.repository';
 import { TypeOrmProblemReportRepository } from './infrastructure/repositories/typeorm-problem-report.repository';
 import { ProblemReportSettingsController, ProblemReportsController } from './presentation/controllers/problem-reports.controller';
@@ -57,6 +58,7 @@ import { TicketsController } from './presentation/controllers/tickets.controller
     ProblemReportService,
     ProblemReportSettingsService,
     ProblemReportAnalyzer,
+    ProblemReportThrottle,
     TicketLifecycleService,
     TicketReassignService,
     TicketHandlerChoiceService,

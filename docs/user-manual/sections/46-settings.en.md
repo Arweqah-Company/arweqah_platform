@@ -163,7 +163,7 @@ It controls the **Report a problem** button that every employee sees in the top 
 |---|---|---|
 | Switch on the «Report a problem» button | Shows the button to everyone who holds `tickets.report_problem` | Off until you choose a type |
 | Ticket type | Every report becomes a ticket of this type and reaches its department and handlers. Types of departments that receive tickets now are listed, without personal types | Required to switch on |
-| Analyse the report with the AI | The AI service writes the ticket's title and description from the note and the page details; if its service is not on, the ticket is sent with the text as it is | On by default |
+| Show the «Analyse with the AI» button | The report window gets a button that makes the AI write the title and the description from the note, the page details and (only if allowed below) the screenshot; the employee reads and changes them before sending. Nothing is analysed automatically; an AI service must be on | On by default |
 | Let the AI see the screenshot | The picture leaves the platform for the AI provider; a warning says so here and to the employee | Off by default; needs the analysis on |
 | Most reports one employee may send in an hour | Stops flooding | 1 to 60 (default 10) |
 

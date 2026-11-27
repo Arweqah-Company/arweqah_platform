@@ -15,7 +15,7 @@ function serve(calls: string[], bodies: unknown[]) {
   server.use(
     http.get('*/api/me', () => HttpResponse.json(me())),
     http.post('*/api/files', () => { calls.push('files'); return HttpResponse.json({ id: 'f1', originalName: 'screenshot.jpg', contentType: 'image/jpeg', size: 1 }); }),
-    http.post('*/api/problem-reports', async ({ request }) => { calls.push('report'); bodies.push(await request.json()); return HttpResponse.json({ ticketId: 't1', ticketNumber: 26, analyzed: false }, { status: 201 }); }),
+    http.post('*/api/problem-reports', async ({ request }) => { calls.push('report'); bodies.push(await request.json()); return HttpResponse.json({ ticketId: 't1', ticketNumber: 26 }, { status: 201 }); }),
   );
 }
 
@@ -25,12 +25,12 @@ describe('The problem report (FR-196)', () => {
     const bodies: unknown[] = [];
     serve(calls, bodies);
     const closed = vi.fn();
-    renderPage(<ProblemReportDialog screenshot={SHOT()} context={CONTEXT} imageToAi={false} onClose={closed} />);
+    renderPage(<ProblemReportDialog screenshot={SHOT()} context={CONTEXT} imageToAi={false} canAnalyze={false} onClose={closed} />);
     fireEvent.change(await screen.findByRole('textbox', { name: /ما المشكلة/ }), { target: { value: 'القائمة فارغة' } });
     fireEvent.click(screen.getByRole('button', { name: 'إرسال البلاغ' }));
     await vi.waitFor(() => expect(closed).toHaveBeenCalled());
     expect(calls).toEqual(['files', 'report']);
-    expect(bodies[0]).toEqual({ note: 'القائمة فارغة', fileId: 'f1', context: CONTEXT });
+    expect(bodies[0]).toEqual({ title: '', note: 'القائمة فارغة', fileId: 'f1', context: CONTEXT, analyzed: false });
   });
 
   it('sends the text alone when the person unticks the screenshot (nothing is uploaded)', async () => {
@@ -38,7 +38,7 @@ describe('The problem report (FR-196)', () => {
     const bodies: unknown[] = [];
     serve(calls, bodies);
     const closed = vi.fn();
-    renderPage(<ProblemReportDialog screenshot={SHOT()} context={CONTEXT} imageToAi={false} onClose={closed} />);
+    renderPage(<ProblemReportDialog screenshot={SHOT()} context={CONTEXT} imageToAi={false} canAnalyze={false} onClose={closed} />);
     fireEvent.click(await screen.findByRole('checkbox', { name: /إرفاق لقطة الشاشة/ }));
     fireEvent.click(screen.getByRole('button', { name: 'إرسال البلاغ' }));
     await vi.waitFor(() => expect(closed).toHaveBeenCalled());
@@ -48,7 +48,7 @@ describe('The problem report (FR-196)', () => {
 
   it('warns that the AI will see the screenshot only when the administrator allowed it and the picture is kept', async () => {
     serve([], []);
-    renderPage(<ProblemReportDialog screenshot={SHOT()} context={CONTEXT} imageToAi onClose={() => undefined} />);
+    renderPage(<ProblemReportDialog screenshot={SHOT()} context={CONTEXT} imageToAi canAnalyze={false} onClose={() => undefined} />);
     expect(await screen.findByText(/الذكاء الاصطناعي \(خدمة خارج المنصة\)/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('checkbox', { name: /إرفاق لقطة الشاشة/ }));
     expect(screen.queryByText(/الذكاء الاصطناعي \(خدمة خارج المنصة\)/)).not.toBeInTheDocument();
@@ -59,7 +59,7 @@ describe('The problem report (FR-196)', () => {
       http.get('*/api/me', () => HttpResponse.json(me())),
       http.post('*/api/problem-reports', () => HttpResponse.json({ statusCode: 422, code: 'PROBLEM_REPORT_RATE_LIMITED', message: 'Too many' }, { status: 422 })),
     );
-    renderPage(<ProblemReportDialog screenshot={null} context={CONTEXT} imageToAi={false} onClose={() => undefined} />);
+    renderPage(<ProblemReportDialog screenshot={null} context={CONTEXT} imageToAi={false} canAnalyze={false} onClose={() => undefined} />);
     expect(await screen.findByText(/تعذّر أخذ لقطة/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'إرسال البلاغ' }));
     expect(await screen.findByRole('alert')).toBeInTheDocument();
@@ -71,7 +71,7 @@ describe('The problem report (FR-196)', () => {
     URL.createObjectURL = () => `blob:shot-${(made += 1)}`;
     URL.revokeObjectURL = (url: string) => { revoked.push(url); };
     serve([], []);
-    renderPage(<StrictMode><ProblemReportDialog screenshot={SHOT()} context={CONTEXT} imageToAi={false} onClose={() => undefined} /></StrictMode>);
+    renderPage(<StrictMode><ProblemReportDialog screenshot={SHOT()} context={CONTEXT} imageToAi={false} canAnalyze={false} onClose={() => undefined} /></StrictMode>);
     const picture = await screen.findByRole('img', { hidden: true, name: 'لقطة الشاشة' }).catch(() => document.querySelector('img[alt="لقطة الشاشة"]'));
     expect(picture).not.toBeNull();
     const shown = (picture as HTMLImageElement).getAttribute('src') ?? '';

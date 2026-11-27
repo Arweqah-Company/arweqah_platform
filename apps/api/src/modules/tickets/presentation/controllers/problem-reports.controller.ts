@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CorePermission } from '@arweqah-platform/shared';
-import type { ProblemReportAvailabilityDto, ProblemReportResultDto, ProblemReportSettingsDto, ProblemReportTypeOptionDto } from '@arweqah-platform/shared';
+import type { ProblemReportAnalysisDto, ProblemReportAvailabilityDto, ProblemReportResultDto, ProblemReportSettingsDto, ProblemReportTypeOptionDto } from '@arweqah-platform/shared';
 import { CurrentUser } from '../../../../common/presentation/current-user.decorator';
 import type { SessionUser } from '../../../../common/presentation/request-context';
 import type { AccessContext } from '../../../../core/access/domain/access-context';
@@ -9,7 +9,7 @@ import { Access, HiddenWithPage, RequireAdminMode, RequirePermission } from '../
 import { viewerOf } from '../../application/policies/ticket-viewer';
 import { ProblemReportSettingsService } from '../../application/services/problem-report-settings.service';
 import { ProblemReportService } from '../../application/services/problem-report.service';
-import { CreateProblemReportBody, ProblemReportSettingsBody } from '../dtos/problem-reports.dtos';
+import { AnalyzeProblemReportBody, CreateProblemReportBody, ProblemReportSettingsBody } from '../dtos/problem-reports.dtos';
 
 /** The «report a problem» button: any employee holding its key sends a report; the settings are the administrator's (admin mode). */
 @ApiTags('tickets')
@@ -21,6 +21,13 @@ export class ProblemReportsController {
   @RequirePermission(CorePermission.TicketsReportProblem)
   availability(): Promise<ProblemReportAvailabilityDto> {
     return this.reports.availability();
+  }
+
+  @Post('analyze')
+  @HttpCode(200)
+  @RequirePermission(CorePermission.TicketsReportProblem)
+  analyze(@Access() ctx: AccessContext, @Body() body: AnalyzeProblemReportBody): Promise<ProblemReportAnalysisDto> {
+    return this.reports.analyze(viewerOf(ctx), body);
   }
 
   @Post()

@@ -16,7 +16,7 @@ beforeEach(() => {
 function serve(keys: string[], available: boolean, without: string[] = []) {
   server.use(
     http.get('*/api/me', () => HttpResponse.json(me(keys.map((key) => ({ key, scope: 'all' as const })), { without }))),
-    http.get('*/api/problem-reports/availability', () => HttpResponse.json({ available, imageToAi: false })),
+    http.get('*/api/problem-reports/availability', () => HttpResponse.json({ available, canAnalyze: false, imageToAi: false })),
   );
 }
 
@@ -38,7 +38,7 @@ describe('The «report a problem» button (FR-196, FR-198)', () => {
   it('is not there for a person without the key, and asks nothing', async () => {
     let asked = false;
     serve([], true, [CorePermission.TicketsReportProblem]); // the Employee role holds the key by default
-    server.use(http.get('*/api/problem-reports/availability', () => { asked = true; return HttpResponse.json({ available: true, imageToAi: false }); }));
+    server.use(http.get('*/api/problem-reports/availability', () => { asked = true; return HttpResponse.json({ available: true, canAnalyze: false, imageToAi: false }); }));
     renderPage(<ProblemReportButton />);
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(screen.queryByRole('button', { name: 'بلّغ عن مشكلة' })).not.toBeInTheDocument();

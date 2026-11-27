@@ -1,12 +1,11 @@
-import { formatTicketNumber, MAX_PROBLEM_NOTE, type ProblemContext } from '@arweqah-platform/shared';
+import type { ProblemContext } from '@arweqah-platform/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router';
-import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
-import { Alert, Button, Dialog, DialogToolsProvider, FormField, Textarea, ZoomableImage } from '@/shared/ui';
-import { useSendProblemReport } from './api';
+import { Alert, Button, Dialog, DialogToolsProvider, ZoomableImage } from '@/shared/ui';
+import { ProblemReportFields } from './problem-report-fields';
 import { useBlobUrl } from './use-blob-url';
+import { useProblemReportFlow } from './use-problem-report-flow';
 
 interface PreviewProps {
   url: string;
@@ -47,40 +46,28 @@ interface Props {
   context: ProblemContext;
   /** The administrator lets the AI service see the picture. */
   imageToAi: boolean;
+  /** The «Analyse with the AI» button shows. */
+  canAnalyze: boolean;
   onClose: () => void;
 }
 
-/** The report: the screenshot, a line from the person, and what will be sent with them; sending makes a ticket. */
-export function ProblemReportDialog({ screenshot, context, imageToAi, onClose }: Props) {
+/** The report: the screenshot, a title and a description (written by hand or by the AI, always changeable), and what will be sent with them; sending makes a ticket. */
+export function ProblemReportDialog({ screenshot, context, imageToAi, canAnalyze, onClose }: Props) {
   const { t } = useTranslation('tickets');
   const { t: tc } = useTranslation();
-  const navigate = useNavigate();
-  const [note, setNote] = useState('');
-  const [attach, setAttach] = useState(screenshot !== null);
+  const flow = useProblemReportFlow(screenshot, context, onClose);
   const url = useBlobUrl(screenshot);
-  const send = useSendProblemReport();
-  const submit = async () => {
-    try {
-      const result = await send.mutateAsync({ note: note.trim(), context, screenshot: attach ? screenshot : null });
-      toast.success(t('problemReport.sent', { number: formatTicketNumber(result.ticketNumber) }), { action: { label: t('problemReport.openTicket'), onClick: () => void navigate(`/tickets/${result.ticketId}`) } });
-      onClose();
-    } catch {
-      /* shown in the dialog */
-    }
-  };
   return (
     <DialogToolsProvider value={null}>
     <Dialog open onOpenChange={(open) => !open && onClose()} title={t('problemReport.title')} description={t('problemReport.description')} wide>
       <div className="flex flex-col gap-4">
-        {send.isError && <Alert>{errorMessage(tc, send.error)}</Alert>}
-        {url ? <ScreenshotPreview url={url} attach={attach} onAttach={setAttach} imageToAi={imageToAi} /> : <Alert tone="info">{t('problemReport.noScreenshot')}</Alert>}
-        <FormField label={t('problemReport.note')} hint={t('problemReport.noteHint')}>
-          {(p) => <Textarea {...p} rows={3} maxLength={MAX_PROBLEM_NOTE} value={note} onChange={(e) => setNote(e.target.value)} />}
-        </FormField>
+        {flow.failure && <Alert>{errorMessage(tc, flow.failure)}</Alert>}
+        {url ? <ScreenshotPreview url={url} attach={flow.attach} onAttach={flow.setAttach} imageToAi={imageToAi} /> : <Alert tone="info">{t('problemReport.noScreenshot')}</Alert>}
+        <ProblemReportFields title={flow.title} note={flow.note} onTitle={flow.setTitle} onNote={flow.setNote} canAnalyze={canAnalyze} analyzing={flow.analyzing} onAnalyze={() => void flow.analyze()} read={flow.read} seesPicture={imageToAi && flow.attach && screenshot !== null} />
         <p className="text-sm text-muted">{t('problemReport.willSend', { page: context.pageTitle || context.path })}</p>
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={onClose}>{tc('actions.cancel')}</Button>
-          <Button disabled={send.isPending} onClick={() => void submit()}>{send.isPending ? t('problemReport.sending') : t('problemReport.send')}</Button>
+          <Button disabled={flow.busy} onClick={() => void flow.submit()}>{flow.sending ? t('problemReport.sending') : t('problemReport.send')}</Button>
         </div>
       </div>
     </Dialog>
