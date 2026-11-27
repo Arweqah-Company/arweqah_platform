@@ -191,10 +191,10 @@ describe('The dates of the stages (FR-118, plan §3.7b)', () => {
     const table = await screen.findByRole('table', { name: 'مواعيد المراحل' });
     const rows = within(table).getAllByRole('row');
     expect(rows).toHaveLength(7);
-    expect(within(rows[0]!).getByText('15 أبريل 2027 إلى 20 أبريل 2027')).toBeInTheDocument();
+    expect(within(rows[0]!).getByText('2027-04-15 إلى 2027-04-20')).toBeInTheDocument();
     expect(within(rows[0]!).getByText('الختامي النهائي بعد إقفال الأرقام')).toBeInTheDocument();
-    expect(within(rows[2]!).getByText('27 أبريل 2027')).toBeInTheDocument();
-    expect(within(rows[5]!).getByText('10 مارس 2027')).toBeInTheDocument();
+    expect(within(rows[2]!).getByText('2027-04-27')).toBeInTheDocument();
+    expect(within(rows[5]!).getByText('2027-03-10')).toBeInTheDocument();
   });
 
   it('lets a date be changed before any cycle is open, and says what the dialog asks in the concept\'s words', async () => {
@@ -218,7 +218,7 @@ describe('The dates of the stages (FR-118, plan §3.7b)', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'تعديل موعد لقاءا المعايرة' }));
     const dialog = await screen.findByRole('dialog');
     fireEvent.change(within(dialog).getByLabelText('من (أو يوم واحد) *'), { target: { value: '2027-04-10' } });
-    expect(within(dialog).getByRole('alert')).toHaveTextContent('الموعد يسبق نهاية المرحلة قبله (20 أبريل 2027).');
+    expect(within(dialog).getByRole('alert')).toHaveTextContent('الموعد يسبق نهاية المرحلة قبله (2027-04-20).');
     fireEvent.click(within(dialog).getByRole('button', { name: 'حفظ الموعد' }));
     expect(calls).toHaveLength(0);
   });
@@ -228,7 +228,7 @@ describe('The dates of the stages (FR-118, plan §3.7b)', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'تعديل موعد لقاءا المعايرة' }));
     const dialog = await screen.findByRole('dialog');
     fireEvent.change(within(dialog).getByLabelText('إلى (اختياري)'), { target: { value: '2027-04-28' } });
-    expect(within(dialog).getByRole('alert')).toHaveTextContent('الموعد يتجاوز بداية المرحلة بعده (27 أبريل 2027).');
+    expect(within(dialog).getByRole('alert')).toHaveTextContent('الموعد يتجاوز بداية المرحلة بعده (2027-04-27).');
     fireEvent.change(within(dialog).getByLabelText('إلى (اختياري)'), { target: { value: '2027-04-20' } });
     expect(within(dialog).getByRole('alert')).toHaveTextContent('تاريخ النهاية قبل البداية.');
   });

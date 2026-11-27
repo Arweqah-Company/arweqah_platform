@@ -93,7 +93,8 @@ export const createTicketSchema = z.strictObject({
 export type CreateTicketInput = z.infer<typeof createTicketSchema>;
 
 /** A reply, or (with `parentEventId`) an answer to one. People are named in the text as `{{mention:<user id>}}` (see `mentionedIn`). */
-export const ticketReplySchema = z.strictObject({ body: z.string().trim().min(1).max(MAX_TICKET_TEXT), fileIds, parentEventId: z.uuid().optional() });
+/** `confirmClose`: the sender of a ticket that waits for their confirmation sends this reply and confirms the closing in the same step (without it, the sender's reply returns the ticket to «open»). */
+export const ticketReplySchema = z.strictObject({ body: z.string().trim().min(1).max(MAX_TICKET_TEXT), fileIds, parentEventId: z.uuid().optional(), confirmClose: z.boolean().optional() });
 export type TicketReplyInput = z.infer<typeof ticketReplySchema>;
 
 /** The unit asks to close, or the sender declines the closing, optionally with a message. */
@@ -118,6 +119,8 @@ export const ticketsQuerySchema = paginationQuerySchema.extend({
   assigneeId: z.uuid().optional(),
   status: z.enum(TICKET_STATUSES).optional(),
   groupBy: z.enum(TICKET_GROUPINGS).optional(),
+  /** Adds each ticket's text to the rows (the export asks for it; the table and the board do not). */
+  withDetails: z.stringbool().optional(),
 });
 export type TicketsQuery = z.infer<typeof ticketsQuerySchema>;
 
@@ -239,6 +242,10 @@ export interface TicketListItemDto {
   stale: boolean;
   /** Nobody from the unit has answered yet. */
   isNew: boolean;
+  /** The ticket's text; only when the list was asked `withDetails`. */
+  details?: string;
+  /** On the rows of the list: the viewer may delete this ticket (their key reaches its department, or they sent it and hold the key). */
+  canDelete?: boolean;
 }
 
 export interface TicketAttachmentDto {

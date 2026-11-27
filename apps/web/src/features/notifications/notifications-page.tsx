@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/shared/lib/format-date';
 import { CorePermission, type NotificationDto } from '@arweqah-platform/shared';
 import { CheckCheck, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -32,7 +33,7 @@ export function NotificationsPage() {
   const exportColumns: ExportColumn<NotificationDto>[] = [
     { id: 'title', header: t('titleColumn'), value: (n) => (ar ? n.titleAr : n.titleEn) },
     { id: 'text', header: t('textColumn'), value: (n) => (ar ? n.bodyAr : n.bodyEn) },
-    { id: 'when', header: t('whenColumn'), value: (n) => new Date(n.createdAt).toLocaleString(i18n.language) },
+    { id: 'when', header: t('whenColumn'), value: (n) => formatDateTime(n.createdAt, true) },
     { id: 'state', header: t('filters.state'), value: (n) => (n.readAt ? t('filters.read') : t('filters.unread')) },
   ];
   return (
@@ -73,7 +74,7 @@ export function NotificationsPage() {
               </div>
             ),
           },
-          { id: 'date', header: 'date', hideHeader: true, className: 'w-40 whitespace-nowrap text-sm text-muted', cell: (n) => new Date(n.createdAt).toLocaleString(i18n.language) },
+          { id: 'date', header: 'date', hideHeader: true, className: 'w-40 whitespace-nowrap text-sm text-muted', cell: (n) => formatDateTime(n.createdAt) },
         ]}
       />
     </>

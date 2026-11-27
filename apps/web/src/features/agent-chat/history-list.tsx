@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/shared/lib/format-date';
 import { useTranslation } from 'react-i18next';
 import { Alert } from '@/shared/ui';
 import { errorMessage } from '@/shared/lib/error-message';
@@ -17,7 +18,7 @@ export function HistoryList({ onOpen }: { onOpen: (id: string) => void }) {
         <li key={c.id}>
           <button type="button" className="w-full rounded-xl px-3 py-2 text-start text-sm text-fg hover:bg-neutral-50" onClick={() => onOpen(c.id)}>
             <span className="block truncate font-medium">{c.title}</span>
-            <span className="block text-xs text-muted">{new Date(c.updatedAt).toLocaleString()}</span>
+            <span className="block text-xs text-muted">{formatDateTime(c.updatedAt)}</span>
           </button>
         </li>
       ))}

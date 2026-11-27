@@ -38,7 +38,7 @@ Email **security@arweqah.sa** (replace with the team's real address) with steps 
 - **A04** Rate limits on sign-in (and the code lock); page size ≤ 100; body ≤ 1 MB; uploads ≤ 10 MB.
 - **A05** helmet with `default-src 'none'` on the API and a strict CSP in nginx for the web; CORS allowlist; no `X-Powered-By`; database and RabbitMQ not published; containers run as non-root.
 - **A06** Lockfile + `npm ci`; Dependabot weekly; `npm audit` gate (high); Trivy on images and repository.
-- **A07** Session cookie `HttpOnly; Secure; SameSite=Lax`, 12 h expiry; the code is required in every session before any route works (`MFA_REQUIRED`); deactivation revokes all sessions.
+- **A07** Session cookie `HttpOnly; Secure; SameSite=Lax`, 2-day expiry from sign-in (a use does not renew it); the code is required in every session before any route works (`MFA_REQUIRED`); deactivation revokes all sessions.
 - **A08** Actions pinned to versions; images scanned before deploy; deploy waits for CI.
 - **A09** Audit log for sign-ins, employee, role, company and organization changes, plus the sent-e-mail log (status and error, no body); failures logged without secrets or full personal data.
 - **A10** The server never fetches user-supplied URLs; notification links are in-app paths only.

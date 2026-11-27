@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/shared/lib/format-date';
 import type { TaskCommentDto, TaskConversationDto } from '@arweqah-platform/shared';
 import { MessageSquareReply, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -42,7 +43,7 @@ function Actions({ comment, conversation, onReply, onEdit, onDelete }: { comment
 
 /** One comment: who, when, the text with its mentions, its files, and what this person may do with it. */
 export function CommentItem({ taskId, conversation, comment, replying, onReply, onDone }: Props) {
-  const { t, i18n } = useTranslation('tasks');
+  const { t } = useTranslation('tasks');
   const { t: tc } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -65,7 +66,7 @@ export function CommentItem({ taskId, conversation, comment, replying, onReply, 
           {comment.isEdited && <span>· {t('comments.edited')}</span>}
         </span>
         <span className="flex items-center gap-1">
-          <time dateTime={comment.createdAt}>{new Date(comment.createdAt).toLocaleString(i18n.language)}</time>
+          <time dateTime={comment.createdAt}>{formatDateTime(comment.createdAt)}</time>
           <Actions comment={comment} conversation={conversation} onReply={onReply} onEdit={() => setEditing(true)} onDelete={() => setConfirming(true)} />
         </span>
       </div>

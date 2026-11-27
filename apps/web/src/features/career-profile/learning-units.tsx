@@ -1,3 +1,4 @@
+import { formatDate } from '@/shared/lib/format-date';
 import { CorePermission, LEARNING_PRIORITIES, type CareerContent, type LearningRecordDto } from '@arweqah-platform/shared';
 import { Eye, ExternalLink, GraduationCap, Plus, Upload } from 'lucide-react';
 import { useState } from 'react';
@@ -24,7 +25,7 @@ type Shown = { kind: 'proof' | 'details'; unit: LearningRow } | null;
 /** The facts of a unit and of its proof, for a row with no page of its own. */
 function UnitDetails({ unit, record, onClose }: { unit: LearningRow; record?: LearningRecordDto; onClose: () => void }) {
   const { t } = useTranslation('career-profile');
-  const day = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDateString() : null);
+  const day = (iso: string | null | undefined) => (iso ? formatDate(iso) : null);
   return (
     <DetailsDialog
       title={unit.title}

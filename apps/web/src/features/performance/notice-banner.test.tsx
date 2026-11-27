@@ -19,7 +19,7 @@ describe('The bar «the evaluation cycle is open» (plan §15.2)', () => {
     serve([{ kind: 'self', path: '/career-profile', due: { from: '2027-03-10', to: null } }]);
     const bar = await screen.findByRole('region', { name: 'تنبيه دورة التقييم' });
     expect(within(bar).getByText('دورة التقييم مفتوحة:')).toBeInTheDocument();
-    expect(within(bar).getByText(/تقييمك الذاتي قبل انتهاء الموعد/)).toHaveTextContent('10 مارس 2027');
+    expect(within(bar).getByText(/تقييمك الذاتي قبل انتهاء الموعد/)).toHaveTextContent('2027-03-10');
     expect(within(bar).getByRole('link', { name: 'اذهب إلى تقييمي' })).toHaveAttribute('href', '/career-profile');
   });
 
@@ -27,7 +27,7 @@ describe('The bar «the evaluation cycle is open» (plan §15.2)', () => {
     serve([{ kind: 'self', path: '/career-profile', due: null }, { kind: 'team', path: '/performance-team', due: { from: '2027-04-21', to: '2027-04-24' } }]);
     const bar = await screen.findByRole('region', { name: 'تنبيه دورة التقييم' });
     expect(await within(bar).findAllByText('دورة التقييم مفتوحة:')).toHaveLength(2);
-    expect(within(bar).getByText(/تقييم فريقك/)).toHaveTextContent('من 21 أبريل 2027 إلى 24 أبريل 2027');
+    expect(within(bar).getByText(/تقييم فريقك/)).toHaveTextContent('من 2027-04-21 إلى 2027-04-24');
     expect(within(bar).getByRole('link', { name: 'اذهب إلى تقييم فريقي' })).toHaveAttribute('href', '/performance-team');
   });
 

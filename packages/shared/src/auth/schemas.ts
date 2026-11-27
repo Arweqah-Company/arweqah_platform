@@ -78,6 +78,9 @@ export interface ImpersonationDto {
 }
 
 export interface MeDto extends UserDto {
+  /** The person's own employee record and its photo (the same picture every list shows); null when the account has no employee record or no photo. */
+  employeeId: string | null;
+  photoFileId: string | null;
   /** The code of the authenticator app was entered for this session; every other route is blocked until then. */
   mfaVerified: boolean;
   adminMode: AdminModeDto;

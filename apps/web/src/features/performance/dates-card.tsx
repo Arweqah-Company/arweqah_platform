@@ -1,18 +1,18 @@
+import { formatDate } from '@/shared/lib/format-date';
 import { CorePermission, type CycleDate } from '@arweqah-platform/shared';
 import { Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Can } from '@/core/permissions/can';
-import { formatLongDate } from '@/shared/lib/format-date';
 import { RowAction } from '@/shared/ui';
 import { CycleCard, MiniTable } from './cycle-card';
 import { DateDialog } from './date-dialog';
 
 /** The seven dates of the cycle (the open one's, or the next one's before it opens): the range written out, the stage it belongs to and a pencil to change it. */
 export function DatesCard({ dates }: { dates: CycleDate[] }) {
-  const { t, i18n } = useTranslation('performance');
+  const { t } = useTranslation('performance');
   const [editing, setEditing] = useState<CycleDate | null>(null);
-  const day = (iso: string) => formatLongDate(iso, i18n.language);
+  const day = (iso: string) => formatDate(iso);
   const rows = dates.map((d) => {
     const name = t(`dates.keys.${d.key}`);
     return {

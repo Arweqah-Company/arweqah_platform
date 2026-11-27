@@ -1,3 +1,4 @@
+import { formatDate } from '@/shared/lib/format-date';
 import { CorePermission, REQUEST_REASON_MIN, type DevelopmentRequestDto } from '@arweqah-platform/shared';
 import { Check, Download, X } from 'lucide-react';
 import { useState } from 'react';
@@ -29,7 +30,7 @@ function RejectDialog({ item, onClose }: { item: DevelopmentRequestDto; onClose:
 
 const facts = (item: DevelopmentRequestDto, t: (key: string, options?: Record<string, unknown>) => string): [string, string | null][] => [
   [t('requests.columns.course'), item.courseName], [t('requests.columns.cost'), t('requests.riyals', { amount: item.cost.toLocaleString('en') })], [t('requests.columns.plan'), t(`requests.planKind.${item.plan}`)],
-  [t('requests.columns.level'), t(`requests.whoLevel.${item.level}`)], [t('requests.columns.status'), t(`requests.status.${item.status}`)], [t('requests.columns.submitted'), new Date(item.submittedAt).toLocaleDateString()],
+  [t('requests.columns.level'), t(`requests.whoLevel.${item.level}`)], [t('requests.columns.status'), t(`requests.status.${item.status}`)], [t('requests.columns.submitted'), formatDate(item.submittedAt)],
 ];
 
 /** The window of a request: its facts, the agreement, and the two decisions for the person it is with (each with its own key). */

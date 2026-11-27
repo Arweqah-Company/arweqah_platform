@@ -7,6 +7,8 @@ import type { MeDto } from '@arweqah-platform/shared';
 import type { NavItem } from '@/core/feature';
 import { useDisplayPreferences } from '@/core/theme/use-display-preferences';
 import { cn } from '@/shared/lib/cn';
+import { Avatar } from '@/shared/ui';
+import { employeePhotoUrl } from '@/features/employees';
 import { useTourControls } from '@/features/tour';
 
 const ITEM = 'flex min-h-11 cursor-pointer items-center gap-3 rounded-[var(--radius-button)] px-3 text-sm outline-none data-[highlighted]:bg-neutral-100';
@@ -16,6 +18,17 @@ interface Props {
   /** "My account" pages: profile, notifications, security. */
   items: NavItem[];
   onSignOut: () => void;
+}
+
+/** The person's picture, the same one the employee lists show (their letter when there is none), with the green «online» dot. */
+function MyAvatar({ me }: { me: MeDto | undefined }) {
+  const src = me?.employeeId ? employeePhotoUrl(me.employeeId, me.photoFileId) : null;
+  return (
+    <span className="relative">
+      <Avatar name={(me?.name ?? '').toUpperCase()} src={src} />
+      <span aria-hidden className="absolute bottom-0 end-0 size-3 rounded-full border-2 border-white bg-green-400" />
+    </span>
+  );
 }
 
 /** The signed-in person in the header; opens "My account" (the pages that used to sit in the sidebar) and sign-out. */
@@ -34,10 +47,7 @@ export function AccountMenu({ me, items, onSignOut }: Props) {
           <p className="text-sm font-medium">{me?.name}</p>
           {role && <p className="text-xs text-muted">{i18n.language === 'ar' ? role.nameAr : role.nameEn}</p>}
         </div>
-        <span className="relative grid size-10 place-items-center rounded-full bg-petrol-800 text-sm font-bold text-cream" aria-hidden>
-          {me?.name.trim().charAt(0).toUpperCase()}
-          <span className="absolute bottom-0 end-0 size-3 rounded-full border-2 border-white bg-green-400" />
-        </span>
+        <MyAvatar me={me} />
         <ChevronDown className="size-4 text-muted max-sm:hidden" aria-hidden />
       </Menu.Trigger>
       <Menu.Portal>

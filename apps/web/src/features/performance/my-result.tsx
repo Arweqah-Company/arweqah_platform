@@ -1,9 +1,9 @@
+import { formatDate } from '@/shared/lib/format-date';
 import { CorePermission, type MyResultDto } from '@arweqah-platform/shared';
 import { MessageSquareWarning, Printer } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Can } from '@/core/permissions/can';
-import { formatLongDate } from '@/shared/lib/format-date';
 import { Alert, Badge, Button } from '@/shared/ui';
 import { GradeScale } from './grade-scale';
 import { ObjectionDialog } from './objection-dialog';
@@ -21,7 +21,7 @@ function ObjectionStatus({ result }: { result: MyResultDto }) {
 
 /** «My result» (after the individual notification): the score and its level, the grade scale with my place, my scores, the behaviours, the extra component, the objection, and a printable copy. */
 export function MyResult({ result }: { result: MyResultDto }) {
-  const { t, i18n } = useTranslation('performance');
+  const { t } = useTranslation('performance');
   const [objecting, setObjecting] = useState(false);
   const cap = result.template.cap;
   return (
@@ -41,7 +41,7 @@ export function MyResult({ result }: { result: MyResultDto }) {
       <ObjectionStatus result={result} />
       {result.canObject && (
         <div className="print:hidden"><Alert tone="info">
-          {t('result.window', { date: result.objectionUntil ? formatLongDate(result.objectionUntil, i18n.language) : '—' })}
+          {t('result.window', { date: result.objectionUntil ? formatDate(result.objectionUntil) : '—' })}
           <Can permission={CorePermission.PerformanceObject}><Button className="ms-3" variant="secondary" onClick={() => setObjecting(true)}><MessageSquareWarning className="size-4" aria-hidden />{t('result.object')}</Button></Can>
         </Alert></div>
       )}

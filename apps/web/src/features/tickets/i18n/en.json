@@ -41,7 +41,10 @@
     "assignee": "Assignee",
     "status": "Status",
     "neededBy": "Needed by",
-    "activity": "Last activity"
+    "activity": "Last activity",
+    "details": "Ticket text",
+    "createdAt": "Sent on",
+    "priority": "Priority"
   },
   "status": {
     "open": "Open",
@@ -126,7 +129,9 @@
     "label": "Your reply",
     "send": "Send reply",
     "sent": "The reply was sent.",
-    "closedNote": "The ticket is closed and takes no new replies."
+    "closedNote": "The ticket is closed and takes no new replies.",
+    "sendAndConfirm": "Send the reply and confirm the closing",
+    "confirmNote": "This ticket waits for your confirmation. «Send the reply» alone returns it to «open» and cancels the closing request; «Send the reply and confirm the closing» sends your reply and closes it."
   },
   "card": {
     "label": "The ticket"
@@ -374,5 +379,9 @@
     "open": "View history",
     "count_one": "1 step",
     "count_other": "{{count}} steps"
+  },
+  "priorityValue": {
+    "urgent": "Urgent",
+    "normal": "Normal"
   }
 }

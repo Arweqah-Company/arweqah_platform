@@ -69,7 +69,7 @@ describe('The performance evaluation section of the career path (FR-119)', () =>
   it('shows «my evaluation» as not started with the deadline and the button to start', async () => {
     open(state('self'));
     expect(await screen.findByText('دورة التقييم مفتوحة: قيّم نفسك')).toBeInTheDocument();
-    expect(screen.getByText(/آخر موعد: 10 مارس 2027/)).toBeInTheDocument();
+    expect(screen.getByText(/آخر موعد: 2027-03-10/)).toBeInTheDocument();
     expect(screen.getByText('لم يبدأ')).toBeInTheDocument();
   });
 

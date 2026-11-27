@@ -65,3 +65,74 @@ describe('FileChip: a «View» button beside every attached file (FR-128)', () =
     expect(screen.getByRole('link', { name: /تنزيل/ })).toBeInTheDocument();
   });
 });
+
+describe('Zooming an attached picture (FR-188)', () => {
+  beforeEach(() => {
+    URL.createObjectURL = vi.fn(() => 'blob:preview');
+    URL.revokeObjectURL = vi.fn();
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  async function openImage() {
+    server.use(http.get('*/api/tickets/t1/attachments/f1/preview', () => HttpResponse.arrayBuffer(new ArrayBuffer(4), { headers: { 'Content-Type': 'image/png' } })));
+    render(<FileChip file={file()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'عرض screen.png' }));
+    const dialog = await screen.findByRole('dialog');
+    const img = await waitFor(() => { const found = dialog.querySelector('img'); if (!found) throw new Error('no picture yet'); return found; });
+    Object.defineProperty(img, 'clientWidth', { value: 400, configurable: true });
+    Object.defineProperty(img, 'clientHeight', { value: 200, configurable: true });
+    fireEvent.load(img); // the picture is decoded: its size is known and zooming is on
+    return img;
+  }
+
+  it('makes the picture bigger and smaller with the buttons, shows the percentage, and fits it back', async () => {
+    const img = await openImage();
+    expect(screen.getByRole('status', { name: '' })).toHaveTextContent('100%');
+    fireEvent.click(screen.getByRole('button', { name: 'تكبير' }));
+    await waitFor(() => expect(img.style.width).toBe('500px'));
+    expect(img.style.height).toBe('250px');
+    expect(screen.getByText('125%')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'تصغير' }));
+    fireEvent.click(screen.getByRole('button', { name: 'تصغير' }));
+    await waitFor(() => expect(img.style.width).toBe('320px'));
+    fireEvent.click(screen.getByRole('button', { name: 'ملاءمة النافذة' }));
+    await waitFor(() => expect(img.style.width).toBe('')); // back to the fit of the frame
+    expect(screen.getByRole('button', { name: 'ملاءمة النافذة' })).toBeDisabled();
+  });
+
+  it('zooms with + / − / 0 on the keyboard and with Ctrl + wheel, never past the limits', async () => {
+    const img = await openImage();
+    const frame = screen.getByRole('region', { name: 'screen.png' });
+    fireEvent.keyDown(frame, { key: '+' });
+    await waitFor(() => expect(img.style.width).toBe('500px'));
+    fireEvent.keyDown(frame, { key: '0' });
+    await waitFor(() => expect(img.style.width).toBe(''));
+    fireEvent.wheel(frame, { ctrlKey: true, deltaY: -100 });
+    await waitFor(() => expect(img.style.width).toBe('500px'));
+    fireEvent.wheel(frame, { deltaY: -100 }); // a plain wheel only scrolls the frame
+    expect(img.style.width).toBe('500px');
+    for (let i = 0; i < 30; i += 1) fireEvent.keyDown(frame, { key: '+' });
+    await waitFor(() => expect(screen.getByText('600%')).toBeInTheDocument());
+    expect(screen.getByRole('button', { name: 'تكبير' })).toBeDisabled();
+  });
+
+  it('takes the fit from the window as it is when zooming starts: a smaller window gives a smaller base (CodeRabbit on the release)', async () => {
+    const img = await openImage();
+    Object.defineProperty(img, 'clientWidth', { value: 300, configurable: true }); // the window shrank while the picture was fitted
+    Object.defineProperty(img, 'clientHeight', { value: 150, configurable: true });
+    fireEvent.click(screen.getByRole('button', { name: 'تكبير' }));
+    await waitFor(() => expect(img.style.width).toBe('375px'));
+    expect(img.style.height).toBe('187.5px');
+  });
+
+  it('keeps zooming off until the picture has loaded, so a size of zero is never taken for the fit (CodeRabbit on the release)', async () => {
+    server.use(http.get('*/api/tickets/t1/attachments/f1/preview', () => HttpResponse.arrayBuffer(new ArrayBuffer(4), { headers: { 'Content-Type': 'image/png' } })));
+    render(<FileChip file={file()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'عرض screen.png' }));
+    const dialog = await screen.findByRole('dialog');
+    const img = await waitFor(() => { const found = dialog.querySelector('img'); if (!found) throw new Error('no picture yet'); return found; });
+    expect(screen.getByRole('button', { name: 'تكبير' })).toBeDisabled();
+    fireEvent.load(img);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'تكبير' })).toBeEnabled());
+  });
+});

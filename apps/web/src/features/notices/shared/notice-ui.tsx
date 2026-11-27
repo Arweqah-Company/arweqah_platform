@@ -1,6 +1,6 @@
+import { formatDate } from '@/shared/lib/format-date';
 import type { NoticeChannelRefDto, NoticeListItemDto, NoticeMineItemDto, NoticeMyState, NoticeStatus, NoticeType } from '@arweqah-platform/shared';
 import { useTranslation } from 'react-i18next';
-import { formatLongDate } from '@/shared/lib/format-date';
 import { Badge } from '@/shared/ui';
 
 /** The words of a notice in the language of the screen (the Arabic title when there is no English one). */
@@ -9,7 +9,7 @@ export function useNoticeWords() {
   const ar = i18n.language === 'ar';
   return {
     ar,
-    day: (iso: string | null) => (iso ? formatLongDate(iso.slice(0, 10), i18n.language) : '—'),
+    day: (iso: string | null) => (iso ? formatDate(iso) : '—'),
     title: (n: { titleAr: string; titleEn: string | null }) => (ar ? n.titleAr : n.titleEn || n.titleAr),
     channel: (c: Pick<NoticeChannelRefDto, 'nameAr' | 'nameEn'>) => (ar ? c.nameAr : c.nameEn),
     unit: (u: { nameAr: string; nameEn: string } | null) => (u ? (ar ? u.nameAr : u.nameEn) : '—'),

@@ -6,7 +6,7 @@
   "howTitle": "How sign-in works",
   "howCode": "There is no password. You sign in with your work email and the code from your authenticator app (Microsoft Authenticator or Google Authenticator), or with the Microsoft button.",
   "howMicrosoft": "Even when you sign in with Microsoft, the app code is asked every time.",
-  "howSessions": "A session ends after 12 hours, and immediately if your account is deactivated.",
+  "howSessions": "A session ends 2 days after you sign in, and immediately if your account is deactivated.",
   "lostTitle": "Lost your phone?",
   "lostBody": "Use one of the backup codes you saved when you linked the app, or ask HR to reset the app so a new invitation reaches you.",
   "sessions": {

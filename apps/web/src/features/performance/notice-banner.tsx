@@ -1,16 +1,16 @@
+import { formatDate } from '@/shared/lib/format-date';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import { formatLongDate } from '@/shared/lib/format-date';
 import { Alert, Button } from '@/shared/ui';
 import { useEvaluationNotices } from './api';
 
 /** «May 3 to May 9», one day, or nothing when the cycle page has no date for the stage. */
 function useDue() {
-  const { t, i18n } = useTranslation('performance');
+  const { t } = useTranslation('performance');
   return (due: { from: string; to: string | null } | null): string => {
     if (!due) return '';
-    const from = formatLongDate(due.from, i18n.language);
-    return ` (${due.to && due.to !== due.from ? t('notice.range', { from, to: formatLongDate(due.to, i18n.language) }) : t('notice.day', { date: from })})`;
+    const from = formatDate(due.from);
+    return ` (${due.to && due.to !== due.from ? t('notice.range', { from, to: formatDate(due.to) }) : t('notice.day', { date: from })})`;
   };
 }
 
