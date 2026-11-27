@@ -4,6 +4,9 @@ import type { ScopeFilter } from '../../../../core/access/domain/access-context'
 import type { Employee } from '../entities/employee.entity';
 import type { EmployeeValues } from '../types/employee.types';
 
+/** The groups of numbers on the home page; each has its own permission key. */
+export type FigureGroup = 'headcount' | 'idExpiring' | 'contractEnding';
+
 export abstract class EmployeeRepository {
   abstract findById(id: string): Promise<Employee | null>;
   abstract findByUserId(userId: string): Promise<Employee | null>;
@@ -25,7 +28,8 @@ export abstract class EmployeeRepository {
   abstract reportsTo(candidateManagerId: string, employeeId: string): Promise<boolean>;
   abstract exists(id: string): Promise<boolean>;
   /** Dashboard counts inside the scope; `soonUntil` is the end of the "expiring soon" window (ISO date). */
-  abstract summary(scope: ScopeFilter, window: { today: string; soonUntil: string }): Promise<EmployeesSummaryDto>;
+  /** One group of the home numbers for the employees in the scope (each group is read with the scope of its own key). */
+  abstract figures(group: FigureGroup, scope: ScopeFilter, window: { today: string; soonUntil: string }): Promise<Partial<EmployeesSummaryDto>>;
   /** Employees whose contract ended before `today` and whose account can still sign in. */
   abstract endedStillActive(today: string): Promise<{ id: string; userId: string }[]>;
   /** Says sign-in ended because the contract ended (`at`), or that it came back (null). */

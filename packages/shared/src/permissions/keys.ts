@@ -200,6 +200,9 @@ export const CorePermission = {
   EmployeesResetAuthenticator: 'employees.reset_authenticator',
   EmployeesExport: 'employees.export',
   EmployeesImport: 'employees.import',
+  EmployeesFiguresHeadcount: 'employees.figures_headcount',
+  EmployeesFiguresIdExpiring: 'employees.figures_id_expiring',
+  EmployeesFiguresContractEnding: 'employees.figures_contract_ending',
   // Tickets
   TicketsView: 'tickets.view',
   TicketsCreate: 'tickets.create',
@@ -411,6 +414,10 @@ export const LEVEL_HEAD_DEFAULT_PERMISSIONS: { key: CorePermissionKey; scope: 's
   { key: CorePermission.EmployeesBulkUpdate, scope: 'subtree' },
   { key: CorePermission.EmployeesExport, scope: 'subtree' },
   { key: CorePermission.EmployeesImport, scope: 'subtree' },
+  // the employee numbers on the home page (FR-208)
+  { key: CorePermission.EmployeesFiguresHeadcount, scope: 'subtree' },
+  { key: CorePermission.EmployeesFiguresIdExpiring, scope: 'subtree' },
+  { key: CorePermission.EmployeesFiguresContractEnding, scope: 'subtree' },
   { key: CorePermission.DirectoryView, scope: 'all' },
   { key: CorePermission.DirectoryExport, scope: 'all' },
   { key: CorePermission.DirectoryContactTeams, scope: 'all' },

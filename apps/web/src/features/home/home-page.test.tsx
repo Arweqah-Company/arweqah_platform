@@ -1,4 +1,4 @@
-import { CorePermission as P, type MeDto, type TaskSummaryDto, type TicketSummaryDto } from '@arweqah-platform/shared';
+import { CorePermission as P, type EmployeesSummaryDto, type MeDto, type TaskSummaryDto, type TicketSummaryDto } from '@arweqah-platform/shared';
 import { screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
@@ -148,5 +148,43 @@ describe('Home page: my numbers, my tasks and my tickets (FR-57)', () => {
     const charts = await screen.findByRole('region', { name: 'رسوم بيانية' });
     expect((await within(charts).findByText('منجزة متأخرة')).nextSibling).toHaveTextContent(/^0$/);
     expect(within(charts).getByText('منجزة في الموعد').nextSibling).toHaveTextContent(/^5$/);
+  });
+
+  describe('FR-208: the employee numbers answer to their own keys', () => {
+    const summary: EmployeesSummaryDto = { total: 20, active: 18, inactive: 2, needsPlacement: 1, idExpiring: 3, contractEnding: 4 };
+    const serveFigures = (keys: string[], body: EmployeesSummaryDto) => {
+      const asked: string[] = [];
+      serve(keys);
+      server.use(http.get('*/api/employees/summary', () => { asked.push('employees'); return HttpResponse.json(body); }));
+      return asked;
+    };
+
+    it('shows only the cards of the keys the person holds and asks for the numbers only with one of them', async () => {
+      const asked = serveFigures([P.EmployeesFiguresIdExpiring], { total: null, active: null, inactive: null, needsPlacement: null, idExpiring: 3, contractEnding: null });
+      renderPage(<HomePage />);
+      const stats = await screen.findByRole('region', { name: 'مؤشرات الموظفين' });
+      expect(await within(stats).findByText('هويات تنتهي أو منتهية')).toBeInTheDocument();
+      expect(within(stats).queryByText('على رأس العمل')).not.toBeInTheDocument();
+      expect(within(stats).queryByText('عقود تنتهي قريبًا')).not.toBeInTheDocument();
+      expect(asked).toEqual(['employees']);
+    });
+
+    it('shows the headcount cards and the contract card for the person who holds both, and none of the ID card', async () => {
+      serveFigures([P.EmployeesFiguresHeadcount, P.EmployeesFiguresContractEnding], { ...summary, idExpiring: null });
+      renderPage(<HomePage />);
+      const stats = await screen.findByRole('region', { name: 'مؤشرات الموظفين' });
+      expect(await within(stats).findByText('على رأس العمل')).toBeInTheDocument();
+      expect(within(stats).getByText('الموظفون')).toBeInTheDocument();
+      expect(within(stats).getByText('عقود تنتهي قريبًا')).toBeInTheDocument();
+      expect(within(stats).queryByText('هويات تنتهي أو منتهية')).not.toBeInTheDocument();
+    });
+
+    it('shows no employee numbers and never asks for them without any of the three keys, even with the view key', async () => {
+      const asked = serveFigures([P.EmployeesView, P.TasksView], summary);
+      renderPage(<HomePage />);
+      await screen.findByRole('region', { name: 'مهامي الحالية' });
+      expect(screen.queryByRole('region', { name: 'مؤشرات الموظفين' })).not.toBeInTheDocument();
+      expect(asked).toEqual([]);
+    });
   });
 });

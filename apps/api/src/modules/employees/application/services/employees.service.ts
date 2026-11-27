@@ -35,7 +35,7 @@ import { IdentityProvider } from '../../../../core/auth/application/identity-pro
 import { InvitationService } from '../../../../core/auth/application/invitation.service';
 import { LookupsService } from '../../../lookups/application/services/lookups.service';
 import type { Employee } from '../../domain/entities/employee.entity';
-import { EmployeeRepository } from '../../domain/contracts/employee.repository';
+import { EmployeeRepository, type FigureGroup } from '../../domain/contracts/employee.repository';
 import { FieldNotEditableError, FieldRuleError, SelfActionError } from '../../domain/errors/employee.errors';
 import { EmployeeTransformer } from '../transformers/employee.transformer';
 import type { EmployeeInput } from '../../domain/rules/employee-flags.rules';
@@ -49,6 +49,9 @@ import { EmployeeVisibilityPolicy } from '../policies/employee-visibility.policy
 import { EmployeeAuditService } from './employee-audit.service';
 
 const P = CorePermission;
+
+/** The key each group of the home numbers answers to. */
+const FIGURE_KEYS: [FigureGroup, string][] = [['headcount', P.EmployeesFiguresHeadcount], ['idExpiring', P.EmployeesFiguresIdExpiring], ['contractEnding', P.EmployeesFiguresContractEnding]];
 
 /** Who acts, and whether platform admin mode is on for them: in admin mode a person may change their own roles and groups. */
 export interface Actor {
@@ -90,13 +93,22 @@ export class EmployeesService {
     return { items: await this.transformer.toListItems(items, states, { id: ctx.userId, canOpen: (e) => this.visibility.canOpen(ctx, e), openAs: (e) => this.visibility.openAs(ctx, e) }), total, page: query.page, pageSize: query.pageSize };
   }
 
-  /** Dashboard counts for the employees the viewer may see. Documents and contracts count as "soon" within 30 days. */
+  /**
+   * Dashboard counts for the employees the viewer may see, each group only for the person who holds its key (`employees.figures_*`, FR-208);
+   * a person with none of the three gets 403. Documents and contracts count as "soon" within 30 days.
+   */
   async summary(ctx: AccessContext): Promise<EmployeesSummaryDto> {
-    const scope = ctx.filterFor(P.EmployeesView);
-    if (!scope) throw new ForbiddenError();
-    const today = todayIso();
-    const soonUntil = new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
-    return this.repo.summary(scope, { today, soonUntil });
+    const window = { today: todayIso(), soonUntil: new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10) };
+    const summary: EmployeesSummaryDto = { total: null, active: null, inactive: null, needsPlacement: null, idExpiring: null, contractEnding: null };
+    let any = false;
+    for (const [group, key] of FIGURE_KEYS) {
+      const scope = ctx.filterFor(key);
+      if (!scope) continue;
+      any = true;
+      Object.assign(summary, await this.repo.figures(group, scope, window));
+    }
+    if (!any) throw new ForbiddenError();
+    return summary;
   }
 
   async get(ctx: AccessContext, id: string): Promise<EmployeeDto> {

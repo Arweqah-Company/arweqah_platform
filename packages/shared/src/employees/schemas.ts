@@ -352,16 +352,20 @@ export interface OwnProfileDto {
   employee: EmployeeDto | null;
 }
 
-/** Counts for the home dashboard, limited to the employees the viewer may see. */
+/**
+ * Counts for the home dashboard, limited to the employees the viewer may see. Each group answers to its own key and is `null` when the person
+ * does not hold it (the API never sends a number the person may not see): `employees.figures_headcount` (total, active, inactive, needs placement),
+ * `employees.figures_id_expiring` and `employees.figures_contract_ending`.
+ */
 export interface EmployeesSummaryDto {
-  total: number;
-  active: number;
-  inactive: number;
-  needsPlacement: number;
+  total: number | null;
+  active: number | null;
+  inactive: number | null;
+  needsPlacement: number | null;
   /** Identity documents already expired or expiring within 30 days. */
-  idExpiring: number;
+  idExpiring: number | null;
   /** Contracts ending within the next 30 days. */
-  contractEnding: number;
+  contractEnding: number | null;
 }
 
 export interface InviteResultDto {
