@@ -426,5 +426,12 @@
     "perHour": "Most reports one employee may send in an hour",
     "perHourHint": "Stops flooding; after it the employee is asked to wait.",
     "range": "Enter a whole number between {{min}} and {{max}}."
+  },
+  "sort": {
+    "label": "Order",
+    "activityDesc": "Last activity (latest first)",
+    "createdDesc": "Newest first",
+    "createdAsc": "Oldest first",
+    "activityAsc": "Oldest activity first"
   }
 }

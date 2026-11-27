@@ -1023,4 +1023,23 @@ describe('Tickets (FR-36 … FR-41)', () => {
       expect((await mine.get(`/api/tickets/${ticket.id}`).expect(200)).body.status).toBe('close_requested');
     });
   });
+
+  describe('Order by date (FR-208)', () => {
+    it('orders by when the ticket was sent, oldest or newest first, and keeps the last activity as the default', async () => {
+      const w = await world();
+      const typeId = await openDesk(w);
+      const first = await sendOne(w, typeId, { title: 'الأولى' });
+      const second = await sendOne(w, typeId, { title: 'الثانية' });
+      const third = await sendOne(w, typeId, { title: 'الثالثة' });
+      await w.agents.sender.post(`/api/tickets/${first.id}/replies`).send({ body: 'إضافة' }).expect(201); // the first one is now the latest by activity
+      const ids = async (q: string) => ((await w.agents.sender.get(`/api/tickets?tab=mine${q}`).expect(200)).body.items as { id: string }[]).map((i) => i.id);
+      expect(await ids('')).toEqual([first.id, third.id, second.id]);
+      expect(await ids('&sort=created&dir=desc')).toEqual([third.id, second.id, first.id]);
+      expect(await ids('&sort=created&dir=asc')).toEqual([first.id, second.id, third.id]);
+      expect(await ids('&sort=activity&dir=asc')).toEqual([second.id, third.id, first.id]);
+      expect(await ids('&groupBy=status&sort=created&dir=asc')).toEqual([first.id, second.id, third.id]);
+      await w.agents.sender.get('/api/tickets?sort=title').expect(400);
+      await w.agents.sender.get('/api/tickets?sort=created&dir=sideways').expect(400);
+    });
+  });
 });

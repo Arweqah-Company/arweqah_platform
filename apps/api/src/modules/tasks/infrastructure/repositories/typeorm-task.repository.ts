@@ -17,6 +17,7 @@ const SORT_SQL: Record<TaskSortKey, string> = {
   status: STATUS_ORDER,
   tag: 'tg.name_ar',
   estimate: 't.estimate_minutes',
+  createdAt: 't.created_at',
 };
 
 const GROUP_SQL: Record<TaskGrouping, string> = { due: 't.due_date', status: STATUS_ORDER, person: ASSIGNEE_NAME };

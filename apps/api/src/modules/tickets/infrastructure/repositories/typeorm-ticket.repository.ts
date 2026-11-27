@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, type EntityManager } from 'typeorm';
-import type { Paginated, TicketGrouping } from '@arweqah-platform/shared';
+import type { Paginated, TicketGrouping, TicketSortKey } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../../common/domain/transaction-context';
 import { likeContains } from '../../../../common/infrastructure/sql-like';
 import { returnedRows } from '../../../../common/infrastructure/query-result';
@@ -20,6 +20,9 @@ import type {
   ViewerScope,
 } from '../../domain/types/ticket.types';
 import { ticketQuery, toTicketRow } from './ticket-sql';
+
+/** The column each way of ordering reads (fixed names only reach the SQL text). */
+const SORT_COLUMN: Record<TicketSortKey, string> = { activity: 't.last_activity_at', created: 't.created_at' };
 
 const ORDER_BY_GROUP: Record<TicketGrouping, string> = {
   assignee: `COALESCE(ae.full_name, au.name) NULLS LAST, `,
@@ -134,7 +137,7 @@ export class TypeOrmTicketRepository extends TicketRepository {
 
   async list(f: TicketListFilters): Promise<Paginated<TicketRow> & { groupBy: TicketGrouping | null }> {
     const { clause, values } = this.listWhere(f);
-    const order = `${f.groupBy ? ORDER_BY_GROUP[f.groupBy] : ''}t.last_activity_at DESC, t.id`;
+    const order = `${f.groupBy ? ORDER_BY_GROUP[f.groupBy] : ''}${SORT_COLUMN[f.sort]} ${f.dir === 'asc' ? 'ASC' : 'DESC'}, t.id`;
     const page = [...values, f.pageSize, (f.page - 1) * f.pageSize];
     const listSql = ticketQuery(clause, `ORDER BY ${order} LIMIT $${page.length - 1} OFFSET $${page.length}`);
     const countSql = `SELECT count(*)::int AS n FROM tickets t JOIN ticket_types ty ON ty.id = t.type_id JOIN org_nodes n ON n.id = t.desk_id LEFT JOIN employees dm ON dm.id = n.manager_id AND dm.deleted_at IS NULL ${PEOPLE_JOINS} WHERE ${clause}`;

@@ -6,7 +6,7 @@ import { me, server } from '../../../../test/msw';
 import { renderPage, renderRoute } from '../../../../test/render';
 import { taskItem, taskPage } from '../../../../test/task-fixtures';
 import { MyTasksPage } from './my-tasks-page';
-import { chooseOption } from '../../../../test/select';
+import { chooseOption, optionLabels } from '../../../../test/select';
 
 const options = { assignees: [{ id: 'u1', name: 'سارة أحمد', isSelf: true }], tags: [], approver: null };
 
@@ -155,5 +155,23 @@ describe('My team is a tab of my tasks (FR-49)', () => {
     renderPage(<MyTasksPage />);
     await screen.findByRole('tab', { name: 'المسندة لي' });
     expect(screen.queryByRole('tab', { name: 'فريقي' })).not.toBeInTheDocument();
+  });
+
+  it('orders by due date at first, and the order list sends newest or oldest first; a column header says «by column» (FR-209)', async () => {
+    localStorage.clear(); // an earlier test may have left the list on the board, which has no column headers
+    const queries = serve();
+    renderPage(<MyTasksPage />);
+    await screen.findByText('إعداد تقرير المبيعات');
+    const order = screen.getByLabelText('الترتيب');
+    expect(order).toHaveTextContent('الأقرب موعدًا');
+    expect(await optionLabels(order)).toEqual(['الأقرب موعدًا', 'الأحدث إنشاءً', 'الأقدم إنشاءً']);
+    await chooseOption(order, 'createdAt:asc');
+    await waitFor(() => expect(queries.at(-1)?.get('sort')).toBe('createdAt'));
+    expect(queries.at(-1)?.get('dir')).toBe('asc');
+    await chooseOption(screen.getByLabelText('الترتيب'), 'createdAt:desc');
+    await waitFor(() => expect(queries.at(-1)?.get('dir')).toBe('desc'));
+    fireEvent.click(await screen.findByRole('button', { name: 'العنوان' }));
+    await waitFor(() => expect(queries.at(-1)?.get('sort')).toBe('title'));
+    await waitFor(() => expect(screen.getByLabelText('الترتيب')).toHaveTextContent('حسب العمود')); // ordered from a column header, so the list says so
   });
 });

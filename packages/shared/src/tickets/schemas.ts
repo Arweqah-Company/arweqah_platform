@@ -112,6 +112,10 @@ export type ChooseHandlerInput = z.infer<typeof chooseHandlerSchema>;
 export const ticketActionSchema = z.strictObject({ message: z.string().trim().max(MAX_TICKET_TEXT).optional() });
 export type TicketActionInput = z.infer<typeof ticketActionSchema>;
 
+/** How the ticket lists are ordered: by the last activity (the default) or by when the ticket was sent. */
+export const TICKET_SORT_KEYS = ['activity', 'created'] as const;
+export type TicketSortKey = (typeof TICKET_SORT_KEYS)[number];
+
 export const ticketsQuerySchema = paginationQuerySchema.extend({
   tab: z.enum(TICKET_TABS).default('mine'),
   deskId: z.uuid().optional(),
@@ -119,6 +123,9 @@ export const ticketsQuerySchema = paginationQuerySchema.extend({
   assigneeId: z.uuid().optional(),
   status: z.enum(TICKET_STATUSES).optional(),
   groupBy: z.enum(TICKET_GROUPINGS).optional(),
+  sort: z.enum(TICKET_SORT_KEYS).default('activity'),
+  /** `desc` = the newest first. */
+  dir: z.enum(['asc', 'desc']).default('desc'),
   /** Adds each ticket's text to the rows (the export asks for it; the table and the board do not). */
   withDetails: z.stringbool().optional(),
 });

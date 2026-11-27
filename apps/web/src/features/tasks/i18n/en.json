@@ -480,5 +480,12 @@
     "current": "Current followers",
     "remove": "Remove {{name}} from the followers",
     "none": "No followers yet."
+  },
+  "sort": {
+    "label": "Order",
+    "dueAsc": "Nearest due date",
+    "createdDesc": "Newest first",
+    "createdAsc": "Oldest first",
+    "byColumn": "By column"
   }
 }

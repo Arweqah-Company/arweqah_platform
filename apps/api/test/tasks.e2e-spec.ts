@@ -204,6 +204,19 @@ describe('Tasks: my tasks, creating and assigning (FR-48), my team and the matri
   });
 
   describe('Lists', () => {
+    it('orders by when the task was made, oldest or newest first (FR-209)', async () => {
+      const w = await world();
+      const first = await made(w.agents.manager, { assigneeUserId: w.report.id, title: 'الأولى', dueDate: riyadhToday(new Date(Date.now() + 5 * 86_400_000)) });
+      const second = await made(w.agents.manager, { assigneeUserId: w.report.id, title: 'الثانية', dueDate: riyadhToday(new Date(Date.now() + 2 * 86_400_000)) });
+      const third = await made(w.agents.manager, { assigneeUserId: w.report.id, title: 'الثالثة', dueDate: riyadhToday(new Date(Date.now() + 9 * 86_400_000)) });
+      const ids = async (q: string) => (await list(w.agents.report, q)).items.map((i) => i.id);
+      expect(await ids('?sort=createdAt&dir=asc')).toEqual([first.id, second.id, third.id]);
+      expect(await ids('?sort=createdAt&dir=desc')).toEqual([third.id, second.id, first.id]);
+      expect(await ids('')).toEqual([second.id, first.id, third.id]); // the default is still the nearest due date
+      expect(await ids('?groupBy=status&sort=createdAt&dir=desc')).toEqual([third.id, second.id, first.id]);
+      await w.agents.report.get('/api/tasks?sort=createdOn').expect(400);
+    });
+
     it('opens on open tasks ordered by due date, and filters, searches and sorts', async () => {
       const w = await world();
       const tomorrow = riyadhToday(new Date(Date.now() + 86_400_000));

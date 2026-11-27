@@ -3,6 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { access, me, server } from '../../../test/msw';
 import { renderPage } from '../../../test/render';
+import { chooseOption, optionLabels } from '../../../test/select';
 import { TicketsPage } from './tickets-page';
 
 const options = (extra: object) => ({ desks: [], types: [], assignees: [], hasInbox: false, hasTeam: false, ...extra });
@@ -102,5 +103,22 @@ describe('Deleting a ticket from its row (FR-158, FR-185)', () => {
     renderPage(<TicketsPage />);
     expect(await screen.findByText('الطابعة')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'حذف' })).not.toBeInTheDocument();
+  });
+
+  it('orders by last activity at first, and the order list sends oldest or newest first (FR-208)', async () => {
+    const asked = serveList([]);
+    renderPage(<TicketsPage />);
+    const order = await screen.findByLabelText('الترتيب');
+    await waitFor(() => expect(asked.length).toBeGreaterThan(0));
+    expect(asked[0]?.get('sort')).toBe('activity');
+    expect(asked[0]?.get('dir')).toBe('desc');
+    expect(order).toHaveTextContent('آخر نشاط (الأحدث أولًا)');
+    expect(await optionLabels(order)).toEqual(['آخر نشاط (الأحدث أولًا)', 'الأحدث إنشاءً', 'الأقدم إنشاءً', 'الأقدم نشاطًا']);
+    await chooseOption(order, 'created:asc');
+    await waitFor(() => expect(asked.at(-1)?.get('sort')).toBe('created'));
+    expect(asked.at(-1)?.get('dir')).toBe('asc');
+    await chooseOption(screen.getByLabelText('الترتيب'), 'created:desc');
+    await waitFor(() => expect(asked.at(-1)?.get('dir')).toBe('desc'));
+    expect(asked.at(-1)?.get('sort')).toBe('created');
   });
 });
