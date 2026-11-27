@@ -111,6 +111,8 @@ function leniently(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object') return raw;
   const a = raw as Record<string, unknown>;
   const text = (v: unknown): string => (typeof v === 'string' ? v : '');
+  // An answer with no title and no summary is not a reading at all: it goes on as it came and the check refuses it.
+  if (!text(a.title).trim() && !text(a.summary).trim()) return raw;
   const steps = Array.isArray(a.stepsGuess) ? a.stepsGuess.filter((x): x is string => typeof x === 'string').slice(0, MAX_STEPS) : [];
   const kind = KINDS.find((k) => k === a.kind) ?? 'other';
   return { title: text(a.title), summary: text(a.summary), stepsGuess: steps, area: text(a.area), kind };

@@ -59,4 +59,12 @@ describe('A reading that fails with the screenshot is tried again without it (FR
     expect(result?.analysis.stepsGuess).toHaveLength(6);
     expect(result?.analysis.kind).toBe('other');
   });
+
+  it('does not turn an answer with nothing in it into an empty reading', async () => {
+    const ai = {
+      isActive: () => Promise.resolve(true),
+      jsonOf: (q: { normalize: (r: unknown) => unknown; schema: { parse: (v: unknown) => unknown } }) => Promise.resolve({ value: q.schema.parse(q.normalize({ nonsense: true })), imagesSeen: false }),
+    } as unknown as AiService;
+    expect(await new ProblemReportAnalyzer(ai, files).analyze({ userId: 'u1', note: 'x', context: CONTEXT, imageFileId: null })).toBeNull();
+  });
 });
