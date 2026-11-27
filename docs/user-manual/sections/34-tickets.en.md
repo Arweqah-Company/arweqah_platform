@@ -21,6 +21,8 @@ A ticket is the official way to ask another department for something: you choose
 | Reply | Writes an answer with files and mentions | `tickets.reply` (Reply to and handle tickets) |
 | Answer a reply | Replies to one reply, one level only | `tickets.comment_reply` (Answer a reply inside a ticket) |
 | Mention with @ | Names a colleague in a reply | `tickets.comment_mention` (Mention a colleague with @ in a ticket reply) |
+| Edit my reply | The **pencil** on your own reply (for 15 minutes after sending it, while the ticket takes replies) opens the text in place; **Save the change** (or Ctrl+Enter) keeps it and the reply shows «edited» | `tickets.reply_edit` (Edit my own reply in a ticket) |
+| React to a reply | The **smiley** under a reply opens six reactions (like, love, care, haha, wow, sad); click one to react, click your own again to remove it | `tickets.reply_react` (React to the replies of a ticket) |
 | Request closing | The unit side asks the sender to confirm it was done | `tickets.request_close` (Ask to close a ticket) |
 | Confirm it was done | The sender confirms and the ticket is closed | `tickets.confirm_close` (Approve the closing of a ticket) |
 | Not done yet | The sender rejects the closing; the ticket returns to the department | `tickets.decline_close` (Reject the closing of a ticket) |
@@ -98,6 +100,7 @@ Pressing **Change** at the top of step 2 returns to step 1 without losing what y
 | Mention (@) | Brings a colleague into the conversation. A mentioned person can read and answer, nothing more. | No | Active employees of the ticket's company. In a personal ticket only the sender and the assignee. |
 | Answer this reply | Answers one earlier reply (needs `tickets.comment_reply`); the person you answer is notified. | No | One level only: an answer to an answer is filed under the first reply. |
 | Ticket attachments | Files with the reply. | No | Up to 5 files. |
+| Edit your reply | The new text of your own reply, in the box that opens in place of the text. The files stay as they were. | Yes | 1 to 5000 characters; within 15 minutes of sending; `@` as in the reply box (a name that was already in the reply needs no key). |
 
 **Message box of the close actions (Request closing, Confirm it was done, Not done yet, Close without carrying out, Reopen)**
 
@@ -186,6 +189,8 @@ Replying never changes the status by itself, except a sender's reply while the t
 - **Personal tickets** (complaints and personal matters) go straight to the person assigned to that type. They are hidden from the unit manager and from platform administrators; the figures count them but never list them. (FR-38)
 - Replies: up to 5 files each, text up to 5000 characters, one level of answers to a reply. In a personal ticket only the sender and the assignee can be mentioned. Previews open for images, PDF, Word, Excel and CSV (a CSV is drawn as a table, in UTF-8 or Excel's Arabic encoding).
 - Notices (in the app, and by e-mail for important ones) carry only the ticket number and the department, never its text. The person you mention is told, and so is the person whose reply you answer. (FR-39)
+- **Editing my reply:** only the author, for 15 minutes after sending, and only while the ticket takes replies (a closed ticket does not). After that the pencil disappears and the API refuses. The reply keeps its place, files and answers and shows «edited»; the mentions are recalculated by the reply rules and **only people newly named are told**. The audit log records the edit without the text. (FR-205)
+- **Reactions:** anybody who can see the ticket and holds `tickets.reply_react` reacts to a **reply** (not to a step of the history) with one of six reactions, **one per person per reply**: choosing another replaces it and choosing yours again removes it. Each reaction shows as a chip with its count; your own is highlighted and **the names appear when you hover** (up to 20 names; the count is complete). A person without the key sees the chips but not the smiley. A closed ticket still takes reactions. The author of the reply gets **one notice per new reaction** (in the app); changing or removing a reaction, or reacting to your own reply, tells nobody. (FR-206, FR-207)
 - Two people changing a ticket at the same moment: the second action is refused and must be repeated.
 
 ### Tips / common problems

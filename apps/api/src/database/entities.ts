@@ -19,6 +19,7 @@ import { TrustedDevice } from '../core/auth/domain/trusted-device.entity';
 import { EmailLoginCode } from '../core/auth/domain/email-login-code.entity';
 import { User } from '../core/auth/domain/user.entity';
 import { StoredFile } from '../core/files/domain/stored-file.entity';
+import { ConversationReaction } from '../core/reactions/domain/entities/conversation-reaction.entity';
 import { OutboxMessage } from '../core/messaging/domain/outbox-message.entity';
 import { ProcessedMessage } from '../core/messaging/domain/processed-message.entity';
 import { ScheduledJob } from '../core/messaging/domain/scheduled-job.entity';
@@ -81,6 +82,7 @@ export const ENTITIES = [
   ListSetting,
   AuditLog,
   StoredFile,
+  ConversationReaction,
   OutboxMessage,
   ProcessedMessage,
   ScheduledJob,

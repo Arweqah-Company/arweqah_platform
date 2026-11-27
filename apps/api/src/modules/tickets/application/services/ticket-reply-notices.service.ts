@@ -25,7 +25,7 @@ export class TicketReplyNotices {
   ) {}
 
   async send(reply: PostedReply, tx: TransactionContext): Promise<void> {
-    const commenter = (await this.directory.people([reply.actorUserId])).get(reply.actorUserId)?.name ?? '';
+    const commenter = await this.nameOf(reply.actorUserId);
     const told = new Set<string>([reply.actorUserId]);
     const take = (ids: (string | null)[]): string[] => {
       const fresh = [...new Set(ids.filter((id): id is string => !!id && !told.has(id)))];
@@ -38,5 +38,22 @@ export class TicketReplyNotices {
       ['reply', take(reply.audience), false],
     ];
     for (const [kind, recipients, email] of groups) await this.notifier.send({ kind, ticket: reply.ticket, recipients, email, commenter, actorUserId: reply.actorUserId, tx });
+  }
+
+  /** An edit that names somebody new tells only them (by e-mail too, without the text). */
+  async sendMentions(input: { ticket: TicketRow; actorUserId: string; userIds: string[]; tx: TransactionContext }): Promise<void> {
+    const commenter = await this.nameOf(input.actorUserId);
+    await this.notifier.send({ kind: 'mentioned', ticket: input.ticket, recipients: input.userIds, email: true, commenter, actorUserId: input.actorUserId, tx: input.tx });
+  }
+
+  /** The author of a reply hears once about each new reaction on it (the notifier drops the author's own reaction). */
+  async sendReacted(input: { ticket: TicketRow; reactorUserId: string; authorUserId: string | null; tx: TransactionContext }): Promise<void> {
+    if (!input.authorUserId) return;
+    const commenter = await this.nameOf(input.reactorUserId);
+    await this.notifier.send({ kind: 'replyReacted', ticket: input.ticket, recipients: [input.authorUserId], commenter, actorUserId: input.reactorUserId, tx: input.tx });
+  }
+
+  private async nameOf(userId: string): Promise<string> {
+    return (await this.directory.people([userId])).get(userId)?.name ?? '';
   }
 }

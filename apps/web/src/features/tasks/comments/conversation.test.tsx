@@ -1,5 +1,5 @@
 import { defaultCommentMatrix, type TaskCommentDto, type TaskConversationDto } from '@arweqah-platform/shared';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { me, server } from '../../../../test/msw';
@@ -10,7 +10,7 @@ const SARA = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 
 const comment = (over: Partial<TaskCommentDto> = {}): TaskCommentDto => ({
   id: 'c1', parentId: null, author: { id: 'u2', name: 'منى خالد' }, replyTo: null, body: 'مرحبا', mentions: [], files: [], createdAt: '2026-10-28T10:00:00.000Z',
-  isEdited: false, isDeleted: false, mayEdit: false, mayDelete: false, ...over,
+  isEdited: false, isDeleted: false, mayEdit: false, mayDelete: false, reactions: [], ...over,
 });
 const conversation = (over: Partial<TaskConversationDto> = {}): TaskConversationDto => ({
   task: { id: 't1', number: 'TSK-000001', title: 'إعداد التقرير' }, comments: [], can: { write: true, reply: true, upload: true, mention: true }, maxFiles: 5, locked: false, isOutsider: false, ...over,
@@ -119,5 +119,30 @@ describe('Task conversation (FR-66)', () => {
 
   it('has a default matrix with all eight relations and seven actions (the shape the rules page edits)', () => {
     expect(Object.keys(defaultCommentMatrix())).toHaveLength(8);
+  });
+});
+
+describe('Task conversation reactions (FR-206)', () => {
+  it('shows the reactions of a comment, puts one from the picker and removes mine (FR-206)', async () => {
+    const calls = serve(conversation({ comments: [comment({ id: 'c1', reactions: [{ reaction: 'care', count: 1, mine: true, people: [{ id: 'u1', name: 'سارة أحمد' }] }] }), comment({ id: 'c3', isDeleted: true, body: '' })] }));
+    server.use(
+      http.put('*/api/tasks/t1/comments/:id/reaction', async ({ request, params }) => {
+        calls.push({ method: 'PUT', path: `reaction:${String(params.id)}`, body: await request.json() });
+        return HttpResponse.json(conversation({ comments: [comment({ id: 'c1', reactions: [{ reaction: 'love', count: 1, mine: true, people: [{ id: 'u1', name: 'سارة أحمد' }] }] })] }));
+      }),
+      http.delete('*/api/tasks/t1/comments/:id/reaction', ({ params }) => {
+        calls.push({ method: 'DELETE', path: `reaction:${String(params.id)}`, body: null });
+        return HttpResponse.json(conversation({ comments: [comment({ id: 'c1' })] }));
+      }),
+    );
+    open();
+    const mine = await screen.findByRole('button', { name: /اهتمام من سارة أحمد/ });
+    expect(mine).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getAllByRole('button', { name: 'تفاعل' })).toHaveLength(1); // none under the deleted comment
+    fireEvent.click(screen.getByRole('button', { name: 'تفاعل' }));
+    fireEvent.click(within(await screen.findByRole('group', { name: 'اختر تفاعلًا' })).getByRole('button', { name: 'حب' }));
+    await waitFor(() => expect(calls).toContainEqual({ method: 'PUT', path: 'reaction:c1', body: { reaction: 'love' } }));
+    fireEvent.click(await screen.findByRole('button', { name: /حب من سارة أحمد/ }));
+    await waitFor(() => expect(calls).toContainEqual({ method: 'DELETE', path: 'reaction:c1', body: null }));
   });
 });

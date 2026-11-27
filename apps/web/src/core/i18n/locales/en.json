@@ -214,6 +214,7 @@
     "TICKET_COMMENT_NOT_ALLOWED": "You do not have the permission for this action in the ticket (answering a reply or mentioning a colleague).",
     "TICKET_MENTION_INVALID": "You can mention active employees of the ticket's company only, and nobody but its two sides on a personal ticket.",
     "TICKET_REPLY_TARGET_INVALID": "This item cannot be answered.",
+    "TICKET_REPLY_EDIT_EXPIRED": "The time to edit the reply has passed (15 minutes after sending it).",
     "FILE_NOT_PREVIEWABLE": "This type of file cannot be shown here; download it to open it.",
     "TASK_COMMENT_MENTION_INVALID": "You can mention active employees of the task's company only.",
     "TASK_COMMENT_REPLY_INVALID": "This comment cannot be answered.",
@@ -418,6 +419,20 @@
     "locked": "Too many wrong attempts. Try again in a few minutes.",
     "turnedOn": "Platform admin mode is on.",
     "expired": "Platform admin mode stopped because of inactivity. Turn it on again when you need it."
+  },
+  "reactions": {
+    "add": "React",
+    "picker": "Choose a reaction",
+    "list": "Reactions",
+    "nameSeparator": ", ",
+    "chipNames": "{{reaction}} from {{names}}",
+    "more": "and {{count}} more",
+    "like": "Like",
+    "love": "Love",
+    "care": "Care",
+    "haha": "Haha",
+    "wow": "Wow",
+    "sad": "Sad"
   },
   "dropzone": {
     "promptOne": "Drop the file here, or click to browse",

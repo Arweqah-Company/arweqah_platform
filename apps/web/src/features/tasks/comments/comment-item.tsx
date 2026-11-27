@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
 import { ConfirmDialog, FileChip, MentionedText, RowAction } from '@/shared/ui';
 import { CommentComposer } from './comment-composer';
+import { CommentReactions } from './comment-reactions';
 import { commentFileUrl, useDeleteComment } from './comments.api';
 
 interface Props {
@@ -75,6 +76,7 @@ export function CommentItem({ taskId, conversation, comment, replying, onReply, 
         {!comment.isDeleted && editing && <CommentComposer taskId={taskId} conversation={conversation} target={{ type: 'edit', comment }} onDone={() => { setEditing(false); onDone(); }} />}
         {!comment.isDeleted && !editing && <MentionedText body={comment.body} people={comment.mentions} />}
         <Files taskId={taskId} comment={comment} />
+        {!comment.isDeleted && <CommentReactions taskId={taskId} comment={comment} />}
       </div>
       {replying && <div className="mt-3 border-t border-neutral-200 pt-3"><CommentComposer taskId={taskId} conversation={conversation} target={{ type: 'reply', comment }} onDone={onDone} /></div>}
       <ConfirmDialog open={confirming} onOpenChange={setConfirming} tone="danger" title={t('comments.deleteTitle')} description={t('comments.deleteText')} confirmLabel={t('comments.delete')} busy={remove.isPending} onConfirm={() => void confirmDelete()} />

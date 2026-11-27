@@ -49,3 +49,4 @@ export { LineList } from './line-list';
 export { LocalizedLinesField } from './localized-lines-field';
 export { DeleteRecordButton } from './delete-record-button';
 export { TeamsChatButton, teamsChatUrl } from './teams-chat-button';
+export { ReactionBar, REACTION_EMOJI } from './reaction-bar';

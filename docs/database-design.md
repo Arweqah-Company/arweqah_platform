@@ -780,6 +780,7 @@ erDiagram
     uuid parent_event_id FK
     uuid reply_to_user_id FK
     timestamp_with_time_zone created_at
+    timestamp_with_time_zone edited_at
   }
   ticket_event_mentions {
     uuid event_id PK,FK
@@ -965,6 +966,14 @@ erDiagram
     character_varying action PK
     boolean allowed
   }
+  conversation_reactions {
+    character_varying target_type PK
+    uuid target_id PK
+    uuid user_id PK,FK
+    character_varying reaction
+    timestamp_with_time_zone created_at
+  }
+  users ||--o{ conversation_reactions : "user_id"
   users ||--o{ task_comments : "author_user_id"
   task_comments ||--o{ task_comments : "parent_id"
   tasks ||--o{ task_comments : "task_id"
@@ -1579,7 +1588,7 @@ erDiagram
 | `ticket_types` | Kinds of ticket per desk (names ar / en, instructions for the sender ar / en, due days, personal flag). |
 | `ticket_type_handlers` | The employees of the unit who answer the tickets of a type (one or more; with several, the first to reply takes the ticket). |
 | `tickets` | The ticket: sender, desk, type, title, details, priority, needed-by date, assignee, status, close reason, response and activity timestamps, reopen count, `deleted_at` (the delete button hides the ticket, never erases it). |
-| `ticket_events` | Timeline of a ticket: answers, status changes, assignment, close and reopen. |
+| `ticket_events` | Timeline of a ticket: answers, status changes, assignment, close and reopen. `edited_at` is set when the author changes the text of their own reply (within 15 minutes). |
 | `ticket_attachments` | Files attached to a ticket (links to `files`). |
 | `problem_report_settings` | One row (`id` = 1): the «report a problem» button's switch, the ticket type reports become (`ticket_type_id`, cleared if the type is deleted), whether the AI analyses a report and sees its screenshot, and the reports one employee may send an hour. |
 | `ticket_event_mentions` | The people a reply names with `@` (they may read and answer the ticket). `ticket_events` also holds `parent_event_id` (the first reply an answer sits under) and `reply_to_user_id` (whom it answers). |
@@ -1604,6 +1613,7 @@ erDiagram
 | `task_comment_files` | Files attached to a comment (links to `files`). |
 | `task_comment_mentions` | `@` mentions in a comment, used for notifications. |
 | `task_comment_rules` | Per-company matrix: which relation (owner, assignee, follower…) may do which comment action. |
+| `conversation_reactions` | One reaction (like, love, care, haha, wow, sad) of one person on one reply of a ticket (`target_type = 'ticket_event'`, `target_id` = the `ticket_events` row) or one comment of a task (`'task_comment'`, the `task_comments` row); the key `(target_type, target_id, user_id)` keeps one per person per reply. `target_id` has no foreign key (it points at either table). |
 
 ### 9. Platform services
 
