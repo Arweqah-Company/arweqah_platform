@@ -92,10 +92,36 @@ describe('PowerPoint preview in the browser (FR-191)', () => {
     const zip = new JSZip();
     zip.file('ppt/slides/slide1.xml', SLIDE(['first file, shown second']));
     zip.file('ppt/slides/slide2.xml', SLIDE(['second file, shown first']));
-    zip.file('ppt/presentation.xml', '<p:presentation xmlns:p="p" xmlns:r="r"><p:sldIdLst><p:sldId id="257" r:id="rId9"/><p:sldId id="256" r:id="rId8"/></p:sldIdLst></p:presentation>');
+    zip.file('ppt/presentation.xml', '<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:sldIdLst><p:sldId id="257" r:id="rId9"/><p:sldId id="256" r:id="rId8"/></p:sldIdLst></p:presentation>');
     zip.file('ppt/_rels/presentation.xml.rels', '<Relationships><Relationship Id="rId8" Type="x/slide" Target="slides/slide1.xml"/><Relationship Id="rId9" Type="x/slide" Target="slides/slide2.xml"/></Relationships>');
     const { slides } = await pptxToSlides(await zip.generateAsync({ type: 'blob' }));
     expect(slides.map((s) => s.lines[0])).toEqual(['second file, shown first', 'first file, shown second']);
     expect(slides.map((s) => s.number)).toEqual([1, 2]);
+  });
+
+  const NS = { p: 'http://schemas.openxmlformats.org/presentationml/2006/main', r: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships', rel: 'http://schemas.openxmlformats.org/package/2006/relationships' };
+  async function reordered(presentation: string, rels: string): Promise<string[]> {
+    const zip = new JSZip();
+    zip.file('ppt/slides/slide1.xml', SLIDE(['first file']));
+    zip.file('ppt/slides/slide2.xml', SLIDE(['second file']));
+    zip.file('ppt/presentation.xml', presentation);
+    zip.file('ppt/_rels/presentation.xml.rels', rels);
+    return (await pptxToSlides(await zip.generateAsync({ type: 'blob' }))).slides.map((x) => x.lines[0] ?? '');
+  }
+
+  it('reads a relationship that names its slide from the root of the package (a path starting with «/»)', async () => {
+    const order = await reordered(
+      `<p:presentation xmlns:p="${NS.p}" xmlns:r="${NS.r}"><p:sldIdLst><p:sldId id="257" r:id="rId9"/><p:sldId id="256" r:id="rId8"/></p:sldIdLst></p:presentation>`,
+      `<Relationships xmlns="${NS.rel}"><Relationship Id="rId8" Type="x/slide" Target="/ppt/slides/slide1.xml"/><Relationship Id="rId9" Type="x/slide" Target="/ppt/slides/slide2.xml"/></Relationships>`,
+    );
+    expect(order).toEqual(['second file', 'first file']);
+  });
+
+  it('reads the presentation whatever prefixes it gives to the namespaces (not only «p» and «r»)', async () => {
+    const order = await reordered(
+      `<s:presentation xmlns:s="${NS.p}" xmlns:q="${NS.r}"><s:sldIdLst><s:sldId id="257" q:id="rId9"/><s:sldId id="256" q:id="rId8"/></s:sldIdLst></s:presentation>`,
+      `<Relationships xmlns="${NS.rel}"><Relationship Id="rId8" Type="x/slide" Target="slides/slide1.xml"/><Relationship Id="rId9" Type="x/slide" Target="slides/slide2.xml"/></Relationships>`,
+    );
+    expect(order).toEqual(['second file', 'first file']);
   });
 });
