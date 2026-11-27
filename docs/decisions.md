@@ -18,6 +18,14 @@ Plan: `docs/plans/phase-2-tickets.md` (section «زر بلّغ عن مشكلة»
 | 494 | **The screenshot is drawn from the page with `html-to-image` 1.11.13** (pinned, older than 14 days), as a JPEG at 85 %, window size, no permission prompt. Approximate: scrolled inner containers and cross-origin pictures may differ. Password fields and `data-private` nodes are filtered out. Screen sharing (`getDisplayMedia`) is not used: it asks every time, fails on phones and may capture other windows. | One click, phones, private fields can be removed. | A report needs an exact picture |
 | 493 | **Inside the tickets module** (owner): `modules/tickets` (service, settings service, analyzer, controllers, entity, migration `1796100000000-ProblemReports`) and `features/tickets/problem-report`. A report is `TicketsService.create` called for the employee, so every rule of a ticket (type, desk receiving, files, notices) applies unchanged. | One ticket flow, no second one to keep in step. | Reports need their own life cycle |
 
+## 2026-11-27 — Time on a task as hours and minutes (FR-200)
+
+Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-27).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 503 | **The «Log time» dialog takes Hours and Minutes (0–59), sent to the API as the total in minutes; the limit stays one entry up to 24 hours** (`timeEntrySchema` unchanged, no API change). The rules live in `features/tasks/details/time-rules.ts` (`checkTime`) and the two boxes in `TimeFields`. More than a day shows «A day has only 24 hours, you wrote X h Y min…» under the boxes and keeps «Log» off; empty / zero, a non-whole number and minutes above 59 each have their own message, shown as the person types or leaves a box (`useLiveError`). | The owner typed 2000 into the minutes box: it is 33 h 20 min, over the 1440 limit, and the screen only turned the button off without saying why. Hours and minutes match how people count a working day. Keeping the day limit per entry means longer work is logged on the days it was done. | The owner wants more than a day in one entry, or the estimate box of the task form (still minutes) gets the same two boxes |
+
 ## 2026-11-27 — Attachment size setting, PowerPoint, thumbnails, audit tabs (FR-191, FR-192, FR-193)
 
 Plan: `docs/plans/phase-1-auth-employees.md` (log 2026-11-27).

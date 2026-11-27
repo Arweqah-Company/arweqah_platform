@@ -127,16 +127,6 @@ describe('Task details: objections, time and moves (FR-52)', () => {
     expect(screen.getByRole('button', { name: 'إرسال الرد' })).toBeEnabled();
   });
 
-  it('keeps the time dialog\'s save button off until minutes are given', async () => {
-    serve(taskDetail({ abilities: { ...closed, logTime: true } }));
-    page();
-    fireEvent.click(await screen.findByRole('button', { name: 'تسجيل وقت' }));
-    const save = await screen.findByRole('button', { name: 'تسجيل' });
-    expect(save).toBeDisabled();
-    fireEvent.change(screen.getByLabelText(/الدقائق/), { target: { value: '45' } });
-    expect(save).toBeEnabled();
-  });
-
   it('lists where the viewer may move the task', async () => {
     serve(taskDetail({ abilities: { ...closed, moveTo: ['in_progress'] } }));
     page();

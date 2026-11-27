@@ -1,0 +1,1192 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>جولة منصة أروقة الريادة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap">
+<style>
+/* Layout: a top bar (deck | scenarios) over a one-slide-at-a-time stage; scenarios are a runnable checklist. */
+:root{
+  --cream:#fffcee; --ink:#0c2028; --ink2:#16303b; --green:#85ba95; --green-d:#245a39; --green-50:#e6f2ea;
+  --orange:#c16426; --orange-d:#9c4a18; --orange-50:#fbebdd; --beige:#d7d2cb; --beige-d:#7a746a; --beige-50:#f1eee9;
+  --petrol:#00415b; --petrol-50:#e0ebf0; --yellow:#fbd564; --yellow-50:#fef4d4;
+  --bg:var(--cream); --fg:var(--ink); --muted:var(--beige-d); --card:#fff; --line:var(--beige);
+  --accent:var(--petrol); --accent-fg:#fff; --soft:var(--petrol-50);
+  --font:'Tajawal',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c2028; --fg:#fffcee; --muted:#a9b3b6; --card:#16303b; --line:#2a4552; --accent:#85ba95; --accent-fg:#0c2028; --soft:#123140;
+  --green-50:#12301f; --orange-50:#3b2615; --yellow-50:#3b3112; --petrol-50:#123140; --beige-50:#1a2830; --green-d:#85ba95; --orange-d:#e39a63; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c2028; --fg:#fffcee; --muted:#a9b3b6; --card:#16303b; --line:#2a4552; --accent:#85ba95; --accent-fg:#0c2028; --soft:#123140;
+  --green-50:#12301f; --orange-50:#3b2615; --yellow-50:#3b3112; --petrol-50:#123140; --beige-50:#1a2830; --green-d:#85ba95; --orange-d:#e39a63; color-scheme:dark}
+*{box-sizing:border-box}
+html{direction:rtl;height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0;height:100%;display:flex;flex-direction:column;overflow:hidden}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+.bar{flex:none;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 0}
+.brand{font-weight:800;font-size:18px;margin-inline-end:auto}
+.brand small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.tabs{display:flex;gap:4px;background:var(--soft);padding:4px;border-radius:10px}
+.tabs button,.btn{border:0;background:transparent;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:700}
+.tabs button[aria-selected=true]{background:var(--accent);color:var(--accent-fg)}
+.btn{background:var(--soft);}
+.btn.primary{background:var(--accent);color:var(--accent-fg)}
+.btn:disabled{opacity:.4;cursor:default}
+main{flex:1;min-height:0;width:100%;display:flex;flex-direction:column}
+#deck{flex:1;min-height:0;display:flex;flex-direction:column;padding-top:10px}
+/* ---------- deck ---------- */
+.progress{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:16px}
+.progress i{display:block;height:100%;width:0;background:var(--orange);transition:width .5s}
+.stage{position:relative;flex:1;min-height:0;overflow:auto;font-size:clamp(16px,1.3vw,21px);padding:6px 4px}
+.slide{display:none}
+.slide.on{display:flex;flex-direction:column;justify-content:center;min-height:100%;max-width:1400px;width:100%;margin:0 auto}
+.slide>*{animation:rise .55s backwards;animation-delay:calc(var(--d,0)*90ms)}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--orange) 50%,transparent)}50%{box-shadow:0 0 0 10px transparent}}
+@keyframes slidein{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+.kicker{font-size:13px;letter-spacing:.04em;color:var(--orange-d);font-weight:800}
+h1{font-size:clamp(30px,4.6vw,68px);line-height:1.2;margin:.2em 0;text-wrap:balance;font-weight:800}
+h2{font-size:clamp(24px,3vw,44px);margin:.2em 0 .4em;line-height:1.3;text-wrap:balance;font-weight:800}
+h3{font-size:18px;margin:0 0 6px}
+p{margin:.3em 0}
+.lead{font-size:1.15em;color:var(--muted);max-width:60ch}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));margin-top:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.card.e{border-top:4px solid var(--green)}
+.card.l{border-top:4px solid var(--orange)}
+.card.s{border-top:4px solid var(--petrol)}
+ul{margin:.3em 0;padding-inline-start:1.2em}
+li{margin:.2em 0}
+.pill{display:inline-block;font-size:12.5px;font-weight:700;padding:2px 10px;border-radius:99px;background:var(--soft);white-space:nowrap}
+.pill.e{background:var(--green-50);color:var(--green-d)}
+.pill.l{background:var(--orange-50);color:var(--orange-d)}
+.pill.x{background:var(--yellow-50);color:var(--fg);border:1px solid var(--yellow)}
+.pill.n{background:var(--beige-50);color:var(--muted)}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85em;background:var(--beige-50);padding:1px 6px;border-radius:5px;direction:ltr;unicode-bidi:isolate}
+.flow{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch;margin:18px 0}
+.node{flex:1 1 150px;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;position:relative;
+  animation:pop .5s backwards;animation-delay:calc(var(--i)*260ms + 250ms);cursor:pointer;transition:opacity .25s,box-shadow .25s}
+.node b{display:block;margin-bottom:2px}
+.node small{color:var(--muted);display:block;line-height:1.5}
+.node .who{font-size:12px;font-weight:800}
+.node.e .who{color:var(--green-d)} .node.l .who{color:var(--orange-d)} .node.s .who{color:var(--accent)}
+.node:not(:last-child)::after{content:"◀";position:absolute;inset-inline-end:-14px;top:50%;transform:translateY(-50%);color:var(--orange);font-size:13px;z-index:2;
+  animation:slidein .5s backwards;animation-delay:calc(var(--i)*260ms + 450ms)}
+.node.hot{animation:pop .5s backwards,pulse 2s 1.4s 2;animation-delay:calc(var(--i)*260ms + 250ms),calc(var(--i)*260ms + 900ms)}
+@media(max-width:640px){.node:not(:last-child)::after{content:"▼";inset-inline-end:50%;top:auto;bottom:-15px;transform:translateX(50%)}}
+.bars{display:grid;gap:8px;margin-top:10px}
+.bars div{display:grid;grid-template-columns:130px 1fr auto;gap:10px;align-items:center;font-size:14px}
+.bars i{display:block;height:12px;border-radius:6px;background:var(--accent);transform-origin:right;animation:grow .9s both;animation-delay:.5s}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+th{font-size:13px;color:var(--muted)}
+.scroll{overflow-x:auto}
+.phone{width:150px;border:6px solid var(--ink2);border-radius:24px;padding:14px 10px;background:var(--card);text-align:center;margin-inline:auto}
+.phone .code{font-size:28px;font-weight:800;letter-spacing:.15em;direction:ltr;color:var(--accent)}
+.phone .t{height:5px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:10px}
+.phone .t i{display:block;height:100%;background:var(--orange);animation:tick 30s linear infinite;transform-origin:right}
+@keyframes tick{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+.split{display:grid;grid-template-columns:1fr 170px;gap:18px;align-items:center}
+@media(max-width:640px){.split{grid-template-columns:1fr}}
+.navrow{flex:none;display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px 0;flex-wrap:wrap}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;flex:1}
+.dots button{width:10px;height:10px;border-radius:50%;border:0;background:var(--line);padding:0;cursor:pointer}
+.dots button[aria-current=true]{background:var(--orange);transform:scale(1.4)}
+.hint{color:var(--muted);font-size:13px}
+.card{transition:opacity .25s,box-shadow .25s;cursor:default}
+.sel{outline:3px solid var(--orange);box-shadow:0 10px 30px color-mix(in srgb,var(--orange) 30%,transparent)}
+.dim .node:not(.sel),.dim .card:not(.sel){opacity:.4}
+.tag{font-size:12px;color:var(--muted)}
+.note{background:var(--yellow-50);border:1px solid var(--yellow);border-radius:10px;padding:10px 14px;margin-top:14px;font-size:14.5px}
+/* ---------- scenarios ---------- */
+.vars{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.vars label{display:block;font-size:13px;font-weight:700;color:var(--muted)}
+.vars input,.sc textarea,.sc select{width:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:2px}
+.scnav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.scnav button{border:1px solid var(--line);background:var(--card);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+.scnav button[aria-selected=true]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.step{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.step .n{width:30px;height:30px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-weight:800;font-size:14px}
+.step.ok .n{background:var(--green);color:var(--ink)}
+.step.bad .n{background:var(--orange);color:#fff}
+.step .exp{background:var(--beige-50);border-radius:8px;padding:6px 10px;margin-top:6px;font-size:14.5px}
+.step .ctl{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.step .ctl button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:4px 12px;cursor:pointer;font-size:13.5px}
+.step .ctl button[aria-pressed=true].ok{background:var(--green);color:var(--ink);border-color:var(--green)}
+.step .ctl button[aria-pressed=true].bad{background:var(--orange);color:#fff;border-color:var(--orange)}
+.step .ctl input{flex:1 1 200px;min-width:0;border:1px solid var(--line);border-radius:8px;padding:4px 10px;background:var(--card)}
+.v{background:var(--yellow-50);border-bottom:2px solid var(--yellow);padding:0 4px;border-radius:3px;font-weight:700}
+.sum{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.meter{flex:1 1 200px;height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--green);transition:width .3s}
+pre.rep{white-space:pre-wrap;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;font-family:var(--font);font-size:14px;max-height:320px;overflow:auto;direction:rtl}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+#scen{flex:1;min-height:0;display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:24px;padding-top:12px}
+#scen .side,#scen .work{overflow:auto;min-height:0;padding-bottom:30px}
+#scen[hidden],#deck[hidden]{display:none}
+#scen .scnav{flex-direction:column;margin:0 0 14px}
+#scen .scnav button{text-align:start}
+#scen .step{padding:18px 0;font-size:1.05em}
+@media(max-width:900px){#scen{display:block;overflow:auto}#scen .side,#scen .work{overflow:visible}}
+/* labs */
+.lab{display:grid;grid-template-columns:1fr minmax(240px,340px);gap:18px;margin-top:10px}
+@media(max-width:860px){.lab{grid-template-columns:1fr}}
+.cols{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+@media(max-width:860px){.cols{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.col{background:var(--beige-50);border-radius:12px;min-height:110px;padding:8px;font-size:12.5px;font-weight:700;color:var(--muted);transition:background .3s}
+.col.act{background:var(--soft);outline:2px dashed var(--orange)}
+.tcard{margin-top:6px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:8px;font-weight:500;animation:pop .45s backwards}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.acts button{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 14px;cursor:pointer;font-weight:700;transition:transform .15s}
+.acts button:hover{transform:translateY(-2px)}
+.acts button.e{border-color:var(--green);background:var(--green-50);color:var(--green-d)}
+.acts button.l{border-color:var(--orange);background:var(--orange-50);color:var(--orange-d)}
+.acts button.s{border-color:var(--petrol);background:var(--petrol-50);color:var(--fg)}
+.acts button:disabled{opacity:.3;cursor:default;transform:none}
+.log{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;max-height:340px;overflow:auto;font-size:.9em}
+.log div{padding:5px 8px;border-radius:8px;margin-bottom:5px;animation:slidein .4s backwards}
+.log .n{background:var(--yellow-50)}
+.log .a{background:var(--soft)}
+.log .w{background:var(--orange-50);color:var(--orange-d)}
+.lvl{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.lvl .opts{display:flex;gap:4px;flex-wrap:wrap}
+.lvl .opts button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:3px 10px;cursor:pointer;font-size:.85em}
+.lvl .opts button[aria-pressed=true]{background:var(--accent);color:var(--accent-fg)}
+.big{font-size:2.6em;font-weight:800;line-height:1}
+.chain{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.chain .node{cursor:default}
+.chain .node.on{outline:3px solid var(--orange);background:var(--orange-50)}
+.chain .node.past{opacity:.45}
+input[type=range]{width:100%;accent-color:var(--orange)}
+.seg{display:inline-flex;background:var(--soft);padding:3px;border-radius:10px;gap:2px}
+.seg button{border:0;background:transparent;border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:700}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-fg)}
+.who3{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.who3 span{padding:4px 12px;border-radius:99px;font-size:.85em;font-weight:700;transition:all .3s}
+.vis{background:var(--green-50);color:var(--green-d)}
+.hid{background:var(--beige-50);color:var(--muted);text-decoration:line-through}
+.ov{position:fixed;inset:0;z-index:50;background:var(--bg);overflow:auto;padding:24px max(16px,env(safe-area-inset-left,0px));display:none}
+.ov.on{display:block}
+.ovg{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.ovg button{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:14px;cursor:pointer;text-align:start;font-weight:700;animation:pop .35s backwards;animation-delay:calc(var(--i)*25ms)}
+.ovg button.cur{outline:3px solid var(--orange)}
+
+.shell{border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:visible;position:relative}
+.topbar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--ink);color:var(--cream);border-radius:14px 14px 0 0}
+.topbar .sp{flex:1}
+.topbar button{background:transparent;border:0;color:inherit;cursor:pointer;font-weight:700;padding:6px 10px;border-radius:8px;position:relative}
+.topbar button:hover{background:var(--ink2)}
+.badge{position:absolute;top:-2px;inset-inline-start:-2px;background:var(--yellow);color:var(--ink);border-radius:99px;font-size:11px;padding:0 6px;font-weight:800}
+.dd{position:absolute;inset-inline-end:10px;top:52px;background:var(--card);border:1px solid var(--line);border-radius:12px;min-width:240px;box-shadow:0 14px 40px rgba(0,0,0,.25);z-index:5;padding:6px;animation:pop .25s}
+.dd[hidden]{display:none}
+.dd button{display:block;width:100%;text-align:start;background:transparent;border:0;padding:10px 12px;border-radius:8px;cursor:pointer;color:var(--fg)}
+.dd button:hover{background:var(--soft)}
+.dd small{display:block;color:var(--muted)}
+.field{margin:10px 0}.field label{display:block;font-weight:700;font-size:.9em}
+.field input{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);direction:ltr;text-align:start}
+.field input.bad{border-color:var(--orange)}
+.field .err{color:var(--orange-d);font-size:.85em;min-height:1.2em}
+.field .ok{color:var(--green-d);font-size:.85em}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.95em}.kv b{color:var(--muted);font-weight:700}
+.mock{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--bg);color:var(--fg);transition:background .4s,color .4s}
+.mock h3{margin:0 0 8px}
+.mock .mb{display:inline-block;background:var(--accent);color:var(--accent-fg);padding:6px 14px;border-radius:8px;font-weight:700}
+.sw{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.sw i{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);display:block}
+.srow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);animation:slidein .4s backwards}
+.srow.gone{opacity:0;transform:translateX(30px);transition:all .4s}
+.alert{padding:10px 14px;border-radius:10px;background:var(--green-50);color:var(--green-d);font-weight:700}
+.alert.y{background:var(--yellow-50);color:var(--fg);border:1px solid var(--yellow)}
+.mini{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:4px 12px;cursor:pointer;font-size:.88em}
+.mini.d{border-color:var(--orange);color:var(--orange-d)}
+.nrow{display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:10px;border-radius:10px;cursor:pointer;align-items:center}
+.nrow:hover{background:var(--soft)}
+.nrow.u b{font-weight:800}.nrow:not(.u){color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--yellow);border:1px solid var(--orange)}
+.nrow:not(.u) .dot{visibility:hidden}
+table.acc td:nth-child(3),table.acc td:nth-child(4){white-space:nowrap}
+.hidden-ban{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toast{position:fixed;inset-inline-start:50%;bottom:80px;transform:translateX(-50%);background:var(--ink);color:var(--cream);padding:10px 20px;border-radius:10px;z-index:60;animation:pop .3s;font-weight:700}
+.toast[hidden]{display:none}
+</style>
+
+<div class="bar">
+  <div class="brand">أروقة الريادة<small>جولة المنصة: الموظف والقائد، وسيناريوهات التجربة</small></div>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-deck" aria-selected="true">العرض</button>
+    <button role="tab" id="tab-sc" aria-selected="false">السيناريوهات</button>
+  </div>
+  <button class="btn" id="ovb" title="G">كل الشرائح</button>
+  <button class="btn" id="auto" aria-pressed="false">تشغيل تلقائي</button>
+  <button class="btn" id="fs">ملء الشاشة</button>
+</div>
+
+<main>
+<!-- ================= DECK ================= -->
+<section id="deck">
+<div class="progress"><i id="pg"></i></div>
+<div class="stage" id="stage">
+
+<!-- 1 cover -->
+<article class="slide on" data-t="الغلاف">
+  <div class="kicker" style="--d:0">جولة كاملة على المنصة كما هي اليوم</div>
+  <h1 style="--d:1">من لحظة الدخول<br>إلى آخر خطوة، بعيون الموظف وعيون القائد</h1>
+  <p class="lead" style="--d:2">تسجيل الدخول، الرئيسية، المهام، التذاكر، المسار الوظيفي، طلبات التطوير، تقييم الأداء. وبعدها عشرة سيناريوهات تجريبها بنفسك بالبيانات التي تضعها.</p>
+  <div class="grid" style="--d:3">
+    <div class="card e"><span class="pill e">دور: موظف</span><h3>يرى ويعمل في سجله هو</h3><p>مهامه وتذاكره ومساره الوظيفي وتقييمه.</p></div>
+    <div class="card l"><span class="pill l">دور: قائد (رئيس وحدة)</span><h3>يرى وحدته وما تحتها</h3><p>يعتمد، يراجع، يرد على تذاكر الجهة، يقيّم فريقه ويتابع مساره المهني.</p></div>
+  </div>
+  <p class="hint" style="--d:4;margin-top:14px">تنقّل بالأسهم ← → أو بالأزرار. المصدر: دليل المستخدم الحالي في المستودع.</p>
+</article>
+
+<!-- 2 roles -->
+<article class="slide" data-t="الدوران">
+  <div class="kicker" style="--d:0">قبل أي شيء</div>
+  <h2 style="--d:1">ما الذي يتغير بين الموظف والقائد؟</h2>
+  <p class="lead" style="--d:2">الصفحة واحدة لكل من يدخل. ما يظهر ويعمل يتحدد بالدور والنطاق، لا بطريقة الدخول.</p>
+  <div class="grid" style="--d:3">
+    <div class="card e"><h3>الموظف (النطاق: «سجله فقط»)</h3>
+      <ul><li>مهامي، إنشاء مهمة، تغيير حالة مهامه، متابعة، اعتراض، تسجيل وقت</li>
+      <li>إرسال تذكرة، الرد، طلب الإغلاق، تأكيد أو رفض الإغلاق، إعادة الفتح</li>
+      <li>مساري الوظيفي: الإقرار، رفع إثبات، «المطلوب»، طلب تعلّم، تقييم ذاتي</li></ul></div>
+    <div class="card l"><h3>القائد (النطاق: «وحدته وما تحتها»)</h3>
+      <ul><li>كل ما للموظف، ويزيد: تبويب «فريقي» في المهام، اعتماد ورفض مهام الاعتماد الذاتي</li>
+      <li>وارد الوحدة وتذاكر الفريق، إعادة الإسناد، حذف تذكرة</li>
+      <li>فريقي المهني، طلبات التطوير، تقييم الفريق، محاضر المحطات</li>
+      <li>إحصاءات الموظفين ومصفوفة «مهام فريقي» في الرئيسية</li></ul></div>
+  </div>
+  <p class="note" style="--d:4">دور القائد يُصنع تلقائيًا من الهيكل التنظيمي لكل وحدة. من يرأس وحدة يدخل بهذا الدور دون إعداد يدوي.</p>
+</article>
+
+<!-- 3 journey -->
+<article class="slide" data-t="رحلة المستخدم">
+  <div class="kicker" style="--d:0">الخريطة</div>
+  <h2 style="--d:1">رحلة الموظف من الدخول إلى التقييم</h2>
+  <div class="flow">
+    <div class="node e" style="--i:0"><span class="who">الدخول</span><b>بريد + رمز المصادقة</b><small>أو حساب مايكروسوفت</small></div>
+    <div class="node e hot" style="--i:1"><span class="who">أول مرة</span><b>بوابة الإقرار بالمسار</b><small>تُقفل المنصة حتى تقرأ وتقرّ</small></div>
+    <div class="node e" style="--i:2"><span class="who">الرئيسية</span><b>أرقامي ومصفوفتي</b><small>بطاقات تفتح القوائم</small></div>
+    <div class="node e" style="--i:3"><span class="who">العمل اليومي</span><b>مهام وتذاكر</b><small>إشعارات في الجرس</small></div>
+    <div class="node e" style="--i:4"><span class="who">التطوير</span><b>إثباتات وساعات وأوسمة</b><small>وطلبات تعلّم</small></div>
+    <div class="node e" style="--i:5"><span class="who">السنة</span><b>تقييم الأداء</b><small>ذاتي ← مدير ← اعتماد ← نتيجة</small></div>
+  </div>
+  <p class="lead" style="--d:3">وللقائد خط موازٍ: اعتماد ما يصله، الرد على تذاكر جهته، مراجعة إثباتات فريقه، وتقييمهم.</p>
+</article>
+
+<!-- 4 login -->
+<article class="slide" data-t="تسجيل الدخول">
+  <div class="kicker" style="--d:0">الخطوة 1</div>
+  <h2 style="--d:1">تسجيل الدخول: بلا كلمة مرور</h2>
+  <div class="split" style="--d:2">
+    <div>
+      <div class="flow" style="margin-top:6px">
+        <div class="node s" style="--i:0"><span class="who">اختيار</span><b>مايكروسوفت أو بريد العمل</b><small>حساب أنشأه قسم الموارد البشرية فقط</small></div>
+        <div class="node s" style="--i:1"><span class="who">إلزامي</span><b>رمز من 6 أرقام</b><small>يتغير كل 30 ثانية ولا يُقبل مرتين</small></div>
+        <div class="node s" style="--i:2"><span class="who">جلسة</span><b>حتى 12 ساعة</b><small>وتنتهي فورًا إن عُطّل الحساب</small></div>
+      </div>
+    </div>
+    <div class="phone" aria-hidden="true"><small>Authenticator</small><div class="code">482 913</div><div class="t"><i></i></div></div>
+  </div>
+  <div class="grid" style="--d:3">
+    <div class="card"><h3>أول دخول</h3><p>رابط QR يصل بريدك (صالح 72 ساعة)، تمسحه بالتطبيق، تدخل أول رمز، وتحفظ <b>10 رموز احتياطية</b> تظهر مرة واحدة.</p></div>
+    <div class="card"><h3>حماية</h3><p>5 رموز خاطئة تقفل الحساب 15 دقيقة. الرسالة عند الخطأ واحدة عامة: «البريد أو الرمز غير صحيح».</p></div>
+    <div class="card"><h3>ضياع الهاتف</h3><p>«استخدام رمز احتياطي»، أو الموارد البشرية تعيد ضبط التطبيق وترسل دعوة جديدة.</p></div>
+  </div>
+</article>
+
+<!-- 5 gate -->
+<article class="slide" data-t="بوابة الإقرار">
+  <div class="kicker" style="--d:0">الخطوة 2 · الموظف والقائد معًا</div>
+  <h2 style="--d:1">أول ما تراه: قراءة مسارك الوظيفي والإقرار به</h2>
+  <p class="lead" style="--d:2">إن لم يكن لك إقرار بمسماك الحالي (أول دخول، أو تغيّر المسمى، أو أعادت الموارد البشرية الفتح) تُحجب بقية المنصة. تبقى متاحًا: مسارك وتسجيل الخروج.</p>
+  <div class="flow">
+    <div class="node e" style="--i:0"><b>1 الوصف الوظيفي</b><small>تمرّر حتى آخر القسم لينفتح «التالي»</small></div>
+    <div class="node e" style="--i:1"><b>2 تقييم الأداء</b></div>
+    <div class="node e" style="--i:2"><b>3 التطوير المهني</b></div>
+    <div class="node e" style="--i:3"><b>4 خطة التعلم</b></div>
+    <div class="node e" style="--i:4"><b>5 المطلوب</b></div>
+    <div class="node e hot" style="--i:5"><b>6 الإقرار</b><small>مربع الإقرار ثم «أقرّ وأتابع»</small></div>
+  </div>
+  <p class="note" style="--d:3">يُسجَّل الإقرار باسمك وإصدار المحتوى وتاريخه. ولا يقدر مدير يدخل «كـ» باسمك أن يقرّ عنك. وإن لم يُجهّز مسار مسماك بعد ترى «مسارك الوظيفي لم يُجهَّز بعد» ولا يُحجب شيء.</p>
+</article>
+
+<!-- 6 home -->
+<article class="slide" data-t="الرئيسية">
+  <div class="kicker" style="--d:0">الخطوة 3</div>
+  <h2 style="--d:1">الرئيسية: ملخصك اليومي، وكل رقم رابط</h2>
+  <div class="grid" style="--d:2">
+    <div class="card e"><span class="pill e">موظف</span>
+      <div class="bars">
+        <div><span>مهامي المفتوحة</span><i style="width:70%"></i><b>7</b></div>
+        <div><span>متأخرة</span><i style="width:25%;background:var(--orange)"></i><b>2</b></div>
+        <div><span>بانتظار ردّي (تذاكر)</span><i style="width:40%"></i><b>3</b></div>
+      </div>
+      <ul><li>أرقامي، مهامي الحالية، تذاكري</li><li>رسوم: المهام حسب الحالة، في الموعد أو متأخرة</li><li>مصفوفة المهام الأربعة: مهمة/عاجلة</li></ul></div>
+    <div class="card l"><span class="pill l">قائد</span>
+      <div class="bars">
+        <div><span>الفريق: متأخرة</span><i style="width:35%;background:var(--orange)"></i><b>4</b></div>
+        <div><span>الفريق: راكدة</span><i style="width:20%"></i><b>2</b></div>
+        <div><span>الفريق: منجزة هذا الأسبوع</span><i style="width:80%"></i><b>11</b></div>
+      </div>
+      <ul><li>أرقام الفريق وإحصاءات الموظفين (عقود وهويات تنتهي)</li><li>تبديل المصفوفة إلى «مهام فريقي»</li></ul></div>
+  </div>
+  <p class="note" style="--d:3">الأرقام في الشاشة أعلاه أمثلة للتوضيح فقط. الأرقام الحقيقية تأتي من بياناتك وتُحسب من نطاقك. «0» تعني أنه لا شيء ينتظرك.</p>
+</article>
+
+
+<!-- ACCOUNT HUB -->
+<article class="slide" data-t="قائمة الحساب" id="sl-menu">
+  <div class="kicker" style="--d:0">حسابك</div>
+  <h2 style="--d:1">من اسمك أعلى الشاشة تصل لكل ما يخصك</h2>
+  <p class="lead" style="--d:2">اضغط الجرس أو اسمك في الشريط. كل خيار يفتح شريحته.</p>
+  <div class="shell ix" style="--d:3;margin-top:14px">
+    <div class="topbar"><b>أروقة الريادة</b><span class="sp"></span>
+      <button id="m-bell" aria-label="الإشعارات"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 004 0"/></svg><span class="badge">3</span></button>
+      <button id="m-user">سارة ▾</button></div>
+    <div class="dd" id="m-dd" hidden>
+      <button data-go="sl-prof"><b>الملف الشخصي</b><small>المظهر واللغة وبيانات التواصل</small></button>
+      <button data-go="sl-acc"><b>صلاحياتي</b><small>ماذا أستطيع ولماذا</small></button>
+      <button data-go="sl-sec"><b>الأمان وتطبيق المصادقة</b><small>الأجهزة والجلسات</small></button>
+      <button data-go="sl-not"><b>الإشعارات</b><small>كل ما وصلك</small></button>
+    </div>
+    <div style="padding:60px 20px;text-align:center;color:var(--muted)">محتوى الصفحة</div>
+  </div>
+  <p class="note" style="--d:4">الشرائح الأربع التالية تغطي هذه الصفحات. مفاتيحها لكل موظف ورئيس وحدة: <code>profile.view</code> · <code>security.view</code> · <code>my_access.view</code> · <code>notifications.view</code>.</p>
+</article>
+
+<!-- PROFILE -->
+<article class="slide" data-t="الملف الشخصي" id="sl-prof">
+  <div class="kicker" style="--d:0">قائمة الحساب ← الملف الشخصي</div>
+  <h2 style="--d:1">الملف الشخصي: تعدّل ثلاثة أشياء فقط</h2>
+  <div class="lab ix" style="--d:2">
+    <div class="card">
+      <h3>بيانات التواصل (جرّب: يُفحص أثناء الكتابة)</h3>
+      <div class="field"><label for="p-ph">الجوال الشخصي</label><input id="p-ph" placeholder="+966501234567" autocomplete="off"><div class="err" id="e-ph"></div></div>
+      <div class="field"><label for="p-em">البريد الشخصي</label><input id="p-em" placeholder="name@gmail.com" autocomplete="off"><div class="err" id="e-em"></div></div>
+      <div class="field"><label for="p-nm">الاسم بالإنجليزية</label><input id="p-nm" placeholder="Sara Ahmed" autocomplete="off"><div class="err" id="e-nm"></div></div>
+      <div class="acts"><button class="e" id="p-save" disabled>حفظ التغييرات</button></div>
+      <div class="log" id="p-log" style="margin-top:10px;max-height:110px"></div>
+    </div>
+    <div class="card">
+      <h3>بيانات العمل <span class="pill n">للقراءة فقط</span></h3>
+      <div class="kv"><b>الرقم الوظيفي</b><span>مثال: EMP-0142</span><b>الشركة</b><span>أروقة الريادة</span><b>الوحدة</b><span class="v">{unit}</span><b>المسمى</b><span>يحدده مسارك</span><b>المدير المباشر</b><span class="v">{lead}</span><b>بريد العمل</b><span dir="ltr">name@arweqah.sa</span><b>تاريخ البداية</b><span>من الموارد البشرية</span></div>
+      <p class="tag" style="margin-top:10px">الموارد البشرية وحدها تغيّر الاسم بالعربية وبيانات العمل. وزر «أعد الجولة» هنا يعيد جولة الترحيب من أولها.</p>
+    </div>
+  </div>
+  <p class="note" style="--d:3">القواعد: الجوال دولي (+ ثم 7 إلى 15 رقمًا) · البريد الشخصي يختلف عن بريد العمل · الاسم الإنجليزي حروف ومسافات فقط · الحفظ يُسجَّل في التدقيق ولا يصل أحدًا إشعار. من لا يملك <code>profile.update</code> لا يتغير شيء عنده.</p>
+</article>
+
+<!-- LOOK -->
+<article class="slide" data-t="المظهر واللغة" id="sl-look">
+  <div class="kicker" style="--d:0">الملف الشخصي ← المظهر</div>
+  <h2 style="--d:1">السمة واللغة: تتبدل فورًا وتُحفظ في حسابك</h2>
+  <div class="lab ix" style="--d:2">
+    <div>
+      <p><b>السمة (تطبّق على هذا العرض كله الآن)</b></p>
+      <span class="seg" id="l-theme"><button aria-pressed="false" data-v="light">فاتح</button><button aria-pressed="false" data-v="dark">داكن</button><button aria-pressed="true" data-v="auto">حسب الجهاز</button></span>
+      <p style="margin-top:16px"><b>اللغة (تبدّل المعاينة)</b></p>
+      <span class="seg" id="l-lang"><button aria-pressed="true" data-v="ar">العربية</button><button aria-pressed="false" data-v="en">English</button></span>
+      <p class="tag" style="margin-top:14px">الألوان: كريمي، حبر، أخضر، برتقالي، بيج، بترولي، أصفر (الأصفر أقل من 5% من الشاشة وليس للنص). الأخضر والبرتقالي لعناصر غير نصية أو نص كبير.</p>
+      <div class="sw" aria-hidden="true"><i style="background:#fffcee"></i><i style="background:#0c2028"></i><i style="background:#85ba95"></i><i style="background:#c16426"></i><i style="background:#d7d2cb"></i><i style="background:#00415b"></i><i style="background:#fbd564"></i></div>
+    </div>
+    <div class="mock" id="l-mock" dir="rtl">
+      <h3 id="lm-t">مهامي</h3>
+      <span class="mb" id="lm-b">مهمة جديدة</span>
+      <table style="margin-top:12px"><tr><th id="lm-h1">العنوان</th><th id="lm-h2">الموعد</th><th id="lm-h3">الحالة</th></tr>
+      <tr><td id="lm-r1">إعداد تقرير الربع</td><td>2026-12-01</td><td><span class="pill x" id="lm-s">قيد التنفيذ</span></td></tr></table>
+    </div>
+  </div>
+  <div class="grid" style="--d:3">
+    <div class="card"><h3>محفوظة في حسابك</h3><p>لا في المتصفح. تظهر كما اخترتها على أي جهاز تدخل منه.</p></div>
+    <div class="card"><h3>العربية RTL افتراضيًا</h3><p>تتبدل اللغة واتجاه الصفحة معًا، وتصلك رسائل البريد بلغتك.</p></div>
+    <div class="card"><h3>لا زر حفظ</h3><p>الاختيار يُطبَّق ويُحفظ لحظة الضغط.</p></div>
+  </div>
+</article>
+
+<!-- NOTIFICATIONS -->
+<article class="slide" data-t="الإشعارات" id="sl-not">
+  <div class="kicker" style="--d:0">الجرس وصفحة الإشعارات</div>
+  <h2 style="--d:1">الإشعارات: لك وحدك، وبلا نص المحادثات</h2>
+  <div class="lab ix" style="--d:2">
+    <div class="card">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px"><b>الجرس <span class="pill x" id="n-cnt">3</span></b>
+        <span class="seg" id="n-f"><button aria-pressed="true" data-v="all">الكل</button><button aria-pressed="false" data-v="u">غير مقروء</button></span>
+        <button class="mini" id="n-all">تعليم الكل كمقروء</button><button class="mini" id="n-reset">إعادة</button></div>
+      <div id="n-list"></div>
+    </div>
+    <div class="card"><h3>ماذا يحدث عند النقر</h3><ul><li>تُفتح الصفحة المعنية ويُعلَّم مقروءًا</li><li>الجرس يعرض آخر 5، و«عرض كل الإشعارات» للأقدم</li><li>صفحة الإشعارات: بحث، حالة، من/إلى تاريخ، وتصدير <code>notifications.export</code></li><li>البريد للأهم فقط، بلغتك، ولا يحمل نص تعليق أو محادثة</li><li>لا زر حذف، ولا أحد (حتى مدير النظام) يرى إشعارات غيره</li></ul></div>
+  </div>
+</article>
+
+<!-- SECURITY -->
+<article class="slide" data-t="الأمان" id="sl-sec">
+  <div class="kicker" style="--d:0">قائمة الحساب ← الأمان</div>
+  <h2 style="--d:1">الأمان: أجهزتك وجلساتك تحت يدك</h2>
+  <div class="alert" style="--d:2">تطبيق المصادقة مربوط بحسابك</div>
+  <div class="lab ix" style="--d:3">
+    <div class="card"><h3>الأجهزة المسجّل دخولك عليها</h3><div id="s-list"></div>
+      <div class="acts"><button class="s" id="s-others">إنهاء كل الجلسات الأخرى</button><button class="e" id="s-reset">إعادة</button></div>
+      <h3 style="margin-top:14px">أجهزة موثوقة <span class="tag">(تظهر إن سمح المدير بأيام > 0)</span></h3><div id="s-trust"></div></div>
+    <div class="card"><h3>فقدت هاتفك؟</h3><ol style="padding-inline-start:1.2em"><li>في صفحة الدخول: «استخدام رمز احتياطي» (كل رمز مرة واحدة)</li><li>أو اطلب من الموارد البشرية إعادة تعيين التطبيق فتصلك دعوة جديدة</li></ol>
+      <h3>قواعد</h3><ul><li>الرمز إلزامي لكل موظف، حتى مع مايكروسوفت</li><li>الجلسة 12 ساعة، وتنتهي فورًا إن عُطّل حسابك</li><li>الجهاز الموثوق يتخطى الرمز بعد دخول مايكروسوفت فقط، ولمدة يحددها المدير</li><li>إنهاء الجلسة وإلغاء التوثيق يسريان فورًا</li><li>مدير النظام الذي يدخل «كـ» باسمك لا يغيّر أمانك، ويصلك إشعار بعد انتهائه</li></ul></div>
+  </div>
+</article>
+
+<!-- MY ACCESS -->
+<article class="slide" data-t="صلاحياتي" id="sl-acc">
+  <div class="kicker" style="--d:0">قائمة الحساب ← صلاحياتي</div>
+  <h2 style="--d:1">صلاحياتي: لماذا لا أرى هذه الصفحة؟</h2>
+  <div class="ix" style="--d:2">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0">
+      <span class="tag">أنا:</span><span class="seg" id="a-role"><button aria-pressed="true" data-v="emp">موظف</button><button aria-pressed="false" data-v="lead">قائد</button><button aria-pressed="false" data-v="adm">مدير نظام</button></span>
+      <label for="a-q" class="tag">بحث</label><input id="a-q" placeholder="مثل: تصدير، مهام…" style="padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);width:170px">
+      <label for="a-sc" class="tag">المدى</label><select id="a-sc" style="padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--card)"><option value="">الكل</option></select>
+    </div>
+    <div id="a-ban" class="alert y hidden-ban" hidden><span>صلاحياتك الإدارية مخفية حتى تفعّل وضع مدير المنصة.</span><button class="mini" id="a-on">تفعيل وضع مدير المنصة</button><span id="a-code" hidden><input id="a-c" inputmode="numeric" maxlength="6" placeholder="رمز التطبيق" style="width:110px;padding:4px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card)"> <button class="mini" id="a-go">تأكيد</button> <span id="a-err" class="tag"></span></span></div>
+    <div class="scroll"><table class="acc"><thead><tr><th>ما يمكنك فعله</th><th>المجال</th><th>المدى</th><th>مصدرها</th></tr></thead><tbody id="a-body"></tbody></table></div>
+  </div>
+  <p class="hint">أمثلة من مفاتيح حقيقية للتوضيح، والقائمة الحية في صفحتك تعرض كل صلاحياتك. للقراءة فقط: التغيير من الصلاحيات أو الأدوار عند مدير النظام. وفي المحاكاة أي 6 أرقام تُقبل ما عدا 000000 (المنصة الحقيقية ترفض رمزًا مستخدمًا).</p>
+</article>
+
+<!-- 7 tasks lifecycle -->
+<article class="slide" data-t="المهام: الدورة">
+  <div class="kicker" style="--d:0">الخطوة 4 · مهامي (TSK-000123)</div>
+  <h2 style="--d:1">دورة حياة المهمة</h2>
+  <div class="flow">
+    <div class="node s" style="--i:0"><span class="who">إنشاء</span><b>مهمة جديدة</b><small>لشخص آخر: «للتنفيذ» فورًا. لنفسك: «بانتظار الاعتماد»</small></div>
+    <div class="node l hot" style="--i:1"><span class="who">القائد</span><b>اعتماد / رفض</b><small>للمهام الذاتية فقط، لا بالسحب</small></div>
+    <div class="node e" style="--i:2"><span class="who">الموظف</span><b>للتنفيذ ← قيد التنفيذ</b><small>سحب البطاقة، وتسجيل وقت</small></div>
+    <div class="node e" style="--i:3"><span class="who">الموظف</span><b>مكتملة</b><small>أو «بانتظار المراجعة» إن فُعّلت</small></div>
+    <div class="node l" style="--i:4"><span class="who">المراجع</span><b>قبول أو إعادة</b><small>الإعادة بملاحظة إلزامية</small></div>
+  </div>
+  <div class="grid" style="--d:3">
+    <div class="card"><h3>التبويبات</h3><p>المسندة لي · المسندة مني · المتابَعة · <span class="pill l">فريقي (للقائد)</span></p><p>العرض: جدول، بطاقات، أو لوحة كانبان بعمود لكل حالة.</p></div>
+    <div class="card"><h3>من يسند لمن</h3><p>القائد لأي شخص تحته. الموظف لمدير إدارته ولنفسه. المشاركون في تذكرة واحدة لبعضهم.</p></div>
+    <div class="card"><h3>العلامات</h3><p><span class="pill x">عاجلة</span> <span class="pill l">متأخرة</span> <span class="pill n">راكدة 30 يومًا</span> <span class="pill x">معترض عليها</span></p></div>
+  </div>
+</article>
+
+<!-- 8 tasks details -->
+<article class="slide" data-t="المهام: التفاصيل">
+  <div class="kicker" style="--d:0">الخطوة 4 · المهام</div>
+  <h2 style="--d:1">الاعتماد الذاتي، الاعتراض، والأمور التلقائية</h2>
+  <div class="grid" style="--d:2">
+    <div class="card"><h3>الاعتماد الذاتي</h3><p>مهمة لنفسك تذهب لمديرك المباشر. مرفوضة؟ تعدّل وتضغط «إعادة الإرسال». لا مدير لك؟ تُعتمد فورًا.</p></div>
+    <div class="card"><h3>الاعتراض</h3><p>على مهمة أسندها لك غيرك وهي «للتنفيذ»: ليست من مسؤوليتي، الوقت غير كافٍ، ينقصها معلومات، أولويات متعارضة. من أسندها يبقيها أو يقبل ويسندها لغيرك. بلا رد يسقط بعد 3 أيام عمل.</p></div>
+    <div class="card"><h3>الإنجاز المتأخر</h3><p>بعد الموعد بأكثر من 7 أيام تُطلب «تاريخ الإنجاز الفعلي»، وبأثر رجعي حتى 7 أيام.</p></div>
+    <div class="card"><h3>محادثة المهمة</h3><p>تعليقات وردود وملفات وذكر @ . الفئة تحدد من يشارك في المحادثة.</p></div>
+    <div class="card"><h3>تلقائيًا</h3><ul><li>تذكير 6:00 قبل الموعد بيوم</li><li>ملخص أسبوعي للقادة: الأحد 8:00</li><li>تكرار: يوم / أسبوع / شهر</li><li>أرشفة بعد 30 يومًا من الإغلاق</li><li>عند ترك الموظف تنتقل مهامه لمديره</li></ul></div>
+    <div class="card l"><h3>ما يخص القائد</h3><p>تبويب فريقي («مرؤوسيّ المباشرون» أو «كل من تحتي»)، لوحة «صف لكل شخص»، نقل مهام الفريق، إعادة فتح المكتملة.</p></div>
+  </div>
+</article>
+
+<!-- 9 tickets lifecycle -->
+<article class="slide" data-t="التذاكر: الدورة">
+  <div class="kicker" style="--d:0">الخطوة 5 · التذاكر (TKT-000123)</div>
+  <h2 style="--d:1">التذكرة: الطريق الرسمي لطلب شيء من جهة أخرى</h2>
+  <div class="flow">
+    <div class="node e" style="--i:0"><span class="who">الموظف</span><b>تذكرة جديدة</b><small>اختيار الجهة والنوع ثم العنوان والموعد</small></div>
+    <div class="node l" style="--i:1"><span class="who">الجهة</span><b>وارد الوحدة</b><small>وسم «جديدة» حتى أول رد</small></div>
+    <div class="node l" style="--i:2"><span class="who">الجهة</span><b>الردود</b><small>@ ذكر، ملفات، رد على رد</small></div>
+    <div class="node l hot" style="--i:3"><span class="who">الجهة</span><b>طلب الإغلاق</b><small>بانتظار تأكيد الإغلاق</small></div>
+    <div class="node e" style="--i:4"><span class="who">الموظف</span><b>تأكيد أو «لم يُنفَّذ بعد»</b><small>أو إغلاق تلقائي بعد 4 أيام</small></div>
+    <div class="node e" style="--i:5"><span class="who">الموظف</span><b>إعادة فتح</b><small>خلال 7 أيام من الإغلاق</small></div>
+  </div>
+  <div class="scroll" style="--d:3"><table>
+    <tr><th>الحالة</th><th>معناها</th><th>تنتقل إلى</th></tr>
+    <tr><td><span class="pill">مفتوحة</span></td><td>عند الجهة</td><td>بانتظار تأكيد الإغلاق، أو مغلقة (دون تنفيذ)</td></tr>
+    <tr><td><span class="pill x">بانتظار تأكيد الإغلاق</span></td><td>الجهة أنجزت وتنتظر المرسل</td><td>مغلقة، أو مفتوحة (رفض أو رد المرسل)</td></tr>
+    <tr><td><span class="pill n">مغلقة</span></td><td>بتأكيد المرسل، أو تلقائيًا، أو دون تنفيذ</td><td>مفتوحة (إعادة فتح)</td></tr>
+  </table></div>
+</article>
+
+<!-- 10 tickets rules -->
+<article class="slide" data-t="التذاكر: القواعد">
+  <div class="kicker" style="--d:0">الخطوة 5 · التذاكر</div>
+  <h2 style="--d:1">ما يراه كل دور، وما يحميه النظام</h2>
+  <div class="grid" style="--d:2">
+    <div class="card e"><span class="pill e">موظف</span><ul><li>تبويب «تذاكري» (ما أرسله)</li><li>«وارد الوحدة» إن كان مسؤولًا عن نوع</li><li>العنوان إلزامي، والتفاصيل حتى 5000 حرف، و5 ملفات</li><li>موعد الحاجة لا يسبق أقل مهلة للجهة، ويقول لك النموذج أقرب تاريخ</li></ul></div>
+    <div class="card l"><span class="pill l">قائد</span><ul><li>وارد الوحدة وتذاكر الوحدة وما تحتها</li><li>«تذاكر فريقي»</li><li>إعادة إسناد لشخص من وحدته، والسجل يبيّن من أسند ولمن</li><li>حذف التذكرة (تُخفى ويبقى سجل التدقيق)</li></ul></div>
+    <div class="card"><h3>التذاكر الشخصية (الشكاوى)</h3><p>لا يراها إلا المرسل والمسؤول عن النوع. تُخفى عن القائد وعن مديري المنصة بحكم دورهم.</p></div>
+    <div class="card"><h3>الإشعارات والخصوصية</h3><p>تحمل رقم التذكرة والجهة فقط، لا نصها. تذكرة خارج نطاقك تظهر كأنها غير موجودة (404).</p></div>
+    <div class="card"><h3>مهل الجهة الافتراضية</h3><p>الإنجاز 3 أيام عمل · الإغلاق التلقائي 4 أيام · إعادة الفتح 7 أيام · الركود 14 يومًا. أيام العمل تستثني الجمعة والسبت.</p></div>
+    <div class="card"><h3>التزامن</h3><p>إن تصرف شخصان في اللحظة نفسها يُرفض الثاني ويعيد المحاولة.</p></div>
+  </div>
+</article>
+
+<!-- 11 career -->
+<article class="slide" data-t="المسار الوظيفي">
+  <div class="kicker" style="--d:0">الخطوة 6</div>
+  <h2 style="--d:1">المسار الوظيفي: خمسة أقسام بالترتيب نفسه دائمًا</h2>
+  <div class="flow">
+    <div class="node e" style="--i:0"><b>الوصف الوظيفي</b><small>مؤشرات الأداء والمسؤوليات</small></div>
+    <div class="node e" style="--i:1"><b>تقييم الأداء</b><small>الأوزان والنتيجة</small></div>
+    <div class="node e" style="--i:2"><b>التطوير المهني</b><small>السلم الوظيفي والجدارات</small></div>
+    <div class="node e" style="--i:3"><b>خطة التعلم</b><small>وحدات، أوسمة، طلباتي</small></div>
+    <div class="node e" style="--i:4"><b>المطلوب</b><small>بنود بمواعيد وإقرار</small></div>
+  </div>
+  <div class="grid" style="--d:2">
+    <div class="card"><h3>بطاقة التعريف</h3><p>اسمك ومسماك ووحدتك ومديرك، ورمز المسمى، ومرحلة التطوير: التأسيس، التخصص، البراعة، القيادة التشغيلية، القيادة المؤسسية.</p></div>
+    <div class="card"><h3>بطاقات التقدّم</h3><p>الوحدات المنجزة، الساعات والوسام التالي، الميزانية المصروفة من حد مرحلتك، والجدارات المحققة.</p></div>
+    <div class="card"><h3>المطلوب</h3><p>علّم «تم» على كل بند. المتأخر يظهر «متأخر»، وتذكير كل أحد 8:00 صباحًا.</p></div>
+  </div>
+</article>
+
+<!-- 12 proofs -->
+<article class="slide" data-t="إثباتات التعلم">
+  <div class="kicker" style="--d:0">الخطوة 6 · خطة التعلم</div>
+  <h2 style="--d:1">إثبات إنجاز الوحدة: من الموظف إلى المراجع أو القائد</h2>
+  <div class="flow">
+    <div class="node e" style="--i:0"><span class="who">الموظف</span><b>رفع الإثبات</b><small>شهادة (PDF/صورة حتى 10MB) · تطبيق في العمل · مخرج مكتوب</small></div>
+    <div class="node s" style="--i:1"><span class="who">مراجع الشهادات</span><b>بانتظار الاعتماد</b><small>اعتماد · رفض بسبب · إحالة للمدير</small></div>
+    <div class="node l hot" style="--i:2"><span class="who">القائد</span><b>عند المدير المباشر</b><small>«تطبيق في العمل» يبدأ هنا وقراره نهائي</small></div>
+    <div class="node e" style="--i:3"><span class="who">النتيجة</span><b>منجز</b><small>الساعات تُحتسب فورًا، والأوسمة تُنال بالعتبات</small></div>
+  </div>
+  <div class="grid" style="--d:2">
+    <div class="card"><h3>إن رُفض</h3><p>«أعد الرفع» مع سبب الرفض. بعد الرفض الثالث للوحدة نفسها يُبلَّغ القائد: «تكرّر رفض إثبات أحد فريقك».</p></div>
+    <div class="card l"><h3>فريقي المهني (للقائد)</h3><p>تبويب في صفحة الموظفين: نسبة المنجز، الساعات، المتأخر، الحالة (منتظم / متأخر). اعتماد ورفض إثباتات أُحيلت إليه، وتسجيل مستوى الجدارة «أساسي» أو «خبير». للقراءة فقط عدا ذلك.</p></div>
+    <div class="card"><h3>تقرير شهري</h3><p>أول كل شهر 8:00 يصل القائد عدد من تأخر في المطلوب.</p></div>
+  </div>
+</article>
+
+<!-- 13 dev requests -->
+<article class="slide" data-t="طلبات التطوير">
+  <div class="kicker" style="--d:0">الخطوة 6 · طلب تعلّم من خارج الخطة</div>
+  <h2 style="--d:1">من يعتمد الطلب؟ التكلفة والخطة تقرران</h2>
+  <div class="flow">
+    <div class="node e" style="--i:0"><span class="who">ضمن الخطة · حتى 5,000 ر.س</span><b>المدير المباشر</b><small>7 أيام للرد ثم يصعد لمدير القطاع تلقائيًا</small></div>
+    <div class="node l" style="--i:1"><span class="who">خارج الخطة، أو 5,000–20,000</span><b>مدير القطاع</b><small>بلا مهلة</small></div>
+    <div class="node s" style="--i:2"><span class="who">فوق 20,000</span><b>الرئيس التنفيذي</b><small>بلا مهلة</small></div>
+  </div>
+  <div class="grid" style="--d:2">
+    <div class="card"><h3>قبل الإرسال</h3><p>النافذة تعرض «يعتمده: فلان» والباقي من ميزانيتك السنوية. تجاوز الميزانية تنبيه لا منع.</p></div>
+    <div class="card"><h3>منصب شاغر</h3><p>إن لم يشغل أحد منصب المعتمِد أو شغله الموظف نفسه صعد الطلب. وإن لم يوجد أحد: «لا أحد يشغل منصب المعتمِد بعد».</p></div>
+    <div class="card l"><h3>القائد المعتمِد</h3><p>صفحة «طلبات التطوير»: «بانتظار قراري» و«كل الطلبات». اعتماد أو رفض بسبب (5 أحرف على الأقل). ما عند غيره يراه للقراءة فقط.</p></div>
+  </div>
+</article>
+
+<!-- 14 performance -->
+<article class="slide" data-t="تقييم الأداء">
+  <div class="kicker" style="--d:0">الخطوة 7 · دورة سنوية (أبريل إلى مارس)</div>
+  <h2 style="--d:1">دورة التقييم: من يعمل في كل مرحلة</h2>
+  <div class="flow">
+    <div class="node e" style="--i:0"><span class="who">الموظف</span><b>تقييم ذاتي</b><small>سلوكيات بخمسة مستويات، إنجازات، كتالوج</small></div>
+    <div class="node l" style="--i:1"><span class="who">القائد ثم المدير الأعلى</span><b>تقييم المدير</b><small>درجات النتائج 0–100 وسلوكيات</small></div>
+    <div class="node s" style="--i:2"><span class="who">حامل المعايرة</span><b>المعايرة</b><small>تعديل بسبب مكتوب</small></div>
+    <div class="node s" style="--i:3"><span class="who">حامل الاعتماد</span><b>الاعتماد</b><small>ويبتّ في الاعتراضات</small></div>
+    <div class="node e hot" style="--i:4"><span class="who">النظام</span><b>إبلاغ فردي</b><small>نتيجة ونسخة قابلة للتصدير</small></div>
+    <div class="node e" style="--i:5"><span class="who">الموظف</span><b>اعتراض واحد</b><small>خلال 5 أيام عمل، سبب 10–1000 حرف</small></div>
+  </div>
+  <div class="grid" style="--d:2">
+    <div class="card"><h3>الموظف</h3><p>«دائمًا» (100) «غالبًا» (75) «أحيانًا» (50) «نادرًا» (25) «أبدًا» (0). الملاحظة إلزامية عند «دائمًا» و«نادرًا» و«أبدًا». تعديل حتى يبدأ المدير. لا درجات قبل الإبلاغ الفردي.</p></div>
+    <div class="card l"><h3>القائد</h3><p>صفحة «تقييم فريقي»: يقرأ التقييم الذاتي ولا يلتزم به، يدخل الدرجات ويرى الدرجة النهائية حيّة، ثم «حفظ مسودة» و«إرسال». ويسجّل <b>محاضر المحطات</b> (الإجراء المتفق عليه إلزامي) فيُبلَّغ الموظف ويقرّ باطلاعه.</p></div>
+  </div>
+</article>
+
+<!-- 15 leader day -->
+<article class="slide" data-t="يوم القائد">
+  <div class="kicker" style="--d:0">الخلاصة للقائد</div>
+  <h2 style="--d:1">يوم القائد في المنصة: أين أذهب ولماذا</h2>
+  <div class="scroll" style="--d:2"><table>
+    <tr><th>أريد أن</th><th>أذهب إلى</th><th>المفتاح</th></tr>
+    <tr><td>أعتمد مهمة لنفسه أحدهم</td><td>إشعار «طلب اعتماد» ← المهمة ← اعتماد/رفض</td><td><code>tasks.approve</code></td></tr>
+    <tr><td>أتابع من تأخر</td><td>مهامي ← فريقي، والرئيسية ← أرقام الفريق</td><td><code>tasks.team_view</code></td></tr>
+    <tr><td>أرد على تذاكر جهتي</td><td>التذاكر ← وارد الوحدة</td><td><code>tickets.reply</code></td></tr>
+    <tr><td>أعيد إسناد تذكرة</td><td>التذكرة ← إعادة إسناد</td><td><code>tickets.reassign</code></td></tr>
+    <tr><td>أبتّ في تطبيق عمل لموظف</td><td>الموظفون ← فريقي المهني ← العضو</td><td><code>career_team.decide</code></td></tr>
+    <tr><td>أسجّل مستوى جدارة</td><td>فريقي المهني ← جدارات المسمى</td><td><code>career_competency.record</code></td></tr>
+    <tr><td>أعتمد طلب تطوير</td><td>طلبات التطوير ← بانتظار قراري</td><td><code>career_requests.approve</code></td></tr>
+    <tr><td>أقيّم فريقي</td><td>تقييم فريقي ← قيّم</td><td><code>performance.team_evaluate</code></td></tr>
+  </table></div>
+</article>
+
+<!-- 16 misc -->
+<article class="slide" data-t="الجولة والمساعد">
+  <div class="kicker" style="--d:0">في كل صفحة</div>
+  <h2 style="--d:1">جولة الترحيب ومساعد المنصة</h2>
+  <div class="grid" style="--d:2">
+    <div class="card"><h3>جولة الترحيب</h3><p>مرة واحدة عند أول دخول: تُعتّم الشاشة وتبرز العناصر واحدًا واحدًا بفقاعة فيها «التالي» و«السابق» و«تخطّي». تبدأ بحسابك ثم الرئيسية ثم الصفحات التي تملكها. وتُعاد من الملف الشخصي بزر «أعد الجولة».</p></div>
+    <div class="card"><h3>مساعد المنصة</h3><p>محادثة من أي صفحة: تقول ما تريد فيسأل عما ينقص ويعرض بطاقة بما سيفعله. لا ينفّذ إلا بعد «تأكيد»، وبصلاحياتك أنت فقط.</p></div>
+  </div>
+</article>
+
+<!-- LAB task -->
+<article class="slide" data-t="جرّب: مهمة" id="lab-task">
+  <div class="kicker" style="--d:0">مختبر تفاعلي 1</div>
+  <h2 style="--d:1">حرّك مهمة بنفسك: أنت الموظف والقائد معًا</h2>
+  <div style="--d:2">
+    <span class="tag">المسند إليه:</span> <span class="seg" id="t-self"><button aria-pressed="true" data-v="1">نفسي</button><button aria-pressed="false" data-v="0">زميل</button></span>
+    <span class="tag" style="margin-inline-start:12px">المراجعة:</span> <span class="seg" id="t-rev"><button aria-pressed="false" data-v="1">تحتاج مراجعة</button><button aria-pressed="true" data-v="0">بدون</button></span>
+    <button class="btn primary" id="t-new" style="margin-inline-start:12px">أنشئ مهمة جديدة</button>
+  </div>
+  <div class="lab" style="--d:3">
+    <div>
+      <div class="cols" id="t-cols"></div>
+      <div class="acts" id="t-acts"></div>
+      <p class="hint" id="t-hint"></p>
+    </div>
+    <div class="log" id="t-log" aria-live="polite"></div>
+  </div>
+</article>
+
+<!-- LAB ticket -->
+<article class="slide" data-t="جرّب: تذكرة" id="lab-tk">
+  <div class="kicker" style="--d:0">مختبر تفاعلي 2</div>
+  <h2 style="--d:1">تذكرة بين الموظف والجهة: اضغط واستكشف</h2>
+  <div style="--d:2"><span class="tag">نوع التذكرة:</span> <span class="seg" id="k-per"><button aria-pressed="true" data-v="0">عادية</button><button aria-pressed="false" data-v="1">شخصية (شكوى)</button></span>
+    <button class="btn primary" id="k-new" style="margin-inline-start:12px">أرسل تذكرة جديدة</button></div>
+  <div class="lab" style="--d:3">
+    <div>
+      <div class="card" id="k-state" style="text-align:center"><div class="big" id="k-big">—</div><div class="tag" id="k-sub">أرسل تذكرة لتبدأ</div></div>
+      <div class="acts" id="k-acts"></div>
+      <div class="who3" id="k-vis"></div>
+    </div>
+    <div class="log" id="k-log" aria-live="polite"></div>
+  </div>
+</article>
+
+<!-- LAB dev request -->
+<article class="slide" data-t="جرّب: طلب تطوير" id="lab-dev">
+  <div class="kicker" style="--d:0">مختبر تفاعلي 3</div>
+  <h2 style="--d:1">من يعتمد طلب التعلم؟ حرّك التكلفة وشاهد المسار</h2>
+  <div class="lab" style="--d:2">
+    <div>
+      <label for="d-cost"><b>التكلفة:</b> <span class="big" id="d-costv" style="font-size:1.6em">3,000</span> ريال</label>
+      <input type="range" id="d-cost" min="0" max="40000" step="500" value="3000">
+      <p><span class="tag">الكورس:</span> <span class="seg" id="d-plan"><button aria-pressed="true" data-v="1">ضمن خطة التعلم</button><button aria-pressed="false" data-v="0">خارج الخطة</button></span></p>
+      <p><label for="d-bud" class="tag">الباقي من ميزانيتك السنوية (ريال):</label> <input id="d-bud" type="number" value="6000" min="0" step="500" style="width:130px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card)"></p>
+    </div>
+    <div class="card"><h3>القرار</h3><p id="d-why"></p><p id="d-warn" class="pill l" style="display:none"></p></div>
+  </div>
+  <div class="chain" id="d-chain" style="--d:3"></div>
+  <div class="acts"><button class="s" id="d-wait">مرّت 7 أيام دون رد المدير المباشر</button><button class="e" id="d-reset">إعادة</button></div>
+  <p class="hint" id="d-msg"></p>
+</article>
+
+<!-- LAB eval -->
+<article class="slide" data-t="جرّب: التقييم" id="lab-ev">
+  <div class="kicker" style="--d:0">مختبر تفاعلي 4</div>
+  <h2 style="--d:1">قيّم سلوكياتك كما في التقييم الذاتي</h2>
+  <div class="lab" style="--d:2">
+    <div id="e-rows"></div>
+    <div class="card" style="text-align:center"><div class="tag">متوسط السلوكيات</div><div class="big" id="e-avg">—</div>
+      <div class="meter" style="margin-top:12px"><i id="e-bar" style="width:0"></i></div>
+      <p id="e-note" class="hint" style="margin-top:12px"></p></div>
+  </div>
+  <p class="hint">للتوضيح فقط: الدرجة النهائية الحقيقية تضيف درجات القائد للنتائج وأوزان المرحلة والمكوّن الإضافي.</p>
+</article>
+
+<!-- 17 end -->
+<article class="slide" data-t="التجربة">
+  <div class="kicker" style="--d:0">الآن دورك</div>
+  <h2 style="--d:1">عشرة سيناريوهات جاهزة للتجربة بالبيانات التي تضعها</h2>
+  <p class="lead" style="--d:2">تكتب أسماءك ومبالغك مرة واحدة، فتتحول كل الخطوات إلى بياناتك. تعلّم كل خطوة «نجحت» أو «فشلت» وتكتب ملاحظة، ثم تنسخ التقرير.</p>
+  <p style="--d:3"><button class="btn primary" id="go-sc">افتح السيناريوهات</button></p>
+</article>
+
+</div>
+<div class="ov" id="ov"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><h2 style="margin:0">كل الشرائح</h2><button class="btn" id="ovx">إغلاق (Esc)</button></div><div class="ovg" id="ovg"></div></div>
+<div class="navrow">
+  <button class="btn" id="prev">السابق ▶</button>
+  <div class="dots" id="dots"></div>
+  <button class="btn primary" id="next">◀ التالي</button>
+</div>
+<p class="hint" id="cap" style="text-align:center;margin-top:8px"></p>
+</section>
+
+<!-- ================= SCENARIOS ================= -->
+<section id="scen" hidden class="sc">
+  <aside class="side">
+    <h2 style="margin-top:0">السيناريوهات</h2>
+    <div class="scnav" id="scnav" role="tablist"></div>
+    <details open class="card"><summary><b>بياناتك</b> <span class="tag">تُحفظ في متصفحك وتظهر بخلفية صفراء</span></summary>
+      <div class="vars" id="vars" style="margin-top:10px"></div></details>
+    <p class="note">يكفيك حسابان: <b>موظف</b> و<b>قائد</b> (يفضّل أن يكون مديرًا مباشرًا للموظف ومسؤولًا عن جهة التذاكر). الخطوات الموسومة <span class="pill x">حساب إضافي</span> تحتاج الموارد البشرية أو مدير النظام. افتح كل حساب في نافذة خاصة منفصلة.</p>
+    <div class="card">
+      <h3>تقرير التجربة</h3>
+      <div class="sum"><button class="btn primary" id="mkrep">أنشئ</button><button class="btn" id="cprep">نسخ</button><button class="btn" id="reset">مسح النتائج</button></div>
+      <pre class="rep" id="rep">اضغط «أنشئ».</pre>
+    </div>
+  </aside>
+  <div class="work">
+    <div id="scbody"></div>
+  </div>
+</section>
+</main>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+"use strict";
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var store={get:function(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
+  set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+/* ---------- tabs ---------- */
+function show(which){
+  var deck=which==='deck';
+  $('#deck').hidden=!deck; $('#scen').hidden=deck;
+  $('#tab-deck').setAttribute('aria-selected',deck); $('#tab-sc').setAttribute('aria-selected',!deck);
+  $('#auto').hidden=!deck;$('#ovb').hidden=!deck;
+  if(!deck) stopAuto();
+  window.scrollTo(0,0);
+}
+$('#tab-deck').onclick=function(){show('deck')};
+$('#tab-sc').onclick=function(){show('sc')};
+$('#go-sc').onclick=function(){show('sc')};
+
+/* ---------- deck ---------- */
+var slides=$$('.slide'), cur=0, timer=null;
+var dots=$('#dots');
+slides.forEach(function(s,i){var b=document.createElement('button');b.setAttribute('aria-label',(i+1)+' '+s.dataset.t);b.onclick=function(){go(i)};dots.appendChild(b)});
+function go(i){
+  cur=Math.max(0,Math.min(slides.length-1,i));
+  slides.forEach(function(s,k){s.classList.toggle('on',k===cur)});
+  $$('button',dots).forEach(function(b,k){b.setAttribute('aria-current',k===cur)});
+  $('#pg').style.width=((cur+1)/slides.length*100)+'%';
+  $('#cap').textContent=(cur+1)+' / '+slides.length+' · '+slides[cur].dataset.t;
+  $('#prev').disabled=cur===0; $('#next').disabled=cur===slides.length-1;
+}
+// RTL: "next" goes to the next slide; the arrow keys follow reading direction
+$('#next').onclick=function(){go(cur+1)}; $('#prev').onclick=function(){go(cur-1)};
+document.addEventListener('keydown',function(e){
+  if(e.target.matches('input,textarea,select')||$('#deck').hidden) return;
+  if(e.key==='ArrowLeft'||e.key==='PageDown'){go(cur+1)}
+  else if(e.key==='ArrowRight'||e.key==='PageUp'){go(cur-1)}
+});
+function stopAuto(){if(timer){clearInterval(timer);timer=null}$('#auto').setAttribute('aria-pressed','false');$('#auto').textContent='تشغيل تلقائي'}
+$('#auto').onclick=function(){
+  if(timer){stopAuto();return}
+  $('#auto').setAttribute('aria-pressed','true');$('#auto').textContent='إيقاف';
+  timer=setInterval(function(){if(cur>=slides.length-1){stopAuto()}else go(cur+1)},9000);
+};
+
+$('#stage').addEventListener('click',function(e){
+  var n=e.target.closest('.node,.card');var sl=slides[cur];
+  if(!n||!sl.contains(n)||n.closest('.lab,.acts,.log,.ix')||e.target.closest('button,input,label')) return;
+  var was=n.classList.contains('sel');
+  $$('.sel',sl).forEach(function(x){x.classList.remove('sel')});
+  sl.classList.toggle('dim',!was);
+  if(!was) n.classList.add('sel');
+});
+var _go=go; go=function(i){_go(i);slides.forEach(function(sl){sl.classList.remove('dim');$$('.sel',sl).forEach(function(x){x.classList.remove('sel')})});$('#stage').scrollTop=0};
+go(cur);
+// swipe
+(function(){var x0=null;var st=$('#stage');
+ st.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});
+ st.addEventListener('touchend',function(e){if(x0===null)return;var d=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(d)>70){d<0?go(cur+1):go(cur-1)}},{passive:true});})();
+// overview + fullscreen + keys
+var ov=$('#ov'),ovg=$('#ovg');
+slides.forEach(function(sl,i){var b=document.createElement('button');b.style.setProperty('--i',i);b.innerHTML='<span class="tag">'+(i+1)+'</span><br>'+sl.dataset.t;b.onclick=function(){go(i);ov.classList.remove('on')};ovg.appendChild(b)});
+function openOv(){$$('button',ovg).forEach(function(b,k){b.classList.toggle('cur',k===cur)});ov.classList.add('on')}
+$('#ovb').onclick=openOv;$('#ovx').onclick=function(){ov.classList.remove('on')};
+document.addEventListener('keydown',function(e){
+  if(e.target.matches('input,textarea,select'))return;
+  if(e.key==='Escape')ov.classList.remove('on');
+  if(!$('#deck').hidden){if(e.key==='g'||e.key==='G')openOv();if(e.key==='f'||e.key==='F')toggleFs();if(e.key==='Home')go(0);if(e.key==='End')go(slides.length-1)}
+});
+function toggleFs(){try{if(document.fullscreenElement){document.exitFullscreen()}else{document.documentElement.requestFullscreen().catch(function(){})}}catch(e){}}
+$('#fs').onclick=toggleFs;
+document.addEventListener('fullscreenchange',function(){$('#fs').textContent=document.fullscreenElement?'خروج من ملء الشاشة':'ملء الشاشة'});
+
+/* ---------- labs ---------- */
+function seg(id,cb){var b=$$('button',$(id));b.forEach(function(x){x.onclick=function(){b.forEach(function(y){y.setAttribute('aria-pressed',y===x)});cb(x.dataset.v)}})}
+function say(box,cls,t){var d=document.createElement('div');d.className=cls;d.textContent=t;box.insertBefore(d,box.firstChild)}
+
+// --- task lab
+(function(){
+  var COLS=[['wait','بانتظار الاعتماد'],['todo','للتنفيذ'],['doing','قيد التنفيذ'],['review','بانتظار المراجعة'],['done','مكتملة'],['rej','مرفوضة']];
+  var self=1,rev=0,T=null,cols=$('#t-cols'),acts=$('#t-acts'),log=$('#t-log'),hint=$('#t-hint');
+  seg('#t-self',function(v){self=+v});seg('#t-rev',function(v){rev=+v});
+  function draw(){
+    cols.innerHTML='';
+    COLS.forEach(function(c){var d=document.createElement('div');d.className='col'+(T&&T.st===c[0]?' act':'');d.textContent=c[1];
+      if(T&&T.st===c[0]){var k=document.createElement('div');k.className='tcard';k.innerHTML='TSK-000123<br>'+(T.obj?'<span class="pill x">معترض عليها</span> ':'')+(self?'لنفسي':'لزميل');d.appendChild(k)}cols.appendChild(d)});
+    acts.innerHTML='';
+    if(!T){hint.textContent='اختر الإعدادات ثم أنشئ مهمة.';return}
+    var A=actions();
+    A.forEach(function(a){var b=document.createElement('button');b.className=a[0];b.textContent=(a[0]==='e'?'الموظف: ':a[0]==='l'?'القائد: ':'')+a[1];b.onclick=function(){a[2]();draw()};acts.appendChild(b)});
+    var d=document.createElement('button');d.className='s';d.textContent='حاول سحب البطاقة';d.onclick=function(){var m={wait:'غير مسموح: الاعتماد بقرار المعتمِد وحده، لا بالسحب.',rej:'غير مسموح: تُعاد للإرسال بدل ذلك.',review:'غير مسموح للموظف: المراجع وحده يقرر.',todo:'مسموح: انقلها إلى «قيد التنفيذ».',doing:'مسموح: إلى «مكتملة» (أو المراجعة).',done:'غير مسموح بالسحب: إعادة الفتح من صلاحية من أسندها أو المدير.'};say(log,'w',m[T.st])};acts.appendChild(d);
+  }
+  function mv(st,t,note){T.st=st;say(log,'a',t);if(note)say(log,'n','🔔 '+note)}
+  function actions(){
+    var s=T.st;
+    if(s==='wait')return [['l','اعتماد',function(){mv('todo','القائد اعتمد المهمة','وصل الموظف: تم اعتماد مهمتك')}],['l','رفض بملاحظة',function(){mv('rej','القائد رفض المهمة','وصل الموظف قرار الرفض')}]];
+    if(s==='rej')return [['e','إعادة الإرسال',function(){mv('wait','أُعيد إرسالها للاعتماد','وصل القائد: طلب اعتماد')}]];
+    if(s==='todo'){var r=[['e','بدء العمل (قيد التنفيذ)',function(){mv('doing','بدأ العمل',self?'':'وصل من أسندها: تغيّرت الحالة')}]];
+      if(!self&&!T.obj)r.push(['e','اعتراض: الوقت غير كافٍ',function(){T.obj=1;say(log,'a','الموظف اعترض');say(log,'n','🔔 وصل القائد إشعار الاعتراض')}]);
+      if(T.obj){r.push(['l','رد: أبقِها عند صاحبها',function(){T.obj=0;say(log,'a','القائد رفض الاعتراض: تبقى عند الموظف')}]);r.push(['l','قبول وإسناد لآخر',function(){T=null;say(log,'a','قبل القائد الاعتراض وأسندها لشخص آخر');say(log,'n','🔔 وصل الشخص الجديد: مهمة جديدة');}])}
+      return r}
+    if(s==='doing')return [['e','تسجيل وقت',function(){say(log,'a','سُجّل وقت عمل (إن تجاوز التقدير يصل إشعار مرة واحدة)')}],['e','إنجاز',function(){rev?mv('review','انتهى العمل: بانتظار المراجعة','وصل المراجع: بانتظار المراجعة'):mv('done','أُنجزت المهمة',self?'':'وصل من أسندها: اكتملت')}]];
+    if(s==='review')return [['l','قبول',function(){mv('done','المراجع قبل العمل','وصل الموظف: اكتملت')}],['l','إعادة بملاحظة',function(){mv('doing','أُعيد العمل بملاحظة إلزامية','وصل الموظف: أُعيد العمل مع ملاحظة')}]];
+    if(s==='done')return [['l','إعادة فتح',function(){mv('todo','أُعيد فتح المهمة')}]];
+    return [];
+  }
+  $('#t-new').onclick=function(){log.innerHTML='';T={st:self?'wait':'todo',obj:0};
+    say(log,'a','أُنشئت المهمة TSK-000123');
+    if(self)say(log,'n','🔔 وصل القائد: طلب اعتماد (مهمة لنفسك)'); else say(log,'n','🔔 وصل الموظف: مهمة جديدة');
+    if(self&&rev)say(log,'a','المراجع هو مديرك الذي يعتمدها');
+    draw()};
+  draw();
+})();
+
+// --- ticket lab
+(function(){
+  var per=0,K=null,log=$('#k-log'),acts=$('#k-acts'),big=$('#k-big'),sub=$('#k-sub');
+  seg('#k-per',function(v){per=+v;vis()});
+  var NAME={open:'مفتوحة',pend:'بانتظار تأكيد الإغلاق',closed:'مغلقة'};
+  function vis(){var w=$('#k-vis');w.innerHTML='';[['المرسل (الموظف)',1],['مسؤول الجهة',1],['قائد الوحدة',per?0:1],['مدير المنصة',per?0:1]].forEach(function(x){var e=document.createElement('span');e.className=x[1]?'vis':'hid';e.textContent=(x[1]?'يرى: ':'لا يرى: ')+x[0];w.appendChild(e)})}
+  function draw(){
+    acts.innerHTML='';
+    if(!K){big.textContent='—';sub.textContent='أرسل تذكرة لتبدأ';return}
+    big.textContent=NAME[K.st]+(K.st==='closed'?' · '+K.how:'');
+    sub.textContent='TKT-000123'+(K.fresh?' · جديدة (لم يرد أحد)':'')+(K.exp?' · انتهت مدة إعادة الفتح':'');
+    var A=[];
+    if(K.st==='open'){A=[['l','رد',function(){K.fresh=0;say(log,'a','الجهة ردّت (سُجّل زمن أول رد)');say(log,'n','🔔 وصل المرسل إشعار رد')}],
+      ['e','رد',function(){say(log,'a','المرسل ردّ')}],
+      ['l','طلب الإغلاق',function(){K.st='pend';say(log,'a','الجهة طلبت الإغلاق');say(log,'n','🔔 وصل المرسل طلب تأكيد (وبريد)')}],
+      ['l','إغلاق دون تنفيذ',function(){K.st='closed';K.how='دون تنفيذ';say(log,'a','أُغلقت دون تنفيذ مع السبب');say(log,'n','🔔 وصل المرسل')}]]}
+    if(K.st==='pend'){A=[['e','تأكيد التنفيذ',function(){K.st='closed';K.how='بتأكيد المرسل';say(log,'a','المرسل أكد التنفيذ')}],
+      ['e','لم يُنفَّذ بعد',function(){K.st='open';say(log,'a','المرسل رفض الإغلاق');say(log,'n','🔔 وصل الجهة')}],
+      ['e','رد بنص',function(){K.st='open';say(log,'a','ردّ المرسل: عادت مفتوحة، وأُلغي طلب الإغلاق')}],
+      ['s','مرّت 4 أيام دون رد',function(){K.st='closed';K.how='تلقائيًا';say(log,'a','أغلقها النظام تلقائيًا');say(log,'n','🔔 وصل الطرفين')}]]}
+    if(K.st==='closed'){A=[['e','إعادة فتح',function(){if(K.exp){say(log,'w','انتهت مدة إعادة الفتح: أرسل تذكرة جديدة');return}K.st='open';say(log,'a','أعاد المرسل فتح التذكرة');say(log,'n','🔔 وصل الجهة')}],
+      ['s','مرّت 7 أيام على الإغلاق',function(){K.exp=1;say(log,'a','انتهت مدة إعادة الفتح')}]]}
+    A.forEach(function(a){var b=document.createElement('button');b.className=a[0];b.textContent=(a[0]==='e'?'الموظف: ':a[0]==='l'?'الجهة: ':'')+a[1];b.onclick=function(){a[2]();draw()};acts.appendChild(b)});
+  }
+  $('#k-new').onclick=function(){log.innerHTML='';K={st:'open',fresh:1,exp:0};say(log,'a',per?'أُرسلت تذكرة شخصية: تذهب مباشرة للمسؤول عن النوع':'أُرسلت التذكرة');say(log,'n','🔔 وصل مسؤول الجهة (الرقم والجهة فقط، دون النص)');vis();draw()};
+  vis();draw();
+})();
+
+// --- dev request lab
+(function(){
+  var plan=1,lvl0=null,esc=0;
+  var NAMES=[['المدير المباشر','7 أيام للرد'],['مدير القطاع','بلا مهلة'],['الرئيس التنفيذي','بلا مهلة']];
+  var cost=$('#d-cost'),bud=$('#d-bud');
+  seg('#d-plan',function(v){plan=+v;esc=0;draw()});
+  function level(){var c=+cost.value;if(plan&&c<=5000)return 0;if(c<=20000)return 1;return 2}
+  function draw(){
+    var c=+cost.value,l=level(),cur=Math.max(l,esc?1:0);
+    $('#d-costv').textContent=c.toLocaleString('en-US');
+    var why=l===0?'ضمن الخطة وحتى 5,000 ريال: يبتّ المدير المباشر.':l===1?(plan?'فوق 5,000 حتى 20,000 ريال':'خارج الخطة')+': يبتّ مدير القطاع.':'فوق 20,000 ريال: يبتّ الرئيس التنفيذي.';
+    if(esc&&l===0)why+=' صعد الطلب لمدير القطاع بعد 7 أيام دون رد.';
+    $('#d-why').textContent=why;
+    var w=$('#d-warn'),b=+bud.value;if(c>b){w.style.display='inline-block';w.textContent='تتجاوز الباقي من الميزانية: تنبيه فقط، ويقرر المعتمِد'}else w.style.display='none';
+    var ch=$('#d-chain');ch.innerHTML='';
+    NAMES.forEach(function(n,i){var d=document.createElement('div');d.className='node '+(i===cur?'on':i<cur?'past':'');d.style.setProperty('--i',i);d.innerHTML='<span class="who">'+(i===cur?'يعتمد الآن':i<cur?'تخطّاه الطلب':'')+'</span><b>'+n[0]+'</b><small>'+n[1]+'</small>';ch.appendChild(d)});
+    $('#d-wait').disabled=!(l===0&&!esc);
+    $('#d-msg').textContent=esc?'صُعِّد الطلب تلقائيًا وأُبلغ المعتمِد والموظف.':'';
+  }
+  cost.oninput=function(){esc=0;draw()};bud.oninput=draw;
+  $('#d-wait').onclick=function(){esc=1;draw()};$('#d-reset').onclick=function(){esc=0;draw()};
+  draw();
+})();
+
+// --- eval lab
+(function(){
+  var B=['يعمل بروح الفريق','يلتزم بالمواعيد','يبادر بالحلول','يتواصل بوضوح','يتعلم ويطوّر نفسه'];
+  var L=[['دائمًا',100],['غالبًا',75],['أحيانًا',50],['نادرًا',25],['أبدًا',0]];
+  var sel=[2,2,2,2,2],rows=$('#e-rows');
+  function draw(){
+    rows.innerHTML='';var sum=0,must=0;
+    B.forEach(function(t,i){
+      var d=document.createElement('div');d.className='lvl';d.innerHTML='<b>'+t+'</b>';
+      var o=document.createElement('div');o.className='opts';
+      L.forEach(function(l,k){var b=document.createElement('button');b.textContent=l[0];b.setAttribute('aria-pressed',sel[i]===k);b.onclick=function(){sel[i]=k;draw()};o.appendChild(b)});
+      d.appendChild(o);rows.appendChild(d);sum+=L[sel[i]][1];if(sel[i]===0||sel[i]>=3)must++;
+    });
+    var avg=sum/B.length;$('#e-avg').textContent=Math.round(avg);$('#e-bar').style.width=avg+'%';
+    $('#e-note').textContent=must?must+' سلوك يتطلب ملاحظة إلزامية (5 أحرف على الأقل): «دائمًا» أو «نادرًا» أو «أبدًا».':'لا ملاحظات إلزامية الآن.';
+  }
+  draw();
+})();
+
+
+/* ---------- scenarios ---------- */
+var VARS=[
+ ['emp','اسم الموظف','سارة'],['lead','اسم القائد','أحمد'],['up','المدير الأعلى (مدير القطاع)','خالد'],
+ ['hr','مراجع الشهادات / الموارد البشرية','منى'],['desk','جهة التذاكر','تقنية المعلومات'],['ttype','نوع التذكرة','مشكلة تقنية'],
+ ['ptype','نوع تذكرة شخصية','شكوى'],['task1','عنوان مهمة 1 (يسندها القائد)','إعداد تقرير الربع'],['task2','عنوان مهمة 2 (لنفسه)','ترتيب أرشيف العملاء'],
+ ['task3','عنوان مهمة 3 (متكررة)','متابعة أسبوعية للمبيعات'],['course','اسم كورس','إدارة المشاريع PMP'],
+ ['cost1','تكلفة كورس ضمن الخطة','3000'],['cost2','تكلفة كورس خارج الخطة','3000'],['cost3','تكلفة كبيرة','25000'],['unit','اسم وحدة الموظف','وحدة العمليات']
+];
+var vals=store.get('arw-vars',{});
+VARS.forEach(function(v){if(!(v[0] in vals))vals[v[0]]=v[2]});
+var vbox=$('#vars');
+VARS.forEach(function(v){
+  var l=document.createElement('label');l.setAttribute('for','v-'+v[0]);l.textContent=v[1];
+  var i=document.createElement('input');i.id='v-'+v[0];i.value=vals[v[0]];
+  i.oninput=function(){vals[v[0]]=i.value;store.set('arw-vars',vals);renderSc();refreshV()};
+  l.appendChild(i);vbox.appendChild(l);
+});
+function sub(t){
+  return t.replace(/\{(\w+)\}/g,function(m,k){return k in vals?'<span class="v">'+esc(vals[k]||'؟')+'</span>':m});
+}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+var A={emp:['موظف','e'],lead:['قائد','l'],hr:['حساب إضافي','x'],sys:['النظام','n'],up:['المدير الأعلى','x']};
+
+/* step = [actor, action, expected] */
+var SC=[
+{id:'s0',t:'0 · الدخول',d:'تسجيل الدخول وحماية الحساب، لكل من الموظف والقائد.',steps:[
+ ['emp','اكتب بريد العمل لـ{emp} واضغط «متابعة» (أول مرة: افتح رابط QR من البريد، امسحه، أدخل الرمز، واحفظ الرموز الاحتياطية).','تظهر رسالة «هذا أول دخول لك» ثم رابط يعرض QR. بعد التأكيد تظهر 10 رموز احتياطية مرة واحدة.'],
+ ['emp','سجّل الدخول برمز التطبيق، ثم اخرج وأعد الدخول وأدخل الرمز نفسه قبل أن يتغير.','الرمز المستخدم يُرفض. الرسالة عامة: «البريد أو الرمز غير صحيح».'],
+ ['emp','أدخل 5 رموز خاطئة متتالية.','«محاولات كثيرة»، والحساب مقفل 15 دقيقة. الرمز الصحيح لا يفتح قبلها.'],
+ ['emp','استخدم «استخدام رمز احتياطي» بدل رمز التطبيق.','يدخل. والرمز الاحتياطي نفسه لا يعمل ثانية.'],
+ ['lead','كرر الدخول للقائد {lead}. ثم افتح «الأمان» وأنهِ جلسة أخرى.','الجلسة المنتهية تُخرج ذلك المتصفح. تظهر الأحداث في سجل التدقيق.'],
+ ['hr','عطّل حساب {emp} من الموظفين (مدير النظام).','دخوله يُرفض، وجلسته المفتوحة تنتهي فورًا. أعد تفعيله بعد الاختبار.']
+]},
+{id:'s1',t:'1 · مهمة يسندها القائد',d:'إسناد، محادثة، تنفيذ، مراجعة، إعادة عمل، إعادة فتح.',steps:[
+ ['lead','مهامي ← مهمة جديدة. العنوان «{task1}»، المسند إليه {emp}، الموعد بعد 3 أيام، الأولوية عالية، فعّل «تحتاج مراجعة». اضغط «إنشاء المهمة».','تأخذ رقم TSK-…، حالتها «للتنفيذ»، وتظهر في «المسندة مني».'],
+ ['emp','افتح الجرس والرئيسية.','إشعار «مهمة جديدة»، المهمة في «المسندة لي»، و«مهامي المفتوحة» زاد واحدًا، وتظهر في مربع من المصفوفة.'],
+ ['emp','افتح المهمة واكتب في المحادثة تعليقًا يذكر @{lead} وأرفق ملفًا.','يصل {lead} إشعار ذكر. الملف يُعرض أو يُحمّل.'],
+ ['emp','انقل البطاقة إلى «قيد التنفيذ» بالسحب، ثم سجّل وقتًا.','تتغير الحالة ويُسجَّل الوقت. يصل {lead} (من أسندها) إشعار بتغيير الحالة، و{emp} لا يصله إشعار بتغيير أجراه هو.'],
+ ['emp','انقل المهمة إلى «مكتملة».','تذهب إلى «بانتظار المراجعة» لا «مكتملة»، ويصل {lead} إشعار.'],
+ ['emp','حاول سحب بطاقة «بانتظار المراجعة» إلى أي عمود.','ترجع البطاقة ويظهر السبب: المراجع وحده يقرر.'],
+ ['lead','أعد المهمة إلى «قيد التنفيذ» دون ملاحظة، ثم بملاحظة.','بلا ملاحظة تُرفض. بالملاحظة تعود «قيد التنفيذ» ويصل {emp} إشعار وتظهر في السجل.'],
+ ['emp','أكمل ثانية، وقبِلها {lead}.','تصير «مكتملة». يصل {emp} إشعار.'],
+ ['lead','اضغط «إعادة فتح» على المهمة المكتملة.','تعود لحالة مسموحة (للتنفيذ أو قيد التنفيذ أو المراجعة).']
+]},
+{id:'s2',t:'2 · مهمة لنفسك',d:'الاعتماد الذاتي: اعتماد، رفض، إعادة إرسال، متابعة.',steps:[
+ ['emp','أنشئ مهمة «{task2}» والمسند إليه أنت.','سطر أسفل النموذج يذكر من يعتمدها ({lead} إن كان مديرك المباشر). حالتها «بانتظار الاعتماد».'],
+ ['emp','حاول سحبها إلى «قيد التنفيذ».','غير مسموح. الاعتماد يتم بقرار المعتمِد وحده.'],
+ ['lead','افتح إشعار «طلب اعتماد» واضغط «رفض» مع ملاحظة.','تصير «مرفوضة» ويصل {emp} إشعار بالقرار.'],
+ ['emp','عدّل المهمة واضغط «إعادة الإرسال».','تعود «بانتظار الاعتماد» عند {lead}.'],
+ ['lead','اضغط «اعتماد».','تصير «للتنفيذ». ويصل {emp} إشعار.'],
+ ['hr','جرّب بحساب موظف بلا مدير مباشر: أنشئ مهمة لنفسه.','تُعتمد تلقائيًا وتصير «للتنفيذ» فورًا.'],
+ ['lead','افتح مهمة {emp} من «فريقي» وجرّب «متابعة»، ثم ابحث في «المتابَعة».','زر المتابعة لا يظهر على مهمة مسندة لك. المهمة المتابَعة تظهر في تبويبها.']
+]},
+{id:'s3',t:'3 · اعتراض وتكرار وتقدير',d:'الاعتراض ومهلته، التكرار، تجاوز الوقت المقدّر.',steps:[
+ ['lead','أسند لـ{emp} مهمة «{task3}» بتكرار «كل أسبوع»، موعدها غدًا، وتقدير ساعتان.','تُنشأ «للتنفيذ». يصل {emp} إشعار.'],
+ ['emp','اضغط «اعتراض» واختر «الوقت غير كافٍ».','تظهر علامة «معترض عليها» ويصل {lead} إشعار.'],
+ ['lead','رد بالرفض (تبقى عند صاحبها)، ثم كرر السيناريو بمهمة أخرى واقبل الاعتراض وأسندها لشخص آخر.','الرفض: تبقى عند {emp}. القبول: تنتقل للشخص الجديد ويصله إشعار.'],
+ ['emp','سجّل وقتًا يتجاوز ساعتين.','إشعار واحد فقط لـ{emp} و{lead} بتجاوز التقدير، لا يتكرر.'],
+ ['emp','أنجز المهمة المتكررة.','تُنشأ المهمة التالية تلقائيًا بالتكرار الأسبوعي.'],
+ ['hr','اترك اعتراضًا بلا رد 3 أيام عمل (أو حرّك الموعد في قاعدة بيانات الاختبار).','يسقط الاعتراض ويُبلَّغ الطرفان، وتبقى المهمة على صاحبها. يحتاج وقتًا أو بيانات معدلة.'],
+ ['emp','أنجز مهمة موعدها فات أكثر من 7 أيام (من بيانات قديمة).','تُطلب نافذة «متى انتهى العمل؟». تاريخ أقدم من 7 أيام يُرفض.']
+]},
+{id:'s4',t:'4 · تذكرة كاملة',d:'الإرسال، الرد، طلب الإغلاق، الرفض، التأكيد، إعادة الفتح.',steps:[
+ ['emp','التذاكر ← تذكرة جديدة. اختر جهة «{desk}» ونوع «{ttype}». اكتب عنوانًا وتفاصيل، فعّل «عاجلة»، أرفق ملفًا.','يفتح الخطوة الثانية. بلا عنوان: «اكتب عنوانًا للتذكرة.»'],
+ ['emp','اختر موعدًا أقرب من أقل مهلة للجهة.','النموذج يذكر «أقرب تاريخ تقبله هذه الجهة هو …». ثم اختر موعدًا صحيحًا وأرسل (Ctrl+Enter).'],
+ ['lead','افتح «وارد الوحدة» (بصفتك مسؤول الجهة).','التذكرة بوسم «جديدة» وعاجلة، وجاءك إشعار فيه الرقم والجهة دون النص.'],
+ ['lead','اضغط «إرسال الردّ» بنص وملف.','يزول وسم «جديدة». يصل {emp} إشعار. الحالة تبقى «مفتوحة».'],
+ ['emp','رُدّ على الرد، واذكر @{lead} في رد آخر.','الرد على رد يكون بمستوى واحد. الذكر يرسل إشعارًا وبريدًا.'],
+ ['lead','اضغط «طلب الإغلاق» مع رسالة.','«بانتظار تأكيد الإغلاق» ويصل {emp} إشعار.'],
+ ['emp','اضغط «لم يُنفَّذ بعد» برسالة.','تعود «مفتوحة» ويصل الجهة إشعار.'],
+ ['lead','اطلب الإغلاق ثانية. ثم {emp}: «تأكيد التنفيذ».','تُغلق «بتأكيد المرسل» دون إشعار للمرسل بفعله هو.'],
+ ['emp','اضغط «إعادة فتح».','تعود «مفتوحة»، وتذكر الصفحة الأيام المتبقية لذلك (7 افتراضيًا).'],
+ ['lead','افتح التذكرة نفسها في نافذتين، ونفّذ إجراءً في كل منهما معًا.','يُرفض الإجراء الثاني ويلزم إعادة المحاولة.'],
+ ['hr','اترك التذكرة «بانتظار التأكيد» 4 أيام (أو غيّر مهلة الجهة في إعداد التذاكر).','تُغلق «تلقائيًا» ويُعلم الطرفان.']
+]},
+{id:'s5',t:'5 · خصوصية وإسناد وإغلاق',d:'التذكرة الشخصية، إعادة الإسناد، الإغلاق دون تنفيذ، العروض.',steps:[
+ ['emp','أرسل تذكرة من نوع شخصي «{ptype}».','تُرسل وتصل المسؤول عن النوع مباشرة.'],
+ ['lead','ابحث عنها في وارد الوحدة وتذاكر فريقي وجرّب فتحها برابطها.','لا تظهر ولا تفتح (404) إلا إن كنت أنت المسؤول عن النوع.'],
+ ['emp','أرسل تذكرة عادية لجهة «{desk}».','تظهر في «تذاكري».'],
+ ['lead','اضغط «إعادة إسناد» واختر عضوًا من وحدتك بالبحث بالاسم.','يظهر من في وحدتك وما تحتها فقط. تنتقل التذكرة ويصله إشعار، والسجل يبيّن من أسند ولمن.'],
+ ['lead','اضغط «إغلاق دون تنفيذ» واكتب سبب الرفض.','تُغلق «دون تنفيذ» ويصل {emp} إشعار.'],
+ ['emp','بدّل العرض بين الجدول والبطاقات واللوحة، وجرّب البحث والفلاتر (الجهة، النوع، المسؤول، الحالة) والتجميع.','لا تصدير ولا استيراد للتذاكر. المنصة تتذكر اختيارك.'],
+ ['hr','أوقف استقبال جهة {desk} مؤقتًا من إعداد التذاكر، ثم حاول الإرسال بحساب {emp}.','الجهة تظهر معطلة مع السبب ويُرفض الإرسال. الموقوفة لا تظهر.'],
+ ['emp','جرّب فتح تذكرة لا علاقة لك بها برابطها.','تظهر كأنها غير موجودة.']
+]},
+{id:'s6',t:'6 · المسار الوظيفي',d:'الإقرار، إثباتات التعلم، الأوسمة، المطلوب، فريقي المهني.',steps:[
+ ['hr','تأكد أن مسار مسمى {emp} «جاهز» (محتوى المسارات الوظيفية). ملفات اختبار جاهزة في docs/test-data/career-title-files.','يظهر المسار للموظف بدل «لم يُجهَّز بعد».'],
+ ['emp','ادخل أول مرة بعد تجهيز المسار.','شاشة كاملة للمسار، وكل روابط القائمة معطلة بتلميح «اقرأ وأقرّ أولًا».'],
+ ['emp','جرّب «التالي» قبل التمرير لآخر القسم، ومربع الإقرار قبل الخطوة السادسة.','كلاهما معطل. بعد القراءة تضغط «أقرّ وأتابع» فتُفتح المنصة.'],
+ ['emp','خطة التعلم ← وحدة ← «رفع الإثبات» نوع «شهادة» بلا ملف، ثم بملف PDF.','بلا ملف: «أرفق ملف الشهادة أولًا». معه: «بانتظار الاعتماد» والساعات لا تُحتسب بعد.'],
+ ['hr','مراجعة الشهادات ← اعتماد.','تصير «منجز» وتُحتسب الساعات لـ{emp} فورًا ويصله إشعار.'],
+ ['emp','افتح «الأوسمة» وبطاقات التقدّم.','الساعات زادت، والمتبقي للوسام التالي نقص.'],
+ ['emp','ارفع إثباتًا بنوع «تطبيق في العمل» لوحدة أخرى.','حالتها «عند المدير المباشر».'],
+ ['lead','الموظفون ← فريقي المهني ← افتح {emp} ← «رفض بسبب» بحرفين، ثم بسبب من 5 أحرف.','الحرفان مرفوضان. بسبب صحيح: «مرفوض» ويُبلَّغ {emp}.'],
+ ['emp','أعد الرفع للوحدة نفسها ثلاث مرات متتالية مع رفضها في كل مرة.','بعد الرفض الثالث يصل {lead} «تكرّر رفض إثبات أحد فريقك».'],
+ ['lead','اعتمد تطبيق عمل آخر، ثم سجّل مستوى جدارة «خبير» وبعدها «سحب التسجيل».','اعتماد الإثبات لا يضع مستوى الجدارة. {emp} يرى «مستواي» يتغير.'],
+ ['emp','علّم بندًا مؤرخًا في «المطلوب» بـ«تم»، واترك بندًا متأخرًا.','المتأخر يظهر «متأخر». عند {lead} يظهر عداد أحمر ويمكن تصفية «متأخر».']
+]},
+{id:'s7',t:'7 · طلب تطوير',d:'التوجيه حسب التكلفة والخطة، الرفض، التصعيد.',steps:[
+ ['emp','خطة التعلم ← «طلب تعلّم من خارج الخطة»: كورس «{course}» بتكلفة {cost1} ريال، واختر «ضمن خطة التعلم».','النافذة تعرض «يعتمده: {lead}» (المدير المباشر) والباقي من الميزانية.'],
+ ['lead','طلبات التطوير ← «بانتظار قراري» ← افتح الطلب ← «رفض» بسبب أقل من 5 أحرف ثم صحيح.','الأقل مرفوض: «السبب خمسة أحرف على الأقل.» بالصحيح: «مرفوض» ويقرأ {emp} السبب.'],
+ ['emp','أرسل طلبًا جديدًا بتكلفة {cost2} لكن «خارج الخطة».','المعتمِد يصير مدير القطاع ({up}). الطلب لا يظهر في «بانتظار قراري» عند {lead}، بل للقراءة فقط في «كل الطلبات».'],
+ ['emp','أرسل طلبًا بتكلفة {cost3}.','المعتمِد الرئيس التنفيذي. وإن زادت عن الباقي من ميزانيتك يظهر تحذير لكنه يسمح بالإرسال.'],
+ ['lead','اعتمد الطلب الذي يصلك.','«معتمد». تُحتسب تكلفته في المصروف من ميزانية {emp}، ويصله إشعار.'],
+ ['hr','أرسل طلبًا لموظف مديره المباشر شاغر.','يصعد إلى المستوى الأعلى. وإن لم يوجد أحد: «لا أحد يشغل منصب المعتمِد بعد…» ويُرفض.'],
+ ['hr','اترك طلبًا عند المدير المباشر 7 أيام (أو حرّك المؤقت).','ينتقل لمدير القطاع تلقائيًا ويصل إشعار للمعتمِد وللموظف «صُعِّد طلب تطويرك».']
+]},
+{id:'s8',t:'8 · دورة التقييم',d:'التقييم الذاتي، تقييم القائد، المعايرة، الإبلاغ، الاعتراض، المحطات.',steps:[
+ ['hr','دورة التقييم ← ارفع ملف التقييم (docs/test-data/performance-eval-file)، تأكد أنها جاهزة، وافتحها.','يصل الموظفين إشعار ويظهر «بدء التقييم الذاتي».'],
+ ['emp','ابدأ التقييم الذاتي: اختر «دائمًا» لسلوك بلا ملاحظة، ثم أضف ملاحظة. «حفظ مسودة» ثم «إرسال».','الملاحظة إلزامية عند «دائمًا» و«نادرًا» و«أبدًا» (5 أحرف). يصل {lead} إشعار عند أول إرسال.'],
+ ['emp','عدّل التقييم المُرسل.','مسموح حتى يبدأ {lead} حفظ تقييمه.'],
+ ['lead','تقييم فريقي ← قيّم {emp}: درجات 0–100 لكل معيار، مستوى لكل سلوك، وعلّم بنود الكتالوج.','التقييم الذاتي يظهر أسفل كل سلوك. الدرجة النهائية تتحدث حيّة. «حفظ مسودة» ثم «إرسال».'],
+ ['up','راجع تقييم {lead} المباشر وعدّله وأرسل.','لا يعمل قبل أن يرسل المباشر («بانتظار مراجعة … أولًا»). بعده تنتقل الدرجات للمعايرة.'],
+ ['hr','المعايرة: عدّل درجة بسبب مكتوب. ثم الاعتماد، ثم الإبلاغ الفردي.','يُسجَّل السبب. بعد الإبلاغ تظهر النتيجة للموظف.'],
+ ['emp','افتح قسم التقييم قبل الإبلاغ، ثم بعده.','قبله «قيد المراجعة» بلا درجات. بعده «نتيجتي» مع نسخة قابلة للتصدير.'],
+ ['emp','ارفع اعتراضًا بسبب أقل من 10 أحرف، ثم صحيح على بند، ثم حاول اعتراضًا ثانيًا.','القصير مرفوض. الاعتراض الواحد يُقبل خلال 5 أيام عمل، والثاني لا.'],
+ ['lead','سجّل محضر محطة لـ{emp} بدون «الإجراء المتفق عليه»، ثم به.','بدونه مرفوض (5 أحرف على الأقل). بعد الحفظ يُبلَّغ {emp}.'],
+ ['emp','افتح «محطات السنة» واضغط «اطّلعت على المحضر».','يُسجَّل إقرارك باطلاعك.']
+]},
+{id:'s9',t:'9 · الحساب والإعدادات',d:'الملف الشخصي، المظهر واللغة، الأمان، صلاحياتي، الإشعارات.',steps:[
+ ['emp','اضغط اسمك أعلى الشاشة ← «الملف الشخصي».','ترى المظهر واللغة وبيانات التواصل وبيانات العمل (للقراءة فقط).'],
+ ['emp','غيّر السمة إلى «داكن» ثم «حسب الجهاز».','تتغير فورًا بلا زر حفظ. افتح حسابك من متصفح آخر: السمة نفسها (محفوظة في حسابك).'],
+ ['emp','بدّل اللغة إلى English ثم العربية.','تتبدل اللغة واتجاه الصفحة (LTR/RTL) فورًا، وتبقى كذلك بعد إعادة الدخول.'],
+ ['emp','اكتب جوالًا بلا + (0501234567).','«اكتب الجوال بالصيغة الدولية» ويبقى «حفظ التغييرات» معطلًا. ثم +966501234567 يُقبل.'],
+ ['emp','ضع في البريد الشخصي بريد العمل نفسه.','يُرفض: يجب أن يختلف عن بريد العمل.'],
+ ['emp','اكتب اسمًا إنجليزيًا فيه أرقام، ثم اسمًا صحيحًا واضغط «حفظ التغييرات».','الأرقام مرفوضة. بالصحيح: «تم حفظ التغييرات». التغيير يظهر في سجل التدقيق ولا يصل أحدًا إشعار.'],
+ ['emp','جرّب تعديل الرقم الوظيفي أو الوحدة أو الاسم العربي.','لا حقل لها: للقراءة فقط، والموارد البشرية وحدها تغيّرها.'],
+ ['emp','اضغط «أعد الجولة».','جولة الترحيب تبدأ من أولها.'],
+ ['emp','قائمة الحساب ← الأمان: اقرأ الحالة والأجهزة. افتح حسابك من متصفح آخر ثم اضغط «إنهاء الجلسة» عليه.','المتصفح الآخر يُطلب منه الدخول من جديد فورًا. جلستك الحالية عليها «هذا الجهاز».'],
+ ['emp','اضغط «إنهاء كل الجلسات الأخرى».','كل الجلسات تنتهي ما عدا الحالية.'],
+ ['hr','من الإعدادات ← الأمان: اجعل أيام الأجهزة الموثوقة أكبر من 0. ثم ادخل بمايكروسوفت مع «تذكّر هذا الجهاز»، وبعدها «إلغاء التوثيق».','الدخول التالي يتخطى الرمز على المتصفح الموثّق فقط بعد مايكروسوفت. بعد الإلغاء يُطلب الرمز.'],
+ ['emp','صلاحياتي: ابحث عن «تصدير»، ثم رشّح «المدى» و«المصدر».','ترى كل صلاحية بمجالها ومداها ومصدرها (دور تلقائي أو مُنح لك). اطلب ما ينقصك من مدير النظام بذكر اسم الصفحة.'],
+ ['lead','صلاحياتي لـ{lead}: قارن مع {emp}.','مدى أوسع (الوحدة وما تحتها) ومصدره «رئيس الوحدة» تلقائيًا، ويتغير بتغيّر موقعه في الهيكل.'],
+ ['hr','بحساب مدير النظام: افتح صلاحياتي ثم «تفعيل وضع مدير المنصة» برمز جديد، ثم جرّب الرمز نفسه ثانية.','الصلاحيات الإدارية مخفية قبل التفعيل. الرمز المستخدم يُرفض. الوضع ينتهي بعد 30 دقيقة بلا نشاط ويُسجَّل في التدقيق.'],
+ ['emp','الجرس: اقرأ العدّاد، افتح آخر 5، انقر إشعارًا، ثم «تعليم الكل كمقروء». في صفحة الإشعارات جرّب البحث والحالة والتواريخ والتصدير.','النقر يفتح المعنية ويعلّمه مقروءًا. لا زر حذف. التصدير يحتاج notifications.export.'],
+ ['hr','سجل البريد: ابحث عن بريد الإشعار الأهم.','الحالة قيد الإرسال ثم تم الإرسال، بلغة المستلم، ولا يحمل نص أي تعليق أو محادثة.']
+]}
+];
+
+var res=store.get('arw-res',{}); // {sid:{i:{s:'ok'|'bad',n:''}}}
+var curSc=store.get('arw-cur','s0');
+function saveRes(){store.set('arw-res',res)}
+function stat(sc){var r=res[sc.id]||{},ok=0,bad=0;sc.steps.forEach(function(_,i){var x=r[i];if(x&&x.s==='ok')ok++;else if(x&&x.s==='bad')bad++});return {ok:ok,bad:bad,n:sc.steps.length}}
+
+function renderNav(){
+  var nav=$('#scnav');nav.innerHTML='';
+  SC.forEach(function(sc){
+    var st=stat(sc),b=document.createElement('button');
+    b.setAttribute('role','tab');b.setAttribute('aria-selected',sc.id===curSc);
+    b.textContent=sc.t+' ('+st.ok+'/'+st.n+')';
+    b.onclick=function(){curSc=sc.id;store.set('arw-cur',curSc);renderSc()};
+    nav.appendChild(b);
+  });
+}
+function renderSc(){
+  renderNav();
+  var sc=SC.filter(function(s){return s.id===curSc})[0],st=stat(sc),body=$('#scbody');
+  body.innerHTML='';
+  var head=document.createElement('div');
+  head.innerHTML='<h3 style="font-size:22px">'+esc(sc.t)+'</h3><p class="lead" style="font-size:16px">'+esc(sc.d)+'</p>'+
+   '<div class="sum"><div class="meter"><i style="width:'+(st.ok/st.n*100)+'%"></i></div><span>نجح '+st.ok+' · فشل '+st.bad+' · من '+st.n+'</span></div>';
+  body.appendChild(head);
+  sc.steps.forEach(function(s,i){
+    var r=(res[sc.id]||{})[i]||{},a=A[s[0]];
+    var d=document.createElement('div');d.className='step'+(r.s==='ok'?' ok':r.s==='bad'?' bad':'');
+    d.innerHTML='<div class="n">'+(i+1)+'</div><div><span class="pill '+a[1]+'">'+a[0]+'</span> '+sub(esc(s[1]))+
+      '<div class="exp"><b>المتوقع:</b> '+sub(esc(s[2]))+'</div>'+
+      '<div class="ctl"><button class="ok" aria-pressed="'+(r.s==='ok')+'">نجحت</button><button class="bad" aria-pressed="'+(r.s==='bad')+'">فشلت</button>'+
+      '<input aria-label="ملاحظة الخطوة '+(i+1)+'" placeholder="ملاحظة (ماذا رأيت فعلًا؟)" value="'+esc(r.n||'')+'"></div></div>';
+    var btns=$$('button',d),inp=$('input',d);
+    function set(v){(res[sc.id]=res[sc.id]||{})[i]=(res[sc.id][i]||{});var c=res[sc.id][i];c.s=(c.s===v?'':v);saveRes();renderSc()}
+    btns[0].onclick=function(){set('ok')};btns[1].onclick=function(){set('bad')};
+    inp.onchange=function(){(res[sc.id]=res[sc.id]||{})[i]=(res[sc.id][i]||{});res[sc.id][i].n=inp.value;saveRes()};
+    body.appendChild(d);
+  });
+}
+function plain(t){return t.replace(/\{(\w+)\}/g,function(m,k){return vals[k]||m})}
+$('#mkrep').onclick=function(){
+  var out=['تقرير تجربة منصة أروقة الريادة','التاريخ: '+new Date().toLocaleDateString('ar-SA'),''];
+  SC.forEach(function(sc){
+    var st=stat(sc);out.push('■ '+sc.t+': نجح '+st.ok+' · فشل '+st.bad+' · لم يُجرَّب '+(st.n-st.ok-st.bad));
+    sc.steps.forEach(function(s,i){var r=(res[sc.id]||{})[i];if(r&&r.s==='bad')out.push('  ✗ خطوة '+(i+1)+': '+plain(s[1])+(r.n?'\n     الفعلي: '+r.n:''))
+      else if(r&&r.n)out.push('  ✎ خطوة '+(i+1)+': '+r.n)});
+    out.push('');
+  });
+  $('#rep').textContent=out.join('\n');
+};
+$('#cprep').onclick=function(){
+  var t=$('#rep').textContent;
+  var done=function(){$('#cprep').textContent='تم النسخ'};
+  try{navigator.clipboard.writeText(t).then(done,function(){sel()})}catch(e){sel()}
+  function sel(){var r=document.createRange();r.selectNodeContents($('#rep'));var s=getSelection();s.removeAllRanges();s.addRange(r)}
+};
+$('#reset').onclick=function(){if($('#reset').dataset.sure){res={};saveRes();$('#reset').textContent='مسح كل النتائج';delete $('#reset').dataset.sure;renderSc()}else{$('#reset').dataset.sure=1;$('#reset').textContent='اضغط ثانية للتأكيد'}};
+
+/* ---------- account labs ---------- */
+function refreshV(){$$('#sl-prof .v').forEach(function(e){var t=e.textContent;if(!e.dataset.k){var m=t.match(/\{(\w+)\}/);if(m)e.dataset.k=m[1]}if(e.dataset.k)e.textContent=vals[e.dataset.k]||'؟'})}
+refreshV();
+function jump(id){var i=slides.findIndex(function(x){return x.id===id});if(i>=0)go(i)}
+// hub menu
+(function(){var dd=$('#m-dd');
+ $('#m-user').onclick=function(e){e.stopPropagation();dd.hidden=!dd.hidden};
+ $('#m-bell').onclick=function(){jump('sl-not')};
+ $$('button',dd).forEach(function(b){b.onclick=function(){dd.hidden=true;jump(b.dataset.go)}});
+ document.addEventListener('click',function(e){if(!e.target.closest('#m-dd'))dd.hidden=true});
+ $('#m-user').click();
+})();
+// profile form
+(function(){
+  var ph=$('#p-ph'),em=$('#p-em'),nm=$('#p-nm'),sv=$('#p-save'),lg=$('#p-log'),WORK='name@arweqah.sa';
+  function chk(){
+    var bad=0,v;
+    v=ph.value.trim();var e1=v&&!/^\+\d{7,15}$/.test(v)?'اكتب الجوال بالصيغة الدولية، مثل +966501234567':'';
+    v=em.value.trim();var e2=v&&(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)||v.length>255)?'اكتب بريدًا صحيحًا':(v.toLowerCase()===WORK?'يجب أن يختلف عن بريد العمل':'');
+    v=nm.value.trim();var e3=v&&!/^[A-Za-z]+([ '\-][A-Za-z]+)*$/.test(v)?'حروف إنجليزية ومسافات فقط':'';
+    [[ph,'e-ph',e1],[em,'e-em',e2],[nm,'e-nm',e3]].forEach(function(x){$('#'+x[1]).textContent=x[2];x[0].classList.toggle('bad',!!x[2]);if(x[2])bad++});
+    sv.disabled=!!bad||!(ph.value||em.value||nm.value);
+  }
+  [ph,em,nm].forEach(function(i){i.oninput=chk});
+  sv.onclick=function(){toast('تم حفظ التغييرات');say(lg,'a','حُفظت بيانات التواصل');say(lg,'n','سجل التدقيق: عدّل ملفه الشخصي (فئة الموظفون)');sv.disabled=true};
+  em.placeholder='جرّب: '+WORK;
+})();
+function toast(t){var e=$('#toast');e.textContent=t;e.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(function(){e.hidden=true},2200)}
+// theme + language
+(function(){
+  var root=document.documentElement;
+  seg('#l-theme',function(v){if(v==='auto')root.removeAttribute('data-theme');else root.setAttribute('data-theme',v)});
+  var T={ar:{t:'مهامي',b:'مهمة جديدة',h:['العنوان','الموعد','الحالة'],r:'إعداد تقرير الربع',s:'قيد التنفيذ',d:'rtl'},en:{t:'My tasks',b:'New task',h:['Title','Due date','Status'],r:'Prepare the quarterly report',s:'In progress',d:'ltr'}};
+  seg('#l-lang',function(v){var x=T[v],m=$('#l-mock');m.dir=x.d;$('#lm-t').textContent=x.t;$('#lm-b').textContent=x.b;$('#lm-h1').textContent=x.h[0];$('#lm-h2').textContent=x.h[1];$('#lm-h3').textContent=x.h[2];$('#lm-r1').textContent=x.r;$('#lm-s').textContent=x.s;m.style.animation='none';void m.offsetWidth;m.style.animation='pop .4s'});
+})();
+// notifications
+(function(){
+  var D=[['مهمة جديدة','أُسندت إليك مهمة TSK-000123',1],['ردّ على تذكرتك','TKT-000045 · جهة تقنية المعلومات',1],['ذُكر اسمك','في محادثة مهمة',1],['طلب اعتماد','مهمة لنفسه تنتظر قرارك',0],['طلب تطوير بانتظار قرارك','كورس بتكلفة 3,000',0]];
+  var st=D.map(function(d){return d[2]}),f='all';
+  function draw(){var box=$('#n-list');box.innerHTML='';var n=0;
+    D.forEach(function(d,i){if(st[i])n++;if(f==='u'&&!st[i])return;var r=document.createElement('div');r.className='nrow'+(st[i]?' u':'');r.innerHTML='<span class="dot"></span><span><b>'+d[0]+'</b><br><small>'+d[1]+'</small></span><span class="tag">'+(st[i]?'غير مقروء':'مقروء')+'</span>';r.onclick=function(){st[i]=0;toast('فُتحت الصفحة المعنية وعُلّم الإشعار مقروءًا');draw()};box.appendChild(r)});
+    $('#n-cnt').textContent=n;if(!box.children.length)box.innerHTML='<p class="tag" style="padding:14px">لا إشعارات غير مقروءة.</p>'}
+  seg('#n-f',function(v){f=v;draw()});
+  $('#n-all').onclick=function(){st=st.map(function(){return 0});draw()};
+  $('#n-reset').onclick=function(){st=D.map(function(d){return d[2]});draw()};
+  draw();
+})();
+// security
+(function(){
+  var S0=[['Chrome على Windows','الرياض · 192.168.1.•••','قبل دقيقة',1],['Safari على iPhone','جدة · 10.20.4.•••','قبل 3 ساعات',0],['Edge على Windows','الدمام · 172.16.8.•••','أمس',0]];
+  var T0=[['Chrome على Windows','ينتهي التوثيق بعد 12 يومًا',1]];
+  var S,T;
+  function reset(){S=S0.map(function(x){return x.slice()});T=T0.map(function(x){return x.slice()});draw()}
+  function row(x,btn,fn,box,hint){var d=document.createElement('div');d.className='srow';d.innerHTML='<div><b>'+x[0]+'</b>'+(x[3]||x[2]===1&&hint?' <span class="pill e">هذا الجهاز</span>':'')+'<br><small class="tag">'+x[1]+(hint?'':' · آخر نشاط: '+x[2])+'</small></div>';var b=document.createElement('button');b.className='mini d';b.textContent=btn;b.onclick=function(){d.classList.add('gone');setTimeout(fn,380)};d.appendChild(b);box.appendChild(d)}
+  function draw(){var l=$('#s-list');l.innerHTML='';
+    S.forEach(function(x,i){row(x,'إنهاء الجلسة',function(){S.splice(i,1);toast('انتهت الجلسة فورًا');draw()},l)});
+    var t=$('#s-trust');t.innerHTML='';
+    if(!T.length)t.innerHTML='<p class="tag">لا أجهزة موثوقة.</p>';
+    T.forEach(function(x,i){row([x[0],x[1],1,0],'إلغاء التوثيق',function(){T.splice(i,1);toast('سيُطلب الرمز على ذلك المتصفح');draw()},t,1)});
+    $('#s-others').disabled=S.length<=1}
+  $('#s-others').onclick=function(){S=S.filter(function(x){return x[3]});toast('انتهت كل الجلسات الأخرى');draw()};
+  $('#s-reset').onclick=reset;reset();
+})();
+// my access
+(function(){
+  var EMP=[['tasks.view','المهام','سجله فقط','دور موظف'],['tasks.create','المهام','سجله فقط','دور موظف'],['tickets.view','التذاكر','سجله فقط','دور موظف'],['tickets.create','التذاكر','سجله فقط','دور موظف'],['tickets.reply','التذاكر','سجله فقط','دور موظف'],['career_profile.view','المسار الوظيفي','الكل','دور موظف'],['career_learning.upload','المسار الوظيفي','الكل','دور موظف'],['career_requests.create','المسار الوظيفي','الكل','دور موظف'],['profile.update','الملف الشخصي','الكل','دور موظف'],['security.view','الأمان','الكل','دور موظف'],['my_access.export','صلاحياتي','الكل','دور موظف'],['notifications.export','الإشعارات','الكل','دور موظف']];
+  var LEAD=[['tasks.team_view','المهام','وحدته وما تحتها','رئيس الوحدة (تلقائي)'],['tasks.matrix_view','المهام','وحدته وما تحتها','رئيس الوحدة (تلقائي)'],['tasks.approve','المهام','وحدته وما تحتها','المدير المباشر (تلقائي)'],['tickets.reply','التذاكر','وحدته وما تحتها','رئيس الوحدة (تلقائي)'],['tickets.reassign','التذاكر','وحدته وما تحتها','رئيس الوحدة (تلقائي)'],['tickets.delete','التذاكر','وحدته وما تحتها','رئيس الوحدة (تلقائي)'],['career_team.view','المسار الوظيفي','وحدته وما تحتها','رئيس الوحدة (تلقائي)'],['career_team.decide','المسار الوظيفي','وحدته وما تحتها','رئيس الوحدة (تلقائي)'],['career_requests.approve','المسار الوظيفي','وحدته وما تحتها','رئيس الوحدة (تلقائي)'],['performance.team_evaluate','التقييم','وحدته وما تحتها','رئيس الوحدة (تلقائي)']];
+  var ADM=[['employees.reset_authenticator','الموظفون','الكل','مدير النظام (مخفي)'],['employees.resend_invite','الموظفون','الكل','مدير النظام (مخفي)'],['employees.deactivate','الموظفون','الكل','مدير النظام (مخفي)'],['security_settings.edit','الأمان','الكل','مدير النظام (مخفي)'],['admin_mode.use','وضع المدير','الكل','مدير النظام']];
+  var role='emp',adm=0,q=$('#a-q'),sc=$('#a-sc');
+  function rows(){var r=EMP.slice();if(role==='lead')r=LEAD.concat(r.filter(function(x){return !LEAD.some(function(y){return y[0]===x[0]})}));if(role==='adm'){r=ADM.slice(-1).concat(r);if(adm)r=ADM.slice(0,-1).concat(r)}return r}
+  function draw(){
+    var r=rows(),scs=[];r.forEach(function(x){if(scs.indexOf(x[2])<0)scs.push(x[2])});
+    var cur=sc.value;sc.innerHTML='<option value="">الكل</option>'+scs.map(function(x){return '<option'+(x===cur?' selected':'')+'>'+x+'</option>'}).join('');
+    var t=q.value.trim().toLowerCase();
+    r=r.filter(function(x){return (!sc.value||x[2]===sc.value)&&(!t||x.join(' ').toLowerCase().indexOf(t)>=0)});
+    $('#a-body').innerHTML=r.map(function(x,i){return '<tr style="animation:slidein .35s backwards;animation-delay:'+(i*25)+'ms"><td><code>'+x[0]+'</code></td><td>'+x[1]+'</td><td>'+x[2]+'</td><td><span class="pill '+(x[3].indexOf('تلقائي')>=0||x[3].indexOf('مخفي')>=0?'l':'e')+'">'+x[3]+'</span></td></tr>'}).join('')||'<tr><td colspan="4" class="tag">لا نتائج: إن لم تجد الصلاحية فأنت لا تملكها. اطلبها من مدير النظام.</td></tr>';
+    $('#a-ban').hidden=!(role==='adm'&&!adm);
+  }
+  seg('#a-role',function(v){role=v;adm=0;$('#a-code').hidden=true;draw()});
+  q.oninput=draw;sc.onchange=draw;
+  $('#a-on').onclick=function(){$('#a-code').hidden=false;$('#a-c').focus()};
+  $('#a-go').onclick=function(){var v=$('#a-c').value;if(!/^\d{6}$/.test(v)||v==='000000'){$('#a-err').textContent='رمز غير صالح أو مستخدم';return}adm=1;$('#a-err').textContent='';toast('وضع مدير المنصة مفعّل (ينتهي بعد 30 دقيقة بلا نشاط)');draw()};
+  draw();
+})();
+renderSc();
+})();
+</script>
