@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/shared/lib/cn';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
-import { FormField, Input, Select, Textarea } from '@/shared/ui';
+import { DateInput, FormField, Input, Select, Textarea } from '@/shared/ui';
 import { PRIORITIES, type TaskDraft } from './task-draft';
 
 interface FieldsProps {
@@ -47,7 +47,7 @@ export function WhenFields({ draft, onPatch, today, creating }: FieldsProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-3">
       <FormField label={`${t('form.dueDate')} *`} error={due.error}>
-        {(p) => <Input {...p} type="date" dir="ltr" aria-required min={creating ? today : undefined} onBlur={due.onBlur} value={draft.dueDate} onChange={(e) => onPatch({ dueDate: e.target.value })} />}
+        {(p) => <DateInput {...p} aria-required min={creating ? today : undefined} onBlur={due.onBlur} value={draft.dueDate} onChange={(e) => onPatch({ dueDate: e.target.value })} />}
       </FormField>
       <FormField label={t('form.priority')}>
         {(p) => (

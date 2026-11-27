@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Combobox, FormField, Input, Select } from '@/shared/ui';
+import { Combobox, DateInput, FormField, Input, Select } from '@/shared/ui';
 import { useJobTitleOptions, useManagerSearch, useOrgNodeOptions } from './api';
 import { useEmployeeOptions } from './form/use-options';
 
@@ -81,7 +81,7 @@ export function BulkForm({ values, onChange }: Props) {
       </label>
       {placement && (
         <>
-          <FormField label={`${t('placementChange.effectiveFrom')} *`} hint={t('placementChange.effectiveFromHint')}>{(p) => <Input {...p} type="date" dir="ltr" value={values.validFrom} onChange={(e) => set({ validFrom: e.target.value })} />}</FormField>
+          <FormField label={`${t('placementChange.effectiveFrom')} *`} hint={t('placementChange.effectiveFromHint')}>{(p) => <DateInput {...p} value={values.validFrom} onChange={(e) => set({ validFrom: e.target.value })} />}</FormField>
           <FormField label={`${t('placementChange.changeReason')} *`} hint={t('placementChange.changeReasonHint')}>{(p) => <Input {...p} value={values.reason} onChange={(e) => set({ reason: e.target.value })} />}</FormField>
         </>
       )}

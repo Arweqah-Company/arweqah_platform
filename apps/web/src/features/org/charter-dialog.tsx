@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
 import { listProblem, todayInRiyadh } from '@/shared/lib/lines';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
-import { Alert, Button, Dialog, DialogFooter, FormField, Input, LocalizedLinesField, Textarea } from '@/shared/ui';
+import { Alert, Button, DateInput, Dialog, DialogFooter, FormField, LocalizedLinesField, Textarea } from '@/shared/ui';
 import { useUpdateCharter } from './api';
 import { nodeName, type OrgNode } from './org-model';
 import { REASON_MIN } from './leader-rules';
@@ -65,7 +65,7 @@ export function CharterDialog({ node, charter, onClose }: { node: OrgNode; chart
         {save.isError && <Alert>{errorMessage(tc, save.error)}</Alert>}
         <PurposeField charter={draft} onChange={setDraft} />
         {LISTS.map((key) => <LocalizedLinesField key={key} label={t(`charter.${key}`)} hint={t('charter.linesHint')} value={draft[key]} onChange={(next) => setDraft({ ...draft, [key]: next })} {...LIMITS} />)}
-        <FormField label={`${t('charter.effectiveFrom')} *`} hint={t('charter.effectiveHint')} error={dateError.error}>{(p) => <Input {...p} type="date" dir="ltr" min={today} onBlur={dateError.onBlur} value={effectiveFrom} onChange={(e) => setEffectiveFrom(e.target.value)} />}</FormField>
+        <FormField label={`${t('charter.effectiveFrom')} *`} hint={t('charter.effectiveHint')} error={dateError.error}>{(p) => <DateInput {...p} min={today} onBlur={dateError.onBlur} value={effectiveFrom} onChange={(e) => setEffectiveFrom(e.target.value)} />}</FormField>
         <FormField label={`${t('charter.reason')} *`} error={reasonError.error}>{(p) => <Textarea {...p} rows={2} onBlur={reasonError.onBlur} value={reason} onChange={(e) => setReason(e.target.value)} />}</FormField>
         <DialogFooter>
           <Button variant="secondary" onClick={onClose}>{tc('actions.cancel')}</Button>

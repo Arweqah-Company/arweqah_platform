@@ -2,7 +2,7 @@ import type { RoleDto } from '@arweqah-platform/shared';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useRoles } from '@/features/roles';
-import { Alert, Badge, Input, SectionCard } from '@/shared/ui';
+import { Alert, Badge, DateInput, SectionCard } from '@/shared/ui';
 import type { FormState } from './form-state';
 
 export interface RoleGroups {
@@ -48,7 +48,7 @@ function Row({ checked, disabled, label, badge, onChange, endDate }: RowProps) {
         <span>{label}</span>
         {badge && <Badge tone="info">{badge}</Badge>}
       </label>
-      {endDate && checked && <Input type="date" dir="ltr" className="h-8 w-40" aria-label={endDate.label} value={endDate.value} onChange={(e) => endDate.onChange(e.target.value)} />}
+      {endDate && checked && <DateInput className="h-8 w-40" aria-label={endDate.label} value={endDate.value} onChange={(e) => endDate.onChange(e.target.value)} />}
     </div>
   );
 }

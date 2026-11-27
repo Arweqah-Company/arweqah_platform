@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
-import { Alert, Button, Dialog, FormField, Input } from '@/shared/ui';
+import { Alert, Button, DateInput, Dialog, FormField } from '@/shared/ui';
 import { useLogTime } from '../api';
 import { TimeFields } from './time-fields';
 import { checkTime } from './time-rules';
@@ -33,7 +33,7 @@ export function TimeDialog({ taskId, onClose }: { taskId: string; onClose: () =>
       <div className="flex flex-col gap-4">
         {run.isError && <Alert>{errorMessage(tc, run.error)}</Alert>}
         <TimeFields hours={hours} minutes={minutes} onHours={setHours} onMinutes={setMinutes} />
-        <FormField label={`${t('time.day')} *`}>{(p) => <Input {...p} type="date" dir="ltr" max={today} value={day} onChange={(e) => setDay(e.target.value)} />}</FormField>
+        <FormField label={`${t('time.day')} *`}>{(p) => <DateInput {...p} max={today} value={day} onChange={(e) => setDay(e.target.value)} />}</FormField>
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={onClose}>{tc('actions.cancel')}</Button>
           <Button disabled={run.isPending || !valid} onClick={() => void submit()}>{t('time.confirm')}</Button>

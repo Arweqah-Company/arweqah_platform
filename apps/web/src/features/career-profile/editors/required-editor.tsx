@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { FormField, Input, Textarea } from '@/shared/ui';
+import { DateInput, FormField, Input, Textarea } from '@/shared/ui';
 import { EditorBlock, EditorRow, LinesTextarea, removeAt, replaceAt, contentSetter, type EditorProps } from './editor-parts';
 
 /** The required actions (each with a heading, its lines and the last day) and the acknowledgement sentence. */
@@ -13,7 +13,7 @@ export function RequiredEditor({ content, onChange }: EditorProps) {
           <EditorRow key={i} removeLabel={t('editor.remove')} onRemove={() => set('required', removeAt(content.required, i))}>
             <FormField label={t('editor.when')} error={r.when.trim() ? undefined : t('editor.required')}>{(p) => <Input {...p} maxLength={160} value={r.when} onChange={(e) => set('required', replaceAt(content.required, i, { ...r, when: e.target.value }))} />}</FormField>
             <FormField label={t('editor.requiredLines')} hint={t('editor.oneLinePerItem')} error={r.lines.length ? undefined : t('editor.required')}>{(p) => <LinesTextarea {...p} rows={3} lines={r.lines} onLines={(lines) => set('required', replaceAt(content.required, i, { ...r, lines }))} />}</FormField>
-            <FormField label={t('editor.deadline')} hint={t('editor.deadlineHint')}>{(p) => <Input {...p} type="date" dir="ltr" value={r.deadline ?? ''} onChange={(e) => set('required', replaceAt(content.required, i, { ...r, deadline: e.target.value || null }))} />}</FormField>
+            <FormField label={t('editor.deadline')} hint={t('editor.deadlineHint')}>{(p) => <DateInput {...p} value={r.deadline ?? ''} onChange={(e) => set('required', replaceAt(content.required, i, { ...r, deadline: e.target.value || null }))} />}</FormField>
           </EditorRow>
         ))}
       </EditorBlock>

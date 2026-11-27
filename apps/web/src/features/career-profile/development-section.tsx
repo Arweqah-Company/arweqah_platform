@@ -5,6 +5,7 @@ import { Alert, Badge, Tabs } from '@/shared/ui';
 import { useMyProgress } from './api';
 import { LadderGraph } from './ladder-graph';
 import { useTabCoverage } from './reading-coverage';
+import { formatNumber } from '@/shared/lib/format-number';
 
 /** The steps of the level path: label, what to do, and how it is evidenced. */
 function PathSteps({ steps }: { steps: CareerContent['steps'] }) {
@@ -66,7 +67,7 @@ type SubTab = (typeof SUB_TABS)[number];
 /** The development stage of the title (from its grade and track), the hours a year and the budget cap of one person. */
 function StageTiles({ stage }: { stage: DevelopmentStageDto }) {
   const { t } = useTranslation('career-profile');
-  const tiles = [[t('development.stageLabel'), t(`stage.${stage.code}`)], [t('development.hoursLabel'), t('development.hours', { count: stage.hoursPerYear })], [t('development.budgetLabel'), t('development.budget', { amount: stage.budgetCap.toLocaleString('en') })]];
+  const tiles = [[t('development.stageLabel'), t(`stage.${stage.code}`)], [t('development.hoursLabel'), t('development.hours', { count: stage.hoursPerYear })], [t('development.budgetLabel'), t('development.budget', { amount: formatNumber(stage.budgetCap) })]];
   return (
     <div className="grid gap-3 sm:grid-cols-3">
       {tiles.map(([label, value]) => (

@@ -10,6 +10,7 @@ import { Alert, Button, Dialog, DialogFooter, FileDropzone, FormField, Textarea 
 import { readEvalFile, useConfirmEvalFile, useSaveEvalFile } from './api';
 import { AiNotes, AiOffer } from './eval-file-ai';
 import { Findings, isSound } from './eval-file-findings';
+import { formatNumber } from '@/shared/lib/format-number';
 
 /** The server's check of a text: the result belongs to the text it was made for, so a check that finishes after the text changed is never used. */
 function useEvalCheck(text: string) {
@@ -65,7 +66,7 @@ export function EvalFileDialog({ onClose }: { onClose: () => void }) {
       <div className="flex flex-col gap-4">
         <FileDropzone label={t('file.pick')} accept={TITLE_FILE_ACCEPT} maxBytes={TITLE_FILE_MAX_BYTES} hint={t('file.hint')} busy={check.isPending} onFiles={(f) => void reader.read(f)} />
         {reader.failure && <Alert tone="danger">{t(`file.readErrors.${reader.failure}`)}</Alert>}
-        <FormField label={t('file.paste')} hint={t('file.limit', { max: EVAL_FILE_MAX.toLocaleString() })}>{(p) => <Textarea {...p} rows={6} placeholder={t('file.pastePlaceholder')} value={text} maxLength={EVAL_FILE_MAX} onChange={(e) => { setText(e.target.value); setEmpty(false); forget(); }} />}</FormField>
+        <FormField label={t('file.paste')} hint={t('file.limit', { max: formatNumber(EVAL_FILE_MAX) })}>{(p) => <Textarea {...p} rows={6} placeholder={t('file.pastePlaceholder')} value={text} maxLength={EVAL_FILE_MAX} onChange={(e) => { setText(e.target.value); setEmpty(false); forget(); }} />}</FormField>
         <div><Button disabled={check.isPending} onClick={extract}>{t('file.check')}</Button></div>
         <p role="alert" className="text-sm text-danger-text empty:hidden">{empty ? t('file.pasteFirst') : undefined}</p>
         <AiOffer text={text} onResult={(answer, sent) => sent === text && adopt(answer, sent)} />

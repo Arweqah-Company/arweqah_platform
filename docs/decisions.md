@@ -2,6 +2,14 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-27 — One date field (FR-201)
+
+Plan: `docs/plans/phase-1-auth-employees.md` (log 2026-11-27).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 506 | **Every date box is `DateInput` (text `YYYY-MM-DD`, `dir="ltr"`, Latin digits, mask, calendar button), never `<input type="date">`; shown numbers use `formatNumber`.** The mask converts Arabic-Indic / Persian digits, adds the dashes and stops at 8 digits; the value handed to forms and the API is still `YYYY-MM-DD`. The calendar is a hidden native date input that only writes its day into the text box. `design-check` refuses a raw `<input type="date">` and `toLocaleString()` without a locale. Decision 484 left the browser picker out; this replaces that exception. | The owner saw «ةنس/رهش/موي» and «٢٤/١١/١٩٩٦» in an Arabic page while the same birth date read `1996-11-24` in the profile: the native control follows the device language, which no CSS or `dir` can change (`dir="ltr"` alone fixes only the order of the empty text, not the digits). | A calendar popup in the platform's language is needed (a custom calendar) |
+
 ## 2026-11-27 — The edge nginx takes a changed edge.conf (owner report: a PowerPoint upload failed on live)
 
 | # | Decision | Why | Revisit when |

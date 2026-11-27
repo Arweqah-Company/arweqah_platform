@@ -1,4 +1,4 @@
-import { useId, type ComponentProps, type InputHTMLAttributes, type ReactNode } from 'react';
+import { useId, type ComponentProps, type ReactNode } from 'react';
 import { cn } from '../lib/cn';
 import { control, controlBase } from './control-style';
 
@@ -36,7 +36,7 @@ export function FormField({ label, error, hint, children }: FieldProps) {
   );
 }
 
-export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+export function Input({ className, ...props }: ComponentProps<'input'>) {
   return <input className={cn(control, className)} {...props} />;
 }
 

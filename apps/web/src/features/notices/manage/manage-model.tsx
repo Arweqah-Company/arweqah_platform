@@ -1,3 +1,4 @@
+import { formatNumber } from '@/shared/lib/format-number';
 import { formatDate } from '@/shared/lib/format-date';
 import {
   NOTICE_ACK_RATE_BANDS,
@@ -62,7 +63,7 @@ export function useAudienceText() {
   return (n: NoticeListItemDto) => {
     const reached = n.audience.recipients;
     const base = n.audience.all ? t('columns.everyone') : t('columns.rules', { count: n.audience.rules });
-    return reached === null ? base : `${base} (${reached.toLocaleString('en')})`;
+    return reached === null ? base : `${base} (${formatNumber(reached)})`;
   };
 }
 

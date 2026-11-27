@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
-import { Alert, Button, Dialog, FormField, Input } from '@/shared/ui';
+import { Alert, Button, DateInput, Dialog, FormField } from '@/shared/ui';
 import { useSetExpiry } from './api';
 import { refOf } from './exceptions-list';
 
@@ -26,7 +26,7 @@ export function ExpiryDialog({ item, targetName, onClose }: { item: AccessExcept
     <Dialog open onOpenChange={(open) => !open && onClose()} title={t('expiryTitle')} description={`${item.userName} · ${targetName}`}>
       <div className="flex flex-col gap-4">
         {save.isError && <Alert>{errorMessage(tc, save.error)}</Alert>}
-        <FormField label={t('expires')} hint={t('expiryHint')}>{(p) => <Input {...p} type="date" dir="ltr" value={day} onChange={(e) => setDay(e.target.value)} />}</FormField>
+        <FormField label={t('expires')} hint={t('expiryHint')}>{(p) => <DateInput {...p} value={day} onChange={(e) => setDay(e.target.value)} />}</FormField>
         <div className="flex flex-wrap justify-end gap-2">
           <Button variant="secondary" onClick={onClose}>{tc('actions.cancel')}</Button>
           {item.expiresAt && <Button variant="secondary" disabled={save.isPending} onClick={() => void submit(null)}>{t('removeEnd')}</Button>}

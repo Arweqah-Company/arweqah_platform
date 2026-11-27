@@ -4,11 +4,12 @@ import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import type { ExportColumn } from '@/shared/data-exchange/types';
 import { Badge, DetailsDialog, type Column, type FilterField } from '@/shared/ui';
+import { formatNumber } from '@/shared/lib/format-number';
 
 export const REQUEST_TONE: Record<RequestStatus, 'warning' | 'success' | 'danger'> = { pending: 'warning', approved: 'success', rejected: 'danger' };
 
 const day = (iso: string | null): string | null => (iso ? formatDate(iso) : null);
-const money = (t: TFunction<'career-profile'>, amount: number): string => t('requests.riyals', { amount: amount.toLocaleString('en') });
+const money = (t: TFunction<'career-profile'>, amount: number): string => t('requests.riyals', { amount: formatNumber(amount) });
 
 /** The columns of a list of requests and of its export; the employee column only where the list holds other people's requests. */
 export function useRequestColumns(withEmployee: boolean): { columns: Column<DevelopmentRequestDto>[]; exportColumns: ExportColumn<DevelopmentRequestDto>[] } {

@@ -9,6 +9,7 @@ import { TITLE_FILE_ACCEPT, TITLE_FILE_MAX_BYTES } from '@/shared/lib/read-docum
 import { useDocumentReader } from '@/shared/lib/use-document-reader';
 import { AiNotes, AiOffer } from './title-file-ai';
 import { useTitleFileSave } from './use-title-file-save';
+import { formatNumber } from '@/shared/lib/format-number';
 
 /** What the reader found: the counts of each part and what is still wrong, each in words. */
 function Findings({ result, titleCode }: { result: TitleFileResultDto; titleCode: string | null }) {
@@ -67,7 +68,7 @@ export function TitleFileDialog({ titleId, titleName, titleCode = null, onClose 
       <div className="flex flex-col gap-4">
         <FileDropzone label={t('file.pick')} accept={TITLE_FILE_ACCEPT} maxBytes={TITLE_FILE_MAX_BYTES} hint={t('file.hint')} busy={check.isPending} onFiles={(f) => void reader.read(f)} />
         {reader.failure && <Alert tone="danger">{t(`file.readErrors.${reader.failure}`)}</Alert>}
-        <FormField label={t('file.paste')} hint={t('file.limit', { max: TITLE_FILE_MAX_CHARS.toLocaleString() })}>
+        <FormField label={t('file.paste')} hint={t('file.limit', { max: formatNumber(TITLE_FILE_MAX_CHARS) })}>
           {(props) => <Textarea {...props} rows={6} value={text} maxLength={TITLE_FILE_MAX_CHARS} onChange={(e) => { setText(e.target.value); setResult(null); }} />}
         </FormField>
         <div><Button variant="secondary" disabled={!text.trim() || check.isPending} onClick={() => run(text)}>{t('file.extract')}</Button></div>

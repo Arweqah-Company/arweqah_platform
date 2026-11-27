@@ -7,7 +7,7 @@ import { Can, usePermissions } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { useLiveError, useRules } from '@/shared/lib/live-validation';
 import { useAutoEnglish } from '@/shared/lib/use-auto-english';
-import { Alert, Button, ConfirmDialog, Dialog, DialogFooter, FileAttachments, FormField, Input, Select, Textarea } from '@/shared/ui';
+import { Alert, Button, ConfirmDialog, DateInput, Dialog, DialogFooter, FileAttachments, FormField, Input, Select, Textarea } from '@/shared/ui';
 import { useCreateNotice, useNotice, useNoticeAction, useNoticeOptions, useUpdateNotice } from '../api';
 import { AudienceField } from './audience-field';
 import { draftOf, emptyDraft, inputOf, missingOf, riyadhToday, type Draft, type FormMode } from './notice-draft';
@@ -58,7 +58,7 @@ function ChannelAndDate({ draft, mode, patch }: FieldsProps) {
       {mode === 'revise' ? (
         <p className="self-end text-sm text-muted">{t('form.revisePublishes')}</p>
       ) : (
-        <FormField label={`${t('form.publishOn')} *`} error={date.error}>{(p) => <Input {...p} type="date" dir="ltr" min={today} aria-required onBlur={date.onBlur} value={draft.publishOn} onChange={(e) => patch({ publishOn: e.target.value })} />}</FormField>
+        <FormField label={`${t('form.publishOn')} *`} error={date.error}>{(p) => <DateInput {...p} min={today} aria-required onBlur={date.onBlur} value={draft.publishOn} onChange={(e) => patch({ publishOn: e.target.value })} />}</FormField>
       )}
     </div>
   );

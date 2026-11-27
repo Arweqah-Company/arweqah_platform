@@ -42,6 +42,8 @@ for (const file of files) {
     const at = `${rel}:${i + 1}`;
     if (!isTheme && /#[0-9a-fA-F]{3,8}\b/.test(line) && !/&#|href=|url\(#/.test(line)) problems.push(`${at}: hex color; use a brand token class`);
     if (!isTheme && /\b(?:rgb|hsl)a?\(/.test(line)) problems.push(`${at}: rgb()/hsl() color; use a brand token class`);
+    if (/<input\b[^>]*type="date"/i.test(line) && !rel.endsWith('shared/ui/date-input.tsx')) problems.push(`${at}: raw <input type="date"> writes the device's digits and empty text; use DateInput (FR-201)`);
+    if (/\.toLocaleString\(\)/.test(line)) problems.push(`${at}: toLocaleString() without a locale writes Arabic-Indic digits; use formatNumber / formatDate (FR-201)`);
     if (/\bstyle=\{\{/.test(line)) problems.push(`${at}: inline style; use token classes`);
     if (PHYSICAL.test(line) && /class(Name)?=|cn\(|'[^']*'|"[^"]*"/.test(line)) problems.push(`${at}: physical direction class (use logical ms-/me-/ps-/pe-/start-/end-)`);
     if (/font-family|fontFamily/.test(line) && !isTheme) problems.push(`${at}: font-family override; Tajawal only, via theme tokens`);
