@@ -1,6 +1,6 @@
 import type { FileDto } from '@arweqah-platform/shared';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
-import { http, HttpResponse } from 'msw';
+import { delay, http, HttpResponse } from 'msw';
 import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { me, server } from '../../../test/msw';
@@ -79,5 +79,19 @@ describe('Checking an attachment before the form is sent (FR-192, FR-191)', () =
     choose([big]);
     expect(await screen.findByRole('alert')).toHaveTextContent(/50/);
     expect(screen.queryByRole('button', { name: 'إزالة big.pptx' })).not.toBeInTheDocument();
+  });
+
+  it('makes no local address for a picture whose upload ends after the box was closed (nothing would release it)', async () => {
+    const posted: string[] = [];
+    server.use(
+      http.get('*/api/me', () => HttpResponse.json({ ...me(), maxUploadMb: 10 })),
+      http.post('*/api/files', async () => { posted.push('x'); await delay(120); posted.push('done'); return HttpResponse.json(dto('f1', 'screen.png', PNG), { status: 201 }); }),
+    );
+    const { unmount } = renderPage(<Box />);
+    choose([new File(['x'], 'screen.png', { type: PNG })]);
+    unmount();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(posted).toEqual(['x', 'done']); // the upload did run to its end
+    expect(URL.createObjectURL).not.toHaveBeenCalled();
   });
 });

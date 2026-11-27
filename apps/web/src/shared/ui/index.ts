@@ -40,7 +40,7 @@ export { HistoryActor, HistorySection, HistoryWhen } from './history-section';
 export { RowAction } from './row-action';
 export { Icicle } from './icicle';
 export { KanbanColumn } from './kanban-column';
-export { Tabs, type TabItem } from './tabs';
+export { Tabs, tabId, type TabItem } from './tabs';
 export { Turnstile } from './turnstile';
 export { Avatar } from './avatar';
 export { SegmentedControl, type SegmentChoice } from './segmented-control';

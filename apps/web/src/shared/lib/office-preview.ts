@@ -125,19 +125,34 @@ async function slideImages(zip: Zip, slidePath: string): Promise<{ images: Blob[
   return { images, more: targets.length > PREVIEW_MAX_SLIDE_IMAGES };
 }
 
+/** The slide files in the order the presentation shows them (`p:sldIdLst` and its relationships), or by file number when the presentation does not say. */
+async function slideOrder(zip: Zip): Promise<string[]> {
+  const byNumber = Object.keys(zip.files)
+    .map((name) => ({ name, number: Number(/^ppt\/slides\/slide(\d+)\.xml$/.exec(name)?.[1]) }))
+    .filter((s) => Number.isInteger(s.number))
+    .sort((a, b) => a.number - b.number)
+    .map((s) => s.name);
+  const presentation = await zip.file('ppt/presentation.xml')?.async('string');
+  const rels = await zip.file('ppt/_rels/presentation.xml.rels')?.async('string');
+  if (!presentation || !rels) return byNumber;
+  const parse = (xml: string) => new DOMParser().parseFromString(xml, 'application/xml');
+  const target = new Map(Array.from(parse(rels).getElementsByTagName('Relationship')).map((r) => [r.getAttribute('Id') ?? '', resolveTarget('ppt/presentation.xml', r.getAttribute('Target') ?? '')]));
+  const listed = Array.from(parse(presentation).getElementsByTagName('p:sldId'))
+    .map((el) => target.get(el.getAttribute('r:id') ?? ''))
+    .filter((path): path is string => !!path && zip.file(path) !== null);
+  return listed.length ? listed : byNumber;
+}
+
 /** A PowerPoint file as slides of text and pictures (an approximation: no layout, shapes or animations), read in the browser. */
 export async function pptxToSlides(blob: Blob): Promise<PreviewDeck> {
   const { default: JSZip } = await import('jszip');
   const zip = await JSZip.loadAsync(await blob.arrayBuffer());
-  const paths = Object.keys(zip.files)
-    .map((name) => ({ name, number: Number(/^ppt\/slides\/slide(\d+)\.xml$/.exec(name)?.[1]) }))
-    .filter((s) => Number.isInteger(s.number))
-    .sort((a, b) => a.number - b.number);
+  const paths = await slideOrder(zip);
   const slides: PreviewSlide[] = [];
-  for (const { name, number } of paths.slice(0, PREVIEW_MAX_SLIDES)) {
+  for (const [index, name] of paths.slice(0, PREVIEW_MAX_SLIDES).entries()) {
     const { images, more } = await slideImages(zip, name);
     const xml = (await zip.file(name)?.async('string')) ?? '';
-    slides.push({ number, lines: slideLines(xml), images, moreImages: more });
+    slides.push({ number: index + 1, lines: slideLines(xml), images, moreImages: more });
   }
   return { slides, truncated: paths.length > PREVIEW_MAX_SLIDES };
 }

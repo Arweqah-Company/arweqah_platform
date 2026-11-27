@@ -1,5 +1,5 @@
 import { formatTicketNumber, type ProblemContext, type ProblemReportAnalysisDto } from '@arweqah-platform/shared';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -9,12 +9,15 @@ import { useAnalyzeProblemReport, useSendProblemReport, useUploadScreenshot } fr
 function useKeptScreenshot(screenshot: Blob | null, attach: boolean) {
   const [fileId, setFileId] = useState<string | null>(null);
   const upload = useUploadScreenshot();
+  const latest = useRef(attach);
+  useEffect(() => {
+    latest.current = attach;
+  }, [attach]);
   const kept = async (): Promise<string | undefined> => {
     if (!attach || !screenshot) return undefined;
-    if (fileId) return fileId;
-    const stored = await upload.mutateAsync(screenshot);
+    const stored = fileId ?? (await upload.mutateAsync(screenshot));
     setFileId(stored);
-    return stored;
+    return latest.current ? stored : undefined; // unticked while it was uploading: it is not named, so it goes nowhere
   };
   return { kept, upload };
 }
