@@ -29,5 +29,14 @@ fi
 dc run --rm api node ../../node_modules/typeorm/cli.js -d dist/database/data-source.js migration:run
 dc run --rm api node dist/database/seeds/seed.js
 dc up -d --remove-orphans
+# The edge nginx renders its template only when its container starts, and `up -d` leaves a container alone when just the mounted file changed:
+# a changed edge.conf (a new upload limit, a new timeout) would never reach the server. Recreate nginx when the file differs from the one it started with.
+if [ -f docker/nginx/edge.conf ]; then
+  edge_sum=$(sha256sum docker/nginx/edge.conf | cut -d' ' -f1)
+  if [ "$(cat .edge-conf.sha 2>/dev/null || true)" != "$edge_sum" ]; then
+    dc up -d --force-recreate --no-deps nginx
+    echo "$edge_sum" > .edge-conf.sha
+  fi
+fi
 sed -i "s/^TAG=.*/TAG=$TAG/" .env
 docker image prune -af
