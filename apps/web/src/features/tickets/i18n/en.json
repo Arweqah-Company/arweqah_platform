@@ -383,5 +383,48 @@
   "priorityValue": {
     "urgent": "Urgent",
     "normal": "Normal"
+  },
+  "problemReport": {
+    "button": "Report a problem",
+    "title": "Report a problem",
+    "description": "A screenshot of your screen and the details of the page go to the responsible team as a ticket you can follow.",
+    "screenshotAlt": "Screenshot",
+    "viewFull": "View the screenshot full size",
+    "attach": "Attach the screenshot",
+    "attachHint": "Untick to send the report as text alone if the screen shows something you do not want to share.",
+    "imageToAi": "The AI service (outside the platform) will also see it to analyse the problem. Untick if the screen shows sensitive data.",
+    "noScreenshot": "A screenshot could not be taken. You can send the report as text alone.",
+    "note": "What is the problem?",
+    "noteHint": "A line or two is enough, or press «Analyse with the AI» to have it write the description for you (optional).",
+    "willSend": "Sent with the report: the page name «{{page}}», the browser, the window size, the language, the theme and the last errors. Nothing of the page's content is sent except the screenshot.",
+    "send": "Send the report",
+    "sending": "Sending…",
+    "sent": "Your report arrived: ticket {{number}}",
+    "openTicket": "Open the ticket",
+    "reportTitle": "Report title",
+    "reportTitleHint": "Optional: when left empty the report is named after the page.",
+    "analyze": "Analyse with the AI",
+    "analyzing": "Analysing…",
+    "analyzeSeesPicture": "The AI reads your screenshot, your note and the page details, and writes the title and the description for you to change.",
+    "analyzeTextOnly": "The AI reads your note and the page details only, and writes the title and the description for you to change.",
+    "analyzedNote": "The AI wrote the title and the description above. Read them and change what you want before sending.",
+    "analyzedTextOnly": "It did not see the screenshot."
+  },
+  "problemReportSettings": {
+    "loading": "Loading the settings…",
+    "saved": "The problem report settings were saved",
+    "enabled": "Switch on the «Report a problem» button",
+    "enabledHint": "The button shows at the top of every page for everyone who holds the permission to report.",
+    "type": "Ticket type",
+    "typeHint": "Every report becomes a ticket of this type and reaches its department and handlers. Types of departments that receive tickets now are listed, without personal types.",
+    "typeRequired": "Choose a type before switching on.",
+    "analyze": "Show the «Analyse with the AI» button in the report window",
+    "analyzeHint": "The AI writes the title and the description when the employee presses the button, and they change them before sending; nothing is analysed automatically on sending. An AI service must be on.",
+    "sendImage": "Let the AI see the screenshot",
+    "sendImageHint": "Off by default: the model reads only the text and the page details.",
+    "sendImageWarning": "A screenshot may hold personal or financial data, and it will leave the platform for the AI provider. The employee sees a notice about it before sending.",
+    "perHour": "Most reports one employee may send in an hour",
+    "perHourHint": "Stops flooding; after it the employee is asked to wait.",
+    "range": "Enter a whole number between {{min}} and {{max}}."
   }
 }

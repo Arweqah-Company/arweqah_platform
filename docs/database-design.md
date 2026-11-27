@@ -789,6 +789,16 @@ erDiagram
     uuid event_id PK,FK
     uuid file_id PK,FK
   }
+  problem_report_settings {
+    smallint id PK
+    boolean enabled
+    uuid ticket_type_id FK
+    boolean analyze_with_ai
+    boolean send_image_to_ai
+    integer max_per_hour
+    uuid updated_by
+    timestamp_with_time_zone updated_at
+  }
   org_nodes ||--o{ ticket_desks : "org_node_id"
   users ||--o{ ticket_type_handlers : "user_id"
   ticket_types ||--o{ ticket_type_handlers : "type_id"
@@ -805,6 +815,7 @@ erDiagram
   users ||--o{ ticket_event_mentions : "user_id"
   ticket_events ||--o{ ticket_attachments : "event_id"
   files ||--o{ ticket_attachments : "file_id"
+  ticket_types ||--o{ problem_report_settings : "ticket_type_id"
 ```
 
 ### 7. Tasks
@@ -1570,6 +1581,7 @@ erDiagram
 | `tickets` | The ticket: sender, desk, type, title, details, priority, needed-by date, assignee, status, close reason, response and activity timestamps, reopen count, `deleted_at` (the delete button hides the ticket, never erases it). |
 | `ticket_events` | Timeline of a ticket: answers, status changes, assignment, close and reopen. |
 | `ticket_attachments` | Files attached to a ticket (links to `files`). |
+| `problem_report_settings` | One row (`id` = 1): the «report a problem» button's switch, the ticket type reports become (`ticket_type_id`, cleared if the type is deleted), whether the AI analyses a report and sees its screenshot, and the reports one employee may send an hour. |
 | `ticket_event_mentions` | The people a reply names with `@` (they may read and answer the ticket). `ticket_events` also holds `parent_event_id` (the first reply an answer sits under) and `reply_to_user_id` (whom it answers). |
 
 ### 7. Tasks

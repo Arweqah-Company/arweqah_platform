@@ -4,6 +4,10 @@ import { PAGE_MAIN_TARGET, type FeatureModule } from '@/core/feature';
 import ar from './i18n/ar.json';
 import en from './i18n/en.json';
 
+export { ProblemReportButton } from './problem-report/problem-report-button';
+export { ProblemReportSettingsTab } from './problem-report/problem-report-settings-tab';
+export { PROBLEM_REPORT_KEYS } from './problem-report/keys';
+
 export const ticketsFeature: FeatureModule = {
   id: 'tickets',
   routes: [
