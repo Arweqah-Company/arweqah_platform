@@ -124,4 +124,12 @@ describe('PowerPoint preview in the browser (FR-191)', () => {
     );
     expect(order).toEqual(['second file', 'first file']);
   });
+
+  it('reads a «Strict Open XML» presentation too, whose namespaces are not the usual ones', async () => {
+    const order = await reordered(
+      '<p:presentation xmlns:p="http://purl.oclc.org/ooxml/presentationml/main" xmlns:r="http://purl.oclc.org/ooxml/officeDocument/relationships"><p:sldIdLst><p:sldId id="257" r:id="rId9"/><p:sldId id="256" r:id="rId8"/></p:sldIdLst></p:presentation>',
+      `<Relationships xmlns="${NS.rel}"><Relationship Id="rId8" Type="x/slide" Target="slides/slide1.xml"/><Relationship Id="rId9" Type="x/slide" Target="slides/slide2.xml"/></Relationships>`,
+    );
+    expect(order).toEqual(['second file', 'first file']);
+  });
 });
