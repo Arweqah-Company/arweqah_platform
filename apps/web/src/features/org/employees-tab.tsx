@@ -32,7 +32,7 @@ function useEmployeeColumns(): { columns: Column<OrgUnitEmployeeDto>[]; exportCo
   return { columns, exportColumns };
 }
 
-/** The people placed directly in the unit, names only, as a table or as cards (the switch is remembered); a click on a name opens their work number, work e-mail, unit and direct manager. */
+/** The people placed directly in the unit, names only, as a table (no cards: the owner asked for the table alone here, FR-221); a click on a name opens their work number, work e-mail, unit and direct manager. */
 export function EmployeesTab({ node }: DetailsContext) {
   const { t, i18n } = useTranslation('org');
   const people = useUnitEmployees(node.id);
@@ -46,13 +46,13 @@ export function EmployeesTab({ node }: DetailsContext) {
       <DataTable<OrgUnitEmployeeDto>
         listKey="org-unit-employees"
         caption={t('employees.tableLabel')}
-        view={list.view}
+        view="table"
         rows={rows}
         rowKey={(p) => p.id}
         isLoading={people.isLoading}
         error={people.isError ? people.error : undefined}
         onRowClick={setOpen}
-        toolbar={<ListToolbar listKey="org-unit-employees" {...list.toolbar({ label: t('employees.searchLabel'), placeholder: t('employees.searchPlaceholder') }, [])} actions={<ExchangeButtons permissions={{ export: CorePermission.EmployeesExport }} exporting={exporting} />} />}
+        toolbar={<ListToolbar listKey="org-unit-employees" {...list.toolbar({ label: t('employees.searchLabel'), placeholder: t('employees.searchPlaceholder') }, [], false)} actions={<ExchangeButtons permissions={{ export: CorePermission.EmployeesExport }} exporting={exporting} />} />}
         actions={(p) => <RowAction label={`${t('employees.detailsTitle')}: ${p.fullName}`} icon={Eye} onClick={() => setOpen(p)} />}
         empty={<EmptyState icon={Users} title={list.narrowed ? t('employees.noMatches') : t('employees.empty')} description={list.narrowed ? undefined : t('employees.emptyHint')} />}
         columns={columns}

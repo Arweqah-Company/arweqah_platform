@@ -8,15 +8,17 @@ import { cleanModelText } from '../../domain/rules/problem-report.rules';
 import type { ProblemAnalysis } from '../../domain/types/problem-report.types';
 import { ANALYSIS_SYSTEM, analysisUser } from '../messages/problem-report.messages';
 
-/** A picture takes 6 to 15 seconds or more on some services (measured on the free Gemini service); a minute is the most a person waits behind the button. */
-const ANALYSIS_TIMEOUT_MS = 45_000;
-/** Models that think before they write count the thinking in this limit; too small a number cuts the answer. */
-const ANALYSIS_MAX_TOKENS = 2_000;
+/** A picture takes 6 to 15 seconds or more on some services (measured on the free Gemini service); this is the most a person waits behind the button, for the try with the picture and the one without it together. */
+const ANALYSIS_TIMEOUT_MS = 60_000;
+/** Models that think before they write count the thinking in this limit; too small a number cuts the answer (it did on a thinking model in production). */
+const ANALYSIS_MAX_TOKENS = 8_000;
+const MAX_STEPS = 6;
+const KINDS = ['bug', 'question', 'suggestion', 'other'] as const;
 
 const answerSchema = z.strictObject({
   title: z.string(),
   summary: z.string(),
-  stepsGuess: z.array(z.string()).max(6),
+  stepsGuess: z.array(z.string()).max(MAX_STEPS),
   area: z.string(),
   kind: z.enum(['bug', 'question', 'suggestion', 'other']),
 });
@@ -52,14 +54,29 @@ export class ProblemReportAnalyzer {
   async analyze(input: AnalysisInput): Promise<AnalysisResult | null> {
     try {
       if (!(await this.ai.isActive())) return null;
-      const image = await this.image(input);
-      const question = { system: ANALYSIS_SYSTEM, user: analysisUser(input.note, input.context, image !== null), userWithoutImages: analysisUser(input.note, input.context, false), schema: answerSchema, maxTokens: ANALYSIS_MAX_TOKENS, images: image ? [image] : undefined };
-      const answer = await this.within(this.ai.jsonOf(question));
-      return { analysis: this.clean(answer.value), imageSeen: answer.imagesSeen };
+      return await this.within(this.read(input));
     } catch (error) {
       this.logger.warn(`Problem report not analysed: ${error instanceof Error ? error.message : 'unknown'}`);
       return null;
     }
+  }
+
+  /** The reading with the screenshot; when that fails for any reason (a picture too big for the service, a cut or odd answer) the note and the page details are read alone, so the person still gets a title. */
+  private async read(input: AnalysisInput): Promise<AnalysisResult> {
+    const image = await this.image(input).catch(() => null);
+    if (!image) return this.ask(input, null);
+    try {
+      return await this.ask(input, image);
+    } catch (error) {
+      this.logger.warn(`Problem report read with the screenshot failed, trying without it: ${error instanceof Error ? error.message : 'unknown'}`);
+      return this.ask(input, null);
+    }
+  }
+
+  private async ask(input: AnalysisInput, image: AiImage | null): Promise<AnalysisResult> {
+    const question = { system: ANALYSIS_SYSTEM, user: analysisUser(input.note, input.context, image !== null), userWithoutImages: analysisUser(input.note, input.context, false), schema: answerSchema, maxTokens: ANALYSIS_MAX_TOKENS, normalize: leniently, images: image ? [image] : undefined };
+    const answer = await this.ai.jsonOf(question);
+    return { analysis: this.clean(answer.value), imageSeen: answer.imagesSeen };
   }
 
   /** The screenshot as the model reads it, or null when there is none or it is not a picture the model takes. */
@@ -87,4 +104,14 @@ export class ProblemReportAnalyzer {
       kind: value.kind,
     };
   }
+}
+
+/** A weaker model sends a seventh step, a missing field or a kind of its own; the answer is put into the shape before it is checked (the check still applies). */
+function leniently(raw: unknown): unknown {
+  if (!raw || typeof raw !== 'object') return raw;
+  const a = raw as Record<string, unknown>;
+  const text = (v: unknown): string => (typeof v === 'string' ? v : '');
+  const steps = Array.isArray(a.stepsGuess) ? a.stepsGuess.filter((x): x is string => typeof x === 'string').slice(0, MAX_STEPS) : [];
+  const kind = KINDS.find((k) => k === a.kind) ?? 'other';
+  return { title: text(a.title), summary: text(a.summary), stepsGuess: steps, area: text(a.area), kind };
 }

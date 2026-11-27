@@ -146,13 +146,19 @@ describe('Ticket timeline: editing one\'s own reply (FR-205)', () => {
 });
 
 describe('Ticket timeline: reactions on replies (FR-206)', () => {
-  it('shows the chips of a reply with the names, and no reactions on a step that is not a reply', async () => {
+  it('shows the chips of a reply with the names, and none on a step that carries no message', async () => {
     serve([]);
     const chips = [{ reaction: 'love' as const, count: 1, mine: false, people: [{ id: 'u9', name: 'علي حسن' }] }];
-    const asked = event({ id: 'e9', type: 'close_requested', body: 'هل تؤكد؟' });
+    const asked = event({ id: 'e9', type: 'close_requested', body: null });
     renderPage(<TicketTimeline ticket={ticket([event({ id: 'e1', reactions: chips }), asked])} />);
     expect(await screen.findByRole('button', { name: /حب من علي حسن/ })).toBeInTheDocument();
     expect(document.querySelectorAll('ul[aria-label="التفاعلات"]')).toHaveLength(1);
+  });
+
+  it('also shows the picker under the message written when closing was asked (FR-219)', async () => {
+    serve([]);
+    renderPage(<TicketTimeline ticket={ticket([event({ id: 'e9', type: 'close_requested', body: 'تم التنفيذ' })])} />);
+    expect(await screen.findByRole('button', { name: 'تفاعل' })).toBeInTheDocument();
   });
 
   it('puts a reaction from the picker, and removes mine with a click on its chip', async () => {

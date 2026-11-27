@@ -1,4 +1,4 @@
-import { TASK_PRIORITIES, type CreateTaskInput, type TaskPriority, type TaskRecurrence, type TaskDto, type UpdateTaskInput } from '@arweqah-platform/shared';
+import { TASK_PRIORITIES, type CreateTaskInput, type FileDto, type TaskPriority, type TaskRecurrence, type TaskDto, type UpdateTaskInput } from '@arweqah-platform/shared';
 
 /** What the form holds while a task is written; text fields stay text until they are sent. */
 export interface TaskDraft {
@@ -17,6 +17,8 @@ export interface TaskDraft {
   needsReview: boolean;
   /** Only for the person: no approval, no review, nobody else sees it. */
   personal: boolean;
+  /** Reference files already uploaded, kept with the task when it is saved. */
+  files: FileDto[];
 }
 
 export const PRIORITIES = TASK_PRIORITIES;
@@ -34,6 +36,7 @@ export const emptyDraft = (today: string): TaskDraft => ({
   urgent: false,
   needsReview: false,
   personal: false,
+  files: [],
 });
 
 export const draftOf = (task: TaskDto): TaskDraft => ({
@@ -49,6 +52,7 @@ export const draftOf = (task: TaskDto): TaskDraft => ({
   urgent: task.urgentMarked,
   needsReview: task.needsReview,
   personal: task.personal,
+  files: [],
 });
 
 export const estimateMinutes = (hours: string): number | null => {
@@ -69,6 +73,7 @@ export const toCreateInput = (d: TaskDraft): CreateTaskInput => ({
   personal: d.personal,
   recurrence: d.recurrence,
   recurrenceEnd: d.recurrence === 'none' ? null : d.recurrenceEnd || null,
+  fileIds: d.files.map((f) => f.id),
 });
 
 export const toUpdateInput = (d: TaskDraft, revision: number): UpdateTaskInput => ({

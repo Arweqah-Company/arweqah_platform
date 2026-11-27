@@ -26,7 +26,37 @@ describe('Reading a problem report with the AI (FR-197)', () => {
     vi.useFakeTimers();
     const analyzer = new ProblemReportAnalyzer(slowAi(10 * 60_000), {} as FilesService);
     const pending = analyzer.analyze({ userId: 'u1', note: 'x', context: CONTEXT, imageFileId: null });
-    await vi.advanceTimersByTimeAsync(60_000);
+    await vi.advanceTimersByTimeAsync(61_000);
     expect(await pending).toBeNull();
+  });
+});
+
+describe('A reading that fails with the screenshot is tried again without it (FR-197)', () => {
+  const files = { getOwned: () => Promise.resolve({ contentType: 'image/png' }), readBytes: () => Promise.resolve(Buffer.from('x')) } as unknown as FilesService;
+
+  it('gives the text-only answer when the try with the picture fails', async () => {
+    const calls: unknown[] = [];
+    const ai = {
+      isActive: () => Promise.resolve(true),
+      jsonOf: (q: { images?: unknown[] }) => {
+        calls.push(q.images);
+        return q.images ? Promise.reject(new Error('The answer was longer than the limit')) : Promise.resolve(ANSWER);
+      },
+    } as unknown as AiService;
+    const result = await new ProblemReportAnalyzer(ai, files).analyze({ userId: 'u1', note: 'x', context: CONTEXT, imageFileId: 'f1' });
+    expect(result).toMatchObject({ analysis: { title: 'عنوان' } });
+    expect(calls).toHaveLength(2);
+    expect(calls[1]).toBeUndefined();
+  });
+
+  it('puts a model answer with a seventh step and an unknown kind into shape', async () => {
+    const raw = { title: 't', summary: 's', stepsGuess: ['1', '2', '3', '4', '5', '6', '7'], area: 'a', kind: 'weird' };
+    const ai = {
+      isActive: () => Promise.resolve(true),
+      jsonOf: (q: { normalize: (r: unknown) => unknown; schema: { parse: (v: unknown) => unknown } }) => Promise.resolve({ value: q.schema.parse(q.normalize(raw)), imagesSeen: false }),
+    } as unknown as AiService;
+    const result = await new ProblemReportAnalyzer(ai, files).analyze({ userId: 'u1', note: 'x', context: CONTEXT, imageFileId: null });
+    expect(result?.analysis.stepsGuess).toHaveLength(6);
+    expect(result?.analysis.kind).toBe('other');
   });
 });

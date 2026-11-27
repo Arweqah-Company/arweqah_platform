@@ -83,4 +83,16 @@ describe('Reactions on the replies of a ticket (FR-206, FR-207)', () => {
     expect(after.status).toBe('closed');
     expect(chips(after, sent.id)).toMatchObject([{ reaction: 'sad', count: 1 }]);
   });
+
+  it('takes a reaction on what was written when closing was asked or refused (FR-219), and still not on one without a message or on the opening entry', async () => {
+    const w = await ticketWorld(t);
+    const asked = ((await w.agents.assignee.post(`/api/tickets/${w.ticket.id}/request-close`).send({ message: 'تم التنفيذ' }).expect(200)).body as TicketDto).events.find((e) => e.type === 'close_requested')!;
+    const after = (await react(w.agents.sender, w, asked.id, 'like').expect(200)).body as TicketDto;
+    expect(chips(after, asked.id)).toMatchObject([{ reaction: 'like', count: 1, mine: true }]);
+    const declined = ((await w.agents.sender.post(`/api/tickets/${w.ticket.id}/decline-close`).send({ message: 'لم يكتمل' }).expect(200)).body as TicketDto).events.find((e) => e.type === 'close_declined')!;
+    await react(w.agents.assignee, w, declined.id, 'sad').expect(200);
+    const silent = ((await w.agents.assignee.post(`/api/tickets/${w.ticket.id}/request-close`).send({}).expect(200)).body as TicketDto).events.filter((e) => e.type === 'close_requested').at(-1)!;
+    await react(w.agents.sender, w, silent.id, 'like').expect(404); // nothing was written there
+    await react(w.agents.sender, w, w.ticket.events[0]!.id, 'like').expect(404);
+  });
 });

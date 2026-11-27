@@ -32,7 +32,7 @@ The «Organization structure» page shows one tree for the whole group and all i
 | «History» tab: versions of the unit and its change log | Shows the unit's dated versions and the change log. Without the key the tab is hidden and the API sends nothing of the history | `org.history_view` (View a unit's history); given to HR / structure administrators and to the head role of every unit (its unit and below), not to the «Employee» role |
 | «Charter» tab: write / edit | Writes the purpose, outputs, scope and limits | `org.charter_edit` (Edit the charter of a unit) |
 | «Titles» tab: add and edit a title | Manages the unit's job titles | `org.titles_manage` (Manage job titles) and `job_titles.create` / `job_titles.update` |
-| «Unit employees» tab: open a person, then «Chat on Teams» | Shows the work number, work e-mail, unit and direct manager; «Chat on Teams» opens a Microsoft Teams chat with them in a new tab (the person must use the same Microsoft work account) | `org.view`; the button needs `directory.contact_teams` (Chat with a colleague on Teams, held by the «Employee» role and the head role of every unit) |
+| «Unit employees» tab: a **table only** (no cards switch; search and export stay) (FR-221): open a person, then «Chat on Teams» | Shows the work number, work e-mail, unit and direct manager; «Chat on Teams» opens a Microsoft Teams chat with them in a new tab (the person must use the same Microsoft work account) | `org.view`; the button needs `directory.contact_teams` (Chat with a colleague on Teams, held by the «Employee» role and the head role of every unit) |
 
 There is no import on this page on purpose: the structure is built from the screen, and job titles are imported from the «Job titles» page.
 

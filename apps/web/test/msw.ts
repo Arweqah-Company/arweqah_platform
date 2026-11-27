@@ -85,6 +85,7 @@ export const companyOptions = [{ id: 'company-1', code: 'ARW', nameAr: 'أروق
 export const server = setupServer(
   http.get('*/api/me', () => HttpResponse.json(me())),
   http.get('*/api/me/access', () => HttpResponse.json(access())),
+  http.get('*/api/task-notice-settings', () => HttpResponse.json({ channel: 'in_app', digestEnabled: true, digestHour: 8, remindersEnabled: true })),
   http.get('*/api/permissions/catalog', () => HttpResponse.json(catalog)),
   http.get('*/api/roles', () => HttpResponse.json(roles)),
   http.get('*/api/lookups', () => HttpResponse.json(lookups)),

@@ -31,6 +31,19 @@ const closed: boolean[] = [];
 const page = () => renderPage(<NewTaskDialog open onOpenChange={(open) => closed.push(open)} />);
 
 describe('New task popup (FR-48)', () => {
+  it('does not tell the person the title is missing when they only open another list; it does after the save attempt, and nothing is sent', async () => {
+    const posted = serve();
+    page();
+    const title = await screen.findByLabelText(/العنوان/);
+    fireEvent.blur(title);
+    fireEvent.click(await screen.findByLabelText(/الفئة/));
+    expect(screen.queryByText(/مطلوب|لا يمكن أن يكون فارغًا|اكتب/)).not.toBeInTheDocument();
+    expect(title).not.toHaveAttribute('aria-invalid', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'إنشاء المهمة' }));
+    await waitFor(() => expect(title).toHaveAttribute('aria-invalid', 'true'));
+    expect(posted).toHaveLength(0);
+  });
+
   it('starts with the defaults: me, today, medium priority, no repeat', async () => {
     serve();
     page();
@@ -39,7 +52,7 @@ describe('New task popup (FR-48)', () => {
     expect(screen.getByLabelText(/الموعد/)).toHaveValue(riyadhToday());
     expect(screen.getByLabelText('الأولوية')).toHaveTextContent('متوسطة');
     expect(screen.getByLabelText('التكرار')).toHaveTextContent('لا تتكرر');
-    expect(screen.getByRole('button', { name: 'إنشاء المهمة' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'إنشاء المهمة' })).toBeEnabled();
   });
 
   it('says who approves a task for oneself before saving, and that nobody does when there is no manager', async () => {
@@ -88,15 +101,17 @@ describe('New task popup (FR-48)', () => {
     expect(posted[0]).not.toHaveProperty('assigneeUserId', 'u1');
   });
 
-  it('shows the date of a past due day as an error while the person types', async () => {
-    serve();
+  it('shows a past due day as an error after the save attempt, and sends nothing', async () => {
+    const posted = serve();
     page();
     const due = await screen.findByLabelText(/الموعد/);
     fireEvent.change(due, { target: { value: '2020-01-01' } });
     fireEvent.blur(due);
-    expect(await screen.findByText('لا يمكن أن يكون الموعد في الماضي.')).toBeInTheDocument();
+    expect(screen.queryByText('لا يمكن أن يكون الموعد في الماضي.')).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/العنوان/), { target: { value: 'مهمة' } });
-    expect(screen.getByRole('button', { name: 'إنشاء المهمة' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'إنشاء المهمة' }));
+    expect(await screen.findByText('لا يمكن أن يكون الموعد في الماضي.')).toBeInTheDocument();
+    expect(posted).toHaveLength(0);
   });
 
   it('asks when a repeating task ends only when it repeats', async () => {

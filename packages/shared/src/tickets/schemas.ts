@@ -20,6 +20,12 @@ export type DeskUnavailableReason = (typeof DESK_UNAVAILABLE_REASONS)[number];
 export const TICKET_EVENT_TYPES = ['created', 'reply', 'close_requested', 'close_declined', 'confirmed', 'auto_closed', 'closed_not_executed', 'reopened', 'reassigned'] as const;
 export type TicketEventType = (typeof TICKET_EVENT_TYPES)[number];
 
+/** The entries of a conversation where somebody wrote a message and so may be reacted to: a reply, a request to close, a refusal to close, a closing without execution (FR-206). */
+export const TICKET_REACTABLE_EVENTS: readonly TicketEventType[] = ['reply', 'close_requested', 'close_declined', 'closed_not_executed'];
+
+/** Whether an entry takes reactions: one of those kinds, and it carries a message. */
+export const isReactableEvent = (event: { type: TicketEventType; body: string | null }): boolean => TICKET_REACTABLE_EVENTS.includes(event.type) && Boolean(event.body?.trim());
+
 export const TICKET_GROUPINGS = ['assignee', 'status', 'desk', 'type'] as const;
 export type TicketGrouping = (typeof TICKET_GROUPINGS)[number];
 

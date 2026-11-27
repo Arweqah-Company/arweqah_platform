@@ -43,6 +43,7 @@ const PATCH_COLUMNS: Record<keyof TaskPatch, string> = {
   deletedAt: 'deleted_at',
   remindedAt: 'reminded_at',
   overdueNotifiedAt: 'overdue_notified_at',
+  dueDayNotifiedAt: 'due_day_notified_at',
   estimateNotifiedAt: 'estimate_notified_at',
 };
 
@@ -131,7 +132,9 @@ export class TypeOrmTaskRepository extends TaskRepository {
 
   async list(f: TaskListFilters): Promise<Paginated<TaskRow> & { groupBy: TaskGrouping | null }> {
     const { clause, values } = this.listWhere(f);
-    const order = `${f.groupBy ? `${GROUP_SQL[f.groupBy]}, ` : ''}${SORT_SQL[f.sort]} ${f.dir === 'desc' ? 'DESC' : 'ASC'} NULLS LAST, t.id`;
+    const dir = f.dir === 'desc' ? 'DESC' : 'ASC';
+    // Tasks that tie (the same due date, the same creation day) keep the order of their number, so the list does not move between two visits; `t.id` is only the last, unreachable tie-break.
+    const order = `${f.groupBy ? `${GROUP_SQL[f.groupBy]}, ` : ''}${SORT_SQL[f.sort]} ${dir} NULLS LAST, t.number ${dir}, t.id`;
     const page = [...values, f.pageSize, (f.page - 1) * f.pageSize];
     const listSql = taskQuery(clause, `ORDER BY ${order} LIMIT $${page.length - 1} OFFSET $${page.length}`);
     const countSql = `SELECT count(*)::int AS n ${TASK_FROM} WHERE ${clause}`;
@@ -141,7 +144,7 @@ export class TypeOrmTaskRepository extends TaskRepository {
 
   listOpen(f: Omit<TaskListFilters, 'page' | 'pageSize'>, limit: number): Promise<TaskRow[]> {
     const { clause, values } = this.listWhere({ ...f, openOnly: true });
-    return this.ds.query(taskQuery(clause, `ORDER BY t.due_date, t.id LIMIT ${Math.trunc(limit)}`), values);
+    return this.ds.query(taskQuery(clause, `ORDER BY t.due_date, t.number, t.id LIMIT ${Math.trunc(limit)}`), values);
   }
 
   async appendEvent(e: NewTaskEvent, tx: TransactionContext): Promise<void> {

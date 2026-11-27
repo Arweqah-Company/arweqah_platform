@@ -71,8 +71,6 @@
     "archived": "Archived"
   },
   "groupBy": {
-    "label": "Group by",
-    "none": "No grouping",
     "due": "Due date",
     "status": "Status",
     "person": "Person"
@@ -100,6 +98,24 @@
     "NOT_CREATOR_OR_MANAGER": "Only whoever gave the task, or a manager, can reopen it.",
     "REVIEW_NOT_REQUIRED": "This task does not need a review."
   },
+  "files": {
+    "title": "Files",
+    "referenceTitle": "Work files",
+    "referenceHint": "Optional. The files the work needs: PowerPoint, Excel, Word, PDF or pictures.",
+    "referenceAdd": "Add work files",
+    "referenceAdded": "The work files were added.",
+    "referenceEmpty": "No work files yet.",
+    "deliveryTitle": "Delivery files",
+    "deliveryAdd": "Hand in delivery files",
+    "deliveryAdded": "The delivery files were added.",
+    "deliveryEmpty": "Nothing was handed in yet.",
+    "addedBy": "Added by {{name}} · {{date}}",
+    "remove": "Remove {{name}}",
+    "removeShort": "Remove",
+    "removeTitle": "Remove this file?",
+    "removeDescription": "The file «{{name}}» will no longer be on the task. The history keeps that it was added and removed.",
+    "removed": "The file was removed."
+  },
   "transition": {
     "noteTitle": "Send the work back",
     "noteDescription": "The task goes back to the assignee. Write what is missing.",
@@ -107,7 +123,11 @@
     "dateTitle": "When did the work end?",
     "dateDescription": "The task is later than the allowed time. State the real day it was finished.",
     "completedOn": "Completion date",
-    "completedOnHint": "It can go back only as far as the policy allows."
+    "completedOnHint": "It can go back only as far as the policy allows.",
+    "filesTitle": "Hand in your work",
+    "filesDescription": "Attach the file of your work (optional). It stays on the task for whoever reviews it.",
+    "skipFiles": "Move without files",
+    "sendWithFiles": "Move with the files"
   },
   "team": {
     "reach": "Show",
@@ -296,7 +316,10 @@
     "handed_over": "Handed over",
     "time_logged": "Time logged",
     "minutes": "{{count}} min",
-    "reassigned": "Given to someone else"
+    "reassigned": "Given to someone else",
+    "file_added": "Work files added",
+    "delivery_added": "Delivery files added",
+    "file_removed": "File removed"
   },
   "tags": {
     "title": "Task tags",
@@ -487,5 +510,23 @@
     "createdDesc": "Newest first",
     "createdAsc": "Oldest first",
     "byColumn": "By column"
+  },
+  "noticeSettings": {
+    "title": "Task summary and reminders",
+    "description": "Choose where and when your task reminders and daily summary reach you. Your tasks are the ones assigned to you, the ones you follow, and your team's if you manage one.",
+    "channel": "Channel",
+    "channelHint": "Applies to the summary, the reminders before and on the due date, and the late alert.",
+    "channels": {
+      "in_app": "A notice in the platform",
+      "email": "E-mail",
+      "both": "Notice and e-mail"
+    },
+    "digest": "A daily summary of my tasks",
+    "digestHint": "Open, due today and overdue; you get none when you have no open task.",
+    "hour": "Summary time (Riyadh time)",
+    "hourHint": "If you save an hour that has already passed today, the summary comes tomorrow.",
+    "reminders": "Remind me about my tasks, those I follow and my team's",
+    "remindersHint": "Before the due date, on it, and when it is late. Turning it off does not stop notices about assignments, comments and status changes.",
+    "saved": "Settings saved"
   }
 }

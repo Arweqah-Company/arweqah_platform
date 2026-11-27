@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import {
+  addTaskFilesSchema,
   addTaskFollowersSchema,
   taskFollowerCandidatesQuerySchema,
   answerObjectionSchema,
@@ -13,6 +14,7 @@ import {
   decideTaskSchema,
   objectTaskSchema,
   taskMatrixQuerySchema,
+  taskNoticeSettingsSchema,
   taskPolicyInputSchema,
   taskTagInputSchema,
   tasksQuerySchema,
@@ -25,6 +27,8 @@ import {
 export class CreateTaskBody extends createZodDto(createTaskSchema) {}
 export class UpdateTaskBody extends createZodDto(updateTaskSchema) {}
 export class TransitionTaskBody extends createZodDto(transitionTaskSchema) {}
+export class AddTaskFilesBody extends createZodDto(addTaskFilesSchema) {}
+export class TaskFileParam extends createZodDto(z.strictObject({ id: z.uuid(), fileId: z.uuid() })) {}
 export class DecideTaskBody extends createZodDto(decideTaskSchema) {}
 export class ObjectTaskBody extends createZodDto(objectTaskSchema) {}
 export class AnswerObjectionBody extends createZodDto(answerObjectionSchema) {}
@@ -35,6 +39,7 @@ export class TasksQueryDto extends createZodDto(tasksQuerySchema) {}
 export class TeamTasksQueryDto extends createZodDto(teamTasksQuerySchema) {}
 export class MatrixQueryDto extends createZodDto(taskMatrixQuerySchema) {}
 export class TaskTagBody extends createZodDto(taskTagInputSchema) {}
+export class TaskNoticeSettingsBody extends createZodDto(taskNoticeSettingsSchema) {}
 export class TaskPolicyBody extends createZodDto(taskPolicyInputSchema) {}
 export class TaskOptionsQueryDto extends createZodDto(z.strictObject({ search: z.string().trim().max(100).optional() })) {}
 export class TagsQueryDto extends createZodDto(z.strictObject({ companyId: z.uuid().optional() })) {}

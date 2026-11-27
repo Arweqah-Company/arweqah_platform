@@ -24,3 +24,6 @@ export const TASK_COMMENT_GRANTS: PermissionGrant[] = grant(TASK_COMMENT_KEYS, '
 
 /** The comment grants of an employee who also works with tasks. */
 export const TASK_COMMENTER_GRANTS: PermissionGrant[] = [...TASK_EMPLOYEE_GRANTS, ...TASK_COMMENT_GRANTS];
+
+/** The keys of the files of a task: reference files when it is made or edited, delivery files, and taking a file off (the relation to the task is a rule of the service). */
+export const TASK_FILE_GRANTS: PermissionGrant[] = grant([P.TasksFileAdd, P.TasksFileDeliver, P.TasksFileRemove], 'all');

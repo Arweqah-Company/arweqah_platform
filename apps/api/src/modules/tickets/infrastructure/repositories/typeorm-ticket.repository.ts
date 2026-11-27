@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, type EntityManager } from 'typeorm';
 import type { Paginated, TicketGrouping, TicketSortKey } from '@arweqah-platform/shared';
+import { TICKET_REACTABLE_EVENTS } from '@arweqah-platform/shared';
 import type { TransactionContext } from '../../../../common/domain/transaction-context';
 import { likeContains } from '../../../../common/infrastructure/sql-like';
 import { returnedRows } from '../../../../common/infrastructure/query-result';
@@ -183,6 +184,14 @@ export class TypeOrmTicketRepository extends TicketRepository {
 
   async reply(ticketId: string, eventId: string): Promise<ReplyRecord | null> {
     const rows = await this.ds.query(`SELECT id, actor_user_id AS "actorUserId", created_at AS "createdAt" FROM ticket_events WHERE ticket_id = $1 AND id = $2 AND type = 'reply'`, [ticketId, eventId]);
+    return rows[0] ?? null;
+  }
+
+  async reactableEvent(ticketId: string, eventId: string): Promise<ReplyRecord | null> {
+    const rows = await this.ds.query(
+      `SELECT id, actor_user_id AS "actorUserId", created_at AS "createdAt" FROM ticket_events WHERE ticket_id = $1 AND id = $2 AND type = ANY($3) AND btrim(coalesce(body, '')) <> ''`,
+      [ticketId, eventId, [...TICKET_REACTABLE_EVENTS]],
+    );
     return rows[0] ?? null;
   }
 

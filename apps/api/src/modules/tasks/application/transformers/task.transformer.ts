@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { formatTaskNumber, type TaskAbilitiesDto, type TaskDto, type TaskEventDto, type TaskListItemDto, type TaskObjectionDto, type TaskPersonDto, type TaskTagDto } from '@arweqah-platform/shared';
+import { formatTaskNumber, type TaskAbilitiesDto, type TaskDto, type TaskEventDto, type TaskFileDto, type TaskListItemDto, type TaskObjectionDto, type TaskPersonDto, type TaskTagDto } from '@arweqah-platform/shared';
 import { flagsOf } from '../../domain/rules/task-flags.rules';
 import type { PolicyRecord, TagRecord, TaskEventRow, TaskObjectionRow, TaskRow } from '../../domain/types/task.types';
 
@@ -38,7 +38,7 @@ export class TaskTransformer {
     };
   }
 
-  toDetail(input: { row: TaskRow; policy: PolicyRecord; today: string; now: Date; events: TaskEventRow[]; objection: TaskObjectionRow | null; abilities: TaskAbilitiesDto }): TaskDto {
+  toDetail(input: { row: TaskRow; policy: PolicyRecord; today: string; now: Date; events: TaskEventRow[]; objection: TaskObjectionRow | null; files: TaskFileDto[]; abilities: TaskAbilitiesDto }): TaskDto {
     const { row: r } = input;
     return {
       ...this.toListItem(r, input.policy, input.today, input.now),
@@ -54,6 +54,7 @@ export class TaskTransformer {
       followers: r.followers,
       objection: input.objection ? this.objection(input.objection) : null,
       events: input.events.map((e) => this.event(e)),
+      files: input.files,
       abilities: input.abilities,
     };
   }

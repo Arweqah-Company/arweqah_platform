@@ -874,6 +874,15 @@ erDiagram
     uuid user_id PK,FK
     timestamp_with_time_zone created_at
   }
+  task_notice_preferences {
+    uuid user_id PK,FK
+    character_varying channel
+    boolean digest_enabled
+    smallint digest_hour
+    boolean reminders_enabled
+    date digest_last_sent_on
+    timestamp_with_time_zone updated_at
+  }
   task_objections {
     uuid id PK
     uuid task_id FK
@@ -930,6 +939,7 @@ erDiagram
   tasks ||--o{ task_events : "task_id"
   tasks ||--o{ task_followers : "task_id"
   users ||--o{ task_followers : "user_id"
+  users ||--o| task_notice_preferences : "user_id"
   users ||--o{ task_objections : "raised_by_user_id"
   tasks ||--o{ task_objections : "task_id"
   tasks ||--o{ task_time_entries : "task_id"
@@ -956,6 +966,13 @@ erDiagram
     uuid comment_id PK,FK
     uuid file_id PK,FK
   }
+  task_files {
+    uuid task_id PK,FK
+    uuid file_id PK,FK
+    character_varying kind
+    uuid added_by_user_id FK
+    timestamp_with_time_zone created_at
+  }
   task_comment_mentions {
     uuid comment_id PK,FK
     uuid user_id PK,FK
@@ -977,6 +994,9 @@ erDiagram
   users ||--o{ task_comments : "author_user_id"
   task_comments ||--o{ task_comments : "parent_id"
   tasks ||--o{ task_comments : "task_id"
+  tasks ||--o{ task_files : "task_id"
+  files ||--o{ task_files : "file_id"
+  users ||--o{ task_files : "added_by_user_id"
   task_comments ||--o{ task_comment_files : "comment_id"
   files ||--o{ task_comment_files : "file_id"
   task_comments ||--o{ task_comment_mentions : "comment_id"
@@ -1597,9 +1617,10 @@ erDiagram
 
 | Table | What it does |
 |---|---|
-| `tasks` | The task: company, creator, assignee, reviewer, approver, status, priority, due date, estimate, tag, recurrence, source (manual / ticket / project), `is_personal` (a personal task: only its owner sees it), completion and archive dates, reminder markers, `deleted_at` (the delete button hides the task, never erases it). |
+| `tasks` | The task: company, creator, assignee, reviewer, approver, status, priority, due date, estimate, tag, recurrence, source (manual / ticket / project), `is_personal` (a personal task: only its owner sees it), completion and archive dates, reminder markers (before the due date, on it, overdue), `deleted_at` (the delete button hides the task, never erases it). |
 | `task_events` | Timeline of a task: type, actor, from / to status and note. |
 | `task_followers` | People who follow a task and are notified. |
+| `task_notice_preferences` | What one person chose for the task summary and reminders: channel (app / e-mail / both), summary on or off and its Riyadh hour, reminders on or off, and the last day the summary was handled. No row = the defaults. |
 | `task_objections` | An objection raised on a task: reason code, note, expiry, status and who answered. |
 | `task_policies` | Per-company task settings: objection working days, stale days, back-date days, reminder days, digest weekday, retention, comment limits. |
 | `task_tags` | Tags per unit (`org_node_id`) that a task can carry. |
@@ -1611,6 +1632,7 @@ erDiagram
 |---|---|
 | `task_comments` | Comments and replies on a task. |
 | `task_comment_files` | Files attached to a comment (links to `files`). |
+| `task_files` | The files kept with a task (FR-212…FR-214): its work files (`kind = reference`, attached by who gives or edits the task) and the delivery files the doer hands in (`kind = delivery`, also with the move to done or review): the task, the stored file, who attached it and when. |
 | `task_comment_mentions` | `@` mentions in a comment, used for notifications. |
 | `task_comment_rules` | Per-company matrix: which relation (owner, assignee, follower…) may do which comment action. |
 | `conversation_reactions` | One reaction (like, love, care, haha, wow, sad) of one person on one reply of a ticket (`target_type = 'ticket_event'`, `target_id` = the `ticket_events` row) or one comment of a task (`'task_comment'`, the `task_comments` row); the key `(target_type, target_id, user_id)` keeps one per person per reply. `target_id` has no foreign key (it points at either table). |

@@ -22,6 +22,8 @@ export const TASK_TEMPLATE_KEYS: Record<TaskNoticeKind, string> = {
   overdue: 'task.overdue',
   estimateExceeded: 'task.estimate_exceeded',
   reminder: 'task.reminder',
+  dueToday: 'task.due_today',
+  summary: 'task.summary',
   digest: 'task.digest',
   handedOver: 'task.handed_over',
   handedOverMany: 'task.handed_over_many',
@@ -39,6 +41,9 @@ const NUMBER = variable('taskNumber', ['رقم المهمة', 'The task number']
 const TASK = localizedVariable('task', ['المهمة (رقمها، ومعه عنوانها حيث يجوز)', 'The task (its number, with its title where allowed)'], [`${formatTaskNumber(45)} — إعداد التقرير`, `${formatTaskNumber(45)} — Prepare the report`]);
 const STATUS = localizedVariable('status', ['الحالة الجديدة', 'The new status'], ['قيد التنفيذ', 'In progress']);
 const COMMENTER = variable('commenter', ['اسم صاحب الفعل (من كتب التعليق أو تفاعل عليه)', 'The name of the person who acted (wrote the comment or reacted to it)'], 'Sara');
+const OPEN = variable('open', ['عدد المهام المفتوحة', 'The number of open tasks'], '7');
+const DUE_TODAY = variable('dueToday', ['عدد المهام المستحقة اليوم', 'The number of tasks due today'], '2');
+const OVERDUE = variable('overdue', ['عدد المهام المتأخرة', 'The number of overdue tasks'], '1');
 const COUNT = variable('count', ['العدد', 'The count'], '5');
 
 type Spec = [TaskNoticeKind, [string, string], [string, string], [string, string], [string, string]];
@@ -58,6 +63,8 @@ const SPECS: Spec[] = [
   ['overdue', ['تأخر المهمة', 'Task overdue'], ['عندما تتجاوز مهمة موعدها', 'When a task passes its due date'], ['فات موعد {{taskNumber}}', '{{taskNumber}} is overdue'], ['تجاوزت المهمة {{task}} موعدها.', 'Task {{task}} passed its due date.']],
   ['estimateExceeded', ['تجاوز التقدير', 'Estimate exceeded'], ['عندما تتجاوز الساعات المسجلة الوقت المقدَّر', 'When the time logged passes the estimate'], ['تجاوز التقدير في {{taskNumber}}', '{{taskNumber}} passed its estimate'], ['تجاوزت الساعات المسجلة على المهمة {{task}} الوقت المقدَّر.', 'The time logged on task {{task}} passed the estimate.']],
   ['reminder', ['تذكير بالموعد', 'Due-date reminder'], ['قبل موعد المهمة', 'Before a task is due'], ['تذكير بموعد {{taskNumber}}', 'Reminder: {{taskNumber}} is due soon'], ['موعد المهمة {{task}} قريب.', 'Task {{task}} is due soon.']],
+  ['dueToday', ['موعد المهمة اليوم', 'Task due today'], ['صباح يوم موعد المهمة', 'On the morning a task is due'], ['موعد {{taskNumber}} اليوم', '{{taskNumber}} is due today'], ['موعد المهمة {{task}} اليوم.', 'Task {{task}} is due today.']],
+  ['summary', ['ملخص مهامي اليوم', 'My daily task summary'], ['الملخص اليومي لمهام الموظف في الساعة التي اختارها', 'The employee’s daily summary of their tasks at the hour they chose'], ['ملخص مهامك اليوم', 'Your tasks today'], ['عندك {{open}} مهمة مفتوحة، منها {{dueToday}} مستحقة اليوم و{{overdue}} متأخرة.', 'You have {{open}} open tasks: {{dueToday}} due today and {{overdue}} overdue.']],
   ['digest', ['ملخص المتأخرة', 'Overdue summary'], ['ملخص دوري لمدير الفريق بالمهام المتأخرة', 'The periodic summary of overdue tasks for a team manager'], ['ملخص المهام المتأخرة', 'Overdue tasks summary'], ['عند فريقك {{count}} مهمة متأخرة.', 'Your team has {{count}} overdue tasks.']],
   ['handedOver', ['انتقال مهمة', 'Task handed over'], ['عندما تنتقل مهمة إلى شخص بسبب انتهاء خدمة موظف', 'When a task moves to someone because an employee left'], ['انتقلت إليك {{taskNumber}}', '{{taskNumber}} was handed over to you'], ['انتقلت إليك المهمة {{task}} بسبب انتهاء خدمة موظف.', 'Task {{task}} was handed over to you because an employee left.']],
   ['handedOverMany', ['انتقال عدة مهام', 'Many tasks handed over'], ['عندما تنتقل عدة مهام إلى شخص بسبب انتهاء خدمة موظف', 'When many tasks move to someone because an employee left'], ['انتقلت إليك مهام', 'Tasks were handed over to you'], ['انتقلت إليك {{count}} مهمة بسبب انتهاء خدمة موظف.', '{{count}} tasks were handed over to you because an employee left.']],
@@ -77,6 +84,7 @@ const COMMENTED: ReadonlySet<TaskNoticeKind> = new Set(['commentMentioned', 'com
 
 const variablesOf = (kind: TaskNoticeKind) => {
   if (COUNTED.has(kind)) return [COUNT];
+  if (kind === 'summary') return [OPEN, DUE_TODAY, OVERDUE];
   if (COMMENTED.has(kind)) return [NUMBER, TASK, COMMENTER];
   return kind === 'statusChanged' ? [NUMBER, TASK, STATUS] : [NUMBER, TASK];
 };

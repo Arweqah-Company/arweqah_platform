@@ -30,7 +30,8 @@
     "maritalStatus": "Marital status",
     "fullNameEn": "Full name in English",
     "nameHint": "English letters and spaces only.",
-    "saveNameEn": "Save the name"
+    "saveNameEn": "Save the name",
+    "editDirect": "Edit on the employee page"
   },
   "work": {
     "title_section": "Work details",
@@ -42,6 +43,9 @@
     "manager": "Direct manager",
     "workEmail": "Work e-mail",
     "startDate": "Start date"
+  },
+  "lock": {
+    "notEditable": "Your role does not allow you to change this detail. The fields you may change come from the «edit employees» permission, the same ones as on the employee page."
   },
   "errors": {
     "personalPhone": "Enter the phone in international format, e.g. +966501234567.",

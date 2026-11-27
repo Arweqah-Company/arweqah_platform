@@ -52,6 +52,7 @@ export * from './tasks/schemas';
 export * from './tasks/comments';
 export * from './reactions';
 export * from './tasks/followers';
+export * from './tasks/notice-settings';
 export * from './translation/schemas';
 export * from './integrations/catalog';
 export * from './integrations/schemas';

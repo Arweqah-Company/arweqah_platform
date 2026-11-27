@@ -17,10 +17,12 @@ export interface NotifyCommand {
   bodyAr: string;
   bodyEn: string;
   link?: string;
-  /** In-app is always created; these are sent in addition, in the background. */
+  /** In-app is created unless `inApp` is false; these are sent in addition, in the background. */
   channels?: Exclude<ChannelName, 'in_app'>[];
   /** The category the e-mail is filed under in the e-mail log; a general notification when not given. */
   purpose?: EmailPurpose;
+  /** False sends only through `channels` (a person who chose e-mail only): no row in the notice list. Defaults to true. */
+  inApp?: boolean;
   /** Skip the people who still have an unread notification with the same link (a busy thread tells them once). */
   coalesce?: boolean;
   tx?: TransactionContext;
@@ -62,6 +64,7 @@ export class NotificationsService implements OnModuleInit {
     const quiet = cmd.coalesce && cmd.link ? await this.repo.withUnreadAt(cmd.userIds, cmd.link, cmd.tx) : [];
     const userIds = cmd.userIds.filter((id) => !quiet.includes(id));
     if (!userIds.length) return;
+    if (cmd.inApp === false) return this.sendOutsideTheApp(cmd, userIds);
     const rows = await this.repo.insertMany(
       userIds.map((userId) => ({
         userId,
@@ -76,6 +79,16 @@ export class NotificationsService implements OnModuleInit {
     for (const row of rows) {
       for (const channel of cmd.channels ?? []) {
         const payload: DispatchPayload = { notificationId: row.id, channel, purpose: cmd.purpose, ...pickContent(row) };
+        await this.outbox.enqueue(NOTIFICATION_DISPATCH, { ...payload }, cmd.tx);
+      }
+    }
+  }
+
+  /** Only the external channels, for people who asked not to have a notice in the app. */
+  private async sendOutsideTheApp(cmd: NotifyCommand, userIds: string[]): Promise<void> {
+    for (const userId of userIds) {
+      for (const channel of cmd.channels ?? []) {
+        const payload: DispatchPayload = { notificationId: '', userId, channel, purpose: cmd.purpose, titleAr: cmd.titleAr, titleEn: cmd.titleEn, bodyAr: cmd.bodyAr, bodyEn: cmd.bodyEn, link: cmd.link ?? null };
         await this.outbox.enqueue(NOTIFICATION_DISPATCH, { ...payload }, cmd.tx);
       }
     }

@@ -17,6 +17,7 @@ import { TASK_AUDIT } from '../messages/task.messages';
 import { TaskAccessPolicy } from '../policies/task-access.policy';
 import { TaskTransformer } from '../transformers/task.transformer';
 import { TaskApprovalService } from './task-approval.service';
+import { TaskFilesService } from './task-files.service';
 import { TaskNotifier } from './task-notifier.service';
 import { TaskPolicyService } from './task-policy.service';
 
@@ -41,6 +42,7 @@ export class TasksService {
     private readonly policies: TaskPolicyService,
     private readonly notifier: TaskNotifier,
     private readonly approvals: TaskApprovalService,
+    private readonly taskFiles: TaskFilesService,
     private readonly tx: TransactionRunner,
     private readonly clock: Clock,
     private readonly events: EventEmitter2,
@@ -54,6 +56,7 @@ export class TasksService {
     const dueDate = input.dueDate ?? today;
     if (dueDate < today) throw new TaskDueDateInvalidError();
     await this.assertTagUsable(input.tagId ?? null, pair);
+    await this.taskFiles.assertAttachable(viewer, input.fileIds);
     const selfAssigned = pair.creator.userId === pair.assignee.userId;
     const { approverUserId, reviewerUserId } = this.checkersFor(pair, input);
     const id = await this.tx.run(async (tx) => {
@@ -67,6 +70,7 @@ export class TasksService {
         tx,
       );
       await this.tasks.appendEvent({ taskId, type: 'created', actorUserId: viewer.userId, toStatus: approverUserId ? 'pending_approval' : 'todo' }, tx);
+      await this.taskFiles.storeOnCreate(taskId, viewer, input.fileIds, tx);
       if (approverUserId) await this.approvals.begin(taskId, viewer.userId, tx);
       const row = (await this.tasks.find(taskId, viewer.userId, tx)) as TaskRow;
       await this.notifier.send({ kind: 'assigned', task: row, recipients: [pair.assignee.userId], actorUserId: viewer.userId, tx });
@@ -90,9 +94,9 @@ export class TasksService {
 
   /** The detail of a task the viewer may see: history, objection, and what they can do with it. */
   async detail(viewer: TaskViewer, row: TaskRow): Promise<TaskDto> {
-    const [events, objection, policy] = await Promise.all([this.tasks.events(row.id), this.tasks.openObjection(row.id), this.policies.forCompany(row.companyId)]);
+    const [events, objection, policy, files] = await Promise.all([this.tasks.events(row.id), this.tasks.openObjection(row.id), this.policies.forCompany(row.companyId), this.taskFiles.listFor(viewer, row)]);
     const now = this.clock.now();
-    return this.transformer.toDetail({ row, policy, today: riyadhToday(now), now, events, objection, abilities: this.access.abilities(viewer, row) });
+    return this.transformer.toDetail({ row, policy, today: riyadhToday(now), now, events, objection, files, abilities: this.access.abilities(viewer, row) });
   }
 
   async update(viewer: TaskViewer, id: string, input: UpdateTaskInput): Promise<TaskDto> {
@@ -205,7 +209,7 @@ export class TasksService {
   private async patchFrom(task: TaskRow, input: UpdateTaskInput): Promise<TaskPatch> {
     const patch: TaskPatch = {};
     for (const key of EDITABLE_FIELDS) if (input[key] !== undefined) Object.assign(patch, { [key]: input[key] });
-    if (input.dueDate !== undefined && input.dueDate !== task.dueDate) Object.assign(patch, { remindedAt: null, overdueNotifiedAt: null });
+    if (input.dueDate !== undefined && input.dueDate !== task.dueDate) Object.assign(patch, { remindedAt: null, overdueNotifiedAt: null, dueDayNotifiedAt: null });
     if (input.urgent !== undefined) patch.urgentManual = input.urgent;
     if (input.tagId !== undefined) {
       await this.assertTagUsable(input.tagId, await this.pair(task.creatorUserId, task.assigneeUserId));
