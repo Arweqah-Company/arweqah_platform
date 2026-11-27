@@ -1,5 +1,6 @@
 import type { ApiErrorBody } from '@arweqah-platform/shared';
 import { parseEvents, type StreamEvent } from './event-stream';
+import { recordFailedRequest } from './problem-diagnostics';
 
 export class ApiError extends Error {
   constructor(
@@ -40,14 +41,17 @@ class ApiClient {
   }
 
   async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-    const res = await fetch(this.url(path, options.query), {
-      method: options.method ?? 'GET',
-      credentials: 'include',
-      ...withHeaders(encodeBody(options.body), options.headers),
+    const method = options.method ?? 'GET';
+    const res = await fetch(this.url(path, options.query), { method, credentials: 'include', ...withHeaders(encodeBody(options.body), options.headers) }).catch((failure: unknown) => {
+      recordFailedRequest(method, path, 0);
+      throw failure;
     });
     if (res.status === 204) return undefined as T;
     const data: unknown = res.headers.get('content-type')?.includes('json') ? await res.json() : null;
-    if (!res.ok) throw this.fail(res.status, data as Partial<ApiErrorBody> | null);
+    if (!res.ok) {
+      recordFailedRequest(method, path, res.status);
+      throw this.fail(res.status, data as Partial<ApiErrorBody> | null);
+    }
     return data as T;
   }
 

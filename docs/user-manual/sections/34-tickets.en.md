@@ -17,6 +17,7 @@ A ticket is the official way to ask another department for something: you choose
 |---|---|---|
 | New ticket | Opens the two-step popup to send a ticket | `tickets.create` (Send a new ticket) |
 | Open a ticket | Click the row, or the eye icon, to open its page | `tickets.view` |
+| Report a problem | The flag button in the top bar of every page (shown while the administrator has reports on): takes a screenshot of the screen, asks for a line about the problem, and sends it as a ticket of the type the administrator chose; see «Reporting a problem in the platform» below | `tickets.report_problem` (Report a problem in the platform; every role holds it by default) |
 | Reply | Writes an answer with files and mentions | `tickets.reply` (Reply to and handle tickets) |
 | Answer a reply | Replies to one reply, one level only | `tickets.comment_reply` (Answer a reply inside a ticket) |
 | Mention with @ | Names a colleague in a reply | `tickets.comment_mention` (Mention a colleague with @ in a ticket reply) |
@@ -103,6 +104,25 @@ Pressing **Change** at the top of step 2 returns to step 1 without losing what y
 | Field | What it means / what to type | Required | Allowed values / rules |
 |---|---|---|---|
 | Message (optional) | A note kept in the ticket history and sent with the action: what was done, why it was not done, why you reopen. | No | Up to 5000 characters. |
+
+### Reporting a problem in the platform
+
+Something does not work? Press the **flag** button in the top bar, or the same button beside the «Close» button of any pop-up window that is open (a pop-up covers the top bar), so a problem inside a pop-up can be reported with the pop-up in the screenshot (it appears only while the administrator has «Report a problem» switched on in Settings → Problem reports).
+
+1. A **screenshot of what the window shows** is taken from the page itself (no permission to give). Password fields are left out.
+2. A window shows the screenshot (click it to see it full size), a box **What is the problem?** (optional, up to 1000 characters) and a line saying what goes with the report: the page name, the browser, the window size, the language, the theme and the last errors; the content of the page is not sent, only the screenshot.
+3. **Report title** (optional; empty = the page's name) and **What is the problem?** are yours to write. Press **Analyse with the AI** (it appears when the administrator switched the analysis on and an AI service is on) and the AI writes the title and the description for you from your note, the page details and, only if the administrator allowed it, the screenshot; **read them and change what you want** before sending. Nothing is analysed unless you press the button.
+4. Untick **Attach the screenshot** to send the report as text alone. If the administrator allowed the AI service to see screenshots, a warning says so while the box is ticked.
+5. **Send the report.** A ticket of the chosen type is made **in your name**: you follow its replies in «My tickets» like any ticket, and the department's handlers receive it in their unit inbox. A notice gives its number with a button to open it.
+6. If the AI is off or fails when you press its button, a message says so and you write the description yourself; sending never depends on it.
+
+| Rule | Value |
+|---|---|
+| Who may report | Whoever holds `tickets.report_problem` |
+| Limit | The number of reports an hour the administrator set (default 10, 1 to 60); past it, wait a little |
+| Refused | While the button is off or the chosen type is no longer usable; with a screenshot that is not yours |
+
+The administrator sets all of this in **Settings → Problem reports** (see the Settings page).
 
 ### Workflow
 

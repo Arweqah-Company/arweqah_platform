@@ -113,6 +113,17 @@
         "activate": "Switch the service on and off",
         "export": "Export the list"
       }
+    },
+    "problem-report": {
+      "title": "Report a problem",
+      "body": "Met an error or something that does not work? Press this button: a screenshot of your screen is taken, you may add a line about the problem, and it reaches the responsible team as a ticket you can follow."
+    },
+    "problem-report-settings": {
+      "title": "Problem report settings",
+      "body": "Here you choose the ticket type reports become, switch the button on or off, decide whether the AI analyses a report and whether it sees the screenshot, and the number of reports one employee may send an hour.",
+      "can": {
+        "edit": "Change and save the report settings"
+      }
     }
   },
   "settings": {

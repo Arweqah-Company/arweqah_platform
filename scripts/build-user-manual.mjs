@@ -106,7 +106,7 @@ const ACCESS = {
   '34-tickets': A('tickets', 'TicketsView'), '35-ticket-setup': A('ticket-setup', 'TicketsSetupView'), '36-ticket-figures': A('ticket-figures', 'TicketsFiguresView'),
   '70-notices-my': A('notices', 'NoticesView'), '71-notices-manage': A('notices-manage', 'NoticesManageView'), '72-notices-approvals': A('notices-approvals', 'NoticesApproveView'), '73-notices-channels': A('notices-channels', 'NoticesChannelsView'),
   '40-roles': A('roles', 'RolesView'), '41-permissions': A('permissions', 'PermissionsView'), '44-audit': A('audit', 'AuditView'), '45-email-log': A('email-log', 'EmailLogView'),
-  '46-settings': A(null, 'IntegrationsTranslationView', 'IntegrationsEmailView', 'IntegrationsCaptchaView', 'IntegrationsAiView', 'TemplatesEmailView', 'TemplatesNotificationView', 'TourSettingsView', 'SecuritySettingsView'),
+  '46-settings': A(null, 'IntegrationsTranslationView', 'IntegrationsEmailView', 'IntegrationsCaptchaView', 'IntegrationsAiView', 'TemplatesEmailView', 'TemplatesNotificationView', 'TourSettingsView', 'SecuritySettingsView', 'TicketsReportSettingsView'),
 };
 // Pages of the administration menus work only while platform admin mode is on: the section says so.
 const ADMIN_MODE = new Set(['23-companies', '33-task-policies', '35-ticket-setup', '36-ticket-figures', '40-roles', '41-permissions', '44-audit', '45-email-log', '46-settings']);

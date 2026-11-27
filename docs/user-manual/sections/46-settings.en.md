@@ -19,6 +19,7 @@ One page with tabs that gathers the settings of services and messages: **Transla
 | Notification templates | `templates.notification_view` (View notification templates) | Notification templates |
 | Welcome tour | `tour.settings_view` (View the welcome tour settings) | Welcome tour |
 | Security | `security_settings.view` (View the security settings (trusted devices and request limits)) | Security |
+| Problem reports | `tickets.report_settings_view` (View the problem report settings) | Problem report settings |
 
 - Default scope of all these keys: All.
 - Platform admin mode: required; the page appears in the menu after you turn it on.
@@ -153,6 +154,26 @@ Here you edit the wording of every e-mail the platform sends (the account activa
 - Everything recorded in the audit log during the session carries the administrator's name, and the employee gets a notice afterwards.
 
 **E-mail domains:** each domain goes on its own line (like `partner.org`), and wrong values are named so they can be fixed. When the list is empty only the default domain is allowed. The system refuses to add an employee with a work e-mail outside the allowed domains (FR-77).
+
+### The Problem reports tab
+
+It controls the **Report a problem** button that every employee sees in the top bar (see the Tickets page).
+
+| Setting | Meaning | Values |
+|---|---|---|
+| Switch on the «Report a problem» button | Shows the button to everyone who holds `tickets.report_problem` | Off until you choose a type |
+| Ticket type | Every report becomes a ticket of this type and reaches its department and handlers. Types of departments that receive tickets now are listed, without personal types | Required to switch on |
+| Show the «Analyse with the AI» button | The report window gets a button that makes the AI write the title and the description from the note, the page details and (only if allowed below) the screenshot; the employee reads and changes them before sending. Nothing is analysed automatically; an AI service must be on | On by default |
+| Let the AI see the screenshot | The picture leaves the platform for the AI provider; a warning says so here and to the employee | Off by default; needs the analysis on |
+| Most reports one employee may send in an hour | Stops flooding | 1 to 60 (default 10) |
+
+| Action | Permission |
+|---|---|
+| View the tab | `tickets.report_settings_view` |
+| Save | `tickets.report_settings_edit` (Edit the problem report settings), with platform admin mode |
+| Report a problem (the employee's button) | `tickets.report_problem` |
+
+Saving is refused with a message when the chosen type is not a type a report may become (personal, or of a department that does not receive tickets), or when you switch the button on with no type.
 
 ### The Welcome tour tab
 

@@ -2,6 +2,22 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-27 — «Report a problem»: a screenshot, an AI reading, a ticket (FR-195…FR-199)
+
+Plan: `docs/plans/phase-2-tickets.md` (section «زر بلّغ عن مشكلة»).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 502 | **The AI analyses only when the employee presses «Analyse with the AI»** (owner), and writes into the title and description fields they can change; sending never calls the AI (this replaces the automatic analysis of decision 496). The setting «Analyse the report with the AI» now means «show the button». Gates unchanged: the screenshot reaches the AI only with «Let the AI see the screenshot» (495); the analysis count per employee is kept in memory and uses the same hourly limit as reports. | The owner wants to see and edit what the AI writes, not have it applied silently. | |
+| 500 | **The screenshot's address is released by a deferred, skippable cleanup (`use-blob-url`) and the capture is more forgiving:** React in development runs every effect twice, which released the address while the picture was shown (a broken image on a developer's machine only); pictures that need the session are fetched with it, an image that cannot be fetched becomes a blank one, a transparent page gets a solid background (a JPEG has none), and a failed draw is retried without the web fonts before the dialog says no screenshot could be taken. | The owner saw no picture locally. | |
+| 499 | **The report button is also inside every pop-up window.** A modal `Dialog` covers the top bar, so `Dialog` shows the tools of `DialogToolsProvider` (`shared/ui/dialog-tools`) next to «Close», and the app puts `ProblemReportButton inDialog` there; the report window itself carries none. The screenshot is taken with the pop-up open. | A problem inside a pop-up could not be reported (owner). | |
+| 498 | **The screen keeps its last failures in memory** (`core/api/problem-diagnostics`): 5 failed calls (method, path without query, status) and 5 errors, set by `ApiClient` and the window's error events; nothing is sent until a report. | Gives the team what to reproduce without logging anything on a server. | |
+| 497 | **Every role holds `tickets.report_problem`** (migration adds it to each role lacking it; `EMPLOYEE_DEFAULT_PERMISSIONS` for new ones). The settings keys are not in the head role (platform settings, admin mode). One ticket type, one `problem_report_settings` row; the hourly limit counts the employee's tickets of that type in the last hour. | The owner wants every employee able to report; one number to count, no extra table. | A per-role or per-department type is asked for |
+| 496 | **The AI is never required:** `ProblemReportAnalyzer.analyze` never throws (15 s limit); on any failure the ticket has the page as its title and the details as text. The model's text is cleaned (control characters, length) and shown as plain text only; the report is fenced as data in the prompt. | A report must reach the team even when the AI is down or confused. | |
+| 495 | **The picture reaches the AI only when the administrator turns on «Let the AI see the screenshot»** (off by default); the employee sees a warning in the dialog while it applies. Without it the model reads the note and the page details. | A screenshot may hold personal or financial data and the AI service is outside the platform. | The owner decides the AI may always see it |
+| 494 | **The screenshot is drawn from the page with `html-to-image` 1.11.13** (pinned, older than 14 days), as a JPEG at 85 %, window size, no permission prompt. Approximate: scrolled inner containers and cross-origin pictures may differ. Password fields and `data-private` nodes are filtered out. Screen sharing (`getDisplayMedia`) is not used: it asks every time, fails on phones and may capture other windows. | One click, phones, private fields can be removed. | A report needs an exact picture |
+| 493 | **Inside the tickets module** (owner): `modules/tickets` (service, settings service, analyzer, controllers, entity, migration `1796100000000-ProblemReports`) and `features/tickets/problem-report`. A report is `TicketsService.create` called for the employee, so every rule of a ticket (type, desk receiving, files, notices) applies unchanged. | One ticket flow, no second one to keep in step. | Reports need their own life cycle |
+
 ## 2026-11-27 — Time on a task as hours and minutes (FR-200)
 
 Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-27).

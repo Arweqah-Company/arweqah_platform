@@ -30,6 +30,7 @@ export const TOUR_STEPS = [
   { key: 'sign-out', tour: 'general' },
   { key: 'language-theme', tour: 'general' },
   { key: 'notifications', tour: 'general' },
+  { key: 'problem-report', tour: 'general', permission: CorePermission.TicketsReportProblem },
   { key: 'sidebar', tour: 'general' },
   { key: 'agent-chat', tour: 'general', permission: CorePermission.AgentView },
   { key: 'home', tour: 'general' },
@@ -79,6 +80,7 @@ export const TOUR_STEPS = [
   { key: 'geoip-settings', tour: 'admin', permission: CorePermission.IntegrationsGeoipView, page: 'geoip-settings' },
   { key: 'ai-settings', tour: 'admin', permission: CorePermission.IntegrationsAiView, page: 'ai-settings' },
   { key: 'tour-settings', tour: 'admin', permission: CorePermission.TourSettingsView, page: 'tour-settings' },
+  { key: 'problem-report-settings', tour: 'admin', permission: CorePermission.TicketsReportSettingsView, page: 'problem-report-settings' },
 ] as const satisfies readonly TourStepDef[];
 
 export type TourStepKey = (typeof TOUR_STEPS)[number]['key'];

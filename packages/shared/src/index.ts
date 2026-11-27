@@ -43,6 +43,7 @@ export * from './employees/basic-request';
 export * from './employees/field-rules';
 export * from './tickets/working-days';
 export * from './tickets/schemas';
+export * from './tickets/problem-reports';
 export * from './tickets/summary';
 export * from './pages/schemas';
 export * from './lists/catalog';

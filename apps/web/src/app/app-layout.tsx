@@ -4,7 +4,9 @@ import { AgentChat } from '@/features/agent-chat';
 import { CareerGate, useCareerHold } from '@/features/career-profile';
 import { AwaitingNoticesBanner } from '@/features/notices';
 import { EvaluationNoticeBanner } from '@/features/performance';
+import { ProblemReportButton } from '@/features/tickets';
 import { TourProvider } from '@/features/tour';
+import { DialogToolsProvider } from '@/shared/ui';
 import { ListSettingsProvider } from '@/shared/lib/list-settings';
 import { NavContext } from '@/core/navigation';
 import { usePermissions } from '@/core/permissions/can';
@@ -33,6 +35,7 @@ export function AppLayout() {
   return (
     <ListSettingsProvider value={me?.listSettings ?? {}}>
     <NavContext.Provider value={nav}>
+    <DialogToolsProvider value={<ProblemReportButton inDialog />}>
     <TourProvider features={FEATURES} setDrawer={setOpen}>
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:start-2 focus:top-2 focus:z-50 focus:bg-cream focus:p-2">
         Skip to content
@@ -56,6 +59,7 @@ export function AppLayout() {
       </div>
       <AgentChat />
     </TourProvider>
+    </DialogToolsProvider>
     </NavContext.Provider>
     </ListSettingsProvider>
   );

@@ -5,6 +5,13 @@ import { AdminModeEligibility } from '../../core/access/application/admin-mode-e
 import { PermissionCatalog } from '../../core/access/application/permission-catalog';
 import { OrgNodeDependentsPort } from '../org/domain/contracts/org-node-dependents.port';
 import { OrgModule } from '../org/org.module';
+import { ProblemReportAnalyzer } from './application/services/problem-report-analyzer.service';
+import { ProblemReportSettingsService } from './application/services/problem-report-settings.service';
+import { ProblemReportService } from './application/services/problem-report.service';
+import { ProblemReportThrottle } from './application/services/problem-report-throttle';
+import { ProblemReportRepository } from './domain/contracts/problem-report.repository';
+import { TypeOrmProblemReportRepository } from './infrastructure/repositories/typeorm-problem-report.repository';
+import { ProblemReportSettingsController, ProblemReportsController } from './presentation/controllers/problem-reports.controller';
 import { TicketCatalogService } from './application/services/ticket-catalog.service';
 import { TicketFiguresService } from './application/services/ticket-figures.service';
 import { TicketDeleteService } from './application/services/ticket-delete.service';
@@ -45,9 +52,13 @@ import { TicketsController } from './presentation/controllers/tickets.controller
 @Module({
   imports: [OrgModule],
   // The fixed paths (setup, figures, my summary) are registered before `tickets/:id`.
-  controllers: [TicketSetupController, TicketFiguresController, TicketSummaryController, TicketsController],
+  controllers: [ProblemReportsController, ProblemReportSettingsController, TicketSetupController, TicketFiguresController, TicketSummaryController, TicketsController],
   providers: [
     TicketsService,
+    ProblemReportService,
+    ProblemReportSettingsService,
+    ProblemReportAnalyzer,
+    ProblemReportThrottle,
     TicketLifecycleService,
     TicketReassignService,
     TicketHandlerChoiceService,
@@ -63,6 +74,7 @@ import { TicketsController } from './presentation/controllers/tickets.controller
     TicketTransformer,
     TicketJobs,
     { provide: TicketRepository, useClass: TypeOrmTicketRepository },
+    { provide: ProblemReportRepository, useClass: TypeOrmProblemReportRepository },
     { provide: TicketDeskRepository, useClass: TypeOrmTicketDeskRepository },
     { provide: TicketSummaryRepository, useClass: TypeOrmTicketSummaryRepository },
     { provide: TicketFiguresRepository, useClass: TypeOrmTicketFiguresRepository },
