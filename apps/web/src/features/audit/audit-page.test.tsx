@@ -67,4 +67,13 @@ describe('Audit log: a click on a row opens its entry, and the actions column sa
     fireEvent.click(screen.getByRole('button', { name: /تصفية|الفلاتر/ }));
     expect(screen.queryByLabelText('الفئة')).not.toBeInTheDocument();
   });
+
+  it('ties every tab to the one results area for a screen reader (the tab\'s aria-controls names the tab panel)', async () => {
+    renderPage(<AuditPage />);
+    const tabs = await screen.findByRole('tablist', { name: 'وحدات النظام' });
+    const selected = within(tabs).getByRole('tab', { name: 'الكل' });
+    const panel = await screen.findByRole('tabpanel');
+    expect(selected).toHaveAttribute('aria-controls', panel.id);
+    expect(panel).toHaveAttribute('aria-labelledby', selected.id);
+  });
 });

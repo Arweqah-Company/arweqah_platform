@@ -1,9 +1,10 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { StrictMode } from 'react';
-import { http, HttpResponse } from 'msw';
+import { delay, http, HttpResponse } from 'msw';
 import { describe, expect, it, vi } from 'vitest';
 import { me, server } from '../../../../test/msw';
 import { renderPage } from '../../../../test/render';
+import * as api from './api';
 import { ProblemReportDialog } from './problem-report-dialog';
 import { CONTEXT, SHOT } from './problem-report-fixtures';
 
@@ -130,4 +131,38 @@ describe('the AI button (FR-197)', () => {
     expect(await screen.findByRole('alert')).toBeInTheDocument();
     expect(note).toHaveValue('كتبتها بيدي');
   });
+
+describe('The AI button while the person keeps working (FR-197)', () => {
+  const READ = { title: 'عنوان الذكاء', description: 'وصف الذكاء', imageSeen: true };
+
+  it('keeps what the person typed while the AI was working: the fields are locked until the answer comes', async () => {
+    server.use(
+      http.get('*/api/me', () => HttpResponse.json(me())),
+      http.post('*/api/problem-reports/analyze', async () => { await delay(150); return HttpResponse.json(READ); }),
+    );
+    renderPage(<ProblemReportDialog screenshot={null} context={CONTEXT} imageToAi={false} canAnalyze onClose={() => undefined} />);
+    const note = await screen.findByRole('textbox', { name: /ما المشكلة/ });
+    fireEvent.click(screen.getByRole('button', { name: 'حلّل بالذكاء الاصطناعي' }));
+    await vi.waitFor(() => expect(note).toBeDisabled());
+    expect(screen.getByRole('textbox', { name: /عنوان البلاغ/ })).toBeDisabled();
+    await vi.waitFor(() => expect(note).toHaveValue(READ.description));
+    expect(note).not.toBeDisabled();
+  });
+
+  it('does not send the screenshot to the AI when the person unticked it while it was uploading', async () => {
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const analyze = vi.fn().mockResolvedValue(READ);
+    vi.spyOn(api, 'useUploadScreenshot').mockReturnValue({ mutateAsync: () => gate.then(() => 'f1'), isPending: false, error: null } as never);
+    vi.spyOn(api, 'useAnalyzeProblemReport').mockReturnValue({ mutateAsync: analyze, isPending: false, error: null } as never);
+    server.use(http.get('*/api/me', () => HttpResponse.json(me())));
+    renderPage(<ProblemReportDialog screenshot={SHOT()} context={CONTEXT} imageToAi canAnalyze onClose={() => undefined} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'حلّل بالذكاء الاصطناعي' }));
+    fireEvent.click(await screen.findByRole('checkbox', { name: /إرفاق لقطة الشاشة/ })); // withdrawn while the upload runs
+    release();
+    await vi.waitFor(() => expect(analyze).toHaveBeenCalled());
+    expect(analyze.mock.calls[0]![0].fileId).toBeUndefined();
+    vi.restoreAllMocks();
+  });
+});
 });

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { diagnosticsSnapshot, recordFailedRequest, recordScreenError, resetDiagnostics } from '@/core/api/problem-diagnostics';
 import { buildProblemContext } from './problem-context';
-import { dataUrlToBlob, isPrivate } from './capture-screenshot';
+import { dataUrlToBlob, isPrivate, viewportStyle } from './capture-screenshot';
 
 describe('What a problem report says about the screen (FR-199)', () => {
   beforeEach(() => resetDiagnostics());
@@ -39,5 +39,10 @@ describe('What a problem report says about the screen (FR-199)', () => {
     const blob = dataUrlToBlob(`data:image/jpeg;base64,${btoa('abc')}`);
     expect(blob.type).toBe('image/jpeg');
     expect(blob.size).toBe(3);
+  });
+
+  it('draws the page from where the person scrolled to, so the picture shows what they were looking at', () => {
+    expect(viewportStyle(0, 0)).toEqual({ transform: 'translate(0px, 0px)', transformOrigin: 'top left' });
+    expect(viewportStyle(10, 840)).toEqual({ transform: 'translate(-10px, -840px)', transformOrigin: 'top left' });
   });
 });

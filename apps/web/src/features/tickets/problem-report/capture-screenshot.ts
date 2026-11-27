@@ -24,6 +24,11 @@ function pageBackground(): string {
 /** A 1×1 transparent picture put where an image cannot be fetched (so one broken avatar never spoils the whole screenshot). */
 const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
+/** Where the picture starts: the page is drawn from its top, so it is moved up and left by what the person scrolled, and the window-sized picture shows what they were looking at. */
+export function viewportStyle(scrollX: number, scrollY: number): Record<string, string> {
+  return { transform: `translate(${-scrollX}px, ${-scrollY}px)`, transformOrigin: 'top left' };
+}
+
 /** A picture of what the window shows now, drawn from the page itself (no permission to ask for); approximate: fonts or pictures from elsewhere may differ. Null when the browser cannot draw it. */
 export async function captureScreenshot(): Promise<Blob | null> {
   try {
@@ -37,7 +42,7 @@ export async function captureScreenshot(): Promise<Blob | null> {
 
 /** Pictures that need the session (employee photos) are fetched with it; when drawing fails with the page's fonts it is tried once more without them. */
 async function renderWithFallback(): Promise<string> {
-  const options = { quality: QUALITY, pixelRatio: 1, width: window.innerWidth, height: window.innerHeight, backgroundColor: pageBackground(), imagePlaceholder: BLANK, fetchRequestInit: { credentials: 'include' as const }, filter: (node: Node) => !isPrivate(node) };
+  const options = { quality: QUALITY, pixelRatio: 1, width: window.innerWidth, height: window.innerHeight, backgroundColor: pageBackground(), imagePlaceholder: BLANK, fetchRequestInit: { credentials: 'include' as const }, style: viewportStyle(window.scrollX, window.scrollY), filter: (node: Node) => !isPrivate(node) };
   try {
     return await toJpeg(document.body, options);
   } catch (failure) {
