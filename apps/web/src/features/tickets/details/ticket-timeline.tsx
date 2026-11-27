@@ -34,7 +34,7 @@ function Entry({ ticketId, event, canAnswer, onAnswer, nested }: EntryProps) {
   return (
     <div id={`event-${event.id}`} className={cn('rounded-2xl border p-4', 'border-neutral-200 bg-white', nested && 'bg-neutral-50')}>
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-        <span className="font-medium text-fg">{event.actor?.name ?? t('timeline.system')} <span className="font-normal text-muted">· {t('events.reply')}{event.replyTo && ` · ${t('reply.inReplyTo', { name: event.replyTo.name })}`}</span></span>
+        <span className="font-medium text-fg">{event.actor?.name ?? t('timeline.system')} <span className="font-normal text-muted">· {t(`events.${event.type}`)}{event.replyTo && ` · ${t('reply.inReplyTo', { name: event.replyTo.name })}`}</span></span>
         <span className="flex items-center gap-1">
           <time dateTime={event.createdAt}>{formatDateTime(event.createdAt)}</time>
           {canAnswer && onAnswer && <RowAction label={t('reply.answer')} icon={MessageSquareReply} onClick={onAnswer} />}
@@ -46,7 +46,10 @@ function Entry({ ticketId, event, canAnswer, onAnswer, nested }: EntryProps) {
   );
 }
 
-/** The conversation: the replies of the ticket, oldest first; the answers to a reply sit under it. Every other step is in the history (`TicketHistory`). */
+/** What belongs to the conversation: the replies, and the message that came with a step (closing requested, declined, closed, reopened). The ticket's own text (`created`) is shown above, the steps without a message only in the history. */
+const inConversation = (e: TicketEventDto) => e.type === 'reply' || (e.type !== 'created' && Boolean(e.body));
+
+/** The conversation, oldest first; the answers to a reply sit under it. Every step, with or without a message, is also in the history (`TicketHistory`). */
 export function TicketTimeline({ ticket }: { ticket: TicketDto }) {
   const { t } = useTranslation('tickets');
   const mayAnswer = usePermissions().can(CorePermission.TicketsCommentReply) && ticket.abilities.reply;
@@ -56,7 +59,7 @@ export function TicketTimeline({ ticket }: { ticket: TicketDto }) {
     <section aria-label={t('timeline.heading')} className="flex flex-col gap-3">
       <h2 className="text-sm font-bold text-muted">{t('timeline.heading')}</h2>
       <ol className="flex flex-col gap-3">
-        {ticket.events.filter((e) => e.type === 'reply' && !e.parentId).map((e) => (
+        {ticket.events.filter((e) => inConversation(e) && !e.parentId).map((e) => (
           <li key={e.id} className="flex flex-col gap-2">
             <Entry ticketId={ticket.id} event={e} canAnswer={mayAnswer && e.type === 'reply'} onAnswer={() => setAnswering(e.id)} />
             {(answersOf(e.id).length > 0 || answering === e.id) && (

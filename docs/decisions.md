@@ -2,6 +2,49 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-27 — «Report a problem»: a screenshot, an AI reading, a ticket (FR-195…FR-199)
+
+Plan: `docs/plans/phase-2-tickets.md` (section «زر بلّغ عن مشكلة»).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 502 | **The AI analyses only when the employee presses «Analyse with the AI»** (owner), and writes into the title and description fields they can change; sending never calls the AI (this replaces the automatic analysis of decision 496). The setting «Analyse the report with the AI» now means «show the button». Gates unchanged: the screenshot reaches the AI only with «Let the AI see the screenshot» (495); the analysis count per employee is kept in memory and uses the same hourly limit as reports. | The owner wants to see and edit what the AI writes, not have it applied silently. | |
+| 500 | **The screenshot's address is released by a deferred, skippable cleanup (`use-blob-url`) and the capture is more forgiving:** React in development runs every effect twice, which released the address while the picture was shown (a broken image on a developer's machine only); pictures that need the session are fetched with it, an image that cannot be fetched becomes a blank one, a transparent page gets a solid background (a JPEG has none), and a failed draw is retried without the web fonts before the dialog says no screenshot could be taken. | The owner saw no picture locally. | |
+| 499 | **The report button is also inside every pop-up window.** A modal `Dialog` covers the top bar, so `Dialog` shows the tools of `DialogToolsProvider` (`shared/ui/dialog-tools`) next to «Close», and the app puts `ProblemReportButton inDialog` there; the report window itself carries none. The screenshot is taken with the pop-up open. | A problem inside a pop-up could not be reported (owner). | |
+| 498 | **The screen keeps its last failures in memory** (`core/api/problem-diagnostics`): 5 failed calls (method, path without query, status) and 5 errors, set by `ApiClient` and the window's error events; nothing is sent until a report. | Gives the team what to reproduce without logging anything on a server. | |
+| 497 | **Every role holds `tickets.report_problem`** (migration adds it to each role lacking it; `EMPLOYEE_DEFAULT_PERMISSIONS` for new ones). The settings keys are not in the head role (platform settings, admin mode). One ticket type, one `problem_report_settings` row; the hourly limit counts the employee's tickets of that type in the last hour. | The owner wants every employee able to report; one number to count, no extra table. | A per-role or per-department type is asked for |
+| 496 | **The AI is never required:** `ProblemReportAnalyzer.analyze` never throws (15 s limit); on any failure the ticket has the page as its title and the details as text. The model's text is cleaned (control characters, length) and shown as plain text only; the report is fenced as data in the prompt. | A report must reach the team even when the AI is down or confused. | |
+| 495 | **The picture reaches the AI only when the administrator turns on «Let the AI see the screenshot»** (off by default); the employee sees a warning in the dialog while it applies. Without it the model reads the note and the page details. | A screenshot may hold personal or financial data and the AI service is outside the platform. | The owner decides the AI may always see it |
+| 494 | **The screenshot is drawn from the page with `html-to-image` 1.11.13** (pinned, older than 14 days), as a JPEG at 85 %, window size, no permission prompt. Approximate: scrolled inner containers and cross-origin pictures may differ. Password fields and `data-private` nodes are filtered out. Screen sharing (`getDisplayMedia`) is not used: it asks every time, fails on phones and may capture other windows. | One click, phones, private fields can be removed. | A report needs an exact picture |
+| 493 | **Inside the tickets module** (owner): `modules/tickets` (service, settings service, analyzer, controllers, entity, migration `1796100000000-ProblemReports`) and `features/tickets/problem-report`. A report is `TicketsService.create` called for the employee, so every rule of a ticket (type, desk receiving, files, notices) applies unchanged. | One ticket flow, no second one to keep in step. | Reports need their own life cycle |
+
+## 2026-11-27 — Time on a task as hours and minutes (FR-200)
+
+Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-27).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 503 | **The «Log time» dialog takes Hours and Minutes (0–59), sent to the API as the total in minutes; the limit stays one entry up to 24 hours** (`timeEntrySchema` unchanged, no API change). The rules live in `features/tasks/details/time-rules.ts` (`checkTime`) and the two boxes in `TimeFields`. More than a day shows «A day has only 24 hours, you wrote X h Y min…» under the boxes and keeps «Log» off; empty / zero, a non-whole number and minutes above 59 each have their own message, shown as the person types or leaves a box (`useLiveError`). | The owner typed 2000 into the minutes box: it is 33 h 20 min, over the 1440 limit, and the screen only turned the button off without saying why. Hours and minutes match how people count a working day. Keeping the day limit per entry means longer work is logged on the days it was done. | The owner wants more than a day in one entry, or the estimate box of the task form (still minutes) gets the same two boxes |
+
+## 2026-11-27 — Attachment size setting, PowerPoint, thumbnails, audit tabs (FR-191, FR-192, FR-193)
+
+Plan: `docs/plans/phase-1-auth-employees.md` (log 2026-11-27).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 488 | **The largest attachment is a setting, `maxUploadMb` (Settings → Security → Attachments, 1–100 MB, default 10), read by `POST /files` on every upload** (the transport takes up to the 100 MB ceiling and the service checks the set size, so it changes without a restart); `GET /me` carries it (`maxUploadMb`) and `useMaxUploadBytes` feeds every file box (`FileAttachments`, the career proof and agreement boxes). The reverse proxies accept 101 MB. Photos (cropped), the assistant's pictures and voice, imports and title-file text keep their own limits: they are not attachments and a bigger one would only cost memory. | The owner's work is mostly PowerPoint and Excel files over 10 MB; he asked that the administrator set the limit for everything with files. Multer holds a file in memory, so the setting has a ceiling (100 MB) instead of no limit. | Concurrent big uploads hurt the API: move to streaming storage (S3 multipart) before raising the ceiling |
+| 489 | **`.pptx` is allowed for every attachment and opens in the platform as slides of text and pictures** (`pptxToSlides`, `jszip` 3.10.2 pinned in the web, dev-pinned in the API tests; the zip is read as data, text is drawn as text, only png/jpeg/gif/webp pictures are shown, never SVG; up to 100 slides, 4 pictures a slide, 8 MB a picture). It is an approximation like Word and Excel (no layout, shapes, charts or animation) and says so; the original downloads. The macro-enabled `.pptm` and the old `.ppt` stay refused (their types are not in the list). | The owner asked for PowerPoint in tickets and tasks and a view inside the platform. A full renderer (`pptx-preview`, LibreOffice) would be a heavy dependency or a server that opens untrusted files; reading the XML ourselves keeps the page safe and small. | A faithful render is wanted (then convert on the server in a sandbox) |
+| 490 | **Audit log: one tab per module over one table** (`Tabs` above the table: «All» and the nine categories); a tab sets the existing `category` filter, which is then removed from the toolbar (one control, not two); the action filter lists the tab's actions. Nothing changes in storage. | The owner asked for tabs per module for easier review, all in one table in the database and different only in the display. | A module needs its own columns (then its tab gets its own table view) |
+
+## 2026-11-27 — The message of a step is in the conversation (FR-194)
+
+Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-27).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 491 | **«Conversation and replies» shows a step's message** (`close_requested`, `close_declined`, `closed_not_executed`, `reopened`, anything but `created`) as an entry headed with the step, next to the replies; steps without a message stay only in the history. No API change: the message was already stored in `ticket_events.body`. | The receiver of a closing request never saw the message: it was only inside the history window, a button away. Notices and e-mails keep carrying the number and the department only (decision on personal matters), so the page is where the message is read. | The owner wants the text in the notice too |
+| 492 | **A deleted ticket is hidden, not erased** (FR-158, unchanged): `tickets.deleted_at`; replies, files and events stay in the database, the audit log keeps who deleted it (number, title, status). There is no screen to restore it. | Answer to the owner's question «where do deleted tickets go». | A restore or «deleted tickets» screen is asked for |
+
 ## 2026-11-26 — Zoom, header photo, breadcrumb (FR-188, FR-189, FR-190)
 
 Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-26).

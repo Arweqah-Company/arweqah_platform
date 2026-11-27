@@ -13,6 +13,7 @@ import { ZoomableImage } from './zoomable-image';
 const DocxView = lazy(() => import('./office-views').then((m) => ({ default: m.DocxView })));
 const WorkbookView = lazy(() => import('./office-views').then((m) => ({ default: m.WorkbookView })));
 const CsvView = lazy(() => import('./office-views').then((m) => ({ default: m.CsvView })));
+const DeckView = lazy(() => import('./office-views').then((m) => ({ default: m.DeckView })));
 
 export interface PreviewableFile {
   name: string;
@@ -55,10 +56,10 @@ function MediaView({ file, blob, kind }: { file: PreviewableFile; blob: Blob; ki
   return <ZoomableImage src={url} name={file.name} />;
 }
 
-/** Word, Excel (with a note that they are approximate) or a CSV (a table of the text as it is), drawn by the page. */
-function OfficeView({ kind, blob }: { kind: 'docx' | 'xlsx' | 'csv'; blob: Blob }) {
+/** Word, Excel, PowerPoint (with a note that they are approximate) or a CSV (a table of the text as it is), drawn by the page. */
+function OfficeView({ kind, blob, name }: { kind: 'docx' | 'xlsx' | 'pptx' | 'csv'; blob: Blob; name: string }) {
   const { t } = useTranslation();
-  const view = { docx: <DocxView blob={blob} />, xlsx: <WorkbookView blob={blob} />, csv: <CsvView blob={blob} /> }[kind];
+  const view = { docx: <DocxView blob={blob} />, xlsx: <WorkbookView blob={blob} />, pptx: <DeckView blob={blob} name={name} />, csv: <CsvView blob={blob} /> }[kind];
   return (
     <div className="flex flex-col gap-3">
       {kind !== 'csv' && <Alert tone="info">{t('files.approximate')}</Alert>}
@@ -71,7 +72,7 @@ function OfficeView({ kind, blob }: { kind: 'docx' | 'xlsx' | 'csv'; blob: Blob 
 function Content({ file, blob }: { file: PreviewableFile; blob: Blob }) {
   const kind = previewKindOf(file.contentType);
   if (kind === 'image' || kind === 'pdf') return <MediaView file={file} blob={blob} kind={kind} />;
-  return kind ? <OfficeView kind={kind} blob={blob} /> : null;
+  return kind ? <OfficeView kind={kind} blob={blob} name={file.name} /> : null;
 }
 
 /** What the window shows: a note for a type that cannot be shown, the loading or failure state, or the content. */

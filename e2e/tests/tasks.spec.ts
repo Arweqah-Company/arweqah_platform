@@ -40,7 +40,8 @@ test.describe('Tasks (FR-48, FR-49, FR-50, FR-51)', () => {
     await new Screen(page).expectNoSeriousA11yIssues();
     await page.getByRole('button', { name: 'تسجيل وقت' }).click();
     const dialog = page.getByRole('dialog', { name: 'تسجيل وقت' });
-    await dialog.getByLabel('الدقائق *').fill('45');
+    await dialog.getByLabel('الساعات *').fill('0'); // the dialog takes hours and minutes (FR-200)
+    await dialog.getByLabel('الدقائق', { exact: true }).fill('45');
     await dialog.getByRole('button', { name: 'تسجيل', exact: true }).click();
     await expect(page.getByText('0:45 / 2:00')).toBeVisible();
     await choose(page.getByLabel('الحالة', { exact: true }), 'قيد التنفيذ');

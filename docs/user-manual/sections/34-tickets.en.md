@@ -17,6 +17,7 @@ A ticket is the official way to ask another department for something: you choose
 |---|---|---|
 | New ticket | Opens the two-step popup to send a ticket | `tickets.create` (Send a new ticket) |
 | Open a ticket | Click the row, or the eye icon, to open its page | `tickets.view` |
+| Report a problem | The **bug** button («Report a problem») in the top bar of every page (shown while the administrator has reports on): takes a screenshot of the screen, asks for a line about the problem, and sends it as a ticket of the type the administrator chose; see «Reporting a problem in the platform» below | `tickets.report_problem` (Report a problem in the platform; every role holds it by default) |
 | Reply | Writes an answer with files and mentions | `tickets.reply` (Reply to and handle tickets) |
 | Answer a reply | Replies to one reply, one level only | `tickets.comment_reply` (Answer a reply inside a ticket) |
 | Mention with @ | Names a colleague in a reply | `tickets.comment_mention` (Mention a colleague with @ in a ticket reply) |
@@ -85,7 +86,7 @@ The tickets list has no import button. Tickets are sent one by one from the popu
 | Details | The full request: what you need, and everything the handler needs to act without asking again. | No | Up to 5000 characters. |
 | When do you need it | The needed-by date. It drives the «Overdue» mark once it passes. | Yes | A date not earlier than today plus the department's minimum lead in working days; otherwise «The earliest date this unit accepts is …». It is pre-filled with today plus the type's usual time (or the department's) in working days. |
 | Priority | Marks the ticket as «Urgent»; the mark shows in lists and on the board so the handler sees it first. | No | Switch: Normal (default) or On. |
-| Ticket attachments | Files that support the request (drag them in or click to browse). | No | Up to 5 files; Word, Excel, images and PDF. The files must be your own uploads. |
+| Ticket attachments | Files that support the request (drag them in or click to browse). | No | Up to 5 files, each up to the size the administrator set (10 MB until changed); Word, Excel, PowerPoint, images, PDF and CSV. Each chosen file shows as a thumbnail (a picture) or a file icon: click it to open it full size and check it before sending. The files must be your own uploads. |
 
 Pressing **Change** at the top of step 2 returns to step 1 without losing what you typed. The sender and the department are never typed: they come from you and from the chosen type.
 
@@ -104,15 +105,34 @@ Pressing **Change** at the top of step 2 returns to step 1 without losing what y
 |---|---|---|---|
 | Message (optional) | A note kept in the ticket history and sent with the action: what was done, why it was not done, why you reopen. | No | Up to 5000 characters. |
 
+### Reporting a problem in the platform
+
+Something does not work? Press the **bug** button («Report a problem») in the top bar, or the same button beside the «Close» button of any pop-up window that is open (a pop-up covers the top bar), so a problem inside a pop-up can be reported with the pop-up in the screenshot (it appears only while the administrator has «Report a problem» switched on in Settings → Problem reports).
+
+1. A **screenshot of what the window shows** is taken from the page itself (no permission to give). Password fields are left out.
+2. A window shows the screenshot (click it to see it full size), a box **What is the problem?** (optional, up to 1000 characters) and a line saying what goes with the report: the page name, the browser, the window size, the language, the theme and the last errors; the content of the page is not sent, only the screenshot.
+3. **Report title** (optional; empty = the page's name) and **What is the problem?** are yours to write. Press **Analyse with the AI** (it appears when the administrator switched the analysis on and an AI service is on) and the AI writes the title and the description for you from your note, the page details and, only if the administrator allowed it, the screenshot; **read them and change what you want** before sending. Nothing is analysed unless you press the button.
+4. Untick **Attach the screenshot** to send the report as text alone. If the administrator allowed the AI service to see screenshots, a warning says so while the box is ticked.
+5. **Send the report.** A ticket of the chosen type is made **in your name**: you follow its replies in «My tickets» like any ticket, and the department's handlers receive it in their unit inbox. A notice gives its number with a button to open it.
+6. If the AI is off or fails when you press its button, a message says so and you write the description yourself; sending never depends on it.
+
+| Rule | Value |
+|---|---|
+| Who may report | Whoever holds `tickets.report_problem` |
+| Limit | The number of reports an hour the administrator set (default 10, 1 to 60); past it, wait a little |
+| Refused | While the button is off or the chosen type is no longer usable; with a screenshot that is not yours |
+
+The administrator sets all of this in **Settings → Problem reports** (see the Settings page).
+
 ### Workflow
 
 **What happens when someone raises a ticket**
 
 1. **The sender** clicks **New ticket**, chooses the type, writes the title and details, picks the needed-by date, marks it urgent if needed, attaches files and presses **Send**. The system checks that the department is receiving (active, started, with a manager), that the date is not too early, and that the files are the sender's own.
-2. The ticket gets its number (TKT-000123), status **Open**, and appears in the sender's «My tickets» tab. The history gets the entry «The ticket was sent». (On the ticket page «Conversation and replies» holds the replies only; every other step is in the **History of the ticket** section at the bottom: the **View history** button opens a window with a table: number, date and time, by, event and details: the message that came with it, the files and the person the ticket was handed to.)
+2. The ticket gets its number (TKT-000123), status **Open**, and appears in the sender's «My tickets» tab. The history gets the entry «The ticket was sent». (On the ticket page «Conversation and replies» holds the replies and the message written with a step (closing requested, «Not done yet», closed without being carried out, reopened), headed with the step, so the sender reads the closing message there; every other step is in the **History of the ticket** section at the bottom: the **View history** button opens a window with a table: number, date and time, by, event and details: the message that came with it, the files and the person the ticket was handed to.)
 3. **The handlers are told** (in the app and by e-mail): the type's handler, or all of them when it has several (the ticket then has no assignee yet, shows in every handler's «Unit inbox», and the first one to reply becomes its assignee), or the department manager when the type has no handler. The notice carries only the number and the department. The ticket appears in the handler's «Unit inbox» tab with the mark «New» until somebody from the unit answers.
 4. **The handler** (the assignee, the department manager, or someone whose reply scope reaches the department) opens the ticket and answers with **Send reply**. The first answer from the unit's side records the first response time. The sender is notified of each reply and answers in the same way (`tickets.reply`).
-5. When the work is done the handler clicks **Request closing** and may add a message. The status becomes **Waiting for closing confirmation**, the sender is notified (also by e-mail), and the clock for automatic closing starts.
+5. When the work is done the handler clicks **Request closing** and may add a message. The status becomes **Waiting for closing confirmation**, the sender is notified (also by e-mail, with the number and the department only), your message appears in the sender's **Conversation and replies** headed «Closing of the ticket was requested», and the clock for automatic closing starts.
 6. **The sender** chooses one:
    - **Confirm it was done**: the ticket closes («confirmed by the sender»).
    - **Not done yet**: the ticket returns to **Open** with the sender's message, and the unit is notified.

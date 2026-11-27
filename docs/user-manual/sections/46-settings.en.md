@@ -19,6 +19,7 @@ One page with tabs that gathers the settings of services and messages: **Transla
 | Notification templates | `templates.notification_view` (View notification templates) | Notification templates |
 | Welcome tour | `tour.settings_view` (View the welcome tour settings) | Welcome tour |
 | Security | `security_settings.view` (View the security settings (trusted devices and request limits)) | Security |
+| Problem reports | `tickets.report_settings_view` (View the problem report settings) | Problem report settings |
 
 - Default scope of all these keys: All.
 - Platform admin mode: required; the page appears in the menu after you turn it on.
@@ -131,6 +132,7 @@ Here you edit the wording of every e-mail the platform sends (the account activa
 |---|---|---|
 | Days a device stays trusted | How long the authenticator code is skipped on a trusted browser after a Microsoft sign-in; 0 switches the choice off | 0 to 365 (default 0) |
 | Requests per minute | How many requests one address may send a minute before it is told to wait. One page load sends dozens of requests, so a low value stops the platform; sign-in has its own stricter limit | 120 to 100000 (default 600) |
+| Largest attachment (MB) | The largest single file an employee may upload anywhere that takes attachments (tickets, tasks, notices, proofs); every attachment box shows it and the server checks it | 1 to 100 (default 10) |
 | Let platform administrators sign in as another employee | Switches the «Sign in as» feature on | Off by default |
 | Minutes without activity before it ends | How long a «sign in as» session may sit idle before it ends | 5 to 240 (default 30) |
 | Switch the platform assistant on | Switches the assistant (the chat button) on or off for everyone | On by default |
@@ -152,6 +154,26 @@ Here you edit the wording of every e-mail the platform sends (the account activa
 - Everything recorded in the audit log during the session carries the administrator's name, and the employee gets a notice afterwards.
 
 **E-mail domains:** each domain goes on its own line (like `partner.org`), and wrong values are named so they can be fixed. When the list is empty only the default domain is allowed. The system refuses to add an employee with a work e-mail outside the allowed domains (FR-77).
+
+### The Problem reports tab
+
+It controls the **Report a problem** button that every employee sees in the top bar (see the Tickets page).
+
+| Setting | Meaning | Values |
+|---|---|---|
+| Switch on the «Report a problem» button | Shows the button to everyone who holds `tickets.report_problem` | Off until you choose a type |
+| Ticket type | Every report becomes a ticket of this type and reaches its department and handlers. Types of departments that receive tickets now are listed, without personal types | Required to switch on |
+| Show the «Analyse with the AI» button | The report window gets a button that makes the AI write the title and the description from the note, the page details and (only if allowed below) the screenshot; the employee reads and changes them before sending. Nothing is analysed automatically; an AI service must be on | On by default |
+| Let the AI see the screenshot | The picture leaves the platform for the AI provider; a warning says so here and to the employee | Off by default; needs the analysis on |
+| Most reports one employee may send in an hour | Stops flooding | 1 to 60 (default 10) |
+
+| Action | Permission |
+|---|---|
+| View the tab | `tickets.report_settings_view` |
+| Save | `tickets.report_settings_edit` (Edit the problem report settings), with platform admin mode |
+| Report a problem (the employee's button) | `tickets.report_problem` |
+
+Saving is refused with a message when the chosen type is not a type a report may become (personal, or of a department that does not receive tickets), or when you switch the button on with no type.
 
 ### The Welcome tour tab
 
@@ -274,6 +296,7 @@ Whatever is in the form is what is tried; nothing from the window is saved, and 
 |---|---|---|---|
 | Days a device stays trusted | How long the code is skipped on a trusted browser after a Microsoft sign-in | Yes | A whole number from 0 to 365; 0 switches the choice off (default 0) |
 | Requests per minute | How many requests one address may make a minute before it is told to wait | Yes | A whole number from 120 to 100000 (default 600); a low value stops the whole platform |
+| Largest attachment (MB) | The largest single file an employee may upload where attachments are taken: tickets, tasks, notices and proofs. Every attachment box shows the number and the server checks it on upload | Yes | A whole number from 1 to 100 (default 10). Profile photos, the assistant's pictures and voice and import files keep their own limits. Big files use server memory while they upload, so raise it only as far as needed |
 | Let platform administrators sign in as another employee | Switches the «Sign in as» feature on | Yes | Off or on (off by default) |
 | Minutes without activity before it ends | How long a «sign in as» session may sit idle | Yes | A whole number from 5 to 240 (default 30) |
 | Allowed e-mail domains | The domains a work e-mail may use when an employee is added | No | One domain per line, such as `partner.org` (lower case, no `@`), up to 50; wrong lines are named; empty = only `arweqah.sa` |

@@ -64,3 +64,24 @@ describe('Ticket timeline: answers to replies, mentions and files (FR-128)', () 
     expect(screen.getByRole('link', { name: 'screen.png' })).toHaveAttribute('href', '/api/tickets/t1/attachments/f1');
   });
 });
+
+describe('Ticket timeline: the message that comes with a step (FR-194)', () => {
+  it('shows the message of a closing request, with the step named, in the conversation', async () => {
+    serve([CorePermission.TicketsCommentReply]);
+    const asked = event({ id: 'e9', type: 'close_requested', actor: { id: 'u2', name: 'منى خالد' }, body: 'تم تنفيذ الطلب، هل تؤكد؟' });
+    renderPage(<TicketTimeline ticket={ticket([event({ id: 'e1', body: 'جاري العمل' }), asked])} />);
+    const entry = (await screen.findByText('تم تنفيذ الطلب، هل تؤكد؟')).closest('div[id^="event-"]') as HTMLElement;
+    expect(within(entry).getByText(/طُلب إغلاق التذكرة/)).toBeInTheDocument();
+    expect(within(entry).queryByRole('button', { name: 'ردّ على هذا الردّ' })).not.toBeInTheDocument();
+  });
+
+  it('leaves out steps without a message, and the ticket text of the «created» step', async () => {
+    serve([CorePermission.TicketsCommentReply]);
+    const created = event({ id: 'c', type: 'created', body: 'تفاصيل التذكرة' });
+    const confirmed = event({ id: 'k', type: 'confirmed', body: null });
+    renderPage(<TicketTimeline ticket={ticket([created, confirmed, event({ id: 'e1', body: 'ردّ عادي' })])} />);
+    expect(await screen.findByText('ردّ عادي')).toBeInTheDocument();
+    expect(screen.queryByText('تفاصيل التذكرة')).not.toBeInTheDocument();
+    expect(document.querySelectorAll('div[id^="event-"]')).toHaveLength(1);
+  });
+});

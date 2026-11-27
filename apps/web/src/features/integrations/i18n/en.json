@@ -220,7 +220,8 @@
     "security-settings": "Security",
     "captcha": "Bot protection",
     "ai": "AI",
-    "geoip": "Address locations"
+    "geoip": "Address locations",
+    "problem-report-settings": "Problem reports"
   },
   "tabsLabel": "Services",
   "noTabs": "You may not view any of these settings.",

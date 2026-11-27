@@ -19,6 +19,8 @@ export const SECURITY_SETTINGS = {
   agentDraftMinutes: { default: 30, min: 5, max: 1440 },
   /** 1: switching on platform admin mode asks for a fresh code of the authenticator app (the default and the safe choice); 0: it switches on with one click (for testing only). */
   adminModeRequiresCode: { default: 1, min: 0, max: 1 },
+  /** The largest file one attachment may be, in MB: tickets, tasks, notices, proofs, everything uploaded through the files route (the ceiling protects the server's memory). */
+  maxUploadMb: { default: 10, min: 1, max: 100 },
 } as const;
 export type SecuritySettingKey = keyof typeof SECURITY_SETTINGS;
 export const SECURITY_SETTING_KEYS = Object.keys(SECURITY_SETTINGS) as SecuritySettingKey[];
@@ -35,6 +37,7 @@ export const securitySettingsSchema = z.strictObject({
   agentMessagesPerHour: field('agentMessagesPerHour').optional(),
   agentDraftMinutes: field('agentDraftMinutes').optional(),
   adminModeRequiresCode: field('adminModeRequiresCode').optional(),
+  maxUploadMb: field('maxUploadMb').optional(),
 });
 export type SecuritySettingsInput = z.infer<typeof securitySettingsSchema>;
 

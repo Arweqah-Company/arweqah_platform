@@ -1,6 +1,6 @@
 import { fireEvent, screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { me, server } from '../../../test/msw';
 import { renderPage } from '../../../test/render';
 import { AuditPage } from './audit-page';
@@ -37,5 +37,34 @@ describe('Audit log: a click on a row opens its entry, and the actions column sa
     const row = (await screen.findByText('أنشأ مهمة')).closest('tr') as HTMLElement;
     expect(within(row).getByText('المهام')).toBeInTheDocument();
     expect(screen.queryByText('task.created')).not.toBeInTheDocument();
+  });
+
+  it('has one tab per module over one table: «All» first, and a tab asks the API for that module only (FR-193)', async () => {
+    const asked: URLSearchParams[] = [];
+    server.use(
+      http.get('*/api/me', () => HttpResponse.json(me())),
+      http.get('*/api/audit-logs', ({ request }) => { asked.push(new URL(request.url).searchParams); return HttpResponse.json({ items: [entry], total: 1, page: 1, pageSize: 20 }); }),
+    );
+    renderPage(<AuditPage />);
+    const tabs = await screen.findByRole('tablist', { name: 'وحدات النظام' });
+    expect(within(tabs).getAllByRole('tab').map((t) => t.textContent)).toEqual(['الكل', 'الدخول والأمان', 'الموظفون', 'الهيكل التنظيمي والشركات', 'الأدوار والصلاحيات', 'التذاكر', 'المهام', 'التعاميم والسياسات', 'إعدادات النظام', 'أخرى']);
+    expect(within(tabs).getByRole('tab', { name: 'الكل' })).toHaveAttribute('aria-selected', 'true');
+    expect(asked.at(-1)?.has('category')).toBe(false);
+    fireEvent.click(within(tabs).getByRole('tab', { name: 'التذاكر' }));
+    await vi.waitFor(() => expect(asked.at(-1)?.get('category')).toBe('tickets'));
+    expect(within(tabs).getByRole('tab', { name: 'التذاكر' })).toHaveAttribute('aria-selected', 'true');
+    fireEvent.click(within(tabs).getByRole('tab', { name: 'الكل' }));
+    await vi.waitFor(() => expect(asked.at(-1)?.has('category')).toBe(false));
+  });
+
+  it('no longer offers the category as a filter: the tabs are that choice', async () => {
+    server.use(
+      http.get('*/api/me', () => HttpResponse.json(me())),
+      http.get('*/api/audit-logs', () => HttpResponse.json({ items: [entry], total: 1, page: 1, pageSize: 20 })),
+    );
+    renderPage(<AuditPage />);
+    await screen.findByText('أنشأ مهمة');
+    fireEvent.click(screen.getByRole('button', { name: /تصفية|الفلاتر/ }));
+    expect(screen.queryByLabelText('الفئة')).not.toBeInTheDocument();
   });
 });

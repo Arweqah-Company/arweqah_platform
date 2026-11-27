@@ -3,13 +3,16 @@ import { actionsOfCategory, AUDIT_ACTIONS, AUDIT_CATEGORIES, AUDIT_CATEGORY_LABE
 import { Eye } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Badge, DataTable, DetailsDialog, ListToolbar, PageHeader, RowAction, type FilterField } from '@/shared/ui';
+import { Badge, DataTable, DetailsDialog, ListToolbar, PageHeader, RowAction, Tabs, type FilterField } from '@/shared/ui';
 import { ExchangeButtons } from '@/shared/data-exchange/exchange-buttons';
 import type { ExportColumn } from '@/shared/data-exchange/types';
 import { useListPage } from '@/shared/lib/use-list-page';
 import { useServerList } from '@/shared/lib/use-server-list';
 
 type Lang = 'ar' | 'en';
+
+/** One tab per module (the category of its actions) over the same table of the same records: a tab only narrows what is shown, nothing is stored apart. */
+const ALL_TAB = 'all';
 
 /** The action filter lists what a person reads, only the actions of the chosen category (all of them when none is chosen). */
 function actionOptions(category: string | undefined, lang: Lang) {
@@ -24,7 +27,6 @@ export function AuditPage() {
   const [viewing, setViewing] = useState<AuditLogDto | null>(null);
   const list = useListPage('audit');
   const fields: FilterField[] = [
-    { id: 'category', label: t('category'), type: 'select', options: AUDIT_CATEGORIES.map((c) => ({ value: c, label: AUDIT_CATEGORY_LABELS[c][lang] })) },
     { id: 'action', label: t('action'), type: 'select', options: actionOptions(list.filters.values.category, lang) },
     { id: 'actor', label: t('filters.actor'), type: 'text' },
     { id: 'from', label: t('filters.from'), type: 'date' },
@@ -47,6 +49,12 @@ export function AuditPage() {
   return (
     <>
       <PageHeader title={t('title')} description={t('description')} />
+      <Tabs
+        label={t('tabsLabel')}
+        value={list.filters.values.category ?? ALL_TAB}
+        tabs={[{ id: ALL_TAB, label: t('allTab') }, ...AUDIT_CATEGORIES.map((c) => ({ id: c as string, label: AUDIT_CATEGORY_LABELS[c][lang] }))]}
+        onChange={(id) => list.filters.set({ ...list.filters.values, category: id === ALL_TAB ? '' : id, action: '' })}
+      />
       <DataTable<AuditLogDto>
         listKey="audit"
         {...table}

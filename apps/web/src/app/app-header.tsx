@@ -6,6 +6,7 @@ import { AdminModeToggle } from '@/core/admin-mode/admin-mode-toggle';
 import { usePermissions } from '@/core/permissions/can';
 import { useDisplayPreferences } from '@/core/theme/use-display-preferences';
 import { NotificationBell } from '@/features/notifications';
+import { ProblemReportButton } from '@/features/tickets';
 import { BrandLogo, Button, ThemeToggle } from '@/shared/ui';
 import { AccountMenu } from './account-menu';
 
@@ -30,6 +31,7 @@ export function AppHeader({ me, accountItems, menuOpen, onToggleMenu, onSignOut 
       <BrandLogo layout="horizontal" width={88} className="lg:hidden" />
       <div className="ms-auto flex items-center gap-0.5 sm:gap-3">
         <span data-tour="admin-mode" className="inline-flex"><AdminModeToggle /></span>
+        <ProblemReportButton />
         {can(CorePermission.NotificationsView) && <span data-tour="notifications" className="inline-flex"><NotificationBell /></span>}
         {/* On a phone these two live in the account menu so the bar keeps only menu, logo, admin mode, bell and avatar. */}
         <span data-tour="language-theme" className="flex items-center gap-0.5 max-sm:hidden sm:gap-3">

@@ -12,11 +12,13 @@ export const SHELL_STEPS: TourStepUi[] = [
   { key: 'sign-out', target: '[data-tour="sign-out"]', placement: 'start', menu: 'account' },
   { key: 'language-theme', target: '[data-tour="language-theme"]', placement: 'bottom' },
   { key: 'notifications', target: '[data-tour="notifications"]', placement: 'bottom', can: [{ id: 'mark', permission: CorePermission.NotificationsMarkRead }, { id: 'export', permission: CorePermission.NotificationsExport }] },
+  { key: 'problem-report', target: '[data-tour="problem-report"]', placement: 'bottom' },
   { key: 'sidebar', target: '[data-tour="sidebar"]', placement: 'end', menu: 'drawer' },
   { key: 'finish', target: 'body', route: '/', placement: 'center' },
   { key: 'admin-mode', target: '[data-tour="admin-mode"]', placement: 'bottom' },
   { key: 'geoip-settings', target: '[data-tour="settings-tab:geoip"]', route: '/service-settings?tab=geoip', placement: 'bottom', can: [{ id: 'edit', permission: CorePermission.IntegrationsGeoipEdit }, { id: 'test', permission: CorePermission.IntegrationsGeoipTest }, { id: 'activate', permission: CorePermission.IntegrationsGeoipActivate }, { id: 'export', permission: CorePermission.IntegrationsGeoipExport }] },
   { key: 'captcha-settings', target: '[data-tour="settings-tab:captcha"]', route: '/service-settings?tab=captcha', placement: 'bottom', can: [{ id: 'edit', permission: CorePermission.IntegrationsCaptchaEdit }, { id: 'test', permission: CorePermission.IntegrationsCaptchaTest }, { id: 'activate', permission: CorePermission.IntegrationsCaptchaActivate }, { id: 'export', permission: CorePermission.IntegrationsCaptchaExport }] },
   { key: 'ai-settings', target: '[data-tour="settings-tab:ai"]', route: '/service-settings?tab=ai', placement: 'bottom', can: [{ id: 'edit', permission: CorePermission.IntegrationsAiEdit }, { id: 'test', permission: CorePermission.IntegrationsAiTest }, { id: 'activate', permission: CorePermission.IntegrationsAiActivate }, { id: 'export', permission: CorePermission.IntegrationsAiExport }] },
+  { key: 'problem-report-settings', target: '[data-tour="settings-tab:problem-report-settings"]', route: '/service-settings?tab=problem-report-settings', placement: 'bottom', can: [{ id: 'edit', permission: CorePermission.TicketsReportSettingsEdit }] },
   { key: 'tour-settings', target: '[data-tour="settings-tab:tour-settings"]', route: '/service-settings?tab=tour-settings', placement: 'bottom', can: [{ id: 'edit', permission: CorePermission.TourSettingsEdit }, { id: 'toggle', permission: CorePermission.TourSettingsToggle }, { id: 'reorder', permission: CorePermission.TourSettingsReorder }, { id: 'reset', permission: CorePermission.TourSettingsReset }, { id: 'export', permission: CorePermission.TourSettingsExport }] },
 ];

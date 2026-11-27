@@ -46,6 +46,7 @@
     "performance-cycle": "Evaluation cycle",
     "performance-team": "Team evaluation",
     "performance-calibration": "Calibration and approval",
-    "geoip-settings": "Address locations"
+    "geoip-settings": "Address locations",
+    "problem-report-settings": "Problem report settings"
   }
 }

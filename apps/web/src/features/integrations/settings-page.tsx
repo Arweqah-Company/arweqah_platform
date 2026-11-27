@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router';
 import { useMe } from '@/core/auth/session';
 import { usePermissions } from '@/core/permissions/can';
 import { SECURITY_SETTINGS_KEYS, SecuritySettingsTab } from '@/features/security';
+import { PROBLEM_REPORT_KEYS, ProblemReportSettingsTab } from '@/features/tickets';
 import { TEMPLATE_KEYS, TemplatesTab } from '@/features/templates';
 import { TOUR_KEYS, TourStepsTab } from '@/features/tour';
 import { Alert, PageHeader, Tabs } from '@/shared/ui';
@@ -12,7 +13,7 @@ import { KIND_SETTINGS } from './keys';
 import { ProvidersPage } from './providers-page';
 
 interface SettingsTab {
-  id: 'translation' | 'email' | 'captcha' | 'ai' | 'geoip' | 'email-templates' | 'notification-templates' | 'tour-settings' | 'security-settings';
+  id: 'translation' | 'email' | 'captcha' | 'ai' | 'geoip' | 'email-templates' | 'notification-templates' | 'tour-settings' | 'security-settings' | 'problem-report-settings';
   /** The permission that shows the tab, and the page an administrator can hide it with. */
   view: string;
   page: HideablePage;
@@ -29,6 +30,7 @@ const TABS: SettingsTab[] = [
   { id: 'notification-templates', view: TEMPLATE_KEYS.notification.view, page: 'notification-templates', content: <TemplatesTab kind="notification" /> },
   { id: 'tour-settings', view: TOUR_KEYS.view, page: 'tour-settings', content: <TourStepsTab /> },
   { id: 'security-settings', view: SECURITY_SETTINGS_KEYS.view, page: 'security-settings', content: <SecuritySettingsTab /> },
+  { id: 'problem-report-settings', view: PROBLEM_REPORT_KEYS.view, page: 'problem-report-settings', content: <ProblemReportSettingsTab /> },
 ];
 
 /** Every service setting in one page: a tab for translation, e-mail, e-mail templates, notification templates and the welcome tour, each shown only to who may view it. */

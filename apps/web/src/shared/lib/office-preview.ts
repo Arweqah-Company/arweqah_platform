@@ -65,3 +65,79 @@ export async function csvToSheets(blob: Blob): Promise<PreviewSheet[]> {
   const rows = data.slice(0, PREVIEW_MAX_ROWS).map((row) => row.slice(0, PREVIEW_MAX_COLUMNS).map((cell) => cell.trim()));
   return [{ name: 'CSV', rows, truncated: data.length > PREVIEW_MAX_ROWS || data.some((row) => row.length > PREVIEW_MAX_COLUMNS) }];
 }
+
+/** A big deck never fills the window: the first slides are drawn, each with a few pictures, and the screen says so. */
+export const PREVIEW_MAX_SLIDES = 100;
+export const PREVIEW_MAX_SLIDE_IMAGES = 4;
+const PREVIEW_MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+const DRAWING_NS = 'http://schemas.openxmlformats.org/drawingml/2006/main';
+const IMAGE_TYPES: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp' };
+
+export interface PreviewSlide {
+  number: number;
+  /** The text of the slide, one entry per paragraph, the title first. */
+  lines: string[];
+  images: Blob[];
+  /** True when the slide had more pictures than are shown. */
+  moreImages: boolean;
+}
+
+export interface PreviewDeck {
+  slides: PreviewSlide[];
+  /** True when slides were left out. */
+  truncated: boolean;
+}
+
+/** The paragraphs of a slide as plain text (the XML is read as data, never run or put in the page as markup). */
+function slideLines(xml: string): string[] {
+  const doc = new DOMParser().parseFromString(xml, 'application/xml');
+  return Array.from(doc.getElementsByTagNameNS(DRAWING_NS, 'p'))
+    .map((p) => Array.from(p.getElementsByTagNameNS(DRAWING_NS, 't')).map((t) => t.textContent ?? '').join('').trim())
+    .filter(Boolean);
+}
+
+/** `ppt/slides/../media/a.png` → `ppt/media/a.png`. */
+function resolveTarget(base: string, target: string): string {
+  const parts = base.split('/').slice(0, -1);
+  for (const part of target.split('/')) {
+    if (part === '..') parts.pop();
+    else if (part !== '.') parts.push(part);
+  }
+  return parts.join('/');
+}
+
+type Zip = Awaited<ReturnType<(typeof import('jszip'))['loadAsync']>>;
+
+/** The pictures of a slide (png, jpg, gif, webp only: never SVG, which can carry script), as blobs. */
+async function slideImages(zip: Zip, slidePath: string): Promise<{ images: Blob[]; more: boolean }> {
+  const rels = zip.file(slidePath.replace('slides/', 'slides/_rels/') + '.rels');
+  if (!rels) return { images: [], more: false };
+  const doc = new DOMParser().parseFromString(await rels.async('string'), 'application/xml');
+  const targets = Array.from(doc.getElementsByTagName('Relationship'))
+    .filter((r) => r.getAttribute('Type')?.endsWith('/image'))
+    .map((r) => resolveTarget(slidePath, r.getAttribute('Target') ?? ''))
+    .filter((path) => IMAGE_TYPES[path.split('.').pop()?.toLowerCase() ?? '']);
+  const images: Blob[] = [];
+  for (const path of targets.slice(0, PREVIEW_MAX_SLIDE_IMAGES)) {
+    const bytes = await zip.file(path)?.async('uint8array');
+    if (bytes && bytes.byteLength <= PREVIEW_MAX_IMAGE_BYTES) images.push(new Blob([bytes as BlobPart], { type: IMAGE_TYPES[path.split('.').pop()?.toLowerCase() ?? ''] }));
+  }
+  return { images, more: targets.length > PREVIEW_MAX_SLIDE_IMAGES };
+}
+
+/** A PowerPoint file as slides of text and pictures (an approximation: no layout, shapes or animations), read in the browser. */
+export async function pptxToSlides(blob: Blob): Promise<PreviewDeck> {
+  const { default: JSZip } = await import('jszip');
+  const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+  const paths = Object.keys(zip.files)
+    .map((name) => ({ name, number: Number(/^ppt\/slides\/slide(\d+)\.xml$/.exec(name)?.[1]) }))
+    .filter((s) => Number.isInteger(s.number))
+    .sort((a, b) => a.number - b.number);
+  const slides: PreviewSlide[] = [];
+  for (const { name, number } of paths.slice(0, PREVIEW_MAX_SLIDES)) {
+    const { images, more } = await slideImages(zip, name);
+    const xml = (await zip.file(name)?.async('string')) ?? '';
+    slides.push({ number, lines: slideLines(xml), images, moreImages: more });
+  }
+  return { slides, truncated: paths.length > PREVIEW_MAX_SLIDES };
+}
