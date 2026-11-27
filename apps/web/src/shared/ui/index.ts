@@ -27,6 +27,7 @@ export { StatTile } from './stat-tile';
 export { FileAttachments } from './file-attachments';
 export { MentionTextarea } from './mention-textarea';
 export { MentionedText } from './mentioned-text';
+export { ZoomableImage } from './zoomable-image';
 export { FileChip } from './file-chip';
 export { FilePreviewDialog, type PreviewableFile } from './file-preview-dialog';
 export { FileDropzone, checkFiles } from './file-dropzone';

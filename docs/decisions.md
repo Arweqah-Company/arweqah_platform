@@ -2,6 +2,27 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-27 — Time on a task as hours and minutes (FR-195)
+
+Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-27).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 493 | **The «Log time» dialog takes Hours and Minutes (0–59), sent to the API as the total in minutes; the limit stays one entry up to 24 hours** (`timeEntrySchema` unchanged, no API change). The rules live in `features/tasks/details/time-rules.ts` (`checkTime`) and the two boxes in `TimeFields`. More than a day shows «A day has only 24 hours, you wrote X h Y min…» under the boxes and keeps «Log» off; empty / zero, a non-whole number and minutes above 59 each have their own message, shown as the person types or leaves a box (`useLiveError`). | The owner typed 2000 into the minutes box: it is 33 h 20 min, over the 1440 limit, and the screen only turned the button off without saying why. Hours and minutes match how people count a working day. Keeping the day limit per entry means longer work is logged on the days it was done. | The owner wants more than a day in one entry, or the estimate box of the task form (still minutes) gets the same two boxes |
+
+## 2026-11-27 — «Report a problem»: a screenshot, an AI reading, a ticket (FR-195…FR-199)
+
+Plan: `docs/plans/phase-2-tickets.md` (section «زر بلّغ عن مشكلة»).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 493 | **Inside the tickets module** (owner): `modules/tickets` (service, settings service, analyzer, controllers, entity, migration `1796100000000-ProblemReports`) and `features/tickets/problem-report`. A report is `TicketsService.create` called for the employee, so every rule of a ticket (type, desk receiving, files, notices) applies unchanged. | One ticket flow, no second one to keep in step. | Reports need their own life cycle |
+| 494 | **The screenshot is drawn from the page with `html-to-image` 1.11.13** (pinned, older than 14 days), as a JPEG at 85 %, window size, no permission prompt. Approximate: scrolled inner containers and cross-origin pictures may differ. Password fields and `data-private` nodes are filtered out. Screen sharing (`getDisplayMedia`) is not used: it asks every time, fails on phones and may capture other windows. | One click, phones, private fields can be removed. | A report needs an exact picture |
+| 495 | **The picture reaches the AI only when the administrator turns on «Let the AI see the screenshot»** (off by default); the employee sees a warning in the dialog while it applies. Without it the model reads the note and the page details. | A screenshot may hold personal or financial data and the AI service is outside the platform. | The owner decides the AI may always see it |
+| 496 | **The AI is never required:** `ProblemReportAnalyzer.analyze` never throws (15 s limit); on any failure the ticket has the page as its title and the details as text. The model's text is cleaned (control characters, length) and shown as plain text only; the report is fenced as data in the prompt. | A report must reach the team even when the AI is down or confused. | |
+| 497 | **Every role holds `tickets.report_problem`** (migration adds it to each role lacking it; `EMPLOYEE_DEFAULT_PERMISSIONS` for new ones). The settings keys are not in the head role (platform settings, admin mode). One ticket type, one `problem_report_settings` row; the hourly limit counts the employee's tickets of that type in the last hour. | The owner wants every employee able to report; one number to count, no extra table. | A per-role or per-department type is asked for |
+| 498 | **The screen keeps its last failures in memory** (`core/api/problem-diagnostics`): 5 failed calls (method, path without query, status) and 5 errors, set by `ApiClient` and the window's error events; nothing is sent until a report. | Gives the team what to reproduce without logging anything on a server. | |
+
 ## 2026-11-27 — The message of a step is in the conversation (FR-194)
 
 Plan: `docs/plans/phase-2-tickets.md` (log 2026-11-27).

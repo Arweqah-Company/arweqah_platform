@@ -15,6 +15,8 @@ export const TICKET_AUDIT = {
   typeUpdated: 'ticket.type.updated',
   typeRemoved: 'ticket.type.removed',
   personalReassigned: 'ticket.personal.reassigned',
+  problemReported: 'ticket.problem_reported',
+  problemReportSettingsUpdated: 'ticket.problem_report_settings_updated',
 } as const;
 
 export const TICKET_TOPICS = { autoClose: 'tickets.auto-close' } as const;

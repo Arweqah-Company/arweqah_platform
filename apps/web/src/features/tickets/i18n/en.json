@@ -383,5 +383,40 @@
   "priorityValue": {
     "urgent": "Urgent",
     "normal": "Normal"
+  },
+  "problemReport": {
+    "button": "Report a problem",
+    "title": "Report a problem",
+    "description": "A screenshot of your screen and the details of the page go to the responsible team as a ticket you can follow.",
+    "screenshotAlt": "Screenshot",
+    "viewFull": "View the screenshot full size",
+    "attach": "Attach the screenshot",
+    "attachHint": "Untick to send the report as text alone if the screen shows something you do not want to share.",
+    "imageToAi": "The AI service (outside the platform) will also see it to analyse the problem. Untick if the screen shows sensitive data.",
+    "noScreenshot": "A screenshot could not be taken. You can send the report as text alone.",
+    "note": "What is the problem?",
+    "noteHint": "A line or two is enough: what you did and what you saw (optional).",
+    "willSend": "Sent with the report: the page name «{{page}}», the browser, the window size, the language, the theme and the last errors. Nothing of the page's content is sent except the screenshot.",
+    "send": "Send the report",
+    "sending": "Sending…",
+    "sent": "Your report arrived: ticket {{number}}",
+    "openTicket": "Open the ticket"
+  },
+  "problemReportSettings": {
+    "loading": "Loading the settings…",
+    "saved": "The problem report settings were saved",
+    "enabled": "Switch on the «Report a problem» button",
+    "enabledHint": "The button shows at the top of every page for everyone who holds the permission to report.",
+    "type": "Ticket type",
+    "typeHint": "Every report becomes a ticket of this type and reaches its department and handlers. Types of departments that receive tickets now are listed, without personal types.",
+    "typeRequired": "Choose a type before switching on.",
+    "analyze": "Analyse the report with the AI",
+    "analyzeHint": "The AI writes the ticket's title and description from the report text and the page details. When its service is not on, the ticket is sent with the text as it is.",
+    "sendImage": "Let the AI see the screenshot",
+    "sendImageHint": "Off by default: the model reads only the text and the page details.",
+    "sendImageWarning": "A screenshot may hold personal or financial data, and it will leave the platform for the AI provider. The employee sees a notice about it before sending.",
+    "perHour": "Most reports one employee may send in an hour",
+    "perHourHint": "Stops flooding; after it the employee is asked to wait.",
+    "range": "Enter a whole number between {{min}} and {{max}}."
   }
 }
