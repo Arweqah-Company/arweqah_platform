@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { localizedNameSchema } from '../common/localized';
 import { paginationQuerySchema, type Paginated } from '../common/pagination';
 import {
+  MAX_TASK_FILES,
   MAX_TASK_TEXT,
   OBJECTION_REASONS,
   TASK_GROUPINGS,
@@ -12,6 +13,7 @@ import {
   TASK_STATUSES,
   TASK_TABS,
   type ObjectionReason,
+  type TaskFileKind,
   type ObjectionStatus,
   type TaskEventType,
   type TaskPriority,
@@ -22,6 +24,8 @@ import {
 } from './statuses';
 
 const text = (max: number) => z.string().trim().max(max);
+/** Ids of files the sender uploaded first (`POST /files`); the API checks they are theirs. */
+const fileIds = z.array(z.uuid()).max(MAX_TASK_FILES).default([]);
 const policyNumber = (key: TaskPolicyKey) => z.number().int().min(TASK_POLICY_LIMITS[key].min).max(TASK_POLICY_LIMITS[key].max);
 
 // ------------------------------------------------------------------ inputs
@@ -43,6 +47,8 @@ export const createTaskSchema = z.strictObject({
   recurrence: z.enum(TASK_RECURRENCES).default('none'),
   /** Last date a recurring task may repeat. */
   recurrenceEnd: z.iso.date().nullable().optional(),
+  /** Reference files kept with the task (needs `tasks.file_add`). */
+  fileIds,
 });
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 
@@ -68,8 +74,14 @@ export const transitionTaskSchema = z.strictObject({
   note: text(MAX_TASK_TEXT).optional(),
   /** The real day the work ended, for finishing a task late (at most the back-dating days before today). */
   completedOn: z.iso.date().optional(),
+  /** Delivery files handed in with the move «in progress → done / awaiting review» (needs `tasks.file_deliver`). */
+  fileIds,
 });
 export type TransitionTaskInput = z.infer<typeof transitionTaskSchema>;
+
+/** Files added to a task that already exists: reference files (`/files`) or delivery files (`/deliveries`). */
+export const addTaskFilesSchema = z.strictObject({ fileIds: fileIds.refine((ids) => ids.length > 0, 'At least one file') });
+export type AddTaskFilesInput = z.infer<typeof addTaskFilesSchema>;
 
 export const decideTaskSchema = z.strictObject({ revision: z.number().int().min(1), note: text(MAX_TASK_TEXT).optional() });
 export type DecideTaskInput = z.infer<typeof decideTaskSchema>;
@@ -215,6 +227,23 @@ export interface TaskAbilitiesDto {
   restore: boolean;
   /** The viewer may delete the task (hide it from everyone): the key `tasks.delete`, as its giver or inside its scope. */
   delete: boolean;
+  /** Add reference files (`tasks.file_add`, on a task they may edit). */
+  addFiles: boolean;
+  /** Hand in delivery files (`tasks.file_deliver`, the doer, while the work is under way or in review). */
+  deliverFiles: boolean;
+}
+
+/** A file kept with a task, as its page lists it. */
+export interface TaskFileDto {
+  id: string;
+  name: string;
+  size: number;
+  contentType: string;
+  kind: TaskFileKind;
+  addedBy: TaskPersonDto;
+  addedAt: string;
+  /** The viewer may take it off the task (`tasks.file_remove`, and they added it or may edit the task). */
+  canRemove: boolean;
 }
 
 export interface TaskDto extends TaskListItemDto {
@@ -231,6 +260,7 @@ export interface TaskDto extends TaskListItemDto {
   followers: number;
   objection: TaskObjectionDto | null;
   events: TaskEventDto[];
+  files: TaskFileDto[];
   abilities: TaskAbilitiesDto;
 }
 

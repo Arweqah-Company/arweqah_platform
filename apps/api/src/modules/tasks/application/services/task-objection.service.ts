@@ -81,7 +81,7 @@ export class TaskObjectionService {
   }
 
   private async reassign(task: TaskRow, assigneeUserId: string, actorUserId: string, tx: TransactionContext): Promise<void> {
-    const patch = { assigneeUserId, lastActivityAt: this.clock.now(), remindedAt: null, overdueNotifiedAt: null };
+    const patch = { assigneeUserId, lastActivityAt: this.clock.now(), remindedAt: null, overdueNotifiedAt: null, dueDayNotifiedAt: null };
     if (!(await this.tasks.patch(task.id, task.revision, patch, tx))) throw new TaskRevisionConflictError();
     await this.tasks.appendEvent({ taskId: task.id, type: 'reassigned', actorUserId, note: null }, tx);
     await this.notifier.send({ kind: 'assigned', task, recipients: [assigneeUserId], actorUserId, tx });

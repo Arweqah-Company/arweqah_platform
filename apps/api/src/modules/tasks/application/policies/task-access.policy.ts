@@ -83,6 +83,24 @@ export class TaskAccessPolicy {
     return task.creatorUserId === viewer.userId || this.reaches(viewer, P.TasksDelete, task);
   }
 
+  /** Reference files on an existing task: the key, and the right to edit it while it is still live (not finished). */
+  mayAddFiles(viewer: TaskViewer, task: TaskRow): boolean {
+    return holds(viewer, P.TasksFileAdd) && task.archivedAt === null && task.status !== 'done' && this.mayUpdate(viewer, task);
+  }
+
+  /** Delivery files: the key, and the one who does the work (the assignee, or the manager who moves it for them) while it is under way or in review. */
+  mayDeliver(viewer: TaskViewer, task: TaskRow): boolean {
+    if (!holds(viewer, P.TasksFileDeliver) || task.archivedAt !== null || !['in_progress', 'awaiting_review'].includes(task.status)) return false;
+    const actor = this.moveActor(viewer, task);
+    return actor.isAssignee || actor.isTeamManager;
+  }
+
+  /** Taking a file off: the key, an open task, and whoever attached it or may edit the task. */
+  mayRemoveFile(viewer: TaskViewer, task: TaskRow, addedByUserId: string): boolean {
+    const open = task.archivedAt === null && task.status !== 'done' && task.status !== 'rejected';
+    return holds(viewer, P.TasksFileRemove) && open && (addedByUserId === viewer.userId || this.mayUpdate(viewer, task));
+  }
+
   /** The approver named on the task, or somebody whose approve scope reaches the assignee. */
   isApprover(viewer: TaskViewer, task: TaskRow, key: string): boolean {
     if (task.approverUserId === viewer.userId) return holds(viewer, key);
@@ -93,7 +111,7 @@ export class TaskAccessPolicy {
     const actor = this.moveActor(viewer, task);
     const isCreator = task.creatorUserId === viewer.userId;
     const refusal = objectionRefusal({ isAssignee: task.assigneeUserId === viewer.userId, isCreator, status: task.status, hasOpenObjection: task.hasOpenObjection, archived: task.archivedAt !== null });
-    return abilitiesOf({
+    const base = abilitiesOf({
       status: task.status,
       needsReview: task.needsReview,
       archived: task.archivedAt !== null,
@@ -117,5 +135,6 @@ export class TaskAccessPolicy {
         move: actor.isAssignee || actor.isReviewer || actor.isCreator || actor.isTeamManager,
       },
     });
+    return { ...base, addFiles: this.mayAddFiles(viewer, task), deliverFiles: this.mayDeliver(viewer, task) };
   }
 }

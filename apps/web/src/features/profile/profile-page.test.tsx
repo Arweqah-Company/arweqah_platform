@@ -10,7 +10,7 @@ const employee = {
   id: 'e1', employeeNumber: 'E-1042', fullName: 'سارة أحمد', fullNameEn: 'Sara Ahmed', workEmail: 'sara@arweqah.sa', personalEmail: null, personalPhone: null, startDate: '2024-03-01',
   company: { id: 'c1', nameAr: 'أروقة الريادة', nameEn: 'Arweqah' }, orgNode: { id: 'u1', nameAr: 'وحدة', nameEn: 'Unit', pathAr: 'قطاع › وحدة', pathEn: 'Sector › Unit' },
   gender: 1, birthDate: '1995-04-02', names: { nationality: { nameAr: 'سعودي', nameEn: 'Saudi' }, maritalStatus: { nameAr: 'متزوجة', nameEn: 'Married' } },
-  jobTitle: { id: 't1', nameAr: 'مطورة', nameEn: 'Developer' }, manager: { id: 'm1', fullName: 'خالد' }, updatedAt: '2026-10-22T10:00:00Z',
+  jobTitle: { id: 't1', nameAr: 'مطورة', nameEn: 'Developer' }, manager: { id: 'm1', fullName: 'خالد' }, updatedAt: '2026-10-22T10:00:00Z', editableFields: ['personalPhone', 'personalEmail', 'fullNameEn'],
 } as unknown as EmployeeDto;
 const profile = (over: Partial<OwnProfileDto> = {}): OwnProfileDto => ({ preferences: { locale: 'ar', theme: 'system' }, employee, ...over });
 
@@ -86,6 +86,47 @@ describe('Profile page (FR-33)', () => {
     fireEvent.blur(field);
     expect(await screen.findByText('حروف إنجليزية ومسافات فقط.', { selector: 'p' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'حفظ الاسم' })).toBeDisabled();
+  });
+
+  describe('the profile follows the employee page: one list of editable fields (FR-222)', () => {
+    const without = (keep: string[]) => profile({ employee: { ...employee, editableFields: keep } });
+
+    it('locks a contact detail the grant of «edit employees» does not give, and sends only the open ones', async () => {
+      let body: unknown;
+      server.use(http.put('*/api/me/profile', async ({ request }) => { body = await request.json(); return HttpResponse.json(profile()); }));
+      open(without(['personalEmail']));
+      const phone = await screen.findByLabelText('الجوال الشخصي');
+      expect(phone).toHaveAttribute('readonly');
+      expect(screen.getByLabelText('الاسم بالإنجليزية')).toHaveAttribute('readonly');
+      fireEvent.change(screen.getByLabelText('البريد الشخصي'), { target: { value: 'sara@example.com' } });
+      fireEvent.click(screen.getByRole('button', { name: 'حفظ التغييرات' }));
+      await waitFor(() => expect(body).toEqual({ personalEmail: 'sara@example.com' }));
+    });
+
+    it('has no save button when no contact detail is open', async () => {
+      open(without([]));
+      await screen.findByLabelText('الجوال الشخصي');
+      expect(screen.queryByRole('button', { name: 'حفظ التغييرات' })).not.toBeInTheDocument();
+    });
+
+    it('sends the person to the employee page for the basic details their grant gives, and asks HR only for the rest', async () => {
+      const asker = [{ key: 'profile.update_basic', scope: 'all' as const }];
+      server.use(http.get('*/api/me', () => HttpResponse.json(me(asker))), http.get('*/api/me/access', () => HttpResponse.json(access(asker))), http.get('*/api/lookups', () => HttpResponse.json({ countries: [], maritalStatuses: [] })), http.get('*/api/me/profile/basic-request', () => new HttpResponse(null, { status: 200 })));
+      open(without(['birthDate', 'gender']));
+      expect(await screen.findByRole('link', { name: 'تعديل في صفحة الموظف' })).toHaveAttribute('href', '/employees/e1/edit');
+      fireEvent.click(await screen.findByRole('button', { name: 'طلب تعديل' }));
+      expect(await screen.findByLabelText('الاسم بالعربية')).toBeInTheDocument();
+      expect(screen.queryByLabelText('تاريخ الميلاد')).not.toBeInTheDocument();
+      expect(screen.queryByLabelText('الجنس')).not.toBeInTheDocument();
+    });
+
+    it('offers no request when every basic detail can be changed directly', async () => {
+      const asker = [{ key: 'profile.update_basic', scope: 'all' as const }];
+      server.use(http.get('*/api/me', () => HttpResponse.json(me(asker))), http.get('*/api/me/access', () => HttpResponse.json(access(asker))), http.get('*/api/me/profile/basic-request', () => new HttpResponse(null, { status: 200 })));
+      open(without(['fullName', 'gender', 'nationalityId', 'birthDate', 'maritalStatusId']));
+      expect(await screen.findByRole('link', { name: 'تعديل في صفحة الموظف' })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'طلب تعديل' })).not.toBeInTheDocument();
+    });
   });
 
   it('shows only the appearance settings for an account with no employee record', async () => {

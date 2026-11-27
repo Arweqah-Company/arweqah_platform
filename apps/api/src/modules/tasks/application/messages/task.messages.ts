@@ -19,6 +19,9 @@ export const TASK_AUDIT = {
   deleted: 'task.deleted',
   handedOver: 'task.handed_over',
   timeLogged: 'task.time_logged',
+  filesAdded: 'task.files_added',
+  deliveryAdded: 'task.delivery_added',
+  fileRemoved: 'task.file_removed',
   tagCreated: 'task.tag.created',
   tagUpdated: 'task.tag.updated',
   tagRemoved: 'task.tag.removed',
@@ -27,6 +30,7 @@ export const TASK_AUDIT = {
   commentEdited: 'task.comment_edited',
   commentDeleted: 'task.comment_deleted',
   commentRulesChanged: 'task.comment_rules_changed',
+  noticeSettingsUpdated: 'task.notice_settings_updated',
 } as const;
 
 export const TASK_TOPICS = {
@@ -49,6 +53,8 @@ export type TaskNoticeKind =
   | 'overdue'
   | 'estimateExceeded'
   | 'reminder'
+  | 'dueToday'
+  | 'summary'
   | 'digest'
   | 'handedOver'
   | 'handedOverMany'
@@ -60,6 +66,9 @@ export type TaskNoticeKind =
   | 'commentAdded'
   | 'commentReacted'
   | 'followerAdded';
+
+/** Notices the person chooses the channel of (in the app, by e-mail, both) and can switch off: the summary and the due-date reminders (FR-215…FR-218). */
+export const CHOSEN_CHANNEL_NOTICES: ReadonlySet<TaskNoticeKind> = new Set<TaskNoticeKind>(['reminder', 'dueToday', 'overdue', 'summary']);
 
 /** Notices that also go out by e-mail: their text never carries the title (e-mail is not the place for it). */
 export const EMAIL_NOTICES: ReadonlySet<TaskNoticeKind> = new Set<TaskNoticeKind>(['assigned', 'objected', 'completionRejected', 'awaitingReview', 'handedOver', 'handedOverMany', 'commentMentioned']);

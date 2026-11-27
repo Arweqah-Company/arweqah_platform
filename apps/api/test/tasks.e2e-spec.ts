@@ -217,6 +217,20 @@ describe('Tasks: my tasks, creating and assigning (FR-48), my team and the matri
       await w.agents.report.get('/api/tasks?sort=createdOn').expect(400);
     });
 
+    it('breaks a tie of the due date by the task number, the same on every visit (FR-220)', async () => {
+      const w = await world();
+      const day = riyadhToday(new Date(Date.now() + 3 * 86_400_000));
+      const made5 = [];
+      for (const title of ['ا', 'ب', 'ج', 'د', 'هـ']) made5.push(await made(w.agents.manager, { assigneeUserId: w.report.id, title, dueDate: day }));
+      const byNumber = made5.map((x) => x.id);
+      // a random id order must not decide: shuffle the ids in the table's own order by touching the rows, then read twice
+      await t.db.query('UPDATE tasks SET title = title WHERE id = ANY($1)', [[...byNumber].reverse()]);
+      for (let visit = 0; visit < 3; visit += 1) {
+        expect((await list(w.agents.report, '?sort=dueDate&dir=asc')).items.map((i) => i.id)).toEqual(byNumber);
+      }
+      expect((await list(w.agents.report, '?sort=dueDate&dir=desc')).items.map((i) => i.id)).toEqual([...byNumber].reverse());
+    });
+
     it('opens on open tasks ordered by due date, and filters, searches and sorts', async () => {
       const w = await world();
       const tomorrow = riyadhToday(new Date(Date.now() + 86_400_000));

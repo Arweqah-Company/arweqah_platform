@@ -8,6 +8,7 @@ import { useCreateTask, useTaskOptions } from '../api';
 import { ApproverHint } from './approver-hint';
 import { emptyDraft, isDraftComplete, toCreateInput, type TaskDraft } from './task-draft';
 import { OptionFields, Switch, WhatFields, WhenFields } from './task-fields';
+import { TaskFilesField } from './task-files-field';
 
 function TagSelect({ tags, value, onChange }: { tags: TaskTagDto[]; value: string; onChange: (value: string) => void }) {
   const { t, i18n } = useTranslation('tasks');
@@ -73,12 +74,15 @@ function NewTaskForm({ onDone }: { onDone: () => void }) {
   const { t: tc } = useTranslation();
   const today = riyadhToday();
   const [draft, setDraft] = useState<TaskDraft>(() => emptyDraft(today));
+  const [attempted, setAttempted] = useState(false);
   const options = useTaskOptions().data;
   const create = useCreateTask();
   const patch = (change: Partial<TaskDraft>) => setDraft((d) => ({ ...d, ...change }));
   const forMyself = !draft.assigneeUserId || draft.assigneeUserId === options?.assignees.find((a) => a.isSelf)?.id;
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+    setAttempted(true);
+    if (!isDraftComplete(draft, today, true)) return;
     try {
       await create.mutateAsync(toCreateInput(draft));
       toast.success(t('form.created'));
@@ -90,15 +94,16 @@ function NewTaskForm({ onDone }: { onDone: () => void }) {
   return (
     <form className="flex flex-col gap-4" onSubmit={(e) => void submit(e)} noValidate>
       {create.isError && <Alert>{errorMessage(tc, create.error)}</Alert>}
-      <WhatFields draft={draft} onPatch={patch} />
+      <WhatFields draft={draft} onPatch={patch} attempted={attempted} />
       <PersonalSwitch draft={draft} onPatch={patch} />
       <WhoFields draft={draft} onPatch={patch} options={options} />
-      <WhenFields draft={draft} onPatch={patch} today={today} creating />
+      <WhenFields draft={draft} onPatch={patch} today={today} creating attempted={attempted} />
       <OptionFields draft={draft} onPatch={patch} />
+      <TaskFilesField files={draft.files} onChange={(files) => patch({ files })} />
       <ApproverHint forMyself={forMyself && !draft.personal} approver={options?.approver ?? null} />
       <div className="flex justify-end gap-2">
         <Button variant="secondary" onClick={onDone}>{tc('actions.cancel')}</Button>
-        <Button type="submit" disabled={create.isPending || !isDraftComplete(draft, today, true)}>{t('form.create')}</Button>
+        <Button type="submit" disabled={create.isPending}>{t('form.create')}</Button>
       </div>
     </form>
   );

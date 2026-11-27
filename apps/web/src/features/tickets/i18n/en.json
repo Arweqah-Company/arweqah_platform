@@ -22,8 +22,6 @@
     "team": "Tickets sent by or assigned to your team members appear here."
   },
   "groupBy": {
-    "label": "Group by",
-    "none": "No grouping",
     "assignee": "Assignee",
     "status": "Status",
     "desk": "Unit",

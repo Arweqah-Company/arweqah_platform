@@ -1,13 +1,16 @@
 import type { TransactionContext } from '../../../../common/domain/transaction-context';
-import type { DigestRow, OpenWorkRow, TaskNoticeTarget } from '../types/task.types';
+import type { DigestRow, OpenWorkRow, TaskNoticeTarget, TaskReminderTarget } from '../types/task.types';
 
 /** The sweeps of the background jobs: what is due for a reminder, overdue, archivable, or left behind by someone who left. */
 export abstract class TaskMaintenanceRepository {
-  /** Open tasks due within the company's reminder days (today included) that nobody was reminded about yet. */
-  abstract dueForReminder(today: string): Promise<TaskNoticeTarget[]>;
+  /** Open tasks due within the company's reminder days after today (today itself has its own notice) that nobody was reminded about yet. */
+  abstract dueForReminder(today: string): Promise<TaskReminderTarget[]>;
   abstract markReminded(ids: string[]): Promise<void>;
+  /** Open tasks due today whose «due today» reminder was not sent yet. */
+  abstract dueToday(today: string): Promise<TaskReminderTarget[]>;
+  abstract markDueDayNotified(ids: string[]): Promise<void>;
   /** Open tasks past their due date whose assignee was not told yet. */
-  abstract overdueUnnotified(today: string): Promise<TaskNoticeTarget[]>;
+  abstract overdueUnnotified(today: string): Promise<TaskReminderTarget[]>;
   abstract markOverdueNotified(ids: string[]): Promise<void>;
   /** Overdue open tasks counted per manager of the assignees, for the companies whose digest day is `weekday`. */
   abstract overdueDigest(today: string, weekday: number): Promise<DigestRow[]>;

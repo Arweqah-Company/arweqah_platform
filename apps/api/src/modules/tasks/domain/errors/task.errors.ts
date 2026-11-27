@@ -152,3 +152,11 @@ export class TaskPolicyCompanyError extends BusinessRuleError {
     super('Choose the company whose task policy you mean');
   }
 }
+
+/** Delivery files only travel with the move that finishes the work (in progress → done or awaiting review). */
+export class TaskFilesNotAllowedError extends BusinessRuleError {
+  override readonly code = 'TASK_FILES_NOT_ALLOWED';
+  constructor() {
+    super('Delivery files can only be attached when the work is finished or sent for review');
+  }
+}

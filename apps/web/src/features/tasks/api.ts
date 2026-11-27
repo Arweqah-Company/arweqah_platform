@@ -1,4 +1,5 @@
 import type {
+  AddTaskFilesInput,
   TaskFollowerDto,
   AnswerObjectionInput,
   CreateTaskInput,
@@ -49,12 +50,15 @@ export const useRemoveFollower = (id: string) => useTaskMutation((userId: string
 
 export const useCreateTask = () => useTaskMutation((input: CreateTaskInput) => apiClient.post<TaskDto>('/tasks', input));
 export const useUpdateTask = (id: string) => useTaskMutation((input: UpdateTaskInput) => apiClient.request<TaskDto>(`/tasks/${id}`, { method: 'PATCH', body: input }));
-export const useMoveTask = () => useTaskMutation(({ id, ...body }: TransitionTaskInput & { id: string }) => apiClient.post<TaskDto>(`/tasks/${id}/transition`, body));
+export const useMoveTask = () => useTaskMutation(({ id, ...body }: Omit<TransitionTaskInput, 'fileIds'> & { id: string; fileIds?: string[] }) => apiClient.post<TaskDto>(`/tasks/${id}/transition`, body));
 
 export type DecideAction = 'approve' | 'reject' | 'resubmit';
 export const useDecide = (id: string) => useTaskMutation(({ action, ...body }: DecideTaskInput & { action: DecideAction }) => apiClient.post<TaskDto>(`/tasks/${id}/${action}`, body));
 export const useObject = (id: string) => useTaskMutation((input: ObjectTaskInput) => apiClient.post<TaskDto>(`/tasks/${id}/objection`, input));
 export const useAnswerObjection = (id: string) => useTaskMutation((input: AnswerObjectionInput) => apiClient.post<TaskDto>(`/tasks/${id}/objection/answer`, input));
+/** Files of a task: reference files added later, delivery files handed in, and taking one off. */
+export const useAddTaskFiles = (id: string, kind: 'reference' | 'delivery') => useTaskMutation((input: AddTaskFilesInput) => apiClient.post<TaskDto>(`/tasks/${id}/${kind === 'reference' ? 'files' : 'deliveries'}`, input));
+export const useRemoveTaskFile = (id: string) => useTaskMutation((fileId: string) => apiClient.request<TaskDto>(`/tasks/${id}/files/${fileId}`, { method: 'DELETE' }));
 export const useLogTime = (id: string) => useTaskMutation((input: TimeEntryInput) => apiClient.post<TaskDto>(`/tasks/${id}/time`, input));
 /**
  * A task the person can no longer open (deleted, or unfollowed by a follower who had no other way in) is dropped from the cache, not refetched: the refetch would answer 404 and be retried

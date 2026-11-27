@@ -10,6 +10,7 @@ import { TaskFlags, TaskPriorityBadge, TaskStatusBadge } from '../task-badges';
 import { Conversation } from '../comments/conversation';
 import { TaskActions } from './task-actions';
 import { TaskFacts } from './task-facts';
+import { TaskFilesSection } from './task-files-section';
 import { TaskHistory } from './task-history';
 
 function Notes({ task }: { task: TaskDto }) {
@@ -41,6 +42,7 @@ export function TaskDetailsPage() {
         <Notes task={task} />
         <TaskFacts task={task} />
         <TaskActions task={task} today={riyadhToday()} />
+        <TaskFilesSection task={task} />
         <Can permission={CorePermission.TasksCommentView}>
           <section aria-labelledby="task-comments" className="flex flex-col gap-3">
             <h2 id="task-comments" className="text-lg font-bold">{t('comments.title')}</h2>

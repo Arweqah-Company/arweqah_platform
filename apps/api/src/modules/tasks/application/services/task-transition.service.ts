@@ -17,6 +17,7 @@ import { decideMove, type MoveDecision } from '../../domain/rules/task-transitio
 import type { TaskPatch, TaskRow, TaskViewer } from '../../domain/types/task.types';
 import { TASK_AUDIT } from '../messages/task.messages';
 import { TaskAccessPolicy } from '../policies/task-access.policy';
+import { TaskFilesService } from './task-files.service';
 import { TaskNotifier } from './task-notifier.service';
 import { TaskRecurrenceService } from './task-recurrence.service';
 import { TaskPolicyService } from './task-policy.service';
@@ -36,6 +37,7 @@ export class TaskTransitionService {
     private readonly policies: TaskPolicyService,
     private readonly notifier: TaskNotifier,
     private readonly recurrence: TaskRecurrenceService,
+    private readonly taskFiles: TaskFilesService,
     private readonly details: TasksService,
     private readonly tx: TransactionRunner,
     private readonly clock: Clock,
@@ -49,13 +51,17 @@ export class TaskTransitionService {
     const decision = decideMove({ from: task.status, to: input.to, needsReview: task.needsReview, actor: this.access.moveActor(viewer, task), hasNote: !!input.note });
     if (!decision.ok) throw new TaskTransitionNotAllowedError(task.status, input.to, decision.reason);
     if (decision.needsNote && !input.note) throw new TaskNoteRequiredError();
+    await this.taskFiles.assertDeliverable(viewer, task, decision.to, input.fileIds);
     const patch = await this.patchFor(task, decision, input);
-    await this.tx.run(async (tx) => {
+    const delivered = await this.tx.run(async (tx) => {
       if (!(await this.tasks.patch(id, input.revision, patch, tx))) throw new TaskRevisionConflictError();
       await this.tasks.appendEvent({ taskId: id, type: 'transitioned', actorUserId: viewer.userId, fromStatus: task.status, toStatus: decision.to, note: input.note ?? null }, tx);
+      const files = await this.taskFiles.storeDelivery(viewer, task, input.fileIds, tx);
       await this.announce(task, decision, viewer.userId, tx);
       if (decision.finishes) await this.recurrence.spawnNext(task, tx);
+      return files;
     });
+    this.taskFiles.auditDelivery(viewer.userId, id, delivered);
     this.audit(viewer.userId, id, { from: task.status, to: decision.to });
     return this.details.get(viewer, id);
   }

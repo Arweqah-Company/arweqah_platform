@@ -272,6 +272,10 @@
     "yes": "Yes",
     "search": "Search"
   },
+  "grouping": {
+    "label": "Group by",
+    "none": "No grouping"
+  },
   "view": {
     "label": "View",
     "table": "Table",

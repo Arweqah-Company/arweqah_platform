@@ -42,7 +42,7 @@ export function TaskListView({ state, caption, empty, lanesBy }: { state: TaskLi
       {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields, false)}
       actions={
         <>
-          {!state.board && <GroupSelect label={t('groupBy.label')} noneLabel={t('groupBy.none')} options={GROUPINGS.map((g) => ({ value: g, label: t(`groupBy.${g}`) }))} value={state.groupBy} onChange={state.setGroupBy} />}
+          {!state.board && <GroupSelect options={GROUPINGS.map((g) => ({ value: g, label: t(`groupBy.${g}`) }))} value={state.groupBy} onChange={state.setGroupBy} />}
           <TaskOrderSelect state={state} />
           <ViewSwitch value={state.mode} onChange={state.setMode} choices={state.views} />
           <ExchangeButtons permissions={{ export: CorePermission.TasksExport }} exporting={{ columns: exportColumns, filename: 'tasks', pageRows: rows, total: state.table.page?.total ?? rows.length, loadAll: state.loadAll }} />

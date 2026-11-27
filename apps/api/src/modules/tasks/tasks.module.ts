@@ -23,16 +23,23 @@ import { TaskArchiveService } from './application/services/task-archive.service'
 import { TaskDeleteService } from './application/services/task-delete.service';
 import { TaskHandoverService } from './application/services/task-handover.service';
 import { TaskRecurrenceService } from './application/services/task-recurrence.service';
+import { TaskDigestService } from './application/services/task-digest.service';
+import { TaskNoticeSettingsService } from './application/services/task-notice-settings.service';
+import { TaskNoticePreferenceRepository } from './domain/contracts/task-notice-preference.repository';
+import { TypeOrmTaskNoticePreferenceRepository } from './infrastructure/repositories/typeorm-task-notice-preference.repository';
+import { TaskNoticeSettingsController } from './presentation/controllers/task-notice-settings.controller';
 import { TaskReminderService } from './application/services/task-reminder.service';
 import { TaskSummaryService } from './application/services/task-summary.service';
 import { TaskTagService } from './application/services/task-tag.service';
 import { TaskTimeService } from './application/services/task-time.service';
+import { TaskFilesService } from './application/services/task-files.service';
 import { TaskNotifier } from './application/services/task-notifier.service';
 import { TaskPolicyService } from './application/services/task-policy.service';
 import { TaskQueryService } from './application/services/task-query.service';
 import { TaskTransitionService } from './application/services/task-transition.service';
 import { TasksService } from './application/services/tasks.service';
 import { TaskTransformer } from './application/transformers/task.transformer';
+import { TaskFileRepository } from './domain/contracts/task-file.repository';
 import { TaskDirectory } from './domain/contracts/task-directory.port';
 import { TaskMaintenanceRepository } from './domain/contracts/task-maintenance.repository';
 import { TaskPolicyRepository } from './domain/contracts/task-policy.repository';
@@ -49,6 +56,7 @@ import { TaskObjectionExpiryJob } from './infrastructure/jobs/task-objection-exp
 import { NoProjectMembersAdapter } from './infrastructure/adapters/no-project-members.adapter';
 import { TypeOrmTaskTicketParticipants } from './infrastructure/adapters/typeorm-task-ticket-participants';
 import { TypeOrmTaskDirectory } from './infrastructure/repositories/typeorm-task-directory';
+import { TypeOrmTaskFileRepository } from './infrastructure/repositories/typeorm-task-file.repository';
 import { TypeOrmTaskMaintenanceRepository } from './infrastructure/repositories/typeorm-task-maintenance.repository';
 import { TypeOrmTaskPolicyRepository } from './infrastructure/repositories/typeorm-task-policy.repository';
 import { TypeOrmTaskSummaryRepository } from './infrastructure/repositories/typeorm-task-summary.repository';
@@ -58,13 +66,14 @@ import { TaskPoliciesController } from './presentation/controllers/task-policies
 import { TaskFollowersController } from './presentation/controllers/task-followers.controller';
 import { TaskFollowersService } from './application/services/task-followers.service';
 import { TaskTagsController } from './presentation/controllers/task-tags.controller';
+import { TaskFilesController } from './presentation/controllers/task-files.controller';
 import { TasksController } from './presentation/controllers/tasks.controller';
 
 /** Tasks: what an employee must do, what they asked of others and what they follow; managers see their team's. */
 @Module({
   imports: [OrgModule],
   // The fixed paths (tags, policies) have their own controllers; `tasks/:id` is last in its own.
-  controllers: [TaskFollowersController, TaskTagsController, TaskPoliciesController, TaskCommentRulesController, TaskCommentsController, TasksController],
+  controllers: [TaskNoticeSettingsController, TaskFollowersController, TaskTagsController, TaskPoliciesController, TaskCommentRulesController, TaskCommentsController, TaskFilesController, TasksController],
   providers: [
     TasksService,
     TaskFollowersService,
@@ -78,7 +87,10 @@ import { TasksController } from './presentation/controllers/tasks.controller';
     TaskHandoverService,
     TaskRecurrenceService,
     TaskReminderService,
+    TaskDigestService,
+    TaskNoticeSettingsService,
     TaskTimeService,
+    TaskFilesService,
     TaskTagService,
     TaskSummaryService,
     TaskDailyJob,
@@ -98,8 +110,10 @@ import { TasksController } from './presentation/controllers/tasks.controller';
     { provide: TaskRepository, useClass: TypeOrmTaskRepository },
     { provide: TaskDirectory, useClass: TypeOrmTaskDirectory },
     { provide: TaskMaintenanceRepository, useClass: TypeOrmTaskMaintenanceRepository },
+    { provide: TaskNoticePreferenceRepository, useClass: TypeOrmTaskNoticePreferenceRepository },
     { provide: TaskPolicyRepository, useClass: TypeOrmTaskPolicyRepository },
     { provide: TaskSummaryRepository, useClass: TypeOrmTaskSummaryRepository },
+    { provide: TaskFileRepository, useClass: TypeOrmTaskFileRepository },
     { provide: TaskCommentRepository, useClass: TypeOrmTaskCommentRepository },
     { provide: TaskTagRepository, useClass: TypeOrmTaskTagRepository },
     { provide: TaskTicketParticipants, useClass: TypeOrmTaskTicketParticipants },

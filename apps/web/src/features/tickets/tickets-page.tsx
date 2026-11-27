@@ -10,7 +10,7 @@ import { errorMessage } from '@/shared/lib/error-message';
 import { useViewMode } from '@/shared/lib/use-view-mode';
 import { useListPage } from '@/shared/lib/use-list-page';
 import { useServerList } from '@/shared/lib/use-server-list';
-import { Alert, Button, DataTable, EmptyState, FormField, ListToolbar, PageHeader, RowAction, Select, SortSelect, ViewSwitch } from '@/shared/ui';
+import { Alert, Button, DataTable, EmptyState, GroupSelect, ListToolbar, PageHeader, RowAction, SortSelect, ViewSwitch } from '@/shared/ui';
 import { useTicketOptions } from './api';
 import { TicketBoard } from './board/ticket-board';
 import { NewTicketDialog } from './new-ticket/new-ticket-dialog';
@@ -32,20 +32,6 @@ function TabBar({ tab, offered, onChange }: { tab: TicketTab; offered: Record<Ti
         </button>
       ))}
     </div>
-  );
-}
-
-function GroupSelect({ value, onChange }: { value: TicketGrouping | ''; onChange: (value: TicketGrouping | '') => void }) {
-  const { t } = useTranslation('tickets');
-  return (
-    <FormField label={t('groupBy.label')}>
-      {(p) => (
-        <Select {...p} className="min-w-44" value={value} onChange={(e) => onChange(e.target.value as TicketGrouping | '')}>
-          <option value="">{t('groupBy.none')}</option>
-          {GROUPINGS.map((g) => <option key={g} value={g}>{t(`groupBy.${g}`)}</option>)}
-        </Select>
-      )}
-    </FormField>
   );
 }
 
@@ -133,7 +119,7 @@ export function TicketsPage() {
     <ListToolbar
       listKey="tickets"
       {...list.toolbar({ label: t('searchLabel'), placeholder: t('searchPlaceholder') }, fields, false)}
-      actions={<>{mode !== 'board' && <GroupSelect value={groupBy} onChange={setGroupBy} />}<OrderSelect value={order} onChange={setOrder} />{exchange}<ViewSwitch value={mode} onChange={setMode} choices={views} /></>}
+      actions={<>{mode !== 'board' && <GroupSelect options={GROUPINGS.map((g) => ({ value: g, label: t(`groupBy.${g}`) }))} value={groupBy} onChange={setGroupBy} />}<OrderSelect value={order} onChange={setOrder} />{exchange}<ViewSwitch value={mode} onChange={setMode} choices={views} /></>}
     />
   );
   return (
