@@ -24,15 +24,20 @@ const previewable = (f: FileDto): PreviewableFile => ({ name: f.originalName, co
 /** The pictures the person chose, kept as local addresses so a thumbnail shows at once; each is released when its file leaves the list or the box closes. */
 function useThumbnails() {
   const urls = useRef(new Map<string, string>());
+  const mounted = useRef(true);
   const [, bump] = useState(0);
   useEffect(() => {
     const held = urls.current;
-    return () => held.forEach((u) => URL.revokeObjectURL(u));
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      held.forEach((u) => URL.revokeObjectURL(u));
+    };
   }, []);
   return {
     of: (id: string) => urls.current.get(id),
     keep: (chosen: File, stored: FileDto) => {
-      if (previewKindOf(stored.contentType) !== 'image') return;
+      if (!mounted.current || previewKindOf(stored.contentType) !== 'image') return; // a box that was closed during the upload keeps no address that nothing would release
       urls.current.set(stored.id, URL.createObjectURL(chosen));
       bump((n) => n + 1);
     },

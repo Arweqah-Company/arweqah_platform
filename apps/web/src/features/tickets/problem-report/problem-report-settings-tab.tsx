@@ -98,7 +98,7 @@ export function ProblemReportSettingsTab() {
   const { t: tc } = useTranslation();
   const settings = useProblemReportSettings();
   const types = useProblemReportTypes();
-  if (settings.isError) return <Alert>{errorMessage(tc, settings.error)}</Alert>;
+  if (settings.isError || types.isError) return <Alert>{errorMessage(tc, settings.error ?? types.error)}</Alert>;
   if (!settings.data || !types.data) return <p role="status" className="mt-4 text-sm text-muted">{t('problemReportSettings.loading')}</p>;
   return <SettingsForm initial={settings.data} types={types.data} />;
 }

@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-27 — CodeRabbit review of the release #180 (rule 16)
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 504 | **Handled (each with a test that failed before):** a file stream that fails now ends the answer with 500 instead of leaving it open or raising an unhandled error (`send-file.ts`); sign-out clears the failed calls and errors kept for problem reports; the screenshot is drawn from the scrolled position; a failed ticket-types request shows its error in Settings; a screenshot unticked while it uploads is not named in the analysis or the report; the AI answer no longer overwrites what the person typed (the fields are locked while it works); the slides of a deck follow the presentation's own order (`p:sldIdLst`), not the file names; minutes typed as «1e» are refused instead of counting as empty (text boxes); the audit tabs are tied to the results area with `aria-controls`/`tabpanel` (`Tabs` takes `panelId`). **Valid by reading, not reproducible in a test:** an object address made after a closed attachment box. **Not applied, with reasons:** granting the settings keys to custom admin roles in the migration (they are platform-settings keys held by the System Admin role only, like the other settings keys; the manual says so); creating the screenshot address inside an effect (it breaks the picture in development and the lint rule forbids it; the deferred, skippable release already covers the double effect); the two comments on `docs/plans/phase-9-projects.md` (the owner's planning text: the contradictions are the owner's to settle). | Rule 16: a comment is applied only when real. | |
+
 ## 2026-11-27 — «Report a problem»: a screenshot, an AI reading, a ticket (FR-195…FR-199)
 
 Plan: `docs/plans/phase-2-tickets.md` (section «زر بلّغ عن مشكلة»).

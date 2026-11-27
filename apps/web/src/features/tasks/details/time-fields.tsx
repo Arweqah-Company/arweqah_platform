@@ -21,10 +21,10 @@ export function TimeFields({ hours, minutes, onHours, onMinutes }: { hours: stri
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-2 gap-3">
         <FormField label={`${t('time.hours')} *`} error={hoursLive.error}>
-          {(p) => <Input {...p} type="number" inputMode="numeric" dir="ltr" min={0} step={1} aria-required autoFocus aria-invalid={p['aria-invalid'] || !!group.error} value={hours} onBlur={leave(hoursLive.onBlur)} onChange={(e) => onHours(e.target.value)} />}
+          {(p) => <Input {...p} type="text" inputMode="numeric" dir="ltr" aria-required autoFocus aria-invalid={p['aria-invalid'] || !!group.error} value={hours} onBlur={leave(hoursLive.onBlur)} onChange={(e) => onHours(e.target.value)} />}
         </FormField>
         <FormField label={t('time.minutes')} error={minutesLive.error}>
-          {(p) => <Input {...p} type="number" inputMode="numeric" dir="ltr" min={0} max={59} step={1} aria-invalid={p['aria-invalid'] || !!group.error} value={minutes} onBlur={leave(minutesLive.onBlur)} onChange={(e) => onMinutes(e.target.value)} />}
+          {(p) => <Input {...p} type="text" inputMode="numeric" dir="ltr" aria-invalid={p['aria-invalid'] || !!group.error} value={minutes} onBlur={leave(minutesLive.onBlur)} onChange={(e) => onMinutes(e.target.value)} />}
         </FormField>
       </div>
       {group.error && (

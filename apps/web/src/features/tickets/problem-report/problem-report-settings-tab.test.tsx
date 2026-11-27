@@ -54,4 +54,15 @@ describe('Problem report settings (FR-195)', () => {
     expect(await screen.findByRole('checkbox', { name: /تشغيل زر/ })).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'حفظ' })).not.toBeInTheDocument();
   });
+
+  it('shows the failure when the ticket types cannot be loaded, instead of «loading» for ever', async () => {
+    server.use(
+      http.get('*/api/me', () => HttpResponse.json(me([{ key: CorePermission.TicketsReportSettingsView, scope: 'all' as const }]))),
+      http.get('*/api/problem-report-settings', () => HttpResponse.json(OFF)),
+      http.get('*/api/problem-report-settings/types', () => HttpResponse.json({ statusCode: 500, code: 'INTERNAL', message: 'x' }, { status: 500 })),
+    );
+    renderPage(<ProblemReportSettingsTab />);
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(screen.queryByText('جارٍ تحميل الإعدادات…')).not.toBeInTheDocument();
+  });
 });
