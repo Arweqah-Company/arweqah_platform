@@ -21,9 +21,9 @@ A ticket is the official way to ask another department for something: you choose
 | Answer a reply | Replies to one reply, one level only | `tickets.comment_reply` (Answer a reply inside a ticket) |
 | Mention with @ | Names a colleague in a reply | `tickets.comment_mention` (Mention a colleague with @ in a ticket reply) |
 | Request closing | The unit side asks the sender to confirm it was done | `tickets.request_close` (Ask to close a ticket) |
-| Confirm it was done | The sender confirms and the ticket is closed | `tickets.reply` (Reply to and handle tickets) and `tickets.confirm_close` (Approve the closing of a ticket), both |
+| Confirm it was done | The sender confirms and the ticket is closed | `tickets.confirm_close` (Approve the closing of a ticket) |
 | Not done yet | The sender rejects the closing; the ticket returns to the department | `tickets.decline_close` (Reject the closing of a ticket) |
-| Send the reply and confirm the closing | In the reply box of a ticket waiting for your confirmation: sends your reply and closes the ticket in one step (a plain «Send the reply» returns the ticket to «open», as a note under the box says) | `tickets.confirm_close` (Approve the closing of a ticket) |
+| Send the reply and confirm the closing | In the reply box of a ticket waiting for your confirmation: sends your reply and closes the ticket in one step (a plain «Send the reply» returns the ticket to «open», as a note under the box says) | `tickets.reply` (Reply to and handle tickets) and `tickets.confirm_close` (Approve the closing of a ticket), both |
 | Close without carrying out | The department closes it, explaining why | `tickets.close_without_execution` (Close a ticket without executing it) |
 | Reopen | The sender reopens a closed ticket within the allowed days | `tickets.reopen` (Reopen a closed ticket) |
 | Delete | Hides a ticket and its replies from everyone after a confirmation (any status); the record stays in the database and the audit log says who deleted it. Shown as a **trash icon on the row** of the list and as a button on the ticket's page, where your scope reaches the ticket's department; with the key at the narrowest scope («own») you delete only the tickets **you sent** | `tickets.delete` (Delete a ticket); not held by the «Employee» role, held by the head role of every unit for its unit and below |

@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { DataTable } from './data-table';
@@ -29,6 +30,15 @@ describe('DataTable: the actions column and the click on a row', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'إجراء' })[0] as HTMLElement);
     fireEvent.click(screen.getByRole('link', { name: 'أ' }));
     expect(open).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not open the row for a click that lands in a dialog the row opened (it renders outside the row, but React still bubbles it through)', () => {
+    const open = vi.fn();
+    table({ onRowClick: open, actions: () => createPortal(<div data-testid="dialog-backdrop">نص الحوار</div>, document.body) });
+    fireEvent.click(screen.getAllByTestId('dialog-backdrop')[0] as HTMLElement);
+    expect(open).not.toHaveBeenCalled();
+    fireEvent.click(screen.getAllByText('قيمة')[0] as HTMLElement);
+    expect(open).toHaveBeenCalledTimes(1); // a click in the row itself still opens it
   });
 
   it('does nothing on a click when no view is given, and shows no actions column without actions', () => {
