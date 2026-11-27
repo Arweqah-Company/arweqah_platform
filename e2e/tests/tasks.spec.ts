@@ -65,6 +65,8 @@ test.describe('Tasks (FR-48, FR-49, FR-50, FR-51)', () => {
     await settled(page);
     await new Screen(page).expectNoSeriousA11yIssues();
     await choose(progress.getByLabel(`انقل المهمة ${title} إلى`), 'مكتملة');
+    // FR-212…214: finishing from «In progress» offers to hand in the work files first; this journey moves on without any.
+    await page.getByRole('dialog', { name: 'سلّم عملك' }).getByRole('button', { name: 'انقل بلا ملفات' }).click();
     await expect(page.getByRole('region', { name: 'مكتملة' }).getByRole('link', { name: title })).toBeVisible();
     await expect(page.getByRole('region', { name: 'قيد التنفيذ' }).getByRole('link', { name: title })).toHaveCount(0);
   });
