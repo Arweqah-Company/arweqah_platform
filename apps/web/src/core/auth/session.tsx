@@ -5,6 +5,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router';
 import { ApiError, apiClient } from '../api/api-client';
 import { ACCESS_KEY, refreshAccess } from '../permissions/access-key';
 import { useAccess } from '../permissions/use-access';
+import { resetDiagnostics } from '../api/problem-diagnostics';
 import { authClient } from './auth-client';
 
 export const ME_KEY = ['me'];
@@ -24,6 +25,7 @@ export function useSignOut() {
   return async () => {
     await authClient.signOut();
     client.clear();
+    resetDiagnostics(); // the next person's problem report must not carry this session's failed calls and errors
     navigate('/login', { replace: true });
   };
 }

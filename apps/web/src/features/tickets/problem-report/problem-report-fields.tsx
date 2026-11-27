@@ -24,10 +24,10 @@ export function ProblemReportFields({ title, note, onTitle, onNote, canAnalyze, 
   return (
     <div className="flex flex-col gap-4">
       <FormField label={t('problemReport.reportTitle')} hint={t('problemReport.reportTitleHint')}>
-        {(p) => <Input {...p} maxLength={200} value={title} onChange={(e) => onTitle(e.target.value)} />}
+        {(p) => <Input {...p} maxLength={200} disabled={analyzing} value={title} onChange={(e) => onTitle(e.target.value)} />}
       </FormField>
       <FormField label={t('problemReport.note')} hint={t('problemReport.noteHint')}>
-        {(p) => <Textarea {...p} rows={5} maxLength={MAX_PROBLEM_NOTE} value={note} onChange={(e) => onNote(e.target.value)} />}
+        {(p) => <Textarea {...p} rows={5} maxLength={MAX_PROBLEM_NOTE} disabled={analyzing} value={note} onChange={(e) => onNote(e.target.value)} />}
       </FormField>
       {canAnalyze && (
         <div className="flex flex-col items-start gap-2">
