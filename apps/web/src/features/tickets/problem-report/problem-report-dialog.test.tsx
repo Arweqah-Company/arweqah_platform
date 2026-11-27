@@ -1,4 +1,5 @@
 import { fireEvent, screen } from '@testing-library/react';
+import { StrictMode } from 'react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it, vi } from 'vitest';
 import { me, server } from '../../../../test/msw';
@@ -62,5 +63,19 @@ describe('The problem report (FR-196)', () => {
     expect(await screen.findByText(/تعذّر أخذ لقطة/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'إرسال البلاغ' }));
     expect(await screen.findByRole('alert')).toBeInTheDocument();
+  });
+
+  it('keeps the screenshot\'s address alive in development, where React runs every effect twice (the picture must not be revoked while it is shown)', async () => {
+    const revoked: string[] = [];
+    let made = 0;
+    URL.createObjectURL = () => `blob:shot-${(made += 1)}`;
+    URL.revokeObjectURL = (url: string) => { revoked.push(url); };
+    serve([], []);
+    renderPage(<StrictMode><ProblemReportDialog screenshot={SHOT()} context={CONTEXT} imageToAi={false} onClose={() => undefined} /></StrictMode>);
+    const picture = await screen.findByRole('img', { hidden: true, name: 'لقطة الشاشة' }).catch(() => document.querySelector('img[alt="لقطة الشاشة"]'));
+    expect(picture).not.toBeNull();
+    const shown = (picture as HTMLImageElement).getAttribute('src') ?? '';
+    expect(shown).toMatch(/^blob:shot-/);
+    expect(revoked).not.toContain(shown);
   });
 });

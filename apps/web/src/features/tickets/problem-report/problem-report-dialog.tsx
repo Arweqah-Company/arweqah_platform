@@ -1,18 +1,12 @@
 import { formatTicketNumber, MAX_PROBLEM_NOTE, type ProblemContext } from '@arweqah-platform/shared';
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Alert, Button, Dialog, DialogToolsProvider, FormField, Textarea, ZoomableImage } from '@/shared/ui';
 import { useSendProblemReport } from './api';
-
-/** An object URL for a picture the browser holds, released when the picture goes. */
-function useBlobUrl(blob: Blob | null): string | null {
-  const url = useMemo(() => (blob ? URL.createObjectURL(blob) : null), [blob]);
-  useEffect(() => () => { if (url) URL.revokeObjectURL(url); }, [url]);
-  return url;
-}
+import { useBlobUrl } from './use-blob-url';
 
 interface PreviewProps {
   url: string;

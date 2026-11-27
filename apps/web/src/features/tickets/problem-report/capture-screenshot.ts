@@ -15,20 +15,33 @@ export function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([bytes], { type });
 }
 
+/** The first background colour that is not transparent (a JPEG has no transparency: a see-through page would come out black). */
+function pageBackground(): string {
+  const candidates = [document.body, document.documentElement].map((el) => getComputedStyle(el).backgroundColor);
+  return candidates.find((c) => c !== '' && c !== 'transparent' && !c.endsWith(', 0)')) ?? '#ffffff';
+}
+
+/** A 1×1 transparent picture put where an image cannot be fetched (so one broken avatar never spoils the whole screenshot). */
+const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
 /** A picture of what the window shows now, drawn from the page itself (no permission to ask for); approximate: fonts or pictures from elsewhere may differ. Null when the browser cannot draw it. */
 export async function captureScreenshot(): Promise<Blob | null> {
   try {
-    const background = getComputedStyle(document.body).backgroundColor;
-    const dataUrl = await toJpeg(document.body, {
-      quality: QUALITY,
-      pixelRatio: 1,
-      width: window.innerWidth,
-      height: window.innerHeight,
-      backgroundColor: background,
-      filter: (node) => !isPrivate(node),
-    });
+    const dataUrl = await renderWithFallback();
     return dataUrlToBlob(dataUrl);
-  } catch {
+  } catch (failure) {
+    console.warn('The screenshot could not be taken', failure);
     return null;
+  }
+}
+
+/** Pictures that need the session (employee photos) are fetched with it; when drawing fails with the page's fonts it is tried once more without them. */
+async function renderWithFallback(): Promise<string> {
+  const options = { quality: QUALITY, pixelRatio: 1, width: window.innerWidth, height: window.innerHeight, backgroundColor: pageBackground(), imagePlaceholder: BLANK, fetchRequestInit: { credentials: 'include' as const }, filter: (node: Node) => !isPrivate(node) };
+  try {
+    return await toJpeg(document.body, options);
+  } catch (failure) {
+    console.warn('The screenshot failed with the fonts; trying without them', failure);
+    return toJpeg(document.body, { ...options, skipFonts: true });
   }
 }
