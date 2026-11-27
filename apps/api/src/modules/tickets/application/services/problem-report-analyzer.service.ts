@@ -8,7 +8,10 @@ import { cleanModelText } from '../../domain/rules/problem-report.rules';
 import type { ProblemAnalysis } from '../../domain/types/problem-report.types';
 import { ANALYSIS_SYSTEM, analysisUser } from '../messages/problem-report.messages';
 
-const ANALYSIS_TIMEOUT_MS = 15_000;
+/** A picture takes 6 to 15 seconds or more on some services (measured on the free Gemini service); a minute is the most a person waits behind the button. */
+const ANALYSIS_TIMEOUT_MS = 45_000;
+/** Models that think before they write count the thinking in this limit; too small a number cuts the answer. */
+const ANALYSIS_MAX_TOKENS = 2_000;
 
 const answerSchema = z.strictObject({
   title: z.string(),
@@ -50,7 +53,7 @@ export class ProblemReportAnalyzer {
     try {
       if (!(await this.ai.isActive())) return null;
       const image = await this.image(input);
-      const question = { system: ANALYSIS_SYSTEM, user: analysisUser(input.note, input.context, image !== null), userWithoutImages: analysisUser(input.note, input.context, false), schema: answerSchema, maxTokens: 900, images: image ? [image] : undefined };
+      const question = { system: ANALYSIS_SYSTEM, user: analysisUser(input.note, input.context, image !== null), userWithoutImages: analysisUser(input.note, input.context, false), schema: answerSchema, maxTokens: ANALYSIS_MAX_TOKENS, images: image ? [image] : undefined };
       const answer = await this.within(this.ai.jsonOf(question));
       return { analysis: this.clean(answer.value), imageSeen: answer.imagesSeen };
     } catch (error) {
