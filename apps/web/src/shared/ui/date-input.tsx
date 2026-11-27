@@ -16,7 +16,7 @@ function typeInto(input: HTMLInputElement, value: string): void {
 /**
  * The one date field of the platform: text `YYYY-MM-DD` in Latin digits, left-to-right, aligned to the start of the page (the right in Arabic),
  * with a calendar button. The browser's own `type="date"` writes its empty text and its digits in the device's language («ةنس/رهش/موي»,
- * «٢٤/١١/١٩٩٦»), so it is not used anywhere (FR-201). The value is always `YYYY-MM-DD` or an empty text.
+ * «٢٤/١١/١٩٩٦»), so it is not used anywhere (FR-201). The value is always `YYYY-MM-DD` or an empty text. `min` and `max` stay on the box as attributes (a text box ignores them; the field itself marks a day outside them).
  */
 export function DateInput({ ref, onChange, onBlur, min, max, className, 'aria-invalid': invalid, ...props }: Props) {
   const { t } = useTranslation();
@@ -49,7 +49,7 @@ export function DateInput({ ref, onChange, onBlur, min, max, className, 'aria-in
   };
   return (
     <span className="relative block w-full">
-      <Input {...props} ref={setRef} type="text" dir="ltr" inputMode="numeric" autoComplete="off" maxLength={10} placeholder="YYYY-MM-DD" aria-invalid={invalid || wrong}
+      <Input {...props} min={min} max={max} ref={setRef} type="text" dir="ltr" inputMode="numeric" autoComplete="off" maxLength={10} placeholder="YYYY-MM-DD" aria-invalid={invalid || wrong}
         className={cn('text-start ps-4 pe-11 rtl:text-end rtl:ps-11 rtl:pe-4', className)} onChange={change} onBlur={blur} />
       <button type="button" tabIndex={-1} disabled={props.disabled || props.readOnly} aria-label={t('dateInput.open')} onClick={openCalendar}
         className="absolute end-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-muted hover:text-fg disabled:opacity-40">
