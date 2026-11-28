@@ -101,6 +101,8 @@ describe('Tasks: summary and reminders by notice and e-mail (FR-215…FR-218)', 
       await digests.sendDue(AT_NINE());
       expect((await notices(w.agents.report)).filter((n) => n.titleEn === 'Your tasks today')).toHaveLength(0);
       await save(w.agents.report, { digestEnabled: true, digestHour: 22 }).expect(200);
+      // A save at an hour that has already passed today (by the real clock) marks today as handled; clear it so the test does not depend on the time it runs.
+      await t.db.query('UPDATE task_notice_preferences SET digest_last_sent_on = NULL WHERE user_id = $1', [w.report.id]);
       await digests.sendDue(AT_NINE());
       expect((await notices(w.agents.report)).filter((n) => n.titleEn === 'Your tasks today')).toHaveLength(0);
       await digests.sendDue(new Date(`${riyadhToday()}T19:00:00Z`));
