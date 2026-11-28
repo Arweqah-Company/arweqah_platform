@@ -29,6 +29,7 @@ describe('FR-201: the date field writes YYYY-MM-DD in Latin digits', () => {
     expect(maskDay('1995-03-1-')).toBe('1995-03-01'); // a trailing dash closes a day of one digit too
     expect(maskDay('1995-03-12-')).toBe('1995-03-12');
     expect(maskDay('1995-03-1')).toBe('1995-03-1'); // without the dash it is still being typed
+    expect(maskDay('1995-03--')).toBe('1995-03-'); // a second dash after an empty day does not make it «00»
     expect(maskDay('2026--12')).toBe('2026-12'); // a pasted day with no month is read as digits
   });
 

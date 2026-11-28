@@ -23,9 +23,11 @@ export function maskDay(text: string): string {
   if (!isTypedWithDashes(parts)) return maskDigits(raw);
   const [year, month = '', day = ''] = parts;
   const closed = parts.length === 3 && month !== '';
-  const paddedDay = finished ? day.padStart(2, '0') : day;
-  return `${year}-${closed ? month.padStart(2, '0') : month}${closed ? `-${paddedDay}` : ''}`;
+  return `${year}-${closed ? pad2(month) : month}${closed ? `-${finished ? pad2(day) : day}` : ''}`;
 }
+
+/** A month or day with its zero in front; an empty one stays empty (a dash typed after nothing is not a «00»). */
+const pad2 = (value: string): string => (value === '' ? '' : value.padStart(2, '0'));
 
 /** A whole year, then a dash, then at most a month and a day of two digits each; a day after an empty month, or anything longer, is read as digits only. */
 function isTypedWithDashes(parts: string[]): boolean {

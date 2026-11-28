@@ -6,7 +6,7 @@ Short records of choices that are not obvious from the code. Newest first.
 
 | # | Decision | Why | Revisit when |
 |---|---|---|---|
-| 563 | **Both corner buttons carry `data-no-screenshot`** (the assistant's too, not only «Report a problem»); the date mask closes a one-digit day with a trailing dash (`1995-03-1-` → `1995-03-01`) and reads a day after an empty month as digits (`2026--12` → `2026-12`). | Three real comments, each reproduced with a failing test: the screenshot still showed the assistant's button although decision 554 said both were left out; the mask's own documentation promised the zero for a closed day; a pasted `2026--12` lost its day. | |
+| 563 | **Both corner buttons carry `data-no-screenshot`** (the assistant's too, not only «Report a problem»); the date mask closes a one-digit day with a trailing dash (`1995-03-1-` → `1995-03-01`) reads a day after an empty month as digits (`2026--12` → `2026-12`), and never pads an empty day (`1995-03--` stays `1995-03-`). | Three real comments, each reproduced with a failing test: the screenshot still showed the assistant's button although decision 554 said both were left out; the mask's own documentation promised the zero for a closed day; a pasted `2026--12` lost its day. | |
 
 ## 2026-11-28 — «Report a problem» in one fixed corner (FR-226)
 
