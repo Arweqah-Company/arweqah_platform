@@ -4,13 +4,17 @@ import type { TransactionContext } from '../../../../common/domain/transaction-c
 import { returnedRows } from '../../../../common/infrastructure/query-result';
 import { managerOf } from '../../../../common/infrastructure/typeorm-transaction-runner';
 import { TaskMaintenanceRepository } from '../../domain/contracts/task-maintenance.repository';
-import type { DigestRow, OpenWorkRow, TaskNoticeTarget } from '../../domain/types/task.types';
+import type { DigestRow, OpenWorkRow, TaskNoticeTarget, TaskReminderTarget } from '../../domain/types/task.types';
 
 const TARGET = `t.id, t.number::text AS number, t.title, t.assignee_user_id AS "assigneeUserId", t.creator_user_id AS "creatorUserId"`;
+/** Who besides the assignee hears about a task: its followers and the assignee's active direct manager (not for a personal task, which the manager does not see). */
+const RELATED = `COALESCE((SELECT array_agg(f.user_id::text) FROM task_followers f WHERE f.task_id = t.id), '{}') AS "followerUserIds",
+  (SELECT m.user_id FROM employees e JOIN employees m ON m.id = e.manager_id AND m.deleted_at IS NULL JOIN users mu ON mu.id = m.user_id AND mu.is_active
+   WHERE e.user_id = t.assignee_user_id AND e.deleted_at IS NULL AND NOT t.is_personal LIMIT 1) AS "managerUserId"`;
 /** Open and waiting for somebody to do something (a task still waiting for approval or already refused is not). */
 const WORKING = `t.status IN ('todo', 'in_progress', 'awaiting_review')`;
 
-const OVERDUE = `SELECT ${TARGET} FROM tasks t WHERE t.archived_at IS NULL AND t.deleted_at IS NULL AND ${WORKING} AND t.overdue_notified_at IS NULL AND t.due_date < $1::date`;
+const OVERDUE = `SELECT ${TARGET}, ${RELATED} FROM tasks t WHERE t.archived_at IS NULL AND t.deleted_at IS NULL AND ${WORKING} AND t.overdue_notified_at IS NULL AND t.due_date < $1::date`;
 
 @Injectable()
 export class TypeOrmTaskMaintenanceRepository extends TaskMaintenanceRepository {
@@ -18,12 +22,29 @@ export class TypeOrmTaskMaintenanceRepository extends TaskMaintenanceRepository 
     super();
   }
 
-  dueForReminder(today: string): Promise<TaskNoticeTarget[]> {
+  dueForReminder(today: string): Promise<TaskReminderTarget[]> {
     return this.ds.query(
-      `SELECT ${TARGET} FROM tasks t LEFT JOIN task_policies p ON p.company_id = t.company_id
+      `SELECT ${TARGET}, ${RELATED} FROM tasks t LEFT JOIN task_policies p ON p.company_id = t.company_id
        WHERE t.archived_at IS NULL AND t.deleted_at IS NULL AND ${WORKING} AND t.reminded_at IS NULL
-         AND t.due_date >= $1::date AND t.due_date <= $1::date + COALESCE(p.reminder_days_before, 1)`,
+         AND t.due_date > $1::date AND t.due_date <= $1::date + COALESCE(p.reminder_days_before, 1)`,
       [today],
+    );
+  }
+
+  dueToday(today: string): Promise<TaskReminderTarget[]> {
+    return this.ds.query(
+      `SELECT ${TARGET}, ${RELATED} FROM tasks t
+       WHERE t.archived_at IS NULL AND t.deleted_at IS NULL AND ${WORKING} AND t.due_day_notified_at IS NULL AND t.due_date = $1::date`,
+      [today],
+    );
+  }
+
+  async markDueDayNotified(told: { id: string; assigneeUserId: string }[], dueDate: string): Promise<void> {
+    if (!told.length) return;
+    await this.ds.query(
+      `UPDATE tasks t SET due_day_notified_at = now() FROM unnest($1::uuid[], $2::uuid[]) AS x(id, assignee)
+       WHERE t.id = x.id AND t.assignee_user_id = x.assignee AND t.due_date = $3::date`,
+      [told.map((x) => x.id), told.map((x) => x.assigneeUserId), dueDate],
     );
   }
 
@@ -31,7 +52,7 @@ export class TypeOrmTaskMaintenanceRepository extends TaskMaintenanceRepository 
     if (ids.length) await this.ds.query('UPDATE tasks SET reminded_at = now() WHERE id = ANY($1)', [ids]);
   }
 
-  overdueUnnotified(today: string): Promise<TaskNoticeTarget[]> {
+  overdueUnnotified(today: string): Promise<TaskReminderTarget[]> {
     return this.ds.query(OVERDUE, [today]);
   }
 

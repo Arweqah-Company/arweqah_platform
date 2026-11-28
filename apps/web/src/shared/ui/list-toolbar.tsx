@@ -7,6 +7,7 @@ import { useHiddenInList } from '../lib/list-settings';
 import type { FilterValues } from '../lib/use-filters';
 import { cn } from '../lib/cn';
 import { Button } from './button';
+import { DateInput } from './date-input';
 import { FormField, Input, Select } from './form-field';
 import { SearchInput } from './search-input';
 
@@ -65,8 +66,10 @@ function FieldControl({ field, value, onChange }: { field: FilterField; value: s
             <option value="">{t('filters.all')}</option>
             {field.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </Select>
+        ) : field.type === 'date' ? (
+          <DateInput {...p} value={value} onChange={(e) => onChange(e.target.value)} />
         ) : (
-          <Input {...p} type={field.type === 'date' ? 'date' : 'text'} dir={field.type === 'date' ? 'ltr' : undefined} placeholder={field.type === 'text' ? field.placeholder : undefined} value={value} onChange={(e) => onChange(e.target.value)} />
+          <Input {...p} placeholder={field.placeholder} value={value} onChange={(e) => onChange(e.target.value)} />
         )
       }
     </FormField>

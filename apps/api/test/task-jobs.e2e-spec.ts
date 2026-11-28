@@ -4,10 +4,9 @@ import { TaskArchiveService } from '../src/modules/tasks/application/services/ta
 import { TaskReminderService } from '../src/modules/tasks/application/services/task-reminder.service';
 import type { TestAgent } from './factories/factories';
 import { TASK_EMPLOYEE_GRANTS, taskManagerGrants } from './factories/task-grants';
+import { daysFromNow } from './helpers/task-days';
 import { useTestApp } from './setup/test-app';
 
-const DAY = 86_400_000;
-const daysFromNow = (n: number) => riyadhToday(new Date(Date.now() + n * DAY));
 
 describe('Tasks: reminders, overdue, digest, archive, repeats and time (FR-53), estimate notice (FR-56)', () => {
   const t = useTestApp();

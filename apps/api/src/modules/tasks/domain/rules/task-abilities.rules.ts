@@ -21,7 +21,7 @@ export interface AbilityFacts {
 const all = (...conditions: boolean[]): boolean => conditions.every(Boolean);
 
 /** What the viewer may do with a task right now. A button that is not here must not be shown. */
-export function abilitiesOf(f: AbilityFacts): TaskAbilitiesDto {
+export function abilitiesOf(f: AbilityFacts): Omit<TaskAbilitiesDto, 'addFiles' | 'deliverFiles'> {
   const live = !f.archived;
   const open = f.status !== 'done' && f.status !== 'rejected';
   return {

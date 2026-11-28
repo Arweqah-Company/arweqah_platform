@@ -10,7 +10,11 @@ interface FieldsProps {
   today: string;
   /** A task already created may keep an earlier due date. */
   creating: boolean;
+  /** The creation form shows its errors only after the save button was pressed; without it a field also speaks when left (the edit form). */
+  attempted?: boolean;
 }
+
+const afterSave = (attempted: boolean | undefined) => (attempted === undefined ? undefined : { attempted });
 
 /** The switch turns red when on (urgent) or petrol (needs review): the same control as the ticket form. */
 export function Switch({ on, label, onChange, tone = 'danger' }: { on: boolean; label: string; onChange: (on: boolean) => void; tone?: 'danger' | 'info' }) {
@@ -25,10 +29,10 @@ export function Switch({ on, label, onChange, tone = 'danger' }: { on: boolean; 
 }
 
 /** Title and description: what the task is. Fields live in their own component so "touched" starts fresh at every opening. */
-export function WhatFields({ draft, onPatch }: Pick<FieldsProps, 'draft' | 'onPatch'>) {
+export function WhatFields({ draft, onPatch, attempted }: Pick<FieldsProps, 'draft' | 'onPatch' | 'attempted'>) {
   const { t } = useTranslation('tasks');
   const rules = useRules();
-  const title = useLiveError(draft.title, rules.text(1));
+  const title = useLiveError(draft.title, rules.text(1), afterSave(attempted));
   return (
     <>
       <FormField label={`${t('form.title')} *`} error={title.error}>
@@ -40,10 +44,10 @@ export function WhatFields({ draft, onPatch }: Pick<FieldsProps, 'draft' | 'onPa
 }
 
 /** When, how important, how long. */
-export function WhenFields({ draft, onPatch, today, creating }: FieldsProps) {
+export function WhenFields({ draft, onPatch, today, creating, attempted }: FieldsProps) {
   const { t } = useTranslation('tasks');
   const rules = useRules();
-  const due = useLiveError(draft.dueDate, (v: string) => rules.required(v) ?? (creating && v < today ? t('form.dueInPast') : undefined));
+  const due = useLiveError(draft.dueDate, (v: string) => rules.required(v) ?? (creating && v < today ? t('form.dueInPast') : undefined), afterSave(attempted));
   return (
     <div className="grid gap-4 sm:grid-cols-3">
       <FormField label={`${t('form.dueDate')} *`} error={due.error}>

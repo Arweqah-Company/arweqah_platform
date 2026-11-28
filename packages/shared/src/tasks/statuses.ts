@@ -34,6 +34,9 @@ export const TASK_EVENT_TYPES = [
   'handed_over',
   'reassigned',
   'time_logged',
+  'file_added',
+  'delivery_added',
+  'file_removed',
 ] as const;
 export type TaskEventType = (typeof TASK_EVENT_TYPES)[number];
 
@@ -51,6 +54,13 @@ export type TaskSortKey = (typeof TASK_SORT_KEYS)[number];
 export const formatTaskNumber = (n: number | string): string => `TSK-${String(n).padStart(6, '0')}`;
 
 export const MAX_TASK_TEXT = 5000;
+
+/** The files of a task: `reference` = the work files the giver attaches, `delivery` = what the doer hands in. */
+export const TASK_FILE_KINDS = ['reference', 'delivery'] as const;
+export type TaskFileKind = (typeof TASK_FILE_KINDS)[number];
+
+/** Most files one request may attach to a task (when it is made, when files are added, or when work is delivered). */
+export const MAX_TASK_FILES = 10;
 
 /** Every number of the task rules lives in the company's policies, inside these limits (so no value can switch tasks off). */
 export const TASK_POLICY_LIMITS = {

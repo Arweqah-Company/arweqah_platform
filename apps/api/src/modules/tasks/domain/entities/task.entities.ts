@@ -173,6 +173,10 @@ export class Task extends SoftDeletableEntity {
   @Column({ name: 'overdue_notified_at', type: 'timestamptz', nullable: true })
   overdueNotifiedAt: Date | null;
 
+  /** The «due today» reminder was sent (once per due date). */
+  @Column({ name: 'due_day_notified_at', type: 'timestamptz', nullable: true })
+  dueDayNotifiedAt: Date | null;
+
   @Column({ name: 'estimate_notified_at', type: 'timestamptz', nullable: true })
   estimateNotifiedAt: Date | null;
 
@@ -271,6 +275,37 @@ export class TaskFollower {
   private readonly userFk?: unknown;
 }
 
+/** What one person chose for the task summary and reminders (FR-215…FR-218). No row = the defaults of `TASK_NOTICE_DEFAULTS`. */
+@Entity('task_notice_preferences')
+export class TaskNoticePreference {
+  @PrimaryColumn({ name: 'user_id', type: 'uuid' })
+  userId: string;
+
+  @Column({ type: 'varchar', length: 10, default: 'in_app' })
+  channel: string;
+
+  @Column({ name: 'digest_enabled', type: 'boolean', default: true })
+  digestEnabled: boolean;
+
+  /** Riyadh hour (0 to 23) the summary is sent at. */
+  @Column({ name: 'digest_hour', type: 'smallint', default: 8 })
+  digestHour: number;
+
+  @Column({ name: 'reminders_enabled', type: 'boolean', default: true })
+  remindersEnabled: boolean;
+
+  /** The last day (Riyadh) the summary was sent or skipped, so it goes once a day. */
+  @Column({ name: 'digest_last_sent_on', type: 'date', nullable: true })
+  digestLastSentOn: string | null;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+
+  @ManyToOne('User', { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id', foreignKeyConstraintName: 'FK_task_notice_preferences_user' })
+  private readonly userFk?: unknown;
+}
+
 /** An objection to a task given to somebody. Unanswered, it lapses at `expires_at` and the task stays with its assignee. */
 @Entity('task_objections')
 @Index('IDX_task_objections_task', ['taskId', 'status'])
@@ -342,4 +377,36 @@ export class TaskTimeEntry {
   private readonly userFk?: unknown;
 }
 
-export const TASK_ENTITIES = [TaskTag, TaskPolicy, Task, TaskEvent, TaskFollower, TaskObjection, TaskTimeEntry];
+/** A file kept with a task: `reference` (what the giver attached to explain the work) or `delivery` (what the doer handed in). */
+@Entity('task_files')
+@Index('IDX_task_files_task', ['taskId', 'createdAt'])
+export class TaskFile {
+  @PrimaryColumn({ name: 'task_id', type: 'uuid' })
+  taskId: string;
+
+  @PrimaryColumn({ name: 'file_id', type: 'uuid' })
+  fileId: string;
+
+  @Column({ type: 'varchar', length: 10 })
+  kind: string;
+
+  @Column({ name: 'added_by_user_id', type: 'uuid' })
+  addedByUserId: string;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @ManyToOne('Task', { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'task_id', foreignKeyConstraintName: 'FK_task_files_task' })
+  private readonly taskFk?: unknown;
+
+  @ManyToOne('StoredFile')
+  @JoinColumn({ name: 'file_id', foreignKeyConstraintName: 'FK_task_files_file' })
+  private readonly fileFk?: unknown;
+
+  @ManyToOne('User')
+  @JoinColumn({ name: 'added_by_user_id', foreignKeyConstraintName: 'FK_task_files_user' })
+  private readonly userFk?: unknown;
+}
+
+export const TASK_ENTITIES = [TaskTag, TaskPolicy, Task, TaskEvent, TaskFollower, TaskNoticePreference, TaskObjection, TaskTimeEntry, TaskFile];

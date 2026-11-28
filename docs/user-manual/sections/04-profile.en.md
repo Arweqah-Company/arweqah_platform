@@ -17,6 +17,9 @@ Your own page: here you set **the look and language of the platform**, edit your
 |---|---|---|
 | Choose the theme: Light, Dark, Follow the device | The platform's look changes at once and is saved in your account | `profile.update` (Edit my contact details and preferences) |
 | Choose the language: العربية, English | The language and the page direction change at once and your choice is saved | `profile.update` |
+| Choose how your task summary and reminders reach you (channel: notice, e-mail or both) | The choice is saved and applies to the daily summary, the reminders and the late alert | `tasks.notice_settings` (Set my task summary and reminders) |
+| Turn the daily summary on or off and pick its hour (Riyadh time) | The summary comes at that hour each day; an hour that has already passed today means tomorrow | `tasks.notice_settings` |
+| Turn the task reminders on or off | Off: no reminder before or on the due date and no late alert for you; other task notices are unchanged | `tasks.notice_settings` |
 | Edit the personal phone | Your contact number is saved | `profile.update` |
 | Edit the personal e-mail | Your personal e-mail is saved | `profile.update` |
 | Edit the name in English (in «Basic data», beside the Arabic name, with its own «Save the name» button) | Your English name is saved | `profile.update` |
@@ -35,6 +38,9 @@ Your own page: here you set **the look and language of the platform**, edit your
 2. In the «Appearance» section choose the theme (Light, Dark, Follow the device) and the language.
 3. The choice applies at once and is saved for all your devices.
 
+
+**The profile follows the employee page (FR-222):** the fields you change here (personal phone, personal e-mail, English name) are the same ones the «edit employees» permission gives you for your own record on the employee page. A field the permission does not give shows locked (lock mark) and is not sent, and when no field is left open «Save changes» disappears. The basic data the permission gives you are changed directly on the employee page (the «Edit on the employee page» button on the basic data card, which shows only to someone who also holds «View employees»; otherwise those details stay in «Request a change»); «Request a change» stays for the rest only and disappears when all of them are direct.
+
 **Update your contact details**
 
 
@@ -42,6 +48,14 @@ Your own page: here you set **the look and language of the platform**, edit your
 2. Type the **personal e-mail**, then press «Save changes». (An empty box shows `+9665XXXXXXXX` in a faded colour: the shape of an example, not a saved number.)
 3. To change the **name in English** type it in the «Basic data» section beside the Arabic name (English letters and spaces only), then press «Save the name», which appears once it changes.
 3. Press «Save changes».
+
+**Set your task summary and reminders (FR-215…FR-218)**
+
+
+1. In the «Task summary and reminders» section choose the **channel**: a notice in the platform (the default), e-mail, or both.
+2. Keep «A daily summary of my tasks» on and choose its **time** (Riyadh time, default 08:00). The summary lists your open tasks, those due today and the overdue ones; you get none on a day you have no open task.
+3. Keep «Remind me about my tasks, those I follow and my team's» on to be reminded before the due date, on its morning and when it is late.
+4. Press «Save». The e-mail carries the task number only, never its title. Without the key `tasks.notice_settings` the section is not shown.
 
 **See your work details**
 

@@ -1,5 +1,5 @@
 import { formatDateTime } from '@/shared/lib/format-date';
-import { CorePermission, type ReactionKey, type TicketEventDto } from '@arweqah-platform/shared';
+import { CorePermission, isReactableEvent, type ReactionKey, type TicketEventDto } from '@arweqah-platform/shared';
 import { MessageSquareReply, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -53,7 +53,7 @@ export function Entry({ ticketId, event, canAnswer, onAnswer, nested }: EntryPro
       <EntryHeader event={event} canAnswer={canAnswer} onAnswer={onAnswer} onEdit={() => setEditing(true)} />
       {editing ? <ReplyEditor ticketId={ticketId} event={event} onDone={() => setEditing(false)} /> : event.body && <div className="mt-2"><MentionedText body={event.body} people={event.mentions} /></div>}
       <TicketFiles ticketId={ticketId} event={event} />
-      {event.type === 'reply' && <Reactions ticketId={ticketId} event={event} />}
+      {isReactableEvent(event) && <Reactions ticketId={ticketId} event={event} />}
     </div>
   );
 }

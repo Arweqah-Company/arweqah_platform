@@ -26,6 +26,9 @@ Click any task in the list to open its page. The page shows what the task is, wh
 | Delete | Hides the task (and its conversation) from everyone after a confirmation; the record stays in the database and the audit log says who deleted it. Offered to its giver, and to a person whose scope reaches the assignee | `tasks.delete` (Delete a task); not held by the «Employee» role, held by the head role of every unit for its unit and below |
 | Write a comment | Adds a comment to the conversation | `tasks.comment_add` (Write a comment on a task) |
 | Reply | Answers a comment | `tasks.comment_reply` (Reply to a comment on a task) |
+| Add work files | The **Files** section on the page: choose files (each shows a thumbnail you can open to check it), then press **Add work files** | `tasks.file_add` (Attach reference files to a task), on a task you may edit that is not finished |
+| Hand in delivery files | The same section: choose the files of your finished work and press **Hand in delivery files**; also offered when you move the task to «Done» or «Awaiting review» | `tasks.file_deliver` (Hand in delivery files on a task), for the person who does the task (or the manager who moves it for them) while it is in progress or awaiting review |
+| Remove a file | The bin beside a file, after a confirmation | `tasks.file_remove` (Remove a file from a task), for who attached it or may edit the task; not on a finished, rejected or archived task |
 | Attach files | Adds files to a comment | `tasks.comment_upload` (Attach files to a comment) |
 | Mention with @ | Names a colleague | `tasks.comment_mention` (Mention a colleague with @ in a comment) |
 | Edit my comment | Changes your own comment | `tasks.comment_edit` (Edit my comment) |
@@ -145,6 +148,7 @@ The task keeps the life described in the «My tasks» page (statuses and moves).
 
 ### Business rules
 
+- **Files of a task (FR-212, FR-213, FR-214):** the **Files** section lists two groups: **Work files** (reference files the giver attaches when making the task or later: PowerPoint, Excel, Word, PDF, pictures) and **Delivery files** (what the person doing the task hands in). Each file shows its name (it downloads), a **View** button (opens inside the system), who added it and when. Anyone who sees the task sees its files; the file keys only decide who may add or remove. A task finished, rejected or archived accepts no new file and no removal. Adding and removing are written in the history («Work files added», «Delivery files added», «File removed») and in the audit log (counts only). A file must be one you uploaded yourself.
 - The page shows: status, priority and marks (urgent, overdue, stale, objected), who gave the task, the reviewer, the approver, logged time against the estimate, repetition, followers, and the history of events (created, edited, status changed, approved, rejected, resubmitted, objection, archived, restored, ownership moved, time logged). (FR-48)
 - A banner appears for an archived task, for an open objection (with the date it lapses), and for a task waiting for approval (with the approver's name).
 - **Who may do what in the conversation** is decided by two things together: your role must hold the key of the action, **and** your relation to the task must be switched on for that action in the company's table («Who does what in task comments», see the Task policies section). You may have several relations at once; one is enough. (FR-66)

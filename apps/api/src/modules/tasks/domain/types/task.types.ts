@@ -1,4 +1,4 @@
-import type { ObjectionReason, ObjectionStatus, PermissionScope, TaskEventType, TaskGrouping, TaskPolicyInput, TaskPriority, TaskRecurrence, TaskSortKey, TaskSource, TaskStatus, TaskTab } from '@arweqah-platform/shared';
+import type { TaskNoticeChannel, ObjectionReason, ObjectionStatus, PermissionScope, TaskEventType, TaskGrouping, TaskPolicyInput, TaskPriority, TaskRecurrence, TaskSortKey, TaskSource, TaskStatus, TaskTab } from '@arweqah-platform/shared';
 
 /** A person as the task rules need them: who they report to and where they sit. */
 export interface TaskPerson {
@@ -121,6 +121,7 @@ export interface TaskPatch {
   deletedAt?: Date;
   remindedAt?: Date | null;
   overdueNotifiedAt?: Date | null;
+  dueDayNotifiedAt?: Date | null;
   estimateNotifiedAt?: Date | null;
 }
 
@@ -212,6 +213,21 @@ export interface TaskNoticeTarget {
   title: string;
   assigneeUserId: string;
   creatorUserId: string;
+}
+
+/** A task the reminder jobs found, with the people besides its assignee who hear about it: its followers and the assignee's direct manager (none for a personal task). */
+export interface TaskReminderTarget extends TaskNoticeTarget {
+  followerUserIds: string[];
+  managerUserId: string | null;
+}
+
+/** One person's open tasks for the daily summary, with how they chose to receive it. */
+export interface TaskSummaryRecipient {
+  userId: string;
+  channel: TaskNoticeChannel;
+  open: number;
+  dueToday: number;
+  overdue: number;
 }
 
 /** An open task a person works on or reviews, found when they leave. */

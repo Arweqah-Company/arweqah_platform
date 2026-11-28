@@ -1,4 +1,5 @@
 import type { TaskDto, TaskListItemDto } from '@arweqah-platform/shared';
+import { http, HttpResponse } from 'msw';
 
 /** A task as the list API returns it; tests change what they care about. */
 export const taskItem = (over: Partial<TaskListItemDto> = {}): TaskListItemDto => ({
@@ -38,6 +39,14 @@ export const taskDetail = (over: Partial<TaskDto> = {}): TaskDto => ({
   followers: 0,
   objection: null,
   events: [{ id: 'e1', type: 'created', actor: { id: 'u2', name: 'منى خالد' }, fromStatus: null, toStatus: 'todo', note: null, createdAt: '2026-11-01T08:00:00.000Z' }],
-  abilities: { moveTo: [], edit: false, approve: false, object: false, answerObjection: false, resubmit: false, follow: false, manageFollowers: false, logTime: false, restore: false, delete: false },
+  files: [],
+  abilities: { moveTo: [], edit: false, approve: false, object: false, answerObjection: false, resubmit: false, follow: false, manageFollowers: false, logTime: false, restore: false, delete: false, addFiles: false, deliverFiles: false },
   ...over,
 });
+
+/** `POST /api/tasks` that keeps what the form sent in `posted` and answers with a new task. */
+export const createTaskHandler = (posted: Record<string, unknown>[]) =>
+  http.post('*/api/tasks', async ({ request }) => {
+    posted.push((await request.json()) as Record<string, unknown>);
+    return HttpResponse.json(taskDetail({ id: 'new-task' }), { status: 201 });
+  });

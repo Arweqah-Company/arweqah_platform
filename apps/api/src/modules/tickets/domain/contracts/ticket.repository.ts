@@ -30,6 +30,8 @@ export abstract class TicketRepository {
   abstract answerableEvent(ticketId: string, eventId: string): Promise<{ id: string; parentEventId: string | null; actorUserId: string | null } | null>;
   /** A reply (type `reply`) of this ticket as the edit needs it, or null. */
   abstract reply(ticketId: string, eventId: string): Promise<ReplyRecord | null>;
+  /** An entry of this ticket that carries a message and takes reactions (a reply, a request to close, a refusal, a closing without execution), or null. */
+  abstract reactableEvent(ticketId: string, eventId: string): Promise<ReplyRecord | null>;
   /** Replaces the text of a reply, marks it edited, and sets the people it names to exactly `mentionIds`. */
   abstract editReply(eventId: string, edit: ReplyEdit, tx: TransactionContext): Promise<void>;
   /** A file attached to this ticket (to authorize its download), or null. */

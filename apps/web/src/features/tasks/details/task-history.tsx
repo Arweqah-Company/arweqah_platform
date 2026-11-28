@@ -21,6 +21,9 @@ const EVENT_TONE: Record<TaskEventType, EventTone> = {
   handed_over: 'neutral',
   time_logged: 'neutral',
   reassigned: 'neutral',
+  file_added: 'neutral',
+  delivery_added: 'success',
+  file_removed: 'neutral',
 };
 
 /** What the event says beyond its name: the two statuses of a change, the reason of an objection, the minutes of a time entry, or the note. */

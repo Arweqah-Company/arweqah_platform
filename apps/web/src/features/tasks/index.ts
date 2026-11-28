@@ -7,6 +7,7 @@ import en from './i18n/en.json';
 export { MyTasksPanel } from './home/my-tasks-panel';
 export { MatrixSection } from './matrix/matrix-section';
 export { useTaskSummary } from './api';
+export { TaskNoticeSection } from './notice-settings/task-notice-section';
 
 export const tasksFeature: FeatureModule = {
   id: 'tasks',

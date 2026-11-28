@@ -44,7 +44,7 @@ The list has no import: tasks are created one by one, not from a file.
 2. Write the title (required) and the details.
 3. Choose the person (you, by default), the tag, the due date (required, not in the past), the priority, the expected time in hours, and repetition (none, daily, weekly, monthly, with an optional end date).
 4. Turn on «Mark as urgent» or «Needs review» if needed.
-5. Read the line under the form: if the task is for yourself it says who approves it, or that no approval is needed. Click **Create task**.
+5. Read the line under the form: if the task is for yourself it says who approves it, or that no approval is needed. Click **Create task**; if the title is missing or the due date is in the past the message shows under the field **after you press it** (not while you move between fields) and nothing is sent until you fix it. (FR-224)
 
 **Change the status of a task**
 
@@ -63,7 +63,7 @@ The list has no import: tasks are created one by one, not from a file.
 1. Type in the search box: title or task number (TSK-000123).
 2. Use the filters: status, priority, person, tag, stale only, overdue only, include finished and rejected, archived.
 3. **Order** the tasks with the «Order» list: **Nearest due date** (the default), **Newest first** or **Oldest first** (by the day the task was made). The same choice is made by pressing a column header (title, assignee, due date, priority, status, tag, estimate); the list then says «By column». The order applies to the table, the cards and the board.
-4. Group the table by due date, status or person, and switch between table, cards and board. The page remembers your choice.
+4. Group the table by due date, status or person (or «No grouping», worded the same in tasks and tickets); tasks with the same due date keep the order of their number, so the list does not move between visits, and switch between table, cards and board. The page remembers your choice.
 
 ### Fields (form inputs)
 
@@ -78,6 +78,7 @@ The list has no import: tasks are created one by one, not from a file.
 | Due date | The day the work is due. It drives the reminder, the «Overdue» and «Urgent» marks and the matrix. | Yes (today by default) | A date, not in the past when creating. |
 | Priority | How important the task is; «High» makes it «important» in the matrix. | No | Low, Medium (default), High. |
 | Expected time (hours) | The estimate of the work. When the time logged passes it, the assignee and the person who gave the task are told once. | No | A number above 0, steps of 0.25 hour; empty when unknown. |
+| Work files | Files the work needs (PowerPoint, Excel, Word, PDF, pictures). Each file is uploaded when chosen and shows a thumbnail: click it to look at the file before saving. Shown only to a person whose role holds `tasks.file_add`. «Create task» stays off while a file is still uploading, so a task is never made without its file. (FR-212) | No | Up to 10 files, within the upload limit in Settings. |
 | Repeats | Makes the system create the next task by itself when this one is closed (daily, weekly, monthly). | No | Does not repeat (default), Every day, Every week, Every month. |
 | Repeats until | The last date a repeating task may repeat. Shown only when «Repeats» is not «Does not repeat». | No | A date not before the due date; empty = no end. |
 | Urgent / «Mark as urgent» | Marks the task urgent by hand, whatever its due date. | No | On / Off (default Off). |
@@ -123,8 +124,9 @@ There is no attachment field on a task: files are added in the task conversation
 
 **Automatic things**
 
-- **Reminder:** every morning (6:00 Riyadh time) the assignee receives one reminder the number of days before the due date set in the task policies (1 by default).
-- **Overdue:** the assignee and the person who gave the task are told once when the due date passes. The marks «Urgent», «Overdue» and «Stale» are worked out from the data each time, never stored.
+- **Reminder:** every morning (6:00 Riyadh time) the assignee, the followers and the assignee's direct manager (not for a personal task) receive one reminder the number of days before the due date set in the task policies (1 by default), and one more on the morning of the due date. Each person chooses the channel (notice, e-mail or both) and may switch the reminders off in «Profile» (`tasks.notice_settings`). (FR-216, FR-218)
+- **Daily summary:** at the hour each person chose in «Profile» (08:00 by default) they receive their number of open tasks, tasks due today and overdue tasks, in the channel they chose; nothing is sent on a day with no open task. (FR-215)
+- **Overdue:** the assignee, the person who gave the task, the followers and the assignee's manager are told once when the due date passes (FR-217). The marks «Urgent», «Overdue» and «Stale» are worked out from the data each time, never stored.
 - **Weekly summary:** on the company's summary day (Sunday by default, 8:00) each manager receives the number of overdue tasks of their direct reports.
 - **Objection time:** a scheduled job closes an unanswered objection after the allowed working days and notifies the giver and the assignee.
 - **Estimate:** one notice when the logged time passes the estimate.
@@ -157,7 +159,7 @@ There is no attachment field on a task: files are added in the task conversation
 - **Objection:** the assignee of a task that someone else gave them may object while it is still «To do», choosing one reason: not my responsibility, not enough time, missing information, conflicting priorities. The task shows an «Objected» mark. The person who gave the task answers: reject (the task stays with the assignee) or accept and give it to someone else. An objection nobody answers lapses after 3 working days (Friday and Saturday are off) and the task stays with the assignee. (FR-52)
 - **Time log:** minutes worked on a day, back-dating up to 7 days. When logged time passes the estimate, the assignee and the person who gave the task are notified once. (FR-48, FR-56)
 - **Marks:** *Urgent* (marked by hand, due within 2 days, or overdue), *Overdue*, *Stale* (no movement for 30 days; not for tasks waiting for approval), *Objected*. Each mark has an icon and text. (FR-49)
-- **Reminders:** a reminder the day before the due date; every Sunday morning each manager receives the overdue tasks of their team; recurring tasks create the next one when the current one is closed. (FR-53)
+- **Reminders:** a reminder before the due date and one on its day, for the assignee, the followers and the manager (FR-216); every Sunday morning each manager receives the overdue tasks of their team; recurring tasks create the next one when the current one is closed. (FR-53)
 - **Archive:** a standalone task is archived 30 days after it closes and leaves the normal lists. Users with the archive key see it with the «Archived» filter and can **Restore** it; it returns in its earlier status and the assigner is notified. (FR-53)
 - **Notifications:** the assignee is told when a task is assigned; the person who gave the task is told of every status change; the reviewer when a task awaits review; objections and their answers. Nobody is notified of their own change, and quick changes within a minute arrive as one notice. E-mail is sent only for the important ones and never contains the title. (FR-56)
 - **When an employee leaves**, their open tasks go to their direct manager. (FR-55)
