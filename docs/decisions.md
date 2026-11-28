@@ -8,6 +8,16 @@ Short records of choices that are not obvious from the code. Newest first.
 |---|---|---|---|
 | 559 | **The hidden native date control of `DateInput` has a real size and lies on the calendar button** (`size-8`, centred on it, `opacity-0`, `pointer-events-none`, `aria-hidden`), not `size-0` under the box. **The mask keeps a dash the person types after a whole year or month** (`1995-`, `1995-03-`, also `/` and `.`) and zero-pads a one-digit month or day that a dash closes (`1995-3-` → `1995-03-`); it used to rebuild the text from digits only, so a typed `-` vanished. A half-typed birth date in «Request a change of my basic data» is told «write the whole date: year-month-day» and its age is judged only for a whole day. | Owner: in that window the calendar opened in the top-left corner of the screen, far from the field, and she could not finish the date. Chrome opens the picker at the corner of the screen when the date control it is given has no size. The age message («the age between 18 and 70») for `1995` was no help to someone who had only typed the year. | A calendar in the platform's language replaces the browser's picker |
 
+## 2026-11-28 — Tickets board: move by drag and drop (FR-227)
+
+Plan: `docs/plans/phase-2-tickets.md` (section «نقل التذاكر بين الحالات بالسحب والإفلات»). The three business answers are the owner's, 2026-11-28.
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 560 | **A drag to «closed» by the handling unit is «close without execution»** (the existing action, with its window); there is no new «closed as done» close reason and no closing that skips the sender's confirmation. The sender's moves (confirm, decline, reopen) are on the board too, each with its own window. | Owner's answers: «close without execution» (no new rule), «all moves, the sender's as well». The done-and-confirmed path stays ask to close → the sender confirms. | The owner wants the unit to close «as executed» directly |
+| 561 | **Every move opens the action's own window with an optional message** (`ActionDialog`, now exported from `ticket-actions.tsx` and shared with the ticket page, as the keys are in `ticket-moves.ts`). | Owner's answer: the message is optional always; one window, not a copy. | |
+| 562 | **The board proposes, the API decides:** the screen offers a column when an action leads there and the person holds its key (`moveTargets`; «confirm / decline / reopen» only when they are the ticket's sender), and the five routes keep refusing (404 out of reach, 403, 422 wrong state or window over); a refusal shows in the window and the card stays. The list rows carry no per-row abilities. | Same pattern as the tasks board; no list change. A drop with no action leads nowhere and says why. | The list rows carry the abilities (then a drag could be refused before it starts) |
+
 ## 2026-11-28 — One focus frame per control
 
 | # | Decision | Why | Revisit when |

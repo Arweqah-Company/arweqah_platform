@@ -336,6 +336,9 @@
     "quickReply": "Quick reply",
     "quickReplyTitle": "Quick reply on {{number}}",
     "label": "Tickets board",
+    "drag": "Drag ticket «{{title}}» to another column",
+    "moveTo": "Move ticket «{{title}}» to",
+    "moveNotAllowed": "You cannot move the ticket to this column with your permissions or your relation to it.",
     "assignee": "Assignee: {{name}}",
     "sender": "Sender: {{name}}",
     "truncated": "Showing {{shown}} of {{total}} tickets. Search or filter to narrow."

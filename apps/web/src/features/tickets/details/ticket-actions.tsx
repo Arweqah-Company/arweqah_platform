@@ -7,22 +7,14 @@ import { usePermissions } from '@/core/permissions/can';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Alert, Button, DeleteRecordButton, Dialog, FormField, Textarea } from '@/shared/ui';
 import { useDeleteTicket, useTicketAction, type TicketAction } from '../api';
+import { ACTION_KEY } from '../board/ticket-moves';
 import { ChooseHandlerDialog } from './choose-handler-dialog';
 import { ReassignDialog } from './reassign-dialog';
 
 const DANGER: TicketAction[] = ['close-without-execution'];
 
-/** The permission key behind each button. */
-const KEY: Record<TicketAction, string> = {
-  'request-close': CorePermission.TicketsRequestClose,
-  'confirm-close': CorePermission.TicketsConfirmClose,
-  'decline-close': CorePermission.TicketsDeclineClose,
-  reopen: CorePermission.TicketsReopen,
-  'close-without-execution': CorePermission.TicketsCloseWithoutExecution,
-};
-
-/** Asks for an optional message, then performs the action. The words come from the action's own texts. */
-function ActionDialog({ ticketId, action, onClose }: { ticketId: string; action: TicketAction; onClose: () => void }) {
+/** Asks for an optional message, then performs the action. The words come from the action's own texts (the ticket page's buttons and the board's moves use it). */
+export function ActionDialog({ ticketId, action, onClose }: { ticketId: string; action: TicketAction; onClose: () => void }) {
   const { t } = useTranslation('tickets');
   const { t: tc } = useTranslation();
   const run = useTicketAction(ticketId);
@@ -92,7 +84,7 @@ export function TicketActions({ ticket }: { ticket: TicketDto }) {
     { action: 'reopen', allowed: a.reopen, variant: 'secondary' },
     { action: 'close-without-execution', allowed: a.closeWithoutExecution, variant: 'danger' },
   ];
-  const shown = buttons.filter((b) => b.allowed && can(KEY[b.action]));
+  const shown = buttons.filter((b) => b.allowed && can(ACTION_KEY[b.action]));
   const extras = unitExtras(a, can);
   if (shown.length === 0 && !Object.values(extras).some(Boolean)) return null;
   return (
