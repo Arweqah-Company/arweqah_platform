@@ -28,6 +28,23 @@ describe('FR-201: DateInput', () => {
     expect(box().value).toBe('1996-11-2');
   });
 
+  it('lets the person type the dashes themselves, one key at a time, and ends with the same day as without them', () => {
+    render(<Controlled />);
+    let shown = '';
+    for (const key of '1995-03-12') {
+      fireEvent.change(box(), { target: { value: shown + key } });
+      shown = box().value;
+    }
+    expect(box().value).toBe('1995-03-12');
+    fireEvent.change(box(), { target: { value: '' } });
+    shown = '';
+    for (const key of '1995-3-5') {
+      fireEvent.change(box(), { target: { value: shown + key } });
+      shown = box().value;
+    }
+    expect(box().value).toBe('1995-03-5');
+  });
+
   it('marks an unfinished day, a day that does not exist and a day outside min / max once the person leaves the box', () => {
     render(<Controlled min="2026-11-27" />);
     fireEvent.change(box(), { target: { value: '2026-1' } });

@@ -12,6 +12,12 @@ Plan: `docs/plans/phase-2-tickets.md` (section «بلّغ عن مشكلة في �
 | 553 | **A pop-up fades without moving** (`animate-fade`, opacity only) and is at most `92dvh − 5rem` high. A `transform` animation makes the window the reference of a fixed child while it runs (the button jumped for 0.2 s), and the height keeps the corner buttons clear of the window's own buttons on a phone. | Found while building the corner. | Dialogs get a slide again with another way to place the corner tools |
 | 554 | **The corner buttons are left out of the screenshot** (`data-no-screenshot`, read by `isPrivate`) and the bars at the bottom of a page reserve `pe-32` (two round buttons and the gap) instead of `pe-20`. The tour step «Report a problem» points at the corner button with its bubble above it. | The way in is not part of the problem; the bars must not be covered by either button (decision 543). | |
 
+## 2026-11-28 — The calendar of a date box opens beside it
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 559 | **The hidden native date control of `DateInput` has a real size and lies on the calendar button** (`size-8`, centred on it, `opacity-0`, `pointer-events-none`, `aria-hidden`), not `size-0` under the box. **The mask keeps a dash the person types after a whole year or month** (`1995-`, `1995-03-`, also `/` and `.`) and zero-pads a one-digit month or day that a dash closes (`1995-3-` → `1995-03-`); it used to rebuild the text from digits only, so a typed `-` vanished. A half-typed birth date in «Request a change of my basic data» is told «write the whole date: year-month-day» and its age is judged only for a whole day. | Owner: in that window the calendar opened in the top-left corner of the screen, far from the field, and she could not finish the date. Chrome opens the picker at the corner of the screen when the date control it is given has no size. The age message («the age between 18 and 70») for `1995` was no help to someone who had only typed the year. | A calendar in the platform's language replaces the browser's picker |
+
 ## 2026-11-28 — Tickets board: move by drag and drop (FR-227)
 
 Plan: `docs/plans/phase-2-tickets.md` (section «نقل التذاكر بين الحالات بالسحب والإفلات»). The three business answers are the owner's, 2026-11-28.

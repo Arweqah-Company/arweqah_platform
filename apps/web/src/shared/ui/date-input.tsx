@@ -55,8 +55,9 @@ export function DateInput({ ref, onChange, onBlur, min, max, className, 'aria-in
         className="absolute end-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-muted hover:text-fg disabled:opacity-40">
         <CalendarDays aria-hidden className="size-4" />
       </button>
+ {/* The calendar's own control lies on the calendar button with a real size: with none, Chrome opens the calendar in the top-left corner of the screen. It takes no clicks and is hidden from everyone. */}
       <input ref={picker} type="date" tabIndex={-1} aria-hidden min={bound(min)} max={bound(max)}
-        className="pointer-events-none absolute end-2 top-full size-0 opacity-0" onChange={(e) => own.current && typeInto(own.current, e.target.value)} />
+        className="pointer-events-none absolute end-2 top-1/2 size-8 -translate-y-1/2 opacity-0" onChange={(e) => own.current && typeInto(own.current, e.target.value)} />
     </span>
   );
 }

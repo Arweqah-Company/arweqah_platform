@@ -8,7 +8,24 @@ describe('FR-201: the date field writes YYYY-MM-DD in Latin digits', () => {
     expect(maskDay('202612')).toBe('2026-12');
     expect(maskDay('2026120')).toBe('2026-12-0');
     expect(maskDay('20261201999')).toBe('2026-12-01');
-    expect(maskDay('2026-')).toBe('2026');
+  });
+
+  it('keeps a dash the person types after a whole year or month, so «1995-03-12» can be typed as it is written', () => {
+    expect(maskDay('2026-')).toBe('2026-');
+    expect(maskDay('2026-1')).toBe('2026-1');
+    expect(maskDay('2026-12-')).toBe('2026-12-');
+    expect(maskDay('2026-12-0')).toBe('2026-12-0');
+    expect(maskDay('2026/12/01')).toBe('2026-12-01');
+    expect(maskDay('2026.12.01')).toBe('2026-12-01');
+    expect(maskDay('2026--')).toBe('2026-');
+    expect(maskDay('199-')).toBe('199'); // a dash after an unfinished year is not one
+  });
+
+  it('pads a month or day of one digit that a dash closes, and lets the digits after a month go on into the day', () => {
+    expect(maskDay('2026-1-')).toBe('2026-01-');
+    expect(maskDay('2026-1-5')).toBe('2026-01-5');
+    expect(maskDay('2026-031')).toBe('2026-03-1');
+    expect(maskDay('2026-12-019')).toBe('2026-12-01');
   });
 
   it('turns Arabic-Indic and Persian digits into Latin ones, also from a paste with other separators', () => {
