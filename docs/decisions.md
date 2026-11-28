@@ -12,6 +12,16 @@ Plan: `docs/plans/phase-2-tickets.md` (section «بلّغ عن مشكلة في �
 | 553 | **A pop-up fades without moving** (`animate-fade`, opacity only) and is at most `92dvh − 5rem` high. A `transform` animation makes the window the reference of a fixed child while it runs (the button jumped for 0.2 s), and the height keeps the corner buttons clear of the window's own buttons on a phone. | Found while building the corner. | Dialogs get a slide again with another way to place the corner tools |
 | 554 | **The corner buttons are left out of the screenshot** (`data-no-screenshot`, read by `isPrivate`) and the bars at the bottom of a page reserve `pe-32` (two round buttons and the gap) instead of `pe-20`. The tour step «Report a problem» points at the corner button with its bubble above it. | The way in is not part of the problem; the bars must not be covered by either button (decision 543). | |
 
+## 2026-11-28 — Tickets board: move by drag and drop (FR-227)
+
+Plan: `docs/plans/phase-2-tickets.md` (section «نقل التذاكر بين الحالات بالسحب والإفلات»). The three business answers are the owner's, 2026-11-28.
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 560 | **A drag to «closed» by the handling unit is «close without execution»** (the existing action, with its window); there is no new «closed as done» close reason and no closing that skips the sender's confirmation. The sender's moves (confirm, decline, reopen) are on the board too, each with its own window. | Owner's answers: «close without execution» (no new rule), «all moves, the sender's as well». The done-and-confirmed path stays ask to close → the sender confirms. | The owner wants the unit to close «as executed» directly |
+| 561 | **Every move opens the action's own window with an optional message** (`ActionDialog`, now exported from `ticket-actions.tsx` and shared with the ticket page, as the keys are in `ticket-moves.ts`). | Owner's answer: the message is optional always; one window, not a copy. | |
+| 562 | **The board proposes, the API decides:** the screen offers a column when an action leads there and the person holds its key (`moveTargets`; «confirm / decline / reopen» only when they are the ticket's sender), and the five routes keep refusing (404 out of reach, 403, 422 wrong state or window over); a refusal shows in the window and the card stays. The list rows carry no per-row abilities. | Same pattern as the tasks board; no list change. A drop with no action leads nowhere and says why. | The list rows carry the abilities (then a drag could be refused before it starts) |
+
 ## 2026-11-28 — One focus frame per control
 
 | # | Decision | Why | Revisit when |
