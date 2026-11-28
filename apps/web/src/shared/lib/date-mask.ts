@@ -4,10 +4,30 @@ export function toLatinDigits(text: string): string {
   return text.replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (c) => String((c.charCodeAt(0) - 0x0660) % 0x90));
 }
 
-/** Whatever the person typed or pasted, shaped as `2026`, `2026-1`, `2026-12-01`: digits only (up to 8), dashes added by the field. */
-export function maskDay(text: string): string {
-  const digits = toLatinDigits(text).replace(/\D/g, '').slice(0, 8);
+/** Digits only (up to 8) with the dashes added by the field: `2026`, `2026-1`, `2026-12-01`. */
+function maskDigits(text: string): string {
+  const digits = text.replace(/\D/g, '').slice(0, 8);
   return [digits.slice(0, 4), digits.slice(4, 6), digits.slice(6, 8)].filter(Boolean).join('-');
+}
+
+/**
+ * Whatever the person typed or pasted, shaped as `2026`, `2026-1`, `2026-12-01`. The field adds the dashes itself, but a dash the person types after a whole year
+ * or month stays (`1995-`, `1995-03-`: it can be typed as it is written, with `-`, `/` or `.`), and a month or day of one digit that a dash closes gets its zero
+ * (`1995-3-` becomes `1995-03-`). Anything else is read as digits only.
+ */
+export function maskDay(text: string): string {
+  const raw = toLatinDigits(text);
+  const parts = raw.split(/\D/);
+  if (!isTypedWithDashes(parts)) return maskDigits(raw);
+  const [year, month = '', day = ''] = parts;
+  const closed = parts.length === 3 && month !== '';
+  return `${year}-${closed ? month.padStart(2, '0') : month}${closed ? `-${day}` : ''}`;
+}
+
+/** A whole year, then a dash, then at most a month and a day of two digits each (anything longer is read as digits only). */
+function isTypedWithDashes(parts: string[]): boolean {
+  const [year = '', month = '', day = ''] = parts;
+  return parts.length >= 2 && parts.length <= 3 && year.length === 4 && month.length <= 2 && day.length <= 2;
 }
 
 /** A complete day that exists on the calendar (`2026-02-30` is not one). */
