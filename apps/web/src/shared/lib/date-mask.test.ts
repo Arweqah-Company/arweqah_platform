@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dayProblem, isRealDay, maskDay, toLatinDigits } from './date-mask';
+import { canonicalDay, dayProblem, isRealDay, maskDay, toLatinDigits } from './date-mask';
 
 describe('FR-201: the date field writes YYYY-MM-DD in Latin digits', () => {
   it('adds the dashes itself while typing and stops at 8 digits', () => {
@@ -8,7 +8,31 @@ describe('FR-201: the date field writes YYYY-MM-DD in Latin digits', () => {
     expect(maskDay('202612')).toBe('2026-12');
     expect(maskDay('2026120')).toBe('2026-12-0');
     expect(maskDay('20261201999')).toBe('2026-12-01');
-    expect(maskDay('2026-')).toBe('2026');
+  });
+
+  it('keeps a dash the person types after a whole year or month, so «1995-03-12» can be typed as it is written', () => {
+    expect(maskDay('2026-')).toBe('2026-');
+    expect(maskDay('2026-1')).toBe('2026-1');
+    expect(maskDay('2026-12-')).toBe('2026-12-');
+    expect(maskDay('2026-12-0')).toBe('2026-12-0');
+    expect(maskDay('2026/12/01')).toBe('2026-12-01');
+    expect(maskDay('2026.12.01')).toBe('2026-12-01');
+    expect(maskDay('2026--')).toBe('2026-');
+    expect(maskDay('199-')).toBe('199'); // a dash after an unfinished year is not one
+  });
+
+  it('pads a month or day of one digit that a dash closes, and lets the digits after a month go on into the day', () => {
+    expect(maskDay('2026-1-')).toBe('2026-01-');
+    expect(maskDay('2026-1-5')).toBe('2026-1-5'); // a month inside a day already written is left as it is
+    expect(maskDay('2026-1-15')).toBe('2026-1-15'); // so a digit of the month can be deleted from «2026-01-15»
+    expect(maskDay('1995-3-1-')).toBe('1995-03-01');
+    expect(maskDay('2026-031')).toBe('2026-03-1');
+    expect(maskDay('2026-12-019')).toBe('2026-12-01');
+    expect(maskDay('1995-03-1-')).toBe('1995-03-01'); // a trailing dash closes a day of one digit too
+    expect(maskDay('1995-03-12-')).toBe('1995-03-12');
+    expect(maskDay('1995-03-1')).toBe('1995-03-1'); // without the dash it is still being typed
+    expect(maskDay('1995-03--')).toBe('1995-03-'); // a second dash after an empty day does not make it «00»
+    expect(maskDay('2026--12')).toBe('2026-12'); // a pasted day with no month is read as digits
   });
 
   it('turns Arabic-Indic and Persian digits into Latin ones, also from a paste with other separators', () => {
@@ -31,5 +55,15 @@ describe('FR-201: the date field writes YYYY-MM-DD in Latin digits', () => {
     expect(dayProblem('2026-11-01', '2026-11-27')).toBe('range');
     expect(dayProblem('2026-12-01', '2026-11-27', '2026-12-31')).toBeNull();
     expect(dayProblem('2027-01-01', undefined, '2026-12-31')).toBe('range');
+  });
+
+  it('gives a whole day written with a one-digit month or day its zeros, and leaves anything else alone', () => {
+    expect(canonicalDay('2026-1-15')).toBe('2026-01-15');
+    expect(canonicalDay('2026-1-5')).toBe('2026-01-05');
+    expect(canonicalDay('2026-12-1')).toBe('2026-12-01');
+    expect(canonicalDay('2026-01-15')).toBe('2026-01-15');
+    expect(canonicalDay('2026-1-')).toBe('2026-1-');
+    expect(canonicalDay('2026-1')).toBe('2026-1');
+    expect(canonicalDay('')).toBe('');
   });
 });

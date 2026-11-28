@@ -52,7 +52,7 @@ function SaveBar({ editing, id, busy, step, twoSteps, onNext, onBack }: BarProps
   const { t: tc } = useTranslation();
   const last = !twoSteps || step === 'roles';
   return (
-    <div className="sticky bottom-3 z-10 flex h-16 items-center justify-end gap-2 rounded-2xl border border-neutral-200 bg-white/95 ps-3 pe-20 shadow-sm shadow-ink/5 backdrop-blur sm:ps-5 lg:bottom-4 lg:col-span-2">
+    <div className="sticky bottom-3 z-10 flex h-16 items-center justify-end gap-2 rounded-2xl border border-neutral-200 bg-white/95 ps-3 pe-32 shadow-sm shadow-ink/5 backdrop-blur sm:ps-5 lg:bottom-4 lg:col-span-2">
       {last && !editing && <div className="me-auto"><CheckField name="sendInvite" label={t('fields.sendInvite')} /></div>}
       {step === 'roles' && <Button variant="secondary" onClick={onBack}>{t('back')}</Button>}
       <Button variant="secondary" asChild><Link to={editing ? `/employees/${id}` : '/employees'}>{tc('actions.cancel')}</Link></Button>

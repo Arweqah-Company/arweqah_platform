@@ -130,6 +130,20 @@ describe('Profile page (FR-33)', () => {
       expect(screen.queryByRole('link', { name: 'تعديل في صفحة الموظف' })).not.toBeInTheDocument();
     });
 
+    it('tells a half-typed birth date to be finished instead of judging its age, and judges the age only of a whole day', async () => {
+      const asker = [{ key: 'profile.update_basic', scope: 'all' as const }];
+      server.use(http.get('*/api/me', () => HttpResponse.json(me(asker))), http.get('*/api/me/access', () => HttpResponse.json(access(asker))), http.get('*/api/lookups', () => HttpResponse.json({ countries: [], maritalStatuses: [] })), http.get('*/api/me/profile/basic-request', () => new HttpResponse(null, { status: 200 })));
+      open(without([]));
+      fireEvent.click(await screen.findByRole('button', { name: 'طلب تعديل' }));
+      const field = await screen.findByLabelText('تاريخ الميلاد');
+      fireEvent.change(field, { target: { value: '1995' } });
+      expect(await screen.findByText('اكتب التاريخ كاملًا: سنة-شهر-يوم، مثل 1995-03-12.')).toBeInTheDocument();
+      fireEvent.change(field, { target: { value: '1995-03-12' } });
+      await waitFor(() => expect(screen.queryByText(/اكتب التاريخ كاملًا/)).not.toBeInTheDocument());
+      fireEvent.change(field, { target: { value: '2020-01-01' } });
+      expect(await screen.findByText(/العمر بين 18 و70/)).toBeInTheDocument();
+    });
+
     it('offers no request when every basic detail can be changed directly', async () => {
       const asker = [{ key: 'profile.update_basic', scope: 'all' as const }, { key: 'employees.view', scope: 'own' as const }];
       server.use(http.get('*/api/me', () => HttpResponse.json(me(asker))), http.get('*/api/me/access', () => HttpResponse.json(access(asker))), http.get('*/api/me/profile/basic-request', () => new HttpResponse(null, { status: 200 })));

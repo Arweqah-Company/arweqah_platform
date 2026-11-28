@@ -2,6 +2,44 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-28 — Review of the release pull request #201 (CodeRabbit)
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 563 | **Both corner buttons carry `data-no-screenshot`** (the assistant's too, not only «Report a problem»); the date mask closes a one-digit day with a trailing dash (`1995-03-1-` → `1995-03-01`) reads a day after an empty month as digits (`2026--12` → `2026-12`), never pads an empty day (`1995-03--` stays `1995-03-`), and pads a one-digit month only as its dash closes it, not inside a day already written (so a digit of the month in `2026-01-15` can be deleted). A whole day with a one-digit month or day gets its zeros (`canonicalDay`) **when it is pasted** (`inputType = insertFromPaste`, any of `-` `/` `.`) **and when the person leaves the box**, before it is judged and handed to the form, never while they edit it. | Three real comments, each reproduced with a failing test: the screenshot still showed the assistant's button although decision 554 said both were left out; the mask's own documentation promised the zero for a closed day; a pasted `2026--12` lost its day. | |
+
+## 2026-11-28 — «Report a problem» in one fixed corner (FR-226)
+
+Plan: `docs/plans/phase-2-tickets.md` (section «بلّغ عن مشكلة في مكان واحد ثابت»).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 552 | **One corner for the tools every page has** (`FloatingTools` in the shell: «Report a problem», then the assistant at the end), fixed at `bottom-4 end-4`; the header no longer has the button. A pop-up window draws the same button in the same spot inside its own content (`DialogToolsProvider` → `DialogCornerTools`, `z-50`, `pointer-events-none` box with a clickable button), leaving room for the assistant's width only while the assistant is on the screen. | Owner: one place on every page and in every window. The header is covered by a window, so the button had a second copy in each window's header; a corner is where the assistant already lives. Inside the window's content it is not hidden from screen readers, is reachable by Tab, and a click is not «outside» (which would close the window). | A third tool joins the corner |
+| 553 | **A pop-up fades without moving** (`animate-fade`, opacity only) and is at most `92dvh − 5rem` high. A `transform` animation makes the window the reference of a fixed child while it runs (the button jumped for 0.2 s), and the height keeps the corner buttons clear of the window's own buttons on a phone. | Found while building the corner. | Dialogs get a slide again with another way to place the corner tools |
+| 554 | **The corner buttons are left out of the screenshot** (`data-no-screenshot`, read by `isPrivate`) and the bars at the bottom of a page reserve `pe-32` (two round buttons and the gap) instead of `pe-20`. The tour step «Report a problem» points at the corner button with its bubble above it. | The way in is not part of the problem; the bars must not be covered by either button (decision 543). | |
+
+## 2026-11-28 — The calendar of a date box opens beside it
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 559 | **The hidden native date control of `DateInput` has a real size and lies on the calendar button** (`size-8`, centred on it, `opacity-0`, `pointer-events-none`, `aria-hidden`), not `size-0` under the box. **The mask keeps a dash the person types after a whole year or month** (`1995-`, `1995-03-`, also `/` and `.`) and zero-pads a one-digit month or day that a dash closes (`1995-3-` → `1995-03-`); it used to rebuild the text from digits only, so a typed `-` vanished. A half-typed birth date in «Request a change of my basic data» is told «write the whole date: year-month-day» and its age is judged only for a whole day. | Owner: in that window the calendar opened in the top-left corner of the screen, far from the field, and she could not finish the date. Chrome opens the picker at the corner of the screen when the date control it is given has no size. The age message («the age between 18 and 70») for `1995` was no help to someone who had only typed the year. | A calendar in the platform's language replaces the browser's picker |
+
+## 2026-11-28 — Tickets board: move by drag and drop (FR-227)
+
+Plan: `docs/plans/phase-2-tickets.md` (section «نقل التذاكر بين الحالات بالسحب والإفلات»). The three business answers are the owner's, 2026-11-28.
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 560 | **A drag to «closed» by the handling unit is «close without execution»** (the existing action, with its window); there is no new «closed as done» close reason and no closing that skips the sender's confirmation. The sender's moves (confirm, decline, reopen) are on the board too, each with its own window. | Owner's answers: «close without execution» (no new rule), «all moves, the sender's as well». The done-and-confirmed path stays ask to close → the sender confirms. | The owner wants the unit to close «as executed» directly |
+| 561 | **Every move opens the action's own window with an optional message** (`ActionDialog`, now exported from `ticket-actions.tsx` and shared with the ticket page, as the keys are in `ticket-moves.ts`). | Owner's answer: the message is optional always; one window, not a copy. | |
+| 562 | **The board proposes, the API decides:** the screen offers a column when an action leads there and the person holds its key (`moveTargets`; «confirm / decline / reopen» only when they are the ticket's sender), and the five routes keep refusing (404 out of reach, 403, 422 wrong state or window over); a refusal shows in the window and the card stays. The list rows carry no per-row abilities. | Same pattern as the tasks board; no list change. A drop with no action leads nowhere and says why. | The list rows carry the abilities (then a drag could be refused before it starts) |
+
+## 2026-11-28 — One focus frame per control
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 558 | **The default focus ring (`:focus-visible`, 2 px) is in `@layer base`**, so a utility such as `outline-none` on a control that draws its own focus wins over it. Buttons, links and rows (no `outline-none`) keep the ring for the keyboard. | Owner: a heavy black frame around the field in «New ticket». The unlayered rule beat `outline-none` on every field, so each one showed its dark outline over its own border and halo (measured: `outline: solid 2px` on the search box and the title field). Every `outline-none` in the app has its own indicator (border and halo, a frame with `focus-within`, a bottom rule, a stroke). | A control with `outline-none` and no focus indicator of its own is found |
+
 ## 2026-11-28 — Review of the release pull request #196 (CodeRabbit)
 
 Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-28). Twelve comments, eleven real (reproduced with a failing test first), one answered; a second pass on the fixes added four (decisions 555–557).

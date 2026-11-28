@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useLookups } from '@/features/employees';
+import { isRealDay } from '@/shared/lib/date-mask';
 import { errorMessage } from '@/shared/lib/error-message';
 import { Alert, Button, Combobox, DateInput, Dialog, DialogFooter, FormField, Input, Select } from '@/shared/ui';
 import { useSendBasicRequest } from './api';
@@ -58,7 +59,8 @@ export function BasicRequestDialog({ employee, open, onOpenChange, fields = BASI
   const [draft, setDraft] = useState<Draft>(record);
   const set = (key: keyof Draft) => (value: string) => setDraft((prev) => ({ ...prev, [key]: value }));
   const parsed = basicRequestSchema.safeParse(changesOf(draft, record, fields));
-  const birthProblem = !parsed.success && parsed.error.issues.some((i) => i.path[0] === 'birthDate') ? t('request.errors.birthDate') : undefined;
+  const birthWrong = !parsed.success && parsed.error.issues.some((i) => i.path[0] === 'birthDate');
+  const birthProblem = birthWrong ? t(isRealDay(draft.birthDate) ? 'request.errors.birthDate' : 'request.errors.birthFormat') : undefined; // a half-typed day is told to be finished, not judged by its age
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!parsed.success) return;

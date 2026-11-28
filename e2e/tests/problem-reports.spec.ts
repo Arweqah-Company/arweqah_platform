@@ -84,4 +84,42 @@ test.describe('Report a problem (FR-195 … FR-199)', () => {
     await settled(page);
     await new Screen(page).expectNoSeriousA11yIssues();
   });
+
+  test('the button sits in one corner beside the assistant, is not in the header, and shows in the same place inside a pop-up window (FR-226)', async ({ page }) => {
+    test.setTimeout(120_000);
+    await ensureReportType(page);
+    const types = (await (await page.request.get('/api/problem-report-settings/types')).json()) as { typeId: string }[];
+    expect((await page.request.put('/api/problem-report-settings', { data: { enabled: true, ticketTypeId: types[0]!.typeId, analyzeWithAi: false, sendImageToAi: false, maxPerHour: 10 }, headers: ORIGIN })).ok()).toBe(true);
+    await page.goto('/tickets');
+    const corner = page.getByTestId('floating-tools');
+    const report = corner.getByRole('button', { name: 'بلّغ عن مشكلة', includeHidden: true });
+    const assistant = corner.getByRole('button', { name: 'فتح مساعد المنصة' });
+    await expect(report).toBeVisible();
+    await expect(assistant).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('button', { name: 'بلّغ عن مشكلة' })).toHaveCount(0);
+    const [r, a] = [await report.boundingBox(), await assistant.boundingBox()];
+    expect(Math.abs(r!.y - a!.y)).toBeLessThan(1); // one row, the same size
+    expect(r!.width).toBe(48); // the same round size as the assistant's, on a wide screen too
+    expect(a!.width).toBe(48);
+    expect(Math.abs(r!.x - a!.x)).toBeGreaterThanOrEqual(a!.width); // side by side, not on top of each other
+    await page.getByRole('button', { name: 'تذكرة جديدة' }).click();
+    const popup = page.getByRole('dialog', { name: 'تذكرة جديدة' });
+    await expect(popup).toBeVisible();
+    const inside = popup.getByRole('button', { name: 'بلّغ عن مشكلة' });
+    await expect(inside).toBeVisible();
+    const i = await inside.boundingBox();
+    // The window locks the page's scroll (its scrollbar goes), which moves every fixed thing: the page's own button is measured now, still under the overlay and hidden from the accessibility tree.
+    const under = await report.and(page.getByRole('button', { name: 'بلّغ عن مشكلة', includeHidden: true })).boundingBox();
+    expect(Math.abs(i!.x - under!.x)).toBeLessThan(1); // the pop-up's button covers the page's one exactly
+    expect(Math.abs(i!.y - under!.y)).toBeLessThan(1);
+    const popupBox = await popup.boundingBox();
+    expect(i!.y).toBeGreaterThanOrEqual(popupBox!.y + popupBox!.height - 1); // and never lies over the window's own buttons
+    await settled(page);
+    await new Screen(page).expectNoSeriousA11yIssues();
+    await page.setViewportSize({ width: 360, height: 700 });
+    const small = await popup.getByRole('button', { name: 'بلّغ عن مشكلة' }).boundingBox();
+    expect(small!.x).toBeGreaterThanOrEqual(0);
+    expect(small!.x + small!.width).toBeLessThanOrEqual(360);
+    expect(small!.y + small!.height).toBeLessThanOrEqual(700);
+  });
 });

@@ -157,7 +157,7 @@ Here you edit the wording of every e-mail the platform sends (the account activa
 
 ### The Problem reports tab
 
-It controls the **Report a problem** button that every employee sees in the top bar (see the Tickets page).
+It controls the **Report a problem** button that every employee sees in the bottom corner of the screen beside the assistant's button (see the Tickets page).
 
 | Setting | Meaning | Values |
 |---|---|---|

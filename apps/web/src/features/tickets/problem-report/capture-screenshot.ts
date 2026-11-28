@@ -2,9 +2,9 @@ import { toJpeg } from 'html-to-image';
 
 const QUALITY = 0.85;
 
-/** Nodes that never go into a screenshot: password fields and anything marked `data-private`. */
+/** Nodes that never go into a screenshot: password fields, anything marked `data-private`, and the corner tools marked `data-no-screenshot` (they are the way in, not part of the problem). */
 export function isPrivate(node: Node): boolean {
-  return node instanceof HTMLElement && (node.dataset.private !== undefined || (node instanceof HTMLInputElement && node.type === 'password'));
+  return node instanceof HTMLElement && (node.dataset.private !== undefined || node.dataset.noScreenshot !== undefined || (node instanceof HTMLInputElement && node.type === 'password'));
 }
 
 /** The bytes of a `data:` URL, read without a network call (the page's own rules allow no `data:` fetch). */

@@ -3,13 +3,10 @@ import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { me, server } from '../../../test/msw';
 import { renderPage } from '../../../test/render';
+import { ticketItem } from '../../../test/ticket-fixtures';
 import { TicketsPage } from './tickets-page';
 
-const ticket = (id: string, number: number, status: string) => ({
-  id, number, title: `تذكرة ${number}`, status, closeReason: null, priority: 0, neededBy: '2026-11-01', isPersonal: false,
-  deskId: 'd1', deskNameAr: 'الدعم', deskNameEn: 'Support', typeId: 't1', typeNameAr: 'عطل', typeNameEn: 'Fault',
-  sender: { id: 'u1', name: 'سارة' }, assignee: null, createdAt: '2026-10-01', lastActivityAt: '2026-10-01', overdue: false, stale: false, isNew: true,
-});
+const ticket = ticketItem;
 
 describe('Tickets Kanban board (FR-48)', () => {
   beforeEach(() => window.localStorage.clear());

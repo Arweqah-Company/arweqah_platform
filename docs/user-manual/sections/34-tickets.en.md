@@ -17,7 +17,7 @@ A ticket is the official way to ask another department for something: you choose
 |---|---|---|
 | New ticket | Opens the two-step popup to send a ticket | `tickets.create` (Send a new ticket) |
 | Open a ticket | Click the row, or the eye icon, to open its page | `tickets.view` |
-| Report a problem | The **bug** button («Report a problem») in the top bar of every page (shown while the administrator has reports on): takes a screenshot of the screen, asks for a line about the problem, and sends it as a ticket of the type the administrator chose; see «Reporting a problem in the platform» below | `tickets.report_problem` (Report a problem in the platform; every role holds it by default) |
+| Report a problem | The **bug** button («Report a problem») in the bottom corner of the screen beside the assistant's button, on every page and over every open pop-up window (FR-226) (shown while the administrator has reports on): takes a screenshot of the screen, asks for a line about the problem, and sends it as a ticket of the type the administrator chose; see «Reporting a problem in the platform» below | `tickets.report_problem` (Report a problem in the platform; every role holds it by default) |
 | Reply | Writes an answer with files and mentions | `tickets.reply` (Reply to and handle tickets) |
 | Answer a reply | Replies to one reply, one level only | `tickets.comment_reply` (Answer a reply inside a ticket) |
 | Mention with @ | Names a colleague in a reply | `tickets.comment_mention` (Mention a colleague with @ in a ticket reply) |
@@ -33,6 +33,7 @@ A ticket is the official way to ask another department for something: you choose
 | Choose handler | On a ticket whose type has several handlers and that nobody has taken, the unit head picks one of that type's handlers; the ticket becomes theirs, they are notified, and it disappears from the other handlers | `tickets.choose_handler` (Choose who answers a ticket among the handlers of its type) |
 | Reassign | A unit head hands an open ticket of their unit to someone on their team | `tickets.reassign` (Reassign a ticket to another employee) |
 | Quick reply | On the board, a short reply from the card | `tickets.reply` |
+| Move a ticket between the board's columns (FR-227) | Drag the card by its handle (or choose the column in the «Move ticket … to» menu under the handle, for the keyboard and the phone) to the column you want; the action's window opens with an **optional message**: **Open → Waiting for confirmation** = ask to close (`tickets.request_close`); **Open → Closed** = close without execution (`tickets.close_without_execution`), which the handling unit does; **Waiting → Closed** = confirm the closing for the sender (`tickets.confirm_close`) or close without execution for the unit; **Waiting → Open** = decline the closing for the sender (`tickets.decline_close`); **Closed → Open** = reopen for the sender within the window (`tickets.reopen`). A card with no move your keys allow has no handle and no menu, and whatever the server refuses (out of your reach, window over) shows in the window and the card stays. | The same action keys |
 | Export | The «Export» button of the list's toolbar: choose the scope (the tickets on this page, or all the results of the tab, search and filters you have on), the columns and the file type (Excel, CSV). The file holds the number, title, **the ticket's text**, department, type, sender, handler, status, priority, needed-by date, send date and last activity. You export only the tickets you can see, never more | `tickets.export` (Export the ticket list); not held by the «Employee» role, held by the head role of every unit |
 
 The tickets list has no import button. Tickets are sent one by one from the popup, not from a file.
@@ -111,7 +112,7 @@ Pressing **Change** at the top of step 2 returns to step 1 without losing what y
 
 ### Reporting a problem in the platform
 
-Something does not work? Press the **bug** button («Report a problem») in the top bar, or the same button beside the «Close» button of any pop-up window that is open (a pop-up covers the top bar), so a problem inside a pop-up can be reported with the pop-up in the screenshot (it appears only while the administrator has «Report a problem» switched on in Settings → Problem reports).
+Something does not work? Press the **bug** button («Report a problem»): it is always in one place, the bottom corner beside the assistant's button, and stays there over any open pop-up window (pressing it does not close the window), so a problem inside a pop-up can be reported with the pop-up in the screenshot (it appears only while the administrator has «Report a problem» switched on in Settings → Problem reports).
 
 1. A **screenshot of what the window shows** is taken from the page itself (no permission to give). Password fields are left out.
 2. A window shows the screenshot (click it to see it full size), a box **What is the problem?** (optional, up to 1000 characters) and a line saying what goes with the report: the page name, the browser, the window size, the language, the theme and the last errors; the content of the page is not sent, only the screenshot.

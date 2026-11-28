@@ -28,6 +28,50 @@ describe('FR-201: DateInput', () => {
     expect(box().value).toBe('1996-11-2');
   });
 
+  it('lets the person type the dashes themselves, one key at a time, and ends with the same day as without them', () => {
+    render(<Controlled />);
+    let shown = '';
+    for (const key of '1995-03-12') {
+      fireEvent.change(box(), { target: { value: shown + key } });
+      shown = box().value;
+    }
+    expect(box().value).toBe('1995-03-12');
+    fireEvent.change(box(), { target: { value: '' } });
+    shown = '';
+    for (const key of '1995-3-5') {
+      fireEvent.change(box(), { target: { value: shown + key } });
+      shown = box().value;
+    }
+    expect(box().value).toBe('1995-03-5');
+  });
+
+  it('completes a pasted whole day with a one-digit month or day at once, with any separator', () => {
+    render(<Controlled />);
+    const paste = (text: string) => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(box(), text);
+      box().dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertFromPaste' }));
+    };
+    paste('2026/1/15');
+    expect(box().value).toBe('2026-01-15');
+    paste('2026.3.5');
+    expect(box().value).toBe('2026-03-05');
+  });
+
+  it('lets a digit of the month be deleted from a whole day while it is edited, and gives the zero back when the person leaves the box', () => {
+    const changes: string[] = [];
+    function Watched() {
+      const [value, setValue] = useState('2026-01-15');
+      return <DateInput aria-label="day" value={value} onChange={(e) => { changes.push(e.target.value); setValue(e.target.value); }} />;
+    }
+    render(<Watched />);
+    fireEvent.change(box(), { target: { value: '2026-1-15' } }); // the 0 deleted
+    expect(box().value).toBe('2026-1-15');
+    fireEvent.blur(box());
+    expect(box().value).toBe('2026-01-15');
+    expect(changes[changes.length - 1]).toBe('2026-01-15'); // the consumer gets the canonical day
+    expect(box()).toHaveAttribute('aria-invalid', 'false');
+  });
+
   it('marks an unfinished day, a day that does not exist and a day outside min / max once the person leaves the box', () => {
     render(<Controlled min="2026-11-27" />);
     fireEvent.change(box(), { target: { value: '2026-1' } });
