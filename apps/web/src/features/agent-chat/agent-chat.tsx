@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMe } from '@/core/auth/session';
 import { usePermissions } from '@/core/permissions/can';
-import { Button } from '@/shared/ui';
+import { Button, CORNER_BUTTON } from '@/shared/ui';
 import { ChatPanel } from './chat-panel';
 import { AGENT_KEYS } from './keys';
 
@@ -41,7 +41,7 @@ export function AgentChat() {
           <ChatPanel onClose={() => setOpen(false)} onNavigate={() => { if (window.innerWidth < 640) setOpen(false); }} />
         </aside>
       )}
-      <Button ref={opener} size="icon" className="size-12 rounded-full" aria-label={t('open')} aria-expanded={open} data-tour="agent-chat" onClick={() => setOpen(!open)}>
+      <Button ref={opener} size="icon" className={CORNER_BUTTON} aria-label={t('open')} aria-expanded={open} data-tour="agent-chat" onClick={() => setOpen(!open)}>
         <Sparkles className="size-5" aria-hidden />
       </Button>
     </>

@@ -2,6 +2,16 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-28 — «Report a problem» in one fixed corner (FR-226)
+
+Plan: `docs/plans/phase-2-tickets.md` (section «بلّغ عن مشكلة في مكان واحد ثابت»).
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 552 | **One corner for the tools every page has** (`FloatingTools` in the shell: «Report a problem», then the assistant at the end), fixed at `bottom-4 end-4`; the header no longer has the button. A pop-up window draws the same button in the same spot inside its own content (`DialogToolsProvider` → `DialogCornerTools`, `z-50`, `pointer-events-none` box with a clickable button), leaving room for the assistant's width only while the assistant is on the screen. | Owner: one place on every page and in every window. The header is covered by a window, so the button had a second copy in each window's header; a corner is where the assistant already lives. Inside the window's content it is not hidden from screen readers, is reachable by Tab, and a click is not «outside» (which would close the window). | A third tool joins the corner |
+| 553 | **A pop-up fades without moving** (`animate-fade`, opacity only) and is at most `92dvh − 5rem` high. A `transform` animation makes the window the reference of a fixed child while it runs (the button jumped for 0.2 s), and the height keeps the corner buttons clear of the window's own buttons on a phone. | Found while building the corner. | Dialogs get a slide again with another way to place the corner tools |
+| 554 | **The corner buttons are left out of the screenshot** (`data-no-screenshot`, read by `isPrivate`) and the bars at the bottom of a page reserve `pe-32` (two round buttons and the gap) instead of `pe-20`. The tour step «Report a problem» points at the corner button with its bubble above it. | The way in is not part of the problem; the bars must not be covered by either button (decision 543). | |
+
 ## 2026-11-28 — Review of the release pull request #196 (CodeRabbit)
 
 Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-28). Twelve comments, ten real (reproduced with a failing test first), two answered.

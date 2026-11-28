@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePermissions } from '@/core/permissions/can';
 import { cn } from '@/shared/lib/cn';
-import { Button } from '@/shared/ui';
+import { Button, CORNER_BUTTON } from '@/shared/ui';
 import { useProblemReportAvailability } from './api';
 import { captureScreenshot } from './capture-screenshot';
 import { buildProblemContext } from './problem-context';
@@ -31,7 +31,7 @@ export function ProblemReportButton({ inDialog = false }: { inDialog?: boolean }
   };
   return (
     <>
-      <Button variant="secondary" size="icon" className={cn('size-12 rounded-full shadow-md shadow-ink/10', inDialog && 'pointer-events-auto')} data-no-screenshot="" data-tour={inDialog ? undefined : 'problem-report'} aria-label={t('problemReport.button')} title={t('problemReport.button')} disabled={busy} onClick={() => void open()}>
+      <Button variant="secondary" size="icon" className={cn(CORNER_BUTTON, 'shadow-md shadow-ink/10', inDialog && 'pointer-events-auto')} data-no-screenshot="" data-tour={inDialog ? undefined : 'problem-report'} aria-label={t('problemReport.button')} title={t('problemReport.button')} disabled={busy} onClick={() => void open()}>
         <Bug className="size-5" aria-hidden />
       </Button>
       {opened && <ProblemReportDialog screenshot={opened.screenshot} context={opened.context} imageToAi={availability.data.imageToAi} canAnalyze={availability.data.canAnalyze} onClose={() => setOpened(null)} />}
