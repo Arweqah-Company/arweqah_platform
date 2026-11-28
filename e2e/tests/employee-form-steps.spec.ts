@@ -51,4 +51,24 @@ test.describe('The two steps of the employee form', () => {
     await expect(page.locator('input[type="date"]:not([aria-hidden="true"])')).toHaveCount(0);
     expect(await page.locator('input[type="date"]').evaluateAll((els) => els.every((e) => getComputedStyle(e).opacity === '0' && getComputedStyle(e).pointerEvents === 'none'))).toBe(true);
   });
+
+  test('FR-201: the calendar of a date box is tied to a control with a real size lying on its calendar button, so the browser opens it beside the field and not in the corner of the screen', async ({ page }) => {
+    test.setTimeout(120_000);
+    const id = await colleagueId(page);
+    await adminModeOnViaApi(page);
+    await page.goto(`/employees/${id}/edit`);
+    const field = page.getByLabel('تاريخ انتهاء الهوية');
+    const box = field.locator('xpath=ancestor::span[contains(@class, "relative")][1]');
+    const [f, b, p] = [await field.boundingBox(), await box.getByRole('button', { name: 'فتح التقويم' }).boundingBox(), await box.locator('input[type="date"]').boundingBox()];
+    // Chrome opens the calendar at the top-left corner of the screen when the date control it is given has no size.
+    expect(p!.width).toBeGreaterThan(0);
+    expect(p!.height).toBeGreaterThan(0);
+    expect(p!.x).toBeGreaterThanOrEqual(f!.x);
+    expect(p!.x + p!.width).toBeLessThanOrEqual(f!.x + f!.width);
+    expect(p!.y).toBeGreaterThanOrEqual(f!.y);
+    expect(p!.y + p!.height).toBeLessThanOrEqual(f!.y + f!.height);
+    expect(Math.abs(p!.x - b!.x)).toBeLessThan(2); // on the calendar button itself
+    await box.getByRole('button', { name: 'فتح التقويم' }).click(); // the click reaches the button, not the hidden control
+    await expect(field).toBeVisible();
+  });
 });
