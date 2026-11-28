@@ -1,6 +1,6 @@
 import { CorePermission as P, type FileDto } from '@arweqah-platform/shared';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
-import { http, HttpResponse } from 'msw';
+import { delay, http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { me, server } from '../../../../test/msw';
 import { renderPage } from '../../../../test/render';
@@ -67,5 +67,17 @@ describe('Work files on a new task, with a look before sending (FR-212)', () => 
     fireEvent.click(create);
     await waitFor(() => expect(posted).toHaveLength(1));
     expect(posted[0]).toMatchObject({ fileIds: ['f1'] });
+  });
+
+  it('locks the file box while the task is being created, so a file chosen then is never left unattached (review of PR 196)', async () => {
+    const posted = serve([{ key: P.TasksCreate, scope: 'all' }, { key: P.TasksFileAdd, scope: 'all' }]);
+    server.use(http.post('*/api/tasks', async () => { await delay(150); return HttpResponse.json({ id: 'new' }, { status: 201 }); }));
+    renderPage(<NewTaskDialog open onOpenChange={() => undefined} />);
+    fireEvent.change(await screen.findByLabelText(/العنوان/), { target: { value: 'مهمة' } });
+    const box = await screen.findByLabelText('ملفات العمل');
+    expect(box).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: 'إنشاء المهمة' }));
+    await waitFor(() => expect(box).toBeDisabled());
+    expect(posted).toHaveLength(0);
   });
 });

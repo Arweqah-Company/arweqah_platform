@@ -12,9 +12,15 @@ Plan: `docs/plans/phase-2-tickets.md` (section «بلّغ عن مشكلة في �
 | 553 | **A pop-up fades without moving** (`animate-fade`, opacity only) and is at most `92dvh − 5rem` high. A `transform` animation makes the window the reference of a fixed child while it runs (the button jumped for 0.2 s), and the height keeps the corner buttons clear of the window's own buttons on a phone. | Found while building the corner. | Dialogs get a slide again with another way to place the corner tools |
 | 554 | **The corner buttons are left out of the screenshot** (`data-no-screenshot`, read by `isPrivate`) and the bars at the bottom of a page reserve `pe-32` (two round buttons and the gap) instead of `pe-20`. The tour step «Report a problem» points at the corner button with its bubble above it. | The way in is not part of the problem; the bars must not be covered by either button (decision 543). | |
 
+## 2026-11-28 — One focus frame per control
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 558 | **The default focus ring (`:focus-visible`, 2 px) is in `@layer base`**, so a utility such as `outline-none` on a control that draws its own focus wins over it. Buttons, links and rows (no `outline-none`) keep the ring for the keyboard. | Owner: a heavy black frame around the field in «New ticket». The unlayered rule beat `outline-none` on every field, so each one showed its dark outline over its own border and halo (measured: `outline: solid 2px` on the search box and the title field). Every `outline-none` in the app has its own indicator (border and halo, a frame with `focus-within`, a bottom rule, a stroke). | A control with `outline-none` and no focus indicator of its own is found |
+
 ## 2026-11-28 — Review of the release pull request #196 (CodeRabbit)
 
-Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-28). Twelve comments, ten real (reproduced with a failing test first), two answered.
+Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-28). Twelve comments, eleven real (reproduced with a failing test first), one answered; a second pass on the fixes added four (decisions 555–557).
 
 | # | Decision | Why | Revisit when |
 |---|---|---|---|
@@ -26,6 +32,9 @@ Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-28). Twelve comments, ten real 
 | 549 | **A move that ends closes only its own window** (`setPending` by task id); a note or date asked for task A while the window of task B is open is told as a message and B's window stays. | One shared «pending» closed or replaced the window of another task. | |
 | 550 | **«My task summary and reminders» locks its fields while the save is on its way** (a `fieldset disabled`). | The form starts again from the saved answer, so a choice made meanwhile vanished. | |
 | 551 | **The calendar button of `DateInput` stays out of the tab order (comment not applied).** Typing the date is the keyboard way (the same function, WCAG 2.1.1), and one more tab stop on every date box of the platform is not worth it for a picker that exists for the mouse; the button is still reachable by screen readers and clicks. | CodeRabbit asked for `tabIndex` removed; the component is shared by every form and was not changed by this release. | Keyboard users ask for the picker |
+| 555 | **The due-day mark needs the assignee who was told too** (`markDueDayNotified(told, dueDate)`: `unnest(ids, assignees)` joined on id, assignee and due date). | A handover between the read and the mark left the mark on a task whose new assignee never got the notice (reproduced). Handover itself still leaves the mark as it was. | Handover clears the mark, as the objection reassignment does |
+| 556 | **A file box is `locked` while its form is being sent** (new-task form while it creates, the hand-in window while it moves): no choosing, no removing; it opens again if the request fails. | A file chosen after the request was built is stored and never linked. | |
+| 557 | **An upload that ends adds only what fits the limit** and tells the rest with the «too many» message instead of dropping it silently (the list may have grown meanwhile). | The limit was checked once, against the list at the start. | |
 
 ## 2026-11-27 — Task summary and reminders by notice and e-mail (FR-215…FR-218)
 

@@ -54,7 +54,7 @@ function FilesForm({ busy, onAnswer, onCancel }: Pick<Props, 'busy' | 'onAnswer'
   const [uploading, setUploading] = useState(false);
   return (
     <div className="flex flex-col gap-4">
-      <FileAttachments files={files} onChange={setFiles} max={MAX_TASK_FILES} label={t('files.deliveryTitle')} onBusyChange={setUploading} />
+      <FileAttachments files={files} onChange={setFiles} max={MAX_TASK_FILES} label={t('files.deliveryTitle')} onBusyChange={setUploading} locked={busy} />
       <div className="flex justify-end gap-2">
         <Button variant="secondary" onClick={onCancel}>{tc('actions.cancel')}</Button>
         <Button variant="secondary" disabled={busy || uploading} onClick={() => void onAnswer({})}>{t('transition.skipFiles')}</Button>

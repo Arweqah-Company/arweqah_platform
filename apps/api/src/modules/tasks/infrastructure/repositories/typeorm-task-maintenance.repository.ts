@@ -39,8 +39,13 @@ export class TypeOrmTaskMaintenanceRepository extends TaskMaintenanceRepository 
     );
   }
 
-  async markDueDayNotified(ids: string[], dueDate: string): Promise<void> {
-    if (ids.length) await this.ds.query('UPDATE tasks SET due_day_notified_at = now() WHERE id = ANY($1) AND due_date = $2::date', [ids, dueDate]);
+  async markDueDayNotified(told: { id: string; assigneeUserId: string }[], dueDate: string): Promise<void> {
+    if (!told.length) return;
+    await this.ds.query(
+      `UPDATE tasks t SET due_day_notified_at = now() FROM unnest($1::uuid[], $2::uuid[]) AS x(id, assignee)
+       WHERE t.id = x.id AND t.assignee_user_id = x.assignee AND t.due_date = $3::date`,
+      [told.map((x) => x.id), told.map((x) => x.assigneeUserId), dueDate],
+    );
   }
 
   async markReminded(ids: string[]): Promise<void> {

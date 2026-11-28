@@ -123,9 +123,15 @@ h3 {
   font-family: var(--font-heading);
 }
 
-:focus-visible {
-  outline: 2px solid var(--color-link);
-  outline-offset: 2px;
+/*
+ * The default focus ring, in the base layer so a control that draws its own focus (a field with its border and halo, a search box inside a bordered label, an editor inside its frame)
+ * and says `outline-none` shows only that one: an unlayered rule here beat every utility, and each field then wore a dark second frame over its own.
+ */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-link);
+    outline-offset: 2px;
+  }
 }
 
 /* The search box inside a drop-down shows focus with its bottom rule (see Combobox), not a heavy ring. */
