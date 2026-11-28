@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dayProblem, isRealDay, maskDay, toLatinDigits } from './date-mask';
+import { canonicalDay, dayProblem, isRealDay, maskDay, toLatinDigits } from './date-mask';
 
 describe('FR-201: the date field writes YYYY-MM-DD in Latin digits', () => {
   it('adds the dashes itself while typing and stops at 8 digits', () => {
@@ -55,5 +55,15 @@ describe('FR-201: the date field writes YYYY-MM-DD in Latin digits', () => {
     expect(dayProblem('2026-11-01', '2026-11-27')).toBe('range');
     expect(dayProblem('2026-12-01', '2026-11-27', '2026-12-31')).toBeNull();
     expect(dayProblem('2027-01-01', undefined, '2026-12-31')).toBe('range');
+  });
+
+  it('gives a whole day written with a one-digit month or day its zeros, and leaves anything else alone', () => {
+    expect(canonicalDay('2026-1-15')).toBe('2026-01-15');
+    expect(canonicalDay('2026-1-5')).toBe('2026-01-05');
+    expect(canonicalDay('2026-12-1')).toBe('2026-12-01');
+    expect(canonicalDay('2026-01-15')).toBe('2026-01-15');
+    expect(canonicalDay('2026-1-')).toBe('2026-1-');
+    expect(canonicalDay('2026-1')).toBe('2026-1');
+    expect(canonicalDay('')).toBe('');
   });
 });

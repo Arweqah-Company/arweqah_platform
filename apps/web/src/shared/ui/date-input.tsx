@@ -2,7 +2,7 @@ import { CalendarDays } from 'lucide-react';
 import { useRef, useState, type ChangeEvent, type FocusEvent, type InputHTMLAttributes, type Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../lib/cn';
-import { dayProblem, isRealDay, maskDay } from '../lib/date-mask';
+import { canonicalDay, dayProblem, isRealDay, maskDay } from '../lib/date-mask';
 import { Input } from './form-field';
 
 type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'dir' | 'inputMode' | 'maxLength'> & { ref?: Ref<HTMLInputElement> };
@@ -32,12 +32,15 @@ export function DateInput({ ref, onChange, onBlur, min, max, className, 'aria-in
     else if (ref) ref.current = node;
   };
   const change = (e: ChangeEvent<HTMLInputElement>) => {
-    const masked = maskDay(e.target.value);
+    const pasted = (e.nativeEvent as Partial<InputEvent>).inputType === 'insertFromPaste';
+    const masked = pasted ? canonicalDay(maskDay(e.target.value)) : maskDay(e.target.value); // a pasted day is completed at once; one being edited is left as the person has it
     if (masked !== e.target.value) e.target.value = masked;
     if (touched) check();
     onChange?.(e);
   };
   const blur = (e: FocusEvent<HTMLInputElement>) => {
+    const whole = canonicalDay(e.target.value);
+    if (whole !== e.target.value) typeInto(e.target, whole); // «2026-1-5» becomes «2026-01-05» before it is judged, and the consumer hears it
     setTouched(true);
     check();
     onBlur?.(e);

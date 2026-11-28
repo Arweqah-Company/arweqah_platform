@@ -56,6 +56,12 @@ function isTypedWithDashes(parts: string[]): boolean {
   return sized && !(month === '' && day !== '');
 }
 
+/** A whole day written with a one-digit month or day gets its zeros (`2026-1-5` becomes `2026-01-05`); anything else is returned as it is. Used when a day is pasted and when the person leaves the box, never while they edit it. */
+export function canonicalDay(text: string): string {
+  const whole = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(text);
+  return whole ? `${whole[1]}-${whole[2]!.padStart(2, '0')}-${whole[3]!.padStart(2, '0')}` : text;
+}
+
 /** A complete day that exists on the calendar (`2026-02-30` is not one). */
 export function isRealDay(text: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
