@@ -84,9 +84,10 @@ describe('The corner tools: «Report a problem» and the assistant (FR-226)', ()
     expect(alone.parentElement).not.toHaveClass('me-14');
   });
 
-  it('keeps the corner buttons out of the screenshot', () => {
+  it('keeps both corner buttons out of the screenshot', async () => {
     serve();
     renderPage(<FloatingTools />);
-    return screen.findByRole('button', REPORT).then((button) => expect(button).toHaveAttribute('data-no-screenshot')); // the screenshot leaves out whatever carries it (`isPrivate`, tested with the screenshot code)
+    expect(await screen.findByRole('button', REPORT)).toHaveAttribute('data-no-screenshot');
+    expect(await screen.findByRole('button', ASSISTANT)).toHaveAttribute('data-no-screenshot'); // `isPrivate` leaves out whatever carries it (tested with the screenshot code)
   });
 });

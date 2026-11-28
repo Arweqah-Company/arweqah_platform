@@ -26,6 +26,10 @@ describe('FR-201: the date field writes YYYY-MM-DD in Latin digits', () => {
     expect(maskDay('2026-1-5')).toBe('2026-01-5');
     expect(maskDay('2026-031')).toBe('2026-03-1');
     expect(maskDay('2026-12-019')).toBe('2026-12-01');
+    expect(maskDay('1995-03-1-')).toBe('1995-03-01'); // a trailing dash closes a day of one digit too
+    expect(maskDay('1995-03-12-')).toBe('1995-03-12');
+    expect(maskDay('1995-03-1')).toBe('1995-03-1'); // without the dash it is still being typed
+    expect(maskDay('2026--12')).toBe('2026-12'); // a pasted day with no month is read as digits
   });
 
   it('turns Arabic-Indic and Persian digits into Latin ones, also from a paste with other separators', () => {

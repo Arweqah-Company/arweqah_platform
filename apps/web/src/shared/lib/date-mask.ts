@@ -17,17 +17,21 @@ function maskDigits(text: string): string {
  */
 export function maskDay(text: string): string {
   const raw = toLatinDigits(text);
-  const parts = raw.split(/\D/);
+  const split = raw.split(/\D/);
+  const finished = split.length === 4 && split[3] === ''; // «1995-03-1-»: a dash after the day closes it
+  const parts = finished ? split.slice(0, 3) : split;
   if (!isTypedWithDashes(parts)) return maskDigits(raw);
   const [year, month = '', day = ''] = parts;
   const closed = parts.length === 3 && month !== '';
-  return `${year}-${closed ? month.padStart(2, '0') : month}${closed ? `-${day}` : ''}`;
+  const paddedDay = finished ? day.padStart(2, '0') : day;
+  return `${year}-${closed ? month.padStart(2, '0') : month}${closed ? `-${paddedDay}` : ''}`;
 }
 
-/** A whole year, then a dash, then at most a month and a day of two digits each (anything longer is read as digits only). */
+/** A whole year, then a dash, then at most a month and a day of two digits each; a day after an empty month, or anything longer, is read as digits only. */
 function isTypedWithDashes(parts: string[]): boolean {
   const [year = '', month = '', day = ''] = parts;
-  return parts.length >= 2 && parts.length <= 3 && year.length === 4 && month.length <= 2 && day.length <= 2;
+  const sized = parts.length >= 2 && parts.length <= 3 && year.length === 4 && month.length <= 2 && day.length <= 2;
+  return sized && !(month === '' && day !== '');
 }
 
 /** A complete day that exists on the calendar (`2026-02-30` is not one). */

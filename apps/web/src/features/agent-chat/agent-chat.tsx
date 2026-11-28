@@ -41,7 +41,7 @@ export function AgentChat() {
           <ChatPanel onClose={() => setOpen(false)} onNavigate={() => { if (window.innerWidth < 640) setOpen(false); }} />
         </aside>
       )}
-      <Button ref={opener} size="icon" className={CORNER_BUTTON} aria-label={t('open')} aria-expanded={open} data-tour="agent-chat" onClick={() => setOpen(!open)}>
+      <Button ref={opener} size="icon" className={CORNER_BUTTON} data-no-screenshot="" aria-label={t('open')} aria-expanded={open} data-tour="agent-chat" onClick={() => setOpen(!open)}>
         <Sparkles className="size-5" aria-hidden />
       </Button>
     </>
