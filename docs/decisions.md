@@ -12,6 +12,12 @@ Plan: `docs/plans/phase-2-tickets.md` (section «نقل التذاكر بين ا
 | 561 | **Every move opens the action's own window with an optional message** (`ActionDialog`, now exported from `ticket-actions.tsx` and shared with the ticket page, as the keys are in `ticket-moves.ts`). | Owner's answer: the message is optional always; one window, not a copy. | |
 | 562 | **The board proposes, the API decides:** the screen offers a column when an action leads there and the person holds its key (`moveTargets`; «confirm / decline / reopen» only when they are the ticket's sender), and the five routes keep refusing (404 out of reach, 403, 422 wrong state or window over); a refusal shows in the window and the card stays. The list rows carry no per-row abilities. | Same pattern as the tasks board; no list change. A drop with no action leads nowhere and says why. | The list rows carry the abilities (then a drag could be refused before it starts) |
 
+## 2026-11-28 — One focus frame per control
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 558 | **The default focus ring (`:focus-visible`, 2 px) is in `@layer base`**, so a utility such as `outline-none` on a control that draws its own focus wins over it. Buttons, links and rows (no `outline-none`) keep the ring for the keyboard. | Owner: a heavy black frame around the field in «New ticket». The unlayered rule beat `outline-none` on every field, so each one showed its dark outline over its own border and halo (measured: `outline: solid 2px` on the search box and the title field). Every `outline-none` in the app has its own indicator (border and halo, a frame with `focus-within`, a bottom rule, a stroke). | A control with `outline-none` and no focus indicator of its own is found |
+
 ## 2026-11-28 — Review of the release pull request #196 (CodeRabbit)
 
 Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-28). Twelve comments, eleven real (reproduced with a failing test first), one answered; a second pass on the fixes added four (decisions 555–557).
