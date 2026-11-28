@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-28 — One focus frame per control
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 558 | **The default focus ring (`:focus-visible`, 2 px) is in `@layer base`**, so a utility such as `outline-none` on a control that draws its own focus wins over it. Buttons, links and rows (no `outline-none`) keep the ring for the keyboard. | Owner: a heavy black frame around the field in «New ticket». The unlayered rule beat `outline-none` on every field, so each one showed its dark outline over its own border and halo (measured: `outline: solid 2px` on the search box and the title field). Every `outline-none` in the app has its own indicator (border and halo, a frame with `focus-within`, a bottom rule, a stroke). | A control with `outline-none` and no focus indicator of its own is found |
+
 ## 2026-11-28 — Review of the release pull request #196 (CodeRabbit)
 
 Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-28). Twelve comments, eleven real (reproduced with a failing test first), one answered; a second pass on the fixes added four (decisions 555–557).
