@@ -47,6 +47,8 @@ test.describe('The two steps of the employee form', () => {
     await expect(expiry).toHaveAttribute('placeholder', 'YYYY-MM-DD');
     await expiry.fill('٢٠٣٠١٢٠١');
     await expect(expiry).toHaveValue('2030-12-01');
-    await expect(page.locator('input[type="date"]:visible')).toHaveCount(0);
+    // The calendar's own control exists with a size (so the browser opens it beside the field), but nobody sees or reaches it.
+    await expect(page.locator('input[type="date"]:not([aria-hidden="true"])')).toHaveCount(0);
+    expect(await page.locator('input[type="date"]').evaluateAll((els) => els.every((e) => getComputedStyle(e).opacity === '0' && getComputedStyle(e).pointerEvents === 'none'))).toBe(true);
   });
 });

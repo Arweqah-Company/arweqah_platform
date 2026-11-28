@@ -73,7 +73,8 @@
     "rejectedReason": "Reason: {{reason}}",
     "errors": {
       "fullName": "Write the name in Arabic.",
-      "birthDate": "The birth date must be in the past and the age between 18 and 70."
+      "birthDate": "The birth date must be in the past and the age between 18 and 70.",
+      "birthFormat": "Write the whole date: year-month-day, like 1995-03-12."
     }
   }
 }

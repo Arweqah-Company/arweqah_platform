@@ -2,6 +2,12 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-28 — The calendar of a date box opens beside it
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 559 | **The hidden native date control of `DateInput` has a real size and lies on the calendar button** (`size-8`, centred on it, `opacity-0`, `pointer-events-none`, `aria-hidden`), not `size-0` under the box. A half-typed birth date in «Request a change of my basic data» is told «write the whole date: year-month-day» and its age is judged only for a whole day. | Owner: in that window the calendar opened in the top-left corner of the screen, far from the field, and she could not finish the date. Chrome opens the picker at the corner of the screen when the date control it is given has no size. The age message («the age between 18 and 70») for `1995` was no help to someone who had only typed the year. | A calendar in the platform's language replaces the browser's picker |
+
 ## 2026-11-28 — Review of the release pull request #196 (CodeRabbit)
 
 Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-28). Twelve comments, eleven real (reproduced with a failing test first), one answered; a second pass on the fixes added four (decisions 555–557).
