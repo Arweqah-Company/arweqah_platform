@@ -3,7 +3,7 @@ import { CorePermission } from '@arweqah-platform/shared';
 import ar from './i18n/ar.json';
 import en from './i18n/en.json';
 
-export { AgentChat } from './agent-chat';
+export { AgentChat, useAgentAvailable } from './agent-chat';
 
 /** The assistant has no page of its own: it is a panel in the shell (`AgentChat`), so it declares only its texts and its welcome-tour step. */
 export const agentChatFeature: FeatureModule = {

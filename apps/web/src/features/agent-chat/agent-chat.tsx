@@ -7,11 +7,16 @@ import { Button } from '@/shared/ui';
 import { ChatPanel } from './chat-panel';
 import { AGENT_KEYS } from './keys';
 
-/** The platform assistant: a round button in the corner of every page that opens a side panel (FR-145). Shown only to who holds `agent.view`, and only while the administrator has it switched on (FR-150). */
+/** Whether the assistant is on the screen: the person holds `agent.view` and the administrator has it switched on (FR-150). */
+export function useAgentAvailable(): boolean {
+  const { can } = usePermissions();
+  return useMe().data?.agentEnabled !== false && can(AGENT_KEYS.view);
+}
+
+/** The platform assistant: a round button that opens a side panel (FR-145). The button sits in the corner tools of every page (`FloatingTools`, beside «Report a problem»); the panel opens above it. */
 export function AgentChat() {
   const { t } = useTranslation('agentChat');
-  const { can } = usePermissions();
-  const agentEnabled = useMe().data?.agentEnabled !== false;
+  const available = useAgentAvailable();
   const [open, setOpen] = useState(false);
   const panel = useRef<HTMLElement>(null);
   const opener = useRef<HTMLButtonElement>(null);
@@ -28,7 +33,7 @@ export function AgentChat() {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [open]);
-  if (!agentEnabled || !can(AGENT_KEYS.view)) return null;
+  if (!available) return null;
   return (
     <>
       {open && (
@@ -36,7 +41,7 @@ export function AgentChat() {
           <ChatPanel onClose={() => setOpen(false)} onNavigate={() => { if (window.innerWidth < 640) setOpen(false); }} />
         </aside>
       )}
-      <Button ref={opener} size="icon" className="fixed bottom-4 end-4 z-30 size-12 rounded-full" aria-label={t('open')} aria-expanded={open} data-tour="agent-chat" onClick={() => setOpen(!open)}>
+      <Button ref={opener} size="icon" className="size-12 rounded-full" aria-label={t('open')} aria-expanded={open} data-tour="agent-chat" onClick={() => setOpen(!open)}>
         <Sparkles className="size-5" aria-hidden />
       </Button>
     </>
