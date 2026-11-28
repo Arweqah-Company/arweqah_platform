@@ -7,6 +7,11 @@ Short records of choices that are not obvious from the code. Newest first.
 | # | Decision | Why | Revisit when |
 |---|---|---|---|
 | 559 | **The hidden native date control of `DateInput` has a real size and lies on the calendar button** (`size-8`, centred on it, `opacity-0`, `pointer-events-none`, `aria-hidden`), not `size-0` under the box. **The mask keeps a dash the person types after a whole year or month** (`1995-`, `1995-03-`, also `/` and `.`) and zero-pads a one-digit month or day that a dash closes (`1995-3-` → `1995-03-`); it used to rebuild the text from digits only, so a typed `-` vanished. A half-typed birth date in «Request a change of my basic data» is told «write the whole date: year-month-day» and its age is judged only for a whole day. | Owner: in that window the calendar opened in the top-left corner of the screen, far from the field, and she could not finish the date. Chrome opens the picker at the corner of the screen when the date control it is given has no size. The age message («the age between 18 and 70») for `1995` was no help to someone who had only typed the year. | A calendar in the platform's language replaces the browser's picker |
+## 2026-11-28 — One focus frame per control
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 558 | **The default focus ring (`:focus-visible`, 2 px) is in `@layer base`**, so a utility such as `outline-none` on a control that draws its own focus wins over it. Buttons, links and rows (no `outline-none`) keep the ring for the keyboard. | Owner: a heavy black frame around the field in «New ticket». The unlayered rule beat `outline-none` on every field, so each one showed its dark outline over its own border and halo (measured: `outline: solid 2px` on the search box and the title field). Every `outline-none` in the app has its own indicator (border and halo, a frame with `focus-within`, a bottom rule, a stroke). | A control with `outline-none` and no focus indicator of its own is found |
 
 ## 2026-11-28 — Review of the release pull request #196 (CodeRabbit)
 
