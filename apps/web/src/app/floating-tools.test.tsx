@@ -1,18 +1,16 @@
 import { CorePermission as P } from '@arweqah-platform/shared';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { me, server } from '../../test/msw';
 import { renderPage, renderRoute } from '../../test/render';
-import * as capture from '@/features/tickets/problem-report/capture-screenshot';
 import { Dialog, DialogToolsProvider } from '@/shared/ui';
 import { AppLayout } from './app-layout';
 import { DialogCornerTools, FloatingTools } from './floating-tools';
 
 vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: vi.fn(() => 'blob:shot'), revokeObjectURL: vi.fn() }));
-beforeEach(() => {
-  vi.spyOn(capture, 'captureScreenshot').mockResolvedValue(new Blob(['x'], { type: 'image/jpeg' }));
-});
+// The picture of the screen cannot be drawn in the test browser: the feature's screenshot module answers with a small blob.
+vi.mock('@/features/tickets/problem-report/capture-screenshot', async (original) => ({ ...(await original<object>()), captureScreenshot: vi.fn(() => Promise.resolve(new Blob(['x'], { type: 'image/jpeg' }))) }));
 
 const REPORT = { name: 'بلّغ عن مشكلة' };
 const ASSISTANT = { name: 'فتح مساعد المنصة' };
@@ -89,6 +87,6 @@ describe('The corner tools: «Report a problem» and the assistant (FR-226)', ()
   it('keeps the corner buttons out of the screenshot', () => {
     serve();
     renderPage(<FloatingTools />);
-    return screen.findByRole('button', REPORT).then((button) => expect(capture.isPrivate(button)).toBe(true));
+    return screen.findByRole('button', REPORT).then((button) => expect(button).toHaveAttribute('data-no-screenshot')); // the screenshot leaves out whatever carries it (`isPrivate`, tested with the screenshot code)
   });
 });
