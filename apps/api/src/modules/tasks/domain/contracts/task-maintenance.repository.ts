@@ -8,7 +8,8 @@ export abstract class TaskMaintenanceRepository {
   abstract markReminded(ids: string[]): Promise<void>;
   /** Open tasks due today whose «due today» reminder was not sent yet. */
   abstract dueToday(today: string): Promise<TaskReminderTarget[]>;
-  abstract markDueDayNotified(ids: string[]): Promise<void>;
+  /** Marks the notice sent, only for tasks still due on `dueDate` (the day the sweep read): a task moved to another day meanwhile is told again on its new day. */
+  abstract markDueDayNotified(ids: string[], dueDate: string): Promise<void>;
   /** Open tasks past their due date whose assignee was not told yet. */
   abstract overdueUnnotified(today: string): Promise<TaskReminderTarget[]>;
   abstract markOverdueNotified(ids: string[]): Promise<void>;

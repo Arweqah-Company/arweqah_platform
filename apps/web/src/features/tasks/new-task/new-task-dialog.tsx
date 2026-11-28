@@ -75,6 +75,7 @@ function NewTaskForm({ onDone }: { onDone: () => void }) {
   const today = riyadhToday();
   const [draft, setDraft] = useState<TaskDraft>(() => emptyDraft(today));
   const [attempted, setAttempted] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const options = useTaskOptions().data;
   const create = useCreateTask();
   const patch = (change: Partial<TaskDraft>) => setDraft((d) => ({ ...d, ...change }));
@@ -82,7 +83,7 @@ function NewTaskForm({ onDone }: { onDone: () => void }) {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     setAttempted(true);
-    if (!isDraftComplete(draft, today, true)) return;
+    if (uploading || !isDraftComplete(draft, today, true)) return; // a file still on its way is not in the list: wait for it
     try {
       await create.mutateAsync(toCreateInput(draft));
       toast.success(t('form.created'));
@@ -99,11 +100,11 @@ function NewTaskForm({ onDone }: { onDone: () => void }) {
       <WhoFields draft={draft} onPatch={patch} options={options} />
       <WhenFields draft={draft} onPatch={patch} today={today} creating attempted={attempted} />
       <OptionFields draft={draft} onPatch={patch} />
-      <TaskFilesField files={draft.files} onChange={(files) => patch({ files })} />
+      <TaskFilesField files={draft.files} onChange={(files) => patch({ files })} onBusyChange={setUploading} />
       <ApproverHint forMyself={forMyself && !draft.personal} approver={options?.approver ?? null} />
       <div className="flex justify-end gap-2">
         <Button variant="secondary" onClick={onDone}>{tc('actions.cancel')}</Button>
-        <Button type="submit" disabled={create.isPending}>{t('form.create')}</Button>
+        <Button type="submit" disabled={create.isPending || uploading}>{t('form.create')}</Button>
       </div>
     </form>
   );

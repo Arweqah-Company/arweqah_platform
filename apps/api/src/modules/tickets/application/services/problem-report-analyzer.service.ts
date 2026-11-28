@@ -21,7 +21,7 @@ const answerSchema = z.strictObject({
   stepsGuess: z.array(z.string()).max(MAX_STEPS),
   area: z.string(),
   kind: z.enum(['bug', 'question', 'suggestion', 'other']),
-});
+}).refine((a) => a.title.trim() !== '' || a.summary.trim() !== '', { message: 'The answer has neither a title nor a summary' });
 
 export interface AnalysisInput {
   userId: string;

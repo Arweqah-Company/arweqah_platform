@@ -2,6 +2,7 @@ import { CorePermission, riyadhHour, riyadhToday, type TaskDto, type TaskNoticeS
 import { describe, expect, it, vi } from 'vitest';
 import { OutboxRelay } from '../src/core/messaging/infrastructure/typeorm-outbox';
 import { TaskDigestService } from '../src/modules/tasks/application/services/task-digest.service';
+import { TaskMaintenanceRepository } from '../src/modules/tasks/domain/contracts/task-maintenance.repository';
 import { TaskReminderService } from '../src/modules/tasks/application/services/task-reminder.service';
 import type { TestAgent } from './factories/factories';
 import { TASK_EMPLOYEE_GRANTS, taskManagerGrants } from './factories/task-grants';
@@ -110,6 +111,14 @@ describe('Tasks: summary and reminders by notice and e-mail (FR-215…FR-218)', 
       expect((await notices(w.agents.follower)).filter((n) => n.titleEn === 'Your tasks today')).toHaveLength(0);
     });
 
+    it('two sweeps that overlap send one summary, not two (review of PR 196)', async () => {
+      const w = await world();
+      await w.given(daysFromNow(5));
+      const digests = t.app.get(TaskDigestService);
+      await Promise.all([digests.sendDue(AT_NINE()), digests.sendDue(AT_NINE())]);
+      expect((await notices(w.agents.report)).filter((n) => n.titleEn === 'Your tasks today')).toHaveLength(1);
+    });
+
     it('does not send a summary at once when the saved hour has already passed today', async () => {
       const w = await world();
       await w.given(daysFromNow(5));
@@ -160,6 +169,18 @@ describe('Tasks: summary and reminders by notice and e-mail (FR-215…FR-218)', 
       await t.app.get(TaskReminderService).remind(riyadhToday());
       expect(await about(w.agents.report, own, 'due soon')).toHaveLength(1);
       expect(await about(w.agents.manager, own, 'due soon')).toHaveLength(0);
+    });
+
+    it('marks the due-day notice only for the due date the sweep read: a task moved meanwhile is told again on its new day (review of PR 196)', async () => {
+      const w = await world();
+      const task = await w.given(riyadhToday());
+      const maintenance = t.app.get(TaskMaintenanceRepository);
+      expect((await maintenance.dueToday(riyadhToday())).map((x) => x.id)).toContain(task.id);
+      await t.db.query(`UPDATE tasks SET due_date = due_date + 3 WHERE id = $1`, [task.id]);
+      await maintenance.markDueDayNotified([task.id], riyadhToday());
+      expect(await t.db.query('SELECT due_day_notified_at FROM tasks WHERE id = $1', [task.id])).toEqual([{ due_day_notified_at: null }]);
+      await maintenance.markDueDayNotified([task.id], daysFromNow(3));
+      expect((await t.db.query('SELECT due_day_notified_at FROM tasks WHERE id = $1', [task.id]))[0].due_day_notified_at).not.toBeNull();
     });
 
     it('reminds once more on the day itself, and not for a task due later', async () => {

@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { me, server } from '../../../../test/msw';
 import { renderPage } from '../../../../test/render';
+import { slowUploads } from '../../../../test/slow-upload';
 import { createTaskHandler } from '../../../../test/task-fixtures';
 import { NewTaskDialog } from './new-task-dialog';
 
@@ -48,5 +49,23 @@ describe('Work files on a new task, with a look before sending (FR-212)', () => 
     fireEvent.click(screen.getByRole('button', { name: 'إنشاء المهمة' }));
     await waitFor(() => expect(posted).toHaveLength(1));
     expect(posted[0]).toMatchObject({ fileIds: [] });
+  });
+
+  it('keeps «create» off while a chosen file is still uploading, so the task is never made without it (review of PR 196)', async () => {
+    const posted = serve([{ key: P.TasksCreate, scope: 'all' }, { key: P.TasksFileAdd, scope: 'all' }]);
+    const slow = slowUploads([stored]);
+    renderPage(<NewTaskDialog open onOpenChange={() => undefined} />);
+    fireEvent.change(await screen.findByLabelText(/العنوان/), { target: { value: 'تجهيز العرض' } });
+    fireEvent.change(await screen.findByLabelText('ملفات العمل'), { target: { files: [new File(['x'], 'عرض.pptx', { type: PPTX })] } });
+    const create = screen.getByRole('button', { name: 'إنشاء المهمة' });
+    await waitFor(() => expect(create).toBeDisabled());
+    fireEvent.click(create);
+    expect(posted).toHaveLength(0);
+    slow.release();
+    await screen.findByRole('button', { name: 'معاينة عرض.pptx' });
+    await waitFor(() => expect(create).toBeEnabled());
+    fireEvent.click(create);
+    await waitFor(() => expect(posted).toHaveLength(1));
+    expect(posted[0]).toMatchObject({ fileIds: ['f1'] });
   });
 });

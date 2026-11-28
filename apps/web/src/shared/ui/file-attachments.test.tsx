@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { me, server } from '../../../test/msw';
 import { renderPage } from '../../../test/render';
+import { slowUploads } from '../../../test/slow-upload';
 import { FileAttachments } from './file-attachments';
 
 const PNG = 'image/png';
@@ -93,5 +94,49 @@ describe('Checking an attachment before the form is sent (FR-192, FR-191)', () =
     await new Promise((resolve) => setTimeout(resolve, 300));
     expect(posted).toEqual(['x', 'done']); // the upload did run to its end
     expect(URL.createObjectURL).not.toHaveBeenCalled();
+  });
+});
+
+describe('The box while files are on their way (review of PR 196)', () => {
+  beforeEach(() => {
+    URL.createObjectURL = vi.fn(() => 'blob:local');
+    URL.revokeObjectURL = vi.fn();
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it('tells the page while a file is uploading, so a form can wait for it (review of PR 196)', async () => {
+    const busy: boolean[] = [];
+    server.use(http.get('*/api/me', () => HttpResponse.json(me())));
+    const slow = slowUploads([dto('f1', 'a.png', PNG)]);
+    function Watched() {
+      const [files, setFiles] = useState<FileDto[]>([]);
+      return <FileAttachments files={files} onChange={setFiles} max={5} label="المرفقات" onBusyChange={(b) => busy.push(b)} />;
+    }
+    renderPage(<Watched />);
+    fireEvent.change(await screen.findByLabelText('المرفقات'), { target: { files: [new File(['x'], 'a.png', { type: PNG })] } });
+    await waitFor(() => expect(busy).toEqual([true]));
+    slow.release();
+    expect(await screen.findByRole('button', { name: 'معاينة a.png' })).toBeInTheDocument();
+    expect(busy).toEqual([true, false]);
+  });
+
+  it('adds the stored file to the list as it is when the upload ends, not to the list it had when it began (review of PR 196)', async () => {
+    server.use(http.get('*/api/me', () => HttpResponse.json(me())));
+    const slow = slowUploads([dto('late', 'late.png', PNG)]);
+    function Changing() {
+      const [files, setFiles] = useState<FileDto[]>([]);
+      return (
+        <>
+          <FileAttachments files={files} onChange={setFiles} max={5} label="المرفقات" />
+          <button type="button" onClick={() => setFiles([dto('other', 'other.png', PNG)])}>غيّر القائمة</button>
+        </>
+      );
+    }
+    renderPage(<Changing />);
+    fireEvent.change(await screen.findByLabelText('المرفقات'), { target: { files: [new File(['x'], 'late.png', { type: PNG })] } });
+    fireEvent.click(screen.getByRole('button', { name: 'غيّر القائمة' }));
+    slow.release();
+    expect(await screen.findByRole('button', { name: 'معاينة late.png' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'معاينة other.png' })).toBeInTheDocument();
   });
 });

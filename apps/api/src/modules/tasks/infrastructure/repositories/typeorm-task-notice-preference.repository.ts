@@ -22,6 +22,13 @@ const DIGEST_RECIPIENTS = `
   WHERE u.is_active AND COALESCE(p.digest_enabled, true) AND COALESCE(p.digest_hour, $4) <= $1
     AND (p.digest_last_sent_on IS NULL OR p.digest_last_sent_on < $2::date)`;
 
+/** Marks the day for one person only if it is not marked yet (a row is made for a person with none); a row comes back only for the sweep that really took it. */
+const CLAIM_DIGEST = `
+  INSERT INTO task_notice_preferences (user_id, digest_last_sent_on) VALUES ($1, $2::date)
+  ON CONFLICT (user_id) DO UPDATE SET digest_last_sent_on = EXCLUDED.digest_last_sent_on
+  WHERE task_notice_preferences.digest_last_sent_on IS NULL OR task_notice_preferences.digest_last_sent_on < EXCLUDED.digest_last_sent_on
+  RETURNING user_id`;
+
 @Injectable()
 export class TypeOrmTaskNoticePreferenceRepository extends TaskNoticePreferenceRepository {
   constructor(private readonly ds: DataSource) {
@@ -48,7 +55,8 @@ export class TypeOrmTaskNoticePreferenceRepository extends TaskNoticePreferenceR
     return this.ds.query(DIGEST_RECIPIENTS, [hour, today, TASK_NOTICE_DEFAULTS.channel, TASK_NOTICE_DEFAULTS.digestHour]);
   }
 
-  async markDigestHandled(userId: string, today: string, tx: TransactionContext): Promise<void> {
-    await managerOf(tx, this.ds.manager).getRepository(TaskNoticePreference).upsert({ userId, digestLastSentOn: today }, ['userId']);
+  async claimDigest(userId: string, today: string, tx: TransactionContext): Promise<boolean> {
+    const rows: unknown[] = await managerOf(tx, this.ds.manager).query(CLAIM_DIGEST, [userId, today]);
+    return rows.length > 0;
   }
 }

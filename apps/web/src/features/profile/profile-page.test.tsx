@@ -110,7 +110,7 @@ describe('Profile page (FR-33)', () => {
     });
 
     it('sends the person to the employee page for the basic details their grant gives, and asks HR only for the rest', async () => {
-      const asker = [{ key: 'profile.update_basic', scope: 'all' as const }];
+      const asker = [{ key: 'profile.update_basic', scope: 'all' as const }, { key: 'employees.view', scope: 'own' as const }];
       server.use(http.get('*/api/me', () => HttpResponse.json(me(asker))), http.get('*/api/me/access', () => HttpResponse.json(access(asker))), http.get('*/api/lookups', () => HttpResponse.json({ countries: [], maritalStatuses: [] })), http.get('*/api/me/profile/basic-request', () => new HttpResponse(null, { status: 200 })));
       open(without(['birthDate', 'gender']));
       expect(await screen.findByRole('link', { name: 'تعديل في صفحة الموظف' })).toHaveAttribute('href', '/employees/e1/edit');
@@ -120,8 +120,18 @@ describe('Profile page (FR-33)', () => {
       expect(screen.queryByLabelText('الجنس')).not.toBeInTheDocument();
     });
 
-    it('offers no request when every basic detail can be changed directly', async () => {
+    it('does not send a person who cannot open the employee page there: the basic details stay in the request to HR (review of PR 196)', async () => {
       const asker = [{ key: 'profile.update_basic', scope: 'all' as const }];
+      server.use(http.get('*/api/me', () => HttpResponse.json(me(asker))), http.get('*/api/me/access', () => HttpResponse.json(access(asker))), http.get('*/api/lookups', () => HttpResponse.json({ countries: [], maritalStatuses: [] })), http.get('*/api/me/profile/basic-request', () => new HttpResponse(null, { status: 200 })));
+      open(without(['birthDate', 'gender']));
+      fireEvent.click(await screen.findByRole('button', { name: 'طلب تعديل' }));
+      expect(await screen.findByLabelText('تاريخ الميلاد')).toBeInTheDocument();
+      expect(screen.getByLabelText('الجنس')).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'تعديل في صفحة الموظف' })).not.toBeInTheDocument();
+    });
+
+    it('offers no request when every basic detail can be changed directly', async () => {
+      const asker = [{ key: 'profile.update_basic', scope: 'all' as const }, { key: 'employees.view', scope: 'own' as const }];
       server.use(http.get('*/api/me', () => HttpResponse.json(me(asker))), http.get('*/api/me/access', () => HttpResponse.json(access(asker))), http.get('*/api/me/profile/basic-request', () => new HttpResponse(null, { status: 200 })));
       open(without(['fullName', 'gender', 'nationalityId', 'birthDate', 'maritalStatusId']));
       expect(await screen.findByRole('link', { name: 'تعديل في صفحة الموظف' })).toBeInTheDocument();

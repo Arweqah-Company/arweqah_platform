@@ -12,5 +12,9 @@ export abstract class TaskNoticePreferenceRepository {
   abstract save(userId: string, settings: TaskNoticeSettings, skipDigestOn: string | null): Promise<void>;
   /** Active people whose summary hour has come (`hour` or earlier today) and who were not handled on `today`, with their open task counts. */
   abstract digestRecipients(hour: number, today: string): Promise<TaskSummaryRecipient[]>;
-  abstract markDigestHandled(userId: string, today: string, tx: TransactionContext): Promise<void>;
+  /**
+   * Takes today's summary for one person inside the caller's transaction: true only for the first sweep to reach them (a second one that overlaps waits for the first to commit and gets false),
+   * so a person is never sent two summaries in a day. Works for a person with no row yet. A sweep that fails after taking it rolls the claim back with its transaction.
+   */
+  abstract claimDigest(userId: string, today: string, tx: TransactionContext): Promise<boolean>;
 }

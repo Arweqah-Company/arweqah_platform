@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { me, server } from '../../../../test/msw';
 import { chooseOption } from '../../../../test/select';
 import { renderPage } from '../../../../test/render';
+import { slowUploads } from '../../../../test/slow-upload';
 import { taskDetail, taskItem } from '../../../../test/task-fixtures';
 import { Can } from '@/core/permissions/can';
 import { TaskBoard } from './task-board';
@@ -17,7 +18,7 @@ const lanes = [{ id: 'all', tasks: [progress, taskItem({ id: 't1', title: 'لل�
 function serve(holdsKey: boolean) {
   const calls: Record<string, unknown>[] = [];
   server.use(
-    http.get('*/api/me', () => HttpResponse.json(me(holdsKey ? [{ key: P.TasksFileDeliver, scope: 'all' }] : []))),
+    http.get('*/api/me', () => HttpResponse.json(me(holdsKey ? [{ key: P.TasksFileDeliver, scope: 'all' }] : [], { without: holdsKey ? [] : [P.TasksFileDeliver] }))),
     http.post('*/api/files', () => HttpResponse.json(stored, { status: 201 })),
     http.post('*/api/tasks/:id/transition', async ({ request }) => {
       calls.push((await request.json()) as Record<string, unknown>);
@@ -59,11 +60,27 @@ describe('Handing in a delivery file with the move that finishes the work (FR-21
     expect(calls[0]).toEqual({ to: 'done', revision: 3 });
   });
 
-  it('does not ask without the key, nor when a task is only started', async () => {
+  it('does not ask without the key (the Employee role holds it by default, so it is taken away here), nor when a task is only started', async () => {
     const calls = serve(false);
-    renderPage(<TaskBoard lanes={lanes} today="2026-11-01" />);
+    renderPage(<><Can permission={P.TasksFileAdd}><span>keys-ready</span></Can><TaskBoard lanes={lanes} today="2026-11-01" /></>);
+    await screen.findByText('keys-ready');
     await chooseOption(await screen.findByLabelText(/انقل المهمة مهمة جارية إلى/), 'done');
     await waitFor(() => expect(calls).toHaveLength(1));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('keeps «move with the files» and «move without files» off while a file is still uploading (review of PR 196)', async () => {
+    const calls = serve(true);
+    const slow = slowUploads([stored]);
+    board();
+    await screen.findByText('keys-ready');
+    await chooseOption(await screen.findByLabelText(/انقل المهمة مهمة جارية إلى/), 'done');
+    fireEvent.change(await screen.findByLabelText('ملفات التسليم'), { target: { files: [new File(['x'], 'الأرقام.xlsx', { type: XLSX })] } });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'انقل بلا ملفات' })).toBeDisabled());
+    expect(screen.getByRole('button', { name: 'انقل مع الملفات' })).toBeDisabled();
+    expect(calls).toHaveLength(0);
+    slow.release();
+    await screen.findByRole('button', { name: 'معاينة الأرقام.xlsx' });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'انقل مع الملفات' })).toBeEnabled());
   });
 });

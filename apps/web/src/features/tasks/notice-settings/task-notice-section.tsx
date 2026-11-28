@@ -19,7 +19,7 @@ function Choice({ label, hint, checked, onChange }: { label: string; hint: strin
   );
 }
 
-/** The form itself; it starts again (new `key`) when the saved settings change. */
+/** The form itself; it starts again (new `key`) when the saved settings change, so its fields are locked while a save is on its way (a choice made then would be lost when it starts again). */
 function NoticeForm({ saved }: { saved: TaskNoticeSettings }) {
   const { t } = useTranslation('tasks');
   const { t: tc } = useTranslation();
@@ -35,7 +35,7 @@ function NoticeForm({ saved }: { saved: TaskNoticeSettings }) {
     }
   };
   return (
-    <div className="flex flex-col gap-4 sm:col-span-2">
+    <fieldset disabled={save.isPending} className="m-0 flex min-w-0 flex-col gap-4 border-0 p-0 sm:col-span-2">
       <FormField label={t('noticeSettings.channel')} hint={t('noticeSettings.channelHint')}>
         {(p) => (
           <Select {...p} value={draft.channel} onChange={(e) => set({ channel: e.target.value as TaskNoticeChannel })}>
@@ -54,7 +54,7 @@ function NoticeForm({ saved }: { saved: TaskNoticeSettings }) {
       <Choice label={t('noticeSettings.reminders')} hint={t('noticeSettings.remindersHint')} checked={draft.remindersEnabled} onChange={(on) => set({ remindersEnabled: on })} />
       {save.isError && <Alert>{errorMessage(tc, save.error)}</Alert>}
       <div><Button disabled={save.isPending} onClick={() => void submit()}>{tc('actions.save')}</Button></div>
-    </div>
+    </fieldset>
   );
 }
 

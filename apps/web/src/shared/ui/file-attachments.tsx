@@ -16,6 +16,8 @@ interface Props {
   label: string;
   /** A shorter drop box for composers. */
   compact?: boolean;
+  /** Told when a file starts and stops uploading, so the form around the box can wait for it before it sends (a file still on its way is not in the list yet). */
+  onBusyChange?: (busy: boolean) => void;
 }
 
 /** Where the uploader reads their own stored file back (the preview window and the download); the file belongs to the box until the form is sent. */
@@ -70,12 +72,12 @@ function ChosenFile({ file, thumb, onOpen, onRemove }: { file: FileDto; thumb?: 
 }
 
 /** Picks files, uploads each as soon as it is chosen, and lists them (a thumbnail that opens full size, and a remove button) so the right one can be checked before sending. The caller keeps the ids. */
-export function FileAttachments({ files, onChange, max, label, compact }: Props) {
+export function FileAttachments({ files, onChange, max, label, compact, onBusyChange }: Props) {
   const { t } = useTranslation();
   const maxBytes = useMaxUploadBytes();
   const thumbs = useThumbnails();
   const [opened, setOpened] = useState<FileDto | null>(null);
-  const { busy, error, pick, remove } = useUploader({ files, onChange, max, onUploaded: thumbs.keep, onRemoved: (f) => thumbs.drop(f.id) });
+  const { busy, error, pick, remove } = useUploader({ files, onChange, max, onUploaded: thumbs.keep, onRemoved: (f) => thumbs.drop(f.id), onBusyChange });
   return (
     <div className="flex flex-col gap-2">
       {error && <Alert>{error}</Alert>}

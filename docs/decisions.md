@@ -2,6 +2,21 @@
 
 Short records of choices that are not obvious from the code. Newest first.
 
+## 2026-11-28 — Review of the release pull request #196 (CodeRabbit)
+
+Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-28). Twelve comments, ten real (reproduced with a failing test first), two answered.
+
+| # | Decision | Why | Revisit when |
+|---|---|---|---|
+| 544 | **A person's summary is taken inside their own transaction before it is sent** (`claimDigest`: `INSERT … ON CONFLICT (user_id) DO UPDATE … WHERE digest_last_sent_on IS NULL OR < today RETURNING`, true only for the first sweep), replacing the mark written after sending. A person with no row gets one; a send that fails rolls the claim back. | Two sweeps that overlap (two API instances, a slow hour) read the same people before either wrote the mark and sent two summaries (reproduced with two `sendDue` at once). | The sweep moves to one scheduled job per person |
+| 545 | **The due-day mark is written only for the due date the sweep read** (`markDueDayNotified(ids, dueDate)`: `AND due_date = $2`). | A due date edited between the read and the mark kept the mark, so the new day never got its notice. The reminder and late marks keep their old form (not touched by this release). | The other two marks get the same guard |
+| 546 | **An AI answer with neither a title nor a summary is refused by the schema itself** (`refine`), not by a guard before it; an answer with only one of the two stays accepted. | The guard of FR-197 refused only answers missing fields; the complete `{title:'', summary:'', …}` passed and made an empty reading. | |
+| 547 | **The profile's «Edit on the employee page» link needs `employees.view`:** without it the page cannot load the record, so those details stay in the request to HR (`useBasicRoutes`). | The grant of «edit employees» does not carry the view key; the link led to a page that failed. | The record route accepts the editing grant |
+| 548 | **A form waits for its uploads:** `FileAttachments` and `useUploader` take `onBusyChange`, called in the same step as the list changes; «Create task», «Add files» and the two buttons of the hand-in window stay off while a file is on its way. An upload that ends adds to the list as it is then (`useLatest`), not to the list it had when it began; «Add files» clears only the ids it sent. | A file still uploading is not in the list: the task, the delivery or the add was sent without it, the file stayed stored and unlinked, and a list sent and emptied got its files back. | |
+| 549 | **A move that ends closes only its own window** (`setPending` by task id); a note or date asked for task A while the window of task B is open is told as a message and B's window stays. | One shared «pending» closed or replaced the window of another task. | |
+| 550 | **«My task summary and reminders» locks its fields while the save is on its way** (a `fieldset disabled`). | The form starts again from the saved answer, so a choice made meanwhile vanished. | |
+| 551 | **The calendar button of `DateInput` stays out of the tab order (comment not applied).** Typing the date is the keyboard way (the same function, WCAG 2.1.1), and one more tab stop on every date box of the platform is not worth it for a picker that exists for the mouse; the button is still reachable by screen readers and clicks. | CodeRabbit asked for `tabIndex` removed; the component is shared by every form and was not changed by this release. | Keyboard users ask for the picker |
+
 ## 2026-11-27 — Task summary and reminders by notice and e-mail (FR-215…FR-218)
 
 Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-27).

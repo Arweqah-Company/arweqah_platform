@@ -39,8 +39,8 @@ export class TypeOrmTaskMaintenanceRepository extends TaskMaintenanceRepository 
     );
   }
 
-  async markDueDayNotified(ids: string[]): Promise<void> {
-    if (ids.length) await this.ds.query('UPDATE tasks SET due_day_notified_at = now() WHERE id = ANY($1)', [ids]);
+  async markDueDayNotified(ids: string[], dueDate: string): Promise<void> {
+    if (ids.length) await this.ds.query('UPDATE tasks SET due_day_notified_at = now() WHERE id = ANY($1) AND due_date = $2::date', [ids, dueDate]);
   }
 
   async markReminded(ids: string[]): Promise<void> {

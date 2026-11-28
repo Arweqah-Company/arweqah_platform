@@ -34,7 +34,7 @@ export class TaskReminderService {
     await this.tx.run(async (tx) => {
       for (const task of due) await this.notifier.send({ kind: 'dueToday', task, recipients: related(task), tx });
     });
-    await this.maintenance.markDueDayNotified(due.map((t) => t.id));
+    await this.maintenance.markDueDayNotified(due.map((t) => t.id), today);
     return due.length;
   }
 

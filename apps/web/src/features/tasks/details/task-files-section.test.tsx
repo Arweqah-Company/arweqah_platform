@@ -1,9 +1,10 @@
 import { CorePermission as P, type TaskAbilitiesDto, type TaskDto, type TaskFileDto } from '@arweqah-platform/shared';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
-import { http, HttpResponse } from 'msw';
-import { describe, expect, it } from 'vitest';
+import { delay, http, HttpResponse } from 'msw';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { me, server } from '../../../../test/msw';
 import { renderPage } from '../../../../test/render';
+import { slowUploads } from '../../../../test/slow-upload';
 import { taskDetail } from '../../../../test/task-fixtures';
 import { TaskFilesSection } from './task-files-section';
 
@@ -55,5 +56,38 @@ describe('The files of a task: work files and delivery files (FR-212, FR-213, FR
     fireEvent.click(await screen.findByRole('button', { name: 'حذف brief.pdf' }));
     fireEvent.click(await screen.findByRole('button', { name: 'حذف' }));
     await waitFor(() => expect(removed).toEqual(['a']));
+  });
+
+  describe('adding files (review of PR 196)', () => {
+    afterEach(() => vi.restoreAllMocks());
+    const stored = (id: string) => ({ id, originalName: `${id}.pdf`, contentType: PDF, size: 4, createdAt: '2026-12-01T10:00:00.000Z' });
+    const pick = async (name: string) => fireEvent.change(await screen.findByLabelText('إضافة ملفات العمل', { selector: 'input' }), { target: { files: [new File(['x'], `${name}.pdf`, { type: PDF })] } });
+
+    it('keeps «add» off while a chosen file is still uploading', async () => {
+      serve();
+      const slow = slowUploads([stored('a')]);
+      URL.createObjectURL = vi.fn(() => 'blob:x');
+      show(taskDetail({ abilities: abilities({ addFiles: true }) }));
+      await pick('a');
+      await waitFor(() => expect(screen.getByRole('button', { name: 'إضافة ملفات العمل' })).toBeDisabled());
+      slow.release();
+      await screen.findByRole('button', { name: 'معاينة a.pdf' });
+      await waitFor(() => expect(screen.getByRole('button', { name: 'إضافة ملفات العمل' })).toBeEnabled());
+    });
+
+    it('clears only the files the request carried: one chosen while it was in flight stays in the box', async () => {
+      serve();
+      slowUploads([stored('a'), stored('b')]).release();
+      server.use(http.post('*/api/tasks/:id/files', async () => { await delay(150); return HttpResponse.json(taskDetail()); }));
+      URL.createObjectURL = vi.fn(() => 'blob:x');
+      show(taskDetail({ abilities: abilities({ addFiles: true }) }));
+      await pick('a');
+      await screen.findByRole('button', { name: 'معاينة a.pdf' });
+      fireEvent.click(screen.getByRole('button', { name: 'إضافة ملفات العمل' }));
+      await pick('b');
+      await screen.findByRole('button', { name: 'معاينة b.pdf' });
+      await waitFor(() => expect(screen.queryByRole('button', { name: 'معاينة a.pdf' })).not.toBeInTheDocument());
+      expect(screen.getByRole('button', { name: 'معاينة b.pdf' })).toBeInTheDocument();
+    });
   });
 });

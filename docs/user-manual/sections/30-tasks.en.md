@@ -78,7 +78,7 @@ The list has no import: tasks are created one by one, not from a file.
 | Due date | The day the work is due. It drives the reminder, the «Overdue» and «Urgent» marks and the matrix. | Yes (today by default) | A date, not in the past when creating. |
 | Priority | How important the task is; «High» makes it «important» in the matrix. | No | Low, Medium (default), High. |
 | Expected time (hours) | The estimate of the work. When the time logged passes it, the assignee and the person who gave the task are told once. | No | A number above 0, steps of 0.25 hour; empty when unknown. |
-| Work files | Files the work needs (PowerPoint, Excel, Word, PDF, pictures). Each file is uploaded when chosen and shows a thumbnail: click it to look at the file before saving. Shown only to a person whose role holds `tasks.file_add`. (FR-212) | No | Up to 10 files, within the upload limit in Settings. |
+| Work files | Files the work needs (PowerPoint, Excel, Word, PDF, pictures). Each file is uploaded when chosen and shows a thumbnail: click it to look at the file before saving. Shown only to a person whose role holds `tasks.file_add`. «Create task» stays off while a file is still uploading, so a task is never made without its file. (FR-212) | No | Up to 10 files, within the upload limit in Settings. |
 | Repeats | Makes the system create the next task by itself when this one is closed (daily, weekly, monthly). | No | Does not repeat (default), Every day, Every week, Every month. |
 | Repeats until | The last date a repeating task may repeat. Shown only when «Repeats» is not «Does not repeat». | No | A date not before the due date; empty = no end. |
 | Urgent / «Mark as urgent» | Marks the task urgent by hand, whatever its due date. | No | On / Off (default Off). |

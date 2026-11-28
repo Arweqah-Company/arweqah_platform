@@ -51,13 +51,14 @@ function FilesForm({ busy, onAnswer, onCancel }: Pick<Props, 'busy' | 'onAnswer'
   const { t } = useTranslation('tasks');
   const { t: tc } = useTranslation();
   const [files, setFiles] = useState<FileDto[]>([]);
+  const [uploading, setUploading] = useState(false);
   return (
     <div className="flex flex-col gap-4">
-      <FileAttachments files={files} onChange={setFiles} max={MAX_TASK_FILES} label={t('files.deliveryTitle')} />
+      <FileAttachments files={files} onChange={setFiles} max={MAX_TASK_FILES} label={t('files.deliveryTitle')} onBusyChange={setUploading} />
       <div className="flex justify-end gap-2">
         <Button variant="secondary" onClick={onCancel}>{tc('actions.cancel')}</Button>
-        <Button variant="secondary" disabled={busy} onClick={() => void onAnswer({})}>{t('transition.skipFiles')}</Button>
-        <Button disabled={busy || files.length === 0} onClick={() => void onAnswer({ fileIds: files.map((f) => f.id) })}>{t('transition.sendWithFiles')}</Button>
+        <Button variant="secondary" disabled={busy || uploading} onClick={() => void onAnswer({})}>{t('transition.skipFiles')}</Button>
+        <Button disabled={busy || uploading || files.length === 0} onClick={() => void onAnswer({ fileIds: files.map((f) => f.id) })}>{t('transition.sendWithFiles')}</Button>
       </div>
     </div>
   );

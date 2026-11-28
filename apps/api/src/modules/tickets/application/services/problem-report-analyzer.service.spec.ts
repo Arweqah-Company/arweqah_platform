@@ -67,4 +67,18 @@ describe('A reading that fails with the screenshot is tried again without it (FR
     } as unknown as AiService;
     expect(await new ProblemReportAnalyzer(ai, files).analyze({ userId: 'u1', note: 'x', context: CONTEXT, imageFileId: null })).toBeNull();
   });
+
+  it('refuses a complete answer whose title and summary are both empty (review of PR 196), and accepts one with only a title or only a summary', async () => {
+    const ask = (raw: unknown) => {
+      const ai = {
+        isActive: () => Promise.resolve(true),
+        jsonOf: (q: { normalize: (r: unknown) => unknown; schema: { parse: (v: unknown) => unknown } }) => Promise.resolve({ value: q.schema.parse(q.normalize(raw)), imagesSeen: false }),
+      } as unknown as AiService;
+      return new ProblemReportAnalyzer(ai, files).analyze({ userId: 'u1', note: 'x', context: CONTEXT, imageFileId: null });
+    };
+    expect(await ask({ title: '', summary: '', stepsGuess: [], area: '', kind: 'other' })).toBeNull();
+    expect(await ask({ title: '   ', summary: ' ', stepsGuess: ['x'], area: 'a', kind: 'bug' })).toBeNull();
+    expect((await ask({ title: 'عنوان', summary: '', stepsGuess: [], area: '', kind: 'other' }))?.analysis.title).toBe('عنوان');
+    expect((await ask({ title: '', summary: 'وصف', stepsGuess: [], area: '', kind: 'other' }))?.analysis.summary).toBe('وصف');
+  });
 });

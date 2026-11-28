@@ -17,7 +17,8 @@ export class TaskDigestService {
 
   /**
    * Sends the summary to everyone whose hour has come and who was not handled today; a person with no open task gets nothing but is
-   * marked handled too, so the sweep does not count them again all day. Each person is its own transaction. Returns how many were sent.
+   * marked handled too, so the sweep does not count them again all day. Each person is its own transaction that first takes the day for them
+   * (`claimDigest`), so two sweeps that overlap (two API instances, a slow hour) send one summary. Returns how many were sent.
    */
   async sendDue(now: Date = this.clock.now()): Promise<number> {
     const today = riyadhToday(now);
@@ -25,11 +26,11 @@ export class TaskDigestService {
     let sent = 0;
     for (const person of people) {
       await this.tx.run(async (tx) => {
+        if (!(await this.preferences.claimDigest(person.userId, today, tx))) return;
         if (person.open > 0) {
           await this.notifier.send({ kind: 'summary', task: { id: '', number: 0, title: '' }, recipients: [person.userId], figures: person, link: '/tasks', tx });
           sent += 1;
         }
-        await this.preferences.markDigestHandled(person.userId, today, tx);
       });
     }
     return sent;

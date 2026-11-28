@@ -39,7 +39,7 @@ Your own page: here you set **the look and language of the platform**, edit your
 3. The choice applies at once and is saved for all your devices.
 
 
-**The profile follows the employee page (FR-222):** the fields you change here (personal phone, personal e-mail, English name) are the same ones the «edit employees» permission gives you for your own record on the employee page. A field the permission does not give shows locked (lock mark) and is not sent, and when no field is left open «Save changes» disappears. The basic data the permission gives you are changed directly on the employee page (the «Edit on the employee page» button on the basic data card); «Request a change» stays for the rest only and disappears when all of them are direct.
+**The profile follows the employee page (FR-222):** the fields you change here (personal phone, personal e-mail, English name) are the same ones the «edit employees» permission gives you for your own record on the employee page. A field the permission does not give shows locked (lock mark) and is not sent, and when no field is left open «Save changes» disappears. The basic data the permission gives you are changed directly on the employee page (the «Edit on the employee page» button on the basic data card, which shows only to someone who also holds «View employees»; otherwise those details stay in «Request a change»); «Request a change» stays for the rest only and disappears when all of them are direct.
 
 **Update your contact details**
 

@@ -1,6 +1,6 @@
 import { TASK_NOTICE_DEFAULTS, type TaskNoticeSettings } from '@arweqah-platform/shared';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
-import { http, HttpResponse } from 'msw';
+import { delay, http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { server } from '../../../../test/msw';
 import { renderPage } from '../../../../test/render';
@@ -46,5 +46,17 @@ describe('Task summary and reminders settings (FR-215…FR-218)', () => {
     renderPage(<TaskNoticeSection />);
     fireEvent.click(await screen.findByRole('checkbox', { name: /ملخص يومي بمهامي/ }));
     expect(screen.getByLabelText('وقت الملخص (توقيت الرياض)')).toBeDisabled();
+  });
+
+  it('locks the fields while the save is on its way, so a later choice is never lost (review of PR 196)', async () => {
+    serve();
+    server.use(http.put('*/api/task-notice-settings', async ({ request }) => { await delay(80); return HttpResponse.json(await request.json()); }));
+    renderPage(<TaskNoticeSection />);
+    await chooseOption(await screen.findByLabelText('القناة'), 'email');
+    fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
+    await waitFor(() => expect(screen.getByLabelText('القناة')).toBeDisabled());
+    expect(screen.getByLabelText('وقت الملخص (توقيت الرياض)')).toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: /تذكيري بمهامي/ })).toBeDisabled();
+    await waitFor(() => expect(screen.getByLabelText('القناة')).toBeEnabled());
   });
 });

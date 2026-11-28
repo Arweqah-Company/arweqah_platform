@@ -17,7 +17,7 @@ function FileRow({ taskId, file, onRemove }: { taskId: string; file: TaskFileDto
       <FileChip file={{ name: file.name, contentType: file.contentType, previewPath: `/tasks/${taskId}/files/${file.id}/preview`, downloadUrl: `/api/tasks/${taskId}/files/${file.id}` }} />
       <span className="text-xs text-muted">{t('files.addedBy', { name: file.addedBy.name, date: formatDateTime(file.addedAt) })}</span>
       {file.canRemove && (
-        <button type="button" aria-label={t('files.remove', { name: file.name })} title={t('files.removeShort')} className="grid size-7 place-items-center rounded-full text-danger-700 hover:bg-danger-50" onClick={() => onRemove(file)}>
+        <button type="button" aria-label={t('files.remove', { name: file.name })} title={t('files.removeShort')} className="grid size-7 place-items-center rounded-full text-danger-text hover:bg-danger-50" onClick={() => onRemove(file)}>
           <Trash2 className="size-4" aria-hidden />
         </button>
       )}
@@ -30,11 +30,13 @@ function AddFiles({ task, kind }: { task: TaskDto; kind: TaskFileKind }) {
   const { t } = useTranslation('tasks');
   const { t: tc } = useTranslation();
   const [files, setFiles] = useState<FileDto[]>([]);
+  const [uploading, setUploading] = useState(false);
   const add = useAddTaskFiles(task.id, kind);
   const attach = async () => {
+    const sent = new Set(files.map((f) => f.id));
     try {
-      await add.mutateAsync({ fileIds: files.map((f) => f.id) });
-      setFiles([]);
+      await add.mutateAsync({ fileIds: [...sent] });
+      setFiles((now) => now.filter((f) => !sent.has(f.id))); // a file chosen while the request was on its way was not in it: it stays
       toast.success(t(`files.${kind}Added`));
     } catch (error) {
       toast.error(errorMessage(tc, error));
@@ -42,8 +44,8 @@ function AddFiles({ task, kind }: { task: TaskDto; kind: TaskFileKind }) {
   };
   return (
     <div className="flex flex-col gap-2">
-      <FileAttachments files={files} onChange={setFiles} max={MAX_TASK_FILES} label={t(`files.${kind}Add`)} compact />
-      <div><Button disabled={files.length === 0 || add.isPending} onClick={() => void attach()}>{t(`files.${kind}Add`)}</Button></div>
+      <FileAttachments files={files} onChange={setFiles} max={MAX_TASK_FILES} label={t(`files.${kind}Add`)} compact onBusyChange={setUploading} />
+      <div><Button disabled={files.length === 0 || add.isPending || uploading} onClick={() => void attach()}>{t(`files.${kind}Add`)}</Button></div>
     </div>
   );
 }
