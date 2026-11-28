@@ -54,6 +54,7 @@ describe('The «report a problem» button (FR-196, FR-198)', () => {
     );
     const host = await screen.findByRole('dialog', { name: 'نافذة فيها مشكلة' });
     fireEvent.click(await within(host).findByRole('button', { name: 'بلّغ عن مشكلة' }));
+    expect(host).toBeInTheDocument();
     const report = await screen.findByRole('dialog', { name: 'بلّغ عن مشكلة' });
     expect(within(report).queryByRole('button', { name: 'بلّغ عن مشكلة' })).not.toBeInTheDocument();
   });

@@ -63,7 +63,7 @@ export function ReadingBar({ me, step, reached, atEnd, unopened, checked, busy, 
   const { t } = useTranslation('career-profile');
   const ready = canAcknowledge(step, reached);
   return (
-    <div className="sticky bottom-2 z-10 flex flex-col gap-2 rounded-3xl border border-neutral-200 bg-white p-3 pe-20 shadow-md" data-tour="career-reading-bar">
+    <div className="sticky bottom-2 z-10 flex flex-col gap-2 rounded-3xl border border-neutral-200 bg-white p-3 pe-32 shadow-md" data-tour="career-reading-bar">
       <Navigation step={step} reached={reached} atEnd={atEnd} unopened={unopened} onMove={onMove} onNext={onNext} />
       <div className="flex flex-wrap items-center gap-3">
         <AckBox me={me} ready={ready} checked={checked} onChecked={onChecked} />

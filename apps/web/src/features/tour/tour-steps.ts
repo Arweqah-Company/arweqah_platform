@@ -12,7 +12,7 @@ export const SHELL_STEPS: TourStepUi[] = [
   { key: 'sign-out', target: '[data-tour="sign-out"]', placement: 'start', menu: 'account' },
   { key: 'language-theme', target: '[data-tour="language-theme"]', placement: 'bottom' },
   { key: 'notifications', target: '[data-tour="notifications"]', placement: 'bottom', can: [{ id: 'mark', permission: CorePermission.NotificationsMarkRead }, { id: 'export', permission: CorePermission.NotificationsExport }] },
-  { key: 'problem-report', target: '[data-tour="problem-report"]', placement: 'bottom' },
+  { key: 'problem-report', target: '[data-tour="problem-report"]', placement: 'top' },
   { key: 'sidebar', target: '[data-tour="sidebar"]', placement: 'end', menu: 'drawer' },
   { key: 'finish', target: 'body', route: '/', placement: 'center' },
   { key: 'admin-mode', target: '[data-tour="admin-mode"]', placement: 'bottom' },

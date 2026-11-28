@@ -31,6 +31,9 @@ describe('What a problem report says about the screen (FR-199)', () => {
     marked.dataset.private = '';
     expect(isPrivate(password)).toBe(true);
     expect(isPrivate(marked)).toBe(true);
+    const corner = document.createElement('button');
+    corner.dataset.noScreenshot = '';
+    expect(isPrivate(corner)).toBe(true);
     expect(isPrivate(document.createElement('div'))).toBe(false);
     expect(isPrivate(document.createTextNode('x'))).toBe(false);
   });
