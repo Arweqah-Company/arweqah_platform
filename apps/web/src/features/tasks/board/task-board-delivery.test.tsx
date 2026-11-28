@@ -1,6 +1,6 @@
 import { CorePermission as P, type FileDto } from '@arweqah-platform/shared';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
-import { http, HttpResponse } from 'msw';
+import { delay, http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { me, server } from '../../../../test/msw';
 import { chooseOption } from '../../../../test/select';
@@ -82,5 +82,19 @@ describe('Handing in a delivery file with the move that finishes the work (FR-21
     slow.release();
     await screen.findByRole('button', { name: 'معاينة الأرقام.xlsx' });
     await waitFor(() => expect(screen.getByRole('button', { name: 'انقل مع الملفات' })).toBeEnabled());
+  });
+
+  it('locks the file box while the move is on its way, and opens it again when the move is refused (review of PR 196)', async () => {
+    serve(true);
+    let answer = 200;
+    server.use(http.post('*/api/tasks/:id/transition', async () => { await delay(150); return answer === 200 ? HttpResponse.json(taskDetail({ id: 't2', status: 'done' })) : HttpResponse.json({ code: 'TASK_TRANSITION_NOT_ALLOWED', message: 'no' }, { status: 422 }); }));
+    answer = 422;
+    board();
+    await screen.findByText('keys-ready');
+    await chooseOption(await screen.findByLabelText(/انقل المهمة مهمة جارية إلى/), 'done');
+    const box = await screen.findByLabelText('ملفات التسليم');
+    fireEvent.click(screen.getByRole('button', { name: 'انقل بلا ملفات' }));
+    await waitFor(() => expect(box).toBeDisabled());
+    await waitFor(() => expect(box).toBeEnabled());
   });
 });

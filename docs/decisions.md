@@ -4,7 +4,7 @@ Short records of choices that are not obvious from the code. Newest first.
 
 ## 2026-11-28 — Review of the release pull request #196 (CodeRabbit)
 
-Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-28). Twelve comments, ten real (reproduced with a failing test first), two answered.
+Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-28). Twelve comments, eleven real (reproduced with a failing test first), one answered; a second pass on the fixes added four (decisions 555–557).
 
 | # | Decision | Why | Revisit when |
 |---|---|---|---|
@@ -16,6 +16,9 @@ Plan: `docs/plans/phase-3-tasks.md` (log 2026-11-28). Twelve comments, ten real 
 | 549 | **A move that ends closes only its own window** (`setPending` by task id); a note or date asked for task A while the window of task B is open is told as a message and B's window stays. | One shared «pending» closed or replaced the window of another task. | |
 | 550 | **«My task summary and reminders» locks its fields while the save is on its way** (a `fieldset disabled`). | The form starts again from the saved answer, so a choice made meanwhile vanished. | |
 | 551 | **The calendar button of `DateInput` stays out of the tab order (comment not applied).** Typing the date is the keyboard way (the same function, WCAG 2.1.1), and one more tab stop on every date box of the platform is not worth it for a picker that exists for the mouse; the button is still reachable by screen readers and clicks. | CodeRabbit asked for `tabIndex` removed; the component is shared by every form and was not changed by this release. | Keyboard users ask for the picker |
+| 555 | **The due-day mark needs the assignee who was told too** (`markDueDayNotified(told, dueDate)`: `unnest(ids, assignees)` joined on id, assignee and due date). | A handover between the read and the mark left the mark on a task whose new assignee never got the notice (reproduced). Handover itself still leaves the mark as it was. | Handover clears the mark, as the objection reassignment does |
+| 556 | **A file box is `locked` while its form is being sent** (new-task form while it creates, the hand-in window while it moves): no choosing, no removing; it opens again if the request fails. | A file chosen after the request was built is stored and never linked. | |
+| 557 | **An upload that ends adds only what fits the limit** and tells the rest with the «too many» message instead of dropping it silently (the list may have grown meanwhile). | The limit was checked once, against the list at the start. | |
 
 ## 2026-11-27 — Task summary and reminders by notice and e-mail (FR-215…FR-218)
 

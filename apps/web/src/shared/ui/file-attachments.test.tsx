@@ -139,4 +139,27 @@ describe('The box while files are on their way (review of PR 196)', () => {
     expect(await screen.findByRole('button', { name: 'معاينة late.png' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'معاينة other.png' })).toBeInTheDocument();
   });
+
+  it('does not push the list past its limit when a file was added to it while the upload was on its way (review of PR 196)', async () => {
+    server.use(http.get('*/api/me', () => HttpResponse.json(me())));
+    const slow = slowUploads([dto('u1', 'u1.png', PNG), dto('u2', 'u2.png', PNG)]);
+    function Limited() {
+      const [files, setFiles] = useState<FileDto[]>([]);
+      return (
+        <>
+          <FileAttachments files={files} onChange={setFiles} max={2} label="المرفقات" />
+          <button type="button" onClick={() => setFiles([dto('other', 'other.png', PNG)])}>أضف ملفًا</button>
+          <output data-testid="count">{files.length}</output>
+        </>
+      );
+    }
+    renderPage(<Limited />);
+    fireEvent.change(await screen.findByLabelText('المرفقات'), { target: { files: [new File(['x'], 'u1.png', { type: PNG }), new File(['y'], 'u2.png', { type: PNG })] } });
+    fireEvent.click(screen.getByRole('button', { name: 'أضف ملفًا' }));
+    slow.release();
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+    expect(screen.getByTestId('count')).toHaveTextContent('2');
+    expect(screen.getByRole('button', { name: 'معاينة other.png' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'معاينة u1.png' })).toBeInTheDocument();
+  });
 });

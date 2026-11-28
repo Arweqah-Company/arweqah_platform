@@ -45,7 +45,10 @@ export function useUploader({ files, onChange, max, path = '/files', onUploaded,
         uploaded.push(stored);
         onUploaded?.(file, stored);
       }
-      onChange([...current.current, ...uploaded]);
+      // The list may have grown while the files were on their way: only what fits is added, and the rest is told, not dropped silently.
+      const room = Math.max(0, max - current.current.length);
+      onChange([...current.current, ...uploaded.slice(0, room)]);
+      if (uploaded.length > room) setError(t('attachments.tooMany', { max }));
     } catch (failure) {
       setError(errorMessage(t, failure) || t('attachments.failed'));
     } finally {

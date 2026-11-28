@@ -177,10 +177,21 @@ describe('Tasks: summary and reminders by notice and e-mail (FR-215…FR-218)', 
       const maintenance = t.app.get(TaskMaintenanceRepository);
       expect((await maintenance.dueToday(riyadhToday())).map((x) => x.id)).toContain(task.id);
       await t.db.query(`UPDATE tasks SET due_date = due_date + 3 WHERE id = $1`, [task.id]);
-      await maintenance.markDueDayNotified([task.id], riyadhToday());
+      const read = { id: task.id, assigneeUserId: w.report.id };
+      await maintenance.markDueDayNotified([read], riyadhToday());
       expect(await t.db.query('SELECT due_day_notified_at FROM tasks WHERE id = $1', [task.id])).toEqual([{ due_day_notified_at: null }]);
-      await maintenance.markDueDayNotified([task.id], daysFromNow(3));
+      await maintenance.markDueDayNotified([read], daysFromNow(3));
       expect((await t.db.query('SELECT due_day_notified_at FROM tasks WHERE id = $1', [task.id]))[0].due_day_notified_at).not.toBeNull();
+    });
+
+    it('marks the due-day notice only for the assignee who received it: a task handed over meanwhile is not marked (review of PR 196)', async () => {
+      const w = await world();
+      const task = await w.given(riyadhToday());
+      const maintenance = t.app.get(TaskMaintenanceRepository);
+      const [read] = (await maintenance.dueToday(riyadhToday())).filter((x) => x.id === task.id);
+      await t.db.query('UPDATE tasks SET assignee_user_id = $1 WHERE id = $2', [w.follower.id, task.id]);
+      await maintenance.markDueDayNotified([read!], riyadhToday());
+      expect(await t.db.query('SELECT due_day_notified_at FROM tasks WHERE id = $1', [task.id])).toEqual([{ due_day_notified_at: null }]);
     });
 
     it('reminds once more on the day itself, and not for a task due later', async () => {

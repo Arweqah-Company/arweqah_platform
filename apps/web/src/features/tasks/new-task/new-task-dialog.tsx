@@ -100,7 +100,7 @@ function NewTaskForm({ onDone }: { onDone: () => void }) {
       <WhoFields draft={draft} onPatch={patch} options={options} />
       <WhenFields draft={draft} onPatch={patch} today={today} creating attempted={attempted} />
       <OptionFields draft={draft} onPatch={patch} />
-      <TaskFilesField files={draft.files} onChange={(files) => patch({ files })} onBusyChange={setUploading} />
+      <TaskFilesField files={draft.files} onChange={(files) => patch({ files })} onBusyChange={setUploading} locked={create.isPending} />
       <ApproverHint forMyself={forMyself && !draft.personal} approver={options?.approver ?? null} />
       <div className="flex justify-end gap-2">
         <Button variant="secondary" onClick={onDone}>{tc('actions.cancel')}</Button>
