@@ -23,7 +23,9 @@ describe('FR-201: the date field writes YYYY-MM-DD in Latin digits', () => {
 
   it('pads a month or day of one digit that a dash closes, and lets the digits after a month go on into the day', () => {
     expect(maskDay('2026-1-')).toBe('2026-01-');
-    expect(maskDay('2026-1-5')).toBe('2026-01-5');
+    expect(maskDay('2026-1-5')).toBe('2026-1-5'); // a month inside a day already written is left as it is
+    expect(maskDay('2026-1-15')).toBe('2026-1-15'); // so a digit of the month can be deleted from «2026-01-15»
+    expect(maskDay('1995-3-1-')).toBe('1995-03-01');
     expect(maskDay('2026-031')).toBe('2026-03-1');
     expect(maskDay('2026-12-019')).toBe('2026-12-01');
     expect(maskDay('1995-03-1-')).toBe('1995-03-01'); // a trailing dash closes a day of one digit too

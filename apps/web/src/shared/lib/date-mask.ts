@@ -13,17 +13,37 @@ function maskDigits(text: string): string {
 /**
  * Whatever the person typed or pasted, shaped as `2026`, `2026-1`, `2026-12-01`. The field adds the dashes itself, but a dash the person types after a whole year
  * or month stays (`1995-`, `1995-03-`: it can be typed as it is written, with `-`, `/` or `.`), and a month or day of one digit that a dash closes gets its zero
- * (`1995-3-` becomes `1995-03-`). Anything else is read as digits only.
+ * (`1995-3-` becomes `1995-03-`, `1995-03-1-` becomes `1995-03-01`; a month inside a day already written is left alone, so a digit of it can be deleted). Anything else is read as digits only.
  */
 export function maskDay(text: string): string {
   const raw = toLatinDigits(text);
+  const typed = readTyped(raw);
+  if (!typed) return maskDigits(raw);
+  const { year, month, day, closed, finished } = typed;
+  if (!closed) return `${year}-${month}`;
+  // The month gets its zero as the dash closes it (a day still empty, or a dash after the day), not inside a day already written: «2026-01-15» can be edited.
+  const monthText = day === '' || finished ? pad2(month) : month;
+  return `${year}-${monthText}-${finished ? pad2(day) : day}`;
+}
+
+interface TypedDay {
+  year: string;
+  month: string;
+  day: string;
+  /** A dash came after a non-empty month. */
+  closed: boolean;
+  /** A dash came after the day too («1995-03-1-»). */
+  finished: boolean;
+}
+
+/** The parts of a day typed with dashes after a whole year, or null when it is to be read as digits only. */
+function readTyped(raw: string): TypedDay | null {
   const split = raw.split(/\D/);
-  const finished = split.length === 4 && split[3] === ''; // «1995-03-1-»: a dash after the day closes it
+  const finished = split.length === 4 && split[3] === '';
   const parts = finished ? split.slice(0, 3) : split;
-  if (!isTypedWithDashes(parts)) return maskDigits(raw);
-  const [year, month = '', day = ''] = parts;
-  const closed = parts.length === 3 && month !== '';
-  return `${year}-${closed ? pad2(month) : month}${closed ? `-${finished ? pad2(day) : day}` : ''}`;
+  if (!isTypedWithDashes(parts)) return null;
+  const [year = '', month = '', day = ''] = parts;
+  return { year, month, day, closed: parts.length === 3 && month !== '', finished };
 }
 
 /** A month or day with its zero in front; an empty one stays empty (a dash typed after nothing is not a «00»). */
